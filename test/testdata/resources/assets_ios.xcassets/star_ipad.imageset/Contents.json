@@ -1,0 +1,18 @@
+{
+  "images" : [
+    {
+      "idiom" : "ipad",
+      "filename" : "star.png",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "ipad",
+      "filename" : "star_2x.png",
+      "scale" : "2x"
+    },
+  ],
+  "info" : {
+    "version" : 1,
+    "author" : "xcode"
+  }
+}

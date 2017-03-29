@@ -1,0 +1,49 @@
+#!/bin/bash
+set -eu
+
+# The path where the archive should be created, including the name of the
+# archive itself.
+readonly OUTPUT_PATH=%output_path%
+# The name of the post processor executable, if any, that should be run on the
+# directory containing the package contents.
+readonly POST_PROCESSOR=%post_processor%
+# Indicates whether the final archive should be compressed (1) or not (0).
+readonly SHOULD_COMPRESS=%should_compress%
+# The path to archive with the unprocessed and unsigned bundle.
+readonly UNPROCESSED_ARCHIVE_PATH=%unprocessed_archive_path%
+# The absolute path to the directory where the unprocessed archive will be
+# extracted for post-processing and signing.
+readonly WORK_DIR=%work_dir%
+
+# Blow away the old working dir if it's still there from a previous build.
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
+
+# Expand the unprocessed archive into the temporary directory.
+unzip -qq -d "$WORK_DIR" "$UNPROCESSED_ARCHIVE_PATH"
+
+# Execute the archive post-processor, if it was provided.
+if [[ -n "$POST_PROCESSOR" ]]; then
+  "$POST_PROCESSOR" "$WORK_DIR"
+fi
+
+# Sign the application, if requested. This may expand to nothing in the case
+# where signing is not being performed.
+%signing_command_lines%
+
+if [[ "$SHOULD_COMPRESS" == "1" ]]; then
+  readonly COMPRESSION_METHOD=deflate
+else
+  readonly COMPRESSION_METHOD=store
+fi
+
+# Create the final ZIP archive and copy it into its destination in bazel-bin/.
+readonly OUTPUT_BASENAME=$(basename "$OUTPUT_PATH")
+pushd "$WORK_DIR" >/dev/null
+# Ensure that the entries in the ZIP are writable when expanded, because some
+# tools rely on the ability to unzip it, modify it, and re-sign it.
+chmod -R u+w .
+( TZ=UTC find . -exec touch -h -t 198001010000 {} \+ )
+zip -qX -r --compression-method "$COMPRESSION_METHOD" "$OUTPUT_BASENAME" .
+popd >/dev/null
+mv "$WORK_DIR/$OUTPUT_BASENAME" "$OUTPUT_PATH"

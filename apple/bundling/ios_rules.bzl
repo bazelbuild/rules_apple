@@ -1,0 +1,290 @@
+# Copyright 2017 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Rule implementations for creating iOS applications and bundles.
+
+DO NOT load this file directly; use the macro in
+//apple:ios.bzl instead. Bazel rules receive their name at
+*definition* time based on the name of the global to which they are assigned.
+We want the user to call macros that have the same name, to get automatic
+binary creation, entitlements support, and other features--which requires a
+wrapping macro because rules cannot invoke other rules.
+"""
+
+load("//apple/bundling:apple_bundling_aspect.bzl",
+     "apple_bundling_aspect")
+load("//apple/bundling:bundler.bzl", "bundler")
+load("//apple/bundling:bundling_support.bzl",
+     "bundling_support")
+load("//apple/bundling:entitlements.bzl",
+     "entitlements",
+     "entitlements_support")
+load("//apple/bundling:rule_attributes.bzl",
+     "common_rule_attributes",
+     "common_rule_without_binary_attributes")
+load("//apple/bundling:run_actions.bzl", "run_actions")
+load("//apple/bundling:test_support.bzl", "test_support")
+load("//apple:utils.bzl", "merge_dictionaries")
+
+
+def _ios_application_impl(ctx):
+  """Implementation of the ios_application Skylark rule."""
+
+  # Add the launch storyboard if we don't already have it in the set (which may
+  # happen if users glob "*.storyboard", for example).
+  additional_resources = depset()
+  launch_storyboard = ctx.file.launch_storyboard
+  if launch_storyboard:
+    additional_resources = depset([launch_storyboard])
+
+  additional_resources += ctx.files.app_icons + ctx.files.launch_images
+
+  # If a settings bundle was provided, pass in its bundlable files (structs
+  # with a File object and destination path) to the core bundler, but only
+  # after transforming the paths to ensure that the files are copied into a
+  # directory named Settings.bundle.
+  additional_bundlable_files = []
+  settings_bundle = ctx.attr.settings_bundle
+  if settings_bundle:
+    files = settings_bundle.objc.bundle_file
+    additional_bundlable_files = [
+        bundling_support.force_settings_bundle_prefix(f) for f in files]
+
+  # TODO(b/32910122): Obtain framework information from extensions.
+  embedded_bundles = [
+      bundling_support.embedded_bundle(
+          "PlugIns", extension.apple_bundle, verify_bundle_id=True)
+      for extension in ctx.attr.extensions
+  ] + [
+      bundling_support.embedded_bundle(
+          "Frameworks", framework.apple_bundle, verify_bundle_id=False)
+      for framework in ctx.attr.frameworks
+  ]
+
+  watch_app = ctx.attr.watch_application
+  if watch_app:
+    embedded_bundles.append(bundling_support.embedded_bundle(
+        "Watch", watch_app.apple_bundle, verify_bundle_id=True))
+
+  providers, additional_outputs = bundler.run(
+      ctx,
+      "IosApplicationArchive", "iOS application",
+      ctx.attr.bundle_id,
+      additional_bundlable_files=additional_bundlable_files,
+      additional_resources=additional_resources,
+      embedded_bundles=embedded_bundles,
+  )
+
+  if ctx.attr.binary:
+    providers["xctest_app"] = test_support.new_xctest_app_provider(ctx)
+
+  runfiles = run_actions.start_simulator(ctx)
+
+  # The empty ios_application provider acts as a tag to let depending
+  # attributes restrict the targets that can be used to just iOS applications.
+  return struct(
+      files=depset([ctx.outputs.archive]) + additional_outputs,
+      ios_application=struct(),
+      runfiles=ctx.runfiles(files=runfiles),
+      **providers
+  )
+
+
+# All attributes available to the _ios_application rule. (Note that this does
+# not include linkopts, which is consumed entirely by the wrapping macro.)
+_IOS_APPLICATION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
+    "app_icons": attr.label_list(),
+    "entitlements": attr.label(
+        allow_files=[".entitlements"],
+        single_file=True,
+    ),
+    "extensions": attr.label_list(
+        providers=[["apple_bundle", "ios_extension"]],
+    ),
+    "families": attr.string_list(
+        mandatory=True,
+    ),
+    "frameworks": attr.label_list(
+        allow_rules=["ios_framework"],
+    ),
+    "launch_images": attr.label_list(),
+    "launch_storyboard": attr.label(
+        allow_files=[".storyboard", ".xib"],
+        single_file=True,
+    ),
+    "product_type": attr.string(),
+    "settings_bundle": attr.label(providers=[["objc"]]),
+    "watch_application": attr.label(
+        providers=[["apple_bundle", "watchos_application"]],
+    ),
+    "_allowed_families": attr.string_list(default=["iphone", "ipad"]),
+    # The extension of the bundle being generated by the rule.
+    "_bundle_extension": attr.string(default=".app"),
+    # iOS .app bundles should include a PkgInfo file.
+    "_needs_pkginfo": attr.bool(default=True),
+    # A format string used to compose the path to the bundle inside the
+    # packaged archive. The placeholder "%s" is replaced with the name of the
+    # bundle (with its extension).
+    "_path_in_archive_format": attr.string(default="Payload/%s"),
+    # The platform type that should be passed to tools for targets of this
+    # type.
+    "_platform_type": attr.string(default=str(apple_common.platform_type.ios)),
+})
+
+
+ios_application = rule(
+    _ios_application_impl,
+    attrs = _IOS_APPLICATION_ATTRIBUTES,
+    executable = True,
+    fragments = ["apple", "objc"],
+    outputs = {
+        "archive": "%{name}.ipa",
+    },
+)
+
+
+def _ios_extension_impl(ctx):
+  """Implementation of the ios_extension Skylark rule."""
+  additional_resources = depset(ctx.files.app_icons + ctx.files.asset_catalogs)
+
+  providers, additional_outputs = bundler.run(
+      ctx,
+      "IosExtensionArchive", "iOS extension",
+      ctx.attr.bundle_id,
+      additional_resources=additional_resources,
+  )
+
+  # The empty ios_extension provider acts as a tag to let depending attributes
+  # restrict the targets that can be used to just iOS extensions.
+  return struct(
+      files=depset([ctx.outputs.archive]) + additional_outputs,
+      ios_extension = struct(),
+      **providers
+  )
+
+
+# All attributes available to the _ios_extension rule. (Note that this does
+# not include linkopts, which is consumed entirely by the wrapping macro.)
+_IOS_EXTENSION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
+    "app_icons": attr.label_list(),
+    "asset_catalogs": attr.label_list(
+        allow_files=True,
+    ),
+    "entitlements": attr.label(
+        allow_files=[".entitlements"],
+        single_file=True,
+    ),
+    "families": attr.string_list(
+        mandatory=True,
+    ),
+    "frameworks": attr.label_list(
+        allow_rules=["ios_framework"],
+    ),
+    "product_type": attr.string(),
+    "_allowed_families": attr.string_list(default=["iphone", "ipad"]),
+    # The extension of the bundle being generated by the rule.
+    "_bundle_extension": attr.string(default=".appex"),
+    # iOS extension bundles should not include a PkgInfo file.
+    "_needs_pkginfo": attr.bool(default=False),
+    # A format string used to compose the path to the bundle inside the
+    # packaged archive. The placeholder "%s" is replaced with the name of the
+    # bundle (with its extension).
+    "_path_in_archive_format": attr.string(default="%s"),
+    # The platform type that should be passed to tools for targets of this
+    # type.
+    "_platform_type": attr.string(default=str(apple_common.platform_type.ios)),
+    "_propagates_frameworks": attr.bool(default=True),
+})
+
+
+ios_extension = rule(
+    _ios_extension_impl,
+    attrs = _IOS_EXTENSION_ATTRIBUTES,
+    fragments = ["apple", "objc"],
+    outputs = {
+        "archive": "%{name}.zip",
+    },
+)
+
+
+def _ios_framework_impl(ctx):
+  """Implementation of the ios_framework Skylark rule."""
+  bundlable_binary = struct(file=ctx.file.binary,
+                            bundle_path=bundling_support.bundle_name(ctx))
+  prefixed_hdr_files = []
+  for hdr_provider in ctx.attr.hdrs:
+    for hdr_file in hdr_provider.files:
+      prefixed_hdr_files.append(bundling_support.header_prefix(hdr_file))
+
+  providers, additional_outputs = bundler.run(
+      ctx,
+      "IosFrameworkArchive", "iOS framework",
+      ctx.attr.bundle_id,
+      additional_bundlable_files=prefixed_hdr_files,
+      framework_files=prefixed_hdr_files + [bundlable_binary],
+      is_dynamic_framework=True,
+  )
+
+  return struct(
+      files=depset([ctx.outputs.archive]) + additional_outputs,
+      **providers
+  )
+
+
+# All attributes available to the _ios_framework rule.
+_IOS_FRAMEWORK_ATTRIBUTES = merge_dictionaries(common_rule_without_binary_attributes(), {
+    "app_icons": attr.label_list(),
+    "binary": attr.label(
+        # TODO(b/36513471): Restrict to apple dylib provider.
+        allow_rules=["apple_binary"],
+        aspects=[apple_bundling_aspect],
+        mandatory=True,
+        single_file=True,
+    ),
+    "hdrs": attr.label_list(
+        allow_files=[".h"],
+    ),
+    "families": attr.string_list(
+        mandatory=True,
+    ),
+    "linkopts": attr.string_list(),
+    "_allowed_families": attr.string_list(default=["iphone", "ipad"]),
+    # The extension of the bundle being generated by the rule.
+    "_bundle_extension": attr.string(default=".framework"),
+    # iOS extension bundles should not include a PkgInfo file.
+    "_needs_pkginfo": attr.bool(default=False),
+    # A format string used to compose the path to the bundle inside the
+    # packaged archive. The placeholder "%s" is replaced with the name of the
+    # bundle (with its extension).
+    "_path_in_archive_format": attr.string(default="%s"),
+    # The platform type that should be passed to tools for targets of this
+    # type.
+    "_platform_type": attr.string(default=str(apple_common.platform_type.ios)),
+    # Frameworks don't nest other frameworks; such dependencies should be
+    # propagated to the same place as the parent target's frameworks.
+    "_propagates_frameworks": attr.bool(default=True),
+    # Frameworks do not require code signing by themselves, and are signed only
+    # when the containing app or extension is signed.
+    "_skip_signing": attr.bool(default=True),
+})
+
+
+ios_framework = rule(
+    _ios_framework_impl,
+    attrs = _IOS_FRAMEWORK_ATTRIBUTES,
+    fragments = ["apple", "objc"],
+    outputs = {
+        "archive": "%{name}.zip",
+    },
+)
