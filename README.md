@@ -36,13 +36,15 @@ under the hood.
 
 ## Setup
 
-Add the following to your `WORKSPACE` file to add the external repositories:
+Add the following to your `WORKSPACE` file to add the external repositories,
+replacing the version number in the `tag` attribute with the version of the
+rules you wish to depend on:
 
 ```python
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.1.0",
+    tag = "0.0.1",
 )
 ```
 
@@ -86,8 +88,10 @@ counterparts, they cannot be intermixed; for example, an `ios_application` from
 this repository cannot have an extension that is a built-in `ios_extension` or
 vice versa.
 
-More comprehensive documentation about migrating from the built-in Bazel rules
-will be provided soon.
+The wiki for this repository contains a
+[migration guide](https://github.com/bazelbuild/rules_apple/wiki/Migrating-from-the-native-rules)
+describing in detail the differences between the old and new rules and how to
+update your build targets.
 
 ## Coming soon
 
