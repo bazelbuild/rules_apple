@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",

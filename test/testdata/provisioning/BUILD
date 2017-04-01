@@ -1,5 +1,3 @@
 package(default_visibility = ["//visibility:public"])
 
-exports_files([
-    "integration_testing.mobileprovision",
-])
+exports_files(["integration_testing.mobileprovision"])

@@ -1,3 +1,5 @@
+package(default_visibility = ["//apple:__subpackages__"])
+
 filegroup(
     name = "bundler_py",
     srcs = ["bundler.py"],
@@ -7,7 +9,6 @@ filegroup(
 filegroup(
     name = "bundling",
     srcs = glob(["*.bzl"]),
-    visibility = ["//apple:__subpackages__"],
 )
 
 filegroup(

@@ -1,4 +1,4 @@
-# Apple Rules
+# Apple Rules for [Bazel](https://bazel.build)
 
 > :warning: **NOTE**: At the time of this writing, the most recent Bazel
 > release is **0.4.5.** These rules are *not* compatible with that release;

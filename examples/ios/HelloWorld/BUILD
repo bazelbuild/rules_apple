@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 load("//apple:ios.bzl", "ios_application")
 
 objc_library(
@@ -15,7 +17,10 @@ objc_library(
 ios_application(
     name = "HelloWorld",
     bundle_id = "com.example.hello-world",
-    families = ["iphone", "ipad"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
     infoplists = [":Info.plist"],
     deps = [":Sources"],
 )
