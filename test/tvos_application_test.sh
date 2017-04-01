@@ -207,7 +207,8 @@ EOF
     # the binary.
     do_build tvos 10.0 //app:app || fail "Should build"
 
-    print_debug_entitlements "test-bin/app/app.apple_binary_lipobin" | \
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+        print_debug_entitlements - | \
         assert_contains "<key>test-an-entitlement</key>" -
   fi
 }

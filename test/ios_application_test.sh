@@ -328,8 +328,8 @@ EOF
 
   do_build ios 9.0 //app:app || fail "Should build"
 
-  nm -j "test-bin/app/app.apple_binary_lipobin" | \
-      grep _linkopts_test_main \
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
+      nm -j - | grep _linkopts_test_main \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }
@@ -387,7 +387,8 @@ EOF
     # the binary.
     do_build ios 9.0 //app:app || fail "Should build"
 
-    print_debug_entitlements "test-bin/app/app.apple_binary_lipobin" | \
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+        print_debug_entitlements - | \
         assert_contains "<key>test-an-entitlement</key>" -
   fi
 }
