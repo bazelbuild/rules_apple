@@ -1,5 +1,7 @@
 package(default_visibility = ["//apple:__subpackages__"])
 
+licenses(["notice"])
+
 filegroup(
     name = "bundler_py",
     srcs = ["bundler.py"],

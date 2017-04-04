@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+licenses(["notice"])
+
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",

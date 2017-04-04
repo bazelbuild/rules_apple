@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+licenses(["notice"])
+
 exports_files([
     "launch_screen_ios.storyboard",
     "nonlocalized.strings",
