@@ -38,6 +38,13 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "ios_application_swift_test",
+    size = "medium",
+    src = "ios_application_swift_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
     name = "ios_extension_test",
     size = "medium",
     src = "ios_extension_test.sh",
@@ -50,9 +57,32 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "ios_extension_swift_test",
+    size = "medium",
+    src = "ios_extension_swift_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+)
+
+# The swift_library test does not use any canned configurations; it controls
+# options manually for various tests.
+apple_shell_test(
+    name = "swift_library_test",
+    size = "medium",
+    src = "swift_library_test.sh",
+    configurations = {"default": []},
+)
+
+apple_shell_test(
     name = "tvos_application_test",
     size = "medium",
     src = "tvos_application_test.sh",
+    configurations = TVOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "tvos_application_swift_test",
+    size = "medium",
+    src = "tvos_application_swift_test.sh",
     configurations = TVOS_CONFIGURATIONS,
 )
 
@@ -64,8 +94,22 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "tvos_extension_swift_test",
+    size = "medium",
+    src = "tvos_extension_swift_test.sh",
+    configurations = TVOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
     name = "watchos_application_test",
     size = "medium",
     src = "watchos_application_test.sh",
+    configurations = WATCHOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "watchos_application_swift_test",
+    size = "medium",
+    src = "watchos_application_swift_test.sh",
     configurations = WATCHOS_CONFIGURATIONS,
 )

@@ -33,7 +33,7 @@
         </array>
         <key>keychain-access-groups</key>
         <array>
-            <string>FOOBARBAZ1.*</string>       
+            <string>FOOBARBAZ1.*</string>
         </array>
         <key>get-task-allow</key>
         <true/>
