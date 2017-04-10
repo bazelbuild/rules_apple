@@ -15,6 +15,10 @@
 """Utility functions for working with strings, lists, and files in Skylark."""
 
 
+XCRUNWRAPPER_LABEL = "//external:xcrunwrapper"
+"""The label for xcrunwrapper tool."""
+
+
 def apple_action(ctx, **kw):
   """Creates an action that only runs on MacOS/Darwin.
 
@@ -223,6 +227,11 @@ def join_commands(cmds):
   return ' && '.join(cmds)
 
 
+def label_scoped_path(ctx, path):
+  """Return the path scoped to target's label."""
+  return ctx.label.name + "/" + path.lstrip("/")
+
+
 def merge_dictionaries(*dictionaries):
   """Merges at least two dictionaries.
 
@@ -239,6 +248,11 @@ def merge_dictionaries(*dictionaries):
     for name, value in d.items():
       result[name] = value
   return result
+
+
+def module_cache_path(ctx):
+  """Returns the Clang module cache path to use for this rule."""
+  return ctx.genfiles_dir.path + "/_objc_module_cache"
 
 
 def optionally_prefixed_path(path, prefix):

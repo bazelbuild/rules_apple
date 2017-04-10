@@ -248,7 +248,7 @@ function current_archs() {
     platform=ios_multi
   fi
 
-  for option in "${EXTRA_BUILD_OPTIONS[@]}"; do
+  for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     case "$option" in
       --"${platform}"_cpus=*)
         value="$(echo "$option" | cut -d= -f2)"
@@ -291,8 +291,11 @@ function do_build() {
     bazel_options+=("--ios_signing_cert_name=-")
   fi
 
+  if [[ -n "${EXTRA_BUILD_OPTIONS[@]-}" ]]; then
+    bazel_options+=( "${EXTRA_BUILD_OPTIONS[@]}" )
+  fi
+
   bazel_options+=( \
-      "${EXTRA_BUILD_OPTIONS[@]}" \
       --define=bazel_rules_apple.mock_provisioning=true \
       "$@" \
   )
@@ -307,7 +310,7 @@ function do_build() {
 # Returns a success code if the --ios_signing_cert_name flag is set to "-";
 # otherwise, it returns a failure exit code.
 function is_ad_hoc_signed_build() {
-  for option in "${EXTRA_BUILD_OPTIONS[@]}"; do
+  for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     if [[ "$option" == "--ios_signing_cert_name=-" ]]; then
       return 0
     fi
@@ -322,7 +325,7 @@ function is_ad_hoc_signed_build() {
 # Returns a success code if the --apple_bitcode flag is set to either
 # "embedded" or "embedded_markers"; otherwise, it returns a failure exit code.
 function is_bitcode_build() {
-  for option in "${EXTRA_BUILD_OPTIONS[@]}"; do
+  for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     case "$option" in
       --apple-bitcode=none)
         return 1
