@@ -111,7 +111,7 @@ EOF
 
   do_build ios 8.0 --objccopt=-DCOPTS_FOO=1 --subcommands \
       //ios:swift_lib || fail "should build"
-  expect_log "-module-cache-path blaze-out/darwin_x86_64-fastbuild/genfiles/_objc_module_cache"
+  expect_log "-module-cache-path [^/]*-out/[^/]*/genfiles/_objc_module_cache"
 }
 
 function test_swift_imports_swift() {
@@ -380,8 +380,8 @@ objc_binary(name = "bin",
 EOF
 
   do_build ios 8.0 --subcommands //ios:bin || fail "should build"
-  expect_log "-Xlinker -add_ast_path -Xlinker blaze-out/ios_x86_64-fastbuild/genfiles/ios/dep/_objs/ios_dep\.swiftmodule"
-  expect_log "-Xlinker -add_ast_path -Xlinker blaze-out/ios_x86_64-fastbuild/genfiles/ios/swift_lib/_objs/ios_swift_lib\.swiftmodule"
+  expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/dep/_objs/ios_dep\.swiftmodule"
+  expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/swift_lib/_objs/ios_swift_lib\.swiftmodule"
 }
 
 function test_swiftc_script_mode() {

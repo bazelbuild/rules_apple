@@ -15,7 +15,7 @@
 """Utility functions for working with strings, lists, and files in Skylark."""
 
 
-XCRUNWRAPPER_LABEL = "//external:xcrunwrapper"
+XCRUNWRAPPER_LABEL = "@bazel_tools//tools/objc:xcrunwrapper"
 """The label for xcrunwrapper tool."""
 
 
