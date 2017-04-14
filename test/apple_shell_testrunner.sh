@@ -66,14 +66,14 @@ function setup_clean_workspace() {
   [ "${new_workspace_dir}" = "${WORKSPACE_DIR}" ] || \
     { echo "Failed to create workspace" >&2; exit 1; }
   export BAZEL_INSTALL_BASE=$(bazel info install_base)
-  export BAZEL_GENFILES=$(bazel info bazel-genfiles "${EXTRA_BUILD_OPTIONS[@]}")
-  export BAZEL_BIN=$(bazel info bazel-bin "${EXTRA_BUILD_OPTIONS[@]}")
+  export BAZEL_GENFILES=$(bazel info bazel-genfiles "${EXTRA_BUILD_OPTIONS[@]:-}")
+  export BAZEL_BIN=$(bazel info bazel-bin "${EXTRA_BUILD_OPTIONS[@]:-}")
 }
 
 # Any remaining arguments are passed to every `bazel build` invocation in the
 # subsequent tests (see `do_build` in apple_shell_testutils.sh).
 export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
-echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]}" > "$TEST_log"
+echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
 
 setup_clean_workspace
 
