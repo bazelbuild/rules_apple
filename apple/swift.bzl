@@ -172,6 +172,42 @@ def _validate_rule_and_deps(ctx):
       fail(name_error_str % dep.label)
 
 
+def _get_wmo_state(ctx):
+  """Returns the status of Whole Module Optimization feature.
+
+  Whole Module Optimization can be enabled for the whole build by setting a
+  bazel flag, in which case we still need to insert a corresponding compiler
+  flag into the swiftc command line.
+
+  It can also be enabled per target, by putting the compiler flag
+  (-whole-module-optimization or -wmo) into the copts of the target.
+  In this case, the compiler flag is already there, and we need not to
+  insert one.
+
+  This method checks whether WMO is enabled, and if it is, whether the compiler
+  flag is already present.
+
+  Args:
+    ctx: The Skylark context.
+
+  Returns:
+    A tuple with two booleans. First value indicates whether WMO has been
+    enabled, the second indicates whether a compiler flag is needed.
+  """
+  has_wmo = False
+  has_flag = False
+
+  if (("-wmo" in ctx.attr.copts)
+      or ("-whole-module-optimization" in ctx.attr.copts)):
+    has_wmo = True
+    has_flag = True
+  elif ctx.fragments.swift.enable_whole_module_optimization():
+    has_wmo = True
+    has_flag = False
+
+  return has_wmo, has_flag
+
+
 def swiftc_inputs(ctx):
   """Determine the list of inputs required for the compile action.
 
@@ -361,9 +397,7 @@ def _swift_library_impl(ctx):
   output_objs = []  # Object file outputs, used in archive action.
   swiftc_outputs = []  # Other swiftc outputs that aren't processed further.
 
-  # Check if the user enabled Whole Module Optimization (WMO)
-  # This is highly experimental and tracked in b/29465250
-  has_wmo = ("-wmo" in ctx.attr.copts) or ("-whole-module-optimization" in ctx.attr.copts)
+  has_wmo, has_wmo_flag = _get_wmo_state(ctx)
 
   for source in ctx.files.srcs:
     basename = source.basename
@@ -407,6 +441,9 @@ def _swift_library_impl(ctx):
   ]
 
   if has_wmo:
+    if not has_wmo_flag:
+      args.append("-whole-module-optimization")
+
     # WMO has two modes: threaded and not. We want the threaded mode because it
     # will use the output map we generate. This leads to a better debug
     # experience in lldb and Xcode.
