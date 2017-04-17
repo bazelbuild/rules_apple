@@ -26,6 +26,7 @@ filegroup(
         ":localized_storyboards_ios",
         ":localized_strings_ios",
         ":localized_xibs_ios",
+        ":mapping_model",
         ":settings_bundle_ios_files",
         ":sticker_pack_ios",
         ":unversioned_datamodel",
@@ -94,6 +95,7 @@ objc_bundle_library(
     resources = [
         "nonlocalized_resource.txt",
         ":localized_generic_resources",
+        ":mapping_model",
     ],
     storyboards = [
         "storyboard_ios.storyboard",
@@ -133,6 +135,11 @@ filegroup(
 filegroup(
     name = "localized_xibs_ios",
     srcs = glob(["*.lproj/*.xib"]),
+)
+
+filegroup(
+    name = "mapping_model",
+    srcs = glob(["mapping_model.xcmappingmodel/**"]),
 )
 
 objc_bundle(
