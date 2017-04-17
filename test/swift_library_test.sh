@@ -458,40 +458,55 @@ EOF
   do_build ios 8.0 //ios:swiftmodule || fail "should build"
 }
 
-function test_swift_whole_module_optimization() {
-  cat >ios/main.swift <<EOF
-import Foundation
-import ios_util
-
-public class SwiftClass {
-  public func bar() -> String {
-    return Utility().foo()
-  }
-}
-EOF
-
-  cat >ios/Utility.swift <<EOF
-public class Utility {
-  public init() {}
-  public func foo() -> String { return "foo" }
-}
-EOF
+function test_swift_wmo_short() {
+  echo 'class SwiftClass { func bar() -> Int { return 1 } }' > ios/main.swift
 
   cat >ios/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:swift.bzl",
      "swift_library")
 
-swift_library(name = "swift_lib",
+swift_library(name = "swift_lib_copt_wmo_short",
               srcs = ["main.swift"],
-              deps = [":util"],
               copts = ["-wmo"])
+EOF
 
-swift_library(name = "util",
-              srcs = ['Utility.swift'],
+  do_build ios 8.0 //ios:swift_lib_copt_wmo_short -s || fail "should build"
+  expect_log "-num-threads"
+  expect_log "-wmo"
+}
+
+function test_swift_wmo_long() {
+  echo 'class SwiftClass { func bar() -> Int { return 1 } }' > ios/main.swift
+
+cat >ios/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:swift.bzl",
+     "swift_library")
+
+swift_library(name = "swift_lib_copt_wmo_short_long",
+              srcs = ["main.swift"],
               copts = ["-whole-module-optimization"])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib || fail "should build"
+  do_build ios 8.0 //ios:swift_lib_copt_wmo_short_long -s || fail "should build"
+  expect_log "-num-threads"
+  expect_log "-whole-module-optimization"
+}
+
+function test_swift_wmo_flag() {
+  echo 'class SwiftClass { func bar() -> Int { return 1 } }' > ios/main.swift
+
+  cat >ios/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:swift.bzl",
+     "swift_library")
+
+swift_library(name = "swift_lib_copt_wmo_flag",
+              srcs = ["main.swift"])
+EOF
+
+  do_build ios 8.0 //ios:swift_lib_copt_wmo_flag -s \
+      --swift_whole_module_optimization || fail "should build"
+  expect_log "-num-threads"
+  expect_log "-whole-module-optimization"
 }
 
 function test_swift_dsym() {
