@@ -19,6 +19,10 @@ XCRUNWRAPPER_LABEL = "@bazel_tools//tools/objc:xcrunwrapper"
 """The label for xcrunwrapper tool."""
 
 
+DARWIN_EXECUTION_REQUIREMENTS = {"requires-darwin": ""}
+"""Standard execution requirements to force building on Mac."""
+
+
 def apple_action(ctx, **kw):
   """Creates an action that only runs on MacOS/Darwin.
 

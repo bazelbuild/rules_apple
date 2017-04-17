@@ -2,15 +2,17 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-exports_files(["LICENSE"])
+sh_binary(
+    name = "environment_plist",
+    srcs = ["environment_plist.sh"],
+)
 
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = [
-        "//apple:for_bazel_tests",
-        "//tools:for_bazel_tests",
+    srcs = glob(["**"]),
+    visibility = [
+        "//tools:__pkg__",
     ],
-    visibility = ["//:__subpackages__"],
 )

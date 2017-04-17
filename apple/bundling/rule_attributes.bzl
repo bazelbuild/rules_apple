@@ -41,7 +41,7 @@ def _tool_attributes():
       "_actoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("@bazel_tools//tools/objc:actoolwrapper"),
+          default=Label("//tools/actoolwrapper"),
       ),
       "_bundler_py": attr.label(
           cfg="host",
@@ -63,12 +63,12 @@ def _tool_attributes():
       "_environment_plist": attr.label(
           cfg="host",
           executable=True,
-          default=Label("@bazel_tools//tools/objc:environment_plist"),
+          default=Label("//tools/environment_plist"),
       ),
       "_ibtoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("@bazel_tools//tools/objc:ibtoolwrapper"),
+          default=Label("//tools/ibtoolwrapper"),
       ),
       "_ios_runner": attr.label(
           cfg="host",
@@ -79,7 +79,7 @@ def _tool_attributes():
       "_momcwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("@bazel_tools//tools/objc:momcwrapper"),
+          default=Label("//tools/momcwrapper"),
       ),
       "_plisttool": attr.label(
           cfg="host",
@@ -95,7 +95,7 @@ def _tool_attributes():
           cfg="host",
           allow_files=True,
           single_file=True,
-          default=Label("@bazel_tools//tools/objc:realpath"),
+          default=Label("//tools/realpath"),
       ),
       "_std_redirect_dylib": attr.label(
           cfg="host",
@@ -106,7 +106,7 @@ def _tool_attributes():
       "_swiftstdlibtoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("@bazel_tools//tools/objc:swiftstdlibtoolwrapper"),
+          default=Label("//tools/swiftstdlibtoolwrapper"),
       ),
       "_xcrunwrapper": attr.label(
           cfg="host",
