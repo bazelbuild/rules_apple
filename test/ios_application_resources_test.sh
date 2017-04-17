@@ -66,6 +66,9 @@ objc_library(
         "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
         "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
     ],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:mapping_model",
+    ],
     storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
     ],
@@ -103,6 +106,8 @@ EOF
       "Payload/app.app/versioned_datamodel.momd/v2.mom"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/mapping_model.cdm"
 
   # Verify compiled storyboards.
   assert_zip_contains "test-bin/app/app.ipa" \

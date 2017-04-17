@@ -394,6 +394,56 @@ def _ibtool_link(ctx, storyboardc_zips):
   return out_zip
 
 
+def _mapc(ctx, input_files, resource_info):
+  """Creates actions that compile a Core Data mapping model files.
+
+  Each file should be contained inside a .xcmappingmodel directory.
+
+  Args:
+    ctx: The Skylark context.
+    input_files: An iterable of files in all mapping models that should be
+        compiled and packaged as part of the application.
+    resource_info: A struct returned by `resource_support.resource_info` that
+        contains information needed by the resource processing functions.
+  Returns:
+    A struct as defined by `_process_resources` that will be merged with those
+    from other processing functions.
+  """
+
+  bundle_dir = resource_info.bundle_dir
+  grouped_models = group_files_by_directory(input_files,
+                                            ["xcmappingmodel"],
+                                            attr="resources")
+
+  out_files = []
+
+  for model, children in grouped_models.items():
+    compiled_model_name = replace_extension(basename(model), ".cdm")
+
+    out_file = file_support.intermediate(
+        ctx, "%%{name}.%s" % compiled_model_name, bundle_dir)
+    out_files.append(out_file)
+
+    args = [model, out_file.path]
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs=list(children),
+        outputs=[out_file],
+        executable=ctx.executable._mapcwrapper,
+        arguments=args,
+        mnemonic="MappingModelCompile",
+    )
+
+  full_bundle_path = optionally_prefixed_path(compiled_model_name, bundle_dir)
+  return struct(
+      bundle_merge_files=depset([
+          bundling_support.resource_file(ctx, f, full_bundle_path)
+          for f in out_files
+      ]),
+  )
+
+
 def _momc(ctx, input_files, resource_info):
   """Creates actions that compile a Core Data data model files.
 
@@ -542,6 +592,8 @@ _PROCESSABLE_RESOURCES = [
     # Core Data data models (versioned and unversioned).
     (["xcdatamodeld/"],            _arity.all,   _momc),
     (["xcdatamodel/"],             _arity.all,   _momc),
+    # Core Data mapping models.
+    (["xcmappingmodel/"],          _arity.all,   _mapc),
     # Interface Builder files.
     (["storyboard"],               _arity.each,  _ibtool_compile),
     (["xib"],                      _arity.each,  _ibtool_compile),

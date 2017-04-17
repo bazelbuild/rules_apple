@@ -10,6 +10,7 @@ filegroup(
         "//tools/actoolwrapper:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",
         "//tools/ibtoolwrapper:for_bazel_tests",
+        "//tools/mapcwrapper:for_bazel_tests",
         "//tools/momcwrapper:for_bazel_tests",
         "//tools/realpath:for_bazel_tests",
         "//tools/swiftstdlibtoolwrapper:for_bazel_tests",

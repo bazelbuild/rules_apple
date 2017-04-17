@@ -1,0 +1,5 @@
+mapcwrapper runs mapc, which compiles xcmappingmodels.
+mapcwrapper has predictable outputs (a single .cdm file), but we use a wrapper
+script to send paths through `realpath` first.
+
+mapc only runs on Darwin, so mapcwrapper only runs on Darwin.

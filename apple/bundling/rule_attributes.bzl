@@ -76,6 +76,11 @@ def _tool_attributes():
           single_file=True,
           default=Label("@bazel_tools//tools/objc:ios_runner.sh.mac_template"),
       ),
+      "_mapcwrapper": attr.label(
+          cfg="host",
+          executable=True,
+          default=Label("//tools/mapcwrapper"),
+      ),
       "_momcwrapper": attr.label(
           cfg="host",
           executable=True,
