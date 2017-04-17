@@ -27,5 +27,5 @@ filegroup(
     srcs = glob(["**"]) + [
         "//apple/bundling:for_bazel_tests",
     ],
-    visibility = ["//test:__subpackages__"],
+    visibility = ["//:__pkg__"],
 )

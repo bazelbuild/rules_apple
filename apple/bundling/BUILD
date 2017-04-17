@@ -38,6 +38,5 @@ filegroup(
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",
-        "//test:__subpackages__",
     ],
 )
