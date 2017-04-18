@@ -324,6 +324,29 @@ def _simulator_file_label(name):
   return _device_file_label(name) + ".c"
 
 
+def _sanitize_for_c_symbol(string):
+  """Sanitizes a string so that it is a valid C symbol.
+
+  The algorithm replaces non-C-symbol characters with an underscore. It is not
+  bijective, because for this particular use case we do not need it to be
+  reversible or unique; only one entitlements symbol is ever generated per
+  target.
+
+  Args:
+    string: The string to sanitize.
+  Returns:
+    The sanitized string.
+  """
+  sanitized_chars = []
+  for i in range(len(string)):
+    ch = string[i]
+    if not (ch.isalnum() or ch == "_"):
+      sanitized_chars.append("_")
+    else:
+      sanitized_chars.append(ch)
+  return "".join(sanitized_chars)
+
+
 def _simulator_function(name):
   """Derive the name of the function to force linkage.
 
@@ -338,7 +361,7 @@ def _simulator_function(name):
   Returns:
     The name of a function to enforce linkage.
   """
-  return "__ENTITLEMENTS_LINKAGE__" + name
+  return "__ENTITLEMENTS_LINKAGE__" + _sanitize_for_c_symbol(name)
 
 
 def _link_opts(name):
