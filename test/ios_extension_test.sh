@@ -490,4 +490,21 @@ function test_prebuilt_dynamic_framework_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
+# Tests that the IPA contains bitcode symbols when bitcode is embedded.
+function test_bitcode_symbol_maps_packaging() {
+  # Bitcode is only availabe on device. Ignore the test for simulator builds.
+  is_device_build ios || return 0
+
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  do_build ios 10.0 --ios_minimum_os=8.0 --apple_bitcode=embedded \
+       //app:app || fail "Should build"
+
+  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+      "Payload/app.app/app"
+  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/ext"
+}
+
 run_suite "ios_extension bundling tests"

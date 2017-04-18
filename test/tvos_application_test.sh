@@ -213,4 +213,19 @@ EOF
   fi
 }
 
+# Tests that the IPA contains bitcode symbols when bitcode is embedded.
+# TODO(b/37473298): Enable when bitcode+tvos issue is fixed.
+function disabled_test_bitcode_symbol_maps_packaging() {
+  set -eux
+  # Bitcode is only availabe on device. Ignore the test for simulator builds.
+  is_device_build tvos || return 0
+
+  create_common_files
+  create_minimal_tvos_application
+  do_build tvos 10.0 //app:app --apple_bitcode=embedded || fail "Should build"
+
+  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+      "Payload/app.app/app"
+}
+
 run_suite "tvos_application bundling tests"

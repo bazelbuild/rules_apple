@@ -496,3 +496,23 @@ function assert_binary_not_contains() {
 function version_as_number() {
   echo "$@" | awk -F. '{ printf("%d%03d%03d\n", $1,$2,$3); }'
 }
+
+
+# Usage: assert_contains_bitcode_maps <platform> <archive> <path_in_archive>
+#
+# Asserts that the IPA at `archive` contains bitcode symbol map of the binary
+# at `path_in_archive` for each architecture being built for the `platform`.
+function assert_ipa_contains_bitcode_maps() {
+  platform="$1"
+  archive="$2"
+  binary="$3"
+
+  assert_zip_contains "$archive" "$binary"
+  unzip_single_file "$archive" "$binary" > $TMPDIR/tmp_bin
+  declare -a archs=( $(current_archs "$platform") )
+  for arch in "${archs[@]}"; do
+    BIN_UUID=$(dwarfdump -u "$TMPDIR"/tmp_bin -arch "${arch}" | cut -d' ' -f2)
+    assert_zip_contains "$archive" \
+      "BCSymbolMaps/${BIN_UUID}.bcsymbolmap"
+  done
+}
