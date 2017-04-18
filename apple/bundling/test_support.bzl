@@ -21,7 +21,7 @@
 _WHITELISTED_TEST_OBJC_PROVIDER_FIELDS = [
     "define", "dynamic_framework_file", "framework_dir",
     "dynamic_framework_dir", "framework_search_paths", "header", "include",
-    "sdk_dylib", "sdk_framework", "source", "static_framework_file",
+    "iquote", "sdk_dylib", "sdk_framework", "source", "static_framework_file",
     "weak_sdk_framework"]
 
 
