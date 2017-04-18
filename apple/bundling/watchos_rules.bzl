@@ -31,12 +31,21 @@ load("//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes",
      "common_rule_without_binary_attributes")
 load("//apple/bundling:run_actions.bzl", "run_actions")
+load("//apple:providers.bzl", "AppleResourceSet")
 load("//apple:utils.bzl", "merge_dictionaries")
 
 
 def _watchos_application_impl(ctx):
   """Implementation of the watchos_application Skylark rule."""
-  additional_resources = ctx.files.storyboards + ctx.files.app_icons
+
+  # Collect asset catalogs and storyboards, if any are present.
+  additional_resource_sets = []
+  additional_resources = depset(ctx.files.app_icons + ctx.files.storyboards)
+  if additional_resources:
+    additional_resource_sets.append(AppleResourceSet(
+        resources=additional_resources,
+    ))
+
   embedded_bundles = []
 
   ext = ctx.attr.extension
@@ -48,7 +57,7 @@ def _watchos_application_impl(ctx):
       ctx,
       "WatchosApplicationArchive", "watchOS application",
       ctx.attr.bundle_id,
-      additional_resources=additional_resources,
+      additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
   )
 
@@ -108,13 +117,20 @@ watchos_application = rule(
 
 def _watchos_extension_impl(ctx):
   """Implementation of the watchos_extension Skylark rule."""
-  additional_resources = ctx.files.app_icons
+
+  # Collect asset catalogs and storyboards, if any are present.
+  additional_resource_sets = []
+  additional_resources = depset(ctx.files.app_icons)
+  if additional_resources:
+    additional_resource_sets.append(AppleResourceSet(
+        resources=additional_resources,
+    ))
 
   providers, additional_outputs = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",
       ctx.attr.bundle_id,
-      additional_resources=additional_resources,
+      additional_resource_sets=additional_resource_sets,
   )
 
   # The empty watchos_extension provider acts as a tag to let depending

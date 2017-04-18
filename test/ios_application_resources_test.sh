@@ -68,6 +68,7 @@ objc_library(
     ],
     resources = [
         "@build_bazel_rules_apple//test/testdata/resources:mapping_model",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
     ],
     storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
@@ -113,9 +114,19 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/storyboard_ios.storyboardc/"
 
-  # Verify strings.
+  # Verify strings and plists (that they exist and that they are in binary
+  # format).
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.plist" | \
+      assert_contains "^bplist00" -
 
   # Verify compiled NIBs. Note that NIB folders might have different structures
   # depending on the minimum OS version passed to ibtool (in fact, they can
@@ -133,6 +144,9 @@ function test_localized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_plists",
+    ],
     storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
     ],
@@ -160,9 +174,18 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
 
-  # Verify strings.
+  # Verify strings and plists.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.strings" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.plist" | \
+      assert_contains "^bplist00" -
 
   # Verify compiled NIBs.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -299,6 +322,27 @@ EOF
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/basic_bundle.txt"
+
+  # Verify strings and plists are in binary format.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/should_be_binary.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/should_be_binary.strings" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/should_be_binary.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/should_be_binary.plist" | \
+      assert_contains "^bplist00" -
+
+  # Verify that a nested file is still nested (the resource processing
+  # didn't flatten it).
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle/nested/should_be_nested.strings" | \
+      assert_contains "^bplist00" -
 }
 
 # Tests that objc_bundle files are bundled correctly with the application if
@@ -344,6 +388,64 @@ EOF
       "Payload/app.app/foo/Bar.bundle/baz.txt"
 }
 
+# Tests that structured resources (both unprocessed ones, and processed ones
+# like .strings/.plist) have their paths preserved in the final bundle.
+function test_structured_resources() {
+  create_common_files
+
+  mkdir -p app/structured
+
+  cat >> app/structured/nested.txt <<EOF
+a nested file
+EOF
+
+  cat >> app/structured/nested.strings <<EOF
+"nested" = "nested";
+EOF
+
+  cat >> app/structured/nested.plist <<EOF
+{
+  "nested" = "nested";
+}
+EOF
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    structured_resources = glob(["structured/**"]),
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios 9.0 //app:app || fail "Should build"
+
+  # Verify that the unprocessed structured resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.txt"
+
+  # Verify that the processed structured resources are present and compiled.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.strings" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.plist" | \
+      assert_contains "^bplist00" -
+}
+
 # Tests that the Settings.bundle is bundled correctly with the application.
 function test_settings_bundle() {
   create_common_files
@@ -362,10 +464,18 @@ EOF
 
   do_build ios 9.0 //app:app || fail "Should build"
 
+  # Verify that the files exist and are compiled in binary format.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/Root.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/Settings.bundle/Root.plist" | \
+      assert_contains "^bplist00" -
+
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/Settings.bundle/it.lproj/Root.strings" | \
+      assert_contains "^bplist00" -
 }
 
 # Tests that resources generated by a genrule, which produces a separate copy

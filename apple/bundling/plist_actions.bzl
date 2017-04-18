@@ -167,10 +167,11 @@ def _merge_infoplists(ctx,
     file (or None, if no file was generated).
   """
   output_plist = file_support.intermediate(
-      ctx, "%{name}-Info-binary.plist", path_prefix)
+      ctx, "%{name}-Info-binary.plist", prefix=path_prefix)
 
   if executable_bundle and ctx.attr._needs_pkginfo:
-    pkginfo = file_support.intermediate(ctx, "%{name}-PkgInfo", path_prefix)
+    pkginfo = file_support.intermediate(
+        ctx, "%{name}-PkgInfo", prefix=path_prefix)
   else:
     pkginfo = None
 
@@ -247,7 +248,7 @@ def _merge_infoplists(ctx,
       info_plist_options=struct(**info_plist_options),
   )
   control_file = file_support.intermediate(
-      ctx, "%{name}.plisttool-control", path_prefix)
+      ctx, "%{name}.plisttool-control", prefix=path_prefix)
   ctx.file_action(
       output=control_file,
       content=control.to_json()

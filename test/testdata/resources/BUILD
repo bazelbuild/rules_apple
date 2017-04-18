@@ -4,6 +4,7 @@ licenses(["notice"])
 
 exports_files([
     "launch_screen_ios.storyboard",
+    "nonlocalized.plist",
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
     "storyboard_ios.storyboard",
@@ -38,10 +39,12 @@ filegroup(
     name = "resource_data_deps_platform_independent",
     srcs = [
         "BUILD",
+        "nonlocalized.plist",
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
         ":basic_bundle_files",
         ":localized_generic_resources",
+        ":localized_plists",
         ":structured",
     ],
 )
@@ -93,8 +96,10 @@ objc_bundle_library(
         ":versioned_datamodel",
     ],
     resources = [
+        "nonlocalized.plist",
         "nonlocalized_resource.txt",
         ":localized_generic_resources",
+        ":localized_plists",
         ":mapping_model",
     ],
     storyboards = [
@@ -120,6 +125,11 @@ filegroup(
 filegroup(
     name = "localized_generic_resources",
     srcs = glob(["*.lproj/*.txt"]),
+)
+
+filegroup(
+    name = "localized_plists",
+    srcs = glob(["*.lproj/*.plist"]),
 )
 
 filegroup(
