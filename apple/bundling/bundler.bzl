@@ -33,6 +33,7 @@ load("//apple:utils.bzl",
      "relativize_path",
      "remove_extension",
     )
+load("//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
 load("//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("//apple/bundling:codesigning_support.bzl",
@@ -725,6 +726,14 @@ def _run(
     platform, _ = platform_support.platform_and_sdk_version(ctx)
     root_merge_zips.append(bundling_support.bundlable_file(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
+
+  # Include bitcode symbol maps when needed.
+  if (str(ctx.fragments.apple.bitcode_mode) == "embedded" and
+      getattr(ctx.attr, "binary", None) and
+      apple_common.AppleDebugOutputs in ctx.attr.binary):
+    bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
+    root_merge_zips.append(bundling_support.bundlable_file(
+        bitcode_maps_zip, "BCSymbolMaps"))
 
   # Include any embedded bundles.
   for eb in embedded_bundles:

@@ -259,4 +259,20 @@ function test_contains_stub_executable() {
     "WatchKitSupport2/WK"
 }
 
+# Tests that the IPA contains bitcode symbols when bitcode is embedded.
+function test_bitcode_symbol_maps_packaging() {
+  # Bitcode is only availabe on device. Ignore the test for simulator builds.
+  is_device_build watchos || return 0
+
+  create_minimal_watchos_application_with_companion
+
+  do_build watchos 2.0 //app:phone_app \
+      --apple_bitcode=embedded || fail "Should build"
+
+  assert_ipa_contains_bitcode_maps ios "test-bin/app/phone_app.ipa" \
+      "Payload/phone_app.app/phone_app"
+  assert_ipa_contains_bitcode_maps watchos "test-bin/app/phone_app.ipa" \
+      "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext"
+}
+
 run_suite "watchos_application bundling tests"
