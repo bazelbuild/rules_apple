@@ -393,6 +393,44 @@ EOF
   fi
 }
 
+# Tests that the target name is sanitized before it is used as the symbol name
+# for embedded debug entitlements.
+function test_target_name_sanitized_for_entitlements() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app-with-hyphen",
+    bundle_id = "my.bundle.id",
+    entitlements = "entitlements.plist",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/entitlements.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>test-an-entitlement</key>
+  <false/>
+</dict>
+</plist>
+EOF
+
+  if ! is_device_build ios ; then
+    do_build ios 9.0 //app:app-with-hyphen || fail "Should build"
+
+    unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
+        "Payload/app-with-hyphen.app/app-with-hyphen" | \
+        print_debug_entitlements - | \
+        assert_contains "<key>test-an-entitlement</key>" -
+  fi
+}
+
 # Tests that an iMessage application contains the appropriate stub executable
 # and auto-injected plist keys.
 function test_message_application() {
