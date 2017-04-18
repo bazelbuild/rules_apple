@@ -130,25 +130,6 @@ def _embedded_bundle(path, apple_bundle, verify_bundle_id):
       path=path, apple_bundle=apple_bundle, verify_bundle_id=verify_bundle_id)
 
 
-def _force_settings_bundle_prefix(bundle_file):
-  """Forces a file's destination to start with "Settings.bundle/".
-
-  If the given file's destination path contains a directory named "*.bundle",
-  everything up to that point in the path is removed and replaced with
-  "Settings.bundle". Otherwise, "Settings.bundle/" is prepended to the path.
-
-  Args:
-    bundle_file: A value from an objc provider's bundle_file field; in other
-        words, a struct with file and bundle_path fields.
-  Returns:
-    A bundlable file struct with the same File object, but whose path has been
-    transformed to start with "Settings.bundle/".
-  """
-  _, _, path_inside_bundle = bundle_file.bundle_path.rpartition(".bundle/")
-  new_path = "Settings.bundle/" + path_inside_bundle
-  return struct(file=bundle_file.file, bundle_path=new_path)
-
-
 def _header_prefix(input_file):
   """Sets a file's bundle destination to a "Headers/" subdirectory.
 
@@ -240,7 +221,6 @@ bundling_support = struct(
     contents_file=_contents_file,
     embedded_bundle=_embedded_bundle,
     header_prefix=_header_prefix,
-    force_settings_bundle_prefix=_force_settings_bundle_prefix,
     path_in_binary_dir=_path_in_binary_dir,
     path_in_contents_dir=_path_in_contents_dir,
     path_in_resources_dir=_path_in_resources_dir,

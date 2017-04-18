@@ -99,12 +99,12 @@ def _group_resources(files, groupings):
   return grouped_files
 
 
-def _compile_strings(ctx, strings_file, resource_info):
-  """Creates an action that converts a strings plist to binary format.
+def _compile_plist(ctx, input_file, resource_info):
+  """Creates an action that converts a plist file to binary format.
 
   Args:
     ctx: The Skylark context.
-    strings_file: The .strings file that should be converted.
+    input_file: The property list file that should be converted.
     resource_info: A struct returned by `resource_support.resource_info` that
         contains information needed by the resource processing functions.
   Returns:
@@ -113,21 +113,27 @@ def _compile_strings(ctx, strings_file, resource_info):
   """
   bundle_dir = resource_info.bundle_dir
 
-  path = resource_support.lproj_rooted_path_or_basename(strings_file)
+  path = resource_info.path_transform(input_file)
   out_file = file_support.intermediate(
-      ctx, "%{name}.resources/" + path, bundle_dir)
+      ctx, "%{name}.resources/%{path}", path=path, prefix=bundle_dir)
+
+  input_path = input_file.path
+  if input_path.endswith(".strings"):
+    mnemonic = "CompileStrings"
+  else:
+    mnemonic = "CompilePlist"
 
   xcrun_action(
       ctx,
-      inputs=[strings_file],
+      inputs=[input_file],
       outputs=[out_file],
       arguments=[
           "/usr/bin/plutil",
           "-convert", "binary1",
           "-o", out_file.path,
-          "--", strings_file.path,
+          "--", input_file.path,
       ],
-      mnemonic="CompileStrings",
+      mnemonic=mnemonic,
   )
 
   full_bundle_path = optionally_prefixed_path(path, bundle_dir)
@@ -239,9 +245,12 @@ def _actool(ctx, asset_catalogs, resource_info):
   """
   bundle_dir = resource_info.bundle_dir
 
-  out_zip = file_support.intermediate(ctx, "%{name}.actool.zip", bundle_dir)
+  out_zip = file_support.intermediate(
+      ctx, "%{name}.resources/%{path}", path="actool-output.zip",
+      prefix=bundle_dir)
   out_plist = file_support.intermediate(
-      ctx, "%{name}.actool-PartialInfo.plist", bundle_dir)
+      ctx, "%{name}.resources/%{path}", path="actool-PartialInfo.plist",
+      prefix=bundle_dir)
 
   platform, _ = platform_support.platform_and_sdk_version(ctx)
   min_os = platform_support.minimum_os(ctx)
@@ -319,7 +328,7 @@ def _ibtool_compile(ctx, input_file, resource_info):
   bundle_dir = resource_info.bundle_dir
   swift_module = resource_info.swift_module
 
-  path = resource_support.lproj_rooted_path_or_basename(input_file)
+  path = resource_info.path_transform(input_file)
 
   if path.endswith(".storyboard"):
     is_storyboard = True
@@ -331,7 +340,7 @@ def _ibtool_compile(ctx, input_file, resource_info):
     out_name = replace_extension(path, ".nib")
 
   out_file = file_support.intermediate(
-      ctx, "%{name}.resources/" + path + ".zip", bundle_dir)
+      ctx, "%{name}.resources/%{path}", path=path + ".zip", prefix=bundle_dir)
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.
@@ -374,7 +383,7 @@ def _ibtool_link(ctx, storyboardc_zips):
     storyboards.
   """
   out_zip = file_support.intermediate(
-      ctx, "%{name}.resources/linked-storyboards.zip")
+      ctx, "%{name}.resources/%{path}", path="linked-storyboards.zip")
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.
@@ -514,7 +523,8 @@ def _momc(ctx, input_files, resource_info):
     archive_root_dir = model_name + extension
 
     out_file = file_support.intermediate(
-        ctx, "%%{name}.%s%s.zip" % (model_name, extension), bundle_dir)
+        ctx, "%{name}.resources/%{path}",
+        path="%s%s.zip" % (model_name, extension), prefix=bundle_dir)
     out_files.append(out_file)
 
     args = [
@@ -597,8 +607,8 @@ _PROCESSABLE_RESOURCES = [
     # Interface Builder files.
     (["storyboard"],               _arity.each,  _ibtool_compile),
     (["xib"],                      _arity.each,  _ibtool_compile),
-    # Localizable strings.
-    (["strings"],                  _arity.each,  _compile_strings),
+    # Property lists and localizable strings.
+    (["plist", "strings"],         _arity.each,  _compile_plist),
 ]
 
 
@@ -668,8 +678,7 @@ def _process_resources(ctx, files, resource_info):
   unprocessed_resources = grouped_files[_UNGROUPED]
   bundle_merge_files = bundle_merge_files | depset([
       bundling_support.resource_file(ctx, f, optionally_prefixed_path(
-          resource_support.lproj_rooted_path_or_basename(f),
-          resource_info.bundle_dir))
+          resource_info.path_transform(f), resource_info.bundle_dir))
       for f in unprocessed_resources
   ])
 

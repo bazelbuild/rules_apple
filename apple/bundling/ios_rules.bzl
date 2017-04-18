@@ -35,31 +35,35 @@ load("//apple/bundling:rule_attributes.bzl",
      "common_rule_without_binary_attributes")
 load("//apple/bundling:run_actions.bzl", "run_actions")
 load("//apple/bundling:test_support.bzl", "test_support")
+load("//apple:providers.bzl", "AppleResourceSet")
 load("//apple:utils.bzl", "merge_dictionaries")
 
 
 def _ios_application_impl(ctx):
   """Implementation of the ios_application Skylark rule."""
 
-  # Add the launch storyboard if we don't already have it in the set (which may
-  # happen if users glob "*.storyboard", for example).
-  additional_resources = depset()
+  # Collect asset catalogs, launch images, and the launch storyboard, if any are
+  # present.
+  additional_resource_sets = []
+  additional_resources = depset(ctx.files.app_icons + ctx.files.launch_images)
   launch_storyboard = ctx.file.launch_storyboard
   if launch_storyboard:
-    additional_resources = depset([launch_storyboard])
+    additional_resources += [launch_storyboard]
+  if additional_resources:
+    additional_resource_sets.append(AppleResourceSet(
+        resources=additional_resources,
+    ))
 
-  additional_resources += ctx.files.app_icons + ctx.files.launch_images
-
-  # If a settings bundle was provided, pass in its bundlable files (structs
-  # with a File object and destination path) to the core bundler, but only
-  # after transforming the paths to ensure that the files are copied into a
-  # directory named Settings.bundle.
-  additional_bundlable_files = []
+  # If a settings bundle was provided, pass in its files as if they were
+  # objc_bundle imports, but forcing the "Settings.bundle" name.
   settings_bundle = ctx.attr.settings_bundle
   if settings_bundle:
-    files = settings_bundle.objc.bundle_file
-    additional_bundlable_files = [
-        bundling_support.force_settings_bundle_prefix(f) for f in files]
+    additional_resource_sets.append(AppleResourceSet(
+        bundle_dir="Settings.bundle",
+        objc_bundle_imports=[
+            bf.file for bf in settings_bundle.objc.bundle_file
+        ]
+    ))
 
   # TODO(b/32910122): Obtain framework information from extensions.
   embedded_bundles = [
@@ -81,8 +85,7 @@ def _ios_application_impl(ctx):
       ctx,
       "IosApplicationArchive", "iOS application",
       ctx.attr.bundle_id,
-      additional_bundlable_files=additional_bundlable_files,
-      additional_resources=additional_resources,
+      additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
   )
 
@@ -156,13 +159,20 @@ ios_application = rule(
 
 def _ios_extension_impl(ctx):
   """Implementation of the ios_extension Skylark rule."""
+
+  # Collect asset catalogs and launch images if any are present.
+  additional_resource_sets = []
   additional_resources = depset(ctx.files.app_icons + ctx.files.asset_catalogs)
+  if additional_resources:
+    additional_resource_sets.append(AppleResourceSet(
+        resources=additional_resources,
+    ))
 
   providers, additional_outputs = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
       ctx.attr.bundle_id,
-      additional_resources=additional_resources,
+      additional_resource_sets=additional_resource_sets,
   )
 
   # The empty ios_extension provider acts as a tag to let depending attributes

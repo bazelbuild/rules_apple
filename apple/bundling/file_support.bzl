@@ -17,7 +17,7 @@
 load("//apple:utils.bzl", "optionally_prefixed_path")
 
 
-def _intermediate(ctx, pattern, prefix=None):
+def _intermediate(ctx, pattern, path=None, prefix=None):
   """Returns a new intermediate file.
 
   Args:
@@ -25,13 +25,18 @@ def _intermediate(ctx, pattern, prefix=None):
     pattern: A pattern used to derive the path and name of the file. If the
         placeholder `%{name}` is in the string, it will be replaced with
         `ctx.label.name` (that is, the name of the current building target).
-    prefix: An optional prefix that, if present, will be added to the
-        beginning of the path, separated by the rest of the path by a slash.
+        Likewise, `%{path}` will be substituted with the `path` argument.
+    path: The path to be substituted for `%{path}`.
+    prefix: An optional prefix that, if present, will be added just before
+        `%{path}`, separated by the rest of the path by a slash.
   Returns:
     A new `File` object.
   """
-  name = optionally_prefixed_path(
-      pattern.replace("%{name}", ctx.label.name), prefix)
+  name = pattern.replace("%{name}", ctx.label.name)
+  if path:
+    name = name.replace("%{path}", optionally_prefixed_path(path, prefix))
+  else:
+    name = optionally_prefixed_path(name, prefix)
   return ctx.new_file(name)
 
 

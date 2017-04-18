@@ -431,25 +431,28 @@ def _process_and_sign_archive(ctx,
   return work_dir
 
 
-def _farthest_directory_matching(path, extension):
-  """Returns the part of a path with the given extension closest to the root.
-
-  For example, if `path` is `"foo/bar.bundle/baz.bundle"`, passing `".bundle"`
-  as the extension will return `"foo/bar.bundle"`.
+def _partition_strings_and_plists(files):
+  """Partitions a depset of files depending on whether they are strings/plists.
 
   Args:
-    path: The path.
-    extension: The extension of the directory to find.
+    files: A `depset` of files.
   Returns:
-    The portion of the path that ends in the given extension that is closest
-    to the root of the path.
+    Two `depset`s, the first containing the files that are `.strings` or
+    `.plist` and the second containing all the others.
   """
-  prefix, ext, _ = path.partition("." + extension)
-  if ext:
-    return prefix + ext
+  strings_and_plists = []
+  others = []
 
-  fail("Expected path %r to contain %r, but it did not" % (
-      path, "." + extension))
+  # Do one pass manually instead of using two list comprehensions, for
+  # performance.
+  for f in files:
+    name = f.basename
+    if name.endswith(".plist") or name.endswith(".strings"):
+      strings_and_plists.append(f)
+    else:
+      others.append(f)
+
+  return depset(strings_and_plists), depset(others)
 
 
 def _run(
@@ -458,7 +461,7 @@ def _run(
     progress_description,
     bundle_id,
     additional_bundlable_files=depset(),
-    additional_resources=depset(),
+    additional_resource_sets=[],
     embedded_bundles=[],
     framework_files=depset(),
     is_dynamic_framework=False):
@@ -475,9 +478,10 @@ def _run(
     additional_bundlable_files: An optional list of additional bundlable files
         that should be copied into the final bundle at locations denoted by
         their bundle path.
-    additional_resources: An optional set of additional resources not included
-        by dependencies that should also be passed to the resource processing
-        logic (for example, app icons, launch images, and launch storyboards).
+    additional_resource_sets: An optional list of `AppleResourceSet` values that
+        represent resources not included by dependencies that should also be
+        processed among the other resources in the target (for example, app
+        icons, launch images, launch storyboards, and settings bundle files).
     embedded_bundles: A list of values (as returned by
         `bundling_support.embedded_bundle`) that denote bundles such as
         extensions or frameworks that should be included in the bundle being
@@ -550,7 +554,7 @@ def _run(
   target_infoplists = list(_safe_files(ctx, "infoplists"))
 
   bundle_dirs = []
-  resource_sets = []
+  resource_sets = list(additional_resource_sets)
 
   if (hasattr(ctx.attr, "exclude_resources") and ctx.attr.exclude_resources):
     resource_sets.append(AppleResourceSet(infoplists=target_infoplists))
@@ -586,8 +590,7 @@ def _run(
 
     # Finally, add any extra resources specific to the target being built
     # itself.
-    target_resources = (
-        depset(additional_resources) + _safe_files(ctx, "strings"))
+    target_resources = _safe_files(ctx, "strings")
     resource_sets.append(AppleResourceSet(
         infoplists=target_infoplists,
         resources=target_resources,
@@ -613,33 +616,50 @@ def _run(
     bundle_merge_files.extend(list(process_result.bundle_merge_files))
     bundle_merge_zips.extend(list(process_result.bundle_merge_zips))
 
-    # Merge structured resources verbatim, preserving their owner-relative
-    # paths.
+    # Partition out plists and strings files from structured resources because
+    # we need to compile them as well. For everything else, copy the files
+    # verbatim. For all files, preserve their owner-relative paths.
     if r.objc_bundle_imports:
       # TODO(b/33618143): Remove the ugly special case for objc_bundle.
+      strings_and_plists, other_imports = _partition_strings_and_plists(
+          r.objc_bundle_imports)
+      bundle_relative_ri = resource_support.resource_info(
+          bundle_id, bundle_dir=r.bundle_dir,
+          path_transform=resource_support.bundle_relative_path)
+      obi_process_result = resource_actions.process_resources(
+          ctx, strings_and_plists, bundle_relative_ri)
+
       bundle_merge_files.extend([
           bundling_support.resource_file(
               ctx, f, optionally_prefixed_path(
-                  relativize_path(
-                      f.short_path,
-                      _farthest_directory_matching(f.short_path, "bundle")),
-                  r.bundle_dir))
-          for f in r.objc_bundle_imports
+                  resource_support.bundle_relative_path(f), r.bundle_dir))
+          for f in other_imports
       ])
+      bundle_merge_files.extend(obi_process_result.bundle_merge_files.to_list())
+
+    # Process .strings/.plist files in structured resources but copy the rest.
+    strings_and_plists, other_structured_resources = (
+        _partition_strings_and_plists(r.structured_resources))
+    owner_relative_ri = resource_support.resource_info(
+        bundle_id, bundle_dir=r.bundle_dir,
+        path_transform=resource_support.owner_relative_path)
+    sr_process_result = resource_actions.process_resources(
+        ctx, strings_and_plists, owner_relative_ri)
 
     bundle_merge_files.extend([
         bundling_support.resource_file(
             ctx, f, optionally_prefixed_path(
-                relativize_path(f.short_path, f.owner.package),
-                r.bundle_dir))
-        for f in r.structured_resources
+                resource_support.owner_relative_path(f), r.bundle_dir))
+        for f in other_structured_resources
     ])
+    bundle_merge_files.extend(sr_process_result.bundle_merge_files.to_list())
+
     bundle_merge_zips.extend([
         bundling_support.resource_file(ctx, f, r.bundle_dir)
         for f in r.structured_resource_zips
     ])
 
-    # Merge the plists into binary format and collect the resulting PkgInfo
+    # Merge the Info.plists into binary format and collect the resulting PkgInfo
     # file as well.
     infoplists = list(r.infoplists) + list(process_result.partial_infoplists)
     if infoplists:
