@@ -107,7 +107,7 @@ def _ios_application_impl(ctx):
 # All attributes available to the _ios_application rule. (Note that this does
 # not include linkopts, which is consumed entirely by the wrapping macro.)
 _IOS_APPLICATION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
-    "app_icons": attr.label_list(),
+    "app_icons": attr.label_list(allow_files=True),
     "entitlements": attr.label(
         allow_files=[".entitlements"],
         single_file=True,
@@ -121,7 +121,7 @@ _IOS_APPLICATION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
     "frameworks": attr.label_list(
         allow_rules=["ios_framework"],
     ),
-    "launch_images": attr.label_list(),
+    "launch_images": attr.label_list(allow_files=True),
     "launch_storyboard": attr.label(
         allow_files=[".storyboard", ".xib"],
         single_file=True,
@@ -187,7 +187,7 @@ def _ios_extension_impl(ctx):
 # All attributes available to the _ios_extension rule. (Note that this does
 # not include linkopts, which is consumed entirely by the wrapping macro.)
 _IOS_EXTENSION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
-    "app_icons": attr.label_list(),
+    "app_icons": attr.label_list(allow_files=True),
     "asset_catalogs": attr.label_list(
         allow_files=True,
     ),
@@ -254,7 +254,6 @@ def _ios_framework_impl(ctx):
 
 # All attributes available to the _ios_framework rule.
 _IOS_FRAMEWORK_ATTRIBUTES = merge_dictionaries(common_rule_without_binary_attributes(), {
-    "app_icons": attr.label_list(),
     "binary": attr.label(
         # TODO(b/36513471): Restrict to apple dylib provider.
         allow_rules=["apple_binary"],
