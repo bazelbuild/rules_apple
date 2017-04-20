@@ -88,7 +88,7 @@ def _tvos_application_impl(ctx):
 tvos_application = rule(
     _tvos_application_impl,
     attrs = merge_dictionaries(common_rule_attributes(), {
-        "app_icons": attr.label_list(),
+        "app_icons": attr.label_list(allow_files=True),
         "entitlements": attr.label(
             allow_files=[".entitlements"],
             single_file=True,
@@ -96,7 +96,7 @@ tvos_application = rule(
         "extensions": attr.label_list(
             providers=[["apple_bundle", "tvos_extension"]],
         ),
-        "launch_images": attr.label_list(),
+        "launch_images": attr.label_list(allow_files=True),
         "launch_storyboard": attr.label(
             allow_files=[".storyboard", ".xib"],
             single_file=True,

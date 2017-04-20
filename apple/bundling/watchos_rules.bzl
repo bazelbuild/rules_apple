@@ -76,7 +76,7 @@ def _watchos_application_impl(ctx):
 watchos_application = rule(
     _watchos_application_impl,
     attrs = merge_dictionaries(common_rule_without_binary_attributes(), {
-        "app_icons": attr.label_list(),
+        "app_icons": attr.label_list(allow_files=True),
         "entitlements": attr.label(
             allow_files=[".entitlements"],
             single_file=True,
@@ -146,7 +146,7 @@ def _watchos_extension_impl(ctx):
 watchos_extension = rule(
     _watchos_extension_impl,
     attrs = merge_dictionaries(common_rule_attributes(), {
-        "app_icons": attr.label_list(),
+        "app_icons": attr.label_list(allow_files=True),
         "entitlements": attr.label(
             allow_files=[".entitlements"],
             single_file=True,
