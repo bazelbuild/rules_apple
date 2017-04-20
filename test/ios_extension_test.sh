@@ -507,4 +507,18 @@ function test_bitcode_symbol_maps_packaging() {
       "Payload/app.app/PlugIns/ext.appex/ext"
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+  do_build ios 10.0 --ios_minimum_os=8.0 --objc_generate_linkmap \
+      //app:ext || fail "Should build"
+
+  declare -a archs=( $(current_archs ios) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/ext_${arch}.linkmap"
+  done
+}
+
 run_suite "ios_extension bundling tests"

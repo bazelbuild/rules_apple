@@ -275,4 +275,17 @@ function test_bitcode_symbol_maps_packaging() {
       "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext"
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_minimal_watchos_application_with_companion
+  do_build watchos 2.0 --objc_generate_linkmap \
+      //app:watch_ext || fail "Should build"
+
+  declare -a archs=( $(current_archs watchos) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/watch_ext_${arch}.linkmap"
+  done
+}
+
 run_suite "watchos_application bundling tests"

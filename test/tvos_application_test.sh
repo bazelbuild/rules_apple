@@ -141,6 +141,19 @@ function test_dsyms_generated() {
   done
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_tvos_application
+  do_build tvos 9.0 --objc_generate_linkmap //app:app || fail "Should build"
+
+  declare -a archs=( $(current_archs tvos) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/app_${arch}.linkmap"
+  done
+}
+
 # Tests that the IPA contains a valid signed application.
 function test_application_is_signed() {
   create_common_files

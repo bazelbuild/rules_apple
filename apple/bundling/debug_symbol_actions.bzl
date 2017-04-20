@@ -12,11 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Actions to manipulate dSYM bundles."""
+"""Actions to manipulate debug symbol outputs."""
 
 load("//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("//apple/bundling:file_actions.bzl", "file_actions")
+
+
+def _collect_linkmaps(ctx):
+  """Collects the available linkmaps from the binary.
+
+  Args:
+    ctx: The Skylark context.
+  Returns:
+    A list of linkmap files, one per linked architecture.
+  """
+  debug_outputs = ctx.attr.binary[apple_common.AppleDebugOutputs]
+  if not debug_outputs:
+    return []
+
+  bundle_name = bundling_support.bundle_name(ctx)
+
+  outputs = []
+
+  # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
+  for arch in debug_outputs.outputs_map:
+    arch_outputs = debug_outputs.outputs_map[arch]
+    linkmap = arch_outputs["linkmap"]
+    out_linkmap = ctx.new_file("%s_%s.linkmap" % (bundle_name, arch))
+    outputs.append(out_linkmap)
+    file_actions.symlink(ctx, linkmap, out_linkmap)
+
+  return outputs
 
 
 def _create_symbol_bundle(ctx):
@@ -76,6 +103,7 @@ def _create_symbol_bundle(ctx):
 
 
 # Define the loadable module that lists the exported symbols in this file.
-dsym_actions = struct(
+debug_symbol_actions = struct(
+    collect_linkmaps=_collect_linkmaps,
     create_symbol_bundle=_create_symbol_bundle,
 )
