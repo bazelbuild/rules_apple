@@ -38,7 +38,7 @@ load("//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("//apple/bundling:codesigning_support.bzl",
      "codesigning_support")
-load("//apple/bundling:dsym_actions.bzl", "dsym_actions")
+load("//apple/bundling:debug_symbol_actions.bzl", "debug_symbol_actions")
 load("//apple/bundling:file_actions.bzl", "file_actions")
 load("//apple/bundling:file_support.bzl", "file_support")
 load("//apple/bundling:platform_support.bzl",
@@ -799,16 +799,20 @@ def _run(
 
   additional_providers = {}
 
-  # Create a .dSYM bundle with the expected name next to the .ipa in the output
-  # directory. We still have to check for the existence of the AppleDebugOutputs
-  # provider because some binary rules, such as apple_static_library, do not
-  # propagate it.
-  if (ctx.fragments.objc.generate_dsym and
-      getattr(ctx.attr, "binary", None) and
+  if (getattr(ctx.attr, "binary", None) and
       apple_common.AppleDebugOutputs in ctx.attr.binary):
-    additional_outputs.extend(dsym_actions.create_symbol_bundle(ctx))
     additional_providers["AppleDebugOutputs"] = (
         ctx.attr.binary[apple_common.AppleDebugOutputs])
+
+    # Create a .dSYM bundle with the expected name next to the .ipa in the
+    # output directory. We still have to check for the existence of the
+    # AppleDebugOutputs provider because some binary rules, such as
+    # apple_static_library, do not propagate it.
+    if ctx.fragments.objc.generate_dsym:
+      additional_outputs.extend(debug_symbol_actions.create_symbol_bundle(ctx))
+
+    if ctx.fragments.objc.generate_linkmap:
+      additional_outputs.extend(debug_symbol_actions.collect_linkmaps(ctx))
 
   objc_provider_args = {}
   if framework_files:
