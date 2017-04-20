@@ -601,9 +601,6 @@ def _run(
   # bundle and bundle ID consistency is checked).
   main_infoplist = None
 
-  # Collects the compiled storyboard artifacts for later linking.
-  compiled_storyboards = []
-
   # Iterate over each set of resources and register the actions. This
   # ensures that each bundle among the dependencies has its resources
   # processed independently.
@@ -612,7 +609,6 @@ def _run(
   for r in resource_sets:
     ri = resource_support.resource_info(bundle_id, bundle_dir=r.bundle_dir)
     process_result = resource_actions.process_resources(ctx, r.resources, ri)
-    compiled_storyboards.extend(list(process_result.compiled_storyboards))
     bundle_merge_files.extend(list(process_result.bundle_merge_files))
     bundle_merge_zips.extend(list(process_result.bundle_merge_zips))
 
@@ -695,16 +691,16 @@ def _run(
             ctx, plist_results.pkginfo,
             optionally_prefixed_path("PkgInfo", r.bundle_dir)))
 
-  # Compile any storyboards and create the script that runs ibtool again
-  # during the bundling stage to link them. This is necessary to resolve
-  # references between different storyboards, and to copy the results to the
-  # correct location in the bundle in a platform-agnostic way; for example,
-  # storyboards in watchOS applications don't retain the .storyboardc folder.
-  if compiled_storyboards:
-    linked_storyboards = resource_actions.ibtool_link(
-        ctx, compiled_storyboards)
-    bundle_merge_zips.append(bundling_support.resource_file(
-        ctx, linked_storyboards, "."))
+    # Link the storyboards in the bundle, which not only resolves references
+    # between different storyboards, but also copies the results to the correct
+    # location in the bundle in a platform-agnostic way; for example,
+    # storyboards in watchOS applications are simple plists and don't retain the
+    # same .storyboardc directory structure that others do.
+    if process_result.compiled_storyboards:
+      linked_storyboards = resource_actions.ibtool_link(
+          ctx, process_result.compiled_storyboards.to_list())
+      bundle_merge_zips.append(bundling_support.resource_file(
+          ctx, linked_storyboards, r.bundle_dir))
 
   # Some application/extension types require stub executables, so collect that
   # information if necessary.
