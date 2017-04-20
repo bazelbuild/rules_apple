@@ -370,6 +370,14 @@ function require_at_least_sdk() {
   found_xcode_version=""
   found_sdk_version=""
 
+  # TODO(b/37508376): Remove this special case when the Xcode version targets
+  # use default_macos_sdk_version instead of default_macosx_sdk_version.
+  if [[ "$platform" == macos ]]; then
+    query_output_platform=macosx
+  else
+    query_output_platform="$platform"
+  fi
+
   # Query for all of the Xcode installations on the host machine, then scan the
   # results for one that supports the given SDK (or higher). We don't have to
   # find *the* highest version; we just need the first one that will work.
@@ -378,7 +386,7 @@ function require_at_least_sdk() {
   bazel query "$query" --output build | \
   while read -r line; do
     case "$line" in
-      default_${platform}_sdk_version*)
+      default_${query_output_platform}_sdk_version*)
         found_sdk_version=$(echo "$line" | cut -d\" -f2)
         ;;
       version*)

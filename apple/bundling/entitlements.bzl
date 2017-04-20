@@ -404,9 +404,8 @@ entitlements = rule(
         # Used to pass the platform type through from the calling rule.
         "platform_type": attr.string(),
         "provisioning_profile": attr.label(
-            allow_files=[".mobileprovision"],
+            allow_files=[".mobileprovision", ".provisionprofile"],
             single_file=True,
-            default=Label("@bazel_tools//tools/objc:default_provisioning_profile")
         ),
     },
     fragments=["apple", "objc"],
