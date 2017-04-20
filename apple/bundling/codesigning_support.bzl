@@ -165,7 +165,7 @@ def _signing_command_lines(ctx,
   Args:
     ctx: The Skylark context.
     bundle_path_in_archive: The path to the bundle inside the archive.
-    entitlements_file: The entitlements file to pass to codesign.)
+    entitlements_file: The entitlements file to pass to codesign.
   Returns:
     A multi-line string with codesign invocations for the bundle.
   """
@@ -179,9 +179,12 @@ def _signing_command_lines(ctx,
          "builds on this platform (%s)." %
          platform_support.platform_type(ctx))
 
-  # First, try to use the identity passed on the command line, if any
-  # (regardless of whether this is a simulator or device build).
-  identity = ctx.fragments.objc.signing_certificate_name
+  # First, try to use the identity passed on the command line, if any. If it's
+  # a simulator build, use an ad hoc identity.
+  if platform_support.is_device_build(ctx):
+    identity = ctx.fragments.objc.signing_certificate_name
+  else:
+    identity = "-"
 
   # If no identity was passed on the command line, then for device builds that
   # require signing (i.e., not macOS), try to extract one from the provisioning
