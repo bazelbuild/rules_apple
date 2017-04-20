@@ -252,6 +252,9 @@ def common_rule_without_binary_attributes():
           # extensions have their frameworks bundled with the host application
           # instead.
           "_propagates_frameworks": attr.bool(default=False),
+          # Whether or not device builds are required to be signed. This is True
+          # by default, but False for macOS.
+          "_requires_signing_for_device": attr.bool(default=True),
           # Whether to skip all code signing. This is useful for artifacts that
           # contain binaries but are meant for distribution to other developers
           # to use in their own projects, where they will do their own signing

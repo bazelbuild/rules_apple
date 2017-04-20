@@ -14,68 +14,81 @@
 
 """Functions related to code signing of Apple bundles."""
 
-load("//apple/bundling:mock_support.bzl", "mock_support")
+load("//apple/bundling:mock_support.bzl",
+     "mock_support")
 load("//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:plist_support.bzl", "plist_support")
-load("//apple/bundling:swift_support.bzl", "swift_support")
-load("//apple:utils.bzl", "bash_quote")
+load("//apple/bundling:plist_support.bzl",
+     "plist_support")
+load("//apple/bundling:swift_support.bzl",
+     "swift_support")
+load("//apple:utils.bzl",
+     "bash_quote")
 
 
-def _provisioning_cert_hex_id_command(ctx):
-  """Find a verified, unique hex identifer for a cert to codesign with.
+def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
+  """Extracts the first signing certificate hex ID from a provisioning profile.
 
   Args:
     ctx: The Skylark context.
+    provisioning_profile: The provisioning profile from which to extract the
+        signing identity.
   Returns:
-    The command invocations to find a verified hex identifer for a cert to
-    codesign with.
+    A Bash output-capturing subshell expression (`$( ... )`) that executes
+    commands needed to extract the hex ID of a signing certificate from a
+    provisioning profile. This expression can then be used in later commands
+    to include the ID in code-signing commands.
   """
-  if (hasattr(ctx.file, "provisioning_profile") and
-      not ctx.file.provisioning_profile):
-    fail("The provisioning_profile attribute must be set for device builds.")
+  extract_plist_cmd = plist_support.extract_provisioning_plist_command(
+      ctx, provisioning_profile)
+  return ("$( " +
+          "PLIST=$(mktemp -t cert.plist) && trap \"rm ${PLIST}\" EXIT && " +
+          extract_plist_cmd + " > ${PLIST} && " +
+          "/usr/libexec/PlistBuddy -c " +
+          "'Print DeveloperCertificates:0' " +
+          "${PLIST} | openssl x509 -inform DER -noout -fingerprint | " +
+          "cut -d= -f2 | sed -e s#:##g " +
+          ")")
 
-  cert_name = ctx.fragments.objc.signing_certificate_name
-  if cert_name:
-    identity = cert_name
-  else:
-    # Extract the signing certificate from the provisioning profile if one was
-    # not explicitly provided.
-    extract_plist_cmd = plist_support.extract_provisioning_plist_command(
-        ctx, ctx.file.provisioning_profile)
-    identity = ("$(" +
-                "PLIST=$(mktemp -t cert.plist) && trap \"rm ${PLIST}\" EXIT " +
-                " && " +
-                extract_plist_cmd + " > ${PLIST} && " +
-                "/usr/libexec/PlistBuddy -c " +
-                "'Print DeveloperCertificates:0' " +
-                "${PLIST} | openssl x509 -inform DER -noout -fingerprint | " +
-                "cut -d= -f2 | sed -e s#:##g" +
-                ")")
 
-  # If we're ad hoc signing or signing is mocked for tests, don't bother
-  # verifying the identity in the keychain. Otherwise, verify that the identity
-  # matches valid, unexpired entitlements in the keychain and return the first
-  # unique hexadecimal identifier.
-  if cert_name == "-" or mock_support.is_provisioning_mocked(ctx):
-    return "VERIFIED_ID=" + bash_quote(identity) + "\n"
+def _verify_signing_id_commands(ctx, identity, provisioning_profile):
+  """Returns commands that verify that the given identity is valid.
 
+  Args:
+    ctx: The Skylark context.
+    identity: The signing identity to verify.
+    provisioning_profile: The provisioning profile, if the signing identity was
+        extracted from it. If provided, this is included in the error message
+        that is printed if the identity is not valid.
+  Returns:
+    A string containing Bash commands that verify the signing identity and
+    assign it to the environment variable `VERIFIED_ID` if it is valid.
+  """
   verified_id = ("VERIFIED_ID=" +
-                 "$(" +
+                 "$( " +
                  "security find-identity -v -p codesigning | " +
                  "grep -F " + bash_quote(identity) + " | " +
                  "xargs | " +
                  "cut -d' ' -f2 " +
                  ")\n")
+
+  # If the identity was extracted from the provisioning profile (as opposed to
+  # being passed on the command line), include that as part of the error message
+  # to point the user at the source of the identity being used.
+  if provisioning_profile:
+    found_in_prov_profile_msg = (" found in provisioning profile " +
+                                 provisioning_profile.path)
+  else:
+    found_in_prov_profile_msg = ""
+
   # Exit and report an Xcode-visible error if no matched identifiers were found.
-  error_handling = ("if [ -z \"$VERIFIED_ID\" ]; then\n" +
+  error_handling = ("if [[ -z \"$VERIFIED_ID\" ]]; then\n" +
                     "  " +
                     "echo " +
                     bash_quote("error: Could not find a valid identity in " +
                                "the keychain matching " +
-                               '"' + identity + '"' + " " +
-                               "found in provisioning profile " +
-                               ctx.file.provisioning_profile.path + ".") +
+                               '"' + identity + '"' +
+                               found_in_prov_profile_msg + ".") +
                     "\n" +
                     "  " +
                     "exit 1\n" +
@@ -145,6 +158,10 @@ def _signing_command_lines(ctx,
                            entitlements_file):
   """Returns a multi-line string with codesign invocations for the bundle.
 
+  For any signing identity other than ad hoc, the identity is verified as being
+  valid in the keychain and an error will be emitted if the identity cannot be
+  used for signing for any reason.
+
   Args:
     ctx: The Skylark context.
     bundle_path_in_archive: The path to the bundle inside the archive.
@@ -152,10 +169,43 @@ def _signing_command_lines(ctx,
   Returns:
     A multi-line string with codesign invocations for the bundle.
   """
-
   commands = []
-  if platform_support.is_device_build(ctx):
-    commands.append(_provisioning_cert_hex_id_command(ctx))
+
+  # Verify that a provisioning profile was provided for device builds on
+  # platforms that require it.
+  provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+  if ctx.attr._requires_signing_for_device and not provisioning_profile:
+    fail("The provisioning_profile attribute must be set for device " +
+         "builds on this platform (%s)." %
+         platform_support.platform_type(ctx))
+
+  # First, try to use the identity passed on the command line, if any
+  # (regardless of whether this is a simulator or device build).
+  identity = ctx.fragments.objc.signing_certificate_name
+
+  # If no identity was passed on the command line, then for device builds that
+  # require signing (i.e., not macOS), try to extract one from the provisioning
+  # profile. Fail if one was not provided.
+  if (not identity and
+      platform_support.is_device_build(ctx) and
+      provisioning_profile):
+    identity = _extracted_provisioning_profile_identity(
+        ctx, provisioning_profile)
+
+  # If we still don't have an identity, fall back to ad hoc signing.
+  if not identity:
+    identity = "-"
+
+  # If we're ad hoc signing or signing is mocked for tests, don't bother
+  # verifying the identity in the keychain. Otherwise, verify that the identity
+  # matches valid, unexpired entitlements in the keychain and return the first
+  # unique hexadecimal identifier.
+  if identity == "-" or mock_support.is_provisioning_mocked(ctx):
+    commands.append("VERIFIED_ID=" + bash_quote(identity) + "\n")
+  else:
+    commands.append(
+        _verify_signing_id_commands(ctx, identity, provisioning_profile))
+
   commands.append(_codesign_command(ctx,
                                     bundle_path_in_archive + "/Frameworks/*",
                                     entitlements_file,
