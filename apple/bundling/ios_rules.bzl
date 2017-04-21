@@ -117,6 +117,7 @@ _IOS_APPLICATION_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
     ),
     "families": attr.string_list(
         mandatory=True,
+        allow_empty=False,
     ),
     "frameworks": attr.label_list(
         allow_rules=["ios_framework"],
