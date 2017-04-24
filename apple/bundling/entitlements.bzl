@@ -101,6 +101,7 @@ def _extract_entitlements_action(ctx):
            "${PLIST} > " + bash_quote(extracted_entitlements_file.path)),
       ],
       mnemonic = "ExtractAppleEntitlements",
+      no_sandbox = True,
   )
 
   return extracted_entitlements_file
