@@ -67,6 +67,7 @@ def _extract_team_prefix_action(ctx):
            "${PLIST} > " + bash_quote(team_prefix_file.path)),
       ],
       mnemonic = "ExtractAppleTeamPrefix",
+      no_sandbox = True,  # "security" tool requires this
   )
 
   return team_prefix_file
@@ -101,7 +102,7 @@ def _extract_entitlements_action(ctx):
            "${PLIST} > " + bash_quote(extracted_entitlements_file.path)),
       ],
       mnemonic = "ExtractAppleEntitlements",
-      no_sandbox = True,
+      no_sandbox = True,  # "security" tool requires this
   )
 
   return extracted_entitlements_file
