@@ -173,25 +173,23 @@ def _signing_command_lines(ctx,
 
   # Verify that a provisioning profile was provided for device builds on
   # platforms that require it.
+  is_device = platform_support.is_device_build(ctx)
   provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
-  if ctx.attr._requires_signing_for_device and not provisioning_profile:
+  if (is_device and
+      ctx.attr._requires_signing_for_device and
+      not provisioning_profile):
     fail("The provisioning_profile attribute must be set for device " +
          "builds on this platform (%s)." %
          platform_support.platform_type(ctx))
 
   # First, try to use the identity passed on the command line, if any. If it's
   # a simulator build, use an ad hoc identity.
-  if platform_support.is_device_build(ctx):
-    identity = ctx.fragments.objc.signing_certificate_name
-  else:
-    identity = "-"
+  identity = ctx.fragments.objc.signing_certificate_name if is_device else "-"
 
   # If no identity was passed on the command line, then for device builds that
   # require signing (i.e., not macOS), try to extract one from the provisioning
   # profile. Fail if one was not provided.
-  if (not identity and
-      platform_support.is_device_build(ctx) and
-      provisioning_profile):
+  if not identity and is_device and provisioning_profile:
     identity = _extracted_provisioning_profile_identity(
         ctx, provisioning_profile)
 
