@@ -67,7 +67,7 @@ def _verify_signing_id_commands(ctx, identity, provisioning_profile):
   verified_id = ("VERIFIED_ID=" +
                  "$( " +
                  "security find-identity -v -p codesigning | " +
-                 "grep -F " + bash_quote(identity) + " | " +
+                 "grep -F \"" + identity + "\" | " +
                  "xargs | " +
                  "cut -d' ' -f2 " +
                  ")\n")
@@ -85,10 +85,9 @@ def _verify_signing_id_commands(ctx, identity, provisioning_profile):
   error_handling = ("if [[ -z \"$VERIFIED_ID\" ]]; then\n" +
                     "  " +
                     "echo " +
-                    bash_quote("error: Could not find a valid identity in " +
-                               "the keychain matching " +
-                               '"' + identity + '"' +
-                               found_in_prov_profile_msg + ".") +
+                    "error: Could not find a valid identity in the " +
+                    "keychain matching \"" + identity + "\"" +
+                    found_in_prov_profile_msg + "." +
                     "\n" +
                     "  " +
                     "exit 1\n" +
