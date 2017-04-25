@@ -212,23 +212,19 @@ def macos_path_format_attributes():
   }
 
 
-# Attributes that are common to all packaging rules with or without
-# user-provided binaries.
-def common_rule_without_binary_attributes():
+# Attributes that are common to all bundling rules.
+def common_rule_attributes():
   return merge_dictionaries(
       _tool_attributes(),
       simple_path_format_attributes(),
       {
+          "binary": attr.label(
+              allow_rules=["apple_binary"],
+              aspects=[apple_bundling_aspect],
+              single_file=True,
+          ),
           "bundle_id": attr.string(
               mandatory=True,
-          ),
-          "deps": attr.label_list(
-              aspects=[apple_bundling_aspect],
-              providers=[
-                  ["apple_resource"],
-                  ["objc"],
-                  ["swift"],
-              ],
           ),
           "infoplists": attr.label_list(
               allow_files=[".plist"],
@@ -262,15 +258,3 @@ def common_rule_without_binary_attributes():
           "_skip_signing": attr.bool(default=False),
       }
   )
-
-
-# Attributes that are common to all packaging rules with user-provided
-# binaries.
-def common_rule_attributes():
-  return merge_dictionaries(common_rule_without_binary_attributes(), {
-      "binary": attr.label(
-          allow_rules=["apple_binary"],
-          aspects=[apple_bundling_aspect],
-          single_file=True,
-      ),
-  })

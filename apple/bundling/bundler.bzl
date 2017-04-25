@@ -573,8 +573,8 @@ def _run(
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
-    apple_resource_providers = provider_support.binary_or_deps_providers(
-        ctx, "AppleResource")
+    apple_resource_providers = provider_support.matching_providers(
+        ctx.attr.binary, "AppleResource")
     for p in apple_resource_providers:
       for rs in p.resource_sets:
         # Don't propagate empty bundle directory, as this is indicative of
@@ -772,7 +772,7 @@ def _run(
     root_merge_zips.extend(list(apple_bundle.root_merge_zips))
 
   # Merge in any prebuilt frameworks (i.e., objc_framework dependencies).
-  objc_providers = provider_support.binary_or_deps_providers(ctx, "objc")
+  objc_providers = provider_support.matching_providers(ctx.attr.binary, "objc")
   propagated_framework_files = []
   for objc in objc_providers:
     files = objc.dynamic_framework_file

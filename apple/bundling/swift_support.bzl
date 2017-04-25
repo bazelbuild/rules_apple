@@ -31,8 +31,8 @@ def _uses_swift(ctx):
   Returns:
     True if the current target directly uses Swift; otherwise, False.
   """
-  swift_providers = provider_support.binary_or_deps_providers(
-      ctx, "AppleBundlingSwift")
+  swift_providers = provider_support.matching_providers(
+      ctx.attr.binary, "AppleBundlingSwift")
   return any([p.uses_swift for p in swift_providers])
 
 
