@@ -220,7 +220,7 @@ def swiftc_inputs(ctx):
   swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
   objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
 
-  dep_modules = []
+  dep_modules = depset()
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
 
@@ -231,7 +231,7 @@ def swiftc_inputs(ctx):
     objc_files += set(objc.static_framework_file)
     objc_files += set(objc.dynamic_framework_file)
 
-  return ctx.files.srcs + dep_modules + list(objc_files)
+  return ctx.files.srcs + dep_modules.to_list() + list(objc_files)
 
 
 def swiftc_args(ctx):
@@ -269,7 +269,7 @@ def swiftc_args(ctx):
       apple_toolchain.platform_developer_framework_dir(apple_fragment)])
 
   # Collect transitive dependecies.
-  dep_modules = []
+  dep_modules = depset()
   swiftc_defines = ctx.attr.defines
 
   swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
@@ -370,8 +370,8 @@ def _swift_library_impl(ctx):
   _validate_rule_and_deps(ctx)
 
   # Collect transitive dependecies.
-  dep_modules = []
-  dep_libs = []
+  dep_modules = depset()
+  dep_libs = depset()
   swiftc_defines = ctx.attr.defines
 
   swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
@@ -479,9 +479,20 @@ def _swift_library_impl(ctx):
   # This means that dSYM is required for debugging until that is resolved.
   extra_linker_args = ["-Xlinker -add_ast_path -Xlinker " + output_module.path]
 
+
+  # The full transitive set of libraries and modules used by this target.
+  transitive_libs = depset([output_lib]) + dep_libs
+  transitive_modules = depset([output_module]) + dep_modules
+
+  # TODO(b/37660812): For backwards compatibility, depsets are only used
+  # when Tulsi asks for it.
+  if not "tulsi.swift_library.output_depsets" in ctx.var:
+    transitive_libs = transitive_libs.to_list()
+    transitive_modules = transitive_modules.to_list()
+
   objc_provider = apple_common.new_objc_provider(
-      library=set([output_lib] + dep_libs),
-      header=set([output_header]),
+      library=depset([output_lib]) + dep_libs,
+      header=depset([output_header]),
       providers=objc_providers,
       linkopt=_swift_linkopts(ctx) + extra_linker_args,
       link_inputs=set([output_module]),
@@ -489,8 +500,8 @@ def _swift_library_impl(ctx):
 
   return struct(
       swift=struct(
-          transitive_libs=[output_lib] + dep_libs,
-          transitive_modules=[output_module] + dep_modules,
+          transitive_libs=transitive_libs,
+          transitive_modules=transitive_modules,
           transitive_defines=swiftc_defines),
       objc=objc_provider,
       files=set([output_lib, output_module, output_header]))
