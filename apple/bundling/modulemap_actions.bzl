@@ -17,7 +17,8 @@
 See documentation: https://clang.llvm.org/docs/Modules.html#module-map-language
 """
 
-load("//apple/bundling:file_support.bzl", "file_support")
+load("//apple/bundling:file_support.bzl",
+     "file_support")
 load("//apple/bundling:provider_support.bzl",
      "provider_support")
 
@@ -35,7 +36,7 @@ def _link_declarations(ctx):
   # frameworks rather than deriving them from the ctx.
   sdk_dylibs = depset()
   sdk_frameworks = depset()
-  objc_providers = provider_support.binary_or_deps_providers(ctx, "objc")
+  objc_providers = provider_support.matching_providers(ctx.attr.binary, "objc")
   for objc in objc_providers:
     sdk_frameworks += objc.sdk_framework
     sdk_dylibs += objc.sdk_dylib

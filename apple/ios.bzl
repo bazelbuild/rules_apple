@@ -14,7 +14,8 @@
 
 """Bazel rules for creating iOS applications and bundles."""
 
-load("//apple/bundling:binary_support.bzl", "binary_support")
+load("//apple/bundling:binary_support.bzl",
+     "binary_support")
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -107,7 +108,7 @@ def ios_application(name, **kwargs):
         application.
 
   """
-  bundling_args = binary_support.create_binary_if_necessary(
+  bundling_args = binary_support.create_binary(
       name, str(apple_common.platform_type.ios), **kwargs)
 
   _ios_application(
@@ -175,7 +176,7 @@ def ios_extension(name, **kwargs):
   linkopts += ["-e", "_NSExtensionMain", "-application_extension"]
   kwargs["linkopts"] = linkopts
 
-  bundling_args = binary_support.create_binary_if_necessary(
+  bundling_args = binary_support.create_binary(
       name, str(apple_common.platform_type.ios), **kwargs)
 
   _ios_extension(
@@ -222,7 +223,7 @@ def ios_framework(name, **kwargs):
         defined by these targets will also be transitively included in the
         final framework.
   """
-  deps = kwargs.get("deps")
+  deps = kwargs.pop("deps", [])
   apple_dylib_name = "%s.apple_binary" % name
 
   linkopts = kwargs.get("linkopts", [])

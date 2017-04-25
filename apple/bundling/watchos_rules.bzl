@@ -28,8 +28,7 @@ load("//apple/bundling:bundling_support.bzl",
 load("//apple/bundling:product_support.bzl",
      "product_support")
 load("//apple/bundling:rule_attributes.bzl",
-     "common_rule_attributes",
-     "common_rule_without_binary_attributes")
+     "common_rule_attributes")
 load("//apple/bundling:run_actions.bzl", "run_actions")
 load("//apple:providers.bzl", "AppleResourceSet")
 load("//apple:utils.bzl", "merge_dictionaries")
@@ -75,7 +74,7 @@ def _watchos_application_impl(ctx):
 
 watchos_application = rule(
     _watchos_application_impl,
-    attrs = merge_dictionaries(common_rule_without_binary_attributes(), {
+    attrs = merge_dictionaries(common_rule_attributes(), {
         "app_icons": attr.label_list(allow_files=True),
         "entitlements": attr.label(
             allow_files=[".entitlements"],

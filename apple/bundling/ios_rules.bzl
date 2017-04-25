@@ -31,8 +31,7 @@ load("//apple/bundling:entitlements.bzl",
      "entitlements",
      "entitlements_support")
 load("//apple/bundling:rule_attributes.bzl",
-     "common_rule_attributes",
-     "common_rule_without_binary_attributes")
+     "common_rule_attributes")
 load("//apple/bundling:run_actions.bzl", "run_actions")
 load("//apple/bundling:test_support.bzl", "test_support")
 load("//apple:providers.bzl", "AppleResourceSet")
@@ -254,7 +253,7 @@ def _ios_framework_impl(ctx):
 
 
 # All attributes available to the _ios_framework rule.
-_IOS_FRAMEWORK_ATTRIBUTES = merge_dictionaries(common_rule_without_binary_attributes(), {
+_IOS_FRAMEWORK_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
     "binary": attr.label(
         # TODO(b/36513471): Restrict to apple dylib provider.
         allow_rules=["apple_binary"],

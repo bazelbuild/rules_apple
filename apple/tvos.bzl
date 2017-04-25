@@ -14,7 +14,8 @@
 
 """Bazel rules for creating tvOS applications and bundles."""
 
-load("//apple/bundling:binary_support.bzl", "binary_support")
+load("//apple/bundling:binary_support.bzl",
+     "binary_support")
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -87,7 +88,7 @@ def tvos_application(name, **kwargs):
         defined by these targets will also be transitively included in the
         final application.
   """
-  bundling_args = binary_support.create_binary_if_necessary(
+  bundling_args = binary_support.create_binary(
       name, str(apple_common.platform_type.tvos), **kwargs)
 
   _tvos_application(
@@ -151,7 +152,7 @@ def tvos_extension(name, **kwargs):
   # Make sure that TVServices.framework is linked in as well, to ensure that
   # _TVExtensionMain is found. (Anyone writing a TV extension should already be
   # importing this framework, anyway.)
-  bundling_args = binary_support.create_binary_if_necessary(
+  bundling_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.tvos),
       sdk_frameworks=["TVServices"],
