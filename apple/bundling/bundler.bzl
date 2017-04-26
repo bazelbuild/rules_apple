@@ -706,8 +706,7 @@ def _run(
   # information if necessary.
   product_info = product_support.product_type_info_for_target(ctx)
   if product_info:
-    # We explicitly don't use bash_quote here because we don't want to escape
-    # the environment variable substitutions.
+    has_built_binary = False
     stub_binary = product_actions.copy_stub_for_bundle(ctx, product_info)
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, stub_binary, bundle_name, executable=True))
@@ -725,6 +724,7 @@ def _run(
   elif hasattr(ctx.file, "binary"):
     if not ctx.file.binary:
       fail("Library dependencies must be provided for this product type.")
+    has_built_binary = True
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, ctx.file.binary, bundle_name, executable=True))
 
@@ -744,8 +744,8 @@ def _run(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
   # Include bitcode symbol maps when needed.
-  if (str(ctx.fragments.apple.bitcode_mode) == "embedded" and
-      getattr(ctx.attr, "binary", None) and
+  if (has_built_binary and
+      str(ctx.fragments.apple.bitcode_mode) == "embedded" and
       apple_common.AppleDebugOutputs in ctx.attr.binary):
     bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
     root_merge_zips.append(bundling_support.bundlable_file(
@@ -795,8 +795,7 @@ def _run(
 
   additional_providers = {}
 
-  if (getattr(ctx.attr, "binary", None) and
-      apple_common.AppleDebugOutputs in ctx.attr.binary):
+  if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
     additional_providers["AppleDebugOutputs"] = (
         ctx.attr.binary[apple_common.AppleDebugOutputs])
 
