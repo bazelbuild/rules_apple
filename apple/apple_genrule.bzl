@@ -98,7 +98,7 @@ def apple_genrule(
 
   Example of use:
 
-  load("//tools/build_defs/apple:apple_genrule.bzl", "apple_genrule")
+  load("@build_bazel_rules_apple//apple:apple_genrule.bzl", "apple_genrule")
 
   apple_genrule(
       name = "world",
