@@ -14,9 +14,9 @@
 
 """Actions to manipulate debug symbol outputs."""
 
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:file_actions.bzl", "file_actions")
+load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
 
 
 def _collect_linkmaps(ctx):

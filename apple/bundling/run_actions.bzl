@@ -14,7 +14,7 @@
 
 """Common definitions used to make runnable Apple bundling rules."""
 
-load("//apple:utils.bzl", "bash_quote")
+load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
 def _start_simulator(ctx):

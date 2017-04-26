@@ -14,7 +14,7 @@
 
 """Support functions for manipulating intermediate files."""
 
-load("//apple:utils.bzl", "optionally_prefixed_path")
+load("@build_bazel_rules_apple//apple:utils.bzl", "optionally_prefixed_path")
 
 
 def _intermediate(ctx, pattern, path=None, prefix=None):

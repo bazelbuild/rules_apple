@@ -14,12 +14,12 @@
 
 """Actions that manipulate entitlements and provisioning profiles."""
 
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:plist_actions.bzl", "plist_actions")
-load("//apple/bundling:plist_support.bzl", "plist_support")
-load("//apple:utils.bzl", "apple_action")
-load("//apple:utils.bzl", "bash_quote")
+load("@build_bazel_rules_apple//apple/bundling:plist_actions.bzl", "plist_actions")
+load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl", "plist_support")
+load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
+load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
 def _new_entitlements_artifact(ctx, extension):
@@ -401,7 +401,7 @@ entitlements = rule(
         "_plisttool": attr.label(
             cfg="host",
             single_file=True,
-            default=Label("//apple/bundling:plisttool"),
+            default=Label("@build_bazel_rules_apple//apple/bundling:plisttool"),
         ),
         # Used to pass the platform type through from the calling rule.
         "platform_type": attr.string(),

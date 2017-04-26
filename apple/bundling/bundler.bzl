@@ -18,12 +18,12 @@ This file is only meant to be imported by the platform-specific top-level rules
 (ios.bzl, tvos.bzl, and so forth).
 """
 
-load("//apple:providers.bzl",
+load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleResource",
      "AppleResourceSet",
      "apple_resource_set_utils",
     )
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "basename",
      "bash_array_string",
      "bash_quote",
@@ -33,29 +33,29 @@ load("//apple:utils.bzl",
      "relativize_path",
      "remove_extension",
     )
-load("//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:codesigning_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
      "codesigning_support")
-load("//apple/bundling:debug_symbol_actions.bzl", "debug_symbol_actions")
-load("//apple/bundling:file_actions.bzl", "file_actions")
-load("//apple/bundling:file_support.bzl", "file_support")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:debug_symbol_actions.bzl", "debug_symbol_actions")
+load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:plist_actions.bzl", "plist_actions")
-load("//apple/bundling:product_actions.bzl",
+load("@build_bazel_rules_apple//apple/bundling:plist_actions.bzl", "plist_actions")
+load("@build_bazel_rules_apple//apple/bundling:product_actions.bzl",
      "product_actions")
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
-load("//apple/bundling:provider_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
      "provider_support")
-load("//apple/bundling:resource_actions.bzl",
+load("@build_bazel_rules_apple//apple/bundling:resource_actions.bzl",
      "resource_actions")
-load("//apple/bundling:resource_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
      "resource_support")
-load("//apple/bundling:swift_actions.bzl", "swift_actions")
-load("//apple/bundling:swift_support.bzl", "swift_support")
+load("@build_bazel_rules_apple//apple/bundling:swift_actions.bzl", "swift_actions")
+load("@build_bazel_rules_apple//apple/bundling:swift_support.bzl", "swift_support")
 
 
 # Directories inside .frameworks that should not be included in final
@@ -706,8 +706,7 @@ def _run(
   # information if necessary.
   product_info = product_support.product_type_info_for_target(ctx)
   if product_info:
-    # We explicitly don't use bash_quote here because we don't want to escape
-    # the environment variable substitutions.
+    has_built_binary = False
     stub_binary = product_actions.copy_stub_for_bundle(ctx, product_info)
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, stub_binary, bundle_name, executable=True))
@@ -725,6 +724,7 @@ def _run(
   elif hasattr(ctx.file, "binary"):
     if not ctx.file.binary:
       fail("Library dependencies must be provided for this product type.")
+    has_built_binary = True
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, ctx.file.binary, bundle_name, executable=True))
 
@@ -744,8 +744,8 @@ def _run(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
   # Include bitcode symbol maps when needed.
-  if (str(ctx.fragments.apple.bitcode_mode) == "embedded" and
-      getattr(ctx.attr, "binary", None) and
+  if (has_built_binary and
+      str(ctx.fragments.apple.bitcode_mode) == "embedded" and
       apple_common.AppleDebugOutputs in ctx.attr.binary):
     bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
     root_merge_zips.append(bundling_support.bundlable_file(
@@ -795,8 +795,7 @@ def _run(
 
   additional_providers = {}
 
-  if (getattr(ctx.attr, "binary", None) and
-      apple_common.AppleDebugOutputs in ctx.attr.binary):
+  if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
     additional_providers["AppleDebugOutputs"] = (
         ctx.attr.binary[apple_common.AppleDebugOutputs])
 

@@ -14,19 +14,19 @@
 
 """An aspect that collects information used during Apple bundling."""
 
-load("//apple:providers.bzl",
+load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundlingSwift",
      "AppleResource",
      "AppleResourceSet",
      "apple_resource_set_utils",
     )
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "basename",
      "group_files_by_directory"
     )
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:provider_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
      "provider_support")
 
 

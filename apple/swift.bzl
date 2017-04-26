@@ -14,7 +14,7 @@
 
 """Skylark rules for Swift."""
 
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "xcrun_action",
      "XCRUNWRAPPER_LABEL",
      "module_cache_path",

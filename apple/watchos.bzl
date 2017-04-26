@@ -14,14 +14,14 @@
 
 """Bazel rules for creating watchOS applications and bundles."""
 
-load("//apple/bundling:binary_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
      "binary_support")
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
-load("//apple/bundling:watchos_rules.bzl",
+load("@build_bazel_rules_apple//apple/bundling:watchos_rules.bzl",
      _watchos_application="watchos_application",
      _watchos_extension="watchos_extension",
     )
