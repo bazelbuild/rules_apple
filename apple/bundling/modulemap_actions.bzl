@@ -17,9 +17,9 @@
 See documentation: https://clang.llvm.org/docs/Modules.html#module-map-language
 """
 
-load("//apple/bundling:file_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl",
      "file_support")
-load("//apple/bundling:provider_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
      "provider_support")
 
 

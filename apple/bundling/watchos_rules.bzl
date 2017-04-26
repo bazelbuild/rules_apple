@@ -15,23 +15,23 @@
 """Rule implementations for creating watchOS applications and bundles.
 
 DO NOT load this file directly; use the macro in
-//apple:watchos.bzl instead. Bazel rules receive their name at
+@build_bazel_rules_apple//apple:watchos.bzl instead. Bazel rules receive their name at
 *definition* time based on the name of the global to which they are assigned.
 We want the user to call macros that have the same name, to get automatic
 binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
-load("//apple/bundling:bundler.bzl", "bundler")
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
-load("//apple/bundling:rule_attributes.bzl",
+load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
-load("//apple/bundling:run_actions.bzl", "run_actions")
-load("//apple:providers.bzl", "AppleResourceSet")
-load("//apple:utils.bzl", "merge_dictionaries")
+load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
+load("@build_bazel_rules_apple//apple:providers.bzl", "AppleResourceSet")
+load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
 def _watchos_application_impl(ctx):

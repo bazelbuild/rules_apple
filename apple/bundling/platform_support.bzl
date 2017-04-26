@@ -14,7 +14,7 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load("//apple:utils.bzl", "apple_action")
+load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
 
 
 # Maps the strings passed in to the "families" attribute to the numerical

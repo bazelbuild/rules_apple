@@ -14,12 +14,12 @@
 
 """Bazel rules for creating tvOS applications and bundles."""
 
-load("//apple/bundling:binary_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
      "binary_support")
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
-load("//apple/bundling:tvos_rules.bzl",
+load("@build_bazel_rules_apple//apple/bundling:tvos_rules.bzl",
      _tvos_application="tvos_application",
      _tvos_extension="tvos_extension",
     )

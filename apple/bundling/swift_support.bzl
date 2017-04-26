@@ -14,7 +14,7 @@
 
 """Support functions for working with Swift."""
 
-load("//apple/bundling:provider_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
      "provider_support")
 
 

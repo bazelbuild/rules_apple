@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
      "DARWIN_EXECUTION_REQUIREMENTS")
 

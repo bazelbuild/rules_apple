@@ -14,15 +14,15 @@
 
 """Functions related to code signing of Apple bundles."""
 
-load("//apple/bundling:mock_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
      "mock_support")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:plist_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
      "plist_support")
-load("//apple/bundling:swift_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
      "swift_support")
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "bash_quote")
 
 

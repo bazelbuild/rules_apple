@@ -14,16 +14,16 @@
 
 """Actions that operate on plist files."""
 
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:file_support.bzl", "file_support")
-load("//apple/bundling:plist_support.bzl", "plist_support")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
+load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl", "plist_support")
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
-load("//apple:utils.bzl", "apple_action")
-load("//apple:utils.bzl", "remove_extension")
+load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
+load("@build_bazel_rules_apple//apple:utils.bzl", "remove_extension")
 
 
 # Command string for "sed" that tries to extract the application version number

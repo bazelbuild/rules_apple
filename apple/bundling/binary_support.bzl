@@ -14,7 +14,7 @@
 
 """Binary creation support functions."""
 
-load("//apple/bundling:entitlements.bzl",
+load("@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
      "entitlements",
      "entitlements_support")
 

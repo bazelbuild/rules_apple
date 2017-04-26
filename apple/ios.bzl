@@ -14,19 +14,19 @@
 
 """Bazel rules for creating iOS applications and bundles."""
 
-load("//apple/bundling:binary_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
      "binary_support")
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
-load("//apple/bundling:ios_rules.bzl",
+load("@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
      _ios_application="ios_application",
      _ios_extension="ios_extension",
      _ios_framework="ios_framework",
     )
 
 # Explicitly export this because we want it visible to users loading this file.
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type")
 
 

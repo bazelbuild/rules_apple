@@ -14,13 +14,13 @@
 
 """Actions to manipulate bitcode outputs."""
 
-load("//apple/bundling:file_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl",
      "file_support")
-load("//apple/bundling:file_actions.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
      "file_actions")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "join_commands")
 
 

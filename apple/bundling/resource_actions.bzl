@@ -14,17 +14,17 @@
 
 """Actions used to process resources in Apple bundles."""
 
-load("//apple/bundling:bundling_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("//apple/bundling:file_support.bzl", "file_support")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple/bundling:product_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type",
      "product_support")
-load("//apple/bundling:resource_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
      "resource_support")
-load("//apple:utils.bzl",
+load("@build_bazel_rules_apple//apple:utils.bzl",
      "basename",
      "bash_array_string",
      "group_files_by_directory",
@@ -33,7 +33,7 @@ load("//apple:utils.bzl",
      "remove_extension",
      "replace_extension",
      "split_extension")
-load("//apple:utils.bzl", "xcrun_action")
+load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 
 
 # Sentinel value used as the key in the dictionary returned by

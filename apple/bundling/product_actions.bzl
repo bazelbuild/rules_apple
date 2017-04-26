@@ -14,10 +14,10 @@
 
 """Actions to manipulate support files for Apple product types."""
 
-load("//apple/bundling:file_support.bzl", "file_support")
-load("//apple/bundling:platform_support.bzl",
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
+load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("//apple:utils.bzl", "bash_quote")
+load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
 def _copy_stub_for_bundle(ctx, product_info):

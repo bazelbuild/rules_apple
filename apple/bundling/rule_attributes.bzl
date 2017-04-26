@@ -30,9 +30,9 @@ be effectively parameterized by grabbing rule-specific attributes from the
 Skylark context.
 """
 
-load("//apple/bundling:apple_bundling_aspect.bzl",
+load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
-load("//apple:utils.bzl", "merge_dictionaries")
+load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
 # Attributes that define tool dependencies.
@@ -41,12 +41,12 @@ def _tool_attributes():
       "_actoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/actoolwrapper"),
+          default=Label("@build_bazel_rules_apple//tools/actoolwrapper"),
       ),
       "_bundler_py": attr.label(
           cfg="host",
           single_file=True,
-          default=Label("//apple/bundling:bundler_py"),
+          default=Label("@build_bazel_rules_apple//apple/bundling:bundler_py"),
       ),
       "_debug_entitlements": attr.label(
           cfg="host",
@@ -58,17 +58,17 @@ def _tool_attributes():
           cfg="host",
           single_file=True,
           default=Label(
-              "//apple/bundling:dsym_info_plist_template"),
+              "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template"),
       ),
       "_environment_plist": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/environment_plist"),
+          default=Label("@build_bazel_rules_apple//tools/environment_plist"),
       ),
       "_ibtoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/ibtoolwrapper"),
+          default=Label("@build_bazel_rules_apple//tools/ibtoolwrapper"),
       ),
       "_ios_runner": attr.label(
           cfg="host",
@@ -79,28 +79,28 @@ def _tool_attributes():
       "_mapcwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/mapcwrapper"),
+          default=Label("@build_bazel_rules_apple//tools/mapcwrapper"),
       ),
       "_momcwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/momcwrapper"),
+          default=Label("@build_bazel_rules_apple//tools/momcwrapper"),
       ),
       "_plisttool": attr.label(
           cfg="host",
           single_file=True,
-          default=Label("//apple/bundling:plisttool"),
+          default=Label("@build_bazel_rules_apple//apple/bundling:plisttool"),
       ),
       "_process_and_sign_template": attr.label(
           single_file=True,
           default=Label(
-              "//apple/bundling:process_and_sign_template"),
+              "@build_bazel_rules_apple//apple/bundling:process_and_sign_template"),
       ),
       "_realpath": attr.label(
           cfg="host",
           allow_files=True,
           single_file=True,
-          default=Label("//tools/realpath"),
+          default=Label("@build_bazel_rules_apple//tools/realpath"),
       ),
       "_std_redirect_dylib": attr.label(
           cfg="host",
@@ -111,7 +111,7 @@ def _tool_attributes():
       "_swiftstdlibtoolwrapper": attr.label(
           cfg="host",
           executable=True,
-          default=Label("//tools/swiftstdlibtoolwrapper"),
+          default=Label("@build_bazel_rules_apple//tools/swiftstdlibtoolwrapper"),
       ),
       "_xcrunwrapper": attr.label(
           cfg="host",

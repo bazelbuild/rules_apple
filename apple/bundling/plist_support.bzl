@@ -14,9 +14,9 @@
 
 """Support functions for plist-based operations."""
 
-load("//apple:utils.bzl", "apple_action")
-load("//apple/bundling:mock_support.bzl", "mock_support")
-load("//apple:utils.bzl", "bash_quote")
+load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
+load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl", "mock_support")
+load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
 def _extract_provisioning_plist_command(ctx, provisioning_profile):
