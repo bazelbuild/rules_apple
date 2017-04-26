@@ -42,20 +42,19 @@ def _zip_bitcode_symbols_maps(ctx):
   Args:
     ctx: The Skylark context.
   Returns:
-    A `File` object representing the ZIP file containing the bitcode symbol maps
-    dylibs.
+    A `File` object representing the ZIP file containing the bitcode symbol
+    maps, or `None` if no bitcode symbols were found.
   """
-  debug_outputs = ctx.attr.binary[apple_common.AppleDebugOutputs]
-  if not debug_outputs:
-    return None
-
-  zip_file = file_support.intermediate(ctx, "%{name}.bcsymbolmaps.zip")
+  outputs_map = ctx.attr.binary[apple_common.AppleDebugOutputs].outputs_map
 
   # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
   copy_commands = []
   bitcode_symbol_inputs = []
-  for arch in debug_outputs.outputs_map:
-    bitcode_symbols = debug_outputs.outputs_map[arch]["bitcode_symbols"]
+  for arch in outputs_map:
+    bitcode_symbols = outputs_map[arch].get("bitcode_symbols")
+    if not bitcode_symbols:
+      continue
+
     bitcode_symbol_inputs.append(bitcode_symbols)
     # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
     copy_commands.append(
@@ -65,6 +64,11 @@ def _zip_bitcode_symbols_maps(ctx):
              arch=arch,
              binary=ctx.file.binary.path,
              bcmap=bitcode_symbols.path))
+
+  if not bitcode_symbol_inputs:
+    return None
+
+  zip_file = file_support.intermediate(ctx, "%{name}.bcsymbolmaps.zip")
 
   platform_support.xcode_env_action(
       ctx,

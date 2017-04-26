@@ -744,12 +744,11 @@ def _run(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
   # Include bitcode symbol maps when needed.
-  if (has_built_binary and
-      str(ctx.fragments.apple.bitcode_mode) == "embedded" and
-      apple_common.AppleDebugOutputs in ctx.attr.binary):
+  if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
     bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
-    root_merge_zips.append(bundling_support.bundlable_file(
-        bitcode_maps_zip, "BCSymbolMaps"))
+    if bitcode_maps_zip:
+      root_merge_zips.append(bundling_support.bundlable_file(
+          bitcode_maps_zip, "BCSymbolMaps"))
 
   # Include any embedded bundles.
   for eb in embedded_bundles:
