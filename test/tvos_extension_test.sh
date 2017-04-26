@@ -55,6 +55,13 @@ tvos_extension(
 EOF
 
   cat > app/main.m <<EOF
+#import <Foundation/Foundation.h>
+// This dummy class is needed to generate code in the extension target,
+// which doesn not take main() from here, rather from an SDK.
+@interface Foo: NSObject
+@end
+@implementation Foo
+@end
 int main(int argc, char **argv) {
   return 0;
 }
@@ -165,6 +172,20 @@ function test_contains_provisioning_profile() {
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
+}
+
+# Tests that the IPA contains bitcode symbols when bitcode is embedded.
+function test_bitcode_symbol_maps_packaging() {
+  # Bitcode is only availabe on device. Ignore the test for simulator builds.
+  is_device_build tvos || return 0
+
+  create_minimal_tvos_application_with_extension
+  do_build tvos 10.0 //app:app --apple_bitcode=embedded || fail "Should build"
+
+  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+      "Payload/app.app/app"
+  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/ext"
 }
 
 run_suite "tvos_extension bundling tests"
