@@ -255,10 +255,9 @@ def _ios_framework_impl(ctx):
 # All attributes available to the _ios_framework rule.
 _IOS_FRAMEWORK_ATTRIBUTES = merge_dictionaries(common_rule_attributes(), {
     "binary": attr.label(
-        # TODO(b/36513471): Restrict to apple dylib provider.
-        allow_rules=["apple_binary"],
         aspects=[apple_bundling_aspect],
         mandatory=True,
+        providers=[apple_common.AppleDylibBinary],
         single_file=True,
     ),
     "hdrs": attr.label_list(
