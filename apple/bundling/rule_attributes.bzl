@@ -219,8 +219,8 @@ def common_rule_attributes():
       simple_path_format_attributes(),
       {
           "binary": attr.label(
-              allow_rules=["apple_binary"],
               aspects=[apple_bundling_aspect],
+              providers=[apple_common.AppleExecutableBinary],
               single_file=True,
           ),
           "bundle_id": attr.string(
