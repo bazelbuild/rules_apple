@@ -14,6 +14,8 @@
 
 """Skylark rules for Swift."""
 
+load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
+     "apple_bundling_aspect")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "xcrun_action",
      "XCRUNWRAPPER_LABEL",
@@ -364,6 +366,40 @@ def swiftc_args(ctx):
   return args
 
 
+def _collect_resource_sets(ctx, module_name):
+  """Collects resource sets from the target and its dependencies.
+
+  Args:
+    ctx: The Skylark context.
+    module_name: The name of the Swift module associated with the resources
+        (either the user-provided name, or the auto-generated one).
+  Returns:
+    A list of structs representing the transitive resources to propagate to the
+    bundling rules.
+  """
+  resource_sets = []
+
+  # Create a resource set from the resources attached directly to this target.
+  if ctx.files.resources or ctx.files.structured_resources:
+    resource_sets.append(struct(
+        bundle_dir=None,
+        infoplists=depset(),
+        objc_bundle_imports=depset(),
+        resources=depset(ctx.files.resources),
+        structured_resources=depset(ctx.files.structured_resources),
+        structured_resource_zips=depset(),
+        swift_module=module_name,
+    ))
+
+  # Collect transitive resource sets from dependencies.
+  for dep in ctx.attr.deps:
+    apple_resource = getattr(dep, "AppleResource", None)
+    if apple_resource:
+      resource_sets.extend(apple_resource.resource_sets)
+
+  return resource_sets
+
+
 def _swift_library_impl(ctx):
   """Implementation for swift_library Skylark rule."""
 
@@ -498,20 +534,41 @@ def _swift_library_impl(ctx):
       link_inputs=set([output_module]),
       uses_swift=True,)
 
+  apple_resource_provider = struct(
+      resource_sets=_collect_resource_sets(ctx, module_name)
+  )
+
   return struct(
       swift=struct(
           transitive_libs=transitive_libs,
           transitive_modules=transitive_modules,
           transitive_defines=swiftc_defines),
       objc=objc_provider,
+      AppleResource=apple_resource_provider,
       files=set([output_lib, output_module, output_header]))
 
 SWIFT_LIBRARY_ATTRS = {
     "srcs": attr.label_list(allow_files = [".swift"], allow_empty=False),
-    "deps": attr.label_list(providers=[["swift"], ["objc"]]),
+    "deps": attr.label_list(
+        # TODO(b/37902442): Figure out why this is required here; it seems like
+        # having it on the binary should be sufficient because the aspect goes
+        # down all deps, but without this, the aspect runs *after* this rule
+        # gets to examine its deps (so the AppleResource provider isn't there
+        # yet).
+        aspects=[apple_bundling_aspect],
+        providers=[["swift"], ["objc"]]
+    ),
     "module_name": attr.string(mandatory=False),
     "defines": attr.string_list(mandatory=False, allow_empty=True),
     "copts": attr.string_list(mandatory=False, allow_empty=True),
+    "resources": attr.label_list(
+        mandatory=False,
+        allow_empty=True,
+        allow_files=True),
+    "structured_resources": attr.label_list(
+        mandatory=False,
+        allow_empty=True,
+        allow_files=True),
     "_xcrunwrapper": attr.label(
         executable=True,
         cfg="host",
