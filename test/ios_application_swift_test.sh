@@ -162,4 +162,188 @@ EOF
   assert_equals "1" "$(cat "test-genfiles/app/codesign_count_output")"
 }
 
+# Tests that the bundler includes resources propagated by swift_library using
+# the AppleResource provider.
+function test_app_contains_resources_from_swift_library() {
+  create_minimal_ios_application
+
+  readonly module_name=EasyToSearchForModuleName
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+    module_name = "$module_name",
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_xibs_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized_resource.txt",
+        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
+        "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
+    ],
+    structured_resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:structured",
+    ],
+)
+EOF
+
+  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+
+  # Verify that nonlocalized processed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/unversioned_datamodel.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v1.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v2.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+
+  # Verify nonlocalized unprocessed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized_resource.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.txt"
+
+  # Verify localized resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/view_ios.nib"
+
+  # Verify localized unprocessed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  # Verify that the module name is mentioned in the file. We can predict the
+  # name of the .nib file inside the compiled storyboard based on its object
+  # identifier and the fact that we're compiling with a particular minimum
+  # iOS version.
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/unversioned_datamodel.mom" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v1.mom" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v2.mom" \
+      | grep "$module_name"
+}
+
+# Tests that swift_library properly propagates resources from transitive
+# dependencies to the bundler.
+function test_app_contains_resources_from_transitive_swift_library() {
+  create_minimal_ios_application
+
+  readonly module_name=EasyToSearchForModuleName
+
+  cat > app/Dummy.swift <<EOF
+struct Dummy {}
+EOF
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+    deps = [":lib_with_resources"],
+)
+
+swift_library(
+    name = "lib_with_resources",
+    srcs = ["Dummy.swift"],
+    module_name = "$module_name",
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_xibs_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized_resource.txt",
+        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
+        "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
+    ],
+    structured_resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:structured",
+    ],
+)
+EOF
+
+  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+
+  # Verify that nonlocalized processed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/unversioned_datamodel.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v1.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v2.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+
+  # Verify nonlocalized unprocessed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized_resource.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/nested.txt"
+
+  # Verify localized resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/view_ios.nib"
+
+  # Verify localized unprocessed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  # Verify that the module name is mentioned in the file. We can predict the
+  # name of the .nib file inside the compiled storyboard based on its object
+  # identifier and the fact that we're compiling with a particular minimum
+  # iOS version.
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/unversioned_datamodel.mom" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v1.mom" \
+      | grep "$module_name"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/versioned_datamodel.momd/v2.mom" \
+      | grep "$module_name"
+}
+
 run_suite "ios_application with Swift bundling tests"

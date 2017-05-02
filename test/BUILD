@@ -42,6 +42,10 @@ apple_shell_test(
     size = "medium",
     src = "ios_application_swift_test.sh",
     configurations = IOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/resources:resource_data_deps_ios",
+        "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
 )
 
 apple_shell_test(

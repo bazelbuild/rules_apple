@@ -190,9 +190,7 @@ def _transitive_apple_resource(target, ctx):
   """
   resource_sets = []
 
-  if hasattr(target, "AppleResource"):
-    resource_sets.extend(target.AppleResource.resource_sets)
-  elif ctx.rule.kind in ("objc_library", "objc_bundle_library"):
+  if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
     resource_sets.extend(_handle_native_library_dependency(target, ctx))
   elif ctx.rule.kind == "objc_bundle":
     bundle_imports = ctx.rule.files.bundle_imports
@@ -257,12 +255,17 @@ def _apple_bundling_aspect_impl(target, ctx):
     A struct with providers for the aspect. Refer to the rule documentation for
     a description of these providers.
   """
-  apple_resource = _transitive_apple_resource(target, ctx)
-  apple_bundling_swift = _transitive_apple_bundling_swift(target, ctx)
-
   providers = {}
-  if apple_resource:
-    providers["AppleResource"] = apple_resource
+
+  # We can't provide AppleResource if the rule already provides it; if it does
+  # so, it's that rule's responsibility to propagate the resources from
+  # transitive dependencies.
+  if not hasattr(target, "AppleResource"):
+    apple_resource = _transitive_apple_resource(target, ctx)
+    if apple_resource:
+      providers["AppleResource"] = apple_resource
+
+  apple_bundling_swift = _transitive_apple_bundling_swift(target, ctx)
   if apple_bundling_swift:
     providers["AppleBundlingSwift"] = apple_bundling_swift
 

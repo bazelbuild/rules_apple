@@ -65,6 +65,11 @@ _FRAMEWORK_DIRS_TO_EXCLUDE = [
 ]
 
 
+# Resource sets with None for their bundle_dir represent resources that belong
+# in the root of the bundle, as opposed to a .bundle subdirectory.
+_ROOT_BUNDLE_DIR = None
+
+
 def _bundlable_files_for_control(bundlable_files):
   """Converts a list of bundlable files to be used by bundler.py.
 
@@ -85,7 +90,7 @@ def _bundlable_files_for_control(bundlable_files):
           for bf in bundlable_files]
 
 
-def _convert_native_bundlable_file(bf, bundle_dir=None):
+def _convert_native_bundlable_file(bf, bundle_dir=_ROOT_BUNDLE_DIR):
   """Transforms bundlable file values obtained from an `objc` provider.
 
   The native `objc` provider returns bundlable files as a struct with two keys:
@@ -601,13 +606,24 @@ def _run(
   # bundle and bundle ID consistency is checked).
   main_infoplist = None
 
+  # There might be multiple resource sets for a particular bundle_dir if they
+  # have differing Swift module names. This is mostly likely to happen for
+  # bundle root resources (bundle_dir=_ROOT_BUNDLE_DIR) but it could potentially
+  # happen for other .bundles as well. To ensure that all the Info.plist
+  # fragments get merged properly, we save lists of them keyed by the bundle_dir
+  # and then make a separate pass over them once all the resource sets have been
+  # processed.
+  bundle_infoplists = {}
+
   # Iterate over each set of resources and register the actions. This
   # ensures that each bundle among the dependencies has its resources
   # processed independently.
   resource_sets = [_dedupe_resource_set_files(rs)
                    for rs in apple_resource_set_utils.minimize(resource_sets)]
   for r in resource_sets:
-    ri = resource_support.resource_info(bundle_id, bundle_dir=r.bundle_dir)
+    ri = resource_support.resource_info(bundle_id,
+                                        bundle_dir=r.bundle_dir,
+                                        swift_module=r.swift_module)
     process_result = resource_actions.process_resources(ctx, r.resources, ri)
     bundle_merge_files.extend(list(process_result.bundle_merge_files))
     bundle_merge_zips.extend(list(process_result.bundle_merge_zips))
@@ -655,41 +671,14 @@ def _run(
         for f in r.structured_resource_zips
     ])
 
-    # Merge the Info.plists into binary format and collect the resulting PkgInfo
-    # file as well.
+    # Keep track of all the partial Info.plists for each bundle; we'll merge
+    # them after all the resource sets have been processed.
     infoplists = list(r.infoplists) + list(process_result.partial_infoplists)
     if infoplists:
-      merge_infoplist_args = {
-          "input_plists": list(infoplists),
-          "bundle_id": bundle_id,
-      }
-
-      # Compare to child plists (i.e., from extensions and nested binaries)
-      # only if we're processing the main bundle and not a resource bundle.
-      if not r.bundle_dir:
-        child_infoplists = [
-            eb.apple_bundle.infoplist for eb in embedded_bundles
-            if eb.verify_bundle_id
-        ]
-        merge_infoplist_args["child_plists"] = child_infoplists
-        merge_infoplist_args["executable_bundle"] = True
-
-      plist_results = plist_actions.merge_infoplists(
-          ctx, r.bundle_dir, **merge_infoplist_args)
-
-      if not r.bundle_dir:
-        main_infoplist = plist_results.output_plist
-
-      # The files below need to be merged with specific names in the final
-      # bundle.
-      bundle_merge_files.append(bundling_support.contents_file(
-          ctx, plist_results.output_plist,
-          optionally_prefixed_path("Info.plist", r.bundle_dir)))
-
-      if plist_results.pkginfo:
-        bundle_merge_files.append(bundling_support.contents_file(
-            ctx, plist_results.pkginfo,
-            optionally_prefixed_path("PkgInfo", r.bundle_dir)))
+      if r.bundle_dir not in bundle_infoplists:
+        bundle_infoplists[r.bundle_dir] = infoplists
+      else:
+        bundle_infoplists[r.bundle_dir].extend(infoplists)
 
     # Link the storyboards in the bundle, which not only resolves references
     # between different storyboards, but also copies the results to the correct
@@ -701,6 +690,42 @@ def _run(
           ctx, process_result.compiled_storyboards.to_list())
       bundle_merge_zips.append(bundling_support.resource_file(
           ctx, linked_storyboards, r.bundle_dir))
+
+  # Merge the Info.plists into binary format and collect the resulting PkgInfo
+  # file as well.
+  main_infoplist = None
+  for bundle_dir, infoplists in bundle_infoplists.items():
+    merge_infoplist_args = {
+        "input_plists": list(infoplists),
+        "bundle_id": bundle_id,
+    }
+
+    # Compare to child plists (i.e., from extensions and nested binaries)
+    # only if we're processing the main bundle and not a resource bundle.
+    if not bundle_dir:
+      child_infoplists = [
+          eb.apple_bundle.infoplist for eb in embedded_bundles
+          if eb.verify_bundle_id
+      ]
+      merge_infoplist_args["child_plists"] = child_infoplists
+      merge_infoplist_args["executable_bundle"] = True
+
+    plist_results = plist_actions.merge_infoplists(
+        ctx, bundle_dir, **merge_infoplist_args)
+
+    if not bundle_dir:
+      main_infoplist = plist_results.output_plist
+
+    # The files below need to be merged with specific names in the final
+    # bundle.
+    bundle_merge_files.append(bundling_support.contents_file(
+        ctx, plist_results.output_plist,
+        optionally_prefixed_path("Info.plist", bundle_dir)))
+
+    if plist_results.pkginfo:
+      bundle_merge_files.append(bundling_support.contents_file(
+          ctx, plist_results.pkginfo,
+          optionally_prefixed_path("PkgInfo", bundle_dir)))
 
   # Some application/extension types require stub executables, so collect that
   # information if necessary.
