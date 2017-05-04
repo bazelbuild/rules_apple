@@ -29,6 +29,11 @@ IOS_CONFIGURATIONS = {
     ],
 }
 
+IOS_TEST_CONFIGURATIONS = {
+    "simulator": ["--ios_multi_cpus=i386,x86_64"],
+    "device": IOS_DEVICE_OPTIONS,
+}
+
 # Configuration options used with `apple_shell_test` to run tests for
 # tvOS simulator and device builds.
 TVOS_DEVICE_OPTIONS = ["--tvos_cpus=arm64", "-c opt"]

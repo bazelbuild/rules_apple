@@ -11,6 +11,7 @@ filegroup(
     srcs = [
         "WORKSPACE",
         "//apple:for_bazel_tests",
+        "//apple/testing:for_bazel_tests",
         "//tools:for_bazel_tests",
     ],
     visibility = ["//:__subpackages__"],

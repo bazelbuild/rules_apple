@@ -5,6 +5,7 @@ licenses(["notice"])
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
+    "IOS_TEST_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
     "WATCHOS_CONFIGURATIONS",
 )
@@ -116,4 +117,24 @@ apple_shell_test(
     size = "medium",
     src = "watchos_application_swift_test.sh",
     configurations = WATCHOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "ios_unit_test_test",
+    size = "medium",
+    src = "ios_unit_test_test.sh",
+    configurations = IOS_TEST_CONFIGURATIONS,
+    data = [
+        "//test/testdata/rules:dummy_runner",
+    ],
+)
+
+apple_shell_test(
+    name = "ios_ui_test_test",
+    size = "medium",
+    src = "ios_ui_test_test.sh",
+    configurations = IOS_TEST_CONFIGURATIONS,
+    data = [
+        "//test/testdata/rules:dummy_runner",
+    ],
 )
