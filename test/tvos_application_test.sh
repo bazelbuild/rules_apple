@@ -61,6 +61,7 @@ tvos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -87,7 +88,7 @@ function test_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build tvos 10.0 --tvos_minimum_os=10.0 //app:dump_plist \
+  do_build tvos 10.0 //app:dump_plist \
       || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
@@ -191,6 +192,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     entitlements = "entitlements.plist",
     infoplists = ["Info.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )

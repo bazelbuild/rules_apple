@@ -65,6 +65,7 @@ def _create_binary(
 
   entitlements_value = bundling_args.pop("entitlements", None)
   linkopts = bundling_args.pop("linkopts", [])
+  minimum_os_version = kwargs.get("minimum_os_version")
   provisioning_profile = kwargs.get("provisioning_profile")
 
   if provisioning_profile:
@@ -100,6 +101,7 @@ def _create_binary(
       srcs = entitlements_srcs,
       features = kwargs.get("features"),
       linkopts = linkopts,
+      minimum_os_version = minimum_os_version,
       platform_type = platform_type,
       sdk_frameworks = sdk_frameworks,
       deps = deps + entitlements_deps,

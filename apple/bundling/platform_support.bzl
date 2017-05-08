@@ -81,16 +81,18 @@ def _is_device_build(ctx):
 def _minimum_os(ctx):
   """Returns the minimum OS version required for the current target.
 
-  TODO(b/31753863): Grab this from the target once we support setting the
-  minimum OS there.
-
   Args:
     ctx: The Skylark context.
   Returns:
-    A `DottedVersion` object representing the minimum OS version.
+    A string containing the dotted minimum OS version.
   """
-  apple = ctx.fragments.apple
-  return apple.minimum_os_for_platform_type(_platform_type(ctx))
+  min_os = ctx.attr.minimum_os_version
+  if not min_os:
+    # TODO(b/38006810): Use the SDK version instead of the flag value as a soft
+    # default.
+    apple = ctx.fragments.apple
+    min_os = str(apple.minimum_os_for_platform_type(_platform_type(ctx)))
+  return min_os
 
 
 def _platform_type(ctx):

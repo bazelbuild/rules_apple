@@ -231,7 +231,7 @@ def _merge_infoplists(ctx,
             CFBundleSupportedPlatforms=[platform.name_in_plist],
             DTPlatformName=platform.name_in_plist.lower(),
             DTSDKName=platform_with_version,
-            MinimumOSVersion=str(min_os),
+            MinimumOSVersion=min_os,
             **additional_infoplist_values
         ),
     ]

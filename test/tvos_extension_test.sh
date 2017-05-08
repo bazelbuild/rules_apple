@@ -41,6 +41,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     extensions = [":ext"],
     infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -49,6 +50,7 @@ tvos_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
     infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -57,11 +59,12 @@ EOF
   cat > app/main.m <<EOF
 #import <Foundation/Foundation.h>
 // This dummy class is needed to generate code in the extension target,
-// which doesn not take main() from here, rather from an SDK.
+// which does not take main() from here, rather from an SDK.
 @interface Foo: NSObject
 @end
 @implementation Foo
 @end
+
 int main(int argc, char **argv) {
   return 0;
 }
@@ -111,7 +114,7 @@ function test_extension_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build tvos 10.0 --tvos_minimum_os=10.0 //app:dump_plist \
+  do_build tvos 10.0 //app:dump_plist \
       || fail "Should build"
 
   # Verify the values injected by the Skylark rule.

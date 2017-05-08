@@ -44,6 +44,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-PhoneApp.plist"],
+    minimum_os_version = "8.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     watch_application = ":watch_app",
     deps = [":phone_lib"],
@@ -54,6 +55,7 @@ watchos_application(
     bundle_id = "my.bundle.id.watch_app",
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
 )
 
@@ -61,6 +63,7 @@ watchos_extension(
     name = "watch_ext",
     bundle_id = "my.bundle.id.watch_app.watch_ext",
     infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":watch_lib"],
 )

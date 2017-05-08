@@ -234,6 +234,7 @@ def ios_framework(name, **kwargs):
       name = apple_dylib_name,
       binary_type = "dylib",
       hdrs = kwargs.get("hdrs", []),
+      minimum_os_version = kwargs.get("minimum_os_version"),
       platform_type = str(apple_common.platform_type.ios),
       deps = deps,
       testonly = kwargs.get("testonly"),

@@ -260,7 +260,7 @@ def _actool(ctx, asset_catalogs, resource_info):
       out_zip.path,
       "--platform", actool_platform,
       "--output-partial-info-plist", out_plist.path,
-      "--minimum-deployment-target", str(min_os),
+      "--minimum-deployment-target", min_os,
       "--compress-pngs",
   ]
 
@@ -309,7 +309,7 @@ def _ibtool_arguments(ctx):
   min_os = platform_support.minimum_os(ctx)
 
   return [
-      "--minimum-deployment-target", str(min_os),
+      "--minimum-deployment-target", min_os,
   ] + intersperse("--target-device", platform_support.families(ctx))
 
 
@@ -530,7 +530,7 @@ def _momc(ctx, input_files, resource_info):
     args = [
         out_file.path,
         archive_root_dir,
-        deployment_target_option, str(min_os),
+        deployment_target_option, min_os,
         "--module", swift_module or ctx.label.name,
         model,
     ]

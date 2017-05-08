@@ -237,6 +237,9 @@ def common_rule_attributes():
               executable=True,
               cfg="host",
           ),
+          "minimum_os_version": attr.string(
+              mandatory=False,
+          ),
           "provisioning_profile": attr.label(
               allow_files=[".mobileprovision"],
               single_file=True,

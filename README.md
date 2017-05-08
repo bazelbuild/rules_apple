@@ -105,7 +105,8 @@ update your build targets.
 ```python
 ios_application(name, app_icons, bundle_id, entitlements, extensions, families,
 frameworks, infoplists, ipa_post_processor, launch_images, launch_storyboard,
-linkopts, product_type, provisioning_profile, settings_bundle, strings, deps)
+minimum_os_version, linkopts, product_type, provisioning_profile, settings_bundle,
+strings, deps)
 ```
 
 Builds and bundles an iOS application.
@@ -243,6 +244,16 @@ inside the application bundle.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>product_type</code></td>
       <td>
         <p><code>String; optional</code></p>
@@ -306,8 +317,8 @@ inside the application bundle.
 
 ```python
 ios_extension(name, app_icons, bundle_id, entitlements, families, frameworks,
-infoplists, ipa_post_processor, linkopts, product_type, provisioning_profile,
-strings, deps)
+infoplists, ipa_post_processor, linkopts, minimum_os_version, product_type,
+provisioning_profile, strings, deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -414,6 +425,16 @@ executable inside the extension bundle.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>product_type</code></td>
       <td>
         <p><code>String; optional</code></p>
@@ -459,7 +480,7 @@ executable inside the extension bundle.
 
 ```python
 ios_framework(name, bundle_id, families, infoplists, ipa_post_processor,
-linkopts, strings, deps)
+linkopts, minimum_os_version, strings, deps)
 ```
 
 Builds and bundles an iOS dynamic framework.
@@ -535,6 +556,16 @@ inside the framework bundle.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -563,7 +594,7 @@ inside the framework bundle.
 ```python
 tvos_application(name, app_icons, bundle_id, entitlements, extensions,
 infoplists, ipa_post_processor, launch_images, launch_storyboard, linkopts,
-provisioning_profile, settings_bundle, strings, deps)
+minimum_os_version, provisioning_profile, settings_bundle, strings, deps)
 ```
 
 Builds and bundles a tvOS application.
@@ -685,6 +716,16 @@ inside the application bundle.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum tvOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--tvos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>provisioning_profile</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -731,7 +772,7 @@ inside the application bundle.
 
 ```python
 tvos_extension(name, bundle_id, entitlements, infoplists, ipa_post_processor,
-linkopts, strings, deps)
+linkopts, minimum_os_version, strings, deps)
 ```
 
 Builds and bundles a tvOS extension.
@@ -813,6 +854,16 @@ executable inside the extension bundle.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum tvOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--tvos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>provisioning_profile</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -849,8 +900,8 @@ executable inside the extension bundle.
 
 ```python
 watchos_application(name, app_icons, bundle_id, entitlements, extension,
-infoplists, ipa_post_processor, provisioning_profile, storyboards, strings,
-deps)
+infoplists, ipa_post_processor, minimum_os_version, provisioning_profile,
+storyboards, strings, deps)
 ```
 
 Builds and bundles a watchOS application.
@@ -945,6 +996,16 @@ rule.
       </td>
     </tr>
     <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum watchOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"2.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--watchos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
       <td><code>provisioning_profile</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -991,7 +1052,8 @@ rule.
 
 ```python
 watchos_extension(name, app_icons, bundle_id, entitlements, infoplists,
-ipa_post_processor, linkopts, provisioning_profile, strings, deps)
+ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
+strings, deps)
 ```
 
 Builds and bundles a watchOS extension.
@@ -1083,6 +1145,16 @@ executable inside the extension bundle.
         <p>A list of strings representing extra flags that the underlying
         <code>apple_binary</code> target created by this rule should pass to the
         linker.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum watchOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"2.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--watchos_minimum_os</code> will be used instead.
       </td>
     </tr>
     <tr>
