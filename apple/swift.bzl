@@ -16,6 +16,9 @@
 
 load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleResourceInfo",
+     "SwiftInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "xcrun_action",
      "XCRUNWRAPPER_LABEL",
@@ -219,7 +222,7 @@ def swiftc_inputs(ctx):
   Returns:
     A list of files needed by swiftc.
   """
-  swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
+  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
   objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
 
   dep_modules = depset()
@@ -274,7 +277,7 @@ def swiftc_args(ctx):
   dep_modules = depset()
   swiftc_defines = ctx.attr.defines
 
-  swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
+  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
   objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
 
   for swift in swift_providers:
@@ -393,9 +396,8 @@ def _collect_resource_sets(ctx, module_name):
 
   # Collect transitive resource sets from dependencies.
   for dep in ctx.attr.deps:
-    apple_resource = getattr(dep, "AppleResource", None)
-    if apple_resource:
-      resource_sets.extend(apple_resource.resource_sets)
+    if AppleResourceInfo in dep:
+      resource_sets.extend(dep[AppleResourceInfo].resource_sets)
 
   return resource_sets
 
@@ -410,7 +412,7 @@ def _swift_library_impl(ctx):
   dep_libs = depset()
   swiftc_defines = ctx.attr.defines
 
-  swift_providers = [x.swift for x in ctx.attr.deps if hasattr(x, "swift")]
+  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
   objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
 
   for swift in swift_providers:
@@ -534,18 +536,22 @@ def _swift_library_impl(ctx):
       link_inputs=set([output_module]),
       uses_swift=True,)
 
-  apple_resource_provider = struct(
-      resource_sets=_collect_resource_sets(ctx, module_name)
-  )
+  resource_sets = _collect_resource_sets(ctx, module_name)
+
+  swift_provider_args = {
+      "transitive_libs": transitive_libs,
+      "transitive_modules": transitive_modules,
+      "transitive_defines": swiftc_defines,
+  }
 
   return struct(
-      swift=struct(
-          transitive_libs=transitive_libs,
-          transitive_modules=transitive_modules,
-          transitive_defines=swiftc_defines),
+      files=depset([output_lib, output_module, output_header]),
+      swift=struct(**swift_provider_args),
       objc=objc_provider,
-      AppleResource=apple_resource_provider,
-      files=set([output_lib, output_module, output_header]))
+      providers=[
+          AppleResourceInfo(resource_sets=resource_sets),
+          SwiftInfo(**swift_provider_args),
+      ])
 
 SWIFT_LIBRARY_ATTRS = {
     "srcs": attr.label_list(allow_files = [".swift"], allow_empty=False),

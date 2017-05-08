@@ -14,6 +14,8 @@
 
 """Support functions for working with Swift."""
 
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleBundlingSwiftInfo")
 load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
      "provider_support")
 
@@ -32,7 +34,7 @@ def _uses_swift(ctx):
     True if the current target directly uses Swift; otherwise, False.
   """
   swift_providers = provider_support.matching_providers(
-      ctx.attr.binary, "AppleBundlingSwift")
+      ctx.attr.binary, AppleBundlingSwiftInfo)
   return any([p.uses_swift for p in swift_providers])
 
 

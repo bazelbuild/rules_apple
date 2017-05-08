@@ -15,8 +15,8 @@
 """An aspect that collects information used during Apple bundling."""
 
 load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundlingSwift",
-     "AppleResource",
+     "AppleBundlingSwiftInfo",
+     "AppleResourceInfo",
      "AppleResourceSet",
      "apple_resource_set_utils",
     )
@@ -70,7 +70,7 @@ def _handle_native_library_dependency(target, ctx):
     # transitive resources as a flat list based on their .bundle directory, we
     # must prepend the current target's {name}.bundle to the path so that the
     # files end up in the correct place.
-    for p in provider_support.matching_providers(bundles, "AppleResource"):
+    for p in provider_support.matching_providers(bundles, AppleResourceInfo):
       resource_sets.extend([
           apple_resource_set_utils.prefix_bundle_dir(rs, bundle_dir)
           for rs in p.resource_sets
@@ -81,7 +81,7 @@ def _handle_native_library_dependency(target, ctx):
 
     # The "bundles" attribute of an objc_library don't indicate a nesting
     # relationship, so simply bring them over as-is.
-    for p in provider_support.matching_providers(bundles, "AppleResource"):
+    for p in provider_support.matching_providers(bundles, AppleResourceInfo):
       resource_sets.extend(p.resource_sets)
   else:
     fail(("Internal consistency error: expected rule to be objc_library " +
@@ -178,15 +178,15 @@ def _handle_unknown_objc_provider(objc):
   )
 
 
-def _transitive_apple_resource(target, ctx):
-  """Builds the `AppleResource` provider to be propagated.
+def _transitive_apple_resource_info(target, ctx):
+  """Builds the `AppleResourceInfo` provider to be propagated.
 
   Args:
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
   Returns:
-    An `AppleResource` provider, or `None` if nothing should be propagated for
-    this target.
+    An `AppleResourceInfo` provider, or `None` if nothing should be propagated
+    for this target.
   """
   resource_sets = []
 
@@ -199,7 +199,7 @@ def _transitive_apple_resource(target, ctx):
   # If the rule has deps, propagate the transitive info from this target's
   # dependencies.
   deps = getattr(ctx.rule.attr, "deps", [])
-  for p in provider_support.matching_providers(deps, "AppleResource"):
+  for p in provider_support.matching_providers(deps, AppleResourceInfo):
     resource_sets.extend(p.resource_sets)
 
   # Handle arbitrary objc providers, but only if we haven't gotten resource
@@ -216,30 +216,31 @@ def _transitive_apple_resource(target, ctx):
 
   if resource_sets:
     minimized = apple_resource_set_utils.minimize(resource_sets)
-    return AppleResource(resource_sets=minimized)
+    return AppleResourceInfo(resource_sets=minimized)
   else:
     return None
 
 
-def _transitive_apple_bundling_swift(target, ctx):
-  """Builds the `AppleBundlingSwift` provider to be propagated.
+def _transitive_apple_bundling_swift_info(target, ctx):
+  """Builds the `AppleBundlingSwiftInfo` provider to be propagated.
 
   Args:
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
   Returns:
-    An `AppleBundlingSwift` provider, or `None` if nothing should be propagated
-    for this target.
+    An `AppleBundlingSwiftInfo` provider, or `None` if nothing should be
+    propagated for this target.
   """
   uses_swift = hasattr(target, "swift")
 
   # If the target itself doesn't use Swift, check its deps.
   if not uses_swift:
     deps = getattr(ctx.rule.attr, "deps", [])
-    providers = provider_support.matching_providers(deps, "AppleBundlingSwift")
+    providers = provider_support.matching_providers(
+        deps, AppleBundlingSwiftInfo)
     uses_swift = any([p.uses_swift for p in providers])
 
-  return AppleBundlingSwift(uses_swift=uses_swift)
+  return AppleBundlingSwiftInfo(uses_swift=uses_swift)
 
 
 def _apple_bundling_aspect_impl(target, ctx):
@@ -252,24 +253,24 @@ def _apple_bundling_aspect_impl(target, ctx):
     target: The target on which the aspect is being applied.
     ctx: The Skylark context.
   Returns:
-    A struct with providers for the aspect. Refer to the rule documentation for
-    a description of these providers.
+    A list of providers for the aspect. Refer to the rule documentation for a
+    description of these providers.
   """
-  providers = {}
+  providers = []
 
-  # We can't provide AppleResource if the rule already provides it; if it does
-  # so, it's that rule's responsibility to propagate the resources from
+  # We can't provide AppleResourceInfo if the rule already provides it; if it
+  # does so, it's that rule's responsibility to propagate the resources from
   # transitive dependencies.
-  if not hasattr(target, "AppleResource"):
-    apple_resource = _transitive_apple_resource(target, ctx)
-    if apple_resource:
-      providers["AppleResource"] = apple_resource
+  if AppleResourceInfo not in target:
+    apple_resource_info = _transitive_apple_resource_info(target, ctx)
+    if apple_resource_info:
+      providers.append(apple_resource_info)
 
-  apple_bundling_swift = _transitive_apple_bundling_swift(target, ctx)
-  if apple_bundling_swift:
-    providers["AppleBundlingSwift"] = apple_bundling_swift
+  apple_bundling_swift_info = _transitive_apple_bundling_swift_info(target, ctx)
+  if apple_bundling_swift_info:
+    providers.append(apple_bundling_swift_info)
 
-  return struct(**providers)
+  return providers
 
 
 apple_bundling_aspect = aspect(
@@ -284,7 +285,7 @@ resources that need to be associated with a module when compiled (data models,
 storyboards, and XIBs), we annotate those resources with that information as
 well.
 
-This aspect may propagate the `AppleResource` and `AppleBundlingSwift`
+This aspect may propagate the `AppleResourceInfo` and `AppleBundlingSwiftInfo`
 providers. Refer to the documentation for those providers for a description of
 the fields they contain.
 """

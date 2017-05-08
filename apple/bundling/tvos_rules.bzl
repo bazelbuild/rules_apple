@@ -29,7 +29,11 @@ load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleResourceSet")
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleBundleInfo",
+     "AppleResourceSet",
+     "TvosApplicationBundleInfo",
+     "TvosExtensionBundleInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
@@ -62,11 +66,11 @@ def _tvos_application_impl(ctx):
   # TODO(b/32910122): Obtain framework information from extensions.
   embedded_bundles = [
       bundling_support.embedded_bundle(
-          "PlugIns", extension.apple_bundle, verify_bundle_id=True)
+          "PlugIns", extension[AppleBundleInfo], verify_bundle_id=True)
       for extension in ctx.attr.extensions
   ]
 
-  providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS application",
       ctx.attr.bundle_id,
@@ -75,13 +79,13 @@ def _tvos_application_impl(ctx):
   )
   runfiles = run_actions.start_simulator(ctx)
 
-  # The empty tvos_application provider acts as a tag to let depending
-  # attributes restrict the targets that can be used to just tvOS applications.
   return struct(
       files=depset([ctx.outputs.archive]) + additional_outputs,
       runfiles=ctx.runfiles(files=runfiles),
-      tvos_application=struct(),
-      **providers
+      providers=[
+          TvosApplicationBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
   )
 
 
@@ -94,7 +98,7 @@ tvos_application = rule(
             single_file=True,
         ),
         "extensions": attr.label_list(
-            providers=[["apple_bundle", "tvos_extension"]],
+            providers=[[AppleBundleInfo, TvosExtensionBundleInfo]],
         ),
         "launch_images": attr.label_list(allow_files=True),
         "launch_storyboard": attr.label(
@@ -127,17 +131,17 @@ tvos_application = rule(
 
 def _tvos_extension_impl(ctx):
   """Implementation of the `tvos_extension` Skylark rule."""
-  providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS extension",
       ctx.attr.bundle_id)
 
-  # The empty tvos_extension provider acts as a tag to let depending attributes
-  # restrict the targets that can be used to just tvOS extensions.
   return struct(
       files=depset([ctx.outputs.archive]) + additional_outputs,
-      tvos_extension=struct(),
-      **providers
+      providers=[
+          TvosExtensionBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
   )
 
 
