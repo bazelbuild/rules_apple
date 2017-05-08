@@ -112,6 +112,7 @@ def _ios_test(name,
               runner=None,
               deps=[],
               bundle_id=None,
+              minimum_os_version=None,
               infoplists=[
                   "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
               ],
@@ -141,6 +142,7 @@ def _ios_test(name,
       sdk_frameworks = ["XCTest"],
       binary_type = "loadable_bundle",
       bundle_loader = bundle_loader_binary,
+      minimum_os_version = minimum_os_version,
       visibility = ["//visibility:private"],
       testonly = 1,
   )
@@ -151,6 +153,7 @@ def _ios_test(name,
       bundle_name = name,
       bundle_id = bundle_id,
       infoplists = infoplists,
+      minimum_os_version = minimum_os_version,
       test_host = test_host,
       testonly = 1,
       visibility = ["//visibility:private"],
@@ -184,6 +187,8 @@ def ios_unit_test(
         "Tests".
     infoplists: A list of plist files that will be merged to form the
         Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
     runner: The runner target that contains the logic of how the tests should
         be executed. This target needs to provide an AppleTestRunner provider.
         Optional.
@@ -217,6 +222,8 @@ def ios_ui_test(
         "Tests".
     infoplists: A list of plist files that will be merged to form the
         Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
     runner: The runner target that contains the logic of how the tests should
         be executed. This target needs to provide an AppleTestRunner provider.
         Optional.
