@@ -168,6 +168,17 @@ def _validate_attributes(ctx):
             "list of allowed device families \"%s\"") % (
                 families, allowed_families))
 
+  if not ctx.attr.minimum_os_version:
+    # TODO(b/38006810): Once the minimum OS command line flags are deprecated,
+    # update this message to use the SDK version instead.
+    minimum_os = platform_support.minimum_os(ctx)
+    platform_type = platform_support.platform_type(ctx)
+    print(("The target %s does not specify its minimum OS version, so %s " +
+           "from the --%s_minimum_os setting will be used. Please set one " +
+           "for this target specifically by using the minimum_os_version " +
+           "attribute (for example, 'minimum_os_version = \"9.0\"').") %
+          (ctx.label, minimum_os, platform_type))
+
 
 def _dedupe_bundle_merge_files(bundlable_files):
   """Deduplicates bundle files by destination.
@@ -851,6 +862,7 @@ def _run(
           archive=ctx.outputs.archive,
           archive_root=work_dir,
           infoplist=main_infoplist,
+          minimum_os_version=platform_support.minimum_os(ctx),
           propagated_framework_files=depset(propagated_framework_files),
           propagated_framework_zips=depset(propagated_framework_zips),
           root_merge_zips=root_merge_zips if not _is_ipa(ctx) else [],

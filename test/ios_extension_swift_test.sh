@@ -50,6 +50,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":objclib"],
 )
@@ -59,6 +60,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":swiftlib"],
 )
@@ -133,6 +135,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":app_swiftlib"],
 )
@@ -142,6 +145,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":ext_swiftlib"],
 )

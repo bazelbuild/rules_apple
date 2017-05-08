@@ -43,6 +43,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-PhoneApp.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     watch_application = ":watch_app",
     deps = [":lib"],
@@ -53,6 +54,7 @@ watchos_application(
     bundle_id = "my.bundle.id.watch_app",
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -61,6 +63,7 @@ watchos_extension(
     name = "watch_ext",
     bundle_id = "my.bundle.id.watch_app.watch_ext",
     infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -197,7 +200,7 @@ function test_watch_ext_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build watchos 2.0 --watchos_minimum_os=2.0 //app:dump_plist \
+  do_build watchos 2.0 //app:dump_plist \
       || fail "Should build"
 
   assert_equals "my.bundle.id.watch_app.watch_ext" "$(cat "test-genfiles/app/CFBundleIdentifier")"

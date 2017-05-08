@@ -272,7 +272,7 @@ function current_archs() {
 # should expect to find their outputs in "test-bin" and "test-genfiles".
 #
 # Example:
-#     do_build ios 9.0 --ios_minimum_os=8.0 //foo:bar
+#     do_build ios 9.0 --some_other_flag //foo:bar
 function do_build() {
   platform="$1"; shift
   min_sdk_version="$1"; shift

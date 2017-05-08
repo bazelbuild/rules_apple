@@ -86,12 +86,13 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+  do_build ios 9.0 //app:app || fail "Should build"
 
   # Verify asset catalogs. (We just check to make sure Assets.car is present;
   # getting more specific would require reverse engineering the catalog, which
@@ -131,7 +132,7 @@ EOF
   # Verify compiled NIBs. Note that NIB folders might have different structures
   # depending on the minimum OS version passed to ibtool (in fact, they can
   # vary between directories to simple files). In this case, we verify the
-  # format for --ios_minimum_os=9.0, as passed above.
+  # format for a minimum OS version of 9.0, as passed above.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
 }
 
@@ -163,12 +164,13 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+  do_build ios 9.0 //app:app || fail "Should build"
 
   # Verify compiled storyboards.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -212,6 +214,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
@@ -244,12 +247,13 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     launch_images = ["@build_bazel_rules_apple//test/testdata/resources:launch_images_ios"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  do_build ios 9.0 //app:dump_plist || fail "Should build"
 
   # Note that the names have been transformed by actool so they are no longer
   # the original filename.
@@ -282,12 +286,13 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     launch_storyboard = "@build_bazel_rules_apple//test/testdata/resources:launch_screen_ios.storyboard",
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  do_build ios 9.0 //app:dump_plist || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/launch_screen_ios.storyboardc/"
@@ -313,6 +318,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
@@ -375,6 +381,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
@@ -421,6 +428,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )
@@ -456,6 +464,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     settings_bundle = "@build_bazel_rules_apple//test/testdata/resources:settings_bundle_ios",
     deps = [":lib"],
@@ -504,6 +513,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib", ":resources"],
 )

@@ -71,6 +71,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
 EOF
 
   if [[ -n "$product_type" ]]; then
@@ -99,6 +100,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [
         ":frameworkDependingLib",
@@ -167,7 +169,7 @@ function test_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  do_build ios 9.0 //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
   assert_equals "app" "$(cat "test-genfiles/app/CFBundleExecutable")"
@@ -215,6 +217,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist", "Another.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -301,6 +304,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     ipa_post_processor = "post_processor.sh",
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -334,6 +338,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     linkopts = ["-alias", "_main", "_linkopts_test_main"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -371,6 +376,7 @@ ios_application(
     entitlements = "entitlements.plist",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -418,6 +424,7 @@ ios_application(
     entitlements = "entitlements.plist",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -452,7 +459,7 @@ function test_message_application() {
   create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
       LSApplicationLaunchProhibited
 
-  do_build ios 10.0 --ios_minimum_os=10.0 //app:dump_plist || fail "Should build"
+  do_build ios 10.0 //app:dump_plist || fail "Should build"
 
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
@@ -474,6 +481,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [
         ":lib",
@@ -522,7 +530,7 @@ function test_prebuilt_static_framework_dependency() {
   create_common_files
   create_minimal_ios_application_with_objc_framework static
 
-  do_build ios 10.0 --ios_minimum_os=8.0 //app:app || fail "Should build"
+  do_build ios 10.0 //app:app || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -543,7 +551,7 @@ function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
   create_minimal_ios_application_with_objc_framework dynamic
 
-  do_build ios 10.0 --ios_minimum_os=8.0 //app:app || fail "Should build"
+  do_build ios 10.0 //app:app || fail "Should build"
 
   # Verify that the binary, plist, and resources are included.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -572,6 +580,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -589,7 +598,7 @@ function test_bitcode_symbol_maps_packaging() {
   create_common_files
   create_minimal_ios_application
 
-  do_build ios 10.0 -s --ios_minimum_os=8.0 --apple_bitcode=embedded \
+  do_build ios 10.0 -s --apple_bitcode=embedded \
        //app:app || fail "Should build"
 
   assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \

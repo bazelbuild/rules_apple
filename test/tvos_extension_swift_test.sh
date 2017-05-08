@@ -49,6 +49,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     extensions = [":ext"],
     infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":objclib"],
 )
@@ -57,6 +58,7 @@ tvos_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
     infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":swiftlib"],
 )
@@ -130,6 +132,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     extensions = [":ext"],
     infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":app_swiftlib"],
 )
@@ -138,6 +141,7 @@ tvos_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
     infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":ext_swiftlib"],
 )

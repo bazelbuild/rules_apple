@@ -40,6 +40,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -193,7 +194,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+  do_build ios 9.0 //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
@@ -290,7 +291,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:app || fail "Should build"
+  do_build ios 9.0 //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
