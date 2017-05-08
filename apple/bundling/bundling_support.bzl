@@ -108,7 +108,7 @@ def _contents_file(ctx, src, dest, executable=False):
   return _bundlable_file(src, _path_in_contents_dir(ctx, dest), executable)
 
 
-def _embedded_bundle(path, apple_bundle, verify_bundle_id):
+def _embedded_bundle(path, bundle_info, verify_bundle_id):
   """Returns a value that represents an embedded bundle in another bundle.
 
   These values are used by the bundler to indicate how dependencies that are
@@ -118,16 +118,16 @@ def _embedded_bundle(path, apple_bundle, verify_bundle_id):
   Args:
     path: The relative path within the depender's bundle where the given bundle
         should be located.
-    apple_bundle: The `apple_bundle` provider of the embedded bundle.
+    bundle_info: The `AppleBundleInfo` provider of the embedded bundle.
     verify_bundle_id: If True, the bundler should verify that the bundle
         identifier of the depender is a prefix of the bundle identifier of the
         embedded bundle.
   Returns:
-    A struct with `path`, `apple_bundle`, and `verify_bundle_id` fields equal
+    A struct with `path`, `bundle_info`, and `verify_bundle_id` fields equal
     to the values given in the arguments.
   """
   return struct(
-      path=path, apple_bundle=apple_bundle, verify_bundle_id=verify_bundle_id)
+      path=path, bundle_info=bundle_info, verify_bundle_id=verify_bundle_id)
 
 
 def _header_prefix(input_file):

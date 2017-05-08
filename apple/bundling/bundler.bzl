@@ -19,7 +19,8 @@ This file is only meant to be imported by the platform-specific top-level rules
 """
 
 load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleResource",
+     "AppleBundleInfo",
+     "AppleResourceInfo",
      "AppleResourceSet",
      "apple_resource_set_utils",
     )
@@ -68,6 +69,11 @@ _FRAMEWORK_DIRS_TO_EXCLUDE = [
 # Resource sets with None for their bundle_dir represent resources that belong
 # in the root of the bundle, as opposed to a .bundle subdirectory.
 _ROOT_BUNDLE_DIR = None
+
+
+# A private provider used by the bundler to propagate bundle directory
+# information used during resource de-duping.
+_BundleDirectoryInfo = provider()
 
 
 def _bundlable_files_for_control(bundlable_files):
@@ -411,7 +417,7 @@ def _process_and_sign_archive(ctx,
     script_inputs.append(post_processor)
 
   # The directory where the archive contents will be collected. This path is
-  # also passed out via the apple_bundle provider so that external tools can
+  # also passed out via the AppleBundleInfo provider so that external tools can
   # access the bundle layout directly, saving them an extra unzipping step.
   work_dir = remove_extension(output_archive.path) + ".archive-root"
 
@@ -509,12 +515,11 @@ def _run(
         appropriately.
     is_dynamic_framework: If True, create this bundle as a dynamic framework.
   Returns:
-    A tuple containing two values:
-    1. A dictionary with two providers: an `objc` provider containing the
-       transitive dependencies of the artifacts used by the current rule, and
-       an `apple_bundle` provider with additional metadata about the bundle
-       (such as its final Info.plist file).
-    2. A set of additional outputs that should be returned by the calling rule.
+    A tuple containing three values:
+    1. A list of modern providers that should be propagated by the calling rule.
+    2. A dictionary of legacy providers that should be propagated by the calling
+       rule.
+    3. A set of additional outputs that should be returned by the calling rule.
   """
   _validate_attributes(ctx)
 
@@ -581,16 +586,16 @@ def _run(
     framework_bundle_dirs = depset()
     if hasattr(ctx.attr, "frameworks"):
       for framework in getattr(ctx.attr, "frameworks", []):
-        if hasattr(framework, "bundle_dirs"):
-          for bundle_dir in framework.bundle_dirs.bundle_dirs:
+        if _BundleDirectoryInfo in framework:
+          for bundle_dir in framework[_BundleDirectoryInfo].bundle_dirs:
             framework_bundle_dirs = framework_bundle_dirs | [bundle_dir]
         if ctx.attr._propagates_frameworks:
-          propagated_framework_zips.append(framework.apple_bundle.archive)
+          propagated_framework_zips.append(framework[AppleBundleInfo].archive)
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
     apple_resource_providers = provider_support.matching_providers(
-        ctx.attr.binary, "AppleResource")
+        ctx.attr.binary, AppleResourceInfo)
     for p in apple_resource_providers:
       for rs in p.resource_sets:
         # Don't propagate empty bundle directory, as this is indicative of
@@ -715,7 +720,7 @@ def _run(
     # only if we're processing the main bundle and not a resource bundle.
     if not bundle_dir:
       child_infoplists = [
-          eb.apple_bundle.infoplist for eb in embedded_bundles
+          eb.bundle_info.infoplist for eb in embedded_bundles
           if eb.verify_bundle_id
       ]
       merge_infoplist_args["child_plists"] = child_infoplists
@@ -788,7 +793,7 @@ def _run(
 
   # Include any embedded bundles.
   for eb in embedded_bundles:
-    apple_bundle = eb.apple_bundle
+    apple_bundle = eb.bundle_info
     if ctx.attr._propagates_frameworks:
       propagated_framework_zips += list(apple_bundle.propagated_framework_zips)
       propagated_framework_files += list(apple_bundle.propagated_framework_files)
@@ -828,11 +833,11 @@ def _run(
       ctx, bundle_name, bundle_path_in_archive, ctx.outputs.archive,
       unprocessed_archive, mnemonic, progress_description)
 
-  additional_providers = {}
+  additional_providers = []
+  legacy_providers = {}
 
   if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
-    additional_providers["AppleDebugOutputs"] = (
-        ctx.attr.binary[apple_common.AppleDebugOutputs])
+    additional_providers.append(ctx.attr.binary[apple_common.AppleDebugOutputs])
 
     # Create a .dSYM bundle with the expected name next to the .ipa in the
     # output directory. We still have to check for the existence of the
@@ -856,26 +861,28 @@ def _run(
       objc_provider_args["static_framework_file"] = bundled_framework_files
 
   objc_provider_args["providers"] = objc_providers
+  legacy_providers["objc"] = apple_common.new_objc_provider(
+      **objc_provider_args)
 
-  providers = {
-      "apple_bundle": struct(
-          archive=ctx.outputs.archive,
-          archive_root=work_dir,
-          infoplist=main_infoplist,
-          minimum_os_version=platform_support.minimum_os(ctx),
-          propagated_framework_files=depset(propagated_framework_files),
-          propagated_framework_zips=depset(propagated_framework_zips),
-          root_merge_zips=root_merge_zips if not _is_ipa(ctx) else [],
-          uses_swift=swift_support.uses_swift(ctx),
-          bundle_id=bundle_id,
-      ),
-      "objc": apple_common.new_objc_provider(**objc_provider_args),
-      "bundle_dirs": struct(**{"bundle_dirs": bundle_dirs})
+  apple_bundle_info_args = {
+      "archive": ctx.outputs.archive,
+      "archive_root": work_dir,
+      "bundle_id": bundle_id,
+      "infoplist": main_infoplist,
+      "minimum_os_version": platform_support.minimum_os(ctx),
+      "propagated_framework_files": depset(propagated_framework_files),
+      "propagated_framework_zips": depset(propagated_framework_zips),
+      "root_merge_zips": root_merge_zips if not _is_ipa(ctx) else [],
+      "uses_swift": swift_support.uses_swift(ctx),
   }
-  for key, provider in additional_providers.items():
-    providers[key] = provider
 
-  return providers, depset(additional_outputs)
+  legacy_providers["apple_bundle"] = struct(**apple_bundle_info_args)
+  additional_providers.extend([
+      AppleBundleInfo(**apple_bundle_info_args),
+      _BundleDirectoryInfo(bundle_dirs=bundle_dirs),
+  ])
+
+  return additional_providers, legacy_providers, depset(additional_outputs)
 
 
 def _copy_framework_files(ctx, framework_files):

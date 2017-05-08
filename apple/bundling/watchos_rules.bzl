@@ -30,7 +30,11 @@ load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleResourceSet")
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleBundleInfo",
+     "AppleResourceSet",
+     "WatchosApplicationBundleInfo",
+     "WatchosExtensionBundleInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
@@ -50,9 +54,9 @@ def _watchos_application_impl(ctx):
   ext = ctx.attr.extension
   if ext:
     embedded_bundles.append(bundling_support.embedded_bundle(
-        "PlugIns", ext.apple_bundle, verify_bundle_id=True))
+        "PlugIns", ext[AppleBundleInfo], verify_bundle_id=True))
 
-  providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosApplicationArchive", "watchOS application",
       ctx.attr.bundle_id,
@@ -60,15 +64,13 @@ def _watchos_application_impl(ctx):
       embedded_bundles=embedded_bundles,
   )
 
-  # The empty watchos_application provider acts as a tag to let depending
-  # attributes restrict the targets that can be used to just watchOS
-  # applications.
-  #
   # TODO(b/36513412): Support 'bazel run'.
   return struct(
       files=depset([ctx.outputs.archive]) + additional_outputs,
-      watchos_application=struct(),
-      **providers
+      providers=[
+          WatchosApplicationBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
   )
 
 
@@ -81,7 +83,7 @@ watchos_application = rule(
             single_file=True,
         ),
         "extension": attr.label(
-            providers=[["apple_bundle", "watchos_extension"]],
+            providers=[[AppleBundleInfo, WatchosExtensionBundleInfo]],
             mandatory=True,
         ),
         "storyboards": attr.label_list(
@@ -125,20 +127,19 @@ def _watchos_extension_impl(ctx):
         resources=additional_resources,
     ))
 
-  providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",
       ctx.attr.bundle_id,
       additional_resource_sets=additional_resource_sets,
   )
 
-  # The empty watchos_extension provider acts as a tag to let depending
-  # attributes restrict the targets that can be used to just watchOS
-  # extensions.
   return struct(
       files=depset([ctx.outputs.archive]) + additional_outputs,
-      watchos_extension=struct(),
-      **providers
+      providers=[
+          WatchosExtensionBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
   )
 
 
