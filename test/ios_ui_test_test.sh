@@ -88,6 +88,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -95,6 +96,7 @@ ios_application(
 ios_ui_test(
     name = "ui_tests",
     deps = [":ui_test_lib"],
+    minimum_os_version = "9.0",
     test_host = ":app",
 EOF
 
@@ -135,6 +137,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
@@ -151,6 +154,7 @@ dummy_test_runner(
 ios_ui_test(
     name = "ui_tests",
     deps = [":ui_test_lib"],
+    minimum_os_version = "9.0",
     test_host = ":app",
     runner = ":DummyTestRunner",
 )
