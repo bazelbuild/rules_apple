@@ -24,5 +24,6 @@ ios_application(
         "ipad",
     ],
     infoplists = [":Info.plist"],
+    minimum_os_version = "8.0",
     deps = [":Sources"],
 )
