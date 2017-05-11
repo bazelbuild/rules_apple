@@ -23,7 +23,7 @@ under the hood.
 
 ## Reference documentation
 
-[Click here](https://github.com/bazelbuild/rules_apple/tree/master/apple/doc/index.md)
+[Click here](https://github.com/bazelbuild/rules_apple/tree/master/doc/index.md)
 for the reference documentation for the rules and other definitions in this
 repository.
 
