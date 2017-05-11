@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <UIKit/UIKit.h>
+import UIKit
 
-#import "examples/ios/HelloWorld/Sources/AppDelegate.h"
+@UIApplicationMain
+class AppDelegate: NSObject, UIApplicationDelegate {
 
-int main(int argc, char *argv[]) {
-  @autoreleasepool {
-    return UIApplicationMain(argc, argv, nil,
-                             NSStringFromClass([AppDelegate class]));
+  var window: UIWindow?
+
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions: [UIApplicationLaunchOptionsKey : Any]?
+  ) -> Bool {
+    return true
   }
 }

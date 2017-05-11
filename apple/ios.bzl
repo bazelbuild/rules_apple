@@ -25,6 +25,11 @@ load("@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
      _ios_framework="ios_framework",
     )
 
+load("@build_bazel_rules_apple//apple/testing:ios_rules.bzl",
+     _ios_ui_test="ios_ui_test",
+     _ios_unit_test="ios_unit_test",
+    )
+
 # Explicitly export this because we want it visible to users loading this file.
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type")
@@ -249,4 +254,92 @@ def ios_framework(name, **kwargs):
       name = name,
       binary = apple_dylib_name,
       **passthrough_args
+  )
+
+
+def ios_ui_test(name, **kwargs):
+  """Builds an XCUITest test bundle and tests it using the provided runner.
+
+  The named target produced by this macro is an test target that can be executed
+  with the `blaze test` command.
+
+  Args:
+    name: The name of the target.
+    test_host: The skylark_ios_application target that contains the code to be
+        tested. Required.
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. Optional. Defaults to the test_host's postfixed with
+        "Tests".
+    infoplists: A list of plist files that will be merged to form the
+        Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
+    runner: The runner target that contains the logic of how the tests should
+        be executed. This target needs to provide an AppleTestRunner provider.
+        Optional.
+    deps: A list of dependencies that contain the test code and dependencies
+        needed to run the tests.
+  """
+  _ios_ui_test(name=name, **kwargs)
+
+
+def ios_unit_test(name, **kwargs):
+  """Builds an XCTest unit test bundle and tests it using the provided runner.
+
+  The named target produced by this macro is a test target that can be executed
+  with the `blaze test` command.
+
+  Args:
+    name: The name of the target.
+    test_host: The skylark_ios_application target that contains the code to be
+        tested. Optional. Defaults to
+        "@build_bazel_rules_apple//apple/testing/default_host/ios".
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. Optional. Defaults to the test_host's postfixed with
+        "Tests".
+    infoplists: A list of plist files that will be merged to form the
+        Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
+    runner: The runner target that contains the logic of how the tests should
+        be executed. This target needs to provide an AppleTestRunner provider.
+        Optional.
+    deps: A list of dependencies that contain the test code and dependencies
+        needed to run the tests.
+  """
+  _ios_unit_test(name=name, **kwargs)
+
+
+def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
+  """Builds an XCTest unit test suite with the given runners.
+
+  Args:
+    name: The name of the target.
+    test_host: The skylark_ios_application target that contains the code to be
+        tested. Optional. Defaults to
+        "@build_bazel_rules_apple//apple/testing/default_host/ios".
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. Optional. Defaults to the test_host's postfixed with
+        "Tests".
+    infoplists: A list of plist files that will be merged to form the
+        Info.plist that represents the test bundle.
+    runners: The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an AppleTestRunner
+        provider. Required (minimum of 2 runners).
+    deps: A list of dependencies that contain the test code and dependencies
+        needed to run the tests.
+    tags: List of arbitrary text tags to be added to the test_suite. Tags may be
+        any valid string. Optional. Defaults to an empty list.
+  """
+  if len(runners) < 2:
+    fail("You need to specify at least 2 runners to create a test suite.")
+  tests = []
+  for runner in runners:
+    test_name = "_".join([name, runner.partition(":")[2]])
+    tests.append(":" + test_name)
+    ios_unit_test(name = test_name, runner = runner, **kwargs)
+  native.test_suite(
+      name = name,
+      tests = tests,
+      tags = tags,
   )
