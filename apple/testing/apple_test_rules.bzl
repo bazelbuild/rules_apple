@@ -44,6 +44,56 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
 # added to the test rules runfiles.
 AppleTestRunner = provider()
 
+# Provider used by the `coverage_files_aspect` aspect to propagate the
+# transitive closure of sources that a test depends on. These sources are then
+# made available during the coverage action as they are required by the coverage
+# insfrastructure. The sources are provided in the `coverage_files` field. This
+# provider is only available if when coverage collecting is enabled.
+CoverageFiles = provider()
+
+
+def _coverage_files_aspect_impl(target, ctx):
+  """Implementation for the `coverage_files_aspect` aspect."""
+  # target is needed for the method signature that aspect() expects in the
+  # implementation method.
+  target = target  # unused argument
+
+  # Skip collecting files if coverage is not enabled.
+  if not ctx.configuration.coverage_enabled:
+    return struct()
+
+  coverage_files = depset()
+
+  # Collect this target's coverage files.
+  for attr in ["srcs", "hdrs", "non_arc_srcs"]:
+    if hasattr(ctx.rule.attr, attr):
+      for files in [x.files for x in getattr(ctx.rule.attr, attr)]:
+        coverage_files += files
+
+  # Collect dependencies coverage files.
+  if hasattr(ctx.rule.attr, "deps"):
+    for dep in ctx.rule.attr.deps:
+      coverage_files += dep[CoverageFiles].coverage_files
+  if hasattr(ctx.rule.attr, "binary"):
+    coverage_files += ctx.rule.attr.binary[CoverageFiles].coverage_files
+
+  return struct(providers=[CoverageFiles(coverage_files=coverage_files)])
+
+
+coverage_files_aspect = aspect(
+    implementation = _coverage_files_aspect_impl,
+    attr_aspects = ["binary", "deps", "test_host"],
+)
+"""
+This aspect walks the dependency graph through the `binary`, `deps` and
+`test_host` attributes and collects all the sources and headers that are
+depended upon transitively. These files are needed to calculate test coverage on
+a test run.
+
+This aspect propagates a `CoverageFiles` provider which is just a set that
+contains all the `srcs` and `hdrs` files.
+"""
+
 
 def _apple_test_common_attributes():
   """Returns the attribute that are common for all apple test rules."""
@@ -60,7 +110,21 @@ def _apple_test_common_attributes():
       # code.
       "test_bundle": attr.label(
           mandatory=True,
+          aspects = [coverage_files_aspect],
           providers = ["apple_bundle"],
+      ),
+      # gcov and mcov are binary files required to calculate test coverage.
+      "_gcov": attr.label(
+          cfg="host",
+          allow_files=True,
+          single_file=True,
+          default=Label("@bazel_tools//tools/objc:gcov"),
+      ),
+      "_mcov": attr.label(
+          cfg="host",
+          allow_files=True,
+          single_file=True,
+          default=Label("@bazel_tools//tools/objc:mcov"),
       ),
       # The realpath binary needed for symlinking.
       "_realpath": attr.label(
@@ -111,13 +175,29 @@ def _get_template_substitutions(ctx, test_type):
   return {"%(" + k + ")s": subs[k] for k in subs}
 
 
+def _get_coverage_test_environment(ctx):
+  """Returns environment variables required for test coverage support."""
+  gcov_files = ctx.attr._gcov.files.to_list()
+  return {
+      "APPLE_COVERAGE": "1",
+      "COVERAGE_GCOV_PATH": gcov_files[0].path,
+  }
+
+
 def _apple_test_impl(ctx, test_type):
   """Common implementation for the apple test rules."""
   runner = ctx.attr.runner[AppleTestRunner]
   execution_requirements = runner.execution_requirements
   test_environment = runner.test_environment
 
-  test_runfiles = [ctx.outputs.test_bundle] + ctx.files.test_host
+  test_runfiles = ([ctx.outputs.test_bundle] + ctx.files.test_host +
+                   ctx.attr._mcov.files.to_list())
+
+  if ctx.configuration.coverage_enabled:
+    test_environment = merge_dictionaries(test_environment,
+                                          _get_coverage_test_environment(ctx))
+    test_runfiles.extend(
+        list(ctx.attr.test_bundle[CoverageFiles].coverage_files))
 
   file_actions.symlink(ctx,
                        ctx.attr.test_bundle.apple_bundle.archive,
@@ -130,15 +210,16 @@ def _apple_test_impl(ctx, test_type):
   )
 
   return struct(
+      files=depset([ctx.outputs.test_bundle, ctx.outputs.executable]),
+      instrumented_files=struct(dependency_attributes=["test_bundle"]),
       providers=[
           testing.ExecutionInfo(execution_requirements),
           testing.TestEnvironment(test_environment)
       ],
       runfiles=ctx.runfiles(
-          files = test_runfiles,
+          files=test_runfiles,
           transitive_files=ctx.attr.runner.data_runfiles.files
       ),
-      files=depset([ctx.outputs.test_bundle, ctx.outputs.executable]),
   )
 
 

@@ -101,6 +101,7 @@ def _ios_application_impl(ctx):
 
   return struct(
       files=depset([ctx.outputs.archive]) + additional_outputs,
+      instrumented_files=struct(dependency_attributes=["binary"]),
       runfiles=ctx.runfiles(files=runfiles),
       providers=[
           IosApplicationBundleInfo(),

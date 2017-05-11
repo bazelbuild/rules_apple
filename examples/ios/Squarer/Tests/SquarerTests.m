@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <UIKit/UIKit.h>
+#import <XCTest/XCTest.h>
 
-#import "examples/ios/HelloWorld/Sources/AppDelegate.h"
+#import "examples/ios/Squarer/Sources/Squarer.h"
 
-int main(int argc, char *argv[]) {
-  @autoreleasepool {
-    return UIApplicationMain(argc, argv, nil,
-                             NSStringFromClass([AppDelegate class]));
-  }
+@interface SquarerTests : XCTestCase
+@end
+
+@implementation SquarerTests
+
+- (void)testNumberIsSquared {
+  Squarer *squarer = [[Squarer alloc] init];
+  XCTAssertEqual(49, [squarer squareInteger:7], @"Number should be squared");
 }
+
+@end

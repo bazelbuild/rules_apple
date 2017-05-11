@@ -29,9 +29,9 @@ function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "apple_product_type",
-     "ios_application"
+     "ios_application",
+     "ios_ui_test",
     )
-load("@build_bazel_rules_apple//apple/testing:ios.bzl", "ios_ui_test")
 
 objc_library(
     name = "lib",

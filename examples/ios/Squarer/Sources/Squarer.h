@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-#import "examples/ios/HelloWorld/Sources/AppDelegate.h"
+@interface Squarer : NSObject
 
-int main(int argc, char *argv[]) {
-  @autoreleasepool {
-    return UIApplicationMain(argc, argv, nil,
-                             NSStringFromClass([AppDelegate class]));
-  }
-}
+/**
+ * Returns the square of the given number.
+ */
+- (NSInteger)squareInteger:(NSInteger)number;
+
+@end
