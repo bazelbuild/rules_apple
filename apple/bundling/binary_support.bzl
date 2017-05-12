@@ -99,14 +99,14 @@ def _create_binary(
   native.apple_binary(
       name = apple_binary_name,
       srcs = entitlements_srcs,
+      dylibs = kwargs.get("frameworks"),
       features = kwargs.get("features"),
       linkopts = linkopts,
       minimum_os_version = minimum_os_version,
       platform_type = platform_type,
       sdk_frameworks = sdk_frameworks,
       deps = deps + entitlements_deps,
-      dylibs = kwargs.get("frameworks"),
-      tags = kwargs.get("tags"),
+      tags = ["manual"] + kwargs.get("tags", []),
       testonly = kwargs.get("testonly"),
       visibility = kwargs.get("visibility"),
   )
