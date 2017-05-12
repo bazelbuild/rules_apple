@@ -26,7 +26,7 @@ load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "product_support")
+     "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
@@ -106,7 +106,7 @@ watchos_application = rule(
         # The product type that should be passed to tools for targets of this
         # type.
         "_product_type": attr.string(
-            default=str(product_support.WATCHAPP2_PRODUCT_TYPE),
+            default=apple_product_type.watch2_application,
         ),
     }),
     fragments = ["apple", "objc"],
@@ -168,7 +168,7 @@ watchos_extension = rule(
         # The product type that should be passed to tools for targets of this
         # type.
         "_product_type": attr.string(
-            default=str(product_support.WATCHKIT2_EXTENSION_PRODUCT_TYPE),
+            default=apple_product_type.watch2_extension,
         ),
         "_propagates_frameworks": attr.bool(default=True),
     }),

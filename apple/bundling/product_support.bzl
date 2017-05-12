@@ -20,14 +20,22 @@ This file should be loaded by the top-level Apple platform .bzl files
 and access the constants in their own targets.
 """
 
+load("@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
+     "attribute_support")
 
-# Only product types that are meant to be user-specified should be exported
-# here.
+
 apple_product_type = struct(
+    application="com.apple.product-type.application",
+    app_extension="com.apple.product-type.app-extension",
+    framework="com.apple.product-type.framework",
     messages_application="com.apple.product-type.application.messages",
     messages_extension="com.apple.product-type.app-extension.messages",
     messages_sticker_pack_extension=(
         "com.apple.product-type.app-extension.messages-sticker-pack"),
+    ui_test_bundle="com.apple.product-type.bundle.ui-testing",
+    unit_test_bundle="com.apple.product-type.bundle.unit-test",
+    watch2_application="com.apple.product-type.application.watchapp2",
+    watch2_extension="com.apple.product-type.watchkit2-extension",
 )
 """
 Product type identifiers used by special application and extension types.
@@ -38,6 +46,14 @@ bundling a stub executable instead of a user-defined binary, or extra arguments
 passed to tools like the asset compiler). These behaviors are captured in the
 product type identifier. The product types currently supported are:
 
+* `application`: A basic iOS, macOS, or tvOS application. This is the default
+  product type for those targets; it can be overridden with a more specific
+  product type if needed.
+* `app_extension`: A basic iOS, macOS, or tvOS application extension. This is
+  the default product type for those targets; it can be overridden with a more
+  specific product type if needed.
+* `framework`: A basic dynamic framework. This is the default product type for
+  those targets; it does not need to be set explicitly (and cannot be changed).
 * `messages_application`: An application that integrates with the Messages
   app (iOS 10 and above). This application must include an `ios_extension`
   with the `messages_extension` or `messages_sticker_pack_extension` product
@@ -49,15 +65,19 @@ product type identifier. The product types currently supported are:
 * `messages_sticker_pack_extension`: An extension that defines custom sticker
   packs for the Messages app. This product type does not contain a
   user-provided binary.
+* `ui_test_bundle`: A UI testing bundle (.xctest). This is the default product
+  type for those targets; it does not need to be set explicitly (and cannot be
+  changed).
+* `unit_test_bundle`: A unit test bundle (.xctest). This is the default product
+  type for those targets; it does not need to be set explicitly (and cannot be
+  changed).
+* `watch2_application`: A watchOS 2+ application. This is the default product
+  type for those targets; it does not need to be set explicitly (and cannot be
+  changed).
+* `watch2_extension`: A watchOS 2+ application extension. This is the default
+  product type for those targets; it does not need to be set explicitly (and
+  cannot be changed).
 """
-
-
-# Private declarations of the product types for watchOS 2+ apps and extensions.
-# Exported for the benefit of watchos.bzl but not intended to be used directly
-# by end-users.
-_WATCHAPP2_PRODUCT_TYPE = "com.apple.product-type.application.watchapp2"
-_WATCHKIT2_EXTENSION_PRODUCT_TYPE = (
-    "com.apple.product-type.watchkit2-extension")
 
 
 # Watch applications and some iOS extensions (like message sticker packs) do
@@ -86,7 +106,7 @@ _PRODUCT_TYPE_INFO_MAP = {
             "LSApplicationIsStickerPack": True,
         },
     ),
-    _WATCHAPP2_PRODUCT_TYPE: struct(
+    apple_product_type.watch2_application: struct(
         stub_path="${SDKROOT}/Library/Application Support/WatchKit/WK",
         archive_path="WatchKitSupport2/WK",
         bundle_path="_WatchKitStub/WK",
@@ -104,10 +124,7 @@ def _product_type(ctx):
     The product type identifier for the current target, or None if there is
     none.
   """
-  if hasattr(ctx.attr, "product_type"):
-    return ctx.attr.product_type
-
-  return getattr(ctx.attr, "_product_type", None)
+  return attribute_support.get(ctx.attr, "product_type")
 
 
 def _product_type_info(product_type):
@@ -158,8 +175,6 @@ def _product_type_info_for_target(ctx):
 
 # Define the loadable module that lists the exported symbols in this file.
 product_support = struct(
-    WATCHAPP2_PRODUCT_TYPE=_WATCHAPP2_PRODUCT_TYPE,
-    WATCHKIT2_EXTENSION_PRODUCT_TYPE=_WATCHKIT2_EXTENSION_PRODUCT_TYPE,
     product_type=_product_type,
     product_type_info=_product_type_info,
     product_type_info_for_target=_product_type_info_for_target,

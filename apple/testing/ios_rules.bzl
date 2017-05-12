@@ -24,6 +24,8 @@ load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
      "bundler")
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+     "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
 load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
@@ -52,6 +54,9 @@ def _ios_test_bundle_attributes():
           # has the same name as the test target and avoid Tulsi the confusion
           # of the internal paths.
           "bundle_name": attr.string(mandatory=True),
+          # The product type (either a UI test or unit test bundle) set by the
+          # wrapping macro.
+          "product_type": attr.string(mandatory=True),
           # The test host that will run these tests. This is required in order to
           # obtain a sensible default for the tests bundle identifier.
           "test_host": attr.label(mandatory=True, providers=[AppleBundleInfo]),
@@ -116,6 +121,7 @@ _ios_test_bundle = rule(
 
 
 def _ios_test(name,
+              product_type,
               test_rule=None,
               test_host=None,
               runner=None,
@@ -163,6 +169,7 @@ def _ios_test(name,
       bundle_id = bundle_id,
       infoplists = infoplists,
       minimum_os_version = minimum_os_version,
+      product_type = product_type,
       test_host = test_host,
       testonly = 1,
       visibility = ["//visibility:private"],
@@ -183,6 +190,7 @@ def ios_unit_test(
     **kwargs):
   _ios_test(
       name = name,
+      product_type = apple_product_type.unit_test_bundle,
       runner = runner,
       test_rule = apple_unit_test,
       test_host = test_host,
@@ -196,6 +204,7 @@ def ios_ui_test(
     **kwargs):
   _ios_test(
       name = name,
+      product_type = apple_product_type.ui_test_bundle,
       runner = runner,
       test_rule = apple_ui_test,
       **kwargs

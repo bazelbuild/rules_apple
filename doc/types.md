@@ -27,6 +27,30 @@ currently supported are:
   </thead>
   <tbody>
     <tr>
+      <td><code>application</code></td>
+      <td>
+        <p>A basic iOS, macOS, or tvOS application. This is the default product
+        type for those targets; it can be overridden with a more specific
+        product type if needed.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>app_extension</code></td>
+      <td>
+        <p>A basic iOS, macOS, or tvOS application extension. This is the
+        default product type for those targets; it can be overridden with a more
+        specific product type if needed.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>framework</code></td>
+      <td>
+        <p>A basic dynamic framework. This is the default product type for those
+        targets; it does not need to be set explicitly (and cannot be
+        changed).</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>messages_application</code></td>
       <td>
         <p>Applies to <code>ios_application</code> targets built for iOS 10 and
@@ -67,6 +91,38 @@ currently supported are:
         <code>asset_catalogs</code> attribute.</p>
         <p>This product type does not contain a user-provided binary; any
         code in its <code>deps</code> will be ignored.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>ui_test_bundle</code></td>
+      <td>
+        <p>A UI testing bundle (`.xctest`). This is the default product type for
+        those targets; it does not need to be set explicitly (and cannot be
+        changed).</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>unit_test_bundle</code></td>
+      <td>
+        <p>A unit test bundle (`.xctest`). This is the default product type for
+        those targets; it does not need to be set explicitly (and cannot be
+        changed).</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>watch2_application</code></td>
+      <td>
+        <p>A watchOS 2+ application. This is the default product type for those
+        targets; it does not need to be set explicitly (and cannot be
+        changed).</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>watch2_extension</code></td>
+      <td>
+        <p>A watchOS 2+ application extension. This is the default product type
+        for those targets; it does not need to be set explicitly (and cannot be
+        changed).</p>
       </td>
     </tr>
   </tbody>

@@ -29,6 +29,8 @@ load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
      "entitlements",
      "entitlements_support")
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+     "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes",
      "macos_path_format_attributes")
@@ -89,6 +91,7 @@ _MACOS_APPLICATION_ATTRIBUTES = merge_dictionaries(
         "extensions": attr.label_list(
             providers=[[AppleBundleInfo, MacosExtensionBundleInfo]],
         ),
+        "product_type": attr.string(default=apple_product_type.application),
         # Overwrite the provisioning_profile attribute to change the allowed
         # file extension.
         "provisioning_profile": attr.label(
@@ -161,6 +164,7 @@ _MACOS_EXTENSION_ATTRIBUTES = merge_dictionaries(
             allow_files=[".entitlements"],
             single_file=True,
         ),
+        "product_type": attr.string(default=apple_product_type.app_extension),
         # Overwrite the provisioning_profile attribute to change the allowed
         # file extension.
         "provisioning_profile": attr.label(
