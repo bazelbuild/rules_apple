@@ -174,6 +174,16 @@ def _validate_attributes(ctx):
             "list of allowed device families \"%s\"") % (
                 families, allowed_families))
 
+  if (getattr(ctx.attr, "extension_safe", False) or
+      getattr(ctx.attr, "_extension_safe", False)):
+    for framework in getattr(ctx.attr, "frameworks", []):
+      if not framework[AppleBundleInfo].extension_safe:
+        print(("The target %s is for an extension but its framework " +
+               "dependency %s is not marked extension-safe. Specify " +
+               "'extension_safe = 1' on the framework target. This " +
+               "will soon cause a build failure.") % (
+                   ctx.label, framework.label))
+
   if not ctx.attr.minimum_os_version:
     # TODO(b/38006810): Once the minimum OS command line flags are deprecated,
     # update this message to use the SDK version instead.
@@ -863,11 +873,13 @@ def _run(
   objc_provider_args["providers"] = objc_providers
   legacy_providers["objc"] = apple_common.new_objc_provider(
       **objc_provider_args)
-
+  extension_safe = (getattr(ctx.attr, "extension_safe", False) or
+                    getattr(ctx.attr, "_extension_safe", False))
   apple_bundle_info_args = {
       "archive": ctx.outputs.archive,
       "archive_root": work_dir,
       "bundle_id": bundle_id,
+      "extension_safe": extension_safe,
       "infoplist": main_infoplist,
       "minimum_os_version": platform_support.minimum_os(ctx),
       "product_type": product_support.product_type(ctx),

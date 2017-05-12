@@ -23,6 +23,7 @@ def _create_binary(
     name,
     platform_type,
     sdk_frameworks=[],
+    extension_safe=False,
     **kwargs):
   """Creates a binary target for a bundle.
 
@@ -50,6 +51,9 @@ def _create_binary(
     platform_type: The platform type for which the binary should be built.
     sdk_frameworks: Additional SDK frameworks that should be linked with the
         final binary.
+    extension_safe: If true, compiles and links this framework with
+        '-application-extension', restricting the binary to use only
+        extension-safe APIs. False by default.
     **kwargs: The arguments that were passed into the top-level macro.
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
@@ -100,6 +104,7 @@ def _create_binary(
       name = apple_binary_name,
       srcs = entitlements_srcs,
       dylibs = kwargs.get("frameworks"),
+      extension_safe = kwargs.get("extension_safe"),
       features = kwargs.get("features"),
       linkopts = linkopts,
       minimum_os_version = minimum_os_version,
