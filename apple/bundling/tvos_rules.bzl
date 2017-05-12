@@ -26,6 +26,8 @@ load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_supp
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
+load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+     "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_attributes.bzl",
      "common_rule_attributes")
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
@@ -120,6 +122,7 @@ tvos_application = rule(
         "_platform_type": attr.string(
             default=str(apple_common.platform_type.tvos)
         ),
+        "_product_type": attr.string(default=apple_product_type.application),
     }),
     executable = True,
     fragments = ["apple", "objc"],
@@ -166,6 +169,7 @@ tvos_extension = rule(
         "_platform_type": attr.string(
             default=str(apple_common.platform_type.tvos)
         ),
+        "_product_type": attr.string(default=apple_product_type.app_extension),
         "_propagates_frameworks": attr.bool(default=True),
     }),
     fragments = ["apple", "objc"],

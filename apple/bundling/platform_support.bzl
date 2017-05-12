@@ -15,6 +15,8 @@
 """Support functions for working with Apple platforms and device families."""
 
 load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
+load("@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
+     "attribute_support")
 
 
 # Maps the strings passed in to the "families" attribute to the numerical
@@ -104,10 +106,7 @@ def _platform_type(ctx):
     The `PlatformType` for the current target, after being converted from its
     string attribute form.
   """
-  if hasattr(ctx.attr, "platform_type"):
-    platform_type_string = ctx.attr.platform_type
-  else:
-    platform_type_string = ctx.attr._platform_type
+  platform_type_string = attribute_support.get(ctx.attr, "platform_type")
   return getattr(apple_common.platform_type, platform_type_string)
 
 

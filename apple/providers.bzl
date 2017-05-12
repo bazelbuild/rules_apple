@@ -39,6 +39,8 @@ Fields:
       bundle.
   minimum_os_version: `string`. The minimum OS version (as a dotted version
       number like "9.0") that this bundle was built to support.
+  product_type: `string`. The dot-separated product type identifier associated
+      with the bundle (for example, `com.apple.product-type.application`).
   propagated_framework_files: `depset` of `File`s. Individual files that make up
       framework dependencies of the target but which are propagated to an
       embedding target instead of being bundled with the propagator. For
