@@ -383,7 +383,7 @@ executable inside the extension bundle.
 
 ```python
 ios_framework(name, bundle_id, families, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, strings, deps)
+linkopts, minimum_os_version, extension_safe, strings, deps)
 ```
 
 Builds and bundles an iOS dynamic framework.
@@ -416,6 +416,14 @@ inside the framework bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         framework.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>extension_safe</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, compiles and links this framework with <code>-application-extension</code>,
+        restricting the binary to use only extension-safe APIs. False by default.
       </td>
     </tr>
     <tr>

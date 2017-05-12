@@ -35,6 +35,9 @@ Fields:
       archive.
   bundle_id: `string`. The bundle identifier (i.e., `CFBundleIdentifier` in
       `Info.plist`) of the bundle.
+  extension_safe: Boolean. True if the target propagating this provider was
+      compiled and linked with -application-extension, restricting it to
+      extension-safe APIs only.
   infoplist: `File`. The complete (binary-formatted) `Info.plist` file for the
       bundle.
   minimum_os_version: `string`. The minimum OS version (as a dotted version

@@ -178,11 +178,13 @@ def ios_extension(name, **kwargs):
   # the form expected by clang (i.e., -application_extension, not
   # -fapplication-extension).
   linkopts = kwargs.get("linkopts", [])
-  linkopts += ["-e", "_NSExtensionMain", "-application_extension"]
+  linkopts += ["-e", "_NSExtensionMain"]
   kwargs["linkopts"] = linkopts
 
   bundling_args = binary_support.create_binary(
-      name, str(apple_common.platform_type.ios), **kwargs)
+      name, str(apple_common.platform_type.ios),
+      extension_safe=True,
+      **kwargs)
 
   _ios_extension(
       name = name,
@@ -203,6 +205,9 @@ def ios_framework(name, **kwargs):
         framework. If specified, it will override the bundle ID in the plist
         file. If no bundle ID is specified by either this attribute or in the
         plist file, the build will fail.
+    extension_safe: If true, compiles and links this framework with
+        `-application-extension` restricting the binary to use only
+        extension-safe APIs. False by default.
     families: A list of device families supported by this framework. Valid
         values are `"iphone"` and `"ipad"`.
     infoplists: A list of `.plist` files that will be merged to form the
@@ -240,6 +245,7 @@ def ios_framework(name, **kwargs):
       binary_type = "dylib",
       hdrs = kwargs.get("hdrs", []),
       minimum_os_version = kwargs.get("minimum_os_version"),
+      extension_safe = kwargs.get("extension_safe"),
       platform_type = str(apple_common.platform_type.ios),
       deps = deps,
       testonly = kwargs.get("testonly"),
