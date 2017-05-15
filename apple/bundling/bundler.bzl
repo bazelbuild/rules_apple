@@ -713,7 +713,7 @@ def _run(
     # same .storyboardc directory structure that others do.
     if process_result.compiled_storyboards:
       linked_storyboards = resource_actions.ibtool_link(
-          ctx, process_result.compiled_storyboards.to_list())
+          ctx, process_result.compiled_storyboards.to_list(), ri)
       bundle_merge_zips.append(bundling_support.resource_file(
           ctx, linked_storyboards, r.bundle_dir))
 
