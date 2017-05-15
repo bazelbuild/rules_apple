@@ -298,6 +298,21 @@ def _actool(ctx, asset_catalogs, resource_info):
   )
 
 
+def _prefix_with_swift_module(path, resource_info):
+  """Prepends a path with the resource info's Swift module, if set.
+
+  Args:
+    path: The path to prepend.
+    resource_info: The resource info struct.
+  Returns: The path with the Swift module name prepended if it was set, or just
+    the path itself if there was no module name.
+  """
+  swift_module = resource_info.swift_module
+  if swift_module:
+    return swift_module + "-" + path
+  return path
+
+
 def _ibtool_arguments(ctx):
   """Returns common `ibtool` command line arguments.
 
@@ -343,8 +358,9 @@ def _ibtool_compile(ctx, input_file, resource_info):
     mnemonic = "XibCompile"
     out_name = replace_extension(path, ".nib")
 
+  out_zip_path = _prefix_with_swift_module(path + ".zip", resource_info)
   out_file = file_support.intermediate(
-      ctx, "%{name}.resources/%{path}", path=path + ".zip", prefix=bundle_dir)
+      ctx, "%{name}.resources/%{path}", path=out_zip_path, prefix=bundle_dir)
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.
@@ -371,7 +387,7 @@ def _ibtool_compile(ctx, input_file, resource_info):
     ]))
 
 
-def _ibtool_link(ctx, storyboardc_zips):
+def _ibtool_link(ctx, storyboardc_zips, resource_info):
   """Creates an action that links multiple compiled storyboards.
 
   Storyboards that reference each other must be linked, and this operation also
@@ -382,12 +398,19 @@ def _ibtool_link(ctx, storyboardc_zips):
     ctx: The Skylark context.
     storyboardc_zips: A list of zipped, compiled storyboards (produced by
         `resource_actions.ibtool_compile`) that should be linked.
+    resource_info: A struct returned by `resource_support.resource_info` that
+        contains information needed by the resource processing functions.
   Returns:
     The File object representing the ZIP file containing the linked
     storyboards.
   """
-  out_zip = file_support.intermediate(
-      ctx, "%{name}.resources/%{path}", path="linked-storyboards.zip")
+  bundle_dir = resource_info.bundle_dir
+  out_zip_path = _prefix_with_swift_module("linked-storyboards.zip",
+                                           resource_info)
+  out_zip = file_support.intermediate(ctx,
+                                      "%{name}.resources/%{path}",
+                                      path=out_zip_path,
+                                      prefix=bundle_dir)
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.

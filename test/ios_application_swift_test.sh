@@ -347,4 +347,42 @@ EOF
       | grep "$module_name"
 }
 
+# Tests that swift_library targets have their intermediate compiled storyboards
+# distinguished by module so that multiple link actions don't try to generate
+# the same output.
+function test_storyboard_intermediates_are_unique() {
+  create_minimal_ios_application
+
+  cat > app/Dummy.swift <<EOF
+struct Dummy {}
+EOF
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
+    ],
+    deps = [":lib_with_resources"],
+)
+
+swift_library(
+    name = "lib_with_resources",
+    srcs = ["Dummy.swift"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
+    ],
+)
+EOF
+
+  do_build ios 9.0 //app:app || fail "Should build"
+
+  # Verify that nonlocalized processed resources are present.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
+}
+
 run_suite "ios_application with Swift bundling tests"
