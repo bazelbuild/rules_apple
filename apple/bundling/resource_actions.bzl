@@ -24,6 +24,8 @@ load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
 load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
      "resource_support")
+load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
+     "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "basename",
      "bash_array_string",
@@ -264,9 +266,11 @@ def _actool(ctx, asset_catalogs, resource_info):
       "--compress-pngs",
   ]
 
-  product_type = product_support.product_type(ctx)
-  if product_type:
-    args.extend(["--product-type", product_type])
+  if xcode_support.is_xcode_at_least_version(ctx, "8"):
+    product_type = product_support.product_type(ctx)
+    if product_type:
+      args.extend(["--product-type", product_type])
+
   args.extend(_actool_args_for_special_file_types(
       ctx, asset_catalogs, resource_info))
   args.extend(intersperse("--target-device", platform_support.families(ctx)))
