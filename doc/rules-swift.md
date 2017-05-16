@@ -118,5 +118,13 @@ It can also be enabled for all targets in the build using the Bazel flag
         target only.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>swift_version</code></td>
+      <td>
+        <p><code>Integer; optional; default is 3</code></p>
+        <p>A number that specifies the Swift language version to use. Valid
+        options are 3, 4. This value is ignored for Xcode &lt; 8.3.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
