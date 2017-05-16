@@ -45,6 +45,12 @@ SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
 
 NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SDK_VERSION")
 
+# Clean our simulator up even if we fail along the way
+function cleanup {
+    xcrun simctl delete $"$NEW_SIM_ID"
+}
+trap cleanup EXIT
+
 # Wait a bit so that the newly created simulator can pass from the Creating
 # state to the Shutdown state.
 sleep 2
@@ -56,8 +62,6 @@ XCTEST_PATH="$XCODE_PATH/Platforms/iPhoneSimulator.platform/Developer/Library/Xc
 # Spawn xctest with the test bundle which runs the tests.
 xcrun simctl spawn "$NEW_SIM_ID" "$XCTEST_PATH" "$TEST_BUNDLE"
 EXIT_CODE=$?
-
-xcrun simctl delete $"$NEW_SIM_ID"
 
 # Bazel detects the exit code from this script as the status of whether the
 # tests succeeded or failed. Any exit code other than 0 means tests failed.
