@@ -24,6 +24,8 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "XCRUNWRAPPER_LABEL",
      "module_cache_path",
      "label_scoped_path")
+load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
+     "xcode_support")
 
 def _parent_dirs(dirs):
   """Returns a set of parent directories for each directory in dirs."""
@@ -366,6 +368,11 @@ def swiftc_args(ctx):
   args.extend(ctx.fragments.swift.copts())
   args.extend(ctx.attr.copts)
 
+  # Swift 3.1, which has this flag, has been bundled with Xcode 8.3. This check
+  # won't work for out-of-Xcode toolchains if we ever going to support that.
+  if xcode_support.is_xcode_at_least_version(ctx, "8.3"):
+    args.extend(["-swift-version", "%d" % ctx.attr.swift_version])
+
   return args
 
 
@@ -575,6 +582,7 @@ SWIFT_LIBRARY_ATTRS = {
         mandatory=False,
         allow_empty=True,
         allow_files=True),
+    "swift_version": attr.int(default=3, values=[3, 4], mandatory=False),
     "_xcrunwrapper": attr.label(
         executable=True,
         cfg="host",
@@ -602,4 +610,6 @@ Args:
   copts: A list of flags passed to swiftc command line.
   defines: Each VALUE in this attribute is passed as -DVALUE to the compiler for
       this and dependent targets.
+  swift_version: A number that specifies the Swift language version to use.
+      Valid options are 3, 4. This value is ignored for Xcode < 8.3.
 """
