@@ -122,15 +122,16 @@ _ios_test_bundle = rule(
 
 def _ios_test(name,
               product_type,
-              test_rule=None,
-              test_host=None,
-              runner=None,
-              deps=[],
               bundle_id=None,
-              minimum_os_version=None,
+              bundle_loader=None,
               infoplists=[
                   "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
               ],
+              minimum_os_version=None,
+              runner=None,
+              test_rule=None,
+              test_host=None,
+              deps=[],
               **kwargs):
   """Macro that routes the external macro arguments into the correct targets.
 
@@ -147,16 +148,12 @@ def _ios_test(name,
   test_binary_name = name + "_test_binary"
   test_bundle_name = name + "_test_bundle"
 
-  bundle_loader_binary = None
-  if test_host:
-    bundle_loader_binary = full_label(test_host) + ".apple_binary"
-
   native.apple_binary(
       name = test_binary_name,
       deps = deps,
       sdk_frameworks = ["XCTest"],
       binary_type = "loadable_bundle",
-      bundle_loader = bundle_loader_binary,
+      bundle_loader = bundle_loader,
       minimum_os_version = minimum_os_version,
       visibility = ["//visibility:private"],
       testonly = 1,
@@ -188,9 +185,11 @@ def ios_unit_test(
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
     test_host = "@build_bazel_rules_apple//apple/testing/default_host/ios",
     **kwargs):
+  bundle_loader = full_label(test_host) + ".apple_binary"
   _ios_test(
       name = name,
       product_type = apple_product_type.unit_test_bundle,
+      bundle_loader = bundle_loader,
       runner = runner,
       test_rule = apple_unit_test,
       test_host = test_host,
