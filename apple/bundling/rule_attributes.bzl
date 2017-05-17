@@ -43,10 +43,10 @@ def _tool_attributes():
           executable=True,
           default=Label("@build_bazel_rules_apple//tools/actoolwrapper"),
       ),
-      "_bundler_py": attr.label(
+      "_bundletool": attr.label(
           cfg="host",
-          single_file=True,
-          default=Label("@build_bazel_rules_apple//apple/bundling:bundler_py"),
+          default=Label("@build_bazel_rules_apple//tools/bundletool"),
+          executable=True,
       ),
       "_debug_entitlements": attr.label(
           cfg="host",
@@ -88,13 +88,13 @@ def _tool_attributes():
       ),
       "_plisttool": attr.label(
           cfg="host",
-          single_file=True,
-          default=Label("@build_bazel_rules_apple//apple/bundling:plisttool"),
+          default=Label("@build_bazel_rules_apple//tools/plisttool"),
+          executable=True,
       ),
       "_process_and_sign_template": attr.label(
           single_file=True,
           default=Label(
-              "@build_bazel_rules_apple//apple/bundling:process_and_sign_template"),
+              "@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
       ),
       "_realpath": attr.label(
           cfg="host",

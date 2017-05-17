@@ -363,20 +363,17 @@ def _create_unprocessed_archive(ctx,
       content=control.to_json()
   )
 
-  bundler_py = ctx.file._bundler_py
   bundler_inputs = (
       list(bundling_support.bundlable_file_sources(
           bundle_merge_files + bundle_merge_zips + root_merge_zips)) +
-      [bundler_py, control_file]
+      [control_file]
   )
 
   ctx.action(
       inputs=bundler_inputs,
       outputs=[unprocessed_archive],
-      command=[
-          "/bin/bash", "-c",
-          "python2.7 %s %s" % (bundler_py.path, control_file.path),
-      ],
+      executable=ctx.executable._bundletool,
+      arguments=[control_file.path],
       mnemonic=mnemonic,
       progress_message="Bundling %s: %s" % (progress_description, bundle_name)
   )

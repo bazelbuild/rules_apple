@@ -21,7 +21,7 @@ import tempfile
 import unittest
 import zipfile
 
-import bundler
+import bundletool
 
 
 def _run_bundler(control):
@@ -33,14 +33,14 @@ def _run_bundler(control):
 
   Args:
     control: The control struct to pass to Bundler. See the module doc for
-        the bundler module for a description of this format.
+        the bundletool module for a description of this format.
   Returns:
     The StringIO object containing the binary data for a bundled ZIP file.
   """
   output = StringIO.StringIO()
   control['output'] = output
 
-  tool = bundler.Bundler(control)
+  tool = bundletool.Bundler(control)
   tool.run()
 
   return output
@@ -256,8 +256,8 @@ class BundlerTest(unittest.TestCase):
     foo_txt = self._scratch_file('foo.txt', 'foo')
     bar_txt = self._scratch_file('bar.txt', 'bar')
     with self.assertRaisesRegexp(
-        bundler.BundleConflictError,
-        bundler.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/renamed'):
+        bundletool.BundleConflictError,
+        bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/renamed'):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_files': [
@@ -283,8 +283,8 @@ class BundlerTest(unittest.TestCase):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:bar')
     with self.assertRaisesRegexp(
-        bundler.BundleConflictError,
-        bundler.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/some.dylib'):
+        bundletool.BundleConflictError,
+        bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/some.dylib'):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_zips': [
