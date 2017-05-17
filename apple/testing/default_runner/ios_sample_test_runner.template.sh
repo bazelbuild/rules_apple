@@ -28,7 +28,7 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
-# Unpack the output IPA into a tmp folder
+# Create tmp folder to contain the extracted .xctest bundle
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/tests.XXXXXX")"
 
 # Create a simulator with a random name and the iOS SDK provided by the
@@ -49,6 +49,7 @@ trap cleanup ERR EXIT
 # state to the Shutdown state.
 sleep 2
 
+# Extract the bundle into the tmp folder we created earlier
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
 
@@ -61,8 +62,3 @@ XCTEST_PATH="$XCODE_PATH/Platforms/iPhoneSimulator.platform/Developer/Library/Xc
 
 # Spawn xctest with the test bundle which runs the tests.
 xcrun simctl spawn "$NEW_SIM_ID" "$XCTEST_PATH" "$TEST_BUNDLE"
-EXIT_CODE=$?
-
-# Bazel detects the exit code from this script as the status of whether the
-# tests succeeded or failed. Any exit code other than 0 means tests failed.
-exit $EXIT_CODE
