@@ -400,8 +400,8 @@ entitlements = rule(
         ),
         "_plisttool": attr.label(
             cfg="host",
-            single_file=True,
-            default=Label("@build_bazel_rules_apple//apple/bundling:plisttool"),
+            default=Label("@build_bazel_rules_apple//tools/plisttool"),
+            executable=True,
         ),
         # Used to pass the platform type through from the calling rule.
         "platform_type": attr.string(),

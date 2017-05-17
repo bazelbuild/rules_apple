@@ -56,17 +56,12 @@ def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic=None):
     mnemonic: The mnemonic to display when the action executes. Defaults to
         None.
   """
-  plisttool = ctx.file._plisttool
-
-  # TODO(b/23975430): Remove the /bin/bash workaround once this bug is fixed.
   apple_action(
       ctx,
-      inputs=inputs + [control_file, plisttool],
+      inputs=inputs + [control_file],
       outputs=outputs,
-      command=[
-          "/bin/bash", "-c",
-          "python2.7 %s %s" % (plisttool.path, control_file.path),
-      ],
+      executable=ctx.executable._plisttool,
+      arguments=[control_file.path],
       mnemonic=mnemonic,
   )
 
