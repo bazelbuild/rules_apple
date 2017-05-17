@@ -40,8 +40,8 @@ NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SDK_VERSION")
 
 # Clean up our simulator and temp directory if we fail along the way
 function cleanup {
-	rm -rf "${TEST_TMP_DIR}"
-    xcrun simctl delete $"$NEW_SIM_ID"
+  rm -rf "${TEST_TMP_DIR}"
+  xcrun simctl delete $"$NEW_SIM_ID"
 }
 trap cleanup ERR EXIT
 
