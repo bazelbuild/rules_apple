@@ -30,13 +30,6 @@ basename_without_extension() {
 
 # Unpack the output IPA into a tmp folder
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/tests.XXXXXX")"
-trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
-
-TEST_BUNDLE_PATH="%(test_bundle_path)s"
-TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
-
-unzip -qq "$TEST_BUNDLE_PATH" 'Payload/*' -d "$TEST_TMP_DIR"
-TEST_BUNDLE="$TEST_TMP_DIR/Payload/$TEST_BUNDLE_NAME.xctest"
 
 # Create a simulator with a random name and the iOS SDK provided by the
 # Xcode currently selected with xcode-select.
@@ -45,15 +38,22 @@ SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
 
 NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SDK_VERSION")
 
-# Clean our simulator up even if we fail along the way
+# Clean up our simulator and temp directory if we fail along the way
 function cleanup {
+	rm -rf "${TEST_TMP_DIR}"
     xcrun simctl delete $"$NEW_SIM_ID"
 }
-trap cleanup EXIT
+trap cleanup ERR EXIT
 
 # Wait a bit so that the newly created simulator can pass from the Creating
 # state to the Shutdown state.
 sleep 2
+
+TEST_BUNDLE_PATH="%(test_bundle_path)s"
+TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
+
+unzip -qq "$TEST_BUNDLE_PATH" 'Payload/*' -d "$TEST_TMP_DIR"
+TEST_BUNDLE="$TEST_TMP_DIR/Payload/$TEST_BUNDLE_NAME.xctest"
 
 # Figure out the path to the xctest agent for library based tests.
 XCODE_PATH=$(xcrun xcode-select -p)
