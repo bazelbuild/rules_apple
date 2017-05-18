@@ -148,6 +148,12 @@ def _ios_test(name,
   test_binary_name = name + "_test_binary"
   test_bundle_name = name + "_test_bundle"
 
+  # TODO(b/38350264): Remove these linkopts once bazel adds the
+  # @loader_path/Frameworks rpath by default.
+  linkopts = None
+  if not bundle_loader:
+    linkopts = ["-rpath", "@loader_path/Frameworks"]
+
   native.apple_binary(
       name = test_binary_name,
       deps = deps,
@@ -156,6 +162,7 @@ def _ios_test(name,
       bundle_loader = bundle_loader,
       minimum_os_version = minimum_os_version,
       visibility = ["//visibility:private"],
+      linkopts = linkopts,
       testonly = 1,
   )
 
