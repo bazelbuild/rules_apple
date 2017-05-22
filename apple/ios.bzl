@@ -236,7 +236,7 @@ def ios_framework(name, **kwargs):
   deps = kwargs.pop("deps", [])
   apple_dylib_name = "%s.apple_binary" % name
 
-  linkopts = kwargs.get("linkopts", [])
+  linkopts = kwargs.pop("linkopts", [])
   linkopts += ["-install_name", "@rpath/%s.framework/%s" % (name, name)]
 
   # Link the executable from any library deps and sources provided.
