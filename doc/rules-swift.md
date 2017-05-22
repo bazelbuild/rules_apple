@@ -59,6 +59,27 @@ swift_library(
 It can also be enabled for all targets in the build using the Bazel flag
 `--swift_whole_module_optimization`.
 
+### Toolchains
+
+Bazel fully supports toolchains *packaged with Xcode*. To specify a non-default
+toolchain, use its bundle ID. For example, to use the Swift 2.3 toolchain:
+
+```shell
+bazel build //target:app --xcode_toolchain=com.apple.dt.toolchain.Swift_2_3
+```
+
+`swift_library` itself has a limited support for custom toolchains installed
+*outside of Xcode*. This is useful for testing against Swift snapshots. To
+specify such toolchain, in addition to the `xcode_toolchain` flag, you also
+need to set the toolchain location:
+
+```shell
+bazel build //target:app
+    --xcode_toolchain=swift
+    --define xcode_toolchain_path=/Library/Developer/Toolchains/swift-4.0-DEVELOPMENT-SNAPSHOT.xctoolchain/
+```
+---
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
