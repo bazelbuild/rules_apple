@@ -108,6 +108,10 @@ def _swift_lib_dir(ctx):
   """Returns the location of swift runtime directory to link against."""
   platform_str = ctx.fragments.apple.single_arch_platform.name_in_plist.lower()
 
+  if "xcode_toolchain_path" in ctx.var:
+    return "{0}/usr/lib/swift/{1}".format(ctx.var["xcode_toolchain_path"],
+                                          platform_str)
+
   toolchain_name = "XcodeDefault"
   if hasattr(ctx.fragments.apple, "xcode_toolchain"):
     toolchain = ctx.fragments.apple.xcode_toolchain
