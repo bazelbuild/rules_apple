@@ -528,16 +528,9 @@ def _swift_library_impl(ctx):
   # This means that dSYM is required for debugging until that is resolved.
   extra_linker_args = ["-Xlinker -add_ast_path -Xlinker " + output_module.path]
 
-
   # The full transitive set of libraries and modules used by this target.
   transitive_libs = depset([output_lib]) + dep_libs
   transitive_modules = depset([output_module]) + dep_modules
-
-  # TODO(b/37660812): For backwards compatibility, depsets are only used
-  # when Tulsi asks for it.
-  if not "tulsi.swift_library.output_depsets" in ctx.var:
-    transitive_libs = transitive_libs.to_list()
-    transitive_modules = transitive_modules.to_list()
 
   objc_provider = apple_common.new_objc_provider(
       library=depset([output_lib]) + dep_libs,
