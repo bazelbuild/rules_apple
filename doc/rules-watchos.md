@@ -4,9 +4,9 @@
 ## watchos_application
 
 ```python
-watchos_application(name, app_icons, bundle_id, entitlements, extension,
-infoplists, ipa_post_processor, minimum_os_version, provisioning_profile,
-storyboards, strings, deps)
+watchos_application(name, app_icons, bundle_id, bundle_name,
+entitlements, extension, infoplists, ipa_post_processor, minimum_os_version,
+provisioning_profile, storyboards, strings, deps)
 ```
 
 Builds and bundles a watchOS application.
@@ -53,6 +53,15 @@ rule.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         application.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.app</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>
@@ -157,9 +166,9 @@ rule.
 ## watchos_extension
 
 ```python
-watchos_extension(name, app_icons, bundle_id, entitlements, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
-strings, deps)
+watchos_extension(name, app_icons, bundle_id, bundle_name, entitlements,
+infoplists, ipa_post_processor, linkopts, minimum_os_version,
+provisioning_profile, strings, deps)
 ```
 
 Builds and bundles a watchOS extension.
@@ -205,6 +214,15 @@ executable inside the extension bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         extension.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.appex</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>
