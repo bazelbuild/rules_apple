@@ -70,16 +70,18 @@ def _bundlable_file_sources(bundlable_files):
 def _bundle_name(ctx):
   """Returns the name of the bundle.
 
+  The name of the bundle is the value of the `bundle_name` attribute if it was
+  given; if not, then the name of the target will be used instead.
+
   Args:
     ctx: The Skylark context.
   Returns:
     The bundle name.
   """
-  if hasattr(ctx.attr, "_bundle_name_attr"):
-    bundle_name_attr = ctx.attr._bundle_name_attr
-    return getattr(ctx.attr, bundle_name_attr)
-  else:
-    return ctx.label.name
+  bundle_name = ctx.attr.bundle_name
+  if not bundle_name:
+    bundle_name = ctx.label.name
+  return bundle_name
 
 
 def _bundle_name_with_extension(ctx):

@@ -70,15 +70,9 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
         # order to make it optional. Bundle identifier for the
         # _ios_test_bundle output.
         "bundle_id": attr.string(),
-        # Internal name for the bundle. Used so that the output .xctest bundle
-        # has the same name as the test target and avoid Tulsi the confusion
-        # of the internal paths.
-        "bundle_name": attr.string(mandatory=True),
         # The test host that will run these tests. This is required in order to
         # obtain a sensible default for the tests bundle identifier.
         "test_host": attr.label(mandatory=True, providers=[AppleBundleInfo]),
-        # Name of the attribute that contains the internal bundle name.
-        "_bundle_name_attr": attr.string(default="bundle_name"),
     },
     # TODO(b/34774324): Rename to zip.
     archive_extension=".ipa",

@@ -19,8 +19,8 @@ compilation/linking to work correctly for macOS targets. Those flags are:
 ## macos_application
 
 ```python
-macos_application(name, app_icons, bundle_id, entitlements, extensions,
-infoplists, ipa_post_processor, linkopts, minimum_os_version,
+macos_application(name, app_icons, bundle_id, bundle_name, entitlements,
+extensions, infoplists, ipa_post_processor, linkopts, minimum_os_version,
 provisioning_profile, strings, deps)
 ```
 
@@ -63,6 +63,15 @@ inside the application bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         application.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.app</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>
@@ -165,8 +174,8 @@ inside the application bundle.
 ## macos_extension
 
 ```python
-macos_extension(name, bundle_id, entitlements, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, strings, deps)
+macos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, strings, deps)
 ```
 
 Builds and bundles a macOS extension.
@@ -199,6 +208,15 @@ executable inside the extension bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         extension.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.appex</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>

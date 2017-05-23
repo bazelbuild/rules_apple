@@ -4,10 +4,10 @@
 ## ios_application
 
 ```python
-ios_application(name, app_icons, bundle_id, entitlements, extensions, families,
-frameworks, infoplists, ipa_post_processor, launch_images, launch_storyboard,
-minimum_os_version, linkopts, product_type, provisioning_profile, settings_bundle,
-strings, deps)
+ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
+extensions, families, frameworks, infoplists, ipa_post_processor, launch_images,
+launch_storyboard, minimum_os_version, linkopts, product_type,
+provisioning_profile, settings_bundle, strings, deps)
 ```
 
 Builds and bundles an iOS application.
@@ -49,6 +49,15 @@ inside the application bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         application.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.app</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>
@@ -218,9 +227,9 @@ inside the application bundle.
 ## ios_extension
 
 ```python
-ios_extension(name, app_icons, bundle_id, entitlements, families, frameworks,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, product_type,
-provisioning_profile, strings, deps)
+ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
+families, frameworks, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, product_type, provisioning_profile, strings, deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -262,6 +271,15 @@ executable inside the extension bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         extension.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.appex</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>
@@ -382,8 +400,8 @@ executable inside the extension bundle.
 ## ios_framework
 
 ```python
-ios_framework(name, bundle_id, families, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, extension_safe, strings, deps)
+ios_framework(name, bundle_id, bundle_name, extension_safe, families,
+infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, deps)
 ```
 
 Builds and bundles an iOS dynamic framework.
@@ -416,6 +434,15 @@ inside the framework bundle.
         <p><code>String; required</code></p>
         <p>The bundle ID (reverse-DNS path followed by app name) of the
         framework.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.framework</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
       </td>
     </tr>
     <tr>

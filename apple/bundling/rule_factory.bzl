@@ -359,6 +359,7 @@ def _make_bundling_rule(implementation,
               single_file=True,
           ),
           "bundle_id": attr.string(mandatory=True),
+          "bundle_name": attr.string(mandatory=False),
           "infoplists": attr.label_list(
               allow_files=[".plist"],
               mandatory=True,

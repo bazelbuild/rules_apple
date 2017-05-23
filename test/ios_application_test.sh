@@ -605,4 +605,29 @@ function test_bitcode_symbol_maps_packaging() {
       "Payload/app.app/app"
 }
 
+# Tests that the bundle name can be overridden to differ from the target name.
+function test_bundle_name_can_differ_from_target() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    bundle_name = "different",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios 10.0 //app:app || fail "Should build"
+
+  # Both the bundle name and the executable name should correspond to
+  # bundle_name.
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/"
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/different"
+}
+
 run_suite "ios_application bundling tests"
