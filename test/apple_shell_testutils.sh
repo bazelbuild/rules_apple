@@ -297,6 +297,8 @@ function do_build() {
 
   bazel_options+=( \
       --define=bazel_rules_apple.mock_provisioning=true \
+      --objccopt=-Werror --objccopt=-Wunused-command-line-argument \
+      --objccopt=-Wno-unused-function --objccopt=-Wno-format \
       "$@" \
   )
 
