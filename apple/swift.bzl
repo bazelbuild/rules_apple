@@ -99,6 +99,17 @@ def _swift_bitcode_flags(ctx):
   return []
 
 
+def _swift_sanitizer_flags(ctx):
+  """Returns sanitizer mode flags."""
+  sanitizer = ctx.var.get("apple_swift_sanitize")
+  if not sanitizer:
+    return []
+  elif sanitizer == "address":
+    return ["-sanitize=address"]
+  else:
+    fail("Swift sanitizer '%s' is not supported" % sanitizer)
+
+
 def swift_module_name(label):
   """Returns a module name for the given label."""
   return label.package.lstrip("//").replace("/", "_") + "_" + label.name
@@ -363,6 +374,7 @@ def swiftc_args(ctx):
   args.extend(_swift_compilation_mode_flags(ctx))
   args.extend(_swift_bitcode_flags(ctx))
   args.extend(_swift_parsing_flags(ctx))
+  args.extend(_swift_sanitizer_flags(ctx))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
