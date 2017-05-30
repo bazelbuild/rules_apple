@@ -102,7 +102,7 @@ def _ios_application_impl(ctx):
   runfiles = run_actions.start_simulator(ctx)
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary"]),
       runfiles=ctx.runfiles(files=runfiles),
       providers=[
@@ -164,7 +164,7 @@ def _ios_extension_impl(ctx):
   )
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           IosExtensionBundleInfo(),
       ] + additional_providers,
@@ -213,7 +213,7 @@ def _ios_framework_impl(ctx):
   )
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           IosFrameworkBundleInfo(),
       ] + additional_providers,

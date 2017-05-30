@@ -460,6 +460,63 @@ def _process_and_sign_archive(ctx,
   return work_dir
 
 
+def _experimental_create_and_sign_bundle(
+    ctx,
+    bundle_dir,
+    bundle_name,
+    bundle_merge_files,
+    bundle_merge_zips,
+    mnemonic,
+    progress_description):
+  """Bundles and signs the current target.
+
+  THIS IS CURRENTLY EXPERIMENTAL. It can be enabled by building with the
+  `bazel_rules_apple.experimental_bundling` define set to `bundle_and_archive`
+  or `bundle_only` but it should not be used for production builds yet.
+  """
+  control_file = file_support.intermediate(
+      ctx, "%{name}.experimental-bundler-control")
+  bundler_inputs = (
+      list(bundling_support.bundlable_file_sources(bundle_merge_files +
+                                                   bundle_merge_zips)) +
+      [control_file]
+  )
+
+  entitlements = None
+  if hasattr(ctx.file, "entitlements") and ctx.file.entitlements:
+    entitlements = ctx.file.entitlements
+    bundler_inputs.append(entitlements)
+
+  signing_command_lines = ""
+  if not ctx.attr._skip_signing:
+    signing_command_lines = codesigning_support.signing_command_lines(
+        ctx, bundle_dir.basename, entitlements)
+
+  # TODO(allevato): Add a `bundle_post_processor` attribute.
+
+  control = struct(
+      bundle_merge_files=_bundlable_files_for_control(bundle_merge_files),
+      bundle_merge_zips=_bundlable_files_for_control(bundle_merge_zips),
+      code_signing_commands=signing_command_lines,
+      output=bundle_dir.path,
+  )
+  ctx.file_action(
+      output=control_file,
+      content=control.to_json()
+  )
+
+  platform_support.xcode_env_action(
+      ctx,
+      inputs=bundler_inputs,
+      outputs=[bundle_dir],
+      executable=ctx.executable._bundletool_experimental,
+      arguments=[control_file.path],
+      mnemonic=mnemonic,
+      progress_message="Bundling and signing %s: %s" % (
+          progress_description, bundle_name)
+  )
+
+
 def _partition_strings_and_plists(files):
   """Partitions a depset of files depending on whether they are strings/plists.
 
@@ -832,13 +889,37 @@ def _run(
 
   # Perform the final bundling tasks.
   root_merge_zips_to_archive = root_merge_zips if _is_ipa(ctx) else []
-  unprocessed_archive = _create_unprocessed_archive(
-      ctx, bundle_name, bundle_path_in_archive, bundle_merge_files,
-      bundle_merge_zips, root_merge_zips_to_archive, mnemonic,
-      progress_description)
-  work_dir = _process_and_sign_archive(
-      ctx, bundle_name, bundle_path_in_archive, ctx.outputs.archive,
-      unprocessed_archive, mnemonic, progress_description)
+
+  experimental_bundling = ctx.var.get("bazel_rules_apple.experimental_bundling",
+                                      "off").lower()
+  if experimental_bundling not in ("bundle_and_archive", "bundle_only", "off"):
+    fail("Valid values for --define=bazel_rules_apple.experimental_bundling" +
+         "are: bundle_and_archive, bundle_only, off.")
+  if experimental_bundling in ("bundle_and_archive", "bundle_only"):
+    out_bundle = ctx.experimental_new_directory(
+        bundling_support.bundle_name_with_extension(ctx))
+    additional_outputs.append(out_bundle)
+    _experimental_create_and_sign_bundle(
+        ctx, out_bundle, bundle_name, bundle_merge_files,
+        bundle_merge_zips, mnemonic, progress_description)
+
+  work_dir = None
+  additional_outputs.append(ctx.outputs.archive)
+  if experimental_bundling in ("bundle_and_archive", "off"):
+    unprocessed_archive = _create_unprocessed_archive(
+        ctx, bundle_name, bundle_path_in_archive, bundle_merge_files,
+        bundle_merge_zips, root_merge_zips_to_archive, mnemonic,
+        progress_description)
+    work_dir = _process_and_sign_archive(
+        ctx, bundle_name, bundle_path_in_archive, ctx.outputs.archive,
+        unprocessed_archive, mnemonic, progress_description)
+  else:
+    # Create a dummy archive for the bundle_only case, because we have to create
+    # something.
+    ctx.file_action(
+        output=ctx.outputs.archive,
+        content="This is a dummy archive.",
+    )
 
   additional_providers = []
   legacy_providers = {}
@@ -874,7 +955,6 @@ def _run(
                     getattr(ctx.attr, "_extension_safe", False))
   apple_bundle_info_args = {
       "archive": ctx.outputs.archive,
-      "archive_root": work_dir,
       "bundle_id": bundle_id,
       "extension_safe": extension_safe,
       "infoplist": main_infoplist,
@@ -885,6 +965,8 @@ def _run(
       "root_merge_zips": root_merge_zips if not _is_ipa(ctx) else [],
       "uses_swift": swift_support.uses_swift(ctx),
   }
+  if work_dir:
+    apple_bundle_info_args["archive_root"] = work_dir
 
   legacy_providers["apple_bundle"] = struct(**apple_bundle_info_args)
   additional_providers.extend([

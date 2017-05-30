@@ -107,6 +107,11 @@ _tool_attributes = {
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/bundletool"),
     ),
+    "_bundletool_experimental": attr.label(
+        cfg="host",
+        executable=True,
+        default=Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
+    ),
     "_debug_entitlements": attr.label(
         cfg="host",
         allow_files=True,

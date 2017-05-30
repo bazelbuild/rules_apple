@@ -66,7 +66,7 @@ def _watchos_application_impl(ctx):
 
   # TODO(b/36513412): Support 'bazel run'.
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           WatchosApplicationBundleInfo(),
       ] + additional_providers,
@@ -119,7 +119,7 @@ def _watchos_extension_impl(ctx):
   )
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           WatchosExtensionBundleInfo(),
       ] + additional_providers,

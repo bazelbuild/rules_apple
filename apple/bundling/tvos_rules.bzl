@@ -82,7 +82,7 @@ def _tvos_application_impl(ctx):
   runfiles = run_actions.start_simulator(ctx)
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       runfiles=ctx.runfiles(files=runfiles),
       providers=[
           TvosApplicationBundleInfo(),
@@ -126,7 +126,7 @@ def _tvos_extension_impl(ctx):
       ctx.attr.bundle_id)
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           TvosExtensionBundleInfo(),
       ] + additional_providers,
