@@ -68,7 +68,7 @@ def _macos_application_impl(ctx):
 
   # TODO(b/36556789): Add support for "bazel run".
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           MacosApplicationBundleInfo(),
       ] + additional_providers,
@@ -113,7 +113,7 @@ def _macos_extension_impl(ctx):
   )
 
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       providers=[
           MacosExtensionBundleInfo(),
       ] + additional_providers,

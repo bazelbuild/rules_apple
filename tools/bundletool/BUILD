@@ -7,6 +7,11 @@ py_binary(
     srcs = ["bundletool.py"],
 )
 
+py_binary(
+    name = "bundletool_experimental",
+    srcs = ["bundletool_experimental.py"],
+)
+
 py_test(
     name = "bundletool_unittest",
     srcs = ["bundletool_unittest.py"],

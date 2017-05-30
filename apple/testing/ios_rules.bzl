@@ -54,7 +54,7 @@ def _ios_test_bundle_impl(ctx):
       "IosTestArchive", "IosTest",
       bundle_id)
   return struct(
-      files=depset([ctx.outputs.archive]) + additional_outputs,
+      files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
       providers=[
           IosXcTestBundleInfo(),
