@@ -14,12 +14,14 @@
 
 """Actions used to copy Swift libraries into the bundle."""
 
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
 
 
-def _zip_swift_dylibs(ctx):
+def _zip_swift_dylibs(ctx, binary_file):
   """Registers an action that creates a ZIP that contains Swift dylibs.
 
   This action scans the binary associated with the target being built and
@@ -31,6 +33,7 @@ def _zip_swift_dylibs(ctx):
 
   Args:
     ctx: The Skylark context.
+    binary_file: The binary to scan for Swift dylibs.
   Returns:
     A `File` object representing the ZIP file containing the Swift dylibs.
   """
@@ -43,7 +46,7 @@ def _zip_swift_dylibs(ctx):
   zip_file = file_support.intermediate(ctx, "%{name}.swiftlibs.zip")
   platform_support.xcode_env_action(
       ctx,
-      inputs=[ctx.file.binary],
+      inputs=[binary_file],
       outputs=[zip_file],
       executable=ctx.executable._swiftstdlibtoolwrapper,
       arguments=xcrun_args + [
@@ -54,7 +57,7 @@ def _zip_swift_dylibs(ctx):
           "--platform",
           platform.name_in_plist.lower(),
           "--scan-executable",
-          ctx.file.binary.path,
+          binary_file.path,
       ],
       mnemonic="SwiftStdlibCopy",
       no_sandbox=True,

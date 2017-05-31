@@ -17,6 +17,33 @@
 load("@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
      "entitlements",
      "entitlements_support")
+load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
+     "provider_support")
+
+
+def _get_binary_provider(ctx, provider_key):
+  """Returns the provider from a rule's binary dependency.
+
+  Bundling rules depend on binary rules via the "deps" attribute, which
+  canonically supports a label list. This function validates that the
+  "deps" attribute has only a single value, as is expected for bundling
+  rules, before extracting and returning the provider of the given key.
+
+  Args:
+    ctx: The Skylark context.
+    provider_key: The key of the provider to return.
+  Returns:
+    The provider propagated by the single "deps" target of the current rule.
+  """
+  if len(ctx.attr.deps) != 1:
+    fail("Only one dependency (a binary target) should be specified " +
+         "as a bundling rule dependency")
+  providers = provider_support.matching_providers(ctx.attr.deps[0], provider_key)
+  if providers:
+    if len(providers) > 1:
+      fail("Expected only one binary provider")
+    return providers[0]
+  return None
 
 
 def _create_binary(
@@ -115,7 +142,7 @@ def _create_binary(
       testonly = kwargs.get("testonly"),
       visibility = kwargs.get("visibility"),
   )
-  bundling_args["binary"] = apple_binary_name
+  bundling_args["deps"] = [apple_binary_name]
 
   return bundling_args
 
@@ -123,4 +150,5 @@ def _create_binary(
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
     create_binary=_create_binary,
+    get_binary_provider=_get_binary_provider,
 )

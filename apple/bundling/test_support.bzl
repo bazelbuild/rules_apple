@@ -14,6 +14,8 @@
 
 """Support functions for testing Apple apps."""
 
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 
 # List of objc provider fields that are whitelisted to be passed into the
 # xctest_app provider's objc provider. This list needs to stay in sync with
@@ -34,7 +36,8 @@ def _new_xctest_app_provider(ctx):
   test_objc_params = {}
   for field in _WHITELISTED_TEST_OBJC_PROVIDER_FIELDS:
 
-    if not hasattr(ctx.attr.binary.objc, field):
+    objc_provider = binary_support.get_binary_provider(ctx, "objc")
+    if not hasattr(objc_provider, field):
       # Skip missing attributes from objc provider. This enables us to add
       # fields yet to be released into the list of whitelisted fields that
       # should be propagated by the xctest objc provider.
@@ -44,7 +47,7 @@ def _new_xctest_app_provider(ctx):
     # non-configurable, and because the non presence of a value is signaled by
     # an empty set. Fields that do not yet exist are already filtered at this
     # point.
-    field_value = depset(getattr(ctx.attr.binary.objc, field))
+    field_value = depset(getattr(objc_provider, field))
     if field_value:
       destination_field = field
 
@@ -70,8 +73,10 @@ def _new_xctest_app_provider(ctx):
       test_objc_params[destination_field] = test_objc_params.get(
           destination_field, depset()) + field_value
 
+  binary_file = binary_support.get_binary_provider(ctx, apple_common.AppleExecutableBinary).binary
+
   return apple_common.new_xctest_app_provider(
-      bundle_loader=ctx.file.binary,
+      bundle_loader=binary_file,
       ipa=ctx.outputs.archive,
       objc_provider=apple_common.new_objc_provider(**test_objc_params))
 

@@ -24,6 +24,8 @@ wrapping macro because rules cannot invoke other rules.
 
 load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
@@ -88,15 +90,18 @@ def _ios_application_impl(ctx):
     embedded_bundles.append(bundling_support.embedded_bundle(
         "Watch", watch_app[AppleBundleInfo], verify_bundle_id=True))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosApplicationArchive", "iOS application",
       ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
   )
 
-  if ctx.attr.binary:
+  if ctx.attr.deps:
     legacy_providers["xctest_app"] = test_support.new_xctest_app_provider(ctx)
 
   runfiles = run_actions.start_simulator(ctx)
@@ -156,10 +161,13 @@ def _ios_extension_impl(ctx):
         resources=additional_resources,
     ))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
       ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
   )
 
@@ -196,17 +204,21 @@ ios_extension = rule_factory.make_bundling_rule(
 
 def _ios_framework_impl(ctx):
   """Implementation of the ios_framework Skylark rule."""
-  bundlable_binary = struct(file=ctx.file.binary,
+  binary_artifact = binary_support.get_binary_provider(ctx, apple_common.AppleDylibBinary).binary
+  bundlable_binary = struct(file=binary_artifact,
                             bundle_path=bundling_support.bundle_name(ctx))
   prefixed_hdr_files = []
   for hdr_provider in ctx.attr.hdrs:
     for hdr_file in hdr_provider.files:
       prefixed_hdr_files.append(bundling_support.header_prefix(hdr_file))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleDylibBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosFrameworkArchive", "iOS framework",
       ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
       additional_bundlable_files=prefixed_hdr_files,
       framework_files=prefixed_hdr_files + [bundlable_binary],
       is_dynamic_framework=True,

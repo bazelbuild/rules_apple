@@ -34,6 +34,8 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "relativize_path",
      "remove_extension",
     )
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
@@ -546,6 +548,7 @@ def _run(
     mnemonic,
     progress_description,
     bundle_id,
+    binary_artifact=None,
     additional_bundlable_files=depset(),
     additional_resource_sets=[],
     embedded_bundles=[],
@@ -561,6 +564,7 @@ def _run(
         "Bundling iOS application: <name>", the string passed into this
         argument would be "iOS application". Required.
     bundle_id: Bundle identifier to set to the bundle. Required.
+    binary_artifact: The binary artifact to bundle. Required.
     additional_bundlable_files: An optional list of additional bundlable files
         that should be copied into the final bundle at locations denoted by
         their bundle path.
@@ -658,9 +662,8 @@ def _run(
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
-    apple_resource_providers = provider_support.matching_providers(
-        ctx.attr.binary, AppleResourceInfo)
-    for p in apple_resource_providers:
+    p = binary_support.get_binary_provider(ctx, AppleResourceInfo)
+    if p:
       for rs in p.resource_sets:
         # Don't propagate empty bundle directory, as this is indicative of
         # root-level resources.
@@ -826,17 +829,20 @@ def _run(
       support_zip = product_actions.create_stub_zip_for_archive_merging(
           ctx, product_info)
       root_merge_zips.append(bundling_support.bundlable_file(support_zip, "."))
-  elif hasattr(ctx.file, "binary"):
-    if not ctx.file.binary:
+  elif hasattr(ctx.attr, "deps"):
+    if not ctx.attr.deps:
       fail("Library dependencies must be provided for this product type.")
+    if not binary_artifact:
+      fail("A binary artifact must be specified for this product type.")
     has_built_binary = True
+
     bundle_merge_files.append(bundling_support.binary_file(
-        ctx, ctx.file.binary, bundle_name, executable=True))
+        ctx, binary_artifact, bundle_name, executable=True))
 
   # Compute the Swift libraries that are used by the target currently being
   # built.
   if swift_support.uses_swift(ctx):
-    swift_zip = swift_actions.zip_swift_dylibs(ctx)
+    swift_zip = swift_actions.zip_swift_dylibs(ctx, binary_artifact)
 
     if ctx.attr._propagates_frameworks:
       propagated_framework_zips.append(swift_zip)
@@ -849,7 +855,7 @@ def _run(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
   # Include bitcode symbol maps when needed.
-  if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
+  if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
     bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
     if bitcode_maps_zip:
       root_merge_zips.append(bundling_support.bundlable_file(
@@ -876,7 +882,7 @@ def _run(
     root_merge_zips.extend(list(apple_bundle.root_merge_zips))
 
   # Merge in any prebuilt frameworks (i.e., objc_framework dependencies).
-  objc_providers = provider_support.matching_providers(ctx.attr.binary, "objc")
+  objc_providers = provider_support.matching_providers(ctx.attr.deps[0], "objc")
   propagated_framework_files = []
   for objc in objc_providers:
     files = objc.dynamic_framework_file
@@ -924,8 +930,9 @@ def _run(
   additional_providers = []
   legacy_providers = {}
 
-  if has_built_binary and apple_common.AppleDebugOutputs in ctx.attr.binary:
-    additional_providers.append(ctx.attr.binary[apple_common.AppleDebugOutputs])
+  if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
+    additional_providers.append(
+        binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs))
 
     # Create a .dSYM bundle with the expected name next to the .ipa in the
     # output directory. We still have to check for the existence of the
