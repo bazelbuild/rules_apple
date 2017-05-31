@@ -353,18 +353,22 @@ def _make_bundling_rule(implementation,
   rule_args["attrs"] = merge_dictionaries(
       _tool_attributes,
       {
+          "bundle_id": attr.string(mandatory=True),
+          "bundle_name": attr.string(mandatory=False),
           # Even for rules that don't bundle a user-provided binary (like
           # watchos_application and some ios_application/extension targets), the
           # binary acts as a "choke point" where the split transition is applied
           # to all the deps, which gives us proper propagation of the platform
           # type, minimum OS version, and other such attributes.
-          "binary": attr.label(
+          #
+          # "deps" as a label list is used here for consistency in traversing
+          # transitive dependencies (for example using aspects), but exactly one
+          # dependency (the binary) should be set.
+          "deps": attr.label_list(
               aspects=[apple_bundling_aspect],
+              mandatory=True,
               providers=binary_providers,
-              single_file=True,
           ),
-          "bundle_id": attr.string(mandatory=True),
-          "bundle_name": attr.string(mandatory=False),
           "infoplists": attr.label_list(
               allow_files=[".plist"],
               mandatory=True,

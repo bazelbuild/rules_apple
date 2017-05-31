@@ -299,7 +299,8 @@ function do_build() {
       --define=bazel_rules_apple.mock_provisioning=true \
       --objccopt=-Werror --objccopt=-Wunused-command-line-argument \
       --objccopt=-Wno-unused-function --objccopt=-Wno-format \
-      "$@" \
+      --objccopt=-Wno-unused-variable \
+       "$@" \
   )
 
   echo "Executing: bazel build ${bazel_options[*]}" > "$TEST_log"
@@ -458,9 +459,8 @@ function assert_binary_contains() {
   unzip_single_file "$archive" "$path" > $fat_path
   thin_arch="$(lipo -info "${fat_path}" | awk 'NF>1{print $NF}')"
   lipo -thin "$thin_arch" "$fat_path" -output "$thin_path"
-  otool_contents=$(otool -o "$thin_path")
-  rm -rf tempdir
-  echo "$otool_contents" | grep "$symbol_string" >& /dev/null && return 0
+  nm_contents=$(nm -defined-only "$thin_path")
+  echo "$nm_contents" | grep "$symbol_string" >& /dev/null && return 0
   fail "Expected binary '$path' to contain '$symbol_string' but it did not"
 }
 
@@ -481,9 +481,9 @@ function assert_binary_not_contains() {
   unzip_single_file "$archive" "$path" > $fat_path
   thin_arch="$(lipo -info "${fat_path}" | awk 'NF>1{print $NF}')"
   lipo -thin "$thin_arch" "$fat_path" -output "$thin_path"
-  otool_contents=$(otool -o "$thin_path")
+  nm_contents=$(nm -defined-only "$thin_path")
   rm -rf tempdir
-  echo "$otool_contents" | grep "$symbol_string" >& /dev/null || return 0
+  echo "$nm_contents" | grep "$symbol_string" >& /dev/null || return 0
   fail "Expected binary '$path' to not contain '$symbol_string' but it did"
 }
 

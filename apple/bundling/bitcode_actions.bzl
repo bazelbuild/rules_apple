@@ -18,6 +18,8 @@ load("@build_bazel_rules_apple//apple/bundling:file_support.bzl",
      "file_support")
 load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
      "file_actions")
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
@@ -45,7 +47,7 @@ def _zip_bitcode_symbols_maps(ctx):
     A `File` object representing the ZIP file containing the bitcode symbol
     maps, or `None` if no bitcode symbols were found.
   """
-  outputs_map = ctx.attr.binary[apple_common.AppleDebugOutputs].outputs_map
+  outputs_map = binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs).outputs_map
 
   # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
   copy_commands = []
@@ -56,13 +58,14 @@ def _zip_bitcode_symbols_maps(ctx):
       continue
 
     bitcode_symbol_inputs.append(bitcode_symbols)
+    binary = binary_support.get_binary_provider(ctx, apple_common.AppleExecutableBinary).binary
     # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
     copy_commands.append(
         ("cp {bcmap} " +
          "${{{{ZIPDIR}}}}/$(dwarfdump -u -arch {arch} {binary} " +
          "| cut -d' ' -f2).bcsymbolmap").format(
              arch=arch,
-             binary=ctx.file.binary.path,
+             binary=binary.path,
              bcmap=bitcode_symbols.path))
 
   if not bitcode_symbol_inputs:
@@ -72,7 +75,7 @@ def _zip_bitcode_symbols_maps(ctx):
 
   platform_support.xcode_env_action(
       ctx,
-      inputs=[ctx.file.binary] + bitcode_symbol_inputs,
+      inputs=[binary] + bitcode_symbol_inputs,
       outputs=[zip_file],
       command=["/bin/bash", "-c",
                ("set -e && " +

@@ -14,6 +14,8 @@
 
 """Support functions for working with Swift."""
 
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+     "binary_support")
 load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundlingSwiftInfo")
 load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
@@ -33,9 +35,9 @@ def _uses_swift(ctx):
   Returns:
     True if the current target directly uses Swift; otherwise, False.
   """
-  swift_providers = provider_support.matching_providers(
-      ctx.attr.binary, AppleBundlingSwiftInfo)
-  return any([p.uses_swift for p in swift_providers])
+  swift_provider = binary_support.get_binary_provider(
+      ctx, AppleBundlingSwiftInfo)
+  return swift_provider.uses_swift
 
 
 # Define the loadable module that lists the exported symbols in this file.

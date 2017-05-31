@@ -22,6 +22,7 @@ binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
@@ -56,11 +57,14 @@ def _watchos_application_impl(ctx):
     embedded_bundles.append(bundling_support.embedded_bundle(
         "PlugIns", ext[AppleBundleInfo], verify_bundle_id=True))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosApplicationArchive", "watchOS application",
       ctx.attr.bundle_id,
       additional_resource_sets=additional_resource_sets,
+      binary_artifact=binary_artifact,
       embedded_bundles=embedded_bundles,
   )
 
@@ -111,11 +115,14 @@ def _watchos_extension_impl(ctx):
         resources=additional_resources,
     ))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",
       ctx.attr.bundle_id,
       additional_resource_sets=additional_resource_sets,
+      binary_artifact=binary_artifact,
   )
 
   return struct(

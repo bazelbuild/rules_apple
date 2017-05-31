@@ -22,6 +22,7 @@ binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
      "bundler")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
@@ -58,10 +59,13 @@ def _macos_application_impl(ctx):
       for extension in ctx.attr.extensions
   ]
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosApplicationArchive", "macOS application",
       ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
   )
@@ -105,10 +109,13 @@ def _macos_extension_impl(ctx):
         resources=additional_resources,
     ))
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosExtensionArchive", "macOS extension",
       ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
   )
 

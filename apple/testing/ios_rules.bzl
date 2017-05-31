@@ -22,6 +22,7 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "merge_dictionaries")
 load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
+load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
      "bundler")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -49,10 +50,13 @@ def _ios_test_bundle_impl(ctx):
          "same as the test host's bundle identifier. Please change one of " +
          "them.")
 
+  binary_artifact = binary_support.get_binary_provider(
+      ctx, apple_common.AppleLoadableBundleBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosTestArchive", "IosTest",
-      bundle_id)
+      bundle_id,
+      binary_artifact=binary_artifact)
   return struct(
       files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
@@ -141,7 +145,7 @@ def _ios_test(name,
 
   _ios_test_bundle(
       name = test_bundle_name,
-      binary = ":" + test_binary_name,
+      deps = [":" + test_binary_name],
       bundle_name = name,
       bundle_id = bundle_id,
       infoplists = infoplists,
