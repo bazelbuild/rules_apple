@@ -353,6 +353,10 @@ def _make_bundling_rule(implementation,
   rule_args["attrs"] = merge_dictionaries(
       _tool_attributes,
       {
+          "binary": attr.label(
+              mandatory=True,
+              providers=binary_providers
+          ),
           "bundle_id": attr.string(mandatory=True),
           "bundle_name": attr.string(mandatory=False),
           # Even for rules that don't bundle a user-provided binary (like

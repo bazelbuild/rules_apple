@@ -145,6 +145,7 @@ def _ios_test(name,
 
   _ios_test_bundle(
       name = test_bundle_name,
+      binary = ":" + test_binary_name,
       deps = [":" + test_binary_name],
       bundle_name = name,
       bundle_id = bundle_id,
