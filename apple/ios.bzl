@@ -258,6 +258,7 @@ def ios_framework(name, **kwargs):
 
   _ios_framework(
       name = name,
+      binary = apple_dylib_name,
       deps = [apple_dylib_name],
       **passthrough_args
   )

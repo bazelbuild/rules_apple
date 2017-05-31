@@ -142,6 +142,7 @@ def _create_binary(
       testonly = kwargs.get("testonly"),
       visibility = kwargs.get("visibility"),
   )
+  bundling_args["binary"] = apple_binary_name
   bundling_args["deps"] = [apple_binary_name]
 
   return bundling_args
