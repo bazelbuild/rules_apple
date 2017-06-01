@@ -50,8 +50,10 @@ def _intersperse(separator, iterable):
 def _swift_target(cpu, platform, sdk_version):
   """Returns a target triplet for Swift compiler."""
   platform_string = str(platform.platform_type)
-  if platform_string not in ["ios", "watchos", "tvos"]:
+  if platform_string not in ["ios", "watchos", "tvos", "macos"]:
     fail("Platform '%s' is not supported" % platform_string)
+  if platform_string == "macos":
+    platform_string = "macosx"
 
   return "%s-apple-%s%s" % (cpu, platform_string, sdk_version)
 
