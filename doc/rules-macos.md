@@ -9,7 +9,6 @@ compilation/linking to work correctly for macOS targets. Those flags are:
 
 ```shell
 --apple_crosstool_transition
---experimental_enable_objc_cc_deps
 --experimental_objc_crosstool=all
 ```
 
