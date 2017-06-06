@@ -4,7 +4,7 @@
 ## swift_library
 
 ```python
-swift_library(name, srcs, deps, module_name, defines, copts)
+swift_library(name, srcs, deps, module_name, defines, copts, swift_version)
 ```
 
 Produces a static library from Swift sources. The output is a pair of .a and
