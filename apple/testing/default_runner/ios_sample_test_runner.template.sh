@@ -31,12 +31,11 @@ basename_without_extension() {
 # Create tmp folder to contain the extracted .xctest bundle
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/tests.XXXXXX")"
 
-# Create a simulator with a random name and the iOS SDK provided by the
-# Xcode currently selected with xcode-select.
+# Create a simulator with a random name and the latest iOS SDK
 RANDOM_NAME="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
-SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+SIM_VERSION="$(xcrun simctl list runtimes | grep "SimRuntime\.iOS" | perl -pe 's|^iOS.*?\((.*?) -.*|\1|' | tail -n 1)"
 
-NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SDK_VERSION")
+NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SIM_VERSION")
 
 # Clean up our simulator and temp directory if we fail along the way
 function cleanup {
