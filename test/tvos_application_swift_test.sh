@@ -102,7 +102,7 @@ swift_library(
 )
 EOF
 
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
   assert_ipa_contains_swift_dylibs
 }
 
@@ -130,7 +130,7 @@ swift_library(
 )
 EOF
 
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
   assert_ipa_contains_swift_dylibs
 }
 

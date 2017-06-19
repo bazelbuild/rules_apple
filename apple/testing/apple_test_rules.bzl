@@ -98,6 +98,11 @@ contains all the `srcs` and `hdrs` files.
 def _apple_test_common_attributes():
   """Returns the attribute that are common for all apple test rules."""
   return {
+      # List of files to make available during the running of the test.
+      "data": attr.label_list(
+          allow_files=True,
+          default=[],
+      ),
       # The runner target that provides the logic on how to run the test by
       # means of the AppleTestRunner provider.
       "runner": attr.label(
@@ -110,8 +115,8 @@ def _apple_test_common_attributes():
       # code.
       "test_bundle": attr.label(
           mandatory=True,
-          aspects = [coverage_files_aspect],
-          providers = ["apple_bundle"],
+          aspects=[coverage_files_aspect],
+          providers=["apple_bundle"],
       ),
       # gcov and mcov are binary files required to calculate test coverage.
       "_gcov": attr.label(
@@ -208,6 +213,11 @@ def _apple_test_impl(ctx, test_type):
       output = ctx.outputs.executable,
       substitutions = _get_template_substitutions(ctx, test_type),
   )
+
+  # Add required data into the runfiles to make it available during test
+  # execution.
+  for data_dep in ctx.attr.data:
+    test_runfiles.extend(data_dep.files.to_list())
 
   return struct(
       files=depset([ctx.outputs.test_bundle, ctx.outputs.executable]),

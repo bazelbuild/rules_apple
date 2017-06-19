@@ -101,7 +101,7 @@ function build_path() {
 # Example:
 #     dump_plist //app:app.ipa Payload/app.app/Info.plist \
 #         CFBundleIdentifier CFBundleSupportedPlatforms:0
-#     do_build ios 9.0 //app:dump_plist
+#     do_build ios //app:dump_plist
 #     assert_equals "my.bundle.id" \
 #         "$(cat "test-genfiles/app/CFBundleIdentifier")"
 function create_dump_plist() {
@@ -130,7 +130,7 @@ EOF
     ],
     cmd =
         "set -e && " +
-        "temp=\$\$(mktemp -d \"\$\${TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
+        "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
         "/usr/bin/unzip -q \$(location ${ipa_label}) -d \$\${temp} && " +
         "plist=\$\${temp}/${plist_path} && " +
 EOF
@@ -177,7 +177,7 @@ genrule(
     outs = ["codesign_output"],
     cmd =
         "set -e && " +
-        "temp=\$\$(mktemp -d \"\$\${TMPDIR:-/tmp}/dump_codesign.XXXXXX\") && " +
+        "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_codesign.XXXXXX\") && " +
         "/usr/bin/unzip -q \$(location ${ipa_label}) -d \$\${temp} && " +
         "codesign $@ \$\${temp}/${archive_path} &> \$@ && " +
         "rm -rf \$\${temp}",
@@ -224,7 +224,7 @@ genrule(
     cmd =
         "set -e && " +
         "temp=\$\$(mktemp -d " +
-        "\"\$\${TMPDIR:-/tmp}/dump_codesign_count.XXXXXX\") && " +
+        "\"\$\${TEST_TMPDIR:-/tmp}/dump_codesign_count.XXXXXX\") && " +
         "/usr/bin/unzip -q \$(location ${ipa_label}) -d \$\${temp} && " +
         "codesign -d -r- ${archive_paths[@]/#/\$\$temp/} 2>/dev/null | " +
         "sed -e 's/identifier \"[^\"]*\" //' | sort | uniq | " +
@@ -260,31 +260,29 @@ function current_archs() {
 }
 
 
-# Usage: do_build <platform> <min_sdk_version> <other options...>
+# Usage: do_build <platform> <other options...>
 #
 # Helper function to invoke `bazel build` that applies --verbose_failures and
 # log redirection for the test harness, along with any extra arguments that
 # were passed in via the `apple_shell_test`'s `configurations` attribute.
-# The first two arguments are the platform and minimum SDK version needed;
-# the remaining arguments are passed directly to bazel.
+# The first argument is the platform needed; the remaining arguments are passed
+# directly to bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
 # should expect to find their outputs in "test-bin" and "test-genfiles".
 #
 # Example:
-#     do_build ios 9.0 --some_other_flag //foo:bar
+#     do_build ios --some_other_flag //foo:bar
 function do_build() {
   platform="$1"; shift
-  min_sdk_version="$1"; shift
 
   declare -a bazel_options=("--symlink_prefix=test-" "--verbose_failures")
 
-  declare -a sdk_options=( \
-      $(require_at_least_sdk "$platform" "$min_sdk_version") )
+  declare -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
   if [ -n "${sdk_options[*]}" ]; then
     bazel_options+=("${sdk_options[@]}")
   else
-    fail "Could not find an Xcode that supports ${platform} version >= ${min_sdk_version}"
+    fail "Could not find a valid version of Xcode"
   fi
 
   if is_device_build "$platform"; then
@@ -356,61 +354,6 @@ function is_device_build() {
   # For simplicity, we just test the entire architecture list string and assume
   # users aren't writing tests with multiple incompatible architectures.
   [[ "$platform" == macos ]] || [[ "$archs" == arm* ]]
-}
-
-
-# Usage: require_at_least_sdk <platform> <min_sdk_version>
-#
-# Searches all installed Xcodes for one that supports an SDK for `platform`
-# (one of "ios", "watchos", or "tvos") whose version number is at least as high
-# as `min_sdk_version` (a dotted version number, like "10.1"). If found, this
-# echoes the command line options needed to build with that Xcode and SDK.
-# Otherwise, nothing is echoed.
-function require_at_least_sdk() {
-  platform="$1"
-  min_sdk_version="$2"
-
-  found_xcode_version=""
-  found_sdk_version=""
-
-  # TODO(b/37508376): Remove this special case when the Xcode version targets
-  # use default_macos_sdk_version instead of default_macosx_sdk_version.
-  if [[ "$platform" == macos ]]; then
-    query_output_platform=macosx
-  else
-    query_output_platform="$platform"
-  fi
-
-  # Query for all of the Xcode installations on the host machine, then scan the
-  # results for one that supports the given SDK (or higher). We don't have to
-  # find *the* highest version; we just need the first one that will work.
-  query="labels(versions, @local_config_xcode//:host_xcodes)"
-
-  bazel query "$query" --output build | \
-  while read -r line; do
-    case "$line" in
-      default_${query_output_platform}_sdk_version*)
-        found_sdk_version=$(echo "$line" | cut -d\" -f2)
-        ;;
-      version*)
-        found_xcode_version=$(echo "$line" | cut -d\" -f2)
-        ;;
-    esac
-
-    if [ -n "$found_xcode_version" -a -n "$found_sdk_version" ]; then
-      found_num="$(version_as_number "$found_sdk_version")"
-      min_num="$(version_as_number "$min_sdk_version")"
-
-      if [ "$found_num" -ge "$min_num" ]; then
-        echo "--xcode_version=$found_xcode_version --${platform}_sdk_version=$found_sdk_version"
-        return
-      fi
-
-      # Reset our variables so that we can find the next pair.
-      found_xcode_version=""
-      found_sdk_version=""
-    fi
-  done
 }
 
 
@@ -488,26 +431,6 @@ function assert_binary_not_contains() {
 }
 
 
-# Usage: version_as_number <version_string>
-#
-# Converts a dotted version number string (like "1.2.3") to a number and prints
-# it. The exact form of the number is unimportant; it is meant to be compared
-# against other dotted versions converted the same way.
-#
-# Note that version numbers that contain non-numeric characters, like
-# "1.2.3beta4", are handled gracefully here; the "beta4" is ignored and the
-# returned number is treated as if it were "1.2.3", which is deemed suitable
-# for the use cases needed here.
-#
-# Example:
-#     if [ "$(version_as_number "$x")" -ge "$(version_as_number 1.2.3)" ]; then
-#        # Executes if $x is version 1.2.3 or greater
-#     fi
-function version_as_number() {
-  echo "$@" | awk -F. '{ printf("%d%03d%03d\n", $1,$2,$3); }'
-}
-
-
 # Usage: assert_contains_bitcode_maps <platform> <archive> <path_in_archive>
 #
 # Asserts that the IPA at `archive` contains bitcode symbol map of the binary
@@ -518,10 +441,10 @@ function assert_ipa_contains_bitcode_maps() {
   binary="$3"
 
   assert_zip_contains "$archive" "$binary"
-  unzip_single_file "$archive" "$binary" > $TMPDIR/tmp_bin
+  unzip_single_file "$archive" "$binary" > $TEST_TMPDIR/tmp_bin
   declare -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    BIN_UUID=$(dwarfdump -u "$TMPDIR"/tmp_bin -arch "${arch}" | cut -d' ' -f2)
+    BIN_UUID=$(dwarfdump -u "$TEST_TMPDIR"/tmp_bin -arch "${arch}" | cut -d' ' -f2)
     assert_zip_contains "$archive" \
       "BCSymbolMaps/${BIN_UUID}.bcsymbolmap"
   done

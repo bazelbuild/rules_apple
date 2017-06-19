@@ -22,34 +22,11 @@ load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "product_support")
-load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
-load("@build_bazel_rules_apple//apple:utils.bzl", "remove_extension")
-
-
-# Command string for "sed" that tries to extract the application version number
-# from a larger string provided by the --embed_label flag. For example, from
-# "foo_1.2.3_RC00" this would extract "1.2.3". This regex looks for versions of
-# the format "x.y" or "x.y.z", which may be preceded and/or followed by other
-# text, such as a project name or release candidate number. This command also
-# preserves double quotes around the string, if any.
-#
-# This sed command is not terribly readable because sed requires parens and
-# braces to be escaped and it does not support '?' or '+'. So, this command
-# corresponds to the following regular expression:
-#
-# ("){0,1}       # Group 1: optional starting quotes
-# (.*_){0,1}     # Group 2: anything (optional) before an underscore
-# ([0-9][0-9]*(\.[0-9][0-9]*){1,2})  # Group 3: capture anything that looks
-#                                    # like a version number of the form x.y
-#                                    # or x.y.z (group 4 is for nesting only)
-# (_[^"]*){0,1}  # Group 5: anything (optional) after an underscore
-# ("){0,1}       # Group 6: optional closing quotes
-#
-# Then, the replacement extracts "\1\3\6" -- in other words, the version number
-# component, surrounded by quotes if they were present in the original string.
-_EXTRACT_VERSION_SED_COMMAND = (
-    r's#\("\)\{0,1\}\(.*_\)\{0,1\}\([0-9][0-9]*\(\.[0-9][0-9]*\)' +
-    r'\{1,2\}\)\(_[^"]*\)\{0,1\}\("\)\{0,1\}#\1\3\6#')
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleBundleVersionInfo")
+load("@build_bazel_rules_apple//apple:utils.bzl",
+     "apple_action",
+     "remove_extension")
 
 
 def _environment_plist_action(ctx):
@@ -77,61 +54,6 @@ def _environment_plist_action(ctx):
   )
 
   return environment_plist
-
-
-def _version_plist_action(ctx):
-  """Creates an action that extracts a version number from the build info.
-
-  The --embed_label flag can be used during the build to embed a string that
-  will be inspected for something that looks like a version number (for
-  example, "MyApp_1.2.3_prod"). If found, that string ("1.2.3") will be used
-  as the CFBundleVersion and CFBundleShortVersionString for the bundle.
-
-  If no version number was found in the label (or if the flag was not
-  provided), the returned plist will be empty so that merging it becomes a
-  no-op.
-
-  Args:
-    ctx: The Skylark context.
-  Returns:
-    The plist file that contains the extracted version information.
-  """
-  version_plist = ctx.new_file(ctx.label.name + "_version.plist")
-  plist_path = version_plist.path
-
-  info_path = ctx.info_file.path
-
-  ctx.action(
-      inputs=[ctx.info_file],
-      outputs=[version_plist],
-      command=(
-          "set -e && " +
-          "VERSION=\"$(grep \"^BUILD_EMBED_LABEL\" " + info_path + " | " +
-          "cut -d\" \" -f2- | " +
-          "sed -e '" + _EXTRACT_VERSION_SED_COMMAND + "' | " +
-          "sed -e \"s#\\\"#\\\\\\\"#g\")\" && " +
-          "cat >" + plist_path + " <<EOF\n" +
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-          "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" " +
-          "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" +
-          "<plist version=\"1.0\">\n" +
-          "<dict>\n" +
-          "EOF\n" +
-          "if [[ -n \"$VERSION\" ]]; then\n" +
-          "  for KEY in CFBundleVersion CFBundleShortVersionString; do\n" +
-          "    echo \"  <key>$KEY</key>\" >> " + plist_path + "\n" +
-          "    echo \"  <string>$VERSION</string>\" >> " + plist_path + "\n" +
-          "  done\n" +
-          "fi\n" +
-          "cat >>" + plist_path + " <<EOF\n" +
-          "</dict>\n" +
-          "</plist>\n" +
-          "EOF\n"
-      ),
-      mnemonic="VersionPlist",
-  )
-
-  return version_plist
 
 
 def _merge_infoplists(ctx,
@@ -184,9 +106,16 @@ def _merge_infoplists(ctx,
     forced_plists.append(struct(UILaunchStoryboardName=short_name))
 
   info_plist_options = {
+      "apply_default_version": True,
       "bundle_name": bundling_support.bundle_name_with_extension(ctx),
       "pkginfo": pkginfo.path if pkginfo else None,
   }
+
+  if hasattr(ctx.attr, "version") and ctx.attr.version:
+    version_info = ctx.attr.version[AppleBundleVersionInfo]
+    if version_info:
+      additional_plisttool_inputs.append(version_info.version_file)
+      info_plist_options["version_file"] = version_info.version_file.path
 
   if executable_bundle and bundle_id:
     info_plist_options["bundle_id"] = bundle_id
@@ -202,8 +131,7 @@ def _merge_infoplists(ctx,
     min_os = platform_support.minimum_os(ctx)
 
     environment_plist = _environment_plist_action(ctx)
-    version_plist = _version_plist_action(ctx)
-    additional_plisttool_inputs = [environment_plist, version_plist]
+    additional_plisttool_inputs.append(environment_plist)
 
     additional_infoplist_values = {}
 
@@ -226,7 +154,6 @@ def _merge_infoplists(ctx,
 
     forced_plists += [
         environment_plist.path,
-        version_plist.path,
         struct(
             CFBundleSupportedPlatforms=[platform.name_in_plist],
             DTPlatformName=platform.name_in_plist.lower(),
@@ -246,6 +173,7 @@ def _merge_infoplists(ctx,
       output=output_plist.path,
       binary=True,
       info_plist_options=struct(**info_plist_options),
+      target=str(ctx.label),
   )
   control_file = file_support.intermediate(
       ctx, "%{name}.plisttool-control", prefix=path_prefix)

@@ -204,7 +204,7 @@ EOF
 # class above: Core, Foundation, and UIKit.
 function test_swift_dylibs_present() {
   create_minimal_tvos_application_with_swift_extension
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
 
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.
@@ -241,7 +241,7 @@ function test_swift_dylibs_present() {
 # folder.
 function test_union_of_swift_dylibs_present_for_app_and_extension() {
   create_minimal_swift_tvos_application_with_swift_extension
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
 
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.

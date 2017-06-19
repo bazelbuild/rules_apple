@@ -88,7 +88,7 @@ function test_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build tvos 10.0 //app:dump_plist \
+  do_build tvos //app:dump_plist \
       || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
@@ -131,7 +131,7 @@ function test_plist_contents() {
 function test_dsyms_generated() {
   create_common_files
   create_minimal_tvos_application
-  do_build tvos 10.0 --apple_generate_dsym //app:app || fail "Should build"
+  do_build tvos --apple_generate_dsym //app:app || fail "Should build"
 
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
 
@@ -147,7 +147,7 @@ function test_dsyms_generated() {
 function test_linkmaps_generated() {
   create_common_files
   create_minimal_tvos_application
-  do_build tvos 9.0 --objc_generate_linkmap //app:app || fail "Should build"
+  do_build tvos --objc_generate_linkmap //app:app || fail "Should build"
 
   declare -a archs=( $(current_archs tvos) )
   for arch in "${archs[@]}"; do
@@ -160,7 +160,7 @@ function test_application_is_signed() {
   create_common_files
   create_minimal_tvos_application
   create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
-  do_build tvos 10.0 //app:dump_codesign || fail "Should build"
+  do_build tvos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -173,7 +173,7 @@ function test_contains_provisioning_profile() {
 
   create_common_files
   create_minimal_tvos_application
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -213,14 +213,14 @@ EOF
     # For device builds, we verify that the entitlements are in the codesign
     # output.
     create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
-    do_build tvos 10.0 //app:dump_codesign || fail "Should build"
+    do_build tvos //app:dump_codesign || fail "Should build"
 
     assert_contains "<key>test-an-entitlement</key>" \
         "test-genfiles/app/codesign_output"
   else
     # For simulator builds, the entitlements are added as a Mach-O section in
     # the binary.
-    do_build tvos 10.0 //app:app || fail "Should build"
+    do_build tvos //app:app || fail "Should build"
 
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
@@ -235,7 +235,7 @@ function test_bitcode_symbol_maps_packaging() {
 
   create_common_files
   create_minimal_tvos_application
-  do_build tvos 10.0 //app:app --apple_bitcode=embedded || fail "Should build"
+  do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
 
   assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
       "Payload/app.app/app"

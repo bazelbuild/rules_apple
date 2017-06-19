@@ -49,6 +49,8 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleSignature = "????";
+  CFBundleVersion = "1.0.0";
+  CFBundleShortVersionString = "1.0";
 }
 EOF
 }
@@ -169,7 +171,7 @@ function test_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build ios 9.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
   assert_equals "app" "$(cat "test-genfiles/app/CFBundleExecutable")"
@@ -232,7 +234,7 @@ EOF
   create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
-  do_build ios 9.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Verify that we have keys from both plists.
   assert_equals "my.bundle.id" "$(cat "test-genfiles/app/CFBundleIdentifier")"
@@ -244,7 +246,7 @@ EOF
 function test_dsyms_generated() {
   create_common_files
   create_minimal_ios_application
-  do_build ios 9.0 --apple_generate_dsym //app:app || fail "Should build"
+  do_build ios --apple_generate_dsym //app:app || fail "Should build"
 
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
 
@@ -260,7 +262,7 @@ function test_dsyms_generated() {
 function test_linkmaps_generated() {
   create_common_files
   create_minimal_ios_application
-  do_build ios 9.0 --objc_generate_linkmap //app:app || fail "Should build"
+  do_build ios --objc_generate_linkmap //app:app || fail "Should build"
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
@@ -273,7 +275,7 @@ function test_application_is_signed() {
   create_common_files
   create_minimal_ios_application
   create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
-  do_build ios 9.0 //app:dump_codesign || fail "Should build"
+  do_build ios //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -286,7 +288,7 @@ function test_contains_provisioning_profile() {
 
   create_common_files
   create_minimal_ios_application
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -317,7 +319,7 @@ echo "foo" > "\$WORKDIR/Payload/app.app/inserted_by_post_processor.txt"
 EOF
   chmod +x app/post_processor.sh
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
   assert_equals "foo" "$(unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/inserted_by_post_processor.txt")"
 }
@@ -344,7 +346,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
       nm -j - | grep _linkopts_test_main \
@@ -357,7 +359,7 @@ EOF
 function test_pkginfo_contents() {
   create_common_files
   create_minimal_ios_application
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/PkgInfo")"
@@ -397,14 +399,14 @@ EOF
     # For device builds, we verify that the entitlements are in the codesign
     # output.
     create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
-    do_build ios 9.0 //app:dump_codesign || fail "Should build"
+    do_build ios //app:dump_codesign || fail "Should build"
 
     assert_contains "<key>test-an-entitlement</key>" \
         "test-genfiles/app/codesign_output"
   else
     # For simulator builds, the entitlements are added as a Mach-O section in
     # the binary.
-    do_build ios 9.0 //app:app || fail "Should build"
+    do_build ios //app:app || fail "Should build"
 
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
@@ -442,7 +444,7 @@ EOF
 EOF
 
   if ! is_device_build ios ; then
-    do_build ios 9.0 //app:app-with-hyphen || fail "Should build"
+    do_build ios //app:app-with-hyphen || fail "Should build"
 
     unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
         "Payload/app-with-hyphen.app/app-with-hyphen" | \
@@ -459,7 +461,7 @@ function test_message_application() {
   create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
       LSApplicationLaunchProhibited
 
-  do_build ios 10.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
@@ -513,7 +515,7 @@ EOF
 foo_device
 EOF
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   if is_device_build ios ; then
     assert_zip_contains "test-bin/app/app.ipa" \
@@ -530,7 +532,7 @@ function test_prebuilt_static_framework_dependency() {
   create_common_files
   create_minimal_ios_application_with_objc_framework static
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -551,7 +553,7 @@ function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
   create_minimal_ios_application_with_objc_framework dynamic
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the binary, plist, and resources are included.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -586,7 +588,7 @@ ios_application(
 )
 EOF
 
-  ! do_build ios 10.0 //app:app || fail "Should fail"
+  ! do_build ios //app:app || fail "Should fail"
   expect_log "Do not provide your own binary"
 }
 
@@ -598,7 +600,7 @@ function test_bitcode_symbol_maps_packaging() {
   create_common_files
   create_minimal_ios_application
 
-  do_build ios 10.0 -s --apple_bitcode=embedded \
+  do_build ios -s --apple_bitcode=embedded \
        //app:app || fail "Should build"
 
   assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
@@ -622,12 +624,49 @@ ios_application(
 )
 EOF
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Both the bundle name and the executable name should correspond to
   # bundle_name.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/"
   assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/different"
+}
+
+# Tests that the label passed to the version attribute overwrites the version
+# information already in the plist without error.
+function test_version_attr_overrides_plist_contents() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:versioning.bzl",
+     "apple_bundle_version",
+    )
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    version = ":app_version",
+    deps = [":lib"],
+)
+
+apple_bundle_version(
+    name = "app_version",
+    build_version = "9.8.7",
+    short_version_string = "6.5",
+)
+EOF
+
+  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+      CFBundleVersion \
+      CFBundleShortVersionString
+  do_build ios //app:dump_plist || fail "Should build"
+
+  assert_equals "9.8.7" "$(cat "test-genfiles/app/CFBundleVersion")"
+  assert_equals "6.5" "$(cat "test-genfiles/app/CFBundleShortVersionString")"
 }
 
 run_suite "ios_application bundling tests"

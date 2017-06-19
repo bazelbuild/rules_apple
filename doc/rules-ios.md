@@ -618,6 +618,16 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the `*.runfiles`
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -716,6 +726,16 @@ of the attributes inherited by all test rules, please check the
         <p>An <code>ios_application</code> target that represents the app that
         will host the tests. If not specified, an empty shell app will be
         provided as the test host.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the `*.runfiles`
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
       </td>
     </tr>
     <tr>

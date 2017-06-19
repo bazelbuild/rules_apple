@@ -49,6 +49,9 @@ def ios_application(name, **kwargs):
         there may be only one such `.appiconset` directory in the list.
     bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
         application.
+    dedupe_unbundled_resources: If true, ensures that resources present in
+        any frameworks that this application depends on are not also present
+        at the main app level. False by default.
     entitlements: The entitlements file required for device builds of this
         application. If absent, the default entitlements from the provisioning
         profile will be used.

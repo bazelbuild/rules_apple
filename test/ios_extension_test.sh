@@ -215,7 +215,7 @@ function test_extension_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build ios 10.0 //app:dump_plist \
+  do_build ios //app:dump_plist \
       || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
@@ -260,7 +260,7 @@ function test_extension_is_signed() {
   create_minimal_ios_application_with_extension
   create_dump_codesign "//app:app.ipa" \
       "Payload/app.app/PlugIns/ext.appex" -vv
-  do_build ios 10.0 //app:dump_codesign || fail "Should build"
+  do_build ios //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -273,7 +273,7 @@ function test_contains_provisioning_profile() {
 
   create_common_files
   create_minimal_ios_application_with_extension
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -289,7 +289,7 @@ function test_sticker_pack_extension() {
   create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
       LSApplicationIsStickerPack
 
-  do_build ios 10.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   assert_equals "true" "$(cat "test-genfiles/app/LSApplicationIsStickerPack")"
 
@@ -330,7 +330,7 @@ ios_extension(
 )
 EOF
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 }
 
 # Tests that a sticker pack application fails to build and emits a reasonable
@@ -363,7 +363,7 @@ ios_extension(
 )
 EOF
 
-  ! do_build ios 10.0 //app:app \
+  ! do_build ios //app:app \
     || fail "Should fail build"
 
   expect_log "Message extensions must use Messages Extensions Icon Sets (named .stickersiconset)"
@@ -436,7 +436,7 @@ EOF
 }
 EOF
 
-  ! do_build ios 10.0 //app:app || fail "Should not build"
+  ! do_build ios //app:app || fail "Should not build"
   expect_log 'The CFBundleIdentifier of the child target "//app:ext" should ' \
       'have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
 }
@@ -447,7 +447,7 @@ function test_prebuilt_static_framework_dependency() {
   create_common_files
   create_minimal_ios_application_and_extension_with_objc_framework static
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -478,7 +478,7 @@ function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
   create_minimal_ios_application_and_extension_with_objc_framework dynamic
 
-  do_build ios 10.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the framework is bundled with the application and that the
   # binary, plist, and resources are included.
@@ -516,7 +516,7 @@ function test_bitcode_symbol_maps_packaging() {
   create_common_files
   create_minimal_ios_application_with_extension
 
-  do_build ios 10.0 --apple_bitcode=embedded \
+  do_build ios --apple_bitcode=embedded \
        //app:app || fail "Should build"
 
   assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
@@ -530,7 +530,7 @@ function test_bitcode_symbol_maps_packaging() {
 function test_linkmaps_generated() {
   create_common_files
   create_minimal_ios_application_with_extension
-  do_build ios 10.0 --objc_generate_linkmap \
+  do_build ios --objc_generate_linkmap \
       //app:ext || fail "Should build"
 
   declare -a archs=( $(current_archs ios) )

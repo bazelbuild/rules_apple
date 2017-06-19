@@ -181,7 +181,7 @@ function test_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
   assert_equals "ui_tests" "$(cat "test-genfiles/app/CFBundleExecutable")"
@@ -228,7 +228,7 @@ function test_bundle_id_override() {
   create_dump_plist "//app:ui_tests_test_bundle.ipa" "Payload/ui_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
 
   assert_equals "my.test.bundle.id" "$(cat "test-genfiles/app/CFBundleIdentifier")"
 }
@@ -240,7 +240,7 @@ function test_bundle_id_same_as_test_host_error() {
   create_dump_plist "//app:ui_tests_test_bundle.ipa" "Payload/ui_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
-  ! do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
+  ! do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
   expect_log "can't be the same as the test host's bundle identifier"
 }
 
@@ -248,7 +248,7 @@ function test_bundle_id_same_as_test_host_error() {
 function test_builds_with_default_host() {
   create_common_files
   create_ios_ui_test_without_test_host
-  ! do_build ios 9.0 //app:ui_tests || fail "Should should not build"
+  ! do_build ios //app:ui_tests || fail "Should should not build"
   expect_log "missing value for mandatory attribute 'test_host'"
 }
 
@@ -257,7 +257,7 @@ function test_bundle_is_signed() {
   create_common_files
   create_minimal_ios_application_with_tests
   create_dump_codesign "//app:ui_tests_test_bundle.ipa" "Payload/ui_tests.xctest" -vv
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:dump_codesign || fail "Should build"
+  do_build ios --ios_minimum_os=9.0 //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -267,7 +267,7 @@ function test_bundle_is_signed() {
 function test_runner_script_contains_expected_values() {
   create_common_files
   create_test_with_minimal_test_runner_rule
-  do_build ios 9.0 --ios_minimum_os=9.0 //app:ui_tests || fail "Should build"
+  do_build ios --ios_minimum_os=9.0 //app:ui_tests || fail "Should build"
 
   assert_contains "TEST_HOST=app/app.ipa" "test-bin/app/ui_tests"
   assert_contains "TEST_BUNDLE=app/ui_tests.ipa" "test-bin/app/ui_tests"

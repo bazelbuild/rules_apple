@@ -90,6 +90,8 @@ for their platform through either `simple_path_formats` or `macos_path_formats`.
 
 load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
      "apple_bundling_aspect")
+load("@build_bazel_rules_apple//apple:providers.bzl",
+     "AppleBundleVersionInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "merge_dictionaries")
 
@@ -111,6 +113,11 @@ _tool_attributes = {
         cfg="host",
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
+    ),
+    "_clangrttool": attr.label(
+        cfg="host",
+        executable=True,
+        default=Label("@build_bazel_rules_apple//tools/clangrttool"),
     ),
     "_debug_entitlements": attr.label(
         cfg="host",
@@ -386,6 +393,7 @@ def _make_bundling_rule(implementation,
           ),
           "minimum_os_version": attr.string(mandatory=False),
           "strings": attr.label_list(allow_files=[".strings"]),
+          "version": attr.label(providers=[[AppleBundleVersionInfo]]),
           "_bundle_extension": attr.string(default=bundle_extension),
           "_needs_pkginfo": attr.bool(default=needs_pkginfo),
           "_platform_type": attr.string(default=str(platform_type)),

@@ -169,7 +169,7 @@ function test_watch_app_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build watchos 2.0 --watchos_minimum_os=2.0 //app:dump_plist \
+  do_build watchos --watchos_minimum_os=2.0 //app:dump_plist \
       || fail "Should build"
 
   assert_equals "my.bundle.id.watch_app" "$(cat "test-genfiles/app/CFBundleIdentifier")"
@@ -200,7 +200,7 @@ function test_watch_ext_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build watchos 2.0 //app:dump_plist \
+  do_build watchos //app:dump_plist \
       || fail "Should build"
 
   assert_equals "my.bundle.id.watch_app.watch_ext" "$(cat "test-genfiles/app/CFBundleIdentifier")"
@@ -215,7 +215,7 @@ function test_watch_application_is_signed() {
   create_minimal_watchos_application_with_companion
   create_dump_codesign "//app:phone_app.ipa" \
       "Payload/phone_app.app/Watch/watch_app.app" -vv
-  do_build watchos 2.0 //app:dump_codesign || fail "Should build"
+  do_build watchos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -226,7 +226,7 @@ function test_watch_extension_is_signed() {
   create_minimal_watchos_application_with_companion
   create_dump_codesign "//app:phone_app.ipa" \
       "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" -vv
-  do_build watchos 2.0 //app:dump_codesign || fail "Should build"
+  do_build watchos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -238,7 +238,7 @@ function test_contains_provisioning_profile() {
   is_device_build watchos || return 0
 
   create_minimal_watchos_application_with_companion
-  do_build watchos 2.0 //app:phone_app || fail "Should build"
+  do_build watchos //app:phone_app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
@@ -249,7 +249,7 @@ function test_contains_provisioning_profile() {
 # in the appropriate bundle and top-level support directories.
 function test_contains_stub_executable() {
   create_minimal_watchos_application_with_companion
-  do_build watchos 2.0 //app:phone_app || fail "Should build"
+  do_build watchos //app:phone_app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
@@ -269,7 +269,7 @@ function test_bitcode_symbol_maps_packaging() {
 
   create_minimal_watchos_application_with_companion
 
-  do_build watchos 2.0 //app:phone_app \
+  do_build watchos //app:phone_app \
       --apple_bitcode=embedded || fail "Should build"
 
   assert_ipa_contains_bitcode_maps ios "test-bin/app/phone_app.ipa" \
@@ -282,7 +282,7 @@ function test_bitcode_symbol_maps_packaging() {
 # present.
 function test_linkmaps_generated() {
   create_minimal_watchos_application_with_companion
-  do_build watchos 2.0 --objc_generate_linkmap \
+  do_build watchos --objc_generate_linkmap \
       //app:watch_ext || fail "Should build"
 
   declare -a archs=( $(current_archs watchos) )

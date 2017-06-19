@@ -26,6 +26,10 @@
 
 test_script="$1"; shift
 
+# Update this if you have a different version of Xcode installed than the one
+# listed here.
+export XCODE_VERSION_FOR_TESTS=8.1
+
 function print_message_and_exit() {
   echo "$1" >&2; exit 1;
 }

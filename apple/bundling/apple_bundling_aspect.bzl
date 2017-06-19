@@ -185,40 +185,38 @@ def _transitive_apple_resource_info(target, ctx):
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
   Returns:
-    An `AppleResourceInfo` provider, or `None` if nothing should be propagated
-    for this target.
+    An `AppleResourceInfo` provider.
   """
   resource_sets = []
+
+  # If the rule has deps, propagate the transitive info from this target's
+  # dependencies.
+  deps = getattr(ctx.rule.attr, "deps", [])
+  resource_providers = provider_support.matching_providers(deps,
+                                                           AppleResourceInfo)
+  for p in resource_providers:
+    resource_sets.extend(p.resource_sets)
 
   if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
     resource_sets.extend(_handle_native_library_dependency(target, ctx))
   elif ctx.rule.kind == "objc_bundle":
     bundle_imports = ctx.rule.files.bundle_imports
     resource_sets.extend(_handle_native_bundle_imports(bundle_imports))
+  elif not resource_providers:
+    # Handle arbitrary objc providers, but only if we haven't gotten resource
+    # sets for the target or its deps already. This lets us handle "resource
+    # leaf nodes" (custom rules that return resources via the objc provider)
+    # until they migrate to AppleResource, but without pulling in duplicated
+    # information from the transitive objc providers on the way back up
+    # (because we'll have already gotten that information in the form we want
+    # from the transitive AppleResource providers).
+    if hasattr(target, "objc"):
+      resource_set = _handle_unknown_objc_provider(target.objc)
+      if resource_set:
+        resource_sets.append(resource_set)
 
-  # If the rule has deps, propagate the transitive info from this target's
-  # dependencies.
-  deps = getattr(ctx.rule.attr, "deps", [])
-  for p in provider_support.matching_providers(deps, AppleResourceInfo):
-    resource_sets.extend(p.resource_sets)
-
-  # Handle arbitrary objc providers, but only if we haven't gotten resource
-  # sets for the target or its deps already. This lets us handle "resource
-  # leaf nodes" (custom rules that return resources via the objc provider)
-  # until they migrate to AppleResource, but without pulling in duplicated
-  # information from the transitive objc providers on the way back up
-  # (because we'll have already gotten that information in the form we want
-  # from the transitive AppleResource providers).
-  if not resource_sets and hasattr(target, "objc"):
-    resource_set = _handle_unknown_objc_provider(target.objc)
-    if resource_set:
-      resource_sets.append(resource_set)
-
-  if resource_sets:
-    minimized = apple_resource_set_utils.minimize(resource_sets)
-    return AppleResourceInfo(resource_sets=minimized)
-  else:
-    return None
+  minimized = apple_resource_set_utils.minimize(resource_sets)
+  return AppleResourceInfo(resource_sets=minimized)
 
 
 def _transitive_apple_bundling_swift_info(target, ctx):

@@ -103,7 +103,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
   assert_ipa_contains_swift_dylibs
 }
 
@@ -131,7 +131,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
   assert_ipa_contains_swift_dylibs
 }
 
@@ -157,7 +157,7 @@ EOF
   create_dump_codesign_count "//app:app.ipa" \
       "Payload/app.app/app" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  do_build ios 9.0 //app:dump_codesign_count || fail "Should build"
+  do_build ios //app:dump_codesign_count || fail "Should build"
 
   # We checked two files, but there should be exactly one unique certificate.
   assert_equals "1" "$(cat "test-genfiles/app/codesign_count_output")"
@@ -194,7 +194,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
@@ -291,7 +291,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
@@ -376,7 +376,7 @@ swift_library(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \

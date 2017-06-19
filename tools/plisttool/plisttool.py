@@ -42,9 +42,13 @@ the following keys:
   info_plist_options: A dictionary containing options specific to Info.plist
       files. Omit this key if you are merging or converting general plists
       (such as entitlements or other files). See below for more details.
+  target: The target name, used for warning/error messages.
 
 The info_plist_options dictionary can contain the following keys:
 
+  apply_default_version: If True, the tool will set CFBundleVersion and
+      CFBundleShortVersionString to be "1.0" if values are not already present
+      in the output plist.
   executable: The name of the executable that will be written into the
       CFBundleExecutable key of the final plist, and will also be used in
       ${EXECUTABLE_NAME} and ${PRODUCT_NAME} substitutions.
@@ -57,6 +61,9 @@ The info_plist_options dictionary can contain the following keys:
       should be created from the CFBundlePackageType and CFBundleSignature keys
       in the final merged plist. (For testing purposes, this may also be a
       writable file-like object.)
+  version_file: If present, a string that denotes the path to the version file
+      propagated by an `AppleBundleVersionInfo` provider, which contains values
+      that will be used for the version keys in the Info.plist.
   child_plists: If present, a dictionary containing plists that will be
       compared against the final compiled plist for consistency. The keys of
       the dictionary are the labels of the targets to which the associated
@@ -175,7 +182,8 @@ class PlistTool(object):
 
     info_plist_options = self._control.get('info_plist_options')
     if info_plist_options:
-      self._perform_info_plist_operations(out_plist, info_plist_options)
+      self._perform_info_plist_operations(out_plist, info_plist_options,
+                                          self._control.get('target'))
 
     self._write_plist(out_plist)
 
@@ -256,7 +264,7 @@ class PlistTool(object):
 
     return plistlib.readPlistFromString(plist_contents)
 
-  def _perform_info_plist_operations(self, out_plist, options):
+  def _perform_info_plist_operations(self, out_plist, options, target):
     """Performs operations specific to Info.plist files.
 
     Args:
@@ -265,6 +273,7 @@ class PlistTool(object):
       options: A dictionary containing options that describe how the plist
           will be modified. The keys and values are described in the module
           doc.
+      target: The name of the target for which the plist is being built.
     Raises:
       ValueError: If the bundle identifier is missing.
     """
@@ -280,6 +289,34 @@ class PlistTool(object):
         raise ValueError(MISMATCHED_BUNDLE_ID_MSG %
                          (old_bundle_id, bundle_id))
       out_plist['CFBundleIdentifier'] = bundle_id
+
+    # Pull in the version info propagated by AppleBundleVersionInfo, using "1.0"
+    # as a default if there's no version info whatsoever (either there, or
+    # already in the plist).
+    version_file = options.get('version_file')
+    if version_file:
+      if isinstance(version_file, basestring):
+        with open(version_file) as f:
+          version_info = json.load(f)
+      else:
+        version_info = json.load(version_file)
+
+      bundle_version = version_info.get('build_version')
+      short_version_string = version_info.get('short_version_string')
+
+      if bundle_version:
+        out_plist['CFBundleVersion'] = bundle_version
+      if short_version_string:
+        out_plist['CFBundleShortVersionString'] = short_version_string
+
+    if (options.get('apply_default_version') and
+        'CFBundleVersion' not in out_plist):
+      print('WARN: The Info.plist for target "%s" did not have a '
+            'CFBundleVersion key, so "1.0" will be used as a default. Please '
+            'set up proper versioning using the "version" attribute on the '
+            'target before releasing it.' % target)
+      out_plist['CFBundleVersion'] = '1.0'
+      out_plist['CFBundleShortVersionString'] = '1.0'
 
     # TODO(b/29216266): Check for required keys, such as versions.
 
