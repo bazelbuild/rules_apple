@@ -114,7 +114,7 @@ function test_extension_plist_contents() {
       DTXcodeBuild \
       MinimumOSVersion \
       UIDeviceFamily:0
-  do_build tvos 10.0 //app:dump_plist \
+  do_build tvos //app:dump_plist \
       || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
@@ -158,7 +158,7 @@ function test_extension_is_signed() {
   create_minimal_tvos_application_with_extension
   create_dump_codesign "//app:app.ipa" \
       "Payload/app.app/PlugIns/ext.appex" -vv
-  do_build tvos 10.0 //app:dump_codesign || fail "Should build"
+  do_build tvos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -170,7 +170,7 @@ function test_contains_provisioning_profile() {
   is_device_build tvos || return 0
 
   create_minimal_tvos_application_with_extension
-  do_build tvos 10.0 //app:app || fail "Should build"
+  do_build tvos //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -183,7 +183,7 @@ function test_bitcode_symbol_maps_packaging() {
   is_device_build tvos || return 0
 
   create_minimal_tvos_application_with_extension
-  do_build tvos 10.0 //app:app --apple_bitcode=embedded || fail "Should build"
+  do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
 
   assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
       "Payload/app.app/app"

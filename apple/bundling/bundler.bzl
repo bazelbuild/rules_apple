@@ -39,6 +39,8 @@ load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
+load("@build_bazel_rules_apple//apple/bundling:clang_support.bzl",
+    "clang_support")
 load("@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
      "codesigning_support")
 load("@build_bazel_rules_apple//apple/bundling:debug_symbol_actions.bzl", "debug_symbol_actions")
@@ -73,9 +75,10 @@ _FRAMEWORK_DIRS_TO_EXCLUDE = [
 _ROOT_BUNDLE_DIR = None
 
 
-# A private provider used by the bundler to propagate bundle directory
-# information used during resource de-duping.
-_BundleDirectoryInfo = provider()
+# A private provider used by the bundler to propagate AppleResourceSet
+# information between frameworks and the bundles that depend on them. This is
+# used during resource de-duping.
+_ResourceBundleInfo = provider()
 
 
 def _bundlable_files_for_control(bundlable_files):
@@ -228,63 +231,6 @@ def _dedupe_bundle_merge_files(bundlable_files):
       path_to_files[bf.dest] = this_file
 
   return deduped_bundlable_files
-
-
-def _dedupe_files(files):
-  """Deduplicates files based on their short paths.
-
-  Args:
-    files: The set of `File`s that should be deduplicated based on their short
-        paths.
-  Returns:
-    The `depset` of `File`s where duplicate short paths have been removed by
-    arbitrarily removing all but one from the set.
-  """
-  short_path_to_files_mapping = {}
-
-  for f in files:
-    short_path = f.short_path
-    if short_path not in short_path_to_files_mapping:
-      short_path_to_files_mapping[short_path] = f
-
-  return depset(short_path_to_files_mapping.values())
-
-
-def _dedupe_resource_set_files(resource_set):
-  """Deduplicates the files in a resource set based on their short paths.
-
-  It is possible to have genrules that produce outputs that will be used later
-  as resource inputs to other rules (and not just genrules, in fact, but any
-  rule that produces an output file), and these rules register separate actions
-  for each split configuration when a target is built for multiple
-  architectures. If we don't deduplicate those files, the outputs of both sets
-  of actions will be sent to the resource processor and it will attempt to put
-  the compiled results in the same intermediate file location.
-
-  Therefore, we deduplicate resources that have the same short path, which
-  ensures (due to action pruning) that only one set of actions will be executed
-  and only one output will be generated. This implies that the genrule must
-  produce equivalent content for each configuration. This is likely OK, because
-  if the output is actually architecture-dependent, then the actions need to
-  produce those outputs with names that allow the bundler to distinguish them.
-
-  Args:
-    resource_set: The resource set whose `infoplists`, `resources`,
-        `structured_resources`, and `structured_resource_zips` should be
-        deduplicated.
-  Returns:
-    A new resource set with duplicate files removed.
-  """
-  return AppleResourceSet(
-      bundle_dir=resource_set.bundle_dir,
-      infoplists=_dedupe_files(resource_set.infoplists),
-      objc_bundle_imports=_dedupe_files(resource_set.objc_bundle_imports),
-      resources=_dedupe_files(resource_set.resources),
-      structured_resources=_dedupe_files(resource_set.structured_resources),
-      structured_resource_zips=_dedupe_files(
-          resource_set.structured_resource_zips),
-      swift_module=resource_set.swift_module,
-  )
 
 
 def _safe_files(ctx, name):
@@ -642,21 +588,19 @@ def _run(
   # of the bundle.
   target_infoplists = list(_safe_files(ctx, "infoplists"))
 
-  bundle_dirs = []
   resource_sets = list(additional_resource_sets)
+
+  framework_resource_sets = depset()
 
   if (hasattr(ctx.attr, "exclude_resources") and ctx.attr.exclude_resources):
     resource_sets.append(AppleResourceSet(infoplists=target_infoplists))
   else:
-    # Collect the set of bundle_dirs from all framework dependencies, which
-    # will be used to deduplicate resources (by excluding them from the
-    # depending app/extension).
-    framework_bundle_dirs = depset()
     if hasattr(ctx.attr, "frameworks"):
       for framework in getattr(ctx.attr, "frameworks", []):
-        if _BundleDirectoryInfo in framework:
-          for bundle_dir in framework[_BundleDirectoryInfo].bundle_dirs:
-            framework_bundle_dirs = framework_bundle_dirs | [bundle_dir]
+        if _ResourceBundleInfo in framework:
+          framework_resource_sets = (
+              framework_resource_sets |
+              framework[_ResourceBundleInfo].resource_sets)
         if ctx.attr._propagates_frameworks:
           propagated_framework_zips.append(framework[AppleBundleInfo].archive)
 
@@ -665,16 +609,7 @@ def _run(
     p = binary_support.get_binary_provider(ctx, AppleResourceInfo)
     if p:
       for rs in p.resource_sets:
-        # Don't propagate empty bundle directory, as this is indicative of
-        # root-level resources.
-        # TODO(b/36512244): Implement root-level resource deduping.
-        if rs.bundle_dir:
-          bundle_dirs.append(rs.bundle_dir)
-        bundle_dir_or_empty = rs.bundle_dir or ""
-        # TODO(b/36512244): Ensure that there aren't two differing bundles
-        # with different names, as one would get silently dropped.
-        if bundle_dir_or_empty not in framework_bundle_dirs:
-          resource_sets.append(rs)
+        resource_sets.append(rs)
 
     # Finally, add any extra resources specific to the target being built
     # itself.
@@ -701,8 +636,11 @@ def _run(
   # Iterate over each set of resources and register the actions. This
   # ensures that each bundle among the dependencies has its resources
   # processed independently.
-  resource_sets = [_dedupe_resource_set_files(rs)
-                   for rs in apple_resource_set_utils.minimize(resource_sets)]
+
+  dedupe_unbundled = getattr(ctx.attr, "dedupe_unbundled_resources", False)
+  resource_sets = apple_resource_set_utils.minimize(resource_sets,
+                                                    framework_resource_sets,
+                                                    dedupe_unbundled)
   for r in resource_sets:
     ri = resource_support.resource_info(bundle_id,
                                         bundle_dir=r.bundle_dir,
@@ -854,6 +792,12 @@ def _run(
     root_merge_zips.append(bundling_support.bundlable_file(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
+  # Add Clang runtime inputs when needed.
+  if clang_support.should_package_clang_runtime(ctx):
+    clang_rt_zip = clang_support.register_runtime_lib_actions(ctx)
+    bundle_merge_zips.append(
+        bundling_support.contents_file(ctx, clang_rt_zip, "Frameworks"))
+
   # Include bitcode symbol maps when needed.
   if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
     bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
@@ -901,6 +845,9 @@ def _run(
   if experimental_bundling not in ("bundle_and_archive", "bundle_only", "off"):
     fail("Valid values for --define=bazel_rules_apple.experimental_bundling" +
          "are: bundle_and_archive, bundle_only, off.")
+  # Only use experimental bundling for main app's bundle.
+  if ctx.attr._bundle_extension != ".app":
+    experimental_bundling = "off"
   if experimental_bundling in ("bundle_and_archive", "bundle_only"):
     out_bundle = ctx.experimental_new_directory(
         bundling_support.bundle_name_with_extension(ctx))
@@ -978,7 +925,7 @@ def _run(
   legacy_providers["apple_bundle"] = struct(**apple_bundle_info_args)
   additional_providers.extend([
       AppleBundleInfo(**apple_bundle_info_args),
-      _BundleDirectoryInfo(bundle_dirs=bundle_dirs),
+      _ResourceBundleInfo(resource_sets=resource_sets),
   ])
 
   return additional_providers, legacy_providers, depset(additional_outputs)

@@ -57,7 +57,7 @@ objc_binary(name = "bin",
             deps = [":SwiftMain"])
 EOF
 
-  do_build ios 8.0 //ios:bin || fail "should build"
+  do_build ios //ios:bin || fail "should build"
 }
 
 function test_swift_imports_objc() {
@@ -109,7 +109,7 @@ objc_library(name = "ObjcLib",
              defines = ["DEFINE_FOO=1"])
 EOF
 
-  do_build ios 8.0 --objccopt=-DCOPTS_FOO=1 --subcommands \
+  do_build ios --objccopt=-DCOPTS_FOO=1 --subcommands \
       //ios:swift_lib || fail "should build"
   expect_log "-module-cache-path [^/]*-out/[^/]*/genfiles/_objc_module_cache"
 }
@@ -145,7 +145,7 @@ swift_library(name = "util",
               srcs = ['Utility.swift'])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib || fail "should build"
+  do_build ios //ios:swift_lib || fail "should build"
 }
 
 function test_swift_compilation_mode_flags() {
@@ -167,10 +167,10 @@ swift_library(name = "swift_lib",
               srcs = ["debug.swift"])
 EOF
 
-  ! do_build ios 8.0 -c opt //ios:swift_lib || fail "should not build"
+  ! do_build ios -c opt //ios:swift_lib || fail "should not build"
   expect_log "error: use of unresolved identifier 'x'"
 
-  do_build ios 8.0 -c dbg //ios:swift_lib || fail "should build"
+  do_build ios -c dbg //ios:swift_lib || fail "should build"
 }
 
 function test_swift_defines() {
@@ -206,7 +206,7 @@ swift_library(name = "swift_lib",
               deps = [":dep_lib"])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib || fail "should build"
+  do_build ios //ios:swift_lib || fail "should build"
 }
 
 function test_swift_no_object_file_collisions() {
@@ -222,7 +222,7 @@ swift_library(name = "Bar",
               srcs = ["foo.swift"])
 EOF
 
-  do_build ios 8.0 //ios:{Foo,Bar} || fail "should build"
+  do_build ios //ios:{Foo,Bar} || fail "should build"
 }
 
 function test_minimum_os_passed_to_swiftc() {
@@ -236,7 +236,7 @@ swift_library(name = "foo",
               srcs = ["foo.swift"])
 EOF
 
-  do_build ios 8.0 --ios_minimum_os=9.0 --announce_rc \
+  do_build ios --ios_minimum_os=9.0 --announce_rc \
       //ios:foo || fail "should build"
 
   # Get the min OS version encoded as "version" argument of
@@ -272,7 +272,7 @@ swift_library(name = "swift_lib",
               copts = ["-DFLAG"])
 EOF
 
-  do_build ios 8.0 --swiftcopt=-DCMD_FLAG \
+  do_build ios --swiftcopt=-DCMD_FLAG \
       //ios:swift_lib || fail "should build"
 }
 
@@ -298,19 +298,19 @@ EOF
       || fail "expected a.o to not contain bitcode"
 
   # Bitcode marker
-  do_build ios 8.0 --apple_bitcode=embedded_markers --ios_multi_cpus=arm64 \
+  do_build ios --apple_bitcode=embedded_markers --ios_multi_cpus=arm64 \
       //ios:swift_lib || fail "should build"
   # Bitcode marker has a length of 1.
   assert_equals $(size -m $ARCHIVE | grep __bitcode | cut -d: -f2 | tr -d ' ') "1"
 
   # Full bitcode
-  do_build ios 8.0 --apple_bitcode=embedded --ios_multi_cpus=arm64 \
+  do_build ios --apple_bitcode=embedded --ios_multi_cpus=arm64 \
       //ios:swift_lib || fail "should build"
   otool -l $ARCHIVE | grep __bitcode -sq \
       || fail "expected a.o to contain bitcode"
 
   # Bitcode disabled because of simulator architecture
-  do_build ios 8.0 --apple_bitcode=embedded --ios_multi_cpus=x86_64 \
+  do_build ios --apple_bitcode=embedded --ios_multi_cpus=x86_64 \
       //ios:swift_lib || fail "should build"
   ! otool -l $ARCHIVE | grep __bitcode -sq \
       || fail "expected a.o to not contain bitcode"
@@ -328,7 +328,7 @@ swift_library(name = "swift-lib",
               srcs = ["main.swift"])
 EOF
 
-  ! do_build ios 8.0 //ios:swift-lib || fail "should fail"
+  ! do_build ios //ios:swift-lib || fail "should fail"
   expect_log "Error in target '//ios:swift-lib'"
 
   cat >ios/BUILD <<EOF
@@ -341,7 +341,7 @@ swift_library(name = "swift_lib",
               srcs = ["main.swift"], deps=[":bad-dep"])
 EOF
 
-  ! do_build ios 8.0 //ios:swift_lib || fail "should fail"
+  ! do_build ios //ios:swift_lib || fail "should fail"
   expect_log "Error in target '//ios:bad-dep'"
 }
 
@@ -379,7 +379,7 @@ objc_binary(name = "bin",
             deps = [":swift_lib"])
 EOF
 
-  do_build ios 8.0 --subcommands //ios:bin || fail "should build"
+  do_build ios --subcommands //ios:bin || fail "should build"
   expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/dep/_objs/ios_dep\.swiftmodule"
   expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/swift_lib/_objs/ios_swift_lib\.swiftmodule"
 }
@@ -426,11 +426,11 @@ swift_library(name = "single_source_should_compile_as_library",
               srcs = ["foo.swift"])
 EOF
 
-  do_build ios 8.0 \
+  do_build ios \
       //ios:single_source_should_compile_as_library \
       //ios:main_should_compile_as_script || fail "should build"
 
-  ! do_build ios 8.0 \
+  ! do_build ios \
       //ios:top_should_not_compile_as_script || fail "should not build"
   expect_log "ios/top.swift:1:1: error: expressions are not allowed at the top level"
 }
@@ -455,7 +455,7 @@ swift_library(name = "swiftmodule",
               srcs = ["main.swift"],
               deps = [":lib"])
 EOF
-  do_build ios 8.0 //ios:swiftmodule || fail "should build"
+  do_build ios //ios:swiftmodule || fail "should build"
 }
 
 function test_swift_wmo_short() {
@@ -470,7 +470,7 @@ swift_library(name = "swift_lib_copt_wmo_short",
               copts = ["-wmo"])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib_copt_wmo_short -s || fail "should build"
+  do_build ios //ios:swift_lib_copt_wmo_short -s || fail "should build"
   expect_log "-num-threads"
   expect_log "-wmo"
 }
@@ -487,7 +487,7 @@ swift_library(name = "swift_lib_copt_wmo_short_long",
               copts = ["-whole-module-optimization"])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib_copt_wmo_short_long -s || fail "should build"
+  do_build ios //ios:swift_lib_copt_wmo_short_long -s || fail "should build"
   expect_log "-num-threads"
   expect_log "-whole-module-optimization"
 }
@@ -503,7 +503,7 @@ swift_library(name = "swift_lib_copt_wmo_flag",
               srcs = ["main.swift"])
 EOF
 
-  do_build ios 8.0 //ios:swift_lib_copt_wmo_flag -s \
+  do_build ios //ios:swift_lib_copt_wmo_flag -s \
       --swift_whole_module_optimization || fail "should build"
   expect_log "-num-threads"
   expect_log "-whole-module-optimization"
@@ -525,7 +525,7 @@ swift_library(name = "swift_lib",
               srcs = ["main.swift"])
 EOF
 
-  do_build ios 8.0 -c opt --apple_generate_dsym \
+  do_build ios -c opt --apple_generate_dsym \
       //ios:swift_lib || fail "should build"
 
   # Verify that debug info is present.

@@ -17,6 +17,13 @@ config_setting(
 )
 
 apple_shell_test(
+    name = "apple_bundle_version_test",
+    size = "small",
+    src = "apple_bundle_version_test.sh",
+    configurations = {"default": []},
+)
+
+apple_shell_test(
     name = "ios_application_test",
     size = "medium",
     src = "ios_application_test.sh",
@@ -137,4 +144,11 @@ apple_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
+)
+
+apple_shell_test(
+    name = "ios_application_clang_rt_test",
+    size = "medium",
+    src = "ios_application_clang_rt_test.sh",
+    configurations = IOS_CONFIGURATIONS,
 )

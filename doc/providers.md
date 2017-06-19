@@ -11,6 +11,7 @@ rules, then you will use these providers to communicate between them.
 
 * [AppleBundleInfo](#AppleBundleInfo)
 * [AppleBundlingSwiftInfo](#AppleBundlingSwiftInfo)
+* [AppleBundleVersionInfo](#AppleBundleVersionInfo)
 * [IosApplicationBundleInfo](#IosApplicationBundleInfo)
 * [IosExtensionBundleInfo](#IosExtensionBundleInfo)
 * [IosFrameworkBundleInfo](#IosFrameworkBundleInfo)
@@ -171,6 +172,39 @@ not intended to be used by other rules.
         <p>Boolean</p>
         <p>True if Swift is used by the target propagating this provider or
         any of its direct dependencies (its <code>deps</code> attribute).</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="AppleBundleVersionInfo"></a>
+## AppleBundleVersionInfo
+
+Provides versioning information for an Apple bundle.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Fields</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>version_file</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/skylark/lib/File.html">File</a></code></p>
+        <p>A <code>File</code> containing JSON-formatted text describing the
+        version number information propagated by the target. It contains two
+        keys:</p>
+        <ul>
+        <li><code>build_version</code>, which is a string that corresponds to
+        <code>CFBundleVersion</code></li>
+        <li><code>short_version_string</code>, which is a string that
+        corresponds to <code>CFBundleShortVersionString</code>.
       </td>
     </tr>
   </tbody>

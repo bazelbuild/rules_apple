@@ -84,6 +84,17 @@ Fields:
 """
 
 
+AppleBundleVersionInfo = provider()
+"""Provides versioning information for an Apple bundle.
+
+Fields:
+  version_file: A `File` containing JSON-formatted text describing the version
+      number information propagated by the target. It contains two keys:
+      `build_version`, which corresponds to `CFBundleVersion`; and
+      `short_version_string`, which corresponds to `CFBundleShortVersionString`.
+"""
+
+
 AppleResourceInfo = provider()
 """Provides information about resources from transitive dependencies.
 
@@ -278,8 +289,13 @@ def AppleResourceSet(bundle_dir=None,
                 swift_module=swift_module)
 
 
-def _apple_resource_set_utils_minimize(resource_sets):
-  """Minimizes a list of resource sets by merging similar elements.
+def _apple_resource_set_utils_minimize(resource_sets,
+                                       framework_resource_sets=[],
+                                       dedupe_unbundled=False):
+  """Minimizes and reduces a list of resource sets.
+
+  This both merges similar resource set elements and subtracts all resources
+  already defined in framework resource sets.
 
   Two or more resource sets can be merged if their `bundle_dir` and
   `swift_module` values are the same, which means that they can be passed to
@@ -294,35 +310,161 @@ def _apple_resource_set_utils_minimize(resource_sets):
 
   Args:
     resource_sets: The list of `AppleResourceSet` values that should be merged.
+    framework_resource_sets: The list of "AppleResourceSet" values which contain
+        resources already included in framework bundles. Resources present
+        in these sets will not be included in the returned list.
+    dedupe_unbundled: If false, resources that have no bundle directory will
+        not be subtracted. False by default.
   Returns:
     The minimal possible list after merging `AppleResourceSet` values with
     the same `bundle_dir` and `swift_module`.
+  """
+  framework_minimized_dict = _apple_resource_set_dict(framework_resource_sets)
+  if not dedupe_unbundled:
+    framework_minimized_dict_without_unbundled = {}
+    for (bundle_dir, swift_module), value in framework_minimized_dict.items():
+      if bundle_dir:
+        key = (bundle_dir, swift_module)
+        framework_minimized_dict_without_unbundled[key] = value
+    framework_minimized_dict = framework_minimized_dict_without_unbundled
+  minimized_dict = _apple_resource_set_dict(resource_sets,
+                                            framework_minimized_dict)
+
+  return [_dedupe_resource_set_files(rs) for rs in minimized_dict.values()]
+
+
+def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
+  """Returns a minimal map of resource sets, omitting specified resources.
+
+  Map keys are `(bundle_dir, swift_module)` of the resource set; multiple
+  resource sets with the same key will be combined into a single resource
+  set of that key.
+
+  Any resources present under a given key in `avoid_resource_dict` will be
+  omitted from that keyed resource set in the returned value.
+
+  Args:
+    resource_sets: The list of `AppleResourceSet` values for the map.
+    avoid_resource_dict: A map of `AppleResourceSet` values already keyed by
+        `(bundle_dir, swift_module)` that should be omitted from the output
+  Returns:
+    A minimal map from `(bundle_dir, swift_module)` to `AppleResourceSet`
+    containing the resources in `resource_sets` minus the resources in
+    `avoid_resource_dict`.
   """
   minimized_dict = {}
 
   for current_set in resource_sets:
     key = (current_set.bundle_dir, current_set.swift_module)
     existing_set = minimized_dict.get(key)
+    avoid_set = avoid_resource_dict.get(key)
+
+    avoid_objc_bundle_imports = depset()
+    avoid_resources = depset()
+    avoid_structured_resources = depset()
+    avoid_structured_resource_zips = depset()
+
+    if avoid_set:
+      avoid_objc_bundle_imports = avoid_set.objc_bundle_imports
+      avoid_resources = avoid_set.resources
+      avoid_structured_resources = avoid_set.structured_resources
+      avoid_structured_resource_zips = avoid_set.structured_resource_zips
 
     if existing_set:
-      new_set = AppleResourceSet(
-          bundle_dir=existing_set.bundle_dir,
-          infoplists=existing_set.infoplists + current_set.infoplists,
-          objc_bundle_imports=(existing_set.objc_bundle_imports +
-                               current_set.objc_bundle_imports),
-          resources=existing_set.resources + current_set.resources,
-          structured_resources=(existing_set.structured_resources +
-                                current_set.structured_resources),
-          structured_resource_zips=(existing_set.structured_resource_zips +
-                                    current_set.structured_resource_zips),
-          swift_module=existing_set.swift_module,
-      )
+      infoplists = existing_set.infoplists + current_set.infoplists
+      objc_bundle_imports = (existing_set.objc_bundle_imports
+                             + current_set.objc_bundle_imports)
+      resources = existing_set.resources + current_set.resources
+      structured_resources = (existing_set.structured_resources
+                              + current_set.structured_resources)
+      structured_resource_zips = (existing_set.structured_resource_zips
+                                  + current_set.structured_resource_zips)
     else:
-      new_set = current_set
+      infoplists = current_set.infoplists
+      objc_bundle_imports = current_set.objc_bundle_imports
+      resources = current_set.resources
+      structured_resources = current_set.structured_resources
+      structured_resource_zips = current_set.structured_resource_zips
+
+    new_set = AppleResourceSet(
+        bundle_dir=current_set.bundle_dir,
+        infoplists=infoplists,
+        objc_bundle_imports=_filter_files(objc_bundle_imports,
+                                          avoid_objc_bundle_imports),
+        resources=_filter_files(resources,
+                                avoid_resources),
+        structured_resources=_filter_files(structured_resources,
+                                           avoid_structured_resources),
+        structured_resource_zips=_filter_files(structured_resource_zips,
+                                               avoid_structured_resource_zips),
+        swift_module=current_set.swift_module,
+    )
 
     minimized_dict[key] = new_set
 
-  return minimized_dict.values()
+  return minimized_dict
+
+
+def _filter_files(files, avoid_files):
+  """Returns a depset containing files minus avoid_files."""
+  return depset([f for f in files if f not in avoid_files])
+
+
+def _dedupe_files(files):
+  """Deduplicates files based on their short paths.
+
+  Args:
+    files: The set of `File`s that should be deduplicated based on their short
+        paths.
+  Returns:
+    The `depset` of `File`s where duplicate short paths have been removed by
+    arbitrarily removing all but one from the set.
+  """
+  short_path_to_files_mapping = {}
+
+  for f in files:
+    short_path = f.short_path
+    if short_path not in short_path_to_files_mapping:
+      short_path_to_files_mapping[short_path] = f
+
+  return depset(short_path_to_files_mapping.values())
+
+
+def _dedupe_resource_set_files(resource_set):
+  """Deduplicates the files in a resource set based on their short paths.
+
+  It is possible to have genrules that produce outputs that will be used later
+  as resource inputs to other rules (and not just genrules, in fact, but any
+  rule that produces an output file), and these rules register separate actions
+  for each split configuration when a target is built for multiple
+  architectures. If we don't deduplicate those files, the outputs of both sets
+  of actions will be sent to the resource processor and it will attempt to put
+  the compiled results in the same intermediate file location.
+
+  Therefore, we deduplicate resources that have the same short path, which
+  ensures (due to action pruning) that only one set of actions will be executed
+  and only one output will be generated. This implies that the genrule must
+  produce equivalent content for each configuration. This is likely OK, because
+  if the output is actually architecture-dependent, then the actions need to
+  produce those outputs with names that allow the bundler to distinguish them.
+
+  Args:
+    resource_set: The resource set whose `infoplists`, `resources`,
+        `structured_resources`, and `structured_resource_zips` should be
+        deduplicated.
+  Returns:
+    A new resource set with duplicate files removed.
+  """
+  return AppleResourceSet(
+      bundle_dir=resource_set.bundle_dir,
+      infoplists=_dedupe_files(resource_set.infoplists),
+      objc_bundle_imports=_dedupe_files(resource_set.objc_bundle_imports),
+      resources=_dedupe_files(resource_set.resources),
+      structured_resources=_dedupe_files(resource_set.structured_resources),
+      structured_resource_zips=_dedupe_files(
+          resource_set.structured_resource_zips),
+      swift_module=resource_set.swift_module,
+  )
 
 
 def _apple_resource_set_utils_prefix_bundle_dir(resource_set, prefix):

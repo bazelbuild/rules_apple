@@ -138,7 +138,7 @@ objc_library(
 )
 EOF
 
-  do_build watchos 2.0 //app:phone_app || fail "Should build"
+  do_build watchos //app:phone_app || fail "Should build"
 
   # Make sure we do have Swift dylibs in the iOS application.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
@@ -180,7 +180,7 @@ swift_library(
 )
 EOF
 
-  do_build watchos 2.0 //app:phone_app || fail "Should build"
+  do_build watchos //app:phone_app || fail "Should build"
 
   # Make sure we don't have a Swift dylib in the iOS application.
   assert_zip_not_contains "test-bin/app/phone_app.ipa" \
@@ -222,7 +222,7 @@ swift_library(
 )
 EOF
 
-  do_build watchos 2.0 //app:phone_app || fail "Should build"
+  do_build watchos //app:phone_app || fail "Should build"
 
   # Make sure we do have Swift dylibs in the iOS application.
   assert_zip_contains "test-bin/app/phone_app.ipa" \

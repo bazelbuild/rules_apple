@@ -92,7 +92,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify asset catalogs. (We just check to make sure Assets.car is present;
   # getting more specific would require reverse engineering the catalog, which
@@ -170,7 +170,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify compiled storyboards.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -220,7 +220,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
@@ -253,7 +253,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Note that the names have been transformed by actool so they are no longer
   # the original filename.
@@ -292,7 +292,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/launch_screen_ios.storyboardc/"
@@ -324,7 +324,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/basic_bundle.txt"
@@ -387,7 +387,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Bar.bundle/baz.txt"
@@ -434,7 +434,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the unprocessed structured resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -471,7 +471,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the files exist and are compiled in binary format.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -519,7 +519,7 @@ ios_application(
 )
 EOF
 
-  do_build ios 9.0 //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/generated_resource.strings"

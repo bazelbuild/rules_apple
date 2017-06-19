@@ -71,6 +71,11 @@ def macos_application(name, **kwargs):
         defined by these targets will also be transitively included in the
         final application.
   """
+  # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+  linkopts = kwargs.get("linkopts", [])
+  linkopts += ["-rpath", "@executable_path/../Frameworks"]
+  kwargs["linkopts"] = linkopts
+
   bundling_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.macos),
@@ -129,17 +134,20 @@ def macos_extension(name, **kwargs):
         final extension.
   """
 
-  # Add extension-specific linker options. Note that since apple_binary
-  # prepends "-Wl," to each option, we must use the form expected by ld, not
-  # the form expected by clang (i.e., -application_extension, not
-  # -fapplication-extension).
+  # Add extension-specific linker options.
+  # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
   linkopts = kwargs.get("linkopts", [])
-  linkopts += ["-e", "_NSExtensionMain", "-application_extension"]
+  linkopts += [
+      "-e", "_NSExtensionMain",
+      "-rpath", "@executable_path/../Frameworks",
+      "-rpath", "@executable_path/../../../../Frameworks",
+  ]
   kwargs["linkopts"] = linkopts
 
   bundling_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.macos),
+      extension_safe=True,
       features=["link_cocoa"],
       **kwargs)
 
