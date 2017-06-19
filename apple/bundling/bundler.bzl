@@ -896,6 +896,8 @@ def _run(
     framework_dir, bundled_framework_files = (
         _copy_framework_files(ctx, framework_files))
     if is_dynamic_framework:
+      # TODO(cparsons): These will no longer be necessary once apple_binary
+      # uses the values in the dynamic framework provider.
       objc_provider_args["dynamic_framework_dir"] = depset([framework_dir])
       objc_provider_args["dynamic_framework_file"] = bundled_framework_files
     else:
@@ -903,8 +905,16 @@ def _run(
       objc_provider_args["static_framework_file"] = bundled_framework_files
 
   objc_provider_args["providers"] = objc_providers
-  legacy_providers["objc"] = apple_common.new_objc_provider(
-      **objc_provider_args)
+  legacy_objc_provider = apple_common.new_objc_provider(**objc_provider_args)
+  legacy_providers["objc"] = legacy_objc_provider
+  if is_dynamic_framework:
+    framework_provider = apple_common.new_dynamic_framework_provider(
+        objc=legacy_objc_provider,
+        binary=binary_artifact,
+        framework_files=bundled_framework_files,
+        framework_dirs=depset([framework_dir]))
+    additional_providers.extend([framework_provider])
+
   extension_safe = (getattr(ctx.attr, "extension_safe", False) or
                     getattr(ctx.attr, "_extension_safe", False))
   apple_bundle_info_args = {
