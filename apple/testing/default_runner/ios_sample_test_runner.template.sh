@@ -33,7 +33,7 @@ TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/tests.XXXXXX")"
 
 # Create a simulator with a random name and the latest iOS SDK
 RANDOM_NAME="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
-SIM_VERSION="$(xcrun simctl list runtimes | grep "SimRuntime\.iOS" | perl -pe 's|^iOS.*?\((.*?) -.*|\1|' | tail -n 1)"
+SIM_VERSION="$(xcrun simctl list runtimes | grep "SimRuntime\.iOS" | sed 's/^iOS [0-9\\.]* (\([0-9\.]*\).*/\1/' | tail -n 1)"
 
 NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SIM_VERSION")
 
