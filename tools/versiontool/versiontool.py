@@ -50,7 +50,20 @@ the --embed_label flag is often not being passed.)
 import contextlib
 import json
 import re
+import string
 import sys
+
+
+class DefaultFormatDict(dict):
+  """A dictionary that ignores non-present args when passed to `vformat`.
+
+  If a key is requested that is not in the dictionary, then `{key}` is returned,
+  which effectively ignores formatting placeholders in the `vformat` string that
+  are not present in the dictonary.
+  """
+
+  def __missing__(self, key):
+    return '{%s}' % key
 
 
 @contextlib.contextmanager
@@ -97,36 +110,48 @@ class VersionTool(object):
   def run(self):
     """Performs the operations requested by the control struct."""
     substitutions = {}
+    build_label = None
 
     if self._build_label_pattern:
       build_label = self._extract_build_label()
 
-      # Bail out early (but gracefully) if the build label was not found; this
-      # prevents local development from failing just because the label isn't
-      # present.
-      if not build_label:
-        return {}
-
-      # Extract components from the label.
-      resolved_pattern = self._build_label_pattern
-      for name, pattern in self._capture_groups.iteritems():
-        resolved_pattern = resolved_pattern.replace(
-            "{%s}" % name, "(?P<%s>%s)" % (name, pattern))
-      match = re.match(resolved_pattern, build_label)
-      if match:
-        substitutions = match.groupdict()
-      else:
-        raise ValueError(
-            'The build label ("%s") did not match the pattern ("%s").' %
-            (build_label, resolved_pattern))
+      # It's ok if the build label is not present; this is common during local
+      # development.
+      if build_label:
+        # Substitute the placeholders with named capture groups to extract
+        # the components from the label and add them to the substitutions
+        # dictionary.
+        resolved_pattern = self._build_label_pattern
+        for name, pattern in self._capture_groups.iteritems():
+          resolved_pattern = resolved_pattern.replace(
+              "{%s}" % name, "(?P<%s>%s)" % (name, pattern))
+        match = re.match(resolved_pattern, build_label)
+        if match:
+          substitutions = match.groupdict()
+        else:
+          raise ValueError(
+              'The build label ("%s") did not match the pattern ("%s").' %
+              (build_label, resolved_pattern))
 
     # Build the result dictionary by substituting the extracted values for
-    # the placeholders.
-    return {
-        'build_version': self._build_version_pattern.format(**substitutions),
-        'short_version_string':
-            self._short_version_string_pattern.format(**substitutions),
-    }
+    # the placeholders. Also, verify that all groups have been substituted; it's
+    # an error if they weren't (unless no --embed_label was provided at all, in
+    # which case we silently allow it to support local development easily).
+    result = {}
+
+    build_version = self._substitute_and_verify(
+        self._build_version_pattern, substitutions, 'build_version',
+        build_label)
+    if build_version:
+      result['build_version'] = build_version
+
+    short_version_string = self._substitute_and_verify(
+        self._short_version_string_pattern, substitutions,
+        'short_version_string', build_label)
+    if short_version_string:
+      result['short_version_string'] = short_version_string
+
+    return result
 
   def _extract_build_label(self):
     """Extracts and returns the build label from the build info file.
@@ -147,6 +172,42 @@ class VersionTool(object):
           return match.group(1)
 
     return None
+
+  @staticmethod
+  def _substitute_and_verify(pattern, substitutions, key, build_label):
+    """Substitutes placeholders with captured values and verifies completeness.
+
+    If no build label was passed via --embed_label, then the version number will
+    be used only if it does not contain any placeholders. If it does, then it
+    is an error.
+
+    Args:
+      pattern: The build version or short version string pattern, potentially
+          containing placeholders, to substitute into.
+      substitutions: The dictionary of substitutions to make.
+      key: The name of the result dictionary key being processed, for error
+          reporting purposes.
+      build_label: The build label from which values were extracted, for error
+          reporting purposes.
+    Returns:
+      The substituted version string, or None if it still contained
+      placeholders but no --embed_label was set.
+    Raises:
+      ValueError if --embed_label was provided but the version string still
+      contained placeholders after substitution.
+    """
+    version = string.Formatter().vformat(
+        pattern, (), DefaultFormatDict(**substitutions))
+    if re.search(r"\{[^}]*\}", version):
+      if build_label:
+        raise ValueError(
+            '--embed_label had a non-empty label ("%s") but the version string '
+            '"%s" ("%s") still contained placeholders after substitution' % (
+                build_label, key, version))
+      else:
+        return None
+
+    return version
 
 
 def _main(control_path, output_path):
