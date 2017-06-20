@@ -26,8 +26,9 @@
 
 test_script="$1"; shift
 
-# Update this if you have a different version of Xcode installed than the one
-# listed here.
+# Update this to change the default version of Xcode used in tests. (Later in
+# this script we search for it and will fallback to a different version if
+# found, but this lets us fix a default version for CI if desired.)
 export XCODE_VERSION_FOR_TESTS=8.1
 
 function print_message_and_exit() {
@@ -78,6 +79,30 @@ function setup_clean_workspace() {
 # subsequent tests (see `do_build` in apple_shell_testutils.sh).
 export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
 echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
+
+# Try to find the desired version of Xcode installed on the system. If it's not
+# present, fallback to the most recent version currently installed and warn the
+# user that results might be affected by this. (This makes it easier to support
+# local test runs without having to change the version above from the CI
+# default.)
+readonly XCODE_QUERY=$(bazel query \
+    "attr(aliases, $XCODE_VERSION_FOR_TESTS, " \
+    "labels(versions, @local_config_xcode//:host_xcodes))" | \
+    head -n 1)
+if [[ -z "$XCODE_QUERY" ]]; then
+  readonly OLD_XCODE_VERSION="$XCODE_VERSION_FOR_TESTS"
+  XCODE_VERSION_FOR_TESTS=$(bazel query \
+      "labels(versions, @local_config_xcode//:host_xcodes)" | \
+      head -n 1 | \
+      sed s#@local_config_xcode//:version## | \
+      sed s#_#.#g)
+
+  printf "WARN: The desired version of Xcode ($OLD_XCODE_VERSION) was not " > "$TEST_log"
+  printf "installed; using the highest version currently installed instead " > "$TEST_log"
+  printf "($XCODE_VERSION_FOR_TESTS). Note that this may produce unpredictable " > "$TEST_log"
+  printf "results in tests that depend on the behavior of a specific version " > "$TEST_log"
+  printf "of Xcode.\n" > "$TEST_log"
+fi
 
 setup_clean_workspace
 
