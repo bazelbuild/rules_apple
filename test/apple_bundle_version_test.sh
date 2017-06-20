@@ -215,4 +215,48 @@ EOF
   expect_log "The build label (\"MyApp_1.2_RC03\") did not match the pattern"
 }
 
+# Test that substitution does not occur if there is a build label pattern but
+# --embed_label is not specified on the command line. (This supports local
+# builds).
+function test_no_substitution_if_build_label_not_present() {
+  cat >> pkg/BUILD <<EOF
+apple_bundle_version(
+    name = "bundle_version",
+    build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+    build_version = "{version}.{candidate}",
+    short_version_string = "{version}",
+    capture_groups = {
+        "version": "\\d+\.\\d+",
+        "candidate": "\\d+",
+    },
+)
+EOF
+
+  do_build ios //pkg:saved_version || fail "Should build"
+  assert_contains "{}" test-bin/pkg/saved_version.txt
+}
+
+# Test that the presence of a build label pattern does not short circuit the
+# use of a literal version string, even if no --embed_label argument is
+# provided.
+function test_build_label_pattern_does_not_short_circuit_literal_version() {
+  cat >> pkg/BUILD <<EOF
+apple_bundle_version(
+    name = "bundle_version",
+    build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+    build_version = "1.2.3",
+    short_version_string = "1.2",
+    capture_groups = {
+        "version": "\\d+\.\\d+",
+        "candidate": "\\d+",
+    },
+)
+EOF
+
+  do_build ios //pkg:saved_version || fail "Should build"
+  assert_contains "\"build_version\": \"1.2.3\"" test-bin/pkg/saved_version.txt
+  assert_contains "\"short_version_string\": \"1.2\"" \
+      test-bin/pkg/saved_version.txt
+}
+
 run_suite "apple_bundle_version tests"
