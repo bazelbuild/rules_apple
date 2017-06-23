@@ -120,7 +120,7 @@ ios_application = rule_factory.make_bundling_rule(
     _ios_application_impl,
     additional_attrs={
         "app_icons": attr.label_list(allow_files=True),
-        "dedupe_unbundled_resources": attr.bool(default=False),
+        "dedupe_unbundled_resources": attr.bool(default=True),
         "extensions": attr.label_list(
             providers=[[AppleBundleInfo, IosExtensionBundleInfo]],
         ),
