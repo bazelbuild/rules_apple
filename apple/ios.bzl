@@ -51,7 +51,7 @@ def ios_application(name, **kwargs):
         application.
     dedupe_unbundled_resources: If true, ensures that resources present in
         any frameworks that this application depends on are not also present
-        at the main app level. False by default.
+        at the main app level. True by default.
     entitlements: The entitlements file required for device builds of this
         application. If absent, the default entitlements from the provisioning
         profile will be used.
