@@ -74,7 +74,6 @@ def _ios_application_impl(ctx):
         ]
     ))
 
-  # TODO(b/32910122): Obtain framework information from extensions.
   embedded_bundles = [
       bundling_support.embedded_bundle(
           "PlugIns", extension[AppleBundleInfo], verify_bundle_id=True)
