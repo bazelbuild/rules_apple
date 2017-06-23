@@ -208,11 +208,15 @@ def ios_framework(name, **kwargs):
         framework. If specified, it will override the bundle ID in the plist
         file. If no bundle ID is specified by either this attribute or in the
         plist file, the build will fail.
+    dedupe_unbundled_resources: If true, ensures that resources present in
+        any frameworks that this target depends on are not also present
+        in this framework. True by default.
     extension_safe: If true, compiles and links this framework with
         `-application-extension` restricting the binary to use only
         extension-safe APIs. False by default.
     families: A list of device families supported by this framework. Valid
         values are `"iphone"` and `"ipad"`.
+    frameworks: A list of framework targets that this framework depends on.
     infoplists: A list of `.plist` files that will be merged to form the
         Info.plist that represents the framework.
     ipa_post_processor: A tool that edits this target's archive after it is
@@ -246,11 +250,12 @@ def ios_framework(name, **kwargs):
   native.apple_binary(
       name = apple_dylib_name,
       binary_type = "dylib",
+      deps = deps,
+      dylibs = kwargs.get("frameworks"),
+      extension_safe = kwargs.get("extension_safe"),
       hdrs = kwargs.get("hdrs", []),
       minimum_os_version = kwargs.get("minimum_os_version"),
-      extension_safe = kwargs.get("extension_safe"),
       platform_type = str(apple_common.platform_type.ios),
-      deps = deps,
       testonly = kwargs.get("testonly"),
       linkopts = linkopts,
   )

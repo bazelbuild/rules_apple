@@ -125,7 +125,7 @@ ios_application = rule_factory.make_bundling_rule(
             providers=[[AppleBundleInfo, IosExtensionBundleInfo]],
         ),
         "frameworks": attr.label_list(
-            allow_rules=["ios_framework"],
+            providers=[[AppleBundleInfo, IosFrameworkBundleInfo]],
         ),
         "launch_images": attr.label_list(allow_files=True),
         "launch_storyboard": attr.label(
@@ -186,7 +186,7 @@ ios_extension = rule_factory.make_bundling_rule(
         "app_icons": attr.label_list(allow_files=True),
         "asset_catalogs": attr.label_list(allow_files=True),
         "frameworks": attr.label_list(
-            allow_rules=["ios_framework"],
+            providers=[[AppleBundleInfo, IosFrameworkBundleInfo]],
         ),
         "_extension_safe": attr.bool(default=True),
     },
@@ -236,7 +236,11 @@ def _ios_framework_impl(ctx):
 ios_framework = rule_factory.make_bundling_rule(
     _ios_framework_impl,
     additional_attrs={
+        "dedupe_unbundled_resources": attr.bool(default=True),
         "extension_safe": attr.bool(default=False),
+        "frameworks": attr.label_list(
+            providers=[[AppleBundleInfo, IosFrameworkBundleInfo]],
+        ),
         "hdrs": attr.label_list(allow_files=[".h"]),
     },
     archive_extension=".zip",
