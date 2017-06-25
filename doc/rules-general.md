@@ -49,7 +49,7 @@ apple_bundle_version(
     name = "build_label_version",
     build_label_pattern = "MyApp_{version}_build_{build}",
     build_version = "{version}.{build}",
-    capture_group = {
+    capture_groups = {
         "version": "\d+\.\d+",
         "build": "\d+",
     },
