@@ -133,12 +133,20 @@ def apple_genrule(
         outs = [intermediate_out],
         cmd = cmd,
         **kwargs)
+    # Remove anything from kwargs that might have a meaning that isn't wanted
+    # on the genrule that does the copy. Generally, we are just trying to
+    # keep things like test_only, visibility, etc.
+    trimmed_kwargs = dict(kwargs)
+    trimmed_kwargs.pop("srcs", None)
+    trimmed_kwargs.pop("tools", None)
+    trimmed_kwargs.pop("stamp", None)
     native.genrule(
         name = name,
         outs = outs,
         srcs = [intermediate_out],
         cmd = "cp $< $@",
         executable = True,
+        **trimmed_kwargs
     )
   else:
     _apple_genrule_inner(
