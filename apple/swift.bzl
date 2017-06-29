@@ -29,12 +29,12 @@ load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
 
 def _parent_dirs(dirs):
   """Returns a set of parent directories for each directory in dirs."""
-  return set([f.rpartition("/")[0] for f in dirs])
+  return depset([f.rpartition("/")[0] for f in dirs])
 
 
 def _framework_names(dirs):
   """Returns the framework name for each directory in dir."""
-  return set([f.rpartition("/")[2].partition(".")[0] for f in dirs])
+  return depset([f.rpartition("/")[2].partition(".")[0] for f in dirs])
 
 
 def _intersperse(separator, iterable):
@@ -58,9 +58,17 @@ def _swift_target(cpu, platform, sdk_version):
   return "%s-apple-%s%s" % (cpu, platform_string, sdk_version)
 
 
-def _swift_compilation_mode_flags(ctx):
-  """Returns additional swiftc flags for the current compilation mode."""
-  mode = ctx.var["COMPILATION_MODE"]
+def _swift_compilation_mode_flags(config_vars, objc_fragment):
+  """Returns additional `swiftc` flags for the current compilation mode.
+
+  Args:
+    config_vars: The dictionary of configuration variables (i.e., `ctx.var`)
+        that affect compilation of this target.
+    objc_fragment: The Objective-C configuration fragment.
+  Returns:
+    The additional command line flags to pass to `swiftc`.
+  """
+  mode = config_vars["COMPILATION_MODE"]
 
   flags = []
   if mode == "dbg" or mode == "fastbuild":
@@ -72,27 +80,27 @@ def _swift_compilation_mode_flags(ctx):
   elif mode == "opt":
     flags += ["-O", "-DNDEBUG"]
 
-  if mode == "dbg" or ctx.fragments.objc.generate_dsym:
+  if mode == "dbg" or objc_fragment.generate_dsym:
     flags.append("-g")
 
   return flags
 
 
-def _clang_compilation_mode_flags(ctx):
+def _clang_compilation_mode_flags(objc_fragment):
   """Returns additional clang flags for the current compilation mode."""
 
   # In general, every compilation mode flag from native objc_ rules should be
   # passed, but -g seems to break Clang module compilation. Since this flag does
   # not make much sense for module compilation and only touches headers,
   # it's ok to omit.
-  native_clang_flags = ctx.fragments.objc.copts_for_current_compilation_mode
+  native_clang_flags = objc_fragment.copts_for_current_compilation_mode
 
   return [x for x in native_clang_flags if x != "-g"]
 
 
-def _swift_bitcode_flags(ctx):
+def _swift_bitcode_flags(apple_fragment):
   """Returns bitcode flags based on selected mode."""
-  mode = str(ctx.fragments.apple.bitcode_mode)
+  mode = str(apple_fragment.bitcode_mode)
   if mode == "embedded":
     return ["-embed-bitcode"]
   elif mode == "embedded_markers":
@@ -101,9 +109,9 @@ def _swift_bitcode_flags(ctx):
   return []
 
 
-def _swift_sanitizer_flags(ctx):
+def _swift_sanitizer_flags(config_vars):
   """Returns sanitizer mode flags."""
-  sanitizer = ctx.var.get("apple_swift_sanitize")
+  sanitizer = config_vars.get("apple_swift_sanitize")
   if not sanitizer:
     return []
   elif sanitizer == "address":
@@ -117,17 +125,17 @@ def swift_module_name(label):
   return label.package.lstrip("//").replace("/", "_") + "_" + label.name
 
 
-def _swift_lib_dir(ctx):
+def _swift_lib_dir(apple_fragment, config_vars):
   """Returns the location of swift runtime directory to link against."""
-  platform_str = ctx.fragments.apple.single_arch_platform.name_in_plist.lower()
+  platform_str = apple_fragment.single_arch_platform.name_in_plist.lower()
 
-  if "xcode_toolchain_path" in ctx.var:
-    return "{0}/usr/lib/swift/{1}".format(ctx.var["xcode_toolchain_path"],
+  if "xcode_toolchain_path" in config_vars:
+    return "{0}/usr/lib/swift/{1}".format(config_vars["xcode_toolchain_path"],
                                           platform_str)
 
   toolchain_name = "XcodeDefault"
-  if hasattr(ctx.fragments.apple, "xcode_toolchain"):
-    toolchain = ctx.fragments.apple.xcode_toolchain
+  if hasattr(apple_fragment, "xcode_toolchain"):
+    toolchain = apple_fragment.xcode_toolchain
 
     # We cannot use non Xcode-packaged toolchains, and the only one non-default
     # toolchain known to exist (as of Xcode 8.1) is this one.
@@ -136,26 +144,31 @@ def _swift_lib_dir(ctx):
       toolchain_name = "Swift_2.3"
 
   return "{0}/Toolchains/{1}.xctoolchain/usr/lib/swift/{2}".format(
-      apple_common.apple_toolchain().developer_dir(), toolchain_name, platform_str)
+      apple_common.apple_toolchain().developer_dir(), toolchain_name,
+      platform_str)
 
 
-def _swift_linkopts(ctx):
+def _swift_linkopts(apple_fragment, config_vars):
   """Returns additional linker arguments for the given rule context."""
-  return set(["-L" + _swift_lib_dir(ctx)])
+  return depset(["-L" + _swift_lib_dir(apple_fragment, config_vars)])
 
 
-def _swift_xcrun_args(ctx):
-  """Returns additional arguments that should be passed to xcrun."""
-  if ctx.fragments.apple.xcode_toolchain:
-    return ["--toolchain", ctx.fragments.apple.xcode_toolchain]
+def _swift_xcrun_args(apple_fragment):
+  """Returns additional arguments that should be passed to xcrun.
+
+  Args:
+    apple_fragment: The `apple` configuration fragment.
+  Returns:
+    A list of flags, possibly empty, that should be passed to xcrun.
+  """
+  if apple_fragment.xcode_toolchain:
+    return ["--toolchain", apple_fragment.xcode_toolchain]
 
   return []
 
 
-def _swift_parsing_flags(ctx):
+def _swift_parsing_flags(srcs):
   """Returns additional parsing flags for swiftc."""
-  srcs = ctx.files.srcs
-
   # swiftc has two different parsing modes: script and library.
   # The difference is that in script mode top-level expressions are allowed.
   # This mode is triggered when the file compiled is called main.swift.
@@ -196,7 +209,7 @@ def _validate_rule_and_deps(ctx):
       fail(name_error_str % dep.label)
 
 
-def _get_wmo_state(ctx):
+def _get_wmo_state(copts, swift_fragment):
   """Returns the status of Whole Module Optimization feature.
 
   Whole Module Optimization can be enabled for the whole build by setting a
@@ -212,8 +225,8 @@ def _get_wmo_state(ctx):
   flag is already present.
 
   Args:
-    ctx: The Skylark context.
-
+    copts: The list of copts to search for WMO flags.
+    swift_fragment: The Swift configuration fragment.
   Returns:
     A tuple with two booleans. First value indicates whether WMO has been
     enabled, the second indicates whether a compiler flag is needed.
@@ -221,15 +234,71 @@ def _get_wmo_state(ctx):
   has_wmo = False
   has_flag = False
 
-  if (("-wmo" in ctx.attr.copts)
-      or ("-whole-module-optimization" in ctx.attr.copts)):
+  if "-wmo" in copts or "-whole-module-optimization" in copts:
     has_wmo = True
     has_flag = True
-  elif ctx.fragments.swift.enable_whole_module_optimization():
+  elif swift_fragment.enable_whole_module_optimization():
     has_wmo = True
     has_flag = False
 
   return has_wmo, has_flag
+
+
+def swift_compile_requirements(
+    srcs,
+    deps,
+    module_name,
+    label,
+    swift_version,
+    copts,
+    defines,
+    apple_fragment,
+    objc_fragment,
+    swift_fragment,
+    config_vars,
+    default_configuration,
+    genfiles_dir):
+  """Returns a struct that contains the requirements to compile Swift code.
+
+  Args:
+    srcs: The list of `*.swift` sources to compile.
+    deps: The list of targets that are dependencies for the sources being
+        compiled.
+    module_name: The name of the Swift module to which the compiled files
+        belong.
+    label: The label used to generate the Swift module name if one was not
+        provided.
+    swift_version: The Swift language version to pass to the compiler.
+    copts: A list of compiler options to pass to `swiftc`. Defaults to an empty
+        list.
+    defines: A list of compiler defines to pass to `swiftc`. Defaults to an
+        empty list.
+    apple_fragment: The Apple configuration fragment.
+    objc_fragment: The Objective-C configuration fragment.
+    swift_fragment: The Swift configuration fragment.
+    config_vars: The dictionary of configuration variables (i.e., `ctx.var`)
+        that affect compilation of this target.
+    default_configuration: The default configuration retrieved from the rule
+        context.
+    genfiles_dir: The directory where genfiles are written.
+  Returns:
+    A structure that contains the information required to compile Swift code.
+  """
+  return struct(
+      srcs=srcs,
+      deps=deps,
+      module_name=module_name,
+      label=label,
+      swift_version=swift_version,
+      copts=copts,
+      defines=defines,
+      apple_fragment=apple_fragment,
+      objc_fragment=objc_fragment,
+      swift_fragment=swift_fragment,
+      config_vars=config_vars,
+      default_configuration=default_configuration,
+      genfiles_dir=genfiles_dir,
+  )
 
 
 def swiftc_inputs(ctx):
@@ -241,21 +310,36 @@ def swiftc_inputs(ctx):
   Returns:
     A list of files needed by swiftc.
   """
-  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
+  # TODO(allevato): Simultaneously migrate callers off this function and swap it
+  # out with swiftc_inputs.
+  return _swiftc_inputs(ctx.files.srcs, ctx.attr.deps)
+
+
+def _swiftc_inputs(srcs, deps=[]):
+  """Determines the list of inputs required for a compile action.
+
+  Args:
+    srcs: A list of `*.swift` source files being compiled.
+    deps: A list of targetsthat are dependencies of the files being compiled.
+  Returns:
+    A list of files that should be passed as inputs to the Swift compilation
+    action.
+  """
+  swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
+  objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
 
   dep_modules = depset()
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
 
-  objc_files = set()
+  objc_files = depset()
   for objc in objc_providers:
     objc_files += objc.header
     objc_files += objc.module_map
-    objc_files += set(objc.static_framework_file)
-    objc_files += set(objc.dynamic_framework_file)
+    objc_files += depset(objc.static_framework_file)
+    objc_files += depset(objc.dynamic_framework_file)
 
-  return ctx.files.srcs + dep_modules.to_list() + list(objc_files)
+  return srcs + dep_modules.to_list() + list(objc_files)
 
 
 def swiftc_args(ctx):
@@ -275,8 +359,32 @@ def swiftc_args(ctx):
     include everything except the arguments generation of which would require
     adding new files or actions.
   """
+  # TODO(allevato): Simultaneously migrate callers off this function and swap it
+  # out with swiftc_args.
+  reqs = swift_compile_requirements(
+      ctx.files.srcs, ctx.attr.deps, ctx.attr.module_name, ctx.label,
+      ctx.attr.swift_version, ctx.attr.copts, ctx.attr.defines,
+      ctx.fragments.apple, ctx.fragments.objc, ctx.fragments.swift, ctx.var,
+      ctx.configuration, ctx.genfiles_dir)
+  return _swiftc_args(reqs)
 
-  apple_fragment = ctx.fragments.apple
+
+def _swiftc_args(reqs):
+  """Returns an almost complete array of arguments to be passed to swiftc.
+
+  This macro is intended to be used by the swift_library rule implementation
+  below but it also may be used by other rules outside this file.
+
+  Args:
+    reqs: The compilation requirements as returned by
+        `swift_compile_requirements`.
+  Returns:
+    A list of command line arguments for `swiftc`. The returned arguments
+    include everything except the arguments generation of which would require
+    adding new files or actions.
+  """
+  apple_fragment = reqs.apple_fragment
+  deps = reqs.deps
 
   cpu = apple_fragment.single_arch_cpu
   platform = apple_fragment.single_arch_platform
@@ -286,27 +394,25 @@ def swiftc_args(ctx):
   target = _swift_target(cpu, platform, target_os)
   apple_toolchain = apple_common.apple_toolchain()
 
-  module_name = ctx.attr.module_name or swift_module_name(ctx.label)
-
   # A list of paths to pass with -F flag.
-  framework_dirs = set([
+  framework_dirs = depset([
       apple_toolchain.platform_developer_framework_dir(apple_fragment)])
 
   # Collect transitive dependecies.
   dep_modules = depset()
-  swiftc_defines = ctx.attr.defines
+  swiftc_defines = reqs.defines
 
-  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
+  swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
+  objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
 
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
     swiftc_defines += swift.transitive_defines
 
-  objc_includes = set()     # Everything that needs to be included with -I
-  objc_module_maps = set()  # Module maps for dependent targets
-  objc_defines = set()
-  static_frameworks = set()
+  objc_includes = depset()     # Everything that needs to be included with -I
+  objc_module_maps = depset()  # Module maps for dependent targets
+  objc_defines = depset()
+  static_frameworks = depset()
   for objc in objc_providers:
     objc_includes += objc.include
     objc_module_maps += objc.module_map
@@ -320,13 +426,13 @@ def swiftc_args(ctx):
     # their module cannot be compiled by clang), but did not occur in practice.
     objc_defines += objc.define
 
-  srcs_args = [f.path for f in ctx.files.srcs]
+  srcs_args = [f.path for f in reqs.srcs]
 
   # Include each swift module's parent directory for imports to work.
-  include_dirs = set([x.dirname for x in dep_modules])
+  include_dirs = depset([x.dirname for x in dep_modules])
 
   # Include the genfiles root so full-path imports can work for generated protos.
-  include_dirs += set([ctx.genfiles_dir.path])
+  include_dirs += depset([reqs.genfiles_dir.path])
 
   include_args = ["-I%s" % d for d in include_dirs + objc_includes]
   framework_args = ["-F%s" % x for x in framework_dirs]
@@ -348,8 +454,8 @@ def swiftc_args(ctx):
       ["-iquote", "."]
 
       # Pass DEFINE or copt values from objc configuration and rules to clang
-      + ["-D" + x for x in objc_defines] + ctx.fragments.objc.copts
-      + _clang_compilation_mode_flags(ctx)
+      + ["-D" + x for x in objc_defines] + reqs.objc_fragment.copts
+      + _clang_compilation_mode_flags(reqs.objc_fragment)
 
       # Load module maps explicitly instead of letting Clang discover them on
       # search paths. This is needed to avoid a case where Clang may load the
@@ -361,84 +467,63 @@ def swiftc_args(ctx):
   args = [
       "-emit-object",
       "-module-name",
-      module_name,
+      reqs.module_name,
       "-target",
       target,
       "-sdk",
       apple_toolchain.sdk_dir(),
       "-module-cache-path",
-      module_cache_path(ctx),
+      module_cache_path(reqs.genfiles_dir),
   ]
 
-  if ctx.configuration.coverage_enabled:
+  if reqs.default_configuration.coverage_enabled:
     args.extend(["-profile-generate", "-profile-coverage-mapping"])
 
-  args.extend(_swift_compilation_mode_flags(ctx))
-  args.extend(_swift_bitcode_flags(ctx))
-  args.extend(_swift_parsing_flags(ctx))
-  args.extend(_swift_sanitizer_flags(ctx))
+  args.extend(_swift_compilation_mode_flags(
+      reqs.config_vars, reqs.objc_fragment))
+  args.extend(_swift_bitcode_flags(apple_fragment))
+  args.extend(_swift_parsing_flags(reqs.srcs))
+  args.extend(_swift_sanitizer_flags(reqs.config_vars))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
   args.extend(clang_args)
   args.extend(define_args)
   args.extend(autolink_args)
-  args.extend(ctx.fragments.swift.copts())
-  args.extend(ctx.attr.copts)
+  args.extend(reqs.swift_fragment.copts())
+  args.extend(reqs.copts)
 
   # Swift 3.1, which has this flag, has been bundled with Xcode 8.3. This check
   # won't work for out-of-Xcode toolchains if we ever going to support that.
-  if xcode_support.is_xcode_at_least_version(ctx, "8.3"):
-    args.extend(["-swift-version", "%d" % ctx.attr.swift_version])
+  if xcode_support.is_xcode_at_least_version(reqs.apple_fragment, "8.3"):
+    args.extend(["-swift-version", "%d" % reqs.swift_version])
 
   return args
 
 
-def _collect_resource_sets(ctx, module_name):
-  """Collects resource sets from the target and its dependencies.
+def register_swift_compile_actions(ctx, reqs):
+  """Registers actions to compile Swift sources.
 
   Args:
-    ctx: The Skylark context.
-    module_name: The name of the Swift module associated with the resources
-        (either the user-provided name, or the auto-generated one).
+    ctx: The rule context. Within this function, it should only be used to
+        register actions, or declare files; do not use it to access attributes
+        because it may be called from many different rules.
+    reqs: The compilation requirements as returned by
+        `swift_compile_requirements`.
   Returns:
-    A list of structs representing the transitive resources to propagate to the
-    bundling rules.
+    A tuple containing the `objc` and `SwiftInfo` providers that should be
+    propagated by a target compiling these Swift sources.
   """
-  resource_sets = []
-
-  # Create a resource set from the resources attached directly to this target.
-  if ctx.files.resources or ctx.files.structured_resources:
-    resource_sets.append(struct(
-        bundle_dir=None,
-        infoplists=depset(),
-        objc_bundle_imports=depset(),
-        resources=depset(ctx.files.resources),
-        structured_resources=depset(ctx.files.structured_resources),
-        structured_resource_zips=depset(),
-        swift_module=module_name,
-    ))
-
-  # Collect transitive resource sets from dependencies.
-  for dep in ctx.attr.deps:
-    if AppleResourceInfo in dep:
-      resource_sets.extend(dep[AppleResourceInfo].resource_sets)
-
-  return resource_sets
-
-
-def _swift_library_impl(ctx):
-  """Implementation for swift_library Skylark rule."""
-
-  _validate_rule_and_deps(ctx)
+  module_name = reqs.module_name
+  label = reqs.label
 
   # Collect transitive dependecies.
   dep_modules = depset()
   dep_libs = depset()
-  swiftc_defines = ctx.attr.defines
+  swiftc_defines = reqs.defines
 
-  swift_providers = [x[SwiftInfo] for x in ctx.attr.deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
+  swift_providers = [x[SwiftInfo] for x in reqs.deps if SwiftInfo in x]
+  objc_providers = [x.objc for x in reqs.deps if hasattr(x, "objc")]
 
   for swift in swift_providers:
     dep_libs += swift.transitive_libs
@@ -446,23 +531,22 @@ def _swift_library_impl(ctx):
     swiftc_defines += swift.transitive_defines
 
   # A unique path for rule's outputs.
-  objs_outputs_path = label_scoped_path(ctx, "_objs/")
+  objs_outputs_path = label_scoped_path(reqs.label, "_objs/")
 
-  module_name = ctx.attr.module_name or swift_module_name(ctx.label)
   output_lib = ctx.new_file(objs_outputs_path + module_name + ".a")
   output_module = ctx.new_file(objs_outputs_path + module_name + ".swiftmodule")
 
   # These filenames are guaranteed to be unique, no need to scope.
-  output_header = ctx.new_file(ctx.label.name + "-Swift.h")
-  swiftc_output_map_file = ctx.new_file(ctx.label.name + ".output_file_map.json")
+  output_header = ctx.new_file(label.name + "-Swift.h")
+  swiftc_output_map_file = ctx.new_file(label.name + ".output_file_map.json")
 
   swiftc_output_map = struct()  # Maps output types to paths.
   output_objs = []  # Object file outputs, used in archive action.
   swiftc_outputs = []  # Other swiftc outputs that aren't processed further.
 
-  has_wmo, has_wmo_flag = _get_wmo_state(ctx)
+  has_wmo, has_wmo_flag = _get_wmo_state(reqs.copts, reqs.swift_fragment)
 
-  for source in ctx.files.srcs:
+  for source in reqs.srcs:
     basename = source.basename
     output_map_entry = {}
 
@@ -490,9 +574,14 @@ def _swift_library_impl(ctx):
   #       {'object': 'foo.o', 'bitcode': 'foo.bc', 'dependencies': 'foo.d'}}
   # There's currently no documentation on this option, however all of the keys
   # are listed here https://github.com/apple/swift/blob/swift-2.2.1-RELEASE/include/swift/Driver/Types.def
-  ctx.file_action(output=swiftc_output_map_file, content=swiftc_output_map.to_json())
+  ctx.file_action(
+      output=swiftc_output_map_file,
+      content=swiftc_output_map.to_json())
 
-  args = _swift_xcrun_args(ctx) + ["swiftc"] + swiftc_args(ctx)
+  args = (_swift_xcrun_args(reqs.apple_fragment) +
+          ["swiftc"] +
+          _swiftc_args(reqs))
+
   args += [
       "-I" + output_module.dirname,
       "-emit-module-path",
@@ -516,13 +605,13 @@ def _swift_library_impl(ctx):
 
   xcrun_action(
       ctx,
-      inputs=swiftc_inputs(ctx) + [swiftc_output_map_file],
+      inputs=_swiftc_inputs(reqs.srcs, reqs.deps) + [swiftc_output_map_file],
       outputs=[output_module, output_header] + output_objs + swiftc_outputs,
       mnemonic="SwiftCompile",
       arguments=args,
       use_default_shell_env=False,
       progress_message=("Compiling Swift module %s (%d files)" %
-                        (ctx.label.name, len(ctx.files.srcs))))
+                        (reqs.label.name, len(reqs.srcs))))
 
   xcrun_action(ctx,
                inputs=output_objs,
@@ -531,7 +620,8 @@ def _swift_library_impl(ctx):
                arguments=[
                    "libtool", "-static", "-o", output_lib.path
                ] + [x.path for x in output_objs],
-               progress_message=("Archiving Swift objects %s" % ctx.label.name))
+               progress_message=(
+                   "Archiving Swift objects %s" % reqs.label.name))
 
   # This tells the linker to write a reference to .swiftmodule as an AST symbol
   # in the final binary.
@@ -546,30 +636,102 @@ def _swift_library_impl(ctx):
   transitive_libs = depset([output_lib]) + dep_libs
   transitive_modules = depset([output_module]) + dep_modules
 
+  compile_outputs = [output_lib, output_module, output_header]
+
   objc_provider = apple_common.new_objc_provider(
       library=depset([output_lib]) + dep_libs,
       header=depset([output_header]),
       providers=objc_providers,
-      linkopt=_swift_linkopts(ctx) + extra_linker_args,
-      link_inputs=set([output_module]),
+      linkopt=_swift_linkopts(
+          reqs.apple_fragment, reqs.config_vars) + extra_linker_args,
+      link_inputs=depset([output_module]),
       uses_swift=True,)
 
-  resource_sets = _collect_resource_sets(ctx, module_name)
+  return compile_outputs, objc_provider, SwiftInfo(
+      transitive_libs=transitive_libs,
+      transitive_modules=transitive_modules,
+      transitive_defines=swiftc_defines,
+  )
 
-  swift_provider_args = {
-      "transitive_libs": transitive_libs,
-      "transitive_modules": transitive_modules,
-      "transitive_defines": swiftc_defines,
-  }
+
+def _collect_resource_sets(resources, structured_resources, deps, module_name):
+  """Collects resource sets from the target and its dependencies.
+
+  Args:
+    resources: The resources associated with the target being built.
+    structured_resources: The structured resources associated with the target
+        being built.
+    deps: The dependencies of the target being built.
+    module_name: The name of the Swift module associated with the resources
+        (either the user-provided name, or the auto-generated one).
+  Returns:
+    A list of structs representing the transitive resources to propagate to the
+    bundling rules.
+  """
+  resource_sets = []
+
+  # Create a resource set from the resources attached directly to this target.
+  if resources or structured_resources:
+    resource_sets.append(struct(
+        bundle_dir=None,
+        infoplists=depset(),
+        objc_bundle_imports=depset(),
+        resources=depset(resources),
+        structured_resources=depset(structured_resources),
+        structured_resource_zips=depset(),
+        swift_module=module_name,
+    ))
+
+  # Collect transitive resource sets from dependencies.
+  for dep in deps:
+    if AppleResourceInfo in dep:
+      resource_sets.extend(dep[AppleResourceInfo].resource_sets)
+
+  return resource_sets
+
+
+def _swift_library_impl(ctx):
+  """Implementation for swift_library Skylark rule."""
+
+  _validate_rule_and_deps(ctx)
+
+  resolved_module_name = ctx.attr.module_name or swift_module_name(ctx.label)
+
+  reqs = swift_compile_requirements(
+      ctx.files.srcs,
+      ctx.attr.deps,
+      resolved_module_name,
+      ctx.label,
+      ctx.attr.swift_version,
+      ctx.attr.copts,
+      ctx.attr.defines,
+      ctx.fragments.apple,
+      ctx.fragments.objc,
+      ctx.fragments.swift,
+      ctx.var,
+      ctx.configuration,
+      ctx.genfiles_dir)
+
+  compile_outputs, objc_provider, swift_info = register_swift_compile_actions(
+      ctx, reqs)
+
+  resource_sets = _collect_resource_sets(
+      ctx.files.resources, ctx.files.structured_resources, ctx.attr.deps,
+      resolved_module_name)
 
   return struct(
-      files=depset([output_lib, output_module, output_header]),
-      swift=struct(**swift_provider_args),
+      files=depset(compile_outputs),
+      swift=struct(
+          transitive_libs=swift_info.transitive_libs,
+          transitive_modules=swift_info.transitive_modules,
+          transitive_defines=swift_info.transitive_defines,
+      ),
       objc=objc_provider,
       providers=[
           AppleResourceInfo(resource_sets=resource_sets),
-          SwiftInfo(**swift_provider_args),
+          swift_info,
       ])
+
 
 SWIFT_LIBRARY_ATTRS = {
     "srcs": attr.label_list(allow_files = [".swift"], allow_empty=False),
@@ -599,6 +761,7 @@ SWIFT_LIBRARY_ATTRS = {
         cfg="host",
         default=Label(XCRUNWRAPPER_LABEL))
 }
+
 
 swift_library = rule(
     _swift_library_impl,
