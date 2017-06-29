@@ -15,17 +15,17 @@
 """Support functions for working with Xcode configurations."""
 
 
-def _is_xcode_at_least_version(ctx, version):
+def _is_xcode_at_least_version(apple_fragment, version):
   """Returns True if we are building with at least the given Xcode version.
 
   Args:
-    ctx: The Skylark context.
+    apple_fragment: The Apple configuration fragment.
     version: The minimum desired Xcode version, as a dotted version string.
   Returns:
     True if the current target is being built with a version of Xcode at least
     as high as the given version.
   """
-  xcode_version = ctx.fragments.apple.xcode_version()
+  xcode_version = apple_fragment.xcode_version()
   if not xcode_version:
     fail("Could not determine Xcode version at all. This likely means Xcode " +
          "isn't available; if you think this is a mistake, please file a " +

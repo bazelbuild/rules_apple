@@ -231,9 +231,16 @@ def join_commands(cmds):
   return ' && '.join(cmds)
 
 
-def label_scoped_path(ctx, path):
-  """Return the path scoped to target's label."""
-  return ctx.label.name + "/" + path.lstrip("/")
+def label_scoped_path(label, path):
+  """Return the path scoped to the label of a build target.
+
+  Args:
+    label: The label of a build target.
+    path: The path that should be scoped to the label.
+  Returns:
+    The path after being scoped to the label.
+  """
+  return label.name + "/" + path.lstrip("/")
 
 
 def merge_dictionaries(*dictionaries):
@@ -254,9 +261,9 @@ def merge_dictionaries(*dictionaries):
   return result
 
 
-def module_cache_path(ctx):
+def module_cache_path(genfiles_dir):
   """Returns the Clang module cache path to use for this rule."""
-  return ctx.genfiles_dir.path + "/_objc_module_cache"
+  return genfiles_dir.path + "/_objc_module_cache"
 
 
 def optionally_prefixed_path(path, prefix):
