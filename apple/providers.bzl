@@ -180,11 +180,15 @@ SwiftInfo = provider()
 """Provides information about a Swift library.
 
 Fields:
+  direct_lib: `File`. The single static library that was produced by compiling
+      the propagating target. (Contrast with `transitive_libs`.)
+  direct_module: `File`. The single `.swiftmodule` file that was produced by
+      compiling the propagating target. (Contrast with `transitive_modules`.)
   transitive_defines: `depset` of `string`s. The set of conditional compilation
       flags defined by the propagating target and all of its transitive
       dependencies.
   transitive_libs: `depset` of `File`s. The set of static library files output
-      by the propgating target and all of its transitive dependencies.
+      by the propagating target and all of its transitive dependencies.
   transitive_modules: `depset` of `File`s. The set of `.swiftmodule` files
       output by the propagating target and all of its transitive dependencies.
 """

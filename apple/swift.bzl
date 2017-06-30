@@ -511,8 +511,9 @@ def register_swift_compile_actions(ctx, reqs):
     reqs: The compilation requirements as returned by
         `swift_compile_requirements`.
   Returns:
-    A tuple containing the `objc` and `SwiftInfo` providers that should be
-    propagated by a target compiling these Swift sources.
+    A tuple containing the (1) output files of the compilation action, the (2)
+    `objc` provider, and (3) the `SwiftInfo` provider that should be propagated
+    by a target compiling these Swift sources.
   """
   module_name = reqs.module_name
   label = reqs.label
@@ -648,6 +649,8 @@ def register_swift_compile_actions(ctx, reqs):
       uses_swift=True,)
 
   return compile_outputs, objc_provider, SwiftInfo(
+      direct_lib=output_lib,
+      direct_module=output_module,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
       transitive_defines=swiftc_defines,
@@ -722,6 +725,8 @@ def _swift_library_impl(ctx):
   return struct(
       files=depset(compile_outputs),
       swift=struct(
+          direct_lib=swift_info.direct_lib,
+          direct_module=swift_info.direct_module,
           transitive_libs=swift_info.transitive_libs,
           transitive_modules=swift_info.transitive_modules,
           transitive_defines=swift_info.transitive_defines,
@@ -742,7 +747,7 @@ SWIFT_LIBRARY_ATTRS = {
         # gets to examine its deps (so the AppleResource provider isn't there
         # yet).
         aspects=[apple_bundling_aspect],
-        providers=[["swift"], ["objc"]]
+        providers=[["swift"], [SwiftInfo], ["objc"]]
     ),
     "module_name": attr.string(mandatory=False),
     "defines": attr.string_list(mandatory=False, allow_empty=True),
