@@ -539,4 +539,59 @@ function test_linkmaps_generated() {
   done
 }
 
+# Tests that ios_extension cannot be a depenency of objc_library.
+function test_extension_under_library() {
+cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+     "ios_extension",
+    )
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+)
+
+objc_library(
+    name = "upperlib",
+    srcs = ["upperlib.m"],
+    deps = [":ext"],
+)
+
+ios_extension(
+    name = "ext",
+    bundle_id = "my.extension.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/upperlib.m <<EOF
+int foo() { return 0; }
+EOF
+
+  cat > app/main.m <<EOF
+int main(int argc, char **argv) { return 0; }
+EOF
+
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleSignature = "????";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:upperlib || fail "Should not build"
+  expect_log 'does not have mandatory providers'
+}
+
 run_suite "ios_extension bundling tests"

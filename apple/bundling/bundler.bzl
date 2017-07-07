@@ -906,7 +906,6 @@ def _run(
 
   objc_provider_args["providers"] = objc_providers
   legacy_objc_provider = apple_common.new_objc_provider(**objc_provider_args)
-  legacy_providers["objc"] = legacy_objc_provider
   if is_dynamic_framework:
     framework_provider = apple_common.new_dynamic_framework_provider(
         objc=legacy_objc_provider,
