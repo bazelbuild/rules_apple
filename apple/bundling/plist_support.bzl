@@ -33,7 +33,22 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
     # plist without a signature.
     return "cat " + bash_quote(provisioning_profile.path)
   else:
-    return "security cms -D -i " + bash_quote(provisioning_profile.path)
+    # The `security cms -D -i` command previously used here spits out a message
+    # that seems to indicate an internal error on Sierra (even though the
+    # command succeeds). The `openssl smime` command below also emits to stderr,
+    # but the message is a "Verification successful" message, which we deem to
+    # be somewhat preferable to one that implies failure. Regardless, we capture
+    # the stderr output and only emit it if the command *actually* terminated
+    # with a failing exit code so that we reduce noise in the build log.
+    extract_plist_cmd = ("openssl smime -inform der -verify -noverify -in " +
+            bash_quote(provisioning_profile.path))
+    return ("( " +
+            "STDERR=$(mktemp -t openssl.stderr) && " +
+            "trap \"rm -f ${STDERR}\" EXIT && " +
+            extract_plist_cmd + " 2> ${STDERR} || " +
+            "( >&2 echo 'Could not extract plist from provisioning profile' " +
+            " && >&2 cat ${STDERR} && exit 1 ) " +
+            ")")
 
 
 def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic=None):
