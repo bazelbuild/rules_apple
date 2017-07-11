@@ -93,10 +93,6 @@ load(
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
-    "resource_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:swift_actions.bzl",
     "swift_actions",
 )
@@ -508,30 +504,6 @@ def _experimental_create_and_sign_bundle(
   )
 
 
-def _partition_strings_and_plists(files):
-  """Partitions a depset of files depending on whether they are strings/plists.
-
-  Args:
-    files: A `depset` of files.
-  Returns:
-    Two `depset`s, the first containing the files that are `.strings` or
-    `.plist` and the second containing all the others.
-  """
-  strings_and_plists = []
-  others = []
-
-  # Do one pass manually instead of using two list comprehensions, for
-  # performance.
-  for f in files:
-    name = f.basename
-    if name.endswith(".plist") or name.endswith(".strings"):
-      strings_and_plists.append(f)
-    else:
-      others.append(f)
-
-  return depset(strings_and_plists), depset(others)
-
-
 def _run(
     ctx,
     mnemonic,
@@ -662,103 +634,25 @@ def _run(
         resources=target_resources,
     ))
 
-  # We need to keep track of the Info.plist for the main bundle so that it can
-  # be propagated out (for situations where this bundle is a child of another
-  # bundle and bundle ID consistency is checked).
-  main_infoplist = None
-
-  # There might be multiple resource sets for a particular bundle_dir if they
-  # have differing Swift module names. This is mostly likely to happen for
-  # bundle root resources (bundle_dir=_ROOT_BUNDLE_DIR) but it could potentially
-  # happen for other .bundles as well. To ensure that all the Info.plist
-  # fragments get merged properly, we save lists of them keyed by the bundle_dir
-  # and then make a separate pass over them once all the resource sets have been
-  # processed.
-  bundle_infoplists = {}
-
   # Iterate over each set of resources and register the actions. This
   # ensures that each bundle among the dependencies has its resources
   # processed independently.
-
   dedupe_unbundled = getattr(ctx.attr, "dedupe_unbundled_resources", False)
   resource_sets = apple_resource_set_utils.minimize(resource_sets,
                                                     framework_resource_sets,
                                                     dedupe_unbundled)
-  for r in resource_sets:
-    ri = resource_support.resource_info(bundle_id,
-                                        bundle_dir=r.bundle_dir,
-                                        swift_module=r.swift_module)
-    process_result = resource_actions.process_resources(ctx, r.resources, ri)
-    bundle_merge_files.extend(list(process_result.bundle_merge_files))
-    bundle_merge_zips.extend(list(process_result.bundle_merge_zips))
+  process_results = resource_actions.process_resource_sets(
+      ctx, bundle_id, resource_sets)
 
-    # Partition out plists and strings files from structured resources because
-    # we need to compile them as well. For everything else, copy the files
-    # verbatim. For all files, preserve their owner-relative paths.
-    if r.objc_bundle_imports:
-      # TODO(b/33618143): Remove the ugly special case for objc_bundle.
-      strings_and_plists, other_imports = _partition_strings_and_plists(
-          r.objc_bundle_imports)
-      bundle_relative_ri = resource_support.resource_info(
-          bundle_id, bundle_dir=r.bundle_dir,
-          path_transform=resource_support.bundle_relative_path)
-      obi_process_result = resource_actions.process_resources(
-          ctx, strings_and_plists, bundle_relative_ri)
-
-      bundle_merge_files.extend([
-          bundling_support.resource_file(
-              ctx, f, optionally_prefixed_path(
-                  resource_support.bundle_relative_path(f), r.bundle_dir))
-          for f in other_imports
-      ])
-      bundle_merge_files.extend(obi_process_result.bundle_merge_files.to_list())
-
-    # Process .strings/.plist files in structured resources but copy the rest.
-    strings_and_plists, other_structured_resources = (
-        _partition_strings_and_plists(r.structured_resources))
-    owner_relative_ri = resource_support.resource_info(
-        bundle_id, bundle_dir=r.bundle_dir,
-        path_transform=resource_support.owner_relative_path)
-    sr_process_result = resource_actions.process_resources(
-        ctx, strings_and_plists, owner_relative_ri)
-
-    bundle_merge_files.extend([
-        bundling_support.resource_file(
-            ctx, f, optionally_prefixed_path(
-                resource_support.owner_relative_path(f), r.bundle_dir))
-        for f in other_structured_resources
-    ])
-    bundle_merge_files.extend(sr_process_result.bundle_merge_files.to_list())
-
-    bundle_merge_zips.extend([
-        bundling_support.resource_file(ctx, f, r.bundle_dir)
-        for f in r.structured_resource_zips
-    ])
-
-    # Keep track of all the partial Info.plists for each bundle; we'll merge
-    # them after all the resource sets have been processed.
-    infoplists = list(r.infoplists) + list(process_result.partial_infoplists)
-    if infoplists:
-      if r.bundle_dir not in bundle_infoplists:
-        bundle_infoplists[r.bundle_dir] = infoplists
-      else:
-        bundle_infoplists[r.bundle_dir].extend(infoplists)
-
-    # Link the storyboards in the bundle, which not only resolves references
-    # between different storyboards, but also copies the results to the correct
-    # location in the bundle in a platform-agnostic way; for example,
-    # storyboards in watchOS applications are simple plists and don't retain the
-    # same .storyboardc directory structure that others do.
-    if process_result.compiled_storyboards:
-      linked_storyboards = resource_actions.ibtool_link(
-          ctx, process_result.compiled_storyboards.to_list(), ri)
-      bundle_merge_zips.append(bundling_support.resource_file(
-          ctx, linked_storyboards, r.bundle_dir))
+  bundle_merge_files.extend(process_results.bundle_merge_files)
+  bundle_merge_zips.extend(process_results.bundle_merge_zips)
 
   # Merge the Info.plists into binary format and collect the resulting PkgInfo
-  # file as well.
+  # file as well. Keep track of the Info.plist for the main bundle while we do
+  # this so that it can be propagated out (for situations where this bundle is a
+  # child of another bundle and bundle ID consistency is checked).
   main_infoplist = None
-  for bundle_dir, infoplists in bundle_infoplists.items():
+  for bundle_dir, infoplists in process_results.bundle_infoplists.items():
     merge_infoplist_args = {
         "input_plists": list(infoplists),
         "bundle_id": bundle_id,

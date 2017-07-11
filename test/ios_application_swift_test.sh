@@ -385,4 +385,46 @@ EOF
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
 }
 
+# Tests that multiple swift_library targets can propagate asset catalogs and
+# that they are all merged into a single Assets.car without conflicts.
+function test_multiple_swift_libraries_can_propagate_asset_catalogs() {
+  create_minimal_ios_application
+
+  cat > app/Dummy.swift <<EOF
+struct Dummy {}
+EOF
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+    ],
+    deps = [":lib2"],
+)
+
+swift_library(
+    name = "lib2",
+    srcs = ["Dummy.swift"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets2_ios",
+    ],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  # Verify that a single Assets.car file is present.
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+
+  # Verify that both image set names show up in the asset catalog. (The file
+  # format is a black box to us, but we can at a minimum grep the name out
+  # because it's visible in the raw bytes).
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+      grep "star_iphone" || fail "Did not find star_iphone in Assets.car"
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+      grep "star2_iphone" || fail "Did not find star2_iphone in Assets.car"
+}
+
 run_suite "ios_application with Swift bundling tests"

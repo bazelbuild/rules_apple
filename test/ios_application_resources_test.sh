@@ -525,4 +525,38 @@ EOF
       "Payload/app.app/generated_resource.strings"
 }
 
+# Tests that a bundle can contain both .xcassets and .xcstickers. This verifies
+# that resource grouping is working correctly and that the two folders get
+# passed to the same actool invocation, despite their differing extensions.
+function test_bundle_can_contain_xcassets_and_xcstickers() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  # Verify that the asset catalog exists.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Assets.car"
+}
+
 run_suite "ios_application bundling with resources tests"

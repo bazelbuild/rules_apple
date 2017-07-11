@@ -44,7 +44,56 @@ load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 _UNGROUPED = ""
 
 
-def _group_resources(files, groupings):
+def _lproj_rooted_path_or_basename(f):
+  """Returns an `.lproj`-rooted path for the given file if possible.
+
+  If the file is nested in a `*.lproj` directory, then the `.lproj`-rooted path
+  to the file will be returned; for example, "fr.lproj/foo.strings". If the
+  file is not in a `*.lproj` directory, only the basename of the file is
+  returned.
+
+  Args:
+    f: The `File` whose `.lproj`-rooted name or basename should be returned.
+  Returns:
+    The `.lproj`-rooted name or basename.
+  """
+  if f.dirname.endswith(".lproj"):
+    filename = f.basename
+    dirname = basename(f.dirname)
+    return dirname + "/" + filename
+
+  return f.basename
+
+
+def _resource_info(bundle_id,
+                   bundle_dir,
+                   path_transform=_lproj_rooted_path_or_basename,
+                   swift_module=None):
+  """Returns a struct to be passed to `_process_single_resource_grouping`.
+
+  Args:
+    bundle_id: The id of the bundle to which the resources belong. Required.
+    bundle_dir: The bundle directory that should be prefixed to any bundlable
+        files returned by the resource processing action.
+    path_transform: If provided, a function that will be called on each input
+        file to obtain its relative output path in the bundle. The default
+        behavior is to only preserve .lproj folders but otherwise flatten the
+        directory structure and retain only the basename.
+    swift_module: The name of the Swift module to which the resources belong,
+        if any.
+  Returns:
+    A struct that should be passed to `_process_single_resource_grouping` and
+    its callees.
+  """
+  return struct(
+      bundle_dir=bundle_dir,
+      bundle_id=bundle_id,
+      path_transform=path_transform,
+      swift_module=swift_module
+  )
+
+
+def _group_files(files, groupings):
   """Groups files based on their directory or file extension.
 
   This function does not directly use the `group_files_by_directory` helper
@@ -54,9 +103,9 @@ def _group_resources(files, groupings):
   Args:
     files: The set of `File` objects representing resources that should be
         grouped.
-    groupings: A list of strings denoting file or directory extensions by which
-        groups should be created. The extensions do not contain the leading
-        dot. If a string ends with a slash (such as "xcassets/"), then a
+    groupings: A list of tuples of strings denoting file or directory extensions
+        by which groups should be created. The extensions do not contain the
+        leading dot. If a string ends with a slash (such as "xcassets/"), then a
         grouping is created that contains all files under directories with
         that extension, regardless of the individual files' extensions. If a
         string does not end with a slash (such as "xib"), then a grouping is
@@ -74,28 +123,35 @@ def _group_resources(files, groupings):
   grouped_files = {g: depset() for g in groupings}
   grouped_files[_UNGROUPED] = depset()
 
+  flattened_extensions = [ext for extensions in groupings for ext in extensions]
+
   # Pull out the directory groupings because we need to actually iterate over
   # these to find matches.
-  dir_groupings = [g for g in groupings if g.endswith("/")]
+  dir_groupings = [g for g in flattened_extensions if g.endswith("/")]
 
   for f in files:
     path = f.path
 
     # Try to find a directory-based match first.
-    matched_group = None
+    matched_extension = None
     for extension_candidate in dir_groupings:
       search_string = "." + extension_candidate
       if search_string in path:
-        matched_group = extension_candidate
+        matched_extension = extension_candidate
         break
 
     # If no directory match was found, use the file's extension to group it.
-    if not matched_group:
+    if not matched_extension:
       _, extension = split_extension(path)
       # Strip the leading dot.
       extension = extension[1:]
-      matched_group = extension if extension in grouped_files else _UNGROUPED
+      matched_extension = (
+          extension if extension in flattened_extensions else _UNGROUPED)
 
+    if not matched_extension:
+      matched_group = _UNGROUPED
+    else:
+      matched_group = [g for g in groupings if matched_extension in g][0]
     grouped_files[matched_group] = grouped_files[matched_group] | [f]
 
   return grouped_files
@@ -107,8 +163,8 @@ def _compile_plist(ctx, input_file, resource_info):
   Args:
     ctx: The Skylark context.
     input_file: The property list file that should be converted.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     A struct as defined by `_process_resources` that will be merged with those
     from other processing functions.
@@ -158,8 +214,8 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
   Args:
     ctx: The Skylark context.
     asset_catalogs: The asset catalog files.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     An array of extra arguments to pass to `actool`, which may be empty.
   """
@@ -239,8 +295,8 @@ def _actool(ctx, asset_catalogs, resource_info):
         dependencies (i.e., assets not just from the application target, but
         from any other library targets it depends on) as well as resources like
         app icons and launch images.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     A struct as defined by `_process_resources` that will be merged with those
     from other processing functions.
@@ -338,8 +394,8 @@ def _ibtool_compile(ctx, input_file, resource_info):
   Args:
     ctx: The Skylark context.
     input_file: The storyboard or xib file to compile.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     A struct as defined by `_process_resources` that will be merged with those
     from other processing functions.
@@ -398,8 +454,8 @@ def _ibtool_link(ctx, storyboardc_zips, resource_info):
     ctx: The Skylark context.
     storyboardc_zips: A list of zipped, compiled storyboards (produced by
         `resource_actions.ibtool_compile`) that should be linked.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     The File object representing the ZIP file containing the linked
     storyboards.
@@ -439,8 +495,8 @@ def _mapc(ctx, input_files, resource_info):
     ctx: The Skylark context.
     input_files: An iterable of files in all mapping models that should be
         compiled and packaged as part of the application.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     A struct as defined by `_process_resources` that will be merged with those
     from other processing functions.
@@ -495,8 +551,8 @@ def _momc(ctx, input_files, resource_info):
     ctx: The Skylark context.
     input_files: An iterable of files in all data models that should be
         compiled and packaged as part of the application.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
   Returns:
     A struct as defined by `_process_resources` that will be merged with those
     from other processing functions.
@@ -587,25 +643,27 @@ _arity = struct(
 )
 
 
-# A list of tuples describing resource types and how they should be processed.
-# Each tuple must contain exactly three elements:
+# The following constants are lists of tuples describing resource types and how
+# they should be processed. Each tuple must contain exactly four elements:
 #
-# 1. The file or directory extension corresponding to a type of resource.
-#    Directory extensions should be indicated with a trailing slash. Extensions
-#    should not have a leading dot.
+# 1. The tuple of file or directory extensions corresponding to a type of
+#    resource. Directory extensions should be indicated with a trailing slash.
+#    Extensions should not have a leading dot.
 # 2. The "arity" of the function that processes this type of resource. Legal
 #    values are `_arity.each`, which means that the function will be called
 #    separately for each file in the set; and `_arity.all`, which calls the
 #    function only once and passes it the entire set of files.
-# 3. The function that should be called for resources of this type.
+# 3. A Boolean value indicating whether or not the Swift module is used as an
+#    input argument when processing the resource.
+# 4. The function that should be called for resources of this type.
 #
 # The function described above takes three arguments:
 #
 # 1. The Skylark context (`ctx`).
 # 2. A `File` object (if arity was `_arity.each`) or a set of `File` objects
 #    (if arity was `_arity.all`).
-# 3. The resource info struct (as returned by `resource_support.resource_info`)
-#    containing additional information about the resources being processed.
+# 3. The resource info struct (as returned by `_resource_info`) containing
+#    additional information about the resources being processed.
 #
 # It should return the same `struct` described in the return type of the
 # `_process_resources` function; the results across all invocations are merged.
@@ -620,34 +678,57 @@ _arity = struct(
 # appear first. The order of file-based groupings is unimportant, because those
 # files are always looked up simply by their extension.
 #
-# Because this is being evaluated at global scope, it must remain *below* any
-# of the functions to which it refers, but *above* _process_resources which
-# refers to it.
-_PROCESSABLE_RESOURCES = [
-    # Asset catalogs.
-    (["xcassets/", "xcstickers/"], _arity.all,   _actool),
-    # Core Data data models (versioned and unversioned).
-    (["xcdatamodeld/"],            _arity.all,   _momc),
-    (["xcdatamodel/"],             _arity.all,   _momc),
-    # Core Data mapping models.
-    (["xcmappingmodel/"],          _arity.all,   _mapc),
-    # Interface Builder files.
-    (["storyboard"],               _arity.each,  _ibtool_compile),
-    (["xib"],                      _arity.each,  _ibtool_compile),
-    # Property lists and localizable strings.
-    (["plist", "strings"],         _arity.each,  _compile_plist),
+# Because these are being evaluated at global scope, they must remain *below*
+# any of the functions to which they refer, but *above* the resource processing
+# functions that refer to them.
+
+_PLIST_AND_STRING_GROUPING_RULES = [
+    # Property lists.
+    (("plist",),                   _arity.each, False, _compile_plist),
+    # Localizable strings files.
+    (("strings",),                 _arity.each, False, _compile_plist),
 ]
 
+_ALL_GROUPING_RULES = [
+    # Asset catalogs.
+    (("xcassets/", "xcstickers/"), _arity.all,  False, _actool),
+    # Core Data data models (versioned and unversioned).
+    (("xcdatamodeld/",),           _arity.all,  True,  _momc),
+    (("xcdatamodel/",),            _arity.all,  True,  _momc),
+    # Core Data mapping models.
+    (("xcmappingmodel/",),         _arity.all,  False, _mapc),
+    # Interface Builder files.
+    (("storyboard",),              _arity.each, True,  _ibtool_compile),
+    (("xib",),                     _arity.each, True,  _ibtool_compile),
+] + _PLIST_AND_STRING_GROUPING_RULES
 
-def _process_resources(ctx, files, resource_info):
-  """Creates actions that process resources based on their extensions.
+
+def _process_single_resource_grouping(
+    ctx,
+    files,
+    resource_info,
+    group_extensions,
+    grouping_rules):
+  """Creates actions that processes files in a single resource group.
+
+  The specified files are already assumed to have been grouped such that all of
+  them correspond to the same resource type and belong to the same bundle and
+  Swift module.
 
   Args:
     ctx: The Skylark context.
     files: The set of `File` objects representing resources that should be
         processed.
-    resource_info: A struct returned by `resource_support.resource_info` that
-        contains information needed by the resource processing functions.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
+    group_extensions: The tuple of file/directory extensions that was used to
+        create the grouping represented by `files`.
+    grouping_rules: A list of grouping rules (as defined in tuples above) that
+        define the groupings that will be processed. Any files placed in the
+        `_UNGROUPED` grouping will be copied verbatim. This allows a subset of
+        the rules to be applied; for example, the strings and plists in an
+        `objc_bundle` can be processed while the other files can be copied
+        without processing.
   Returns:
     A struct containing information that needs to be propagated back from
     individual actions to the main bundler. It contains the following fields:
@@ -660,54 +741,43 @@ def _process_resources(ctx, files, resource_info):
     processing actions that should be merged into the bundle's final
     Info.plist.
   """
-  # Get the flattened list of extensions across all processable resources types
-  # to pass to _group_resources.
-  extensions = [g[0] for g in _PROCESSABLE_RESOURCES]
-  extensions = [e for sublist in extensions for e in sublist]
-  grouped_files = _group_resources(files, extensions)
-  action_results = []
-
-  for (extensions, arity, function) in _PROCESSABLE_RESOURCES:
-    curr_files = depset()
-    for extension in extensions:
-      curr_files = curr_files + grouped_files[extension]
-
-    if not curr_files:
-      continue
-
-    if arity == _arity.all:
-      action_results.append(function(ctx, curr_files, resource_info))
-    elif arity == _arity.each:
-      action_results.extend([function(ctx, f, resource_info)
-                             for f in curr_files])
-    else:
-      fail(("_process_resources is broken. Expected arity 'all' or 'each' " +
-            "but got '%s'") % arity)
-
-  # Collect the results from the individual actions.
   bundle_merge_files = depset()
   bundle_merge_zips = depset()
   compiled_storyboards = depset()
   partial_infoplists = depset()
 
-  for result in action_results:
-    bundle_merge_files = (
-        bundle_merge_files | getattr(result, "bundle_merge_files", []))
-    bundle_merge_zips = (
-        bundle_merge_zips | getattr(result, "bundle_merge_zips", []))
-    compiled_storyboards = (
-        compiled_storyboards | getattr(result, "compiled_storyboards", []))
-    partial_infoplists = (
-        partial_infoplists | getattr(result, "partial_infoplists", []))
+  if group_extensions != _UNGROUPED:
+    # Find the grouping rule that was used to create this group.
+    for grouping_rule in grouping_rules:
+      if group_extensions == grouping_rule[0]:
+        _, arity, uses_module, function = grouping_rule
 
-  # Add any unprocessed resources to the list of files that will just be copied
-  # into the bundle.
-  unprocessed_resources = grouped_files[_UNGROUPED]
-  bundle_merge_files = bundle_merge_files | depset([
-      bundling_support.resource_file(ctx, f, optionally_prefixed_path(
-          resource_info.path_transform(f), resource_info.bundle_dir))
-      for f in unprocessed_resources
-  ])
+    if arity == _arity.all:
+      action_results = [function(ctx, files, resource_info)]
+    elif arity == _arity.each:
+      action_results = [function(ctx, f, resource_info) for f in files]
+    else:
+      fail(("_process_resources is broken. Expected arity 'all' or 'each' " +
+            "but got '%s'") % arity)
+
+    # Collect the results from the individual actions.
+    for result in action_results:
+      bundle_merge_files = (
+          bundle_merge_files | getattr(result, "bundle_merge_files", []))
+      bundle_merge_zips = (
+          bundle_merge_zips | getattr(result, "bundle_merge_zips", []))
+      compiled_storyboards = (
+         compiled_storyboards | getattr(result, "compiled_storyboards", []))
+      partial_infoplists = (
+          partial_infoplists | getattr(result, "partial_infoplists", []))
+  else:
+    # Add any unprocessed resources to the list of files that will just be
+    # copied into the bundle.
+    bundle_merge_files = bundle_merge_files | depset([
+        bundling_support.resource_file(ctx, f, optionally_prefixed_path(
+            resource_info.path_transform(f), resource_info.bundle_dir))
+        for f in files
+    ])
 
   return struct(
       bundle_merge_files=bundle_merge_files,
@@ -717,8 +787,219 @@ def _process_resources(ctx, files, resource_info):
   )
 
 
+def _create_resource_groupings(resource_sets, resource_set_key, grouping_rules):
+  """Groups resources by their bundle directory, extension, and Swift module.
+
+  This function takes into consideration whether or not the resources *use* the
+  Swift module and groups them accordingly. For example, asset catalogs do not
+  take the module name as an input so all asset catalogs are placed into a
+  single group regardless of which Swift module actually propagated them. XIB
+  files, on the other hand, use the Swift module name as an input so their
+  groupings are kept separate.
+
+  The grouping returned by this function is a complex nested structure that
+  looks like the following example:
+
+      {
+          "foo.bundle": {
+              ("xcassets/", "xcstickers/"): [
+                  struct(swift_module=None, files=[Files...]),
+              ],
+              ("xib",): [
+                  struct(swift_module="Module1", files=[Files...]),
+                  struct(swift_module="Module2", files=[Files...]),
+              ],
+              ...,
+              _UNGROUPED: [...],
+          },
+      }
+
+  Args:
+    resource_sets: A list of resource sets that should be grouped.
+    resource_set_key: The name of the field in the resource set representing the
+        files that should be grouped; for example, "resources",
+        "structured_resources", or "objc_bundle_imports".
+    grouping_rules: A list of grouping rules (as defined in tuples above) that
+        define the groupings that will be returned. Any files not covered by
+        these rules will be placed in the `_UNGROUPED` group.
+  Returns:
+    A dictionary of the form above, where the keys are bundle directories and
+    the values are dictionaries that break down the resources into files that
+    are themselves grouped based on their Swift module.
+  """
+  resource_groupings = {}
+
+  # Get the flattened list of extensions across all processable resources
+  # types to pass to _group_files.
+  all_extensions = [g[0] for g in grouping_rules]
+
+  for r in resource_sets:
+    grouped_files = _group_files(getattr(r, resource_set_key), all_extensions)
+    resource_map = resource_groupings.get(r.bundle_dir, {})
+
+    for (extensions, _, uses_module, _) in grouping_rules:
+      files_in_group = grouped_files[extensions]
+      if not files_in_group:
+        continue
+
+      current_list = resource_map.get(extensions, [])
+
+      if uses_module:
+        # If the resource processing depends on the module, build a list of
+        # structs that separate the resources based on their module name.
+        current_list.append(struct(
+            swift_module=r.swift_module,
+            files=files_in_group,
+        ))
+      else:
+        # If the resource processing doesn't depend on the module, we can just
+        # group them into a single list with swift_module=None in the struct.
+        current_list = [struct(
+            swift_module=None,
+            files=(
+                (current_list[0].files if current_list else []) +
+                files_in_group.to_list()
+            ),
+        )]
+
+      resource_map[extensions] = current_list
+
+    if grouped_files[_UNGROUPED]:
+      resource_map[_UNGROUPED] = [struct(
+          swift_module=None,
+          files=grouped_files[_UNGROUPED].to_list()
+      )]
+    resource_groupings[r.bundle_dir] = resource_map
+
+  return resource_groupings
+
+
+def _process_plists_and_strings(
+    ctx,
+    bundle_id,
+    resource_sets,
+    resource_set_key,
+    path_transform):
+  """Processes plists and strings but ignores other resource types.
+
+  This function is used to handle legacy objc_bundles and structured_resources,
+  where we still want to convert the files to binary format (because there is no
+  reason to leave them in the larger text format) but copy every other kind of
+  file without any processing.
+
+  Args:
+    ctx: The rule context.
+    bundle_id: The identifier of the top-level bundle.
+    resource_sets: A list of `AppleResourceSet` objects that represent the
+        resource sets to be processed.
+    resource_set_key: The name of the field in the resource set representing the
+        files that should be grouped; for example, "resources",
+        "structured_resources", or "objc_bundle_imports".
+    path_transform: A function that will be called on each input file to obtain
+        its relative output path in the bundle.
+  Returns:
+    A list of bundlable files that should be included among the
+    `bundle_merge_files` of the bundle being processed.
+  """
+  bundle_merge_files = []
+  resource_groupings = _create_resource_groupings(
+      resource_sets, resource_set_key, _PLIST_AND_STRING_GROUPING_RULES)
+
+  for bundle_dir, resource_map in resource_groupings.items():
+    for group_extensions, resource_groups in resource_map.items():
+      for resource_group in resource_groups:
+        files = resource_group.files
+        resource_info = _resource_info(
+            bundle_id, bundle_dir, path_transform=path_transform)
+        result = _process_single_resource_grouping(
+            ctx, files, resource_info, group_extensions,
+            _PLIST_AND_STRING_GROUPING_RULES)
+        bundle_merge_files.extend(list(result.bundle_merge_files))
+
+  return bundle_merge_files
+
+
+def _process_resource_sets(ctx, bundle_id, resource_sets):
+  """Processes all of the resource sets for a bundle (and its nested bundles).
+
+  Args:
+    ctx: The rule context.
+    bundle_id: The identifier of the top-level bundle.
+    resource_sets: A list of `AppleResourceSet` objects that represent the
+        resource sets to be processed.
+  Returns:
+    A struct containing three fields:
+    1. `bundle_info_plists`, a dictionary from bundle directories to lists of
+       partial Info.plist files that should be merged in that bundle
+    2. `bundle_merge_files`, a list of bundlable files that should be included
+       in the bundle.
+    3. `bundle_merge_zips`, a list of ZIP files whose contents should be
+       included in the bundle.
+  """
+  bundle_merge_files = []
+  bundle_merge_zips = []
+  bundle_infoplists = {}
+
+  bundle_resources = _create_resource_groupings(
+      resource_sets, "resources", _ALL_GROUPING_RULES)
+  for bundle_dir, resource_map in bundle_resources.items():
+    for group_extensions, resource_groups in resource_map.items():
+      for resource_group in resource_groups:
+        files = resource_group.files
+        resource_info = _resource_info(
+            bundle_id, bundle_dir, swift_module=resource_group.swift_module)
+        result = _process_single_resource_grouping(
+            ctx, files, resource_info, group_extensions, _ALL_GROUPING_RULES)
+        bundle_merge_files.extend(list(result.bundle_merge_files))
+        bundle_merge_zips.extend(list(result.bundle_merge_zips))
+
+        # Link the storyboards in the bundle, which not only resolves references
+        # between different storyboards, but also copies the results to the
+        # correct location in the bundle in a platform-agnostic way; for
+        # example, storyboards in watchOS applications are simple plists and
+        # don't retain the same .storyboardc directory structure that others do.
+        if result.compiled_storyboards:
+          linked_storyboards = _ibtool_link(
+              ctx, result.compiled_storyboards.to_list(), resource_info)
+          bundle_merge_zips.append(bundling_support.resource_file(
+              ctx, linked_storyboards, bundle_dir))
+
+        if result.partial_infoplists:
+          infoplists_so_far = bundle_infoplists.get(bundle_dir, [])
+          infoplists_so_far.extend(list(result.partial_infoplists))
+          bundle_infoplists[bundle_dir] = infoplists_so_far
+
+  # Partition out plists and strings files from legacy objc_bundles and
+  # structured_resources because we need to compile them as well. For everything
+  # else, copy the files verbatim.
+  bundle_merge_files.extend(_process_plists_and_strings(
+      ctx, bundle_id, resource_sets, "objc_bundle_imports",
+      resource_support.bundle_relative_path))
+  bundle_merge_files.extend(_process_plists_and_strings(
+      ctx, bundle_id, resource_sets, "structured_resources",
+      resource_support.owner_relative_path))
+
+  for r in resource_sets:
+    # Copy any structured_resource_zips found in the resource sets.
+    bundle_merge_zips.extend([
+        bundling_support.resource_file(ctx, f, r.bundle_dir)
+        for f in r.structured_resource_zips
+    ])
+
+    # Track any additional infoplists that were propagated by dependencies.
+    if r.infoplists:
+      infoplists_so_far = bundle_infoplists.get(r.bundle_dir, [])
+      infoplists_so_far.extend(list(r.infoplists))
+      bundle_infoplists[r.bundle_dir] = infoplists_so_far
+
+  return struct(
+      bundle_infoplists=bundle_infoplists,
+      bundle_merge_files=bundle_merge_files,
+      bundle_merge_zips=bundle_merge_zips,
+  )
+
+
 # Define the loadable module that lists the exported symbols in this file.
 resource_actions = struct(
-    ibtool_link=_ibtool_link,
-    process_resources=_process_resources,
+    process_resource_sets=_process_resource_sets,
 )
