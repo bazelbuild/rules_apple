@@ -146,7 +146,7 @@ def _group_files(files, groupings):
       # Strip the leading dot.
       extension = extension[1:]
       matched_extension = (
-          extension if extension in flattened_extensions else _UNGROUPED)
+          extension if extension in flattened_extensions else None)
 
     if not matched_extension:
       matched_group = _UNGROUPED
@@ -865,10 +865,12 @@ def _create_resource_groupings(resource_sets, resource_set_key, grouping_rules):
       resource_map[extensions] = current_list
 
     if grouped_files[_UNGROUPED]:
-      resource_map[_UNGROUPED] = [struct(
+      current_list = resource_map.get(_UNGROUPED, []) + [struct(
           swift_module=None,
           files=grouped_files[_UNGROUPED].to_list()
       )]
+      resource_map[_UNGROUPED] = current_list
+
     resource_groupings[r.bundle_dir] = resource_map
 
   return resource_groupings
