@@ -22,6 +22,7 @@ filegroup(
         "storyboard_ios.storyboard",
         "view_ios.xib",
         ":app_icons_ios",
+        ":assets2_ios",
         ":assets_ios",
         ":launch_images_ios",
         ":localized_storyboards_ios",
@@ -65,6 +66,11 @@ filegroup(
 filegroup(
     name = "assets_ios",
     srcs = glob(["assets_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "assets2_ios",
+    srcs = glob(["assets2_ios.xcassets/**"]),
 )
 
 filegroup(
