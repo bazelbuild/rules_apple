@@ -88,12 +88,18 @@ Each bundling rule created by the factory will choose the correct format strings
 for their platform through either `simple_path_formats` or `macos_path_formats`.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-     "apple_bundling_aspect")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleVersionInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "merge_dictionaries")
+load(
+    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
+    "apple_bundling_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "merge_dictionaries",
+)
 
 
 # Private attributes on every rule that provide access to tools used by the
@@ -362,7 +368,8 @@ def _make_bundling_rule(implementation,
       {
           "binary": attr.label(
               mandatory=True,
-              providers=binary_providers
+              providers=binary_providers,
+              single_file=True,
           ),
           "bundle_id": attr.string(mandatory=True),
           "bundle_name": attr.string(mandatory=False),

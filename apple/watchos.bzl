@@ -14,10 +14,14 @@
 
 """Bazel rules for creating watchOS applications and bundles."""
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "product_support")
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -81,7 +85,10 @@ def watchos_application(name, **kwargs):
         code of its own, any code in the dependent libraries will be ignored.)
   """
   bundling_args = binary_support.create_binary(
-      name, str(apple_common.platform_type.watchos), **kwargs)
+      name,
+      str(apple_common.platform_type.watchos),
+      _product_type=apple_product_type.watch2_application,
+      **kwargs)
 
   _watchos_application(
       name = name,
@@ -149,7 +156,10 @@ def watchos_extension(name, **kwargs):
   kwargs["linkopts"] = linkopts
 
   bundling_args = binary_support.create_binary(
-      name, str(apple_common.platform_type.watchos), **kwargs)
+      name,
+      str(apple_common.platform_type.watchos),
+      _product_type=apple_product_type.watch2_extension,
+      **kwargs)
 
   _watchos_extension(
       name = name,

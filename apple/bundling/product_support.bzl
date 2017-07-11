@@ -20,8 +20,10 @@ This file should be loaded by the top-level Apple platform .bzl files
 and access the constants in their own targets.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
-     "attribute_support")
+load(
+    "@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
+    "attribute_support",
+)
 
 
 apple_product_type = struct(
@@ -86,7 +88,7 @@ product type identifier. The product types currently supported are:
 # the meaning of these struct fields.
 _PRODUCT_TYPE_INFO_MAP = {
     apple_product_type.messages_application: struct(
-        stub_path=("${PLATFORM_DIR}/Library/Application Support/" +
+        stub_path=("$(PLATFORM_DIR)/Library/Application Support/" +
                    "MessagesApplicationStub/MessagesApplicationStub"),
         archive_path=("MessagesApplicationSupport/" +
                       "MessagesApplicationSupportStub"),
@@ -96,7 +98,7 @@ _PRODUCT_TYPE_INFO_MAP = {
         },
     ),
     apple_product_type.messages_sticker_pack_extension: struct(
-        stub_path=("${PLATFORM_DIR}/Library/Application Support/" +
+        stub_path=("$(PLATFORM_DIR)/Library/Application Support/" +
                    "MessagesApplicationExtensionStub/" +
                    "MessagesApplicationExtensionStub"),
         archive_path=("MessagesApplicationExtensionSupport/" +
@@ -107,7 +109,7 @@ _PRODUCT_TYPE_INFO_MAP = {
         },
     ),
     apple_product_type.watch2_application: struct(
-        stub_path="${SDKROOT}/Library/Application Support/WatchKit/WK",
+        stub_path="$(SDKROOT)/Library/Application Support/WatchKit/WK",
         archive_path="WatchKitSupport2/WK",
         bundle_path="_WatchKitStub/WK",
         additional_infoplist_values=None,
