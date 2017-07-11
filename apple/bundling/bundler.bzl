@@ -18,49 +18,92 @@ This file is only meant to be imported by the platform-specific top-level rules
 (ios.bzl, tvos.bzl, and so forth).
 """
 
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleInfo",
-     "AppleResourceInfo",
-     "AppleResourceSet",
-     "apple_resource_set_utils",
-    )
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "basename",
-     "bash_array_string",
-     "bash_quote",
-     "dirname",
-     "group_files_by_directory",
-     "optionally_prefixed_path",
-     "relativize_path",
-     "remove_extension",
-    )
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bitcode_actions.bzl", "bitcode_actions")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:clang_support.bzl",
-    "clang_support")
-load("@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
-     "codesigning_support")
-load("@build_bazel_rules_apple//apple/bundling:debug_symbol_actions.bzl", "debug_symbol_actions")
-load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
-load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
-load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-     "platform_support")
-load("@build_bazel_rules_apple//apple/bundling:plist_actions.bzl", "plist_actions")
-load("@build_bazel_rules_apple//apple/bundling:product_actions.bzl",
-     "product_actions")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "product_support")
-load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
-     "provider_support")
-load("@build_bazel_rules_apple//apple/bundling:resource_actions.bzl",
-     "resource_actions")
-load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
-     "resource_support")
-load("@build_bazel_rules_apple//apple/bundling:swift_actions.bzl", "swift_actions")
-load("@build_bazel_rules_apple//apple/bundling:swift_support.bzl", "swift_support")
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceInfo",
+    "AppleResourceSet",
+    "apple_resource_set_utils",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "basename",
+    "bash_array_string",
+    "bash_quote",
+    "dirname",
+    "group_files_by_directory",
+    "optionally_prefixed_path",
+    "relativize_path",
+    "remove_extension",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bitcode_actions.bzl",
+    "bitcode_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:clang_support.bzl",
+    "clang_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:debug_symbol_actions.bzl",
+    "debug_symbol_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
+    "file_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:plist_actions.bzl",
+    "plist_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_actions.bzl",
+    "product_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "product_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
+    "provider_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
+    "resource_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:swift_actions.bzl",
+    "swift_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
+    "swift_support",
+)
 
 
 # Directories inside .frameworks that should not be included in final
@@ -753,19 +796,18 @@ def _run(
   product_info = product_support.product_type_info_for_target(ctx)
   if product_info:
     has_built_binary = False
-    stub_binary = product_actions.copy_stub_for_bundle(ctx, product_info)
     bundle_merge_files.append(bundling_support.binary_file(
-        ctx, stub_binary, bundle_name, executable=True))
+        ctx, ctx.file.binary, bundle_name, executable=True))
     if product_info.bundle_path:
       # TODO(b/34684393): Figure out if macOS ever uses stub binaries for any
       # product types, and if so, is this the right place for them?
       bundle_merge_files.append(bundling_support.contents_file(
-          ctx, stub_binary, product_info.bundle_path, executable=True))
+          ctx, ctx.file.binary, product_info.bundle_path, executable=True))
     # TODO(b/34047985): This should be conditioned on a flag, not just
     # compilation mode.
     if ctx.var["COMPILATION_MODE"] == "opt":
       support_zip = product_actions.create_stub_zip_for_archive_merging(
-          ctx, product_info)
+          ctx, ctx.file.binary, product_info)
       root_merge_zips.append(bundling_support.bundlable_file(support_zip, "."))
   elif hasattr(ctx.attr, "deps"):
     if not ctx.attr.deps:
