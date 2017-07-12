@@ -6,6 +6,7 @@ load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
     "IOS_TEST_CONFIGURATIONS",
+    "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
     "WATCHOS_CONFIGURATIONS",
 )
@@ -73,6 +74,13 @@ apple_shell_test(
     size = "medium",
     src = "ios_extension_swift_test.sh",
     configurations = IOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "macos_application_test",
+    size = "medium",
+    src = "macos_application_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
 )
 
 # The swift_library test does not use any canned configurations; it controls

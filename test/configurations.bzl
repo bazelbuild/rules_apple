@@ -35,6 +35,12 @@ IOS_TEST_CONFIGURATIONS = {
 }
 
 # Configuration options used with `apple_shell_test` to run tests for
+# macOS builds.
+MACOS_CONFIGURATIONS = {
+    "default": ["--macos_cpus=x86_64"],
+}
+
+# Configuration options used with `apple_shell_test` to run tests for
 # tvOS simulator and device builds.
 TVOS_DEVICE_OPTIONS = ["--tvos_cpus=arm64", "-c opt"]
 
