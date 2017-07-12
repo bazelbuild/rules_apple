@@ -336,6 +336,7 @@ def _swiftc_inputs(srcs, deps=[]):
   for objc in objc_providers:
     objc_files += objc.header
     objc_files += objc.module_map
+    objc_files += objc.umbrella_header
     objc_files += depset(objc.static_framework_file)
     objc_files += depset(objc.dynamic_framework_file)
 
