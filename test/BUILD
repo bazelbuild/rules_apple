@@ -83,6 +83,13 @@ apple_shell_test(
     configurations = MACOS_CONFIGURATIONS,
 )
 
+apple_shell_test(
+    name = "macos_command_line_application_test",
+    size = "medium",
+    src = "macos_command_line_application_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+)
+
 # The swift_library test does not use any canned configurations; it controls
 # options manually for various tests.
 apple_shell_test(

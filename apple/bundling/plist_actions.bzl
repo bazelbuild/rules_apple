@@ -61,6 +61,7 @@ def _merge_infoplists(ctx,
                       input_plists,
                       bundle_id=None,
                       executable_bundle=False,
+                      exclude_executable_name=False,
                       child_plists=[]):
   """Creates an action that merges Info.plists and converts them to binary.
 
@@ -80,6 +81,9 @@ def _merge_infoplists(ctx,
         bundle's Info.plist, which means the development environment and
         platform info should be added to the plist, and a PkgInfo should
         (optionally) be created.
+    exclude_executable_name: If True, the executable name will not be added to
+        the plist in the `CFBundleExecutable` key. This is mainly intended for
+        plists embedded in a command line tool.
     child_plists: A list of plists from child targets (such as extensions
         or Watch apps) whose bundle IDs and version strings should be
         validated against the compiled plist for consistency.
@@ -123,7 +127,8 @@ def _merge_infoplists(ctx,
   # Resource bundles don't need the Xcode environment plist entries;
   # application and extension bundles do.
   if executable_bundle:
-    info_plist_options["executable"] = bundling_support.bundle_name(ctx)
+    if not exclude_executable_name:
+      info_plist_options["executable"] = bundling_support.bundle_name(ctx)
 
     platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)

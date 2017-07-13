@@ -47,7 +47,7 @@ def _get(obj, attr_name, default=None):
     return getattr(obj, private_name)
 
   fail(("Internal error: Attribute '%s' was not defined publicly on the rule " +
-        "so it must be defined privately, but it was not" % attr_name))
+        "so it must be defined privately, but it was not") % attr_name)
 
 
 # Define the loadable module that lists the exported symbols in this file.

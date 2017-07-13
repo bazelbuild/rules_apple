@@ -401,8 +401,14 @@ def _process_and_sign_archive(ctx,
 
   signing_command_lines = ""
   if not ctx.attr._skip_signing:
+    paths_to_sign = [
+        codesigning_support.path_to_sign(
+            "$WORK_DIR/" + bundle_path_in_archive + "/Frameworks/*",
+            optional=True),
+        codesigning_support.path_to_sign("$WORK_DIR/" + bundle_path_in_archive),
+    ]
     signing_command_lines = codesigning_support.signing_command_lines(
-        ctx, bundle_path_in_archive, entitlements)
+        ctx, paths_to_sign, entitlements)
 
   post_processor = ctx.executable.ipa_post_processor
   post_processor_path = ""
@@ -476,8 +482,14 @@ def _experimental_create_and_sign_bundle(
 
   signing_command_lines = ""
   if not ctx.attr._skip_signing:
+    paths_to_sign = [
+        codesigning_support.path_to_sign(
+            "$WORK_DIR/" + bundle_dir.basename + "/Frameworks/*",
+            optional=True),
+        codesigning_support.path_to_sign("$WORK_DIR/" + bundle_dir.basename),
+    ]
     signing_command_lines = codesigning_support.signing_command_lines(
-        ctx, bundle_dir.basename, entitlements)
+        ctx, paths_to_sign, entitlements)
 
   # TODO(allevato): Add a `bundle_post_processor` attribute.
 

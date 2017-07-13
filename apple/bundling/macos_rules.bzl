@@ -22,25 +22,51 @@ binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
-     "bundler")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
-     "entitlements",
-     "entitlements_support")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "apple_product_type")
-load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
-     "rule_factory")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleInfo",
-     "AppleResourceSet",
-     "MacosApplicationBundleInfo",
-     "MacosExtensionBundleInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "merge_dictionaries")
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundler.bzl",
+    "bundler",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
+    "entitlements",
+    "entitlements_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
+    "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleBundleVersionInfo",
+    "AppleResourceSet",
+    "MacosApplicationBundleInfo",
+    "MacosExtensionBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "merge_dictionaries",
+)
 
 
 def _macos_application_impl(ctx):
@@ -97,6 +123,62 @@ macos_application = rule_factory.make_bundling_rule(
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
     product_type=rule_factory.product_type(apple_product_type.application),
+)
+
+
+def _macos_command_line_application_impl(ctx):
+  """Implementation of the macos_command_line_application rule."""
+  output_path = ctx.outputs.executable.path
+
+  # It's not hermetic to sign the binary that was built by the apple_binary
+  # target that this rule takes as an input, so we copy it and then execute the
+  # code signing commands on that copy in the same action.
+  path_to_sign = codesigning_support.path_to_sign(output_path)
+  signing_commands = codesigning_support.signing_command_lines(
+      ctx, [path_to_sign], ctx.file.entitlements)
+
+  platform_support.xcode_env_action(
+      ctx,
+      inputs=[ctx.file.binary],
+      outputs=[ctx.outputs.executable],
+      command=["/bin/bash", "-c",
+               "cp {input_binary} {output_binary}".format(
+                   input_binary=ctx.file.binary.path,
+                   output_binary=output_path,
+               ) + "\n" + signing_commands,
+              ],
+      mnemonic="SignBinary",
+  )
+
+  return []
+
+
+macos_command_line_application = rule(
+    _macos_command_line_application_impl,
+    attrs=merge_dictionaries(
+        rule_factory.common_tool_attributes,
+        rule_factory.code_signing_attributes(rule_factory.code_signing(
+            ".provisionprofile", requires_signing_for_device=False)
+        ), {
+            "binary": attr.label(
+                mandatory=True,
+                providers=[apple_common.AppleExecutableBinary],
+                single_file=True,
+            ),
+            "bundle_id": attr.string(mandatory=False),
+            "infoplists": attr.label_list(
+                allow_files=[".plist"],
+                mandatory=False,
+                non_empty=False,
+            ),
+            "minimum_os_version": attr.string(mandatory=False),
+            "version": attr.label(providers=[[AppleBundleVersionInfo]]),
+            "_platform_type": attr.string(
+                default=str(apple_common.platform_type.macos),
+            ),
+        }),
+    executable=True,
+    fragments=["apple", "objc"],
 )
 
 

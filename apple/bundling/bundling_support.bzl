@@ -78,7 +78,7 @@ def _bundle_name(ctx):
   Returns:
     The bundle name.
   """
-  bundle_name = ctx.attr.bundle_name
+  bundle_name = getattr(ctx.attr, "bundle_name", None)
   if not bundle_name:
     bundle_name = ctx.label.name
   return bundle_name
@@ -92,7 +92,7 @@ def _bundle_name_with_extension(ctx):
   Returns:
     The bundle name with its extension.
   """
-  return _bundle_name(ctx) + ctx.attr._bundle_extension
+  return _bundle_name(ctx) + getattr(ctx.attr, "_bundle_extension", "")
 
 
 def _contents_file(ctx, src, dest, executable=False):
