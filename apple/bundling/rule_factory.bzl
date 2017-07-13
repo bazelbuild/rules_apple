@@ -102,9 +102,49 @@ load(
 )
 
 
+# Private attributes on every rule that provide access to tools and other
+# file dependencies.
+_common_tool_attributes = {
+    "_debug_entitlements": attr.label(
+        cfg="host",
+        allow_files=True,
+        single_file=True,
+        default=Label("@bazel_tools//tools/objc:device_debug_entitlements.plist"),
+    ),
+    "_dsym_info_plist_template": attr.label(
+        cfg="host",
+        single_file=True,
+        default=Label(
+            "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+        ),
+    ),
+    "_environment_plist": attr.label(
+        cfg="host",
+        executable=True,
+        default=Label("@build_bazel_rules_apple//tools/environment_plist"),
+    ),
+    "_plisttool": attr.label(
+        cfg="host",
+        default=Label("@build_bazel_rules_apple//tools/plisttool"),
+        executable=True,
+    ),
+    "_realpath": attr.label(
+        cfg="host",
+        allow_files=True,
+        single_file=True,
+        default=Label("@build_bazel_rules_apple//tools/realpath"),
+    ),
+    "_xcrunwrapper": attr.label(
+        cfg="host",
+        executable=True,
+        default=Label("@bazel_tools//tools/objc:xcrunwrapper"),
+    ),
+}
+
+
 # Private attributes on every rule that provide access to tools used by the
 # bundler.
-_tool_attributes = {
+_bundling_tool_attributes = {
     "_actoolwrapper": attr.label(
         cfg="host",
         executable=True,
@@ -124,22 +164,6 @@ _tool_attributes = {
         cfg="host",
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/clangrttool"),
-    ),
-    "_debug_entitlements": attr.label(
-        cfg="host",
-        allow_files=True,
-        single_file=True,
-        default=Label("@bazel_tools//tools/objc:device_debug_entitlements.plist"),
-    ),
-    "_dsym_info_plist_template": attr.label(
-        cfg="host",
-        single_file=True,
-        default=Label("@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template"),
-    ),
-    "_environment_plist": attr.label(
-        cfg="host",
-        executable=True,
-        default=Label("@build_bazel_rules_apple//tools/environment_plist"),
     ),
     "_ibtoolwrapper": attr.label(
         cfg="host",
@@ -162,20 +186,9 @@ _tool_attributes = {
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/momcwrapper"),
     ),
-    "_plisttool": attr.label(
-        cfg="host",
-        default=Label("@build_bazel_rules_apple//tools/plisttool"),
-        executable=True,
-    ),
     "_process_and_sign_template": attr.label(
         single_file=True,
         default=Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
-    ),
-    "_realpath": attr.label(
-        cfg="host",
-        allow_files=True,
-        single_file=True,
-        default=Label("@build_bazel_rules_apple//tools/realpath"),
     ),
     "_std_redirect_dylib": attr.label(
         cfg="host",
@@ -187,11 +200,6 @@ _tool_attributes = {
         cfg="host",
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/swiftstdlibtoolwrapper"),
-    ),
-    "_xcrunwrapper": attr.label(
-        cfg="host",
-        executable=True,
-        default=Label("@bazel_tools//tools/objc:xcrunwrapper"),
     ),
 }
 
@@ -262,6 +270,43 @@ def _macos_path_formats(path_in_archive_format="%s"):
   }
 
 
+def _code_signing_attributes(code_signing):
+  """Returns rule attributes that manage code signing.
+
+  Args:
+    code_signing: A value returned by `rule_factory.code_signing` that provides
+        information about if and how the bundle should be signed.
+  Returns:
+    A dictionary of attributes that should be used by rules that require code
+    signing.
+  """
+  if not code_signing:
+    fail("Internal error: code_signing must be provided.")
+
+  # Configure the entitlements, provisioning_profile, and other private
+  # attributes for targets that should be signed.
+  code_signing_attrs = {
+      "_requires_signing_for_device": attr.bool(
+          default=code_signing.requires_signing_for_device
+      ),
+      "_skip_signing": attr.bool(default=code_signing.skip_signing),
+  }
+  if not code_signing.skip_signing:
+    code_signing_attrs["entitlements"] = attr.label(
+        allow_files=[".entitlements"],
+        single_file=True,
+    )
+    if not code_signing.provision_profile_extension:
+      fail("Internal error: If code_signing.skip_signing = False, then " +
+           "code_signing.provision_profile_extension must be provided.")
+    code_signing_attrs["provisioning_profile"] = attr.label(
+        allow_files=[code_signing.provision_profile_extension],
+        single_file=True,
+    )
+
+  return code_signing_attrs
+
+
 def _make_bundling_rule(implementation,
                         additional_attrs={},
                         archive_extension=None,
@@ -311,8 +356,6 @@ def _make_bundling_rule(implementation,
     fail("Internal error: binary_providers must be provided.")
   if not bundle_extension:
     fail("Internal error: bundle_extension must be provided.")
-  if not code_signing:
-    fail("Internal error: code_signing must be provided.")
   if not device_families:
     fail("Internal error: device_families must be provided.")
   if not path_formats:
@@ -321,27 +364,6 @@ def _make_bundling_rule(implementation,
     fail("Internal error: platform_type must be provided.")
   if not product_type:
     fail("Internal error: product_type must be provided.")
-
-  # Configure the entitlements, provisioning_profile, and other private
-  # attributes for targets that should be signed.
-  code_signing_attrs = {
-      "_requires_signing_for_device": attr.bool(
-          default=code_signing.requires_signing_for_device
-      ),
-      "_skip_signing": attr.bool(default=code_signing.skip_signing),
-  }
-  if not code_signing.skip_signing:
-    code_signing_attrs["entitlements"] = attr.label(
-        allow_files=[".entitlements"],
-        single_file=True,
-    )
-    if not code_signing.provision_profile_extension:
-      fail("Internal error: If code_signing.skip_signing = False, then " +
-           "code_signing.provision_profile_extension must be provided.")
-    code_signing_attrs["provisioning_profile"] = attr.label(
-        allow_files=[code_signing.provision_profile_extension],
-        single_file=True,
-    )
 
   # Add the private _allowed_families attribute, and if multiple device families
   # were present, add the public families attribute that requires the user to
@@ -364,7 +386,8 @@ def _make_bundling_rule(implementation,
 
   rule_args = dict(**kwargs)
   rule_args["attrs"] = merge_dictionaries(
-      _tool_attributes,
+      _common_tool_attributes,
+      _bundling_tool_attributes,
       {
           "binary": attr.label(
               mandatory=True,
@@ -406,7 +429,7 @@ def _make_bundling_rule(implementation,
           "_platform_type": attr.string(default=str(platform_type)),
           "_propagates_frameworks": attr.bool(default=propagates_frameworks),
       },
-      code_signing_attrs,
+      _code_signing_attributes(code_signing),
       device_family_attrs,
       path_formats,
       product_type_attrs,
@@ -454,11 +477,13 @@ def _simple_path_formats(path_in_archive_format=""):
 
 # Define the loadable module that lists the exported symbols in this file.
 rule_factory = struct(
+    bundling_tool_attributes=_bundling_tool_attributes,
     code_signing=_code_signing,
+    code_signing_attributes=_code_signing_attributes,
+    common_tool_attributes=_common_tool_attributes,
     device_families=_device_families,
     macos_path_formats=_macos_path_formats,
     make_bundling_rule=_make_bundling_rule,
     product_type=_product_type,
     simple_path_formats=_simple_path_formats,
-    tool_attributes=_tool_attributes,
 )

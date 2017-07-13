@@ -163,15 +163,12 @@ class PlistTool(object):
 
   def run(self):
     """Performs the operations requested by the control struct."""
-    if not self._control.get('plists'):
-      raise ValueError('No input plists specified.')
-
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
 
     out_plist = {}
 
-    for p in self._control['plists']:
+    for p in self._control.get('plists', []):
       plist = self._get_plist_dict(p)
       self.merge_dictionaries(plist, out_plist)
 

@@ -14,15 +14,24 @@
 
 """Bazel rules for creating macOS applications and bundles."""
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:macos_command_line_support.bzl",
+    "macos_command_line_infoplist",
+    "macos_command_line_support",
+)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
-load("@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
-     _macos_application="macos_application",
-     _macos_extension="macos_extension",
-    )
+load(
+    "@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
+    _macos_application="macos_application",
+    _macos_command_line_application="macos_command_line_application",
+    _macos_extension="macos_extension",
+)
 
 
 def macos_application(name, **kwargs):
@@ -85,6 +94,85 @@ def macos_application(name, **kwargs):
   _macos_application(
       name = name,
       **bundling_args
+  )
+
+
+def macos_command_line_application(name, **kwargs):
+  """Builds a macOS command line application.
+
+  A command line application is a standalone binary file, rather than a `.app`
+  bundle like those produced by `macos_application`. Unlike a plain
+  `apple_binary` target, however, this rule supports versioning and embedding an
+  `Info.plist` into the binary and allows the binary to be code-signed.
+
+  Args:
+    name: The name of the target.
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        extension. Optional.
+    infoplists: A list of plist files that will be merged and embedded in the
+        binary.
+    linkopts: A list of strings representing extra flags that should be passed
+        to the linker.
+    minimum_os_version: An optional string indicating the minimum macOS version
+        supported by the target, represented as a dotted version number (for
+        example, `"10.11"`). If this attribute is omitted, then the value
+        specified by the flag `--macos_minimum_os` will be used instead.
+    deps: A list of dependencies, such as libraries, that are linked into the
+        final binary. Any resources found in those dependencies are
+        ignored.
+  """
+  # Xcode will happily apply entitlements during code signing for a command line
+  # tool even though it doesn't have a Capabilities tab in the project settings.
+  # Until there's official support for it, we'll fail if we see those attributes
+  # (which are added to the rule because of the code_signing_attributes usage in
+  # the rule definition).
+  if "entitlements" in kwargs or "provisioning_profile" in kwargs:
+    fail("macos_command_line_application does not support entitlements or " +
+         "provisioning profiles at this time")
+
+  binary_args = dict(kwargs)
+
+  deps = binary_args.pop("deps")
+
+  # If any of the Info.plist-affecting attributes is provided, create a merged
+  # Info.plist target. This target also propagates an objc provider that
+  # contains the linkopts necessary to add the Info.plist to the binary, so it
+  # must become a dependency of the binary as well.
+  bundle_id = binary_args.get("bundle_id")
+  infoplists = binary_args.get("infoplists")
+  version = binary_args.get("version")
+
+  if bundle_id or infoplists or version:
+    merged_infoplist_name = name + ".merged_infoplist"
+    merged_infoplist_lib_name = merged_infoplist_name + "_lib"
+
+    macos_command_line_infoplist(
+        name = merged_infoplist_name,
+        bundle_id = bundle_id,
+        infoplists = infoplists,
+        minimum_os_version = binary_args.get("minimum_os_version"),
+        version = version,
+    )
+    native.objc_library(
+        name = merged_infoplist_lib_name,
+        srcs = [macos_command_line_support.infoplist_source_label(
+            merged_infoplist_name)],
+    )
+    deps.extend([
+        ":" + merged_infoplist_name,
+        ":" + merged_infoplist_lib_name,
+    ])
+
+  cmd_line_app_args = binary_support.create_binary(
+      name,
+      str(apple_common.platform_type.macos),
+      deps=deps,
+      **binary_args)
+  cmd_line_app_args.pop("deps")
+
+  _macos_command_line_application(
+      name = name,
+      **cmd_line_app_args
   )
 
 

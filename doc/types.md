@@ -94,6 +94,14 @@ currently supported are:
       </td>
     </tr>
     <tr>
+      <td><code>tool</code></td>
+      <td>
+        <p>A command-line tool. This is the default product type for
+        <code>macos_command_line_application</code>; it does not need to be set
+        explicitly (and cannot be changed).</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>ui_test_bundle</code></td>
       <td>
         <p>A UI testing bundle (`.xctest`). This is the default product type for

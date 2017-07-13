@@ -29,6 +29,10 @@ The named target produced by this macro is a ZIP file. This macro also creates
 a target named `{name}.apple_binary` that represents the linked executable
 inside the application bundle.
 
+This rule creates an application that is a `.app` bundle. If you want to build a
+simple command line tool as a standalone binary, use
+[`macos_command_line_application`](#macos_command_line_application) instead.
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -164,6 +168,91 @@ inside the application bundle.
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final application.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="macos_command_line_application"></a>
+## macos_command_line_application
+
+```python
+macos_command_line_application(name, bundle_id, entitlements,
+infoplists, linkopts, minimum_os_version, provisioning_profile, deps)
+```
+
+Builds a macOS command line application.
+
+A command line application is a standalone binary file, rather than a `.app`
+bundle like those produced by [`macos_application`](#macos_application). Unlike
+a plain `apple_binary` target, however, this rule supports versioning and
+embedding an `Info.plist` into the binary and allows the binary to be
+code-signed.
+
+Targets created with `macos_command_line_application` can be executed using
+`blaze run`.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path followed by app name) of the
+        application.</p>
+        <p>If present, this value will be embedded in an <code>Info.plist</code>
+        in the application binary.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the application and is embedded
+        into the binary.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkopts</code></td>
+      <td>
+        <p><code>List of strings; optional</code></p>
+        <p>A list of strings representing extra flags that should be passed to
+        the linker.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum macOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.11"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--macos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies, such as libraries, that are linked into the
+        final binary. Any resources found in those dependencies are ignored.</p>
       </td>
     </tr>
   </tbody>

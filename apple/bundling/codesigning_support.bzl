@@ -112,27 +112,22 @@ def _embedded_provisioning_profile_name(ctx):
   return "embedded.mobileprovision"
 
 
-def _codesign_command(ctx,
-                      dir_to_sign,
-                      entitlements_file,
-                      optional=False):
+def _codesign_command(ctx, path_to_sign, entitlements_file):
   """Returns a single `codesign` command invocation.
 
   Args:
     ctx: The Skylark context.
-    dir_to_sign: The path inside the archive to the directory to sign.
+    path_to_sign: A struct indicating the path that should be signed and its
+        optionality (see `_path_to_sign`).
     entitlements_file: The entitlements file to pass to codesign. May be `None`
         for simulator builds or non-app binaries (e.g. test bundles).
-    optional: If true, silently do nothing if the target directory does
-        not exist. This is off by default to catch errors for "mandatory"
-        sign paths.
   Returns:
     The codesign command invocation for the given directory.
   """
-  full_dir = "$WORK_DIR/" + dir_to_sign
+  path = path_to_sign.path
   cmd_prefix = ""
-  if optional:
-    cmd_prefix += "ls %s >& /dev/null && " % full_dir
+  if path_to_sign.optional:
+    cmd_prefix += "ls %s >& /dev/null && " % path
 
   # The command returned by this function is executed as part of the final
   # bundling shell script. Each directory to be signed must be prefixed by
@@ -145,15 +140,32 @@ def _codesign_command(ctx,
           "--entitlements %s" % bash_quote(entitlements_file.path))
 
     return (cmd_prefix + "/usr/bin/codesign --force " +
-            "--sign $VERIFIED_ID %s %s" % (entitlements_flag, full_dir))
+            "--sign $VERIFIED_ID %s %s" % (entitlements_flag, path))
   else:
     # Use ad hoc signing for simulator builds.
-    full_dir = "$WORK_DIR/" + dir_to_sign
-    return cmd_prefix + '/usr/bin/codesign --force --sign "-" %s' % full_dir
+    return cmd_prefix + '/usr/bin/codesign --force --sign "-" %s' % path
+
+
+def _path_to_sign(path, optional=False):
+  """Returns a "path to sign" value to be passed to `signing_command_lines`.
+
+  Args:
+    path: The path to sign, relative to wherever the code signing command lines
+        are being executed. For example, with bundle signing these paths are
+        prefixed with a `$WORK_DIR` environment variable that points to the
+        location where the bundle is being constructed, but for simple binary
+        signing it is the path to the binary itself.
+    optional: If `True`, the path is an optional path that is ignored if it does
+        not exist. This is used to handle Frameworks directories cleanly since
+        they may or may not be present in the bundle.
+  Returns:
+    A `struct` that can be passed to `signing_command_lines`.
+  """
+  return struct(path=path, optional=optional)
 
 
 def _signing_command_lines(ctx,
-                           bundle_path_in_archive,
+                           paths_to_sign,
                            entitlements_file):
   """Returns a multi-line string with codesign invocations for the bundle.
 
@@ -163,7 +175,8 @@ def _signing_command_lines(ctx,
 
   Args:
     ctx: The Skylark context.
-    bundle_path_in_archive: The path to the bundle inside the archive.
+    paths_to_sign: A list of values returned from `path_to_sign` that indicate
+        paths that should be code-signed.
     entitlements_file: The entitlements file to pass to codesign.
   Returns:
     A multi-line string with codesign invocations for the bundle.
@@ -206,18 +219,15 @@ def _signing_command_lines(ctx,
     commands.append(
         _verify_signing_id_commands(ctx, identity, provisioning_profile))
 
-  commands.append(_codesign_command(ctx,
-                                    bundle_path_in_archive + "/Frameworks/*",
-                                    entitlements_file,
-                                    optional=True))
-  commands.append(_codesign_command(ctx,
-                                    bundle_path_in_archive,
-                                    entitlements_file))
+  for path_to_sign in paths_to_sign:
+    commands.append(_codesign_command(ctx, path_to_sign, entitlements_file))
+
   return "\n".join(commands)
 
 
 # Define the loadable module that lists the exported symbols in this file.
 codesigning_support = struct(
     embedded_provisioning_profile_name=_embedded_provisioning_profile_name,
+    path_to_sign=_path_to_sign,
     signing_command_lines=_signing_command_lines,
 )

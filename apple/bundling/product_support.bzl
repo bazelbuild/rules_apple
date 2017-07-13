@@ -34,6 +34,7 @@ apple_product_type = struct(
     messages_extension="com.apple.product-type.app-extension.messages",
     messages_sticker_pack_extension=(
         "com.apple.product-type.app-extension.messages-sticker-pack"),
+    tool="com.apple.product-type.tool",
     ui_test_bundle="com.apple.product-type.bundle.ui-testing",
     unit_test_bundle="com.apple.product-type.bundle.unit-test",
     watch2_application="com.apple.product-type.application.watchapp2",
@@ -67,6 +68,9 @@ product type identifier. The product types currently supported are:
 * `messages_sticker_pack_extension`: An extension that defines custom sticker
   packs for the Messages app. This product type does not contain a
   user-provided binary.
+* `tool`: A command-line tool. This is the default product type for
+  `macos_command_line_application`; it does not need to be set explicitly (and
+  cannot be changed).
 * `ui_test_bundle`: A UI testing bundle (.xctest). This is the default product
   type for those targets; it does not need to be set explicitly (and cannot be
   changed).
