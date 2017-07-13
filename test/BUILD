@@ -19,7 +19,7 @@ config_setting(
 
 apple_shell_test(
     name = "apple_bundle_version_test",
-    size = "small",
+    size = "medium",
     src = "apple_bundle_version_test.sh",
     configurations = {"default": []},
 )
