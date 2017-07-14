@@ -125,13 +125,24 @@ def swift_module_name(label):
   return label.package.lstrip("//").replace("/", "_") + "_" + label.name
 
 
-def _swift_lib_dir(apple_fragment, config_vars):
-  """Returns the location of swift runtime directory to link against."""
+def _swift_lib_dir(apple_fragment, config_vars, is_static=False):
+  """Returns the location of Swift runtime directory to link against.
+
+  Args:
+    apple_fragment: The Apple configuration fragment.
+    config_vars: The dictionary of configuration variables (i.e., `ctx.var`)
+        that affect compilation of this target.
+    is_static: If True, the static library directory will be used instead of the
+        dynamic library directory (currently available only on macOS).
+  Returns:
+    The location of the Swift runtime directory to link against.
+  """
+  dir_name = "swift_static" if is_static else "swift"
   platform_str = apple_fragment.single_arch_platform.name_in_plist.lower()
 
   if "xcode_toolchain_path" in config_vars:
-    return "{0}/usr/lib/swift/{1}".format(config_vars["xcode_toolchain_path"],
-                                          platform_str)
+    return "{0}/usr/lib/{1}/{2}".format(
+        config_vars["xcode_toolchain_path"], dir_name, platform_str)
 
   toolchain_name = "XcodeDefault"
   if hasattr(apple_fragment, "xcode_toolchain"):
@@ -143,14 +154,24 @@ def _swift_lib_dir(apple_fragment, config_vars):
     if toolchain == "com.apple.dt.toolchain.Swift_2_3":
       toolchain_name = "Swift_2.3"
 
-  return "{0}/Toolchains/{1}.xctoolchain/usr/lib/swift/{2}".format(
+  return "{0}/Toolchains/{1}.xctoolchain/usr/lib/{2}/{3}".format(
       apple_common.apple_toolchain().developer_dir(), toolchain_name,
-      platform_str)
+      dir_name, platform_str)
 
 
-def _swift_linkopts(apple_fragment, config_vars):
-  """Returns additional linker arguments for the given rule context."""
-  return depset(["-L" + _swift_lib_dir(apple_fragment, config_vars)])
+def swift_linkopts(apple_fragment, config_vars, is_static=False):
+  """Returns additional linker arguments needed to link Swift.
+
+  Args:
+    apple_fragment: The Apple configuration fragment.
+    config_vars: The dictionary of configuration variables (i.e., `ctx.var`)
+        that affect compilation of this target.
+    is_static: If True, the static library directory will be used instead of the
+        dynamic library directory (currently available only on macOS).
+  Returns:
+    Additional linker arguments needed to link Swift.
+  """
+  return ["-L" + _swift_lib_dir(apple_fragment, config_vars, is_static)]
 
 
 def _swift_xcrun_args(apple_fragment):
@@ -640,14 +661,24 @@ def register_swift_compile_actions(ctx, reqs):
 
   compile_outputs = [output_lib, output_module, output_header]
 
-  objc_provider = apple_common.new_objc_provider(
-      library=depset([output_lib]) + dep_libs,
-      header=depset([output_header]),
-      providers=objc_providers,
-      linkopt=_swift_linkopts(
-          reqs.apple_fragment, reqs.config_vars) + extra_linker_args,
-      link_inputs=depset([output_module]),
-      uses_swift=True,)
+  objc_provider_args = {
+      "library": depset([output_lib]) + dep_libs,
+      "header": depset([output_header]),
+      "providers": objc_providers,
+      "link_inputs": depset([output_module]),
+      "uses_swift": True,
+  }
+
+  # TODO(b/63674406): For macOS, don't propagate the runtime linker path flags,
+  # because we need to be able to be able to choose the static version of the
+  # library instead. Clean this up once the native bundling rules are deleted.
+  platform_type = ctx.fragments.apple.single_arch_platform.platform_type
+  if platform_type != apple_common.platform_type.macos:
+    objc_provider_args["linkopt"] = depset(
+        swift_linkopts(reqs.apple_fragment, reqs.config_vars) +
+        extra_linker_args, order="topological")
+
+  objc_provider = apple_common.new_objc_provider(**objc_provider_args)
 
   return compile_outputs, objc_provider, SwiftInfo(
       direct_lib=output_lib,

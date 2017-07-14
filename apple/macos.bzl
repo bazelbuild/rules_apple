@@ -23,6 +23,10 @@ load(
     "macos_command_line_infoplist",
     "macos_command_line_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
+    "swift_runtime_linkopts",
+)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -32,6 +36,26 @@ load(
     _macos_command_line_application="macos_command_line_application",
     _macos_extension="macos_extension",
 )
+
+
+def _create_swift_runtime_linkopts_target(name, deps, is_static):
+  """Creates a build target to propagate Swift runtime linker flags.
+
+  Args:
+    name: The name of the base target.
+    deps: The list of dependencies of the base target.
+    is_static: True to use the static Swift runtime, or False to use the
+        dynamic Swift runtime.
+  Returns:
+    A build label that can be added to the deps of the binary target.
+  """
+  swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
+  swift_runtime_linkopts(
+      name = swift_runtime_linkopts_name,
+      is_static = is_static,
+      deps = deps,
+  )
+  return ":" + swift_runtime_linkopts_name
 
 
 def macos_application(name, **kwargs):
@@ -80,16 +104,26 @@ def macos_application(name, **kwargs):
         defined by these targets will also be transitively included in the
         final application.
   """
+  binary_args = dict(kwargs)
+
   # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-  linkopts = kwargs.get("linkopts", [])
+  linkopts = binary_args.get("linkopts", [])
   linkopts += ["-rpath", "@executable_path/../Frameworks"]
-  kwargs["linkopts"] = linkopts
+  binary_args["linkopts"] = linkopts
+
+  original_deps = binary_args.pop("deps")
+  binary_deps = list(original_deps)
+
+  # Propagate the linker flags that dynamically link the Swift runtime.
+  binary_deps.append(
+      _create_swift_runtime_linkopts_target(name, original_deps, False))
 
   bundling_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.macos),
+      deps=binary_deps,
       features=["link_cocoa"],
-      **kwargs)
+      **binary_args)
 
   _macos_application(
       name = name,
@@ -132,7 +166,8 @@ def macos_command_line_application(name, **kwargs):
 
   binary_args = dict(kwargs)
 
-  deps = binary_args.pop("deps")
+  original_deps = binary_args.pop("deps")
+  binary_deps = list(original_deps)
 
   # If any of the Info.plist-affecting attributes is provided, create a merged
   # Info.plist target. This target also propagates an objc provider that
@@ -158,15 +193,21 @@ def macos_command_line_application(name, **kwargs):
         srcs = [macos_command_line_support.infoplist_source_label(
             merged_infoplist_name)],
     )
-    deps.extend([
+    binary_deps.extend([
         ":" + merged_infoplist_name,
         ":" + merged_infoplist_lib_name,
     ])
 
+  # Propagate the linker flags that statically link the Swift runtime.
+  binary_deps.append(
+      _create_swift_runtime_linkopts_target(name, original_deps, True))
+
+  # Create the unsigned binary, then run the command line application rule that
+  # signs it.
   cmd_line_app_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.macos),
-      deps=deps,
+      deps=binary_deps,
       **binary_args)
   cmd_line_app_args.pop("deps")
 
@@ -221,23 +262,32 @@ def macos_extension(name, **kwargs):
         defined by these targets will also be transitively included in the
         final extension.
   """
+  binary_args = dict(kwargs)
 
   # Add extension-specific linker options.
   # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-  linkopts = kwargs.get("linkopts", [])
+  linkopts = binary_args.get("linkopts", [])
   linkopts += [
       "-e", "_NSExtensionMain",
       "-rpath", "@executable_path/../Frameworks",
       "-rpath", "@executable_path/../../../../Frameworks",
   ]
-  kwargs["linkopts"] = linkopts
+  binary_args["linkopts"] = linkopts
+
+  original_deps = binary_args.pop("deps")
+  binary_deps = list(original_deps)
+
+  # Propagate the linker flags that dynamically link the Swift runtime.
+  binary_deps.append(
+      _create_swift_runtime_linkopts_target(name, original_deps, False))
 
   bundling_args = binary_support.create_binary(
       name,
       str(apple_common.platform_type.macos),
+      deps=binary_deps,
       extension_safe=True,
       features=["link_cocoa"],
-      **kwargs)
+      **binary_args)
 
   _macos_extension(
       name = name,
