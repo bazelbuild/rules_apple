@@ -84,9 +84,23 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "macos_application_swift_test",
+    size = "medium",
+    src = "macos_application_swift_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
     name = "macos_command_line_application_test",
     size = "medium",
     src = "macos_command_line_application_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "macos_command_line_application_swift_test",
+    size = "medium",
+    src = "macos_command_line_application_swift_test.sh",
     configurations = MACOS_CONFIGURATIONS,
 )
 
