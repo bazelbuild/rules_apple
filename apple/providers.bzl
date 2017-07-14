@@ -35,6 +35,7 @@ Fields:
       archive.
   bundle_id: `string`. The bundle identifier (i.e., `CFBundleIdentifier` in
       `Info.plist`) of the bundle.
+  bundle_name: `string`. The name of the bundle, without the extension.
   extension_safe: Boolean. True if the target propagating this provider was
       compiled and linked with -application-extension, restricting it to
       extension-safe APIs only.

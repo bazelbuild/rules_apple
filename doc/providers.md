@@ -73,6 +73,13 @@ rules&mdash;applications, extensions, frameworks, test bundles, and so forth.
       </td>
     </tr>
     <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String</code></p>
+        <p>The name of the bundle, without the extension.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplist</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/skylark/lib/File.html">File</a></code></p>
