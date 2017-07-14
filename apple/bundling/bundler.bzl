@@ -867,6 +867,7 @@ def _run(
   apple_bundle_info_args = {
       "archive": ctx.outputs.archive,
       "bundle_id": bundle_id,
+      "bundle_name": bundle_name,
       "extension_safe": extension_safe,
       "infoplist": main_infoplist,
       "minimum_os_version": platform_support.minimum_os(ctx),
