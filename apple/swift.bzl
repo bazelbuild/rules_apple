@@ -255,6 +255,7 @@ def swift_compile_requirements(
     apple_fragment,
     objc_fragment,
     swift_fragment,
+    objc_bridge_headers, 
     config_vars,
     default_configuration,
     genfiles_dir):
@@ -276,6 +277,7 @@ def swift_compile_requirements(
     apple_fragment: The Apple configuration fragment.
     objc_fragment: The Objective-C configuration fragment.
     swift_fragment: The Swift configuration fragment.
+    objc_bridge_headers: The objc bridging headers to import.
     config_vars: The dictionary of configuration variables (i.e., `ctx.var`)
         that affect compilation of this target.
     default_configuration: The default configuration retrieved from the rule
@@ -295,9 +297,10 @@ def swift_compile_requirements(
       apple_fragment=apple_fragment,
       objc_fragment=objc_fragment,
       swift_fragment=swift_fragment,
+      objc_bridge_headers=objc_bridge_headers,
       config_vars=config_vars,
       default_configuration=default_configuration,
-      genfiles_dir=genfiles_dir,
+      genfiles_dir=genfiles_dir
   )
 
 
@@ -364,8 +367,8 @@ def swiftc_args(ctx):
   reqs = swift_compile_requirements(
       ctx.files.srcs, ctx.attr.deps, ctx.attr.module_name, ctx.label,
       ctx.attr.swift_version, ctx.attr.copts, ctx.attr.defines,
-      ctx.fragments.apple, ctx.fragments.objc, ctx.fragments.swift, ctx.var,
-      ctx.configuration, ctx.genfiles_dir)
+      ctx.fragments.apple, ctx.fragments.objc, ctx.fragments.swift, 
+      ctx.attr.objc_bridge_headers, ctx.var, ctx.configuration, ctx.genfiles_dir)
   return _swiftc_args(reqs)
 
 
@@ -404,6 +407,7 @@ def _swiftc_args(reqs):
 
   swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
   objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
+  bridge_headers = reqs.objc_bridge_headers
 
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
@@ -437,6 +441,11 @@ def _swiftc_args(reqs):
   include_args = ["-I%s" % d for d in include_dirs + objc_includes]
   framework_args = ["-F%s" % x for x in framework_dirs]
   define_args = ["-D%s" % x for x in swiftc_defines]
+
+  bridge_header_args = _intersperse(
+      "-import-objc-header",
+      [x.path for x in bridge_headers]
+    )
 
   # Disable the LC_LINKER_OPTION load commands for static frameworks automatic
   # linking. This is needed to correctly deduplicate static frameworks from also
@@ -490,6 +499,7 @@ def _swiftc_args(reqs):
   args.extend(clang_args)
   args.extend(define_args)
   args.extend(autolink_args)
+  args.extend(bridge_header_args)
   args.extend(reqs.swift_fragment.copts())
   args.extend(reqs.copts)
 
@@ -710,7 +720,8 @@ def _swift_library_impl(ctx):
       ctx.attr.defines,
       ctx.fragments.apple,
       ctx.fragments.objc,
-      ctx.fragments.swift,
+      ctx.fragments.swift,       
+      ctx.files.objc_bridge_headers,
       ctx.var,
       ctx.configuration,
       ctx.genfiles_dir)
@@ -750,6 +761,7 @@ SWIFT_LIBRARY_ATTRS = {
         providers=[["swift"], [SwiftInfo], ["objc"]]
     ),
     "module_name": attr.string(mandatory=False),
+    "objc_bridge_headers": attr.label_list(allow_files = [".h"], allow_empty=True), 
     "defines": attr.string_list(mandatory=False, allow_empty=True),
     "copts": attr.string_list(mandatory=False, allow_empty=True),
     "resources": attr.label_list(
