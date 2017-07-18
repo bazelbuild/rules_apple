@@ -594,4 +594,34 @@ EOF
   expect_log 'does not have mandatory providers'
 }
 
+
+function test_application_and_extension_different_minimum_os() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_extension(
+    name = "ext",
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "8.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+}
+
 run_suite "ios_extension bundling tests"
