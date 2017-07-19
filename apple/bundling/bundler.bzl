@@ -748,7 +748,7 @@ def _run(
 
   # Include bitcode symbol maps when needed.
   if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
-    bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx)
+    bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx, binary_artifact)
     if bitcode_maps_zip:
       root_merge_zips.append(bundling_support.bundlable_file(
           bitcode_maps_zip, "BCSymbolMaps"))
