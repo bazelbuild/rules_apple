@@ -26,7 +26,7 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "join_commands")
 
 
-def _zip_bitcode_symbols_maps(ctx):
+def _zip_bitcode_symbols_maps(ctx, binary_artifact):
   """Creates an archive with bitcode symbol maps.
 
   The archive contains bitcode symbol map files produced by the linker and is
@@ -43,6 +43,7 @@ def _zip_bitcode_symbols_maps(ctx):
 
   Args:
     ctx: The Skylark context.
+    binary_artifact: The binary artifact being generated for the current rule.
   Returns:
     A `File` object representing the ZIP file containing the bitcode symbol
     maps, or `None` if no bitcode symbols were found.
@@ -58,14 +59,13 @@ def _zip_bitcode_symbols_maps(ctx):
       continue
 
     bitcode_symbol_inputs.append(bitcode_symbols)
-    binary = binary_support.get_binary_provider(ctx, apple_common.AppleExecutableBinary).binary
     # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
     copy_commands.append(
         ("cp {bcmap} " +
          "${{{{ZIPDIR}}}}/$(dwarfdump -u -arch {arch} {binary} " +
          "| cut -d' ' -f2).bcsymbolmap").format(
              arch=arch,
-             binary=binary.path,
+             binary=binary_artifact.path,
              bcmap=bitcode_symbols.path))
 
   if not bitcode_symbol_inputs:
@@ -75,7 +75,7 @@ def _zip_bitcode_symbols_maps(ctx):
 
   platform_support.xcode_env_action(
       ctx,
-      inputs=[binary] + bitcode_symbol_inputs,
+      inputs=[binary_artifact] + bitcode_symbol_inputs,
       outputs=[zip_file],
       command=["/bin/bash", "-c",
                ("set -e && " +
