@@ -54,6 +54,26 @@ def _uses_swift(ctx):
   return swift_provider.uses_swift
 
 
+def _targets_use_swift(targets):
+  """Returns True if any of the given targets uses Swift.
+
+  Note that this is not propagated through extensions or child apps (such as
+  Watch) -- that is, an Objective-C application that contains a Swift
+  application extension does not "use Swift" in the sense denoted by this
+  function.
+
+  Args:
+    targets: List of targets to check.
+  Returns:
+    True if any of the targets directly uses Swift; otherwise, False.
+  """
+  swift_providers = provider_support.matching_providers(
+      targets,
+      AppleBundlingSwiftInfo
+  )
+  return any([p.uses_swift for p in swift_providers])
+
+
 def _swift_runtime_linkopts_impl(ctx):
   """Implementation of the internal `swift_runtime_linkopts` rule.
 
@@ -68,7 +88,7 @@ def _swift_runtime_linkopts_impl(ctx):
     A `struct` containing the `objc` provider that should be propagated to a
     binary to dynamically or statically link the Swift runtime.
   """
-  if _uses_swift(ctx):
+  if _targets_use_swift(ctx.attr.deps):
     is_static = ctx.attr.is_static
     linkopts = swift_linkopts(ctx.fragments.apple, ctx.var, is_static=is_static)
     if is_static:
