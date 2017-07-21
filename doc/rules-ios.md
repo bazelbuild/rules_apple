@@ -710,13 +710,15 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
-      <td><code>runners</code></td>
+      <td><code>runner</code></td>
       <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
-        <p>The list of runner targets that contain the logic of how the tests
-        should be executed. This target needs to provide an
-        <code>AppleTestRunner</code> provider. This attribute is required and
-        must contain at least 2 runners.</p>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A target that will specify how the tests are to be run. This target
+        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
+        provider. The default runner can only run logic-based tests (i.e. tests
+        that do not rely on running a test host application). This is not the
+        case when running the tests from a Tulsi generated project, and both
+        logic and application based unit tests are supported in that scenario.</p>
       </td>
     </tr>
     <tr>
@@ -755,13 +757,13 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test_suite
 
 ```python
-ios_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
+ios_unit_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
 test_host, deps)
 ```
 
 Builds an XCTest unit test suite with the given runners.
 
-The following is a list of the `ios_unit_test` specific attributes; for a list
+The following is a list of the `ios_unit_test_suite` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
@@ -815,15 +817,13 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
-      <td><code>runner</code></td>
+      <td><code>runners</code></td>
       <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
-        provider. The default runner can only run logic-based tests (i.e. tests
-        that do not rely on running a test host application). This is not the
-        case when running the tests from a Tulsi generated project, and both
-        logic and application based unit tests are supported in that scenario.</p>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
+        <p>The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an
+        <code>AppleTestRunner</code> provider. This attribute is required and
+        must contain at least 2 runners.</p>
       </td>
     </tr>
     <tr>
