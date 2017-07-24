@@ -54,12 +54,14 @@ apple_bundle_version(
 
 ios_application(
     name = "HelloWorld",
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
     bundle_id = "com.example.hello-world",
     families = [
         "iphone",
         "ipad",
     ],
     infoplists = [":Phone-Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
     minimum_os_version = "9.0",
     version = ":HelloWorldVersion",
     watch_application = ":HelloWorld-WatchApplication",
@@ -68,6 +70,7 @@ ios_application(
 
 watchos_application(
     name = "HelloWorld-WatchApplication",
+    app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",
     extension = ":HelloWorld-WatchExtension",
     infoplists = [":WatchApp-Info.plist"],

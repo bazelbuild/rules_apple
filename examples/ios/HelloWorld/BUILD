@@ -27,12 +27,14 @@ apple_bundle_version(
 
 ios_application(
     name = "HelloWorld",
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
     bundle_id = "com.example.hello-world",
     families = [
         "iphone",
         "ipad",
     ],
     infoplists = [":Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
     minimum_os_version = "8.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
