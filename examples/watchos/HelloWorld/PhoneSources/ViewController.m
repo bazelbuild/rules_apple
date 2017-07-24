@@ -28,13 +28,6 @@
     [self showAlert:@"This example requires watchOS support."];
     return;
   }
-
-  WCSession *session = [WCSession defaultSession];
-  if (!session.watchAppInstalled) {
-    [self showAlert:@"Please ensure that the Hello World example watchOS "
-                    @"companion app is installed."];
-    return;
-  }
 }
 
 - (IBAction)initiateGreetingTapped:(UIButton *)sender {
