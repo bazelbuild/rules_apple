@@ -74,8 +74,10 @@ def _coverage_files_aspect_impl(target, ctx):
   if hasattr(ctx.rule.attr, "deps"):
     for dep in ctx.rule.attr.deps:
       coverage_files += dep[CoverageFiles].coverage_files
-  if hasattr(ctx.rule.attr, "binary"):
-    coverage_files += ctx.rule.attr.binary[CoverageFiles].coverage_files
+  for attr in ["binary", "test_host"]:
+    if hasattr(ctx.rule.attr, attr):
+      coverage_files += (
+          getattr(ctx.rule.attr, attr)[CoverageFiles].coverage_files)
 
   return struct(providers=[CoverageFiles(coverage_files=coverage_files)])
 
