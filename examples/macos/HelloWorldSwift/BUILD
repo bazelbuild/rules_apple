@@ -30,6 +30,7 @@ apple_bundle_version(
 
 macos_application(
     name = "HelloWorldSwift",
+    app_icons = ["//examples/resources:MacAppIcon.xcassets"],
     bundle_id = "com.example.hello-world-swift",
     infoplists = [":Info.plist"],
     minimum_os_version = "10.11",
