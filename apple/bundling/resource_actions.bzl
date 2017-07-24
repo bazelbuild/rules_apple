@@ -201,6 +201,44 @@ def _compile_plist(ctx, input_file, resource_info):
       ]),
   )
 
+def _png_copy(ctx, input_file, resource_info):
+  """Creates an action that copies and compresses a png using copypng.
+
+  Args:
+    ctx: The Skylark context.
+    input_file: The png file to be copied.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
+  Returns:
+    A struct as defined by `_process_resources` that will be merged with those
+    from other processing functions.
+  """
+  bundle_dir = resource_info.bundle_dir
+
+  path = resource_info.path_transform(input_file)
+  out_file = file_support.intermediate(
+      ctx, "%{name}.resources/%{path}", path=path, prefix=bundle_dir)
+
+  xcrun_action(
+      ctx,
+      inputs=[input_file],
+      outputs=[out_file],
+      arguments=[
+          "copypng",
+          "--strip-PNG-text",
+          "--compress",
+          input_file.path,
+          out_file.path,
+      ],
+      mnemonic="CopyPng",
+  )
+
+  full_bundle_path = optionally_prefixed_path(path, bundle_dir)
+  return struct(
+      bundle_merge_files=depset([
+          bundling_support.resource_file(ctx, out_file, full_bundle_path)
+      ]),
+  )
 
 def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
   """Returns command line arguments needed to compile special assets.
@@ -700,6 +738,8 @@ _ALL_GROUPING_RULES = [
     # Interface Builder files.
     (("storyboard",),              _arity.each, True,  _ibtool_compile),
     (("xib",),                     _arity.each, True,  _ibtool_compile),
+    # Other files.
+    (("png",),                     _arity.each, True,  _png_copy),
 ] + _PLIST_AND_STRING_GROUPING_RULES
 
 

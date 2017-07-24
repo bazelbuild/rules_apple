@@ -7,6 +7,7 @@ exports_files([
     "nonlocalized.plist",
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
+    "sample.png",
     "storyboard_ios.storyboard",
     "view_ios.xib",
 ])
@@ -43,6 +44,7 @@ filegroup(
         "nonlocalized.plist",
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
+        "sample.png",
         ":basic_bundle_files",
         ":localized_generic_resources",
         ":localized_plists",
@@ -104,6 +106,7 @@ objc_bundle_library(
     resources = [
         "nonlocalized.plist",
         "nonlocalized_resource.txt",
+        "sample.png",
         ":localized_generic_resources",
         ":localized_plists",
         ":mapping_model",

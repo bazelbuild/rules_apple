@@ -69,6 +69,7 @@ objc_library(
     resources = [
         "@build_bazel_rules_apple//test/testdata/resources:mapping_model",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
+        "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],
     storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
@@ -114,6 +115,10 @@ EOF
   # Verify compiled storyboards.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/storyboard_ios.storyboardc/"
+
+  # Verify png copied.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/sample.png"
 
   # Verify strings and plists (that they exist and that they are in binary
   # format).
