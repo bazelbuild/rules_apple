@@ -225,8 +225,8 @@ def _png_copy(ctx, input_file, resource_info):
       outputs=[out_file],
       arguments=[
           "copypng",
-          "--strip-PNG-text",
-          "--compress",
+          "-strip-PNG-text",
+          "-compress",
           input_file.path,
           out_file.path,
       ],
