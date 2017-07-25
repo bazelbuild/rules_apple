@@ -315,6 +315,7 @@ def _make_bundling_rule(implementation,
                         code_signing=None,
                         device_families=None,
                         needs_pkginfo=True,
+                        output_name_attribute="name",
                         path_formats=None,
                         platform_type=None,
                         product_type=None,
@@ -336,6 +337,10 @@ def _make_bundling_rule(implementation,
     device_families: A value returned by `rule_factory.device_families` that
         provides information about the allowed device families for the bundle.
     needs_pkginfo: True if the bundle should include a `PkgInfo` file.
+    output_name_attribute: The name of the attribute that should be used as the
+        basename of the output archive. This argument is only being added to
+        support some legacy Google-internal rules and it should not be used for
+        any new rules going forward.
     path_formats: A dictionary containing bundle path format attributes, as
         returned from `rule_factory.simple_path_formats` or
         `rule_factory.macos_path_formats`.
@@ -435,9 +440,13 @@ def _make_bundling_rule(implementation,
       product_type_attrs,
       additional_attrs,
   )
+
+  # TODO(b/38505885): Revert this back to "%{name}" when users of
+  # output_name_attribute have been fixed.
+  archive_name = "%%{%s}%s" % (output_name_attribute, archive_extension)
   return rule(implementation,
               fragments=["apple", "objc"],
-              outputs={"archive": "%{name}" + archive_extension},
+              outputs={"archive": archive_name},
               **rule_args)
 
 
