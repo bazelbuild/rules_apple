@@ -311,7 +311,6 @@ def _make_bundling_rule(implementation,
                         additional_attrs={},
                         archive_extension=None,
                         binary_providers=[apple_common.AppleExecutableBinary],
-                        bundle_extension=None,
                         code_signing=None,
                         device_families=None,
                         needs_pkginfo=True,
@@ -330,8 +329,6 @@ def _make_bundling_rule(implementation,
         new rule, including the leading dot (for example, `.ipa` or `.zip`).
     binary_providers: The providers that should restrict the `binary` attribute
         of the rule. Defaults to `[apple_common.AppleExecutableBinary]`.
-    bundle_extension: The extension of the bundle directory produced by the new
-        rule, including the leading dot (for example, `.app` or `.appex`).
     code_signing: A value returned by `rule_factory.code_signing` that provides
         information about if and how the bundle should be signed.
     device_families: A value returned by `rule_factory.device_families` that
@@ -359,8 +356,6 @@ def _make_bundling_rule(implementation,
     fail("Internal error: archive_extension must be provided.")
   if not binary_providers:
     fail("Internal error: binary_providers must be provided.")
-  if not bundle_extension:
-    fail("Internal error: bundle_extension must be provided.")
   if not device_families:
     fail("Internal error: device_families must be provided.")
   if not path_formats:
@@ -429,7 +424,6 @@ def _make_bundling_rule(implementation,
           "minimum_os_version": attr.string(mandatory=False),
           "strings": attr.label_list(allow_files=[".strings"]),
           "version": attr.label(providers=[[AppleBundleVersionInfo]]),
-          "_bundle_extension": attr.string(default=bundle_extension),
           "_needs_pkginfo": attr.bool(default=needs_pkginfo),
           "_platform_type": attr.string(default=str(platform_type)),
           "_propagates_frameworks": attr.bool(default=propagates_frameworks),

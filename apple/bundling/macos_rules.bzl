@@ -115,7 +115,6 @@ macos_application = rule_factory.make_bundling_rule(
         ),
     },
     archive_extension=".zip",
-    bundle_extension=".app",
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False
     ),
@@ -216,7 +215,6 @@ macos_extension = rule_factory.make_bundling_rule(
         "app_icons": attr.label_list(allow_files=True),
     },
     archive_extension=".zip",
-    bundle_extension=".appex",
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False
     ),

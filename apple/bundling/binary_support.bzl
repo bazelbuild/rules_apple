@@ -59,7 +59,7 @@ def _get_binary_provider(ctx, provider_key):
 def _create_stub_binary_target(
     name,
     platform_type,
-    product_type_info,
+    stub_descriptor,
     **kwargs):
   """Creates a binary target for a bundle by copying a stub from the SDK.
 
@@ -75,7 +75,7 @@ def _create_stub_binary_target(
     name: The name of the bundle target, from which the binary target's name
         will be derived.
     platform_type: The platform type for which the binary should be copied.
-    product_type_info: The information about the product type's stub executable.
+    stub_descriptor: The information about the product type's stub executable.
     **kwargs: The arguments that were passed into the top-level macro.
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
@@ -93,7 +93,7 @@ def _create_stub_binary_target(
       name = apple_binary_name,
       minimum_os_version = minimum_os_version,
       platform_type = platform_type,
-      xcenv_based_path = product_type_info.stub_path,
+      xcenv_based_path = stub_descriptor.xcenv_based_path,
       deps = deps,
       tags = ["manual"] + kwargs.get("tags", []),
       testonly = kwargs.get("testonly"),
@@ -244,10 +244,11 @@ def _create_binary(name, platform_type, **kwargs):
   if not product_type:
     product_type = args_copy.get("product_type")
 
-  product_type_info = product_support.product_type_info(product_type)
-  if product_type_info and product_type_info.stub_path:
+  product_type_descriptor = product_support.product_type_descriptor(
+      product_type)
+  if product_type_descriptor and product_type_descriptor.stub:
     return _create_stub_binary_target(
-        name, platform_type, product_type_info, **args_copy)
+        name, platform_type, product_type_descriptor.stub, **args_copy)
   else:
     return _create_linked_binary_target(
         name, platform_type, linkopts, sdk_frameworks, extension_safe,

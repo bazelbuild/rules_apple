@@ -28,7 +28,7 @@ load(
 )
 
 
-def _create_stub_zip_for_archive_merging(ctx, stub_binary, product_info):
+def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
   """Registers an action that creates a ZIP of a stub executable.
 
   When uploading an archive to Apple, product types that involve stub
@@ -39,14 +39,14 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, product_info):
   Args:
     ctx: The Skylark context.
     stub_binary: The stub binary executable to ZIP.
-    product_info: The product type info struct.
+    stub_descriptor: The stub descriptor.
   Returns:
     A `File` that is the zip that should be merged into the archive root.
   """
   product_support_zip = ctx.new_file(ctx.label.name + "-Support.zip")
   product_support_path = bash_quote(product_support_zip.path)
   product_support_basename = product_support_zip.basename
-  archive_path = bash_quote(product_info.archive_path)
+  archive_path = bash_quote(stub_descriptor.path_in_archive)
 
   platform, _ = platform_support.platform_and_sdk_version(ctx)
   platform_name = platform.name_in_plist
