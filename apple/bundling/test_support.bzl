@@ -37,6 +37,10 @@ def _new_xctest_app_provider(ctx):
   for field in _WHITELISTED_TEST_OBJC_PROVIDER_FIELDS:
 
     objc_provider = binary_support.get_binary_provider(ctx, "objc")
+    if not objc_provider:
+      objc_provider = binary_support.get_binary_provider(
+          ctx, apple_common.AppleExecutableBinary).objc
+
     if not hasattr(objc_provider, field):
       # Skip missing attributes from objc provider. This enables us to add
       # fields yet to be released into the list of whitelisted fields that
