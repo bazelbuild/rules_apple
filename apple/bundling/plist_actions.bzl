@@ -26,6 +26,7 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundleVersionInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
+     "merge_dictionaries",
      "remove_extension")
 
 
@@ -153,9 +154,13 @@ def _merge_infoplists(ctx,
 
     # Collect any values for special product types that we have to manually put
     # in (duplicating what Xcode apparently does under the hood).
-    product_info = product_support.product_type_info_for_target(ctx)
-    if product_info and product_info.additional_infoplist_values:
-      additional_infoplist_values = product_info.additional_infoplist_values
+    product_type = product_support.product_type(ctx)
+    product_type_descriptor = product_support.product_type_descriptor(
+        product_type)
+    if product_type_descriptor:
+      additional_infoplist_values = merge_dictionaries(
+          additional_infoplist_values,
+          product_type_descriptor.additional_infoplist_values)
 
     forced_plists += [
         environment_plist.path,

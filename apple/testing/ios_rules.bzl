@@ -81,7 +81,6 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     # TODO(b/34774324): Rename to zip.
     archive_extension=".ipa",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
-    bundle_extension=".xctest",
     code_signing=rule_factory.code_signing(
         ".mobileprovision",
         requires_signing_for_device=False

@@ -699,21 +699,25 @@ def _run(
 
   # Some application/extension types require stub executables, so collect that
   # information if necessary.
-  product_info = product_support.product_type_info_for_target(ctx)
-  if product_info:
+  product_type = product_support.product_type(ctx)
+  product_type_descriptor = product_support.product_type_descriptor(
+      product_type)
+  if product_type_descriptor and product_type_descriptor.stub:
+    stub_descriptor = product_type_descriptor.stub
     has_built_binary = False
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, ctx.file.binary, bundle_name, executable=True))
-    if product_info.bundle_path:
+    if stub_descriptor.additional_bundle_path:
       # TODO(b/34684393): Figure out if macOS ever uses stub binaries for any
       # product types, and if so, is this the right place for them?
       bundle_merge_files.append(bundling_support.contents_file(
-          ctx, ctx.file.binary, product_info.bundle_path, executable=True))
+          ctx, ctx.file.binary, stub_descriptor.additional_bundle_path,
+          executable=True))
     # TODO(b/34047985): This should be conditioned on a flag, not just
     # compilation mode.
     if ctx.var["COMPILATION_MODE"] == "opt":
       support_zip = product_actions.create_stub_zip_for_archive_merging(
-          ctx, ctx.file.binary, product_info)
+          ctx, ctx.file.binary, stub_descriptor)
       root_merge_zips.append(bundling_support.bundlable_file(support_zip, "."))
   elif hasattr(ctx.attr, "deps"):
     if not ctx.attr.deps:
@@ -794,7 +798,7 @@ def _run(
     fail("Valid values for --define=bazel_rules_apple.experimental_bundling" +
          "are: bundle_and_archive, bundle_only, off.")
   # Only use experimental bundling for main app's bundle.
-  if ctx.attr._bundle_extension != ".app":
+  if bundling_support.bundle_name_with_extension(ctx).endswith(".app"):
     experimental_bundling = "off"
   if experimental_bundling in ("bundle_and_archive", "bundle_only"):
     out_bundle = ctx.experimental_new_directory(

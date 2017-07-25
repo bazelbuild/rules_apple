@@ -109,7 +109,6 @@ tvos_application = rule_factory.make_bundling_rule(
         "settings_bundle": attr.label(providers=[["objc"]]),
     },
     archive_extension=".ipa",
-    bundle_extension=".app",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["tv"]),
     executable=True,
@@ -143,7 +142,6 @@ def _tvos_extension_impl(ctx):
 tvos_extension = rule_factory.make_bundling_rule(
     _tvos_extension_impl,
     archive_extension=".zip",
-    bundle_extension=".appex",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["tv"]),
     needs_pkginfo=False,

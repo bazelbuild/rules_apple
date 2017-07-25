@@ -14,6 +14,11 @@
 
 """Low-level bundling name helpers."""
 
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "product_support",
+)
+
 
 def _binary_file(ctx, src, dest, executable=False):
   """Returns a bundlable file whose destination is in the binary directory.
@@ -92,7 +97,15 @@ def _bundle_name_with_extension(ctx):
   Returns:
     The bundle name with its extension.
   """
-  return _bundle_name(ctx) + getattr(ctx.attr, "_bundle_extension", "")
+  ext = getattr(ctx.attr, "bundle_extension", "")
+  if not ext:
+    product_type = product_support.product_type(ctx)
+    product_type_descriptor = product_support.product_type_descriptor(
+        product_type)
+    if product_type_descriptor:
+      ext = product_type_descriptor.bundle_extension
+
+  return _bundle_name(ctx) + ext
 
 
 def _contents_file(ctx, src, dest, executable=False):
