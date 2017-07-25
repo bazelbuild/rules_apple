@@ -103,6 +103,22 @@ def _create_stub_binary_target(
   bundling_args["binary"] = apple_binary_name
   bundling_args["deps"] = [apple_binary_name]
 
+  # For device builds, make sure that the stub binary still gets signed with the
+  # appropriate entitlements (and that they have their substitutions applied).
+  entitlements_value = kwargs.get("entitlements")
+  provisioning_profile = kwargs.get("provisioning_profile")
+  if entitlements and provisioning_profile:
+    entitlements_name = "%s_entitlements" % name
+    entitlements(
+        name = entitlements_name,
+        bundle_id = kwargs.get("bundle_id"),
+        entitlements = entitlements_value,
+        platform_type = platform_type,
+        provisioning_profile = provisioning_profile,
+    )
+    bundling_args["entitlements"] = entitlements_support.device_file_label(
+        entitlements_name)
+
   return bundling_args
 
 
