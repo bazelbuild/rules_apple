@@ -39,7 +39,7 @@ objc_library(
 )
 
 ios_application(
-    name = "phone_app",
+    name = "app",
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-PhoneApp.plist"],
@@ -52,6 +52,7 @@ ios_application(
 watchos_application(
     name = "watch_app",
     bundle_id = "my.bundle.id.watch_app",
+    entitlements = "entitlements.entitlements",
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "2.0",
@@ -62,6 +63,7 @@ watchos_application(
 watchos_extension(
     name = "watch_ext",
     bundle_id = "my.bundle.id.watch_app.watch_ext",
+    entitlements = "entitlements.entitlements",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
@@ -112,6 +114,17 @@ EOF
   };
 }
 EOF
+
+  cat > app/entitlements.entitlements <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>test-an-entitlement</key>
+  <false/>
+</dict>
+</plist>
+EOF
 }
 
 # Asserts that the common OS and environment plist values in the watch
@@ -152,8 +165,8 @@ function assert_common_watch_app_and_extension_plist_values() {
 # content.
 function test_watch_app_plist_contents() {
   create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/Info.plist" \
+  create_dump_plist "//app:app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -183,8 +196,8 @@ function test_watch_app_plist_contents() {
 # content.
 function test_watch_ext_plist_contents() {
   create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/Info.plist" \
+  create_dump_plist "//app:app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -213,8 +226,8 @@ function test_watch_ext_plist_contents() {
 # Tests that the watch application is signed correctly.
 function test_watch_application_is_signed() {
   create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app" -vv
+  create_dump_codesign "//app:app.ipa" \
+      "Payload/app.app/Watch/watch_app.app" -vv
   do_build watchos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -224,8 +237,8 @@ function test_watch_application_is_signed() {
 # Tests that the watch extension is signed correctly.
 function test_watch_extension_is_signed() {
   create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" -vv
+  create_dump_codesign "//app:app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" -vv
   do_build watchos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -238,27 +251,27 @@ function test_contains_provisioning_profile() {
   is_device_build watchos || return 0
 
   create_minimal_watchos_application_with_companion
-  do_build watchos //app:phone_app || fail "Should build"
+  do_build watchos //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/embedded.mobileprovision"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/embedded.mobileprovision"
 }
 
 # Tests that the watch application and IPA contain the WatchKit stub executable
 # in the appropriate bundle and top-level support directories.
 function test_contains_stub_executable() {
   create_minimal_watchos_application_with_companion
-  do_build watchos //app:phone_app || fail "Should build"
+  do_build watchos //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/_WatchKitStub/WK"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/_WatchKitStub/WK"
 
   # Ignore the check for simulator builds.
   is_device_build watchos || return 0
 
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "test-bin/app/app.ipa" \
     "WatchKitSupport2/WK"
 }
 
@@ -269,13 +282,13 @@ function test_bitcode_symbol_maps_packaging() {
 
   create_minimal_watchos_application_with_companion
 
-  do_build watchos //app:phone_app \
+  do_build watchos //app:app \
       --apple_bitcode=embedded || fail "Should build"
 
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/phone_app"
-  assert_ipa_contains_bitcode_maps watchos "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext"
+  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+      "Payload/app.app/app"
+  assert_ipa_contains_bitcode_maps watchos "test-bin/app/app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext"
 }
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
@@ -289,6 +302,52 @@ function test_linkmaps_generated() {
   for arch in "${archs[@]}"; do
     assert_exists "test-bin/app/watch_ext_${arch}.linkmap"
   done
+}
+
+# Tests that entitlements are added to the application correctly. This appears
+# to matter only for device builds, where the stub binary is signed with the
+# entitlements. For simulator builds, which would normally inject the
+# entitlements using the linker for traditional apps, Xcode appears to simply
+# ignore them.
+function test_watch_application_entitlements() {
+  create_minimal_watchos_application_with_companion
+
+  if is_device_build watchos ; then
+    create_dump_codesign "//app:app.ipa" \
+        "Payload/app.app/Watch/watch_app.app" -d --entitlements :-
+    do_build watchos //app:dump_codesign || fail "Should build"
+
+    assert_contains "<key>test-an-entitlement</key>" \
+        "test-genfiles/app/codesign_output"
+  fi
+}
+
+# Tests that entitlements are added to the watch extension correctly. For debug
+# builds, we make sure that the appropriate Mach-O section is present; for
+# release builds, we check the code signing.
+function test_watch_extension_entitlements() {
+  create_minimal_watchos_application_with_companion
+
+  if is_device_build watchos ; then
+    # For device builds, we verify that the entitlements are in the codesign
+    # output.
+    create_dump_codesign "//app:app.ipa" \
+        "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" \
+        -d --entitlements :-
+    do_build watchos //app:dump_codesign || fail "Should build"
+
+    assert_contains "<key>test-an-entitlement</key>" \
+        "test-genfiles/app/codesign_output"
+  else
+    # For simulator builds, the entitlements are added as a Mach-O section in
+    # the binary.
+    do_build watchos //app:app || fail "Should build"
+
+    unzip_single_file "test-bin/app/app.ipa" \
+        "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext" | \
+        print_debug_entitlements - | \
+        assert_contains "<key>test-an-entitlement</key>" -
+  fi
 }
 
 run_suite "watchos_application bundling tests"
