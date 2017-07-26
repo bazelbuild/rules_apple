@@ -210,6 +210,7 @@ def macos_command_line_application(name, **kwargs):
       deps=binary_deps,
       **binary_args)
   cmd_line_app_args.pop("deps")
+  cmd_line_app_args.pop("entitlements")
 
   _macos_command_line_application(
       name = name,

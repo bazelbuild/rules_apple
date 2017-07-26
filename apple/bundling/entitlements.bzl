@@ -22,6 +22,18 @@ load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
 load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
+AppleEntitlementsInfo = provider()
+"""Propagates information about entitlements to the bundling rules.
+
+This provider is an internal implementation detail of the bundling rules and
+should not be used directly by users.
+
+Args:
+  entitlements: A `File` representing the `.entitlements` file that should be
+      used during code signing of device builds. May be `None`.
+"""
+
+
 def _new_entitlements_artifact(ctx, extension):
   """Returns a new file artifact for entitlements.
 
@@ -119,25 +131,34 @@ def _substitute_entitlements_action(ctx,
     input_entitlements: The entitlements file with placeholders that must be
         substituted.
     team_prefix_file: The file containing the team prefix extracted from the
-        provisioning profile.
+        provisioning profile, or None if this value should not be substituted.
     output_entitlements: The file to which the substituted entitlements should
         be written.
   """
   bundle_id = ctx.attr.bundle_id
 
+  inputs = [input_entitlements]
+  if team_prefix_file:
+    inputs.append(team_prefix_file)
+
+  command_line = "set -e && "
+  if team_prefix_file:
+    command_line += ("PREFIX=\"$(cat " + bash_quote(team_prefix_file.path) +
+                     ")\" && ")
+  command_line += "sed "
+  if bundle_id:
+    command_line += ("-e \"s#${PREFIX}\\.\\*#${PREFIX}." + bundle_id + "#g\" " +
+                     "-e \"s#\\$(CFBundleIdentifier)#" + bundle_id + "#g\" ")
+  if team_prefix_file:
+    command_line += "-e \"s#\\$(AppIdentifierPrefix)#${PREFIX}.#g\" "
+
+  command_line += (bash_quote(input_entitlements.path) +
+                   " > " + bash_quote(output_entitlements.path))
+
   ctx.action(
-      inputs=[input_entitlements, team_prefix_file],
+      inputs=inputs,
       outputs=[output_entitlements],
-      command=(
-          "set -e && " +
-          "PREFIX=\"$(cat " + bash_quote(team_prefix_file.path) + ")\" && " +
-          "sed " +
-          "-e \"s#${PREFIX}\\.\\*#${PREFIX}." + bundle_id + "#g\" " +
-          "-e \"s#\\$(AppIdentifierPrefix)#${PREFIX}.#g\" " +
-          "-e \"s#\\$(CFBundleIdentifier)#" + bundle_id + "#g\" " +
-          bash_quote(input_entitlements.path) +
-          " > " + bash_quote(output_entitlements.path)
-      ),
+      command=command_line,
       mnemonic = "SubstituteAppleEntitlements",
   )
 
@@ -149,13 +170,20 @@ def _include_debug_entitlements(ctx):
   and if the --device_debug_entitlements command-line option indicates that
   they should be included.
 
+  Debug entitlements are also not used on macOS.
+
   Args:
     ctx: The Skylark context.
   Returns:
     True if the debug entitlements should be included, otherwise False.
   """
-  uses_debug_entitlements = ctx.fragments.objc.uses_device_debug_entitlements
-  return uses_debug_entitlements and ctx.file._debug_entitlements
+  if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
+    return False
+  if not ctx.fragments.objc.uses_device_debug_entitlements:
+    return False
+  if not ctx.file._debug_entitlements:
+    return False
+  return True
 
 
 def _register_merge_entitlements_action(ctx,
@@ -231,46 +259,67 @@ def _entitlements_impl(ctx):
     linker options, if necessary.
   """
   is_device = platform_support.is_device_build(ctx)
-  if not ctx.file.provisioning_profile and is_device:
-    fail("The provisioning_profile attribute must be set for device builds.")
 
-  team_prefix_file = _extract_team_prefix_action(ctx)
-
-  # Use the entitlements from the target if given; otherwise, extract them from
-  # the provisioning profile.
-  entitlements_needing_substitution = (
-      ctx.file.entitlements or _extract_entitlements_action(ctx))
-
-  # The ordering of this can be slightly confusing because the actions aren't
-  # registered in the same order that they would be executed (because
-  # registering actions just builds the dependency graph). If debug
-  # entitlements are not being included, we simply make substitutions in the
-  # target's entitlements and write that to the final entitlements file. If
-  # debug entitlements are included, then we make the substitutions in the
-  # target's entitlements, merge that with the debug entitlements, and the
-  # result is used as the final entitlements.
-  if _include_debug_entitlements(ctx):
-    substituted_entitlements = _new_entitlements_artifact(ctx, ".substituted")
-
-    _register_merge_entitlements_action(
-        ctx,
-        input_entitlements=[
-            substituted_entitlements,
-            ctx.file._debug_entitlements
-        ],
-        merged_entitlements=ctx.outputs.device_entitlements)
+  if ctx.file.provisioning_profile:
+    team_prefix_file = _extract_team_prefix_action(ctx)
+    # Use the entitlements from the target if given; otherwise, extract them
+    # from the provisioning profile.
+    entitlements_needing_substitution = (
+        ctx.file.entitlements or _extract_entitlements_action(ctx))
   else:
-    substituted_entitlements = ctx.outputs.device_entitlements
+    team_prefix_file = None
+    entitlements_needing_substitution = ctx.file.entitlements
 
-  _substitute_entitlements_action(ctx, entitlements_needing_substitution,
-                                  team_prefix_file,
-                                  substituted_entitlements)
-
+  uses_debug_entitlements = _include_debug_entitlements(ctx)
   symbol_function = "void %s(){}" % (_simulator_function(ctx.label.name))
-  device_path = bash_quote(ctx.outputs.device_entitlements.path)
+
+  # If we don't have any entitlements (explicit, from the provisioning profile,
+  # or debug ones), then create an empty .c file and return empty providers.
+  if not entitlements_needing_substitution and not uses_debug_entitlements:
+    ctx.file_action(
+        output=ctx.outputs.simulator_source,
+        content=symbol_function,
+    )
+    return struct(
+        objc=apple_common.new_objc_provider(),
+        providers=[AppleEntitlementsInfo(entitlements=None)],
+    )
+
+  if entitlements_needing_substitution:
+    signing_entitlements = ctx.new_file("%s.entitlements" % ctx.label.name)
+
+    # The ordering of this can be slightly confusing because the actions aren't
+    # registered in the same order that they would be executed (because
+    # registering actions just builds the dependency graph). If debug
+    # entitlements are not being included, we simply make substitutions in the
+    # target's entitlements and write that to the final entitlements file. If
+    # debug entitlements are included, then we make the substitutions in the
+    # target's entitlements, merge that with the debug entitlements, and the
+    # result is used as the final entitlements.
+    if _include_debug_entitlements(ctx):
+      substituted_entitlements = _new_entitlements_artifact(ctx, ".substituted")
+
+      _register_merge_entitlements_action(
+          ctx,
+          input_entitlements=[
+              substituted_entitlements,
+              ctx.file._debug_entitlements
+          ],
+          merged_entitlements=signing_entitlements)
+    else:
+      substituted_entitlements = signing_entitlements
+
+    _substitute_entitlements_action(ctx,
+                                    entitlements_needing_substitution,
+                                    team_prefix_file,
+                                    substituted_entitlements)
+  else:
+    signing_entitlements = ctx.file._debug_entitlements
+
+  device_path = bash_quote(signing_entitlements.path)
   simulator_path = bash_quote(ctx.outputs.simulator_source.path)
   ctx.action(
-      inputs=[ctx.outputs.device_entitlements],
+      inputs=[signing_entitlements],
       outputs=[ctx.outputs.simulator_source],
       # Add the empty function that we require to enforce linkage then
       # add the commented out plist text
@@ -297,11 +346,18 @@ def _entitlements_impl(ctx):
   # option from being added to release builds because it is incompatible with
   # Bitcode, if users have that enabled as well.
   if not is_device:
-    return struct(objc=apple_common.new_objc_provider(
-        linkopt=depset(_link_opts(ctx.label.name), order="topological"),
-    ))
+    return struct(
+        objc=apple_common.new_objc_provider(
+            linkopt=depset(_link_opts(ctx.label.name), order="topological"),
+        ),
+    )
   else:
-    return struct(objc=apple_common.new_objc_provider())
+    return struct(
+        objc=apple_common.new_objc_provider(),
+        providers=[
+            AppleEntitlementsInfo(entitlements=signing_entitlements),
+        ],
+    )
 
 
 def _device_file_label(name):
@@ -386,7 +442,7 @@ entitlements = rule(
     implementation=_entitlements_impl,
     attrs={
         "bundle_id": attr.string(
-            mandatory=True,
+            mandatory=False,
         ),
         "_debug_entitlements": attr.label(
             cfg="host",
@@ -412,7 +468,6 @@ entitlements = rule(
     },
     fragments=["apple", "objc"],
     outputs={
-        "device_entitlements": _device_file_label("%{name}"),
         "simulator_source": _simulator_file_label("%{name}"),
     },
 )
@@ -421,6 +476,5 @@ entitlements = rule(
 # Define the loadable module that lists the exported macros in this file.
 # Note that the entitlements rule is exported separately.
 entitlements_support = struct(
-    device_file_label=_device_file_label,
     simulator_file_label=_simulator_file_label,
 )

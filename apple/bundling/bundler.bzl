@@ -61,6 +61,10 @@ load(
     "debug_symbol_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
+    "AppleEntitlementsInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
     "file_actions",
 )
@@ -395,8 +399,16 @@ def _process_and_sign_archive(ctx,
   script_inputs = [unprocessed_archive]
 
   entitlements = None
-  if hasattr(ctx.file, "entitlements") and ctx.file.entitlements:
-    entitlements = ctx.file.entitlements
+  # Use the entitlements from the internal provider if it's present (to support
+  # rules that manipulate them before passing them to the bundler); otherwise,
+  # use the file that was provided instead.
+  if getattr(ctx.attr, "entitlements", None):
+    if AppleEntitlementsInfo in ctx.attr.entitlements:
+      entitlements = ctx.attr.entitlements[AppleEntitlementsInfo].entitlements
+    else:
+      entitlements = ctx.file.entitlements
+
+  if entitlements:
     script_inputs.append(entitlements)
 
   signing_command_lines = ""

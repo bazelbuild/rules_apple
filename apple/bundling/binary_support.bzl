@@ -107,17 +107,15 @@ def _create_stub_binary_target(
   # appropriate entitlements (and that they have their substitutions applied).
   entitlements_value = kwargs.get("entitlements")
   provisioning_profile = kwargs.get("provisioning_profile")
-  if entitlements and provisioning_profile:
-    entitlements_name = "%s_entitlements" % name
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
-        entitlements = entitlements_value,
-        platform_type = platform_type,
-        provisioning_profile = provisioning_profile,
-    )
-    bundling_args["entitlements"] = entitlements_support.device_file_label(
-        entitlements_name)
+  entitlements_name = "%s_entitlements" % name
+  entitlements(
+      name = entitlements_name,
+      bundle_id = kwargs.get("bundle_id"),
+      entitlements = entitlements_value,
+      platform_type = platform_type,
+      provisioning_profile = provisioning_profile,
+  )
+  bundling_args["entitlements"] = ":" + entitlements_name
 
   return bundling_args
 
@@ -151,28 +149,23 @@ def _create_linked_binary_target(
   """
   bundling_args = dict(kwargs)
 
-  entitlements_value = bundling_args.pop("entitlements", None)
   minimum_os_version = kwargs.get("minimum_os_version")
   provisioning_profile = kwargs.get("provisioning_profile")
 
-  if provisioning_profile:
-    entitlements_name = "%s_entitlements" % name
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
-        entitlements = entitlements_value,
-        platform_type = platform_type,
-        provisioning_profile = provisioning_profile,
-    )
-    bundling_args["entitlements"] = entitlements_support.device_file_label(
-        entitlements_name)
-    entitlements_srcs = [
-        entitlements_support.simulator_file_label(entitlements_name)
-    ]
-    entitlements_deps = [":" + entitlements_name]
-  else:
-    entitlements_srcs = []
-    entitlements_deps = []
+  entitlements_value = bundling_args.pop("entitlements", None)
+  entitlements_name = "%s_entitlements" % name
+  entitlements(
+      name = entitlements_name,
+      bundle_id = kwargs.get("bundle_id"),
+      entitlements = entitlements_value,
+      platform_type = platform_type,
+      provisioning_profile = provisioning_profile,
+  )
+  bundling_args["entitlements"] = ":" + entitlements_name
+  entitlements_srcs = [
+      entitlements_support.simulator_file_label(entitlements_name)
+  ]
+  entitlements_deps = [":" + entitlements_name]
 
   # Remove the deps so that we only pass them to the binary, not to the
   # bundling rule.
@@ -199,7 +192,7 @@ def _create_linked_binary_target(
       visibility = kwargs.get("visibility"),
   )
   bundling_args["binary"] = apple_binary_name
-  bundling_args["deps"] = [apple_binary_name]
+  bundling_args["deps"] = [":" + apple_binary_name]
 
   return bundling_args
 
