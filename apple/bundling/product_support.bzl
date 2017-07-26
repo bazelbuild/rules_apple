@@ -154,6 +154,9 @@ _PRODUCT_TYPE_DESCRIPTORS = {
                              "MessagesApplicationSupportStub"),
         ),
     ),
+    apple_product_type.messages_extension: _describe_product_type(
+        bundle_extension=".appex",
+    ),
     apple_product_type.messages_sticker_pack_extension: _describe_product_type(
         bundle_extension=".appex",
         additional_infoplist_values={"LSApplicationIsStickerPack": True},
