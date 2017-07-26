@@ -283,8 +283,13 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
            "(.appiconset). Found the following: " +
            formatted_dirs, "app_icons")
   else:
-    appicon_extension = "appiconset"
-    icon_files = [f for f in asset_catalogs if ".appiconset/" in f.path]
+    platform_type = platform_support.platform_type(ctx)
+    if platform_type == apple_common.platform_type.tvos:
+      appicon_extension = "brandassets"
+      icon_files = [f for f in asset_catalogs if ".brandassets/" in f.path]
+    else:
+      appicon_extension = "appiconset"
+      icon_files = [f for f in asset_catalogs if ".appiconset/" in f.path]
 
   # Add arguments for app icons, if there are any.
   if icon_files:
