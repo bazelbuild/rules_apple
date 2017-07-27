@@ -181,3 +181,23 @@ apple_shell_test(
     src = "ios_application_clang_rt_test.sh",
     configurations = IOS_CONFIGURATIONS,
 )
+
+apple_shell_test(
+    name = "macos_unit_test_test",
+    size = "medium",
+    src = "macos_unit_test_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/rules:dummy_runner",
+    ],
+)
+
+apple_shell_test(
+    name = "macos_ui_test_test",
+    size = "medium",
+    src = "macos_ui_test_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/rules:dummy_runner",
+    ],
+)

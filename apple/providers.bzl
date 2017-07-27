@@ -150,7 +150,7 @@ IosXcTestBundleInfo = provider()
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS .xctest bundle (and
-not some other Apple bundle). Rule authors who with to require that a dependency
+not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
 """
 
@@ -174,6 +174,16 @@ a "marker" to indicate that a target is specifically a macOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
+"""
+
+MacosXcTestBundleInfo = provider()
+"""Denotes a target that is a macOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS .xctest bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a macOS .xctest bundle should use this provider to describe that
+requirement.
 """
 
 

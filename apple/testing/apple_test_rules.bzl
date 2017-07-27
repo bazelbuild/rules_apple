@@ -150,8 +150,8 @@ def _apple_unit_test_attributes():
       {
           # The test host app being tested.
           "test_host": attr.label(
-              mandatory=True,
-              providers = ["apple_bundle"],
+              mandatory=False,
+              providers=["apple_bundle"],
           ),
       }
   )
@@ -165,7 +165,7 @@ def _apple_ui_test_attributes():
           # The test host app being tested.
           "test_host": attr.label(
               mandatory=True,
-              providers = ["apple_bundle"],
+              providers=["apple_bundle"],
           ),
       }
   )
@@ -175,7 +175,8 @@ def _get_template_substitutions(ctx, test_type):
   """Dictionary with the substitutions to be applied to the template script."""
   subs = {}
 
-  subs["test_host_path"] = ctx.attr.test_host.apple_bundle.archive.short_path
+  if ctx.attr.test_host:
+    subs["test_host_path"] = ctx.attr.test_host.apple_bundle.archive.short_path
   subs["test_bundle_path"] = ctx.outputs.test_bundle.short_path
   subs["test_type"] = test_type.upper()
 
