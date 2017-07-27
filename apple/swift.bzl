@@ -515,9 +515,9 @@ def _swiftc_args(reqs):
   args.extend(reqs.swift_fragment.copts())
   args.extend(reqs.copts)
 
-  # Swift 3.1, which has this flag, has been bundled with Xcode 8.3. This check
-  # won't work for out-of-Xcode toolchains if we ever going to support that.
-  if xcode_support.is_xcode_at_least_version(reqs.apple_fragment, "8.3"):
+  # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
+  # https://bugs.swift.org/browse/SR-3791.
+  if xcode_support.is_xcode_at_least_version(reqs.apple_fragment, "9"):
     args.extend(["-swift-version", "%d" % reqs.swift_version])
 
   return args
