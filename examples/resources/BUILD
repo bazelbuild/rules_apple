@@ -19,6 +19,11 @@ filegroup(
 )
 
 filegroup(
+    name = "TVBrandAssets.xcassets",
+    srcs = glob(["TVBrandAssets.xcassets/**/*"]),
+)
+
+filegroup(
     name = "WatchAppIcon.xcassets",
     srcs = glob(["WatchAppIcon.xcassets/**/*"]),
 )
