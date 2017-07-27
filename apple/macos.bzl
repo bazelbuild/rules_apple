@@ -10,7 +10,7 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the Lice
+# limitations under the License.
 
 """Bazel rules for creating macOS applications and bundles."""
 
@@ -36,9 +36,17 @@ load(
     _macos_command_line_application="macos_command_line_application",
     _macos_extension="macos_extension",
 )
+load(
+    "@build_bazel_rules_apple//apple/testing:macos_rules.bzl",
+    _macos_ui_test="macos_ui_test",
+    _macos_unit_test="macos_unit_test",
+)
 
 
-def _create_swift_runtime_linkopts_target(name, deps, is_static):
+def _create_swift_runtime_linkopts_target(name,
+                                          deps,
+                                          is_static,
+                                          testonly=False):
   """Creates a build target to propagate Swift runtime linker flags.
 
   Args:
@@ -53,6 +61,7 @@ def _create_swift_runtime_linkopts_target(name, deps, is_static):
   swift_runtime_linkopts(
       name = swift_runtime_linkopts_name,
       is_static = is_static,
+      testonly = testonly,
       deps = deps,
   )
   return ":" + swift_runtime_linkopts_name
@@ -115,6 +124,7 @@ def macos_application(name, **kwargs):
   binary_deps = list(original_deps)
 
   # Propagate the linker flags that dynamically link the Swift runtime.
+  # TODO(b/64036784): Handle the testonly attribute.
   binary_deps.append(
       _create_swift_runtime_linkopts_target(name, original_deps, False))
 
@@ -199,6 +209,7 @@ def macos_command_line_application(name, **kwargs):
     ])
 
   # Propagate the linker flags that statically link the Swift runtime.
+  # TODO(b/64036784): Handle the testonly attribute.
   binary_deps.append(
       _create_swift_runtime_linkopts_target(name, original_deps, True))
 
@@ -279,6 +290,7 @@ def macos_extension(name, **kwargs):
   binary_deps = list(original_deps)
 
   # Propagate the linker flags that dynamically link the Swift runtime.
+  # TODO(b/64036784): Handle the testonly attribute.
   binary_deps.append(
       _create_swift_runtime_linkopts_target(name, original_deps, False))
 
@@ -293,4 +305,84 @@ def macos_extension(name, **kwargs):
   _macos_extension(
       name = name,
       **bundling_args
+  )
+
+
+def macos_ui_test(
+    name,
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
+    **kwargs):
+  """Builds an XCUITest test bundle and tests it using the provided runner.
+
+  The named target produced by this macro is an test target that can be executed
+  with the `blaze test` command.
+
+  Args:
+    name: The name of the target.
+    test_host: The macos_application target that contains the code to be
+        tested. Required.
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. Optional. Defaults to the test_host's postfixed with
+        "Tests".
+    infoplists: A list of plist files that will be merged to form the
+        Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
+    runner: The runner target that contains the logic of how the tests should
+        be executed. This target needs to provide an AppleTestRunner provider.
+        Optional.
+    deps: A list of dependencies that contain the test code and resources
+        needed to run the tests.
+  """
+  args = dict(kwargs)
+  deps = args.pop("deps", [])
+  # Propagate the linker flags that dynamically link the Swift runtime.
+  linkopts_dep = _create_swift_runtime_linkopts_target(
+      name, deps, False, testonly=True)
+
+  _macos_ui_test(
+      name = name,
+      deps = deps + [linkopts_dep],
+      runner = runner,
+      **args
+  )
+
+
+def macos_unit_test(
+    name,
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
+    **kwargs):
+  """Builds an XCTest unit test bundle and tests it using the provided runner.
+
+  The named target produced by this macro is a test target that can be executed
+  with the `blaze test` command.
+
+  Args:
+    name: The name of the target.
+    test_host: The macos_application target that contains the code to be
+        tested. Optional.
+    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. Optional. Defaults to the test_host's postfixed with
+        "Tests".
+    infoplists: A list of plist files that will be merged to form the
+        Info.plist that represents the test bundle.
+    minimum_os_version: The minimum OS version that this target and its
+        dependencies should be built for. Optional.
+    runner: The runner target that contains the logic of how the tests should
+        be executed. This target needs to provide an AppleTestRunner provider.
+        Optional.
+    deps: A list of dependencies that contain the test code and resources
+        needed to run the tests.
+  """
+  args = dict(kwargs)
+  deps = args.pop("deps", [])
+  # Propagate the linker flags that dynamically link the Swift runtime.
+  linkopts_dep = _create_swift_runtime_linkopts_target(
+      name, deps, False, testonly=True)
+
+  _macos_unit_test(
+      name = name,
+      deps = deps + [linkopts_dep],
+      runner = runner,
+      **args
   )
