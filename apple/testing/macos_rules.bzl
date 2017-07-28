@@ -124,9 +124,13 @@ def _macos_test(name,
   test_binary_name = name + "_test_binary"
   test_bundle_name = name + "_test_bundle"
 
-  # TODO(b/64032879): Cleanup this framework include path.
   linkopts = [
-      "-F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks"]
+      # TODO(b/62481675): Move these rpath flags into crosstool features.
+      "-rpath", "@executable_path/../Frameworks",
+      "-rpath", "@loader_path/../Frameworks",
+      # TODO(b/64032879): Cleanup this framework include path.
+      "-F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+  ]
 
   native.apple_binary(
       name = test_binary_name,

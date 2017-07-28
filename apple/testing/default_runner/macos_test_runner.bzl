@@ -20,12 +20,21 @@ load(
 )
 
 
-def _macos_sample_test_runner_impl(ctx):
-  """Implementation for the macos_sample_test_runner rule."""
+def _get_template_substitutions(ctx):
+  """Returns the template substitutions for this runner."""
+  subs = {
+      "xctestrun_template": ctx.file._xctestrun_template.short_path,
+  }
+
+  return {"%(" + k + ")s": subs[k] for k in subs}
+
+
+def _macos_test_runner_impl(ctx):
+  """Implementation for the macos_runner rule."""
   ctx.template_action(
       template = ctx.file._test_template,
       output = ctx.outputs.test_runner_template,
-      substitutions = {}
+      substitutions = _get_template_substitutions(ctx)
   )
 
   return struct(
@@ -37,27 +46,31 @@ def _macos_sample_test_runner_impl(ctx):
           ),
       ],
       runfiles = ctx.runfiles(
-          files = [],
+          files = [ctx.file._xctestrun_template],
       ),
   )
 
 
-macos_sample_test_runner = rule(
-    _macos_sample_test_runner_impl,
+macos_test_runner = rule(
+    _macos_test_runner_impl,
     attrs={
-        "_test_template": attr.label(
-            default=Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_sample_test_runner.template.sh"),
-            allow_single_file=True,
-        ),
+        "_test_template":
+            attr.label(
+                default=Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.sh"),
+                allow_single_file=True,
+            ),
+        "_xctestrun_template":
+            attr.label(
+                default=Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
+                allow_single_file=True,
+            ),
     },
     outputs={
         "test_runner_template": "%{name}.sh",
     },
-    fragments=["apple", "objc"],
+    fragments = ["apple", "objc"],
 )
-"""Sample rule that shows how to setup a macOS test runner.
-
-This runner does not actually perform any tests yet.
+"""Rule to identify an macOS runner that runs tests for macOS.
 
 Provides:
   AppleTestRunner:
@@ -67,6 +80,6 @@ Provides:
         requirements for this test.
     test_environment: Dictionary with the environment variables required for the
         test.
-  runfiles:
+  Runfiles:
     files: The files needed during runtime for the test to be performed.
 """
