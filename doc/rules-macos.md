@@ -52,6 +52,21 @@ simple command line tool as a standalone binary, use
       </td>
     </tr>
     <tr>
+      <td><code>additional_contents</code></td>
+      <td>
+        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
+        <p>Files that should be copied into specific subdirectories of the
+        <code>Contents</code> folder in the application. The keys of this
+        dictionary are labels pointing to single files,
+        <code>filegroup</code>s, or targets; the corresponding value is the
+        name of the subdirectory of <code>Contents</code> where they should
+        be placed.</p>
+        <p>The relative directory structure of <code>filegroup</code>
+        contents is preserved when they are copied into the desired
+        <code>Contents</code> subdirectory.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>app_icons</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -288,6 +303,21 @@ executable inside the extension bundle.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
         <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>additional_contents</code></td>
+      <td>
+        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
+        <p>Files that should be copied into specific subdirectories of the
+        <code>Contents</code> folder in the application. The keys of this
+        dictionary are labels pointing to single files,
+        <code>filegroup</code>s, or targets; the corresponding value is the
+        name of the subdirectory of <code>Contents</code> where they should
+        be placed.</p>
+        <p>The relative directory structure of <code>filegroup</code>
+        contents is preserved when they are copied into the desired
+        <code>Contents</code> subdirectory.</p>
       </td>
     </tr>
     <tr>
