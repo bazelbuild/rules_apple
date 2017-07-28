@@ -4,7 +4,8 @@ licenses(["notice"])
 
 exports_files([
     "ios_sample_test_runner.template.sh",
-    "macos_sample_test_runner.template.sh",
+    "macos_test_runner.template.sh",
+    "macos_test_runner.template.xctestrun",
 ])
 
 load(
@@ -12,15 +13,15 @@ load(
     "ios_sample_test_runner",
 )
 load(
-    "//apple/testing/default_runner:macos_sample_test_runner.bzl",
-    "macos_sample_test_runner",
+    "//apple/testing/default_runner:macos_test_runner.bzl",
+    "macos_test_runner",
 )
 
 ios_sample_test_runner(
     name = "ios_default_runner",
 )
 
-macos_sample_test_runner(
+macos_test_runner(
     name = "macos_default_runner",
 )
 

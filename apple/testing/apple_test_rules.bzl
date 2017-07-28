@@ -177,6 +177,8 @@ def _get_template_substitutions(ctx, test_type):
 
   if ctx.attr.test_host:
     subs["test_host_path"] = ctx.attr.test_host.apple_bundle.archive.short_path
+  else:
+    subs["test_host_path"] = ""
   subs["test_bundle_path"] = ctx.outputs.test_bundle.short_path
   subs["test_type"] = test_type.upper()
 
