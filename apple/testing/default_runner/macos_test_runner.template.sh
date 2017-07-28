@@ -84,6 +84,12 @@ sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN
 sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
 sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
 
+# If XML_OUTPUT_FILE is not an absolute path, make it absolute with regards of
+# where this script is being run.
+if [[ "$XML_OUTPUT_FILE" != /* ]]; then
+  export XML_OUTPUT_FILE="$PWD/$XML_OUTPUT_FILE"
+fi
+
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
