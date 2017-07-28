@@ -588,11 +588,8 @@ def _run(
   # bundle_merge_files collects the files (or directories of files) from
   # providers and actions that should be copied into the bundle by the final
   # packaging action.
-  bundle_merge_files = [
-      _convert_native_bundlable_file(
-          bf, bundle_dir=bundling_support.path_in_contents_dir(ctx, "")
-      ) for bf in additional_bundlable_files
-  ]
+  bundle_merge_files = [_convert_native_bundlable_file(bf)
+                        for bf in additional_bundlable_files]
 
   # bundle_merge_zips collects ZIP files from providers and actions that should
   # be expanded into the bundle by the final packaging action.

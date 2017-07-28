@@ -52,6 +52,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
+    "resource_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
     "rule_factory",
 )
@@ -67,6 +71,37 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "merge_dictionaries",
 )
+
+# Attributes that are common to all macOS bundles.
+_COMMON_MACOS_BUNDLE_ATTRS = {
+  "additional_contents": attr.label_keyed_string_dict(
+      allow_files=True,
+  ),
+}
+
+
+def _additional_contents_bundlable_files(ctx, file_map):
+  """Gathers the additional Contents files in a macOS bundle.
+
+  This function takes the label-keyed dictionary represented by `file_map` and
+  gathers the files from all of those targets, transforming them into bundlable
+  file objects that place the file in the appropriate subdirectory of the
+  bundle's Contents folder.
+
+  Args:
+    ctx: The rule context.
+    file_map: The label-keyed dictionary.
+  Returns:
+    A `depset` of bundlable files gathered from the targets.
+  """
+  bundlable_files = []
+
+  for target, contents_subdir in file_map.items():
+    bundlable_files.extend([bundling_support.contents_file(
+        ctx, f, contents_subdir + "/" + resource_support.owner_relative_path(f),
+    ) for f in target.files])
+
+  return depset(bundlable_files)
 
 
 def _macos_application_impl(ctx):
@@ -92,6 +127,8 @@ def _macos_application_impl(ctx):
       "MacosApplicationArchive", "macOS application",
       ctx.attr.bundle_id,
       binary_artifact=binary_artifact,
+      additional_bundlable_files=_additional_contents_bundlable_files(
+          ctx, ctx.attr.additional_contents),
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
   )
@@ -108,12 +145,15 @@ def _macos_application_impl(ctx):
 
 macos_application = rule_factory.make_bundling_rule(
     _macos_application_impl,
-    additional_attrs={
-        "app_icons": attr.label_list(allow_files=True),
-        "extensions": attr.label_list(
-            providers=[[AppleBundleInfo, MacosExtensionBundleInfo]],
-        ),
-    },
+    additional_attrs=merge_dictionaries(
+        _COMMON_MACOS_BUNDLE_ATTRS,
+        {
+            "app_icons": attr.label_list(allow_files=True),
+            "extensions": attr.label_list(
+                providers=[[AppleBundleInfo, MacosExtensionBundleInfo]],
+            ),
+        },
+    ),
     archive_extension=".zip",
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False
@@ -197,6 +237,8 @@ def _macos_extension_impl(ctx):
       "MacosExtensionArchive", "macOS extension",
       ctx.attr.bundle_id,
       binary_artifact=binary_artifact,
+      additional_bundlable_files=_additional_contents_bundlable_files(
+          ctx, ctx.attr.additional_contents),
       additional_resource_sets=additional_resource_sets,
   )
 
@@ -211,9 +253,12 @@ def _macos_extension_impl(ctx):
 
 macos_extension = rule_factory.make_bundling_rule(
     _macos_extension_impl,
-    additional_attrs={
-        "app_icons": attr.label_list(allow_files=True),
-    },
+    additional_attrs=merge_dictionaries(
+        _COMMON_MACOS_BUNDLE_ATTRS,
+        {
+            "app_icons": attr.label_list(allow_files=True),
+        },
+    ),
     archive_extension=".zip",
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False

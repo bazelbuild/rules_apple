@@ -234,4 +234,57 @@ function test_binary_has_correct_rpaths() {
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
 }
 
+# Tests that files passed in via the additional_contents attribute get placed at
+# the correct locations in the application bundle.
+function test_additional_contents() {
+  create_common_files
+
+  cat > app/simple.txt <<EOF
+simple
+EOF
+
+  mkdir -p app/filegroup/nested
+
+  cat > app/filegroup/BUILD <<EOF
+filegroup(
+    name = "filegroup",
+    srcs = glob(["**/*"]),
+)
+EOF
+
+  cat > app/filegroup/1.txt <<EOF
+1
+EOF
+
+  cat > app/filegroup/nested/2.txt <<EOF
+2
+EOF
+
+  cat >> app/BUILD <<EOF
+macos_application(
+    name = "app",
+    additional_contents = {
+        ":simple.txt": "Simple",
+        "//app/filegroup": "Filegroup",
+    },
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    linkopts = ["-alias", "_main", "_linkopts_test_main"],
+    minimum_os_version = "10.10",
+    deps = [":lib"],
+)
+EOF
+
+  do_build macos //app:app || fail "Should build"
+
+  zipinfo "test-bin/app/app.zip"
+
+  assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
+      "app.app/Contents/Simple/simple.txt")"
+  assert_equals "1" "$(unzip_single_file "test-bin/app/app.zip" \
+      "app.app/Contents/Filegroup/1.txt")"
+  assert_equals "2" "$(unzip_single_file "test-bin/app/app.zip" \
+      "app.app/Contents/Filegroup/nested/2.txt")"
+}
+
 run_suite "macos_application bundling tests"
