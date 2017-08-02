@@ -120,6 +120,16 @@ def _swift_sanitizer_flags(config_vars):
     fail("Swift sanitizer '%s' is not supported" % sanitizer)
 
 
+def _swift_version_flags(apple_fragment, swift_version):
+  """Returns the swift version flags, when applicable."""
+  # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
+  # https://bugs.swift.org/browse/SR-3791.
+  if xcode_support.is_xcode_at_least_version(apple_fragment, "9"):
+    return ["-swift-version", "%d" % swift_version]
+
+  return []
+
+
 def swift_module_name(label):
   """Returns a module name for the given label."""
   return label.package.lstrip("//").replace("/", "_") + "_" + label.name
@@ -506,19 +516,18 @@ def _swiftc_args(reqs):
   args.extend(_swift_bitcode_flags(apple_fragment))
   args.extend(_swift_parsing_flags(reqs.srcs))
   args.extend(_swift_sanitizer_flags(reqs.config_vars))
+  args.extend(_swift_version_flags(apple_fragment, reqs.swift_version))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
   args.extend(clang_args)
   args.extend(define_args)
   args.extend(autolink_args)
+
+  # Add user flags in the very end, this will let the compiler better sanitize
+  # unterminated flag pairs (e.g. -Xcc) and not clash with generated flags.
   args.extend(reqs.swift_fragment.copts())
   args.extend(reqs.copts)
-
-  # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
-  # https://bugs.swift.org/browse/SR-3791.
-  if xcode_support.is_xcode_at_least_version(reqs.apple_fragment, "9"):
-    args.extend(["-swift-version", "%d" % reqs.swift_version])
 
   return args
 
