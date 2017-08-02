@@ -400,11 +400,11 @@ function assert_binary_contains() {
   thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  thin_arch="$(lipo -info "${fat_path}" | awk 'NF>1{print $NF}')"
-  lipo -thin "$thin_arch" "$fat_path" -output "$thin_path"
-  nm_contents=$(nm -defined-only "$thin_path")
-  echo "$nm_contents" | grep "$symbol_string" >& /dev/null && return 0
-  fail "Expected binary '$path' to contain '$symbol_string' but it did not"
+  declare -a archs=( $(current_archs "ios") )
+  for arch in "${archs[@]}"; do
+    assert_nm_contains "$arch" "$fat_path" "$symbol_string"
+  done
+  rm -rf tempdir
 }
 
 
@@ -422,14 +422,40 @@ function assert_binary_not_contains() {
   thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  thin_arch="$(lipo -info "${fat_path}" | awk 'NF>1{print $NF}')"
-  lipo -thin "$thin_arch" "$fat_path" -output "$thin_path"
-  nm_contents=$(nm -defined-only "$thin_path")
+  declare -a archs=( $(current_archs "ios") )
+  for arch in "${archs[@]}"; do
+    assert_nm_not_contains "$arch" "$fat_path" "$symbol_string"
+  done
   rm -rf tempdir
+}
+
+# Usage: assert_nm_contains <arch> <path> <symbol_string>
+#
+# Uses nm and asserts that the binary at `path`
+# contains the string `symbol_string` in its objc runtime.
+function assert_nm_contains() {
+  arch="$1"
+  path="$2"
+  symbol_string="$3"
+
+  nm_contents=$(nm -defined-only -arch="$arch" "$fat_path")
+  echo "$nm_contents" | grep "$symbol_string" >& /dev/null && return 0
+  fail "Expected binary '$path' to contain '$symbol_string' but it did not"
+}
+
+# Usage: assert_nm_contains <arch> <path> <symbol_string>
+#
+# Uses nm and asserts that the binary at `path`
+# does not contain the string `symbol_string` in its objc runtime.
+function assert_nm_not_contains() {
+  arch="$1"
+  path="$2"
+  symbol_string="$3"
+
+  nm_contents=$(nm -defined-only -arch="$arch" "$fat_path")
   echo "$nm_contents" | grep "$symbol_string" >& /dev/null || return 0
   fail "Expected binary '$path' to not contain '$symbol_string' but it did"
 }
-
 
 # Usage: assert_contains_bitcode_maps <platform> <archive> <path_in_archive>
 #
