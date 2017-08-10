@@ -432,7 +432,7 @@ def _swiftc_args(reqs):
 
   # Collect transitive dependecies.
   dep_modules = depset()
-  swiftc_defines = reqs.defines
+  swiftc_defines = reqs.defines[:]
 
   swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
   objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
@@ -552,7 +552,7 @@ def register_swift_compile_actions(ctx, reqs):
   # Collect transitive dependecies.
   dep_modules = depset()
   dep_libs = depset()
-  swiftc_defines = reqs.defines
+  swiftc_defines = reqs.defines[:]
 
   swift_providers = [x[SwiftInfo] for x in reqs.deps if SwiftInfo in x]
   objc_providers = [x.objc for x in reqs.deps if hasattr(x, "objc")]
