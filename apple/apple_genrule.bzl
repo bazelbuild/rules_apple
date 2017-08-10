@@ -14,16 +14,22 @@
 
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
-     "DARWIN_EXECUTION_REQUIREMENTS")
+     "DARWIN_EXECUTION_REQUIREMENTS",
+     "dirname")
 
-
-def _compute_make_variables(resolved_srcs, files_to_build):
+def _compute_make_variables(genfiles_dir,
+                            label,
+                            resolved_srcs,
+                            files_to_build):
   variables = {"SRCS": cmd_helper.join_paths(" ", resolved_srcs),
                "OUTS": cmd_helper.join_paths(" ", files_to_build)}
   if len(resolved_srcs) == 1:
     variables["<"] = list(resolved_srcs)[0].path
   if len(files_to_build) == 1:
     variables["@"] = list(files_to_build)[0].path
+    variables["@D"] = dirname(variables["@"])
+  else:
+    variables["@D"] = genfiles_dir.path + "/" + label.package
   return variables
 
 
@@ -35,8 +41,8 @@ def _apple_genrule_impl(ctx):
 
   if ctx.attr.executable and len(files_to_build) > 1:
     fail("if genrules produce executables, they are allowed only one output. "
-          + "If you need the executable=1 argument, then you should split this "
-          + "genrule into genrules producing single outputs",
+         + "If you need the executable=1 argument, then you should split this "
+         + "genrule into genrules producing single outputs",
          attr="executable")
 
   label_dict = {}
@@ -48,7 +54,10 @@ def _apple_genrule_impl(ctx):
       command=ctx.attr.cmd,
       attribute="cmd",
       expand_locations=True,
-      make_variables=_compute_make_variables(depset(resolved_srcs), files_to_build),
+      make_variables=_compute_make_variables(ctx.genfiles_dir,
+                                             ctx.label,
+                                             depset(resolved_srcs),
+                                             files_to_build),
       tools=ctx.attr.tools,
       label_dict=label_dict,
       execution_requirements=DARWIN_EXECUTION_REQUIREMENTS)
@@ -93,6 +102,7 @@ def apple_genrule(
     outs = [],
     **kwargs):
   """Genrule which provides Apple specific environment and make variables.
+
   This mirrors the native genrule except that it provides a different set of
   make variables. This rule will only run on a Mac.
 
@@ -118,6 +128,11 @@ def apple_genrule(
         file, you can also use $<.
   <: srcs, if it's a single file.
   @: outs, if it's a single file.
+  @D: The output directory. If there is only one filename in outs, this expands
+      to the directory containing that file. If there are multiple filenames,
+      this variable instead expands to the package's root directory in the
+      genfiles tree, even if all the generated files belong to the same
+      subdirectory.
 
   The following environment variables are added to the rule action:
 
@@ -154,4 +169,3 @@ def apple_genrule(
         outs = outs,
         cmd = cmd,
         **kwargs)
-
