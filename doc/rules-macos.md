@@ -424,3 +424,114 @@ executable inside the extension bundle.
     </tr>
   </tbody>
 </table>
+
+<a name="macos_unit_test"></a>
+## macos_unit_test
+
+```python
+macos_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
+test_host, deps)
+```
+
+Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+The named targets produced by this macro are a zip file and the test script to
+be executed by Bazel. This macro also creates a target named
+`{name}.apple_binary` that represents the linked bundle binary inside the test
+bundle.
+
+The following is a list of the `macos_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path followed by app name) of the
+        test bundle. It cannot be the same bundle ID as the <code>test_host</code>
+        bundle ID. If not specified, the <code>test_host</code>'s bundle ID
+        will be used with a "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the test bundle. If not
+        specified, a default one will be provided that only contains the
+        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
+        placeholders that will be replaced when bundling.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum macOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.10"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--macos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>runner</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A target that will specify how the tests are to be run. This target
+        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
+        provider. The default runner can run logic and application-based tests.
+        Support for this rule in Tulsi is not yet available.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_host</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>macos_application</code> target that represents the app that
+        will host the tests. If not specified, the runner will assume it's a
+        library-based test.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the <code>*.runfiles</code>
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
