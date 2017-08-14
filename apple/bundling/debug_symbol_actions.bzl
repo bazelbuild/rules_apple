@@ -29,7 +29,8 @@ def _collect_linkmaps(ctx):
   Returns:
     A list of linkmap files, one per linked architecture.
   """
-  debug_outputs = binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs)
+  debug_outputs = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleDebugOutputs)
   if not debug_outputs:
     return []
 
@@ -67,7 +68,8 @@ def _create_symbol_bundle(ctx):
     A list of files that comprise the .dSYM bundle, which should be returned as
     additional outputs from the rule.
   """
-  debug_outputs = binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs)
+  debug_outputs = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleDebugOutputs)
   if not debug_outputs:
     return []
 

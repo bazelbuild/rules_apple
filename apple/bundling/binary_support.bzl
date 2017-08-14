@@ -29,7 +29,7 @@ load(
 )
 
 
-def _get_binary_provider(ctx, provider_key):
+def _get_binary_provider(deps, provider_key):
   """Returns the provider from a rule's binary dependency.
 
   Bundling rules depend on binary rules via the "deps" attribute, which
@@ -38,16 +38,15 @@ def _get_binary_provider(ctx, provider_key):
   rules, before extracting and returning the provider of the given key.
 
   Args:
-    ctx: The Skylark context.
+    deps: The list of the target's dependencies.
     provider_key: The key of the provider to return.
   Returns:
     The provider propagated by the single "deps" target of the current rule.
   """
-  if len(ctx.attr.deps) != 1:
+  if len(deps) != 1:
     fail("Only one dependency (a binary target) should be specified " +
          "as a bundling rule dependency")
-  providers = provider_support.matching_providers(
-      ctx.attr.deps[0], provider_key)
+  providers = provider_support.matching_providers(deps[0], provider_key)
   if providers:
     if len(providers) > 1:
       fail("Expected only one binary provider")

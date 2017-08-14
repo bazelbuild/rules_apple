@@ -58,7 +58,7 @@ def _watchos_application_impl(ctx):
         "PlugIns", ext[AppleBundleInfo], verify_bundle_id=True))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosApplicationArchive", "watchOS application",
@@ -115,7 +115,7 @@ def _watchos_extension_impl(ctx):
     ))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",

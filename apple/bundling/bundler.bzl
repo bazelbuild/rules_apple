@@ -643,7 +643,7 @@ def _run(
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
-    p = binary_support.get_binary_provider(ctx, AppleResourceInfo)
+    p = binary_support.get_binary_provider(ctx.attr.deps, AppleResourceInfo)
     if p:
       for rs in p.resource_sets:
         resource_sets.append(rs)
@@ -741,7 +741,8 @@ def _run(
 
   # Compute the Swift libraries that are used by the target currently being
   # built.
-  if swift_support.uses_swift(ctx):
+  uses_swift = swift_support.uses_swift(ctx.attr.deps)
+  if uses_swift:
     swift_zip = swift_actions.zip_swift_dylibs(ctx, binary_artifact)
 
     if ctx.attr._propagates_frameworks:
@@ -761,8 +762,11 @@ def _run(
         bundling_support.contents_file(ctx, clang_rt_zip, "Frameworks"))
 
   # Include bitcode symbol maps when needed.
-  if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
-    bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(ctx, binary_artifact)
+  if has_built_binary and binary_support.get_binary_provider(
+      ctx.attr.deps,
+      apple_common.AppleDebugOutputs):
+    bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(
+        ctx, binary_artifact)
     if bitcode_maps_zip:
       root_merge_zips.append(bundling_support.bundlable_file(
           bitcode_maps_zip, "BCSymbolMaps"))
@@ -839,9 +843,11 @@ def _run(
   additional_providers = []
   legacy_providers = {}
 
-  if has_built_binary and binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs):
-    additional_providers.append(
-        binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs))
+  if has_built_binary and binary_support.get_binary_provider(
+      ctx.attr.deps,
+      apple_common.AppleDebugOutputs):
+    additional_providers.append(binary_support.get_binary_provider(
+        ctx.attr.deps, apple_common.AppleDebugOutputs))
 
     # Create a .dSYM bundle with the expected name next to the .ipa in the
     # output directory. We still have to check for the existence of the
@@ -889,7 +895,7 @@ def _run(
       "propagated_framework_files": depset(propagated_framework_files),
       "propagated_framework_zips": depset(propagated_framework_zips),
       "root_merge_zips": root_merge_zips if not _is_ipa(ctx) else [],
-      "uses_swift": swift_support.uses_swift(ctx),
+      "uses_swift": uses_swift,
   }
   if work_dir:
     apple_bundle_info_args["archive_root"] = work_dir
