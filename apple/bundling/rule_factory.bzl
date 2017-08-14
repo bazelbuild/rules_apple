@@ -298,7 +298,6 @@ def _code_signing_attributes(code_signing):
   if not code_signing.skip_signing:
     code_signing_attrs["entitlements"] = attr.label(
         providers=[[], [AppleEntitlementsInfo]],
-        allow_single_file=True,
     )
     if not code_signing.provision_profile_extension:
       fail("Internal error: If code_signing.skip_signing = False, then " +

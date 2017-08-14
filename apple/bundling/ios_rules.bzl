@@ -22,30 +22,51 @@ binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-     "apple_bundling_aspect")
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
-     "entitlements",
-     "entitlements_support")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "apple_product_type")
-load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
-     "rule_factory")
-load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
-load("@build_bazel_rules_apple//apple/bundling:test_support.bzl", "test_support")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleInfo",
-     "AppleResourceSet",
-     "IosApplicationBundleInfo",
-     "IosExtensionBundleInfo",
-     "IosFrameworkBundleInfo",
-     "WatchosApplicationBundleInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
+load(
+    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
+    "apple_bundling_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundler.bzl",
+    "bundler",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
+    "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
+    "run_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:test_support.bzl",
+    "test_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceSet",
+    "IosApplicationBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "WatchosApplicationBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "merge_dictionaries",
+)
 
 
 def _ios_application_impl(ctx):

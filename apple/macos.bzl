@@ -21,7 +21,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:macos_command_line_support.bzl",
     "macos_command_line_infoplist",
-    "macos_command_line_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
@@ -198,15 +197,7 @@ def macos_command_line_application(name, **kwargs):
         minimum_os_version = binary_args.get("minimum_os_version"),
         version = version,
     )
-    native.objc_library(
-        name = merged_infoplist_lib_name,
-        srcs = [macos_command_line_support.infoplist_source_label(
-            merged_infoplist_name)],
-    )
-    binary_deps.extend([
-        ":" + merged_infoplist_name,
-        ":" + merged_infoplist_lib_name,
-    ])
+    binary_deps.extend([":" + merged_infoplist_name])
 
   # Propagate the linker flags that statically link the Swift runtime.
   # TODO(b/64036784): Handle the testonly attribute.
