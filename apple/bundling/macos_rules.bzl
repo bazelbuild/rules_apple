@@ -39,11 +39,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
-    "entitlements",
-    "entitlements_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -174,7 +169,7 @@ def _macos_command_line_application_impl(ctx):
   # code signing commands on that copy in the same action.
   path_to_sign = codesigning_support.path_to_sign(output_path)
   signing_commands = codesigning_support.signing_command_lines(
-      ctx, [path_to_sign], ctx.file.entitlements)
+      ctx, [path_to_sign], None)
 
   platform_support.xcode_env_action(
       ctx,

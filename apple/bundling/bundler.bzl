@@ -404,7 +404,8 @@ def _process_and_sign_archive(ctx,
   # use the file that was provided instead.
   if getattr(ctx.attr, "entitlements", None):
     if AppleEntitlementsInfo in ctx.attr.entitlements:
-      entitlements = ctx.attr.entitlements[AppleEntitlementsInfo].entitlements
+      entitlements = (
+          ctx.attr.entitlements[AppleEntitlementsInfo].signing_entitlements)
     else:
       entitlements = ctx.file.entitlements
 

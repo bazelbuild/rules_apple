@@ -17,7 +17,6 @@
 load(
     "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
     "entitlements",
-    "entitlements_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -162,23 +161,19 @@ def _create_linked_binary_target(
       provisioning_profile = provisioning_profile,
   )
   bundling_args["entitlements"] = ":" + entitlements_name
-  entitlements_srcs = [
-      entitlements_support.simulator_file_label(entitlements_name)
-  ]
   entitlements_deps = [":" + entitlements_name]
 
   # Remove the deps so that we only pass them to the binary, not to the
   # bundling rule.
   deps = bundling_args.pop("deps", [])
 
-  # Link the executable from any library deps and sources provided. Pass the
-  # entitlements target as an extra dependency to the binary rule to pick up the
-  # extra linkopts (if any) propagated by it.
+  # Link the executable from any library deps provided. Pass the entitlements
+  # target as an extra dependency to the binary rule to pick up the extra
+  # linkopts (if any) propagated by it.
   apple_binary_name = "%s.apple_binary" % name
   linkopts += ["-rpath", "@executable_path/../../Frameworks"]
   native.apple_binary(
       name = apple_binary_name,
-      srcs = entitlements_srcs,
       dylibs = kwargs.get("frameworks"),
       extension_safe = extension_safe,
       features = kwargs.get("features"),
@@ -186,7 +181,11 @@ def _create_linked_binary_target(
       minimum_os_version = minimum_os_version,
       platform_type = platform_type,
       sdk_frameworks = sdk_frameworks,
-      deps = deps + entitlements_deps,
+      deps = deps,
+      # TODO(b/64611007): We use non-propagated deps as a workaround for now to
+      # ensure that the linkopts and link_inputs for the entitlements don't get
+      # propagated to dependent binaries, like test bundles.
+      non_propagated_deps = entitlements_deps,
       tags = ["manual"] + kwargs.get("tags", []),
       testonly = kwargs.get("testonly"),
       visibility = kwargs.get("visibility"),
