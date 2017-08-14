@@ -171,13 +171,12 @@ def _create_linked_binary_target(
   # target as an extra dependency to the binary rule to pick up the extra
   # linkopts (if any) propagated by it.
   apple_binary_name = "%s.apple_binary" % name
-  linkopts += ["-rpath", "@executable_path/../../Frameworks"]
   native.apple_binary(
       name = apple_binary_name,
       dylibs = kwargs.get("frameworks"),
       extension_safe = extension_safe,
       features = kwargs.get("features"),
-      linkopts = linkopts,
+      linkopts = linkopts + ["-rpath", "@executable_path/../../Frameworks"],
       minimum_os_version = minimum_os_version,
       platform_type = platform_type,
       sdk_frameworks = sdk_frameworks,
