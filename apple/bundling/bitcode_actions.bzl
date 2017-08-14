@@ -48,7 +48,10 @@ def _zip_bitcode_symbols_maps(ctx, binary_artifact):
     A `File` object representing the ZIP file containing the bitcode symbol
     maps, or `None` if no bitcode symbols were found.
   """
-  outputs_map = binary_support.get_binary_provider(ctx, apple_common.AppleDebugOutputs).outputs_map
+  outputs_map = binary_support.get_binary_provider(
+      ctx.attr.deps,
+      apple_common.AppleDebugOutputs
+  ).outputs_map
 
   # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
   copy_commands = []

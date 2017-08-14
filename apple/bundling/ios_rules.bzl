@@ -111,7 +111,7 @@ def _ios_application_impl(ctx):
         "Watch", watch_app[AppleBundleInfo], verify_bundle_id=True))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosApplicationArchive", "iOS application",
@@ -182,7 +182,7 @@ def _ios_extension_impl(ctx):
     ))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
@@ -223,7 +223,8 @@ ios_extension = rule_factory.make_bundling_rule(
 
 def _ios_framework_impl(ctx):
   """Implementation of the ios_framework Skylark rule."""
-  binary_artifact = binary_support.get_binary_provider(ctx, apple_common.AppleDylibBinary).binary
+  binary_artifact = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleDylibBinary).binary
   bundlable_binary = struct(file=binary_artifact,
                             bundle_path=bundling_support.bundle_name(ctx))
   prefixed_hdr_files = []
@@ -232,7 +233,7 @@ def _ios_framework_impl(ctx):
       prefixed_hdr_files.append(bundling_support.header_prefix(hdr_file))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleDylibBinary).binary
+      ctx.attr.deps, apple_common.AppleDylibBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosFrameworkArchive", "iOS framework",

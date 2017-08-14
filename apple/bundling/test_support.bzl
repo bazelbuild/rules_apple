@@ -36,10 +36,10 @@ def _new_xctest_app_provider(ctx):
   test_objc_params = {}
   for field in _WHITELISTED_TEST_OBJC_PROVIDER_FIELDS:
 
-    objc_provider = binary_support.get_binary_provider(ctx, "objc")
+    objc_provider = binary_support.get_binary_provider(ctx.attr.deps, "objc")
     if not objc_provider:
       objc_provider = binary_support.get_binary_provider(
-          ctx, apple_common.AppleExecutableBinary).objc
+          ctx.attr.deps, apple_common.AppleExecutableBinary).objc
 
     if not hasattr(objc_provider, field):
       # Skip missing attributes from objc provider. This enables us to add
@@ -77,7 +77,8 @@ def _new_xctest_app_provider(ctx):
       test_objc_params[destination_field] = test_objc_params.get(
           destination_field, depset()) + field_value
 
-  binary_file = binary_support.get_binary_provider(ctx, apple_common.AppleExecutableBinary).binary
+  binary_file = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
 
   return apple_common.new_xctest_app_provider(
       bundle_loader=binary_file,

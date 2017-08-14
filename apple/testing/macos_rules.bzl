@@ -56,7 +56,7 @@ def _macos_test_bundle_impl(ctx):
          "them.")
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleLoadableBundleBinary).binary
+      ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacOSTestArchive", "MacOSTest",

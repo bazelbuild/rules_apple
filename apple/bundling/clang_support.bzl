@@ -40,7 +40,7 @@ def _register_runtime_lib_actions(ctx):
   """
   zip_file = file_support.intermediate(ctx, "%{name}.clang_rt_libs.zip")
   binary = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
 
   platform_support.xcode_env_action(
       ctx,

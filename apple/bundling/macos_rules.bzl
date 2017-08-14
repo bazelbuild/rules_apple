@@ -116,7 +116,7 @@ def _macos_application_impl(ctx):
   ]
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosApplicationArchive", "macOS application",
@@ -226,7 +226,7 @@ def _macos_extension_impl(ctx):
     ))
 
   binary_artifact = binary_support.get_binary_provider(
-      ctx, apple_common.AppleExecutableBinary).binary
+      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosExtensionArchive", "macOS extension",
