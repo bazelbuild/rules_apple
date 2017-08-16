@@ -166,6 +166,17 @@ requirement.
 """
 
 
+MacosBundleBundleInfo = provider()
+"""Denotes that a target is a macOS loadable bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS loadable bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a macOS loadable bundle should use this provider to describe that
+requirement.
+"""
+
+
 MacosExtensionBundleInfo = provider()
 """Denotes that a target is a macOS application extension.
 

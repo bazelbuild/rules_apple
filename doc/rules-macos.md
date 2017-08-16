@@ -18,9 +18,9 @@ bazel build --experimental_objc_crosstool=all $TARGET_LABEL
 ## macos_application
 
 ```python
-macos_application(name, app_icons, bundle_id, bundle_name, entitlements,
-extensions, infoplists, ipa_post_processor, linkopts, minimum_os_version,
-provisioning_profile, strings, deps)
+macos_application(name, app_icons, bundle_extension, bundle_id, bundle_name,
+entitlements, extensions, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, product_type, provisioning_profile, strings, deps)
 ```
 
 Builds and bundles a macOS application.
@@ -73,6 +73,19 @@ simple command line tool as a standalone binary, use
         <p>Files that comprise the app icons for the application. Each file
         must have a containing directory named<code>*.xcassets/*.appiconset</code> and
         there may be only one such <code>.appiconset</code> directory in the list.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_extension</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The extension, without a leading dot, that will be used to name the
+        application bundle. If this attribute is not set, then the default
+        extension is determined by the application's <code>product_type</code>.
+        For example, <code>apple_product_type.application</code> uses the
+        extension <code>app</code>, while
+        <code>apple_product_type.xpc_service</code> uses the extension
+        <code>xpc</code>.</p>
       </td>
     </tr>
     <tr>
@@ -157,6 +170,15 @@ simple command line tool as a standalone binary, use
       </td>
     </tr>
     <tr>
+      <td><code>product_type</code></td>
+      <td>
+        <p><code>String; optional; default is apple_product_type.application</code></p>
+        <p>An optional string denoting a special type of application, such as
+        an XPC service. See
+        <a href="types.md#apple_product_type"><code>apple_product_type</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>provisioning_profile</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -183,6 +205,189 @@ simple command line tool as a standalone binary, use
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final application.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="macos_bundle"></a>
+## macos_bundle
+
+```python
+macos_bundle(name, app_icons, bundle_extension, bundle_id, bundle_name,
+entitlements, infoplists, ipa_post_processor, linkopts, minimum_os_version,
+product_type, provisioning_profile, strings, deps)
+```
+
+Builds and bundles a macOS loadable bundle.
+
+The named target produced by this macro is a ZIP file. This macro also creates
+a target named `{name}.apple_binary` that represents the linked executable
+inside the application bundle.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>additional_contents</code></td>
+      <td>
+        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
+        <p>Files that should be copied into specific subdirectories of the
+        <code>Contents</code> folder in the bundle. The keys of this
+        dictionary are labels pointing to single files,
+        <code>filegroup</code>s, or targets; the corresponding value is the
+        name of the subdirectory of <code>Contents</code> where they should
+        be placed.</p>
+        <p>The relative directory structure of <code>filegroup</code>
+        contents is preserved when they are copied into the desired
+        <code>Contents</code> subdirectory.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>app_icons</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>Files that comprise the app icons for the bundle. Each file
+        must have a containing directory named<code>*.xcassets/*.appiconset</code> and
+        there may be only one such <code>.appiconset</code> directory in the list.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_extension</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The extension, without a leading dot, that will be used to name the
+        bundle. If this attribute is not set, then the default extension is
+        determined by the application's <code>product_type</code>. For example, <code>apple_product_type.bundle</code> uses the extension
+        <code>bundle</code>, while
+        <code>apple_product_type.spotlight_importer</code> uses the extension
+        <code>mdimporter</code>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>The bundle ID (reverse-DNS path followed by app name) of the
+        bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the extension). If this
+        attribute is not set, then the <code>name</code> of the target will be
+        used instead.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The entitlements file required for device builds of the bundle.
+        If absent, the default entitlements from the provisioning profile will
+        be used.</p>
+        <p>The following variables are substituted in the entitlements file:
+        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
+        and <code>$(AppIdentifierPrefix)</code> with the value of the
+        <code>ApplicationIdentifierPrefix</code> key from the target's
+        provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the bundle. At least one
+        file must be specified.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>ipa_post_processor</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A tool that edits this target's archive after it is assembled but
+        before it is signed. The tool is invoked with a single command-line
+        argument that denotes the path to a directory containing the unzipped
+        contents of the archive; the bundle directory will be that directory's
+        only contents.</p>
+        <p>Any changes made by the tool must be made in this directory, and
+        the tool's execution must be hermetic given these inputs to ensure that
+        the result can be safely cached.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkopts</code></td>
+      <td>
+        <p><code>List of strings; optional</code></p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum macOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.11"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--macos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>product_type</code></td>
+      <td>
+        <p><code>String; optional; default is apple_product_type.bundle</code></p>
+        <p>An optional string denoting a special type of bundle, such as a
+        a Spotlight metadata importer. See
+        <a href="types.md#apple_product_type"><code>apple_product_type</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>provisioning_profile</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
+        when bundling the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>strings</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.strings</code> files, often localizable. These files
+        are converted to binary plists (if they are not already) and placed in the
+        root of the final application bundle, unless a file's immediate containing
+        directory is named <code>*.lproj</code>, in which case it will be placed
+        under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final bundle.</p>
       </td>
     </tr>
   </tbody>

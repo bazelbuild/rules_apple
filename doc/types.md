@@ -9,11 +9,11 @@ A `struct` containing product type identifiers used by special application and
 extension types.
 
 Some applications and extensions, such as Messages Extensions and
-Sticker Packs in iOS 10, receive special treatment when building (for example,
-some product types bundle a stub executable instead of a user-defined binary,
-and some pass extra arguments to tools like the asset compiler). These
-behaviors are captured in the product type identifier. The product types
-currently supported are:
+Sticker Packs in iOS 10 or XPC services in macOS, receive special treatment when
+building (for example, some product types bundle a stub executable instead of a
+user-defined binary, and some pass extra arguments to tools like the asset
+compiler). These behaviors are captured in the product type identifier. The
+product types currently supported are:
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -43,11 +43,19 @@ currently supported are:
       </td>
     </tr>
     <tr>
-      <td><code>framework</code></td>
+      <td><code>bundle</code></td>
       <td>
-        <p>A basic dynamic framework. This is the default product type for those
-        targets; it does not need to be set explicitly (and cannot be
-        changed).</p>
+        <p>A loadable macOS bundle. This is the default product type for
+        <code>macos_bundle</code> targets; it can be overridden with a more
+        specific product type if needed.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>kernel_extension</code></td>
+      <td>
+        <p>A macOS kernel extension. This product type should be used with a
+        <code>macos_bundle</code> target to create such a plug-in; the built
+        bundle will have the extension <code>.kext</code>.</p>
       </td>
     </tr>
     <tr>
@@ -94,6 +102,14 @@ currently supported are:
       </td>
     </tr>
     <tr>
+      <td><code>spotlight_importer</code></td>
+      <td>
+        <p>A macOS Spotlight importer plug-in. This product type should be used
+        with a <code>macos_bundle</code> target to create such a plug-in; the
+        built bundle will have the extension <code>.mdimporter</code>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>tool</code></td>
       <td>
         <p>A command-line tool. This is the default product type for
@@ -133,14 +149,26 @@ currently supported are:
         changed).</p>
       </td>
     </tr>
+    <tr>
+      <td><code>xpc_service</code></td>
+      <td>
+        <p>A macOS XPC service. This product type should be used with a
+        <code>macos_application</code> target to create such a service; the
+        built bundle will have the extension <code>.xpc</code>.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
 Example usage:
 
 ```python
-load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type", "ios_application", "ios_extension")
+load(
+    "@build_bazel_rules_apple//apple:ios.bzl",
+    "apple_product_type",
+    "ios_application",
+    "ios_extension",
+)
 
 ios_application(
     name = "StickerPackApp",
