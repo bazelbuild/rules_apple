@@ -122,6 +122,7 @@ def _create_linked_binary_target(
     name,
     platform_type,
     linkopts,
+    binary_type="executable",
     sdk_frameworks=[],
     extension_safe=False,
     **kwargs):
@@ -172,6 +173,7 @@ def _create_linked_binary_target(
   apple_binary_name = "%s.apple_binary" % name
   native.apple_binary(
       name = apple_binary_name,
+      binary_type = binary_type,
       dylibs = kwargs.get("frameworks"),
       extension_safe = extension_safe,
       features = kwargs.get("features"),
@@ -213,6 +215,7 @@ def _create_binary(name, platform_type, **kwargs):
   """
   args_copy = dict(kwargs)
 
+  binary_type = args_copy.pop("binary_type", "executable")
   linkopts = args_copy.pop("linkopts", [])
   sdk_frameworks = args_copy.pop("sdk_frameworks", [])
   extension_safe = args_copy.pop("extension_safe", False)
@@ -241,8 +244,8 @@ def _create_binary(name, platform_type, **kwargs):
         name, platform_type, product_type_descriptor.stub, **args_copy)
   else:
     return _create_linked_binary_target(
-        name, platform_type, linkopts, sdk_frameworks, extension_safe,
-        **args_copy)
+        name, platform_type, linkopts, binary_type, sdk_frameworks,
+        extension_safe, **args_copy)
 
 
 # Define the loadable module that lists the exported symbols in this file.

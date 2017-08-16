@@ -98,7 +98,11 @@ def _bundle_name_with_extension(ctx):
     The bundle name with its extension.
   """
   ext = getattr(ctx.attr, "bundle_extension", "")
-  if not ext:
+  if ext:
+    # When the *user* specifies the bundle extension in a public attribute, we
+    # do *not* require them to include the leading dot, so we add it here.
+    ext = "." + ext
+  else:
     product_type = product_support.product_type(ctx)
     product_type_descriptor = product_support.product_type_descriptor(
         product_type)

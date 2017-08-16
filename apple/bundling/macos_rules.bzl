@@ -60,6 +60,7 @@ load(
     "AppleBundleVersionInfo",
     "AppleResourceSet",
     "MacosApplicationBundleInfo",
+    "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
 )
 load(
@@ -144,6 +145,9 @@ macos_application = rule_factory.make_bundling_rule(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
             "app_icons": attr.label_list(allow_files=True),
+            # The default extension comes from the product type so it is not
+            # repeated here.
+            "bundle_extension": attr.string(),
             "extensions": attr.label_list(
                 providers=[[AppleBundleInfo, MacosExtensionBundleInfo]],
             ),
@@ -157,6 +161,62 @@ macos_application = rule_factory.make_bundling_rule(
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
     product_type=rule_factory.product_type(apple_product_type.application),
+)
+
+
+def _macos_bundle_impl(ctx):
+  """Implementation of the macos_bundle rule."""
+  additional_resource_sets = []
+  additional_resources = depset(ctx.files.app_icons)
+  if additional_resources:
+    additional_resource_sets.append(AppleResourceSet(
+        resources=additional_resources,
+    ))
+
+  # TODO(b/36557429): Add support for macOS frameworks.
+
+  binary_artifact = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
+      ctx,
+      "MacosBundleArchive", "macOS executable bundle",
+      ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
+      additional_bundlable_files=_additional_contents_bundlable_files(
+          ctx, ctx.attr.additional_contents),
+      additional_resource_sets=additional_resource_sets,
+  )
+
+  # TODO(b/36556789): Add support for "bazel run".
+  return struct(
+      files=additional_outputs,
+      providers=[
+          MacosBundleBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
+  )
+
+
+macos_bundle = rule_factory.make_bundling_rule(
+    _macos_bundle_impl,
+    additional_attrs=merge_dictionaries(
+        _COMMON_MACOS_BUNDLE_ATTRS,
+        {
+            "app_icons": attr.label_list(allow_files=True),
+            # The default extension comes from the product type so it is not
+            # repeated here.
+            "bundle_extension": attr.string(),
+        },
+    ),
+    archive_extension=".zip",
+    binary_providers=[apple_common.AppleLoadableBundleBinary],
+    code_signing=rule_factory.code_signing(
+        ".provisionprofile", requires_signing_for_device=False
+    ),
+    device_families=rule_factory.device_families(allowed=["mac"]),
+    path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
+    platform_type=apple_common.platform_type.macos,
+    product_type=rule_factory.product_type(apple_product_type.bundle),
 )
 
 

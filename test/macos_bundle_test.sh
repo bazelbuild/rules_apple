@@ -16,17 +16,17 @@
 
 set -eu
 
-# Integration tests for bundling simple macOS applications.
+# Integration tests for bundling simple macOS loadable bundles.
 
 function set_up() {
   rm -rf app
   mkdir -p app
 }
 
-# Creates common source, targets, and basic plist for macOS applications.
+# Creates common source, targets, and basic plist for macOS loadable bundles.
 function create_common_files() {
   cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_bundle")
 
 objc_library(
     name = "lib",
@@ -44,20 +44,20 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "BNDL";
   CFBundleSignature = "????";
 }
 EOF
 }
 
-# Creates a minimal macOS application target.
-function create_minimal_macos_application() {
+# Creates a minimal macOS loadable bundle target.
+function create_minimal_macos_bundle() {
   if [[ ! -f app/BUILD ]]; then
     fail "create_common_files must be called first."
   fi
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
@@ -67,11 +67,11 @@ macos_application(
 EOF
 }
 
-# Tests that the Info.plist in the packaged application has the correct content.
+# Tests that the Info.plist in the packaged bundle has the correct content.
 function test_plist_contents() {
   create_common_files
-  create_minimal_macos_application
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
+  create_minimal_macos_bundle
+  create_dump_plist "//app:app.zip" "app.bundle/Contents/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -117,7 +117,7 @@ function test_multiple_plist_merging() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist", "Another.plist"],
@@ -131,7 +131,7 @@ EOF
 }
 EOF
 
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
+  create_dump_plist "//app:app.zip" "app.bundle/Contents/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
   do_build macos //app:dump_plist || fail "Should build"
@@ -146,7 +146,7 @@ function test_ipa_post_processor() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
@@ -159,14 +159,14 @@ EOF
   cat > app/post_processor.sh <<EOF
 #!/bin/bash
 WORKDIR="\$1"
-mkdir "\$WORKDIR/app.app/Contents/Resources"
-echo "foo" > "\$WORKDIR/app.app/Contents/Resources/inserted_by_post_processor.txt"
+mkdir "\$WORKDIR/app.bundle/Contents/Resources"
+echo "foo" > "\$WORKDIR/app.bundle/Contents/Resources/inserted_by_post_processor.txt"
 EOF
   chmod +x app/post_processor.sh
 
   do_build macos //app:app || fail "Should build"
   assert_equals "foo" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/inserted_by_post_processor.txt")"
+      "app.bundle/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
 # Tests that the dSYM outputs are produced when --apple_generate_dsym is
@@ -176,7 +176,7 @@ EOF
 # (currently only available in nightly/canary.)
 function DISABLED__test_dsyms_generated() {
   create_common_files
-  create_minimal_macos_application
+  create_minimal_macos_bundle
   do_build macos --apple_generate_dsym //app:app || fail "Should build"
 
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
@@ -184,7 +184,7 @@ function DISABLED__test_dsyms_generated() {
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "test-bin/app/app.bundle.dSYM/Contents/Resources/DWARF/app_${arch}"
   done
 }
 
@@ -193,7 +193,7 @@ function test_linkopts_passed_to_binary() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
@@ -205,7 +205,7 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" |
+  unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" |
       nm -j - | grep _linkopts_test_main \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
@@ -215,27 +215,27 @@ EOF
 # content.
 function test_pkginfo_contents() {
   create_common_files
-  create_minimal_macos_application
+  create_minimal_macos_bundle
   do_build macos //app:app || fail "Should build"
 
-  assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/PkgInfo")"
+  assert_equals "BNDL????" "$(unzip_single_file "test-bin/app/app.zip" \
+      "app.bundle/Contents/PkgInfo")"
 }
 
 # Tests that the correct rpaths were added at link-time to the binary.
 function test_binary_has_correct_rpaths() {
   create_common_files
-  create_minimal_macos_application
+  create_minimal_macos_bundle
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" \
+  unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" \
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
 }
 
 # Tests that files passed in via the additional_contents attribute get placed at
-# the correct locations in the application bundle.
+# the correct locations in the loadable bundle.
 function test_additional_contents() {
   create_common_files
 
@@ -261,7 +261,7 @@ EOF
 EOF
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
     additional_contents = {
         ":simple.txt": "Simple",
@@ -280,11 +280,11 @@ EOF
   zipinfo "test-bin/app/app.zip"
 
   assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Simple/simple.txt")"
+      "app.bundle/Contents/Simple/simple.txt")"
   assert_equals "1" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Filegroup/1.txt")"
+      "app.bundle/Contents/Filegroup/1.txt")"
   assert_equals "2" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Filegroup/nested/2.txt")"
+      "app.bundle/Contents/Filegroup/nested/2.txt")"
 }
 
 # Tests that the bundle_extension attribute changes the extension.
@@ -292,9 +292,9 @@ function test_different_bundle_extension() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-macos_application(
+macos_bundle(
     name = "app",
-    bundle_extension = "xpc",
+    bundle_extension = "prefPane",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     minimum_os_version = "10.10",
@@ -304,8 +304,8 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_not_contains "test-bin/app/app.zip" "app.app/"
-  assert_zip_contains "test-bin/app/app.zip" "app.xpc/"
+  assert_zip_not_contains "test-bin/app/app.zip" "app.bundle/"
+  assert_zip_contains "test-bin/app/app.zip" "app.prefPane/"
 }
 
-run_suite "macos_application bundling tests"
+run_suite "macos_bundle bundling tests"

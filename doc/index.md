@@ -34,6 +34,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top"><code>@build_bazel_rules_apple//apple:macos.bzl</code></td>
       <td valign="top">
         <code><a href="rules-macos.md#macos_application">macos_application</a></code><br/>
+        <code><a href="rules-macos.md#macos_bundle">macos_bundle</a></code><br/>
         <code><a href="rules-macos.md#macos_command_line_application">macos_command_line_application</a></code><br/>
         <code><a href="rules-macos.md#macos_extension">macos_extension</a></code><br/>
       </td>

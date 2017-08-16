@@ -29,16 +29,20 @@ load(
 apple_product_type = struct(
     application="com.apple.product-type.application",
     app_extension="com.apple.product-type.app-extension",
+    bundle="com.apple.product-type.bundle",
     framework="com.apple.product-type.framework",
+    kernel_extension="com.apple.product-type.kernel-extension",
     messages_application="com.apple.product-type.application.messages",
     messages_extension="com.apple.product-type.app-extension.messages",
     messages_sticker_pack_extension=(
         "com.apple.product-type.app-extension.messages-sticker-pack"),
+    spotlight_importer="com.apple.product-type.spotlight-importer",
     tool="com.apple.product-type.tool",
     ui_test_bundle="com.apple.product-type.bundle.ui-testing",
     unit_test_bundle="com.apple.product-type.bundle.unit-test",
     watch2_application="com.apple.product-type.application.watchapp2",
     watch2_extension="com.apple.product-type.watchkit2-extension",
+    xpc_service="com.apple.product-type.xpc-service",
 )
 """
 Product type identifiers used to describe various bundle types.
@@ -58,8 +62,14 @@ product type identifier. The product types currently supported are:
 * `app_extension`: A basic iOS, macOS, or tvOS application extension. This is
   the default product type for those targets; it can be overridden with a more
   specific product type if needed.
+* `bundle`: A loadable macOS bundle. This is the default product type for
+  `macos_bundle` targets; it can be overridden with a more specific product type
+  if needed.
 * `framework`: A basic dynamic framework. This is the default product type for
   those targets; it does not need to be set explicitly (and cannot be changed).
+* `kernel_extension`: A macOS kernel extension. This product type should be used
+  with a `macos_bundle` target to create such a plug-in; the built bundle will
+  have the extension `.kext`.
 * `messages_application`: An application that integrates with the Messages
   app (iOS 10 and above). This application must include an `ios_extension`
   with the `messages_extension` or `messages_sticker_pack_extension` product
@@ -71,6 +81,9 @@ product type identifier. The product types currently supported are:
 * `messages_sticker_pack_extension`: An extension that defines custom sticker
   packs for the Messages app. This product type does not contain a
   user-provided binary.
+* `spotlight_importer`: A macOS Spotlight importer plug-in. This product type
+  should be used with a `macos_bundle` target to create such a plug-in; the
+  built bundle will have the extension `.mdimporter`.
 * `tool`: A command-line tool. This is the default product type for
   `macos_command_line_application`; it does not need to be set explicitly (and
   cannot be changed).
@@ -86,6 +99,9 @@ product type identifier. The product types currently supported are:
 * `watch2_extension`: A watchOS 2+ application extension. This is the default
   product type for those targets; it does not need to be set explicitly (and
   cannot be changed).
+* `xpc_service`: A macOS XPC service. This product type should be used with a
+  `macos_application` target to create such a service; the built bundle will
+  have the extension `.xpc`.
 """
 
 
@@ -140,8 +156,14 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     apple_product_type.app_extension: _describe_product_type(
         bundle_extension=".appex",
     ),
+    apple_product_type.bundle: _describe_product_type(
+        bundle_extension=".bundle",
+    ),
     apple_product_type.framework: _describe_product_type(
         bundle_extension=".framework",
+    ),
+    apple_product_type.kernel_extension: _describe_product_type(
+        bundle_extension=".kext",
     ),
     apple_product_type.messages_application: _describe_product_type(
         bundle_extension=".app",
@@ -168,6 +190,9 @@ _PRODUCT_TYPE_DESCRIPTORS = {
                              "MessagesApplicationExtensionSupportStub"),
         ),
     ),
+    apple_product_type.spotlight_importer: _describe_product_type(
+        bundle_extension=".mdimporter",
+    ),
     apple_product_type.tool: _describe_product_type(
         bundle_extension="",
     ),
@@ -188,6 +213,9 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     ),
     apple_product_type.watch2_extension: _describe_product_type(
         bundle_extension=".appex",
+    ),
+    apple_product_type.xpc_service: _describe_product_type(
+        bundle_extension=".xpc",
     ),
 }
 
