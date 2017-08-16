@@ -532,7 +532,7 @@ inside the framework bundle.
 
 ```python
 ios_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, deps)
+test_host, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -542,10 +542,6 @@ The named targets produced by this macro are an IPA file and the test script to
 be executed by bazel. This macro also creates a target named
 `{name}.apple_binary` that represents the linked bundle binary inside the test
 bundle.
-
-The following is a list of the `ios_ui_test` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -637,6 +633,14 @@ of the attributes inherited by all test rules, please check the
         transitively included in the final test bundle.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -645,7 +649,7 @@ of the attributes inherited by all test rules, please check the
 
 ```python
 ios_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, deps)
+test_host, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
@@ -655,10 +659,6 @@ The named targets produced by this macro are an IPA file and the test script to
 be executed by bazel. This macro also creates a target named
 `{name}.apple_binary` that represents the linked bundle binary inside the test
 bundle.
-
-The following is a list of the `ios_unit_test` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -750,6 +750,14 @@ of the attributes inherited by all test rules, please check the
         transitively included in the final test bundle.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -758,14 +766,10 @@ of the attributes inherited by all test rules, please check the
 
 ```python
 ios_unit_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
-test_host, deps)
+test_host, deps, [test specific attributes])
 ```
 
 Builds an XCTest unit test suite with the given runners.
-
-The following is a list of the `ios_unit_test_suite` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -843,6 +847,14 @@ of the attributes inherited by all test rules, please check the
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
       </td>
     </tr>
   </tbody>
