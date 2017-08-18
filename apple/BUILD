@@ -9,14 +9,19 @@ filegroup(
 
 [
     config_setting(
-        name = "ios_cpu_" + arch,
-        values = {"ios_cpu": arch},
+        name = arch,
+        values = {"cpu": arch},
     )
     for arch in [
-        "i386",
-        "x86_64",
-        "armv7",
-        "arm64",
+        "darwin_x86_64",
+        "ios_i386",
+        "ios_x86_64",
+        "ios_armv7",
+        "ios_arm64",
+        "tvos_x86_64",
+        "tvos_arm64",
+        "watchos_i386",
+        "watchos_armv7k",
     ]
 ]
 
