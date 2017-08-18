@@ -206,7 +206,7 @@ inside the application bundle.
       <td><code>watch_application</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A <code>watchos_application</code> target that represents an Apple
+        <p>A <code>skylark_watchos_application</code> target that represents an Apple
         Watch application that should be embedded in the application.</p>
       </td>
     </tr>

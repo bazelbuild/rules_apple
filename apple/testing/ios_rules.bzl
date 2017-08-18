@@ -130,6 +130,11 @@ def _ios_test(name,
   if not bundle_loader:
     linkopts = ["-rpath", "@loader_path/Frameworks"]
 
+  # back door to support tags on the apple_binary for systems that
+  # collect binaries from a package as they see this (and tag
+  # can control that collection).
+  binary_tags = kwargs.pop("binary_tags", [])
+
   native.apple_binary(
       name = test_binary_name,
       deps = deps,
@@ -141,6 +146,7 @@ def _ios_test(name,
       visibility = ["//visibility:private"],
       linkopts = linkopts,
       testonly = 1,
+      tags = binary_tags,
   )
 
   _ios_test_bundle(
