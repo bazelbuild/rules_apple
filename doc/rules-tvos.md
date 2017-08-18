@@ -1,10 +1,10 @@
 # Build rules for tvOS
 
-<a name="skylark_tvos_application"></a>
-## skylark_tvos_application
+<a name="tvos_application"></a>
+## tvos_application
 
 ```python
-skylark_tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
+tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
 extensions, infoplists, ipa_post_processor, launch_images, launch_storyboard,
 linkopts, minimum_os_version, provisioning_profile, settings_bundle, strings,
 deps)
@@ -78,7 +78,7 @@ inside the application bundle.
       <td><code>extensions</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of extensions (see <a href="#skylark_tvos_extension"><code>skylark_tvos_extension</code></a>)
+        <p>A list of extensions (see <a href="#tvos_extension"><code>tvos_extension</code></a>)
         to include in the final application bundle.</p>
       </td>
     </tr>
@@ -190,11 +190,11 @@ inside the application bundle.
   </tbody>
 </table>
 
-<a name="skylark_tvos_extension"></a>
-## skylark_tvos_extension
+<a name="tvos_extension"></a>
+## tvos_extension
 
 ```python
-skylark_tvos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
+tvos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
 ipa_post_processor, linkopts, minimum_os_version, strings, deps)
 ```
 

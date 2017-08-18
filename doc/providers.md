@@ -128,7 +128,7 @@ rules&mdash;applications, extensions, frameworks, test bundles, and so forth.
         <p><code>list</code> of <code><a href="https://bazel.build/versions/master/docs/skylark/lib/File.html">File</a></code>s</p>
         <p>A list of any <code>.zip</code> files that should be merged into the
         root of the top-level archive (such as <code>ios_application</code> or
-        <code>skylark_tvos_application</code>) that embeds the target propagating this
+        <code>tvos_application</code>) that embeds the target propagating this
         provider.</p>
         <p>For example, a target that uses Swift must propagate a copy of the
         Swift dylibs that will be packaged in a <code>SwiftSupport</code>
