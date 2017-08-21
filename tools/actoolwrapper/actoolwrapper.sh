@@ -13,11 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# actoolwrapper runs actool, working around issues with relative paths and
+# managing creation of the output directory. This script only runs on Darwin and
+# you must have Xcode installed.
 #
-# actoolwrapper runs actool and zips up the output.
-# This script only runs on darwin and you must have Xcode installed.
-#
-# $1 OUTZIP - the path to place the output zip file.
+# $1 OUTDIR - The directory where the output will be placed. This script will
+#             create it.
 
 set -eu
 
@@ -28,9 +30,9 @@ if [[ -n "${SHOULD_RESET_SIMULATORS:-}" ]]; then
   reset_simulator_service
 fi
 
-OUTZIP="$(realpath "$1")"
+OUTDIR="$1"
+mkdir -p "$OUTDIR"
 shift 1
-TEMPDIR="$(create_temp_dir actoolZippingOutput.XXXXXX)"
 
 # actool needs to have absolute paths sent to it, so we call realpaths on
 # on all arguments seeing if we can expand them.
@@ -66,6 +68,4 @@ done
 # on the same codebase.
 xcrunwrapper actool --errors --warnings --notices \
     --compress-pngs --output-format human-readable-text \
-    --compile "$TEMPDIR" "${TOOLARGS[@]}"
-
-finalize_output_as_zip "$TEMPDIR" "$OUTZIP"
+    --compile "$(realpath "$OUTDIR")" "${TOOLARGS[@]}"

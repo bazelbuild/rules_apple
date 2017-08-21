@@ -262,16 +262,19 @@ def _dedupe_bundle_merge_files(bundlable_files):
   for bf in bundlable_files:
     this_file = bf.src
 
-    other_file = path_to_files.get(bf.dest)
-    if other_file:
-      if other_file.short_path != this_file.short_path:
-        fail(("Multiple files would be placed at \"%s\" in the bundle, " +
-              "which is not allowed: [%s,%s]") % (bf.dest,
-                                                  this_file.short_path,
-                                                  other_file.short_path))
+    if not bf.contents_only:
+      other_bf = path_to_files.get(bf.dest)
+      if other_bf:
+        if other_bf.src.short_path != this_file.short_path:
+          fail(("Multiple files would be placed at \"%s\" in the bundle, " +
+                "which is not allowed: [%s,%s]") % (bf.dest,
+                                                    this_file.short_path,
+                                                    other_bf.src.short_path))
+      else:
+        deduped_bundlable_files.append(bf)
+        path_to_files[bf.dest] = bf
     else:
       deduped_bundlable_files.append(bf)
-      path_to_files[bf.dest] = this_file
 
   return deduped_bundlable_files
 

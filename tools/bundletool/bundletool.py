@@ -109,12 +109,13 @@ class Bundler(object):
 
       for f in bundle_merge_files:
         dest = os.path.join(bundle_path, f['dest'])
-        self._add_files(f['src'], dest, f.get('executable', False), out_zip)
+        self._add_files(f['src'], dest, f.get('executable', False),
+                        f.get('contents_only', False), out_zip)
 
       for z in root_merge_zips:
         self._add_zip_contents(z['src'], z['dest'], out_zip)
 
-  def _add_files(self, src, dest, executable, out_zip):
+  def _add_files(self, src, dest, executable, contents_only, out_zip):
     """Adds a file or a directory of files to the ZIP archive.
 
     Args:
@@ -126,11 +127,16 @@ class Bundler(object):
           be recursively added.
       executable: A Boolean value indicating whether or not the file(s) should
           be made executable.
+      contents_only: A Boolean value indicating whether only the files in `src`
+          or `src` itself should be added to the bundle (if `src` is a
+          directory).
       out_zip: The `ZipFile` into which the files should be added.
     """
     if os.path.isdir(src):
       for root, _, files in os.walk(src):
         relpath = os.path.relpath(root, src)
+        if contents_only:
+          relpath = os.path.dirname(relpath)
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
