@@ -56,8 +56,8 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <th align="left" valign="top">watchOS</th>
       <td valign="top"><code>@build_bazel_rules_apple//apple:watchos.bzl</code></td>
       <td valign="top">
-        <code><a href="rules-watchos.md#skylark_watchos_application">skylark_watchos_application</a></code><br/>
-        <code><a href="rules-watchos.md#skylark_watchos_extension">skylark_watchos_extension</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_application">watchos_application</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_extension">watchos_extension</a></code><br/>
       </td>
       <td valign="top"></td>
     </tr>

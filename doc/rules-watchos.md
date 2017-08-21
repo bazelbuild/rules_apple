@@ -1,10 +1,10 @@
 # Build rules for watchOS
 
-<a name="skylark_watchos_application"></a>
-## skylark_watchos_application
+<a name="watchos_application"></a>
+## watchos_application
 
 ```python
-skylark_watchos_application(name, app_icons, bundle_id, bundle_name,
+watchos_application(name, app_icons, bundle_id, bundle_name,
 entitlements, extension, infoplists, ipa_post_processor, minimum_os_version,
 provisioning_profile, storyboards, strings, deps)
 ```
@@ -82,7 +82,7 @@ rule.
       <td><code>extension</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>The <a href="#skylark_watchos_extension"><code>skylark_watchos_extension</code></a>
+        <p>The <a href="#watchos_extension"><code>watchos_extension</code></a>
         that is bundled with the watch application.</p>
       </td>
     </tr>
@@ -162,11 +162,11 @@ rule.
   </tbody>
 </table>
 
-<a name="skylark_watchos_extension"></a>
-## skylark_watchos_extension
+<a name="watchos_extension"></a>
+## watchos_extension
 
 ```python
-skylark_watchos_extension(name, app_icons, bundle_id, bundle_name, entitlements,
+watchos_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 infoplists, ipa_post_processor, linkopts, minimum_os_version,
 provisioning_profile, strings, deps)
 ```
