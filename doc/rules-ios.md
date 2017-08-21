@@ -527,6 +527,170 @@ inside the framework bundle.
   </tbody>
 </table>
 
+<a name="ios_static_framework"></a>
+## ios_static_framework
+
+```python
+ios_static_framework(name, bundle_id, bundle_name, extension_safe, families,
+infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, deps)
+```
+
+Builds and bundles an iOS static framework for third-party distribution.
+
+A static framework is bundled like a dynamic framework except that the embedded
+binary is a static library rather than a dynamic library. It is intended to
+create distributable static SDKs or artifacts that can be easily imported into
+other Xcode projects; it is specifically **not** intended to be used as a
+dependency of other Bazel targets. For that use case, use the corresponding
+`objc_library` targets directly.
+
+Unlike other iOS bundles, the fat binary in an `ios_static_framework` may
+simultaneously contain simulator and device architectures (that is, you can
+build a single framework artifact that works for all architectures by specifying
+`--ios_multi_cpus=i386,x86_64,armv7,arm64` when you build).
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>avoid_deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>objc_library</code> targets on which this framework
+        depends in order to compile, but the transitive closure of which will
+        <em>not</em> be compiled into the framework's binary.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>hdrs</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.h</code> files that will be publicly exposed by this
+        framework. These headers should have framework-relative imports, and if
+        non-empty, an umbrella header named <code>%{bundle_name}.h</code> will
+        also be generated that imports all of the headers listed here.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>The bundle ID (reverse-DNS path followed by app name) of the
+        framework.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.framework</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>exclude_resources</code></td>
+      <td>
+        <p><code>Boolean; optional; default is False</code></p>
+        <p>Indicates whether resources should be excluded from the bundle. This
+        can be used to avoid unnecessarily bundling resources if the static
+        framework is being distributed in a different fashion, such as a
+        Cocoapod.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>families</code></td>
+      <td>
+        <p><code>List of strings; optional; default is ["iphone", "ipad"]</code></p>
+        <p>A list of device families supported by this framework. Valid values
+        are <code>iphone</code> and <code>ipad</code>. If omitted, both values
+        listed previously will be used.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the framework.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>ipa_post_processor</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A tool that edits this target's archive after it is assembled but
+        before it is signed. The tool is invoked with a single command-line
+        argument that denotes the path to a directory containing the unzipped
+        contents of the archive; the <code>*.framework</code> bundle for the
+        extension will be the directory's only contents.</p>
+        <p>Any changes made by the tool must be made in this directory, and
+        the tool's execution must be hermetic given these inputs to ensure that
+        the result can be safely cached.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkopts</code></td>
+      <td>
+        <p><code>List of strings; optional</code></p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>strings</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.strings</code> files, often localizable. These files
+        are converted to binary plists (if they are not already) and placed in the
+        root of the final extension bundle, unless a file's immediate containing
+        directory is named <code>*.lproj</code>, in which case it will be placed
+        under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The <code>objc_library</code> rules whose transitive closure should
+        be linked into this framework. The libraries compiled into this
+        framework will be all <code>objc_library</code> targets in the
+        transitive closure of <code>deps</code>, minus those that are in the
+        transitive closure of <code>avoid_deps</code>.</p>
+        <p>Any resources, such as asset catalogs, that are referenced by those
+        targets will also be transitively included in the final framework
+        (unless <code>exclude_resources</code> is True).</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 <a name="ios_ui_test"></a>
 ## ios_ui_test
 

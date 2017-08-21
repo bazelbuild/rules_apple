@@ -23,6 +23,7 @@ load("@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
      _ios_application="ios_application",
      _ios_extension="ios_extension",
      _ios_framework="ios_framework",
+     _ios_static_framework="ios_static_framework",
     )
 
 load("@build_bazel_rules_apple//apple/testing:ios_rules.bzl",
@@ -268,6 +269,69 @@ def ios_framework(name, **kwargs):
       name = name,
       binary = apple_dylib_name,
       deps = [apple_dylib_name],
+      **passthrough_args
+  )
+
+
+def ios_static_framework(name, **kwargs):
+  """Builds and bundles an iOS static framework for third-party distribution.
+
+  A static framework is bundled like a dynamic framework except that the
+  embedded binary is a static library rather than a dynamic library. It is
+  intended to create distributable static SDKs or artifacts that can be easily
+  imported into other Xcode projects; it is specifically **not** intended to be
+  used as a dependency of other Bazel targets. For that use case, use the
+  corresponding `objc_library` targets directly.
+
+  Unlike other iOS bundles, the fat binary in an `ios_static_framework` may
+  simultaneously contain simulator and device architectures (that is, you can
+  build a single framework artifact that works for all architectures by
+  specifying `--ios_multi_cpus=i386,x86_64,armv7,arm64` when you build).
+
+  Args:
+    name: The name of the target.
+    bundle_name: The name to give to the framework bundle, without the
+        ".framework" extension. If omitted, the target's name will be used.
+    hdrs: A list of `.h` files that will be publicly exposed by this framework.
+        These headers should have framework-relative imports, and if non-empty,
+        an umbrella header named `%{bundle_name}.h` will also be generated that
+        imports all of the headers listed here.
+    exclude_resources: Indicates whether resources should be excluded from the
+        bundle. This can be used to avoid unnecessarily bundling resources if
+        the static framework is being distributed in a different fashion, such
+        as a Cocoapod.
+    deps: The `objc_library` rules whose transitive closure should be linked
+        into this framework. The libraries compiled into this framework will be
+        all `objc_library` targets in the transitive closure of `deps`, minus
+        those that are in the transitive closure of `avoid_deps`. Any resources,
+        such as asset catalogs, that are referenced by those targets will also
+        be transitively included in the final framework (unless
+        `exclude_resources` is True).
+    avoid_deps: A list of `objc_library` targets on which this framework
+        depends, but the transitive closure of which should *not* be compiled
+        into the framework's binary.
+  """
+  avoid_deps = kwargs.get("avoid_deps")
+  deps = kwargs.get("deps")
+  apple_static_library_name = "%s.apple_static_library" % name
+
+  native.apple_static_library(
+      name = apple_static_library_name,
+      deps = deps,
+      avoid_deps = avoid_deps,
+      platform_type = "ios",
+      visibility = kwargs.get("visibility"),
+  )
+
+  passthrough_args = kwargs
+  passthrough_args.pop("avoid_deps", None)
+  passthrough_args.pop("deps", None)
+  passthrough_args["binary"] = ":" + apple_static_library_name
+
+  _ios_static_framework(
+      name = name,
+      deps = [apple_static_library_name],
+      avoid_deps = [apple_static_library_name],
       **passthrough_args
   )
 

@@ -159,7 +159,7 @@ def _header_prefix(input_file):
     transformed to start with "Headers/".
   """
   new_path = "Headers/" + input_file.basename
-  return struct(file=input_file, bundle_path=new_path)
+  return _bundlable_file(input_file, new_path)
 
 
 def _path_in_binary_dir(ctx, path):

@@ -37,6 +37,7 @@ apple_product_type = struct(
     messages_sticker_pack_extension=(
         "com.apple.product-type.app-extension.messages-sticker-pack"),
     spotlight_importer="com.apple.product-type.spotlight-importer",
+    static_framework="com.apple.product-type.framework.static",
     tool="com.apple.product-type.tool",
     ui_test_bundle="com.apple.product-type.bundle.ui-testing",
     unit_test_bundle="com.apple.product-type.bundle.unit-test",
@@ -84,6 +85,9 @@ product type identifier. The product types currently supported are:
 * `spotlight_importer`: A macOS Spotlight importer plug-in. This product type
   should be used with a `macos_bundle` target to create such a plug-in; the
   built bundle will have the extension `.mdimporter`.
+* `static_framework`: An iOS static framework, which is a `.framework` bundle
+  that contains resources and headers but a static library instead of a dynamic
+  library.
 * `tool`: A command-line tool. This is the default product type for
   `macos_command_line_application`; it does not need to be set explicitly (and
   cannot be changed).
@@ -192,6 +196,9 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     ),
     apple_product_type.spotlight_importer: _describe_product_type(
         bundle_extension=".mdimporter",
+    ),
+    apple_product_type.static_framework: _describe_product_type(
+        bundle_extension=".framework",
     ),
     apple_product_type.tool: _describe_product_type(
         bundle_extension="",
