@@ -29,6 +29,7 @@ load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "basename",
      "bash_array_string",
+     "dirname",
      "group_files_by_directory",
      "intersperse",
      "optionally_prefixed_path",
@@ -346,8 +347,8 @@ def _actool(ctx, asset_catalogs, resource_info):
   """
   bundle_dir = resource_info.bundle_dir
 
-  out_zip = file_support.intermediate(
-      ctx, "%{name}.resources/%{path}", path="actool-output.zip",
+  out_dir = file_support.intermediate_dir(
+      ctx, "%{name}.resources/%{path}", path="actool-output",
       prefix=bundle_dir)
   out_plist = file_support.intermediate(
       ctx, "%{name}.resources/%{path}", path="actool-PartialInfo.plist",
@@ -358,7 +359,7 @@ def _actool(ctx, asset_catalogs, resource_info):
   actool_platform = platform.name_in_plist.lower()
 
   args = [
-      out_zip.path,
+      out_dir.path,
       "--platform", actool_platform,
       "--output-partial-info-plist", out_plist.path,
       "--minimum-deployment-target", min_os,
@@ -382,7 +383,7 @@ def _actool(ctx, asset_catalogs, resource_info):
   platform_support.xcode_env_action(
       ctx,
       inputs=list(asset_catalogs),
-      outputs=[out_zip, out_plist],
+      outputs=[out_dir, out_plist],
       executable=ctx.executable._actoolwrapper,
       arguments=args,
       mnemonic="AssetCatalogCompile",
@@ -390,8 +391,9 @@ def _actool(ctx, asset_catalogs, resource_info):
   )
 
   return struct(
-      bundle_merge_zips=depset([
-          bundling_support.resource_file(ctx, out_zip, bundle_dir)
+      bundle_merge_files=depset([
+          bundling_support.resource_file(ctx, out_dir, bundle_dir,
+                                         contents_only=True)
       ]),
       partial_infoplists=depset([out_plist]),
   )
@@ -431,12 +433,65 @@ def _ibtool_arguments(ctx):
   ] + intersperse("--target-device", platform_support.families(ctx))
 
 
-def _ibtool_compile(ctx, input_file, resource_info):
-  """Creates an action that compiles a storyboard or xib file.
+def _compile_xib(ctx, input_file, resource_info):
+  """Creates an action that compiles a XIB file.
 
   Args:
     ctx: The Skylark context.
-    input_file: The storyboard or xib file to compile.
+    input_file: The XIB file to compile.
+    resource_info: A struct returned by `_resource_info` that contains
+        information needed by the resource processing functions.
+  Returns:
+    A struct as defined by `_process_resources` that will be merged with those
+    from other processing functions.
+  """
+  bundle_dir = resource_info.bundle_dir
+  swift_module = resource_info.swift_module
+
+  # Even the root outputs of ibtool are unpredictable for XIBs based on minimum
+  # OS version; foo.xib could end up as foo~iphone.nib even if we pass foo.nib
+  # to the --compile argument, for example. So we just create a directory to
+  # hold the outputs and then bundle the _contents_ of that directory.
+  bundle_relative_path = resource_info.path_transform(input_file)
+  out_dir_path = replace_extension(bundle_relative_path, ".ibtool-outputs")
+  nib_name = replace_extension(basename(bundle_relative_path), ".nib")
+
+  out_dir = file_support.intermediate_dir(
+      ctx,
+      _prefix_with_swift_module("%{name}.resources/%{path}", resource_info),
+      path=out_dir_path,
+      prefix=bundle_dir)
+
+  # The first two arguments are those required by ibtoolwrapper; the remaining
+  # ones are passed to ibtool verbatim.
+  args = ["--compile", out_dir.path + "/" + nib_name]
+  args.extend(_ibtool_arguments(ctx))
+  args.extend(["--module", swift_module or ctx.label.name, input_file.path])
+
+  platform_support.xcode_env_action(
+      ctx,
+      inputs=[input_file],
+      outputs=[out_dir],
+      executable=ctx.executable._ibtoolwrapper,
+      arguments=args,
+      mnemonic="XibCompile",
+      no_sandbox=True,
+  )
+
+  full_bundle_path = optionally_prefixed_path(
+      dirname(bundle_relative_path), bundle_dir)
+  return struct(bundle_merge_files=depset([
+      bundling_support.resource_file(
+          ctx, out_dir, full_bundle_path, contents_only=True)
+  ]))
+
+
+def _compile_storyboard(ctx, input_file, resource_info):
+  """Creates an action that compiles a storyboard.
+
+  Args:
+    ctx: The Skylark context.
+    input_file: The storyboard to compile.
     resource_info: A struct returned by `_resource_info` that contains
         information needed by the resource processing functions.
   Returns:
@@ -447,46 +502,34 @@ def _ibtool_compile(ctx, input_file, resource_info):
   swift_module = resource_info.swift_module
 
   path = resource_info.path_transform(input_file)
+  path = replace_extension(path, ".storyboardc")
 
-  if path.endswith(".storyboard"):
-    is_storyboard = True
-    mnemonic = "StoryboardCompile"
-    out_name = replace_extension(path, ".storyboardc")
-  else:
-    is_storyboard = False
-    mnemonic = "XibCompile"
-    out_name = replace_extension(path, ".nib")
-
-  out_zip_path = _prefix_with_swift_module(path + ".zip", resource_info)
-  out_file = file_support.intermediate(
-      ctx, "%{name}.resources/%{path}", path=out_zip_path, prefix=bundle_dir)
+  out_dir = file_support.intermediate_dir(
+      ctx,
+      _prefix_with_swift_module("%{name}.resources/%{path}", resource_info),
+      path=path,
+      prefix=bundle_dir)
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.
-  args = [out_file.path, out_name] + _ibtool_arguments(ctx) + [
-      "--module", swift_module or ctx.label.name,
-      input_file.path
-  ]
+  args = ["--compilation-directory", out_dir.dirname]
+  args.extend(_ibtool_arguments(ctx))
+  args.extend(["--module", swift_module or ctx.label.name, input_file.path])
 
   platform_support.xcode_env_action(
       ctx,
       inputs=[input_file],
-      outputs=[out_file],
+      outputs=[out_dir],
       executable=ctx.executable._ibtoolwrapper,
       arguments=args,
-      mnemonic=mnemonic,
+      mnemonic="StoryboardCompile",
       no_sandbox=True,
   )
 
-  if is_storyboard:
-    return struct(compiled_storyboards=depset([out_file]))
-  else:
-    return struct(bundle_merge_zips=depset([
-        bundling_support.resource_file(ctx, out_file, bundle_dir)
-    ]))
+  return struct(compiled_storyboards=depset([out_dir]))
 
 
-def _ibtool_link(ctx, storyboardc_zips, resource_info):
+def _link_storyboards(ctx, storyboardc_dirs, resource_info):
   """Creates an action that links multiple compiled storyboards.
 
   Storyboards that reference each other must be linked, and this operation also
@@ -495,38 +538,39 @@ def _ibtool_link(ctx, storyboardc_zips, resource_info):
 
   Args:
     ctx: The Skylark context.
-    storyboardc_zips: A list of zipped, compiled storyboards (produced by
-        `resource_actions.ibtool_compile`) that should be linked.
+    storyboardc_dirs: A list of zipped, compiled storyboards (produced by
+        `_compile_storyboard`) that should be linked.
     resource_info: A struct returned by `_resource_info` that contains
         information needed by the resource processing functions.
   Returns:
-    The File object representing the ZIP file containing the linked
+    The `File` object representing the directory containing the linked
     storyboards.
   """
   bundle_dir = resource_info.bundle_dir
-  out_zip_path = _prefix_with_swift_module("linked-storyboards.zip",
+  out_dir_path = _prefix_with_swift_module("linked-storyboards",
                                            resource_info)
-  out_zip = file_support.intermediate(ctx,
-                                      "%{name}.resources/%{path}",
-                                      path=out_zip_path,
-                                      prefix=bundle_dir)
+  out_dir = file_support.intermediate_dir(ctx,
+                                          "%{name}.resources/%{path}",
+                                          path=out_dir_path,
+                                          prefix=bundle_dir)
 
   # The first two arguments are those required by ibtoolwrapper; the remaining
   # ones are passed to ibtool verbatim.
-  args = ([out_zip.path, "", "--link"] + _ibtool_arguments(ctx) +
-          [f.path for f in storyboardc_zips])
+  args = ["--link", out_dir.path]
+  args.extend(_ibtool_arguments(ctx))
+  args.extend([f.path for f in storyboardc_dirs])
 
   platform_support.xcode_env_action(
       ctx,
-      inputs=storyboardc_zips,
-      outputs=[out_zip],
+      inputs=storyboardc_dirs,
+      outputs=[out_dir],
       executable=ctx.executable._ibtoolwrapper,
       arguments=args,
       mnemonic="StoryboardLink",
       no_sandbox=True,
   )
 
-  return out_zip
+  return out_dir
 
 
 def _mapc(ctx, input_files, resource_info):
@@ -631,7 +675,7 @@ def _momc(ctx, input_files, resource_info):
     else:
       models_to_compile[model] = children
 
-  out_files = []
+  bundle_merge_files = []
 
   platform, _ = platform_support.platform_and_sdk_version(ctx)
   platform_name = platform.name_in_plist.lower()
@@ -645,17 +689,24 @@ def _momc(ctx, input_files, resource_info):
       children += depset([xccurrentversions[model]])
 
     model_name = remove_extension(basename(model))
-    extension = ".momd" if model.endswith(".xcdatamodeld") else ".mom"
-    archive_root_dir = model_name + extension
+    if model.endswith(".xcdatamodeld"):
+      out_file_name = model_name + ".momd"
+      out_file = file_support.intermediate_dir(
+          ctx, "%{name}.resources/%{path}",
+          path=out_file_name,
+          prefix=bundle_dir)
+    else:
+      out_file_name = model_name + ".mom"
+      out_file = file_support.intermediate(
+          ctx, "%{name}.resources/%{path}",
+          path=out_file_name,
+          prefix=bundle_dir)
 
-    out_file = file_support.intermediate(
-        ctx, "%{name}.resources/%{path}",
-        path="%s%s.zip" % (model_name, extension), prefix=bundle_dir)
-    out_files.append(out_file)
+    bundle_merge_files.append(bundling_support.resource_file(
+        ctx, out_file, optionally_prefixed_path(out_file_name, bundle_dir)))
 
     args = [
         out_file.path,
-        archive_root_dir,
         deployment_target_option, min_os,
         "--module", swift_module or ctx.label.name,
         model,
@@ -670,11 +721,7 @@ def _momc(ctx, input_files, resource_info):
         mnemonic="MomCompile",
     )
 
-  return struct(
-      bundle_merge_zips=depset([
-          bundling_support.resource_file(ctx, f, bundle_dir) for f in out_files
-      ]),
-  )
+  return struct(bundle_merge_files=depset(bundle_merge_files))
 
 
 # The arity of a resource processing function, which denotes whether the
@@ -741,8 +788,8 @@ _ALL_GROUPING_RULES = [
     # Core Data mapping models.
     (("xcmappingmodel/",),         _arity.all,  False, _mapc),
     # Interface Builder files.
-    (("storyboard",),              _arity.each, True,  _ibtool_compile),
-    (("xib",),                     _arity.each, True,  _ibtool_compile),
+    (("storyboard",),              _arity.each, True,  _compile_storyboard),
+    (("xib",),                     _arity.each, True,  _compile_xib),
     # Other files.
     (("png",),                     _arity.each, True,  _png_copy),
 ] + _PLIST_AND_STRING_GROUPING_RULES
@@ -778,16 +825,13 @@ def _process_single_resource_grouping(
     A struct containing information that needs to be propagated back from
     individual actions to the main bundler. It contains the following fields:
     `bundle_merge_files`, a set of bundlable files that should be merged into
-    the bundle at specific locations; `bundle_merge_zips`, a set of bundlable
-    files that should be unzipped at specific locations in the bundle;
-    `compiled_storyboards`, a set of `File` objects representing compiled
-    storyboards that should be linked in the bundle; and `partial_infoplists`,
-    a set of `File` objects representing plists generated by resource
-    processing actions that should be merged into the bundle's final
-    Info.plist.
+    the bundle at specific locations; `compiled_storyboards`, a set of `File`
+    objects representing compiled storyboards that should be linked in the
+    bundle; and `partial_infoplists`, a set of `File` objects representing
+    plists generated by resource processing actions that should be merged into
+    the bundle's final Info.plist.
   """
   bundle_merge_files = depset()
-  bundle_merge_zips = depset()
   compiled_storyboards = depset()
   partial_infoplists = depset()
 
@@ -809,8 +853,6 @@ def _process_single_resource_grouping(
     for result in action_results:
       bundle_merge_files = (
           bundle_merge_files | getattr(result, "bundle_merge_files", []))
-      bundle_merge_zips = (
-          bundle_merge_zips | getattr(result, "bundle_merge_zips", []))
       compiled_storyboards = (
          compiled_storyboards | getattr(result, "compiled_storyboards", []))
       partial_infoplists = (
@@ -826,7 +868,6 @@ def _process_single_resource_grouping(
 
   return struct(
       bundle_merge_files=bundle_merge_files,
-      bundle_merge_zips=bundle_merge_zips,
       compiled_storyboards=compiled_storyboards,
       partial_infoplists=partial_infoplists,
   )
@@ -998,7 +1039,6 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
         result = _process_single_resource_grouping(
             ctx, files, resource_info, group_extensions, _ALL_GROUPING_RULES)
         bundle_merge_files.extend(list(result.bundle_merge_files))
-        bundle_merge_zips.extend(list(result.bundle_merge_zips))
 
         # Link the storyboards in the bundle, which not only resolves references
         # between different storyboards, but also copies the results to the
@@ -1006,10 +1046,10 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
         # example, storyboards in watchOS applications are simple plists and
         # don't retain the same .storyboardc directory structure that others do.
         if result.compiled_storyboards:
-          linked_storyboards = _ibtool_link(
+          linked_storyboards = _link_storyboards(
               ctx, result.compiled_storyboards.to_list(), resource_info)
-          bundle_merge_zips.append(bundling_support.resource_file(
-              ctx, linked_storyboards, bundle_dir))
+          bundle_merge_files.append(bundling_support.resource_file(
+              ctx, linked_storyboards, bundle_dir, contents_only=True))
 
         if result.partial_infoplists:
           infoplists_so_far = bundle_infoplists.get(bundle_dir, [])

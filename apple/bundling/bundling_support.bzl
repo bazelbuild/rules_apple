@@ -35,7 +35,7 @@ def _binary_file(ctx, src, dest, executable=False):
   return _bundlable_file(src, _path_in_binary_dir(ctx, dest), executable)
 
 
-def _bundlable_file(src, dest, executable=False):
+def _bundlable_file(src, dest, executable=False, contents_only=False):
   """Returns a value that represents a bundlable file or ZIP archive.
 
   A "bundlable file" is a struct that maps a file (`"src"`) to a path within a
@@ -49,11 +49,16 @@ def _bundlable_file(src, dest, executable=False):
     src: The `File` artifact that should be bundled.
     dest: The path within the bundle where the file should be placed.
     executable: True if the file should be made executable.
+    contents_only: If `src` is a directory and this is True, then the _contents_
+        of the directory will be added at `dest` to the bundle; if this is
+        False (the default) then the directory _itself_ will be added at `dest`
+        to the bundle.
   Returns:
     A struct with `src`, `dest`, and `executable` fields representing the
     bundlable file.
   """
-  return struct(src=src, dest=dest, executable=executable)
+  return struct(
+      src=src, dest=dest, executable=executable, contents_only=contents_only)
 
 
 def _bundlable_file_sources(bundlable_files):
@@ -215,7 +220,7 @@ def _path_in_resources_dir(ctx, path):
       ctx, ctx.attr._bundle_resources_path_format % (path or ""))
 
 
-def _resource_file(ctx, src, dest, executable=False):
+def _resource_file(ctx, src, dest, executable=False, contents_only=False):
   """Returns a bundlable file whose destination is in the resources directory.
 
   Args:
@@ -224,10 +229,15 @@ def _resource_file(ctx, src, dest, executable=False):
     dest: The path within the bundle's resources directory where the file
         should be placed.
     executable: True if the file should be made executable.
+    contents_only: If `src` is a directory and this is True, then the _contents_
+        of the directory will be added at `dest` to the bundle; if this is
+        False (the default) then the directory _itself_ will be added at `dest`
+        to the bundle.
   Returns:
     A bundlable file struct (see `bundling_support.bundlable_file`).
   """
-  return _bundlable_file(src, _path_in_resources_dir(ctx, dest), executable)
+  return _bundlable_file(
+      src, _path_in_resources_dir(ctx, dest), executable, contents_only)
 
 
 # Define the loadable module that lists the exported symbols in this file.

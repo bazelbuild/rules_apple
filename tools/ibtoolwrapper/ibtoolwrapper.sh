@@ -13,15 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# ibtoolwrapper runs ibtool, working around relative path issues and handling
+# the differences between file outputs and directory outputs appropriately. This
+# script only runs on Darwin and you must have Xcode installed.
 #
-# ibtoolwrapper runs ibtool and zips up the output.
-# This script only runs on darwin and you must have Xcode installed.
-#
-# $1 OUTZIP - the path to place the output zip file.
-# $2 ARCHIVEROOT - the path in the zip to place the output, or an empty
-#                  string for the root of the zip. e.g. 'Payload/foo.app'. If
-#                  this tool outputs a single file, ARCHIVEROOT is the name of
-#                  the only file in the zip file.
+# $1 ACTION - The action to execute: --compile, --link, or
+#             --compilation-directory. (The last one is not technically an
+#             action, but we treat it as such to unify the output path
+#             handling.)
+# $2 OUTPUT - The path to the file or directory where the output will be written
+#             (depending on the action specified).
 
 set -eu
 
@@ -32,58 +34,42 @@ if [[ -n "${SHOULD_RESET_SIMULATORS:-}" ]]; then
   reset_simulator_service
 fi
 
-OUTZIP="$(realpath "$1")"
-ARCHIVEROOT="$2"
+ACTION="$1"
+OUTPUT="$2"
 shift 2
 
-TEMPDIR="$(create_temp_dir ibtoolZippingOutput.XXXXXX)"
+if [[ "$ACTION" == "--compilation-directory" || "$ACTION" == "--link" ]]; then
+  # When compiling storyboards, $OUTPUT is the directory where the .storyboardc
+  # directory will be written. When linking storyboards, $OUTPUT is the
+  # directory where all of the .storyboardc directories will be copied. In
+  # either case, we ensure that that directory is created.
+  mkdir -p "$OUTPUT"
+  FULLPATH="$(realpath "$OUTPUT")"
+else
+  # When compiling XIBs, we know the name that we pass to the --compile option
+  # but it could be mangled by ibtool, depending on the minimum OS version (for
+  # example, iOS < 8.0 will produce separate FOO~iphone.nib/ and FOO~ipad.nib/
+  # folders given the flag --compile FOO.nib. So all we do is ensure that the
+  # _parent_ directory is created and let ibtool create the files in it.
+  mkdir -p "$(dirname "$OUTPUT")"
 
-# Create the directory used to expand compiled storyboards for linking if that
-# options is present on the command line.
-for i in "$@"; do
-  if [[ "$i" == "--link" ]]; then
-    LINKDIR="$(create_temp_dir ibtoolLinkingRoot.XXXXXX)"
-  fi
-done
-
-FULLPATH="$TEMPDIR/$ARCHIVEROOT"
-PARENTDIR="$(dirname "$FULLPATH")"
-mkdir -p "$PARENTDIR"
-FULLPATH="$(realpath "$FULLPATH")"
+  touch "$OUTPUT"
+  FULLPATH="$(realpath "$OUTPUT")"
+  rm -f "$OUTPUT"
+fi
 
 # IBTool needs to have absolute paths sent to it, so we call realpaths on
 # on all arguments seeing if we can expand them.
 # Radar 21045660 ibtool has difficulty dealing with relative paths.
 TOOLARGS=()
-# By default, have ibtool compile storyboards (to stay compatible with the
-# native rules). If the command line includes "--link", we use it instead.
-ACTION=--compile
 for i in "$@"; do
   if [[ -e "$i" ]]; then
-    if [[ "$i" == *.zip ]]; then
-      unzip -qq "$i" -d "$LINKDIR"
-    else
-      ARG="$(realpath "$i")"
-      TOOLARGS+=("$ARG")
-    fi
+    ARG="$(realpath "$i")"
+    TOOLARGS+=("$ARG")
   else
-    if [[ "$i" == "--link" ]]; then
-      ACTION="$i"
-    else
-      TOOLARGS+=("$i")
-    fi
+    TOOLARGS+=("$i")
   fi
 done
-
-# Collect all the .storyboardc directories that were extracted earlier for
-# the linking action.
-if [[ "$ACTION" == "--link" ]]; then
-  # We still have to use "$REALPATH" here instead of just "realpath" because
-  # find -exec expects a command, not a function. We also intentionally do not
-  # quote this command invocation so that the arguments are passed with spaces
-  # between them instead of newlines.
-  TOOLARGS+=($(find "$LINKDIR" -name "*.storyboardc" -exec "$REALPATH" {} \;))
-fi
 
 # If we are running into problems figuring out ibtool issues, there are a couple
 # of env variables that may help. Both of the following must be set to work.
@@ -95,5 +81,3 @@ fi
 xcrunwrapper ibtool --errors --warnings --notices \
     --auto-activate-custom-fonts --output-format human-readable-text \
     "$ACTION" "$FULLPATH" "${TOOLARGS[@]}"
-
-finalize_output_as_zip "$TEMPDIR" "$OUTZIP"
