@@ -77,6 +77,17 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "ios_static_framework_test",
+    size = "medium",
+    src = "ios_static_framework_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/resources:resource_data_deps_ios",
+        "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
+)
+
+apple_shell_test(
     name = "macos_application_test",
     size = "medium",
     src = "macos_application_test.sh",

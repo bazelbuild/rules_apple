@@ -22,6 +22,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-ios.md#ios_application">ios_application</a></code><br/>
         <code><a href="rules-ios.md#ios_extension">ios_extension</a></code><br/>
         <code><a href="rules-ios.md#ios_framework">ios_framework</a></code><br/>
+        <code><a href="rules-ios.md#ios_static_framework">ios_static_framework</a></code><br/>
       </td>
       <td valign="top">
         <code><a href="rules-ios.md#ios_ui_test">ios_ui_test</a></code><br/>

@@ -924,16 +924,16 @@ def _copy_framework_files(ctx, framework_files):
   bundled_framework_files = []
   for framework_file in framework_files:
     output_file = ctx.new_file(
-        framework_dir_name + framework_file.bundle_path)
+        framework_dir_name + framework_file.dest)
     ctx.action(
         outputs=[output_file],
-        inputs=[framework_file.file],
+        inputs=[framework_file.src],
         mnemonic="Cp",
         arguments=[
-            output_file.dirname, framework_file.file.path, output_file.path],
+            output_file.dirname, framework_file.src.path, output_file.path],
         command='mkdir -p "$1" && cp "$2" "$3"',
         progress_message=(
-            "Copying " + framework_file.file.path + " to " + output_file.path)
+            "Copying " + framework_file.src.path + " to " + output_file.path)
     )
     bundled_framework_files.append(output_file)
   return (ctx.outputs.archive.dirname + "/" + framework_dir_name,

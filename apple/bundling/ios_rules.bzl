@@ -39,6 +39,14 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:framework_support.bzl",
+    "framework_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -61,6 +69,7 @@ load(
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
+    "IosStaticFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
 )
 load(
@@ -225,8 +234,8 @@ def _ios_framework_impl(ctx):
   """Implementation of the ios_framework Skylark rule."""
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleDylibBinary).binary
-  bundlable_binary = struct(file=binary_artifact,
-                            bundle_path=bundling_support.bundle_name(ctx))
+  bundlable_binary = bundling_support.bundlable_file(
+      binary_artifact, bundling_support.bundle_name(ctx))
   prefixed_hdr_files = []
   for hdr_provider in ctx.attr.hdrs:
     for hdr_file in hdr_provider.files:
@@ -271,5 +280,91 @@ ios_framework = rule_factory.make_bundling_rule(
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.framework),
+    propagates_frameworks=True,
+)
+
+
+def _ios_static_framework_impl(ctx):
+  """Implementation of the _ios_static_framework Skylark rule."""
+  bundle_name = bundling_support.bundle_name(ctx)
+  hdr_files = ctx.files.hdrs
+  framework_files = [bundling_support.header_prefix(f) for f in hdr_files]
+
+  objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
+  sdk_dylibs = depset()
+  sdk_frameworks = depset()
+  for objc in objc_providers:
+    sdk_dylibs += objc.sdk_dylib
+    sdk_frameworks += objc.sdk_framework
+
+  # Create an umbrella header if the framework has any header files.
+  umbrella_header_name = None
+  if hdr_files:
+    umbrella_header_file = file_support.intermediate(ctx, "%{name}.umbrella.h")
+    framework_support.create_umbrella_header(
+        ctx.actions, umbrella_header_file, sorted(hdr_files))
+    umbrella_header_name = bundle_name + ".h"
+    framework_files.append(bundling_support.contents_file(
+        ctx, umbrella_header_file, "Headers/" + umbrella_header_name))
+  else:
+    umbrella_header_name = None
+
+  # Create a module map if there is a need for one (that is, if there are
+  # headers or if there are dylibs/frameworks that we depend on).
+  if any([sdk_dylibs, sdk_frameworks, umbrella_header_name]):
+    modulemap_file = file_support.intermediate(
+        ctx, "%s.modulemap" % bundle_name)
+    framework_support.create_modulemap(
+        ctx.actions, modulemap_file, bundle_name, umbrella_header_name,
+        sorted(sdk_dylibs.to_list()), sorted(sdk_frameworks.to_list()))
+    framework_files.append(bundling_support.contents_file(
+        ctx, modulemap_file, "Modules/module.modulemap"))
+
+  binary_artifact = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleStaticLibrary).archive
+  additional_providers, legacy_providers, additional_outputs = bundler.run(
+      ctx,
+      "IosStaticFrameworkArchive", "iOS static framework",
+      ctx.attr.bundle_id,
+      binary_artifact=binary_artifact,
+      additional_bundlable_files=framework_files,
+      framework_files=framework_files,
+  )
+
+  return struct(
+      files=additional_outputs,
+      providers=[
+          IosStaticFrameworkBundleInfo(),
+      ] + additional_providers,
+      **legacy_providers
+  )
+
+
+ios_static_framework = rule_factory.make_bundling_rule(
+    _ios_static_framework_impl,
+    additional_attrs={
+        "avoid_deps": attr.label_list(),
+        "dedupe_unbundled_resources": attr.bool(default=True),
+        "exclude_resources": attr.bool(default=False),
+        "hdrs": attr.label_list(allow_files=[".h"]),
+        # Make plists non-mandatory.
+        "infoplists": attr.label_list(
+            allow_files=[".plist"],
+            mandatory=False,
+            non_empty=False,
+        ),
+        "strings": attr.label_list(allow_files=[".strings"]),
+    },
+    archive_extension=".zip",
+    binary_providers=[apple_common.AppleStaticLibrary],
+    code_signing=rule_factory.code_signing(skip_signing=True),
+    device_families=rule_factory.device_families(
+        allowed=["iphone", "ipad"],
+        mandatory=False,
+    ),
+    needs_pkginfo=False,
+    path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
+    platform_type=apple_common.platform_type.ios,
+    product_type=rule_factory.product_type(apple_product_type.static_framework),
     propagates_frameworks=True,
 )
