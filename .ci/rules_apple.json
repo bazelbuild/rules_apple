@@ -1,0 +1,36 @@
+[
+    {
+        "variation": "",
+        "node": "darwin-x86_64",
+        "parameters": {
+            // Build an explicit list of targets (applications,
+            // extensions, and other binaries/bundles) that we
+            // know will build safely by themselves. We cannot
+            // use the default "//..." here because that will
+            // try to build objc_library targets that require a
+            // different platform than the default be passed
+            // down from their apple_binary.
+	        "targets": ["//:for_bazel_ci_build"],
+
+            // Targets not under "//test/" that should be tested
+            // automatically by CI should be added to the
+            // "//:for_bazel_ci_test" filegroup.
+            "tests": [
+                "//:for_bazel_ci_test",
+                "//test/..."
+            ],
+
+            // TODO(allevato): Remove this flag once CROSSTOOL
+            // is the default for builds in Bazel.
+            "build_opts": ["--experimental_objc_crosstool=all"],
+
+            // These test_opts are required to prevent the Bazel
+            // sandbox from denying access to files needed by
+            // Apple tools during integration test runs.
+            "test_opts": [
+                "--spawn_strategy=standalone",
+                "--strategy=TestRunner=standalone"
+            ]
+        }
+    } 
+]

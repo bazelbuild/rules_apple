@@ -36,4 +36,4 @@ else
   readonly tests="$@"
 fi
 
-bazel test "$tests" --test_strategy=standalone --strategy=TestRunner=standalone
+bazel test "$tests" --experimental_objc_crosstool=all --test_strategy=standalone --strategy=TestRunner=standalone
