@@ -544,4 +544,28 @@ EOF
       || fail "should contain DWARF data"
 }
 
+# Verifies that a swift module's name has no prefixes when it is defined at the root of
+# the workspace.
+function test_swift_module_name_at_root() {
+  echo 'public class SwiftClass { func bar() -> Int { return 1 } }' > dep.swift
+  echo 'import swift_module_name_at_root_dep' > main.swift
+
+  cat >BUILD <<EOF
+load("@build_bazel_rules_apple//apple:swift.bzl",
+     "swift_library")
+
+swift_library(name = "swift_module_name_at_root_dep",
+              srcs = ["dep.swift"])
+swift_library(name = "swift_module_name_at_root",
+              srcs = ["main.swift"],
+              deps = [":swift_module_name_at_root_dep"])
+EOF
+
+  do_build ios //:swift_module_name_at_root -s || fail "should build"
+
+  rm dep.swift
+  rm main.swift
+  rm BUILD
+}
+
 run_suite "swift_library tests"
