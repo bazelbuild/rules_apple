@@ -1,5 +1,7 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
+[![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_apple)](http://ci.bazel.io/job/rules_apple)
+
 > :warning: **NOTE**: At the time of this writing, the most recent Bazel
 > release is **0.4.5.** These rules are *not* compatible with that release;
 > they are only compatible with Bazel at **master**. Until the next release of
