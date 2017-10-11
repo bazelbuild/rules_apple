@@ -268,20 +268,4 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_TYPE=XCTEST" "test-bin/app/unit_tests"
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-function test_dsyms_generated() {
-  create_common_files
-  create_minimal_macos_application_with_tests
-  do_build macos --apple_generate_dsym //app:unit_tests || fail "Should build"
-
-  assert_exists "test-bin/app/unit_tests.xctest.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs macos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/unit_tests.xctest.dSYM/Contents/Resources/DWARF/unit_tests_${arch}"
-  done
-}
-
 run_suite "macos_unit_test bundling tests"
