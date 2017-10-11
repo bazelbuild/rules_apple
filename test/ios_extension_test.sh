@@ -437,8 +437,9 @@ EOF
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
-  expect_log 'The CFBundleIdentifier of the child target "//app:ext" should ' \
-      'have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
+  expect_log 'While processing target "//app:app"; the CFBundleIdentifier of ' \
+      'the child target "//app:ext" should have "my.bundle.id." as its ' \
+      'prefix, but found "my.extension.bundle.id".'
 }
 
 # Tests that a prebuilt static framework (i.e., objc_framework with is_dynamic

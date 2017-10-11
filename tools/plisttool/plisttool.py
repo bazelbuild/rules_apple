@@ -89,30 +89,41 @@ import re
 import subprocess
 import sys
 
-MISMATCHED_BUNDLE_ID_MSG = ('The CFBundleIdentifier of the merged Info.plists '
-                            '"%s" must be equal to the bundle_id argument '
-                            '"%s".')
+# Format strings for errors that are raised, exposed here to the tests
+# can validate against them.
 
-CHILD_BUNDLE_ID_MISMATCH_MSG = ('The CFBundleIdentifier of the child target '
-                                '"%s" should have "%s" as its prefix, but '
-                                'found "%s".')
+MISMATCHED_BUNDLE_ID_MSG = (
+    'On target "%s"; the CFBundleIdentifier of the merged Info.plists "%s" '
+    'must be equal to the bundle_id argument "%s".'
+)
 
-CHILD_BUNDLE_VERSION_MISMATCH_MSG = ('The CFBundleShortVersionString of the '
-                                     'child target "%s" should be the same as '
-                                     'its parent\'s version string "%s", but '
-                                     'found "%s".')
+CHILD_BUNDLE_ID_MISMATCH_MSG = (
+    'While processing target "%s"; the CFBundleIdentifier of the child target '
+    '"%s" should have "%s" as its prefix, but found "%s".'
+)
 
-INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG = ('info_plist_options entry for "%s"'
-                                            'appears to contain an unsupported '
-                                            'variable reference ("%s").')
+CHILD_BUNDLE_VERSION_MISMATCH_MSG = (
+    'While processing target "%s"; the CFBundleShortVersionString of the '
+    'child target "%s" should be the same as its parent\'s version string '
+    '"%s", but found "%s".'
+)
 
-PLUTIL_CONVERSION_TO_XML_FAILED_MSG = ('plutil failed (%d) to convert "%s" to '
-                                       'xml.')
+INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG = (
+    'Target "%s" has an info_plist_options entry "%s" that appears to contain '
+    'an unsupported variable reference: "%s".'
+)
 
-UNKNOWN_CONTROL_KEYS_MSG = 'Control structure has unknown key(s): %s'
+PLUTIL_CONVERSION_TO_XML_FAILED_MSG = (
+    'While processing target "%s", plutil failed (%d) to convert "%s" to xml.'
+)
 
-UNKNOWN_INFO_PLIST_OPTIONS_MSG = ('Control\'s info_plist_options has unknown '
-                                  'key(s): %s')
+UNKNOWN_CONTROL_KEYS_MSG = (
+    'Target "%s" used a control structure has unknown key(s): %s'
+)
+
+UNKNOWN_INFO_PLIST_OPTIONS_MSG = (
+    'Target "%s" used info_plist_options that included unknown key(s): %s'
+)
 
 # Mappings from info_plist_options to substitution names that can be applied
 # to Info.plist values.
@@ -143,20 +154,22 @@ class PlistConflictError(ValueError):
   "value2" attributes have the values that were encountered.
   """
 
-  def __init__(self, key, value1, value2):
+  def __init__(self, target, key, value1, value2):
     """Initializes an error with the given key and values.
 
     Args:
+      target: The name of the target for which the plist is being built.
       key: The key that had conflicting values.
       value1: One of the conflicting values.
       value2: One of the conflicting values.
     """
+    self.target_label = target
     self.key = key
     self.value1 = value1
     self.value2 = value2
     ValueError.__init__(self, (
-        'Found key %r in two plists with different values: %r != %r') % (
-            key, value1, value2))
+        'While processing target "%s"; found key %r in two plists with '
+        'different values: %r != %r') % (target, key, value1, value2))
 
 
 class PlistTool(object):
@@ -193,15 +206,19 @@ class PlistTool(object):
           contains unknown keys, or if the control structure is missing an
           'output' entry.
     """
+    target = self._control.get('target')
+    if not target:
+      raise ValueError('No target name in control.')
+
     unknown_keys = set(self._control.keys()) - _CONTROL_KEYS
     if unknown_keys:
-      raise ValueError(
-          UNKNOWN_CONTROL_KEYS_MSG % ', '.join(sorted(unknown_keys)))
+      raise ValueError(UNKNOWN_CONTROL_KEYS_MSG % (
+          target, ', '.join(sorted(unknown_keys))))
     i_p_o_keys = self._control.get('info_plist_options', dict()).keys()
     unknown_keys = set(i_p_o_keys) - _INFO_PLIST_OPTIONS_KEYS
     if unknown_keys:
-      raise ValueError(
-          UNKNOWN_INFO_PLIST_OPTIONS_MSG % ', '.join(sorted(unknown_keys)))
+      raise ValueError(UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
+          target, ', '.join(sorted(unknown_keys))))
 
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
@@ -212,27 +229,28 @@ class PlistTool(object):
         continue
       if '$' in v:
         raise ValueError(
-            INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (key, v))
+            INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (target, key, v))
 
     out_plist = {}
 
     for p in self._control.get('plists', []):
-      plist = self._get_plist_dict(p)
-      self.merge_dictionaries(plist, out_plist)
+      plist = self._get_plist_dict(p, target)
+      self.merge_dictionaries(plist, out_plist, target)
 
     forced_plists = self._control.get('forced_plists', [])
     for p in forced_plists:
-      plist = self._get_plist_dict(p)
-      self.merge_dictionaries(plist, out_plist, override_collisions=True)
+      plist = self._get_plist_dict(p, target)
+      self.merge_dictionaries(plist, out_plist, target,
+                              override_collisions=True)
 
     info_plist_options = self._control.get('info_plist_options')
     if info_plist_options:
       self._perform_info_plist_operations(out_plist, info_plist_options,
-                                          self._control.get('target'))
+                                          target)
 
     self._write_plist(out_plist)
 
-  def merge_dictionaries(self, src, dest, override_collisions=False):
+  def merge_dictionaries(self, src, dest, target, override_collisions=False):
     """Merge the top-level keys from src into dest.
 
     This method is publicly visible for testing.
@@ -240,6 +258,7 @@ class PlistTool(object):
     Args:
       src: The dictionary whose values will be merged into dest.
       dest: The dictionary into which the values will be merged.
+      target: The name of the target for which the plist is being built.
       override_collisions: If True, collisions will be resolved by replacing
           the previous value with the new value. If False, an error will be
           raised if old and new values do not match.
@@ -254,11 +273,11 @@ class PlistTool(object):
         dest_value = dest[key]
 
         if not override_collisions and src_value != dest_value:
-          raise PlistConflictError(key, src_value, dest_value)
+          raise PlistConflictError(target, key, src_value, dest_value)
 
       dest[key] = src_value
 
-  def _get_plist_dict(self, p):
+  def _get_plist_dict(self, p, target):
     """Returns a plist dictionary based on the given object.
 
     This function handles the various input formats for plists in the control
@@ -268,6 +287,7 @@ class PlistTool(object):
 
     Args:
       p: The object to interpret as a plist.
+      target: The name of the target for which the plist is being built.
     Returns:
       A dictionary containing the values from the plist.
     """
@@ -276,11 +296,11 @@ class PlistTool(object):
 
     if isinstance(p, basestring):
       with open(p) as plist_file:
-        return OrderedDict(self._read_plist(plist_file, p))
+        return OrderedDict(self._read_plist(plist_file, p, target))
 
-    return OrderedDict(self._read_plist(p, '<input>'))
+    return OrderedDict(self._read_plist(p, '<input>', target))
 
-  def _read_plist(self, plist_file, name):
+  def _read_plist(self, plist_file, name, target):
     """Reads a plist file and returns its contents as a dictionary.
 
     This method wraps the readPlist method in plistlib by checking the format
@@ -290,6 +310,7 @@ class PlistTool(object):
     Args:
       plist_file: The file-like object containing the plist data.
       name: Name to report the file-like object as if it fails xml conversion.
+      target: The name of the target for which the plist is being built.
     Returns:
       The contents of the plist file as a dictionary.
     """
@@ -308,8 +329,8 @@ class PlistTool(object):
       )
       plist_contents, _ = plutil_process.communicate(plist_contents)
       if plutil_process.returncode:
-        raise ValueError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG %
-            (plutil_process.returncode, name))
+        raise ValueError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
+            target, plutil_process.returncode, name))
 
     return plistlib.readPlistFromString(plist_contents)
 
@@ -335,8 +356,8 @@ class PlistTool(object):
     if bundle_id:
       old_bundle_id = out_plist.get('CFBundleIdentifier')
       if old_bundle_id and old_bundle_id != bundle_id:
-        raise ValueError(MISMATCHED_BUNDLE_ID_MSG %
-                         (old_bundle_id, bundle_id))
+        raise ValueError(MISMATCHED_BUNDLE_ID_MSG % (
+            target, old_bundle_id, bundle_id))
       out_plist['CFBundleIdentifier'] = bundle_id
 
     # Pull in the version info propagated by AppleBundleVersionInfo, using "1.0"
@@ -371,7 +392,7 @@ class PlistTool(object):
 
     child_plists = options.get('child_plists')
     if child_plists:
-      self._validate_against_children(out_plist, child_plists)
+      self._validate_against_children(out_plist, child_plists, target)
 
     pkginfo_file = options.get('pkginfo')
     if pkginfo_file:
@@ -489,7 +510,7 @@ class PlistTool(object):
       # occurred.
       return '????'
 
-  def _validate_against_children(self, out_plist, child_plists):
+  def _validate_against_children(self, out_plist, child_plists, target):
     """Validates that a target's plist is consistent with its children.
 
     This function checks each of the given child plists (which are typically
@@ -500,19 +521,20 @@ class PlistTool(object):
       out_plist: The final plist of the target being built.
       child_plists: The plists of child targets that the target being built
           depends on.
+      target: The name of the target being processed.
     Raises:
       ValueError: if there was an inconsistency between a child target's plist
           and the current target's plist, with a message describing what was
           incorrect.
     """
     for label, p in child_plists.iteritems():
-      child_plist = self._get_plist_dict(p)
+      child_plist = self._get_plist_dict(p, target)
 
       prefix = out_plist['CFBundleIdentifier'] + '.'
       child_id = child_plist['CFBundleIdentifier']
       if not child_id.startswith(prefix):
         raise ValueError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
-            label, prefix, child_id))
+            target, label, prefix, child_id))
 
       # CFBundleVersion isn't checked because Apple seems to treat this as
       # a build number developers can pick based on their sources, so they
@@ -523,7 +545,7 @@ class PlistTool(object):
       child_version = child_plist['CFBundleShortVersionString']
       if version != child_version:
         raise ValueError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
-            label, version, child_version))
+            target, label, version, child_version))
 
 
 def _main(control_path):

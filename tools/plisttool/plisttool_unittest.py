@@ -24,6 +24,9 @@ import unittest
 
 import plisttool
 
+# Used as the target name for all tests.
+_testing_target = '//plisttool:tests'
+
 
 def _xml_plist(content):
   """Returns a StringIO for a plist with the given content.
@@ -64,6 +67,7 @@ def _plisttool_result(control):
   """
   output = StringIO.StringIO()
   control['output'] = output
+  control['target'] = _testing_target
 
   tool = plisttool.PlistTool(control)
   tool.run()
@@ -96,6 +100,7 @@ class PlistToolTest(unittest.TestCase):
     control = {
         'plists': [plist],
         'output': StringIO.StringIO(),
+        'target': _testing_target,
         'info_plist_options': {'pkginfo': pkginfo},
     }
     tool = plisttool.PlistTool(control)
@@ -241,8 +246,8 @@ class PlistToolTest(unittest.TestCase):
   def test_invalid_info_plist_options_value(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG %
-                  ('bundle_id', 'foo.bar.${NotSupported}'))):
+        re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (
+            _testing_target, 'bundle_id', 'foo.bar.${NotSupported}'))):
       _plisttool_result({
          'plists': [{}],
          'info_plist_options': {
@@ -351,6 +356,7 @@ class PlistToolTest(unittest.TestCase):
       plist2 = _xml_plist('<key>Foo</key><string>Baz</string>')
       _plisttool_result({'plists': [plist1, plist2]})
 
+    self.assertEqual(_testing_target, context.exception.target_label)
     self.assertEqual('Foo', context.exception.key)
     # Don't care about the order of the values.
     values = set([context.exception.value1, context.exception.value2])
@@ -388,7 +394,7 @@ class PlistToolTest(unittest.TestCase):
 
     outdict = OrderedDict()
     tool = plisttool.PlistTool({})
-    tool.merge_dictionaries(source_plist, outdict)
+    tool.merge_dictionaries(source_plist, outdict, _testing_target)
 
     self.assertEqual(outdict.keys(), key_order.keys())
 
@@ -396,7 +402,8 @@ class PlistToolTest(unittest.TestCase):
     output = StringIO.StringIO()
     control = {
         'plists': [{'CFBundleIdentifier': 'foo.bar.baz'}],
-        'output': output
+        'output': output,
+        'target': _testing_target,
     }
     tool = plisttool.PlistTool(control)
     tool.run()
@@ -416,7 +423,8 @@ class PlistToolTest(unittest.TestCase):
   def test_bundle_id_mismatch_raises_error(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.MISMATCHED_BUNDLE_ID_MSG % ('abc', 'foo.bar.baz'))):
+        re.escape(plisttool.MISMATCHED_BUNDLE_ID_MSG % (
+            _testing_target, 'abc', 'foo.bar.baz'))):
       plist1 = _xml_plist('<key>CFBundleIdentifier</key><string>abc</string>')
       _plisttool_result({
           'plists': [plist1],
@@ -496,8 +504,8 @@ class PlistToolTest(unittest.TestCase):
   def test_child_plist_with_incorrect_bundle_id_raises(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.CHILD_BUNDLE_ID_MISMATCH_MSG %
-                  ('//fake:label', 'foo.bar.', 'foo.baz'))):
+        re.escape(plisttool.CHILD_BUNDLE_ID_MISMATCH_MSG % (
+            _testing_target, '//fake:label', 'foo.bar.', 'foo.baz'))):
       parent = _xml_plist(
           '<key>CFBundleIdentifier</key><string>foo.bar</string>'
           '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
@@ -515,8 +523,8 @@ class PlistToolTest(unittest.TestCase):
   def test_child_plist_with_incorrect_bundle_version_raises(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.CHILD_BUNDLE_VERSION_MISMATCH_MSG %
-                  ('//fake:label', '1.2.3', '1.2.4'))):
+        re.escape(plisttool.CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
+            _testing_target, '//fake:label', '1.2.3', '1.2.4'))):
       parent = _xml_plist(
           '<key>CFBundleIdentifier</key><string>foo.bar</string>'
           '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
@@ -534,7 +542,8 @@ class PlistToolTest(unittest.TestCase):
   def test_unknown_control_keys_raise(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.UNKNOWN_CONTROL_KEYS_MSG % 'unknown')):
+        re.escape(plisttool.UNKNOWN_CONTROL_KEYS_MSG % (
+            _testing_target, 'unknown'))):
       plist = {'Foo': 'bar'}
       _plisttool_result({
           'plists': [plist],
@@ -544,7 +553,8 @@ class PlistToolTest(unittest.TestCase):
   def test_unknown_control_keys_raise(self):
     with self.assertRaisesRegexp(
         ValueError,
-        re.escape(plisttool.UNKNOWN_INFO_PLIST_OPTIONS_MSG % 'mumble')):
+        re.escape(plisttool.UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
+            _testing_target, 'mumble'))):
       plist = {'Foo': 'bar'}
       children = {'//fake:label': {'foo': 'bar'}}
       _plisttool_result({
