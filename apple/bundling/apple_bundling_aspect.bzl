@@ -14,20 +14,26 @@
 
 """An aspect that collects information used during Apple bundling."""
 
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundlingSwiftInfo",
-     "AppleResourceInfo",
-     "AppleResourceSet",
-     "apple_resource_set_utils",
-    )
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "basename",
-     "group_files_by_directory"
-    )
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
-     "provider_support")
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundlingSwiftInfo",
+    "AppleResourceInfo",
+    "AppleResourceSet",
+    "apple_resource_set_utils",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "basename",
+    "group_files_by_directory",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
+)
 
 
 def _attr_files(ctx, name):
@@ -70,7 +76,7 @@ def _handle_native_library_dependency(target, ctx):
     # transitive resources as a flat list based on their .bundle directory, we
     # must prepend the current target's {name}.bundle to the path so that the
     # files end up in the correct place.
-    for p in provider_support.matching_providers(bundles, AppleResourceInfo):
+    for p in providers.find_all(bundles, AppleResourceInfo):
       resource_sets.extend([
           apple_resource_set_utils.prefix_bundle_dir(rs, bundle_dir)
           for rs in p.resource_sets
@@ -81,7 +87,7 @@ def _handle_native_library_dependency(target, ctx):
 
     # The "bundles" attribute of an objc_library don't indicate a nesting
     # relationship, so simply bring them over as-is.
-    for p in provider_support.matching_providers(bundles, AppleResourceInfo):
+    for p in providers.find_all(bundles, AppleResourceInfo):
       resource_sets.extend(p.resource_sets)
   else:
     fail(("Internal consistency error: expected rule to be objc_library " +
@@ -192,8 +198,7 @@ def _transitive_apple_resource_info(target, ctx):
   # If the rule has deps, propagate the transitive info from this target's
   # dependencies.
   deps = getattr(ctx.rule.attr, "deps", [])
-  resource_providers = provider_support.matching_providers(deps,
-                                                           AppleResourceInfo)
+  resource_providers = providers.find_all(deps, AppleResourceInfo)
   for p in resource_providers:
     resource_sets.extend(p.resource_sets)
 
@@ -234,9 +239,8 @@ def _transitive_apple_bundling_swift_info(target, ctx):
   # If the target itself doesn't use Swift, check its deps.
   if not uses_swift:
     deps = getattr(ctx.rule.attr, "deps", [])
-    providers = provider_support.matching_providers(
-        deps, AppleBundlingSwiftInfo)
-    uses_swift = any([p.uses_swift for p in providers])
+    swift_info_providers = providers.find_all(deps, AppleBundlingSwiftInfo)
+    uses_swift = any([p.uses_swift for p in swift_info_providers])
 
   return AppleBundlingSwiftInfo(uses_swift=uses_swift)
 

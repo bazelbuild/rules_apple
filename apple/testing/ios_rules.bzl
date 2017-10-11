@@ -29,6 +29,8 @@ load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
      "rule_factory")
+load("@build_bazel_rules_apple//common:providers.bzl",
+    "providers")
 load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
      "apple_unit_test",
      "apple_ui_test")
@@ -52,11 +54,14 @@ def _ios_test_bundle_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
+  deps_objc_providers = providers.find_all(ctx.attr.deps, "objc")
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosTestArchive", "IosTest",
       bundle_id,
-      binary_artifact=binary_artifact)
+      binary_artifact=binary_artifact,
+      deps_objc_providers=deps_objc_providers,
+  )
   return struct(
       files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
@@ -121,6 +126,10 @@ def _ios_test(name,
   * name: The actual test target that can be invoked with `blaze test`. This
       target takes all the remaining arguments passed.
   """
+  if "platform_type" in kwargs:
+    fail("platform_type is not allowed as an attribute to ios_unit_test and " +
+         "ios_ui_test")
+
   test_binary_name = name + "_test_binary"
   test_bundle_name = name + "_test_bundle"
 
@@ -165,9 +174,10 @@ def _ios_test(name,
 
   test_rule(
       name = name,
+      platform_type="ios",
+      runner = runner,
       test_host = test_host,
       test_bundle = test_bundle_name,
-      runner = runner,
       **kwargs)
 
 

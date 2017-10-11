@@ -37,20 +37,23 @@ load(
 )
 
 
-AppleEntitlementsInfo = provider()
-"""Propagates information about entitlements to the bundling rules.
+AppleEntitlementsInfo = provider(
+    doc="""
+Propagates information about entitlements to the bundling rules.
 
 This provider is an internal implementation detail of the bundling rules and
 should not be used directly by users.
-
-Args:
-  signing_entitlements: A `File` representing the `.entitlements` file that
-      should be used during code signing of device builds. May be `None` if
-      there are no entitlements or if this is a simulator build where the
-      entitlements are embedded in the binary instead of being applied during
-      signing.
+""",
+    fields={
+        "signing_entitlements": """
+A `File` representing the `.entitlements` file that
+should be used during code signing of device builds. May be `None` if
+there are no entitlements or if this is a simulator build where the
+entitlements are embedded in the binary instead of being applied during
+signing.
 """
-
+    }
+)
 
 def _new_entitlements_artifact(ctx, extension):
   """Returns a new file artifact for entitlements.
@@ -362,6 +365,7 @@ entitlements = rule(
             allow_files=[".mobileprovision", ".provisionprofile"],
             single_file=True,
         ),
+        "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
     },
     fragments=["apple", "objc"],
 )

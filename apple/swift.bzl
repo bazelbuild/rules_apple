@@ -14,18 +14,34 @@
 
 """Skylark rules for Swift."""
 
-load("@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-     "apple_bundling_aspect")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleResourceInfo",
-     "SwiftInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "xcrun_action",
-     "XCRUNWRAPPER_LABEL",
-     "module_cache_path",
-     "label_scoped_path")
-load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
-     "xcode_support")
+load(
+    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
+    "apple_bundling_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceInfo",
+    "SwiftInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "xcrun_action",
+    "XCRUNWRAPPER_LABEL",
+    "module_cache_path",
+    "label_scoped_path",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
+    "xcode_support",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
+)
 
 def _parent_dirs(dirs):
   """Returns a set of parent directories for each directory in dirs."""
@@ -120,11 +136,11 @@ def _swift_sanitizer_flags(config_vars):
     fail("Swift sanitizer '%s' is not supported" % sanitizer)
 
 
-def _swift_version_flags(apple_fragment, swift_version):
+def _swift_version_flags(xcode_config, swift_version):
   """Returns the swift version flags, when applicable."""
   # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
   # https://bugs.swift.org/browse/SR-3791.
-  if xcode_support.is_xcode_at_least_version(apple_fragment, "9"):
+  if xcode_support.is_xcode_at_least_version(xcode_config, "8.999.999"):
     return ["-swift-version", "%d" % swift_version]
 
   return []
@@ -156,14 +172,13 @@ def _swift_lib_dir(apple_fragment, config_vars, is_static=False):
         config_vars["xcode_toolchain_path"], dir_name, platform_str)
 
   toolchain_name = "XcodeDefault"
-  if hasattr(apple_fragment, "xcode_toolchain"):
-    toolchain = apple_fragment.xcode_toolchain
+  toolchain = attrs.get(apple_fragment, "xcode_toolchain")
 
-    # We cannot use non Xcode-packaged toolchains, and the only one non-default
-    # toolchain known to exist (as of Xcode 8.1) is this one.
-    # TODO(b/29338444): Write an integration test when Xcode 8 is available.
-    if toolchain == "com.apple.dt.toolchain.Swift_2_3":
-      toolchain_name = "Swift_2.3"
+  # We cannot use non Xcode-packaged toolchains, and the only one non-default
+  # toolchain known to exist (as of Xcode 8.1) is this one.
+  # TODO(b/29338444): Write an integration test when Xcode 8 is available.
+  if toolchain == "com.apple.dt.toolchain.Swift_2_3":
+    toolchain_name = "Swift_2.3"
 
   return "{0}/Toolchains/{1}.xctoolchain/usr/lib/{2}/{3}".format(
       apple_common.apple_toolchain().developer_dir(), toolchain_name,
@@ -289,6 +304,7 @@ def swift_compile_requirements(
     swift_fragment,
     config_vars,
     default_configuration,
+    xcode_config,
     genfiles_dir):
   """Returns a struct that contains the requirements to compile Swift code.
 
@@ -312,6 +328,7 @@ def swift_compile_requirements(
         that affect compilation of this target.
     default_configuration: The default configuration retrieved from the rule
         context.
+    xcode_config: the XcodeVersionConfig to use
     genfiles_dir: The directory where genfiles are written.
   Returns:
     A structure that contains the information required to compile Swift code.
@@ -329,6 +346,7 @@ def swift_compile_requirements(
       swift_fragment=swift_fragment,
       config_vars=config_vars,
       default_configuration=default_configuration,
+      xcode_config=xcode_config,
       genfiles_dir=genfiles_dir,
   )
 
@@ -357,8 +375,8 @@ def _swiftc_inputs(srcs, deps=[]):
     A list of files that should be passed as inputs to the Swift compilation
     action.
   """
-  swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
+  swift_providers = providers.find_all(deps, SwiftInfo)
+  objc_providers = providers.find_all(deps, "objc")
 
   dep_modules = depset()
   for swift in swift_providers:
@@ -398,7 +416,8 @@ def swiftc_args(ctx):
       ctx.files.srcs, ctx.attr.deps, ctx.attr.module_name, ctx.label,
       ctx.attr.swift_version, ctx.attr.copts, ctx.attr.defines,
       ctx.fragments.apple, ctx.fragments.objc, ctx.fragments.swift, ctx.var,
-      ctx.configuration, ctx.genfiles_dir)
+      ctx.configuration, ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+      ctx.genfiles_dir)
   return _swiftc_args(reqs)
 
 
@@ -422,7 +441,7 @@ def _swiftc_args(reqs):
   cpu = apple_fragment.single_arch_cpu
   platform = apple_fragment.single_arch_platform
 
-  target_os = apple_fragment.minimum_os_for_platform_type(
+  target_os = reqs.xcode_config.minimum_os_for_platform_type(
       platform.platform_type)
   target = _swift_target(cpu, platform, target_os)
   apple_toolchain = apple_common.apple_toolchain()
@@ -435,8 +454,8 @@ def _swiftc_args(reqs):
   dep_modules = depset()
   swiftc_defines = reqs.defines[:]
 
-  swift_providers = [x[SwiftInfo] for x in deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in deps if hasattr(x, "objc")]
+  swift_providers = providers.find_all(deps, SwiftInfo)
+  objc_providers = providers.find_all(deps, "objc")
 
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
@@ -517,7 +536,7 @@ def _swiftc_args(reqs):
   args.extend(_swift_bitcode_flags(apple_fragment))
   args.extend(_swift_parsing_flags(reqs.srcs))
   args.extend(_swift_sanitizer_flags(reqs.config_vars))
-  args.extend(_swift_version_flags(apple_fragment, reqs.swift_version))
+  args.extend(_swift_version_flags(reqs.xcode_config, reqs.swift_version))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
@@ -555,8 +574,8 @@ def register_swift_compile_actions(ctx, reqs):
   dep_libs = depset()
   swiftc_defines = reqs.defines[:]
 
-  swift_providers = [x[SwiftInfo] for x in reqs.deps if SwiftInfo in x]
-  objc_providers = [x.objc for x in reqs.deps if hasattr(x, "objc")]
+  swift_providers = providers.find_all(reqs.deps, SwiftInfo)
+  objc_providers = providers.find_all(reqs.deps, "objc")
 
   for swift in swift_providers:
     dep_libs += swift.transitive_libs
@@ -699,6 +718,78 @@ def register_swift_compile_actions(ctx, reqs):
   )
 
 
+def merge_swift_info_providers(targets):
+  """Merges the transitive Swift info of the given targets into a new provider.
+
+  This function should be used when it is necessary to merge SwiftInfo providers
+  outside of a compile action (which does it automatically).
+
+  Args:
+    targets: A sequence of targets that may propagate SwiftInfo providers. Those
+        that do not are ignored.
+  Returns:
+    A new SwiftInfo provider that contains the transitive information from all
+    the targets.
+  """
+  transitive_defines = []
+  transitive_libs = depset()
+  transitive_modules = depset()
+
+  for swift_info in providers.find_all(targets, SwiftInfo):
+    transitive_defines += swift_info.transitive_defines
+    transitive_libs += swift_info.transitive_libs
+    transitive_modules += swift_info.transitive_modules
+
+  return SwiftInfo(
+      direct_lib=None,
+      direct_module=None,
+      transitive_defines=transitive_defines,
+      transitive_libs=transitive_libs,
+      transitive_modules=transitive_modules,
+  )
+
+
+def merge_swift_objc_providers(targets):
+  """Merges the transitive objc info of the given targets into a new provider.
+
+  This is restricted to the keys of the objc provider that are used by Swift
+  compile actions to propagate information about Swift compiled libraries back
+  up to linker actions and so forth.
+
+  This function should be used when it is necessary to merge objc providers
+  created by other Swift libraries outside of a compile action (which does it
+  automatically).
+
+  Args:
+    targets: A sequence of targets that may propagate objc providers. Those that
+        do not are ignored.
+  Returns:
+    A new objc provider that contains the transitive information from all the
+    targets.
+  """
+  libraries = depset()
+  headers = depset()
+  link_inputs = depset()
+  linkopts = depset()
+
+  for objc in providers.find_all(targets, "objc"):
+    libraries += objc.library
+    headers += objc.header
+    link_inputs += objc.link_inputs
+    linkopts += objc.linkopt
+
+  objc_provider_args = {"uses_swift": True}
+  if headers:
+    objc_provider_args["header"] = headers
+  if libraries:
+    objc_provider_args["library"] = libraries
+  if linkopts:
+    objc_provider_args["linkopt"] = linkopts
+  if link_inputs:
+    objc_provider_args["link_inputs"] = link_inputs
+  return apple_common.new_objc_provider(**objc_provider_args)
+
+
 def _collect_resource_sets(resources, structured_resources, deps, module_name):
   """Collects resource sets from the target and its dependencies.
 
@@ -755,6 +846,7 @@ def _swift_library_impl(ctx):
       ctx.fragments.swift,
       ctx.var,
       ctx.configuration,
+      ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
       ctx.genfiles_dir)
 
   compile_outputs, objc_provider, swift_info = register_swift_compile_actions(
@@ -803,6 +895,7 @@ SWIFT_LIBRARY_ATTRS = {
         allow_empty=True,
         allow_files=True),
     "swift_version": attr.int(default=3, values=[3, 4], mandatory=False),
+    "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
     "_xcrunwrapper": attr.label(
         executable=True,
         cfg="host",

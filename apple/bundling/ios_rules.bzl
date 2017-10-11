@@ -76,6 +76,10 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "merge_dictionaries",
 )
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
+)
 
 
 def _ios_application_impl(ctx):
@@ -121,6 +125,8 @@ def _ios_application_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosApplicationArchive", "iOS application",
@@ -128,6 +134,7 @@ def _ios_application_impl(ctx):
       binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   if ctx.attr.deps:
@@ -192,12 +199,15 @@ def _ios_extension_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
       ctx.attr.bundle_id,
       binary_artifact=binary_artifact,
       additional_resource_sets=additional_resource_sets,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   return struct(
@@ -214,6 +224,7 @@ ios_extension = rule_factory.make_bundling_rule(
     additional_attrs={
         "app_icons": attr.label_list(allow_files=True),
         "asset_catalogs": attr.label_list(allow_files=True),
+        "dedupe_unbundled_resources": attr.bool(default=True),
         "frameworks": attr.label_list(
             providers=[[AppleBundleInfo, IosFrameworkBundleInfo]],
         ),
@@ -243,6 +254,8 @@ def _ios_framework_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleDylibBinary).binary
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleDylibBinary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosFrameworkArchive", "iOS framework",
@@ -251,6 +264,7 @@ def _ios_framework_impl(ctx):
       additional_bundlable_files=prefixed_hdr_files,
       framework_files=prefixed_hdr_files + [bundlable_binary],
       is_dynamic_framework=True,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   return struct(
@@ -290,10 +304,9 @@ def _ios_static_framework_impl(ctx):
   hdr_files = ctx.files.hdrs
   framework_files = [bundling_support.header_prefix(f) for f in hdr_files]
 
-  objc_providers = [x.objc for x in ctx.attr.deps if hasattr(x, "objc")]
   sdk_dylibs = depset()
   sdk_frameworks = depset()
-  for objc in objc_providers:
+  for objc in providers.find_all(ctx.attr.deps, "objc"):
     sdk_dylibs += objc.sdk_dylib
     sdk_frameworks += objc.sdk_framework
 
@@ -322,6 +335,8 @@ def _ios_static_framework_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleStaticLibrary).archive
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleStaticLibrary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosStaticFrameworkArchive", "iOS static framework",
@@ -329,6 +344,7 @@ def _ios_static_framework_impl(ctx):
       binary_artifact=binary_artifact,
       additional_bundlable_files=framework_files,
       framework_files=framework_files,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   return struct(

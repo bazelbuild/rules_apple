@@ -121,6 +121,10 @@ def _macos_test(name,
   * name: The actual test target that can be invoked with `blaze test`. This
       target takes all the remaining arguments passed.
   """
+  if "platform_type" in kwargs:
+    fail("platform_type is not allowed as an attribute to macos_unit_test " +
+         "and macos_ui_test")
+
   test_binary_name = name + "_test_binary"
   test_bundle_name = name + "_test_bundle"
 
@@ -161,9 +165,10 @@ def _macos_test(name,
 
   test_rule(
       name = name,
+      platform_type = "macos",
+      runner = runner,
       test_bundle = test_bundle_name,
       test_host = test_host,
-      runner = runner,
       **kwargs
   )
 

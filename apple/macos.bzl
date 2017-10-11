@@ -42,6 +42,12 @@ load(
     _macos_unit_test="macos_unit_test",
 )
 
+# Explicitly export this because we want it visible to users loading this file.
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+
 
 def _create_swift_runtime_linkopts_target(name,
                                           deps,

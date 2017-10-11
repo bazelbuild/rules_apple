@@ -52,9 +52,14 @@ load("@build_bazel_rules_apple//apple:swift.bzl",
 swift_library(name = "SwiftMain",
               srcs = ["main.swift"])
 
-objc_binary(name = "bin",
-            srcs = ['app.m',],
-            deps = [":SwiftMain"])
+objc_library(name = "app",
+             srcs = ["app.m"],
+             deps = [":SwiftMain"])
+
+apple_binary(name = "bin",
+             minimum_os_version = "8.0",
+             platform_type = "ios",
+             deps = [":app"])
 EOF
 
   do_build ios //ios:bin || fail "should build"
@@ -374,9 +379,14 @@ swift_library(name = "dep",
 swift_library(name = "swift_lib",
               srcs = ["main.swift"],
               deps = [":dep"])
-objc_binary(name = "bin",
-            srcs = ["main.m"],
-            deps = [":swift_lib"])
+
+objc_library(name = "main",
+             srcs = ["main.m"])
+
+apple_binary(name = "bin",
+             minimum_os_version = "8.0",
+             platform_type = "ios",
+             deps = [":main", ":swift_lib"])
 EOF
 
   do_build ios --subcommands //ios:bin || fail "should build"

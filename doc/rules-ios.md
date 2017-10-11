@@ -762,9 +762,7 @@ bundle.
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>A target that will specify how the tests are to be run. This target
         needs to be defined using a rule that provides the <code>AppleTestRunner</code>
-        provider. The default runner does not support UI tests. This is not the
-        case when running the tests from a Tulsi generated project; UI are
-        supported in that scenario.</p>
+        provider.</p>
       </td>
     </tr>
     <tr>

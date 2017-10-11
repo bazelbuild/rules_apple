@@ -15,28 +15,24 @@
 """Support functions for working with Xcode configurations."""
 
 
-def _is_xcode_at_least_version(apple_fragment, version):
+def _is_xcode_at_least_version(xcode_config, version):
   """Returns True if we are building with at least the given Xcode version.
 
   Args:
-    apple_fragment: The Apple configuration fragment.
+    xcode_config: the XcodeVersionConfig provider
     version: The minimum desired Xcode version, as a dotted version string.
   Returns:
     True if the current target is being built with a version of Xcode at least
     as high as the given version.
   """
-  xcode_version = apple_fragment.xcode_version()
-  if not xcode_version:
+  current_version = xcode_config.xcode_version()
+  if not current_version:
     fail("Could not determine Xcode version at all. This likely means Xcode " +
          "isn't available; if you think this is a mistake, please file a " +
          "bug.")
 
-  # TODO(b/38307306): Clean this up once DottedVersions can be created from
-  # Skylark.
-  current_version = str(xcode_version)
-  current_components = [int(c) for c in current_version.split(".")]
-  desired_components = [int(c) for c in version.split(".")]
-  return current_components >= desired_components
+  desired_version = apple_common.dotted_version(version)
+  return current_version >= desired_version
 
 
 # Define the loadable module that lists the exported symbols in this file.

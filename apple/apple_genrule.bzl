@@ -15,7 +15,8 @@
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
      "DARWIN_EXECUTION_REQUIREMENTS",
-     "dirname")
+     "dirname",
+     "get_environment_supplier")
 
 def _compute_make_variables(genfiles_dir,
                             label,
@@ -23,9 +24,9 @@ def _compute_make_variables(genfiles_dir,
                             files_to_build):
   variables = {"SRCS": cmd_helper.join_paths(" ", resolved_srcs),
                "OUTS": cmd_helper.join_paths(" ", files_to_build)}
-  if len(resolved_srcs) == 1:
+  if len(resolved_srcs.to_list()) == 1:
     variables["<"] = list(resolved_srcs)[0].path
-  if len(files_to_build) == 1:
+  if len(files_to_build.to_list()) == 1:
     variables["@"] = list(files_to_build)[0].path
     variables["@D"] = dirname(variables["@"])
   else:
@@ -65,7 +66,7 @@ def _apple_genrule_impl(ctx):
   message = ctx.attr.message or "Executing apple_genrule"
 
   env = ctx.configuration.default_shell_env
-  env += ctx.fragments.apple.apple_host_system_env()
+  env += get_environment_supplier(ctx).apple_host_system_env()
 
   apple_action(ctx,
                inputs=list(resolved_srcs) + resolved_inputs,
@@ -90,6 +91,7 @@ _apple_genrule_inner = rule(
         "message": attr.string(),
         "output_licenses": attr.license(),
         "executable": attr.bool(default=False),
+        "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
         },
     output_to_genfiles = True,
     fragments=["apple"])

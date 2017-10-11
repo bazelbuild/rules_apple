@@ -366,7 +366,8 @@ def _actool(ctx, asset_catalogs, resource_info):
       "--compress-pngs",
   ]
 
-  if xcode_support.is_xcode_at_least_version(ctx.fragments.apple, "8"):
+  if xcode_support.is_xcode_at_least_version(
+      ctx.attr._xcode_config[apple_common.XcodeVersionConfig], "8"):
     product_type = product_support.product_type(ctx)
     if product_type:
       args.extend(["--product-type", product_type])

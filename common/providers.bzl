@@ -15,15 +15,16 @@
 """Support functions for working with providers in build rules."""
 
 
-def _matching_providers(target_or_targets, name_or_provider):
-  """Returns a list of the given provider from one or more targets.
+def _find_all(target_or_targets, name_or_provider):
+  """Returns a list with all of the given provider from one or more targets.
 
   This function supports legacy providers (referenced by name) and modern
   providers (referenced by their provider object).
 
   Args:
     target_or_targets: A target or list of targets whose providers should be
-        searched.
+        searched. This argument may also safely be None, which causes the empty
+        list to be returned.
     name_or_provider: The string name of the legacy provider or the reference
         to a modern provider to return.
   Returns:
@@ -31,6 +32,9 @@ def _matching_providers(target_or_targets, name_or_provider):
     elements than the given number of targets (including being empty) if not all
     targets propagate the provider.
   """
+  if not target_or_targets:
+    return []
+
   if type(target_or_targets) == type([]):
     targets = target_or_targets
   else:
@@ -45,7 +49,36 @@ def _matching_providers(target_or_targets, name_or_provider):
   return [x[name_or_provider] for x in targets if name_or_provider in x]
 
 
+def _find_one(target, name_or_provider):
+  """Returns a list with the single given provider for a target.
+
+  This function supports legacy providers (referenced by name) and modern
+  providers (referenced by their provider object).
+
+  Args:
+    target: A target or list of targets whose providers should be
+        searched. This argument may also safely be None, which causes the empty
+        list to be returned.
+    name_or_provider: The string name of the legacy provider or the reference
+        to a modern provider to return.
+  Returns:
+    A list of providers from the given targets. This list may have fewer
+    elements than the given number of targets (including being empty) if not all
+    targets propagate the provider.
+  """
+  if not target:
+    return None
+
+  # If name_or_provider is a string, find it as a legacy provider.
+  if type(name_or_provider) == type(""):
+    return getattr(target, name_or_provider)
+
+  # Otherwise, find it as a modern provider.
+  return target[name_or_provider] if name_or_provider in target else None
+
+
 # Define the loadable module that lists the exported symbols in this file.
-provider_support = struct(
-    matching_providers=_matching_providers,
+providers = struct(
+    find_all=_find_all,
+    find_one=_find_one,
 )

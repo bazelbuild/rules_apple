@@ -21,8 +21,8 @@ and access the constants in their own targets.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
-    "attribute_support",
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
 )
 
 
@@ -236,7 +236,7 @@ def _product_type(ctx):
     The product type identifier for the current target, or None if there is
     none.
   """
-  return attribute_support.get(ctx.attr, "product_type")
+  return attrs.get(ctx.attr, "product_type", default=attrs.private_fallback)
 
 
 def _product_type_descriptor(product_type):

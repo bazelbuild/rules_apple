@@ -254,7 +254,6 @@ def ios_framework(name, **kwargs):
       deps = deps,
       dylibs = kwargs.get("frameworks"),
       extension_safe = kwargs.get("extension_safe"),
-      hdrs = kwargs.get("hdrs", []),
       minimum_os_version = kwargs.get("minimum_os_version"),
       platform_type = str(apple_common.platform_type.ios),
       testonly = kwargs.get("testonly"),
@@ -344,7 +343,7 @@ def ios_ui_test(name, **kwargs):
 
   Args:
     name: The name of the target.
-    test_host: The skylark_ios_application target that contains the code to be
+    test_host: The ios_application target that contains the code to be
         tested. Required.
     bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
         test bundle. Optional. Defaults to the test_host's postfixed with
@@ -370,7 +369,7 @@ def ios_unit_test(name, **kwargs):
 
   Args:
     name: The name of the target.
-    test_host: The skylark_ios_application target that contains the code to be
+    test_host: The ios_application target that contains the code to be
         tested. Optional. Defaults to
         "@build_bazel_rules_apple//apple/testing/default_host/ios".
     bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
@@ -394,7 +393,7 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
 
   Args:
     name: The name of the target.
-    test_host: The skylark_ios_application target that contains the code to be
+    test_host: The ios_application target that contains the code to be
         tested. Optional. Defaults to
         "@build_bazel_rules_apple//apple/testing/default_host/ios".
     bundle_id: The bundle ID (reverse-DNS path followed by app name) of the

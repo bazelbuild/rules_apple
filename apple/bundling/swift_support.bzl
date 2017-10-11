@@ -23,16 +23,16 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
-    "provider_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundlingSwiftInfo",
 )
 load(
     "@build_bazel_rules_apple//apple:swift.bzl",
     "swift_linkopts",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
 )
 
 
@@ -49,8 +49,7 @@ def _uses_swift(targets):
   Returns:
     True if any of the targets directly uses Swift; otherwise, False.
   """
-  swift_providers = provider_support.matching_providers(
-      targets, AppleBundlingSwiftInfo)
+  swift_providers = providers.find_all(targets, AppleBundlingSwiftInfo)
   return any([p.uses_swift for p in swift_providers])
 
 

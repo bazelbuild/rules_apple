@@ -143,6 +143,9 @@ _common_tool_attributes = {
         executable=True,
         default=Label("@bazel_tools//tools/objc:xcrunwrapper"),
     ),
+    "_xcode_config": attr.label(
+        default=Label("@bazel_tools//tools/osx:current_xcode_config"),
+    ),
 }
 
 
