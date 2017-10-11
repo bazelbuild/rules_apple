@@ -625,4 +625,27 @@ EOF
   do_build ios //app:app || fail "Should build"
 }
 
+# Tests that the dSYM outputs are produced when --apple_generate_dsym is
+# present and that the dSYM outputs of the extension are also propagated when
+# the flag is set.
+function test_all_dsyms_propagated() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+  do_build ios \
+      --apple_generate_dsym \
+      --define=bazel_rules_apple.propagate_embedded_extra_outputs=1 \
+      //app:app || fail "Should build"
+
+  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
+  assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
+
+  declare -a archs=( $(current_archs ios) )
+  for arch in "${archs[@]}"; do
+    assert_exists \
+        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+    assert_exists \
+        "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}"
+  done
+}
+
 run_suite "ios_extension bundling tests"

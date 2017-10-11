@@ -116,7 +116,7 @@ def _macos_application_impl(ctx):
   # TODO(b/36557429): Add support for macOS frameworks.
   embedded_bundles = [
       bundling_support.embedded_bundle(
-          "PlugIns", extension[AppleBundleInfo], verify_bundle_id=True)
+          "PlugIns", extension, verify_bundle_id=True)
       for extension in ctx.attr.extensions
   ]
 
