@@ -102,6 +102,10 @@ CHILD_BUNDLE_VERSION_MISMATCH_MSG = ('The CFBundleShortVersionString of the '
                                      'its parent\'s version string "%s", but '
                                      'found "%s".')
 
+INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG = ('info_plist_options entry for "%s"'
+                                            'appears to contain an unsupported '
+                                            'variable reference ("%s").')
+
 PLUTIL_CONVERSION_TO_XML_FAILED_MSG = ('plutil failed (%d) to convert "%s" to '
                                        'xml.')
 
@@ -109,6 +113,14 @@ UNKNOWN_CONTROL_KEYS_MSG = 'Control structure has unknown key(s): %s'
 
 UNKNOWN_INFO_PLIST_OPTIONS_MSG = ('Control\'s info_plist_options has unknown '
                                   'key(s): %s')
+
+# Mappings from info_plist_options to substitution names that can be applied
+# to Info.plist values.
+_SUBSTITUTION_MAPPINGS = {
+  'executable': ['EXECUTABLE_NAME', 'PRODUCT_NAME'],
+  'bundle_name': ['BUNDLE_NAME'],
+  'bundle_id': ['PRODUCT_BUNDLE_IDENTIFIER'],
+}
 
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
@@ -166,18 +178,12 @@ class PlistTool(object):
 
     info_plist_options = self._control.get('info_plist_options')
     if info_plist_options:
-      executable = info_plist_options.get('executable')
-      if executable:
-        self._substitutions['EXECUTABLE_NAME'] = executable
-        self._substitutions['PRODUCT_NAME'] = executable
-
-      bundle_name = info_plist_options.get('bundle_name')
-      if bundle_name:
-        self._substitutions['BUNDLE_NAME'] = bundle_name
-
-      bundle_id = info_plist_options.get('bundle_id')
-      if bundle_id:
-        self._substitutions['PRODUCT_BUNDLE_IDENTIFIER'] = bundle_id
+      for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
+        value = info_plist_options.get(key)
+        if not value:
+          continue
+        for name in names:
+          self._substitutions[name] = value
 
   def run(self):
     """Performs the operations requested by the control struct.
@@ -199,6 +205,14 @@ class PlistTool(object):
 
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
+
+    for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
+      v = self._substitutions.get(names[0])
+      if not v:
+        continue
+      if '$' in v:
+        raise ValueError(
+            INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (key, v))
 
     out_plist = {}
 
@@ -319,7 +333,6 @@ class PlistTool(object):
 
     bundle_id = options.get('bundle_id')
     if bundle_id:
-      bundle_id = self._apply_substitutions(bundle_id)
       old_bundle_id = out_plist.get('CFBundleIdentifier')
       if old_bundle_id and old_bundle_id != bundle_id:
         raise ValueError(MISMATCHED_BUNDLE_ID_MSG %

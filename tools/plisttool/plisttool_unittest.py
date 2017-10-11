@@ -238,6 +238,18 @@ class PlistToolTest(unittest.TestCase):
         'CFBundleExecutable': 'MyApp',
     })
 
+  def test_invalid_info_plist_options_value(self):
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG %
+                  ('bundle_id', 'foo.bar.${NotSupported}'))):
+      _plisttool_result({
+         'plists': [{}],
+         'info_plist_options': {
+              'bundle_id': 'foo.bar.${NotSupported}',
+          },
+      })
+
   def test_executable_name_substitutions(self):
     plist1 = _xml_plist(
         '<key>FooBraces</key><string>${EXECUTABLE_NAME}</string>'

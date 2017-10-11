@@ -148,12 +148,8 @@ def _swift_version_flags(xcode_config, swift_version):
 
 def swift_module_name(label):
   """Returns a module name for the given label."""
-  prefix = label.package.lstrip("//").replace("/", "_").replace("-", "_")
-  suffix = label.name.replace("-", "_")
-  if prefix:
-     return (prefix + "_" + suffix)
-  else:
-     return suffix
+  return (label.package.lstrip("//").replace("/", "_").replace("-", "_") + "_" +
+          label.name.replace("-", "_"))
 
 
 def _swift_lib_dir(apple_fragment, config_vars, is_static=False):
