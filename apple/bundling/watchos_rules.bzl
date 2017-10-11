@@ -55,7 +55,7 @@ def _watchos_application_impl(ctx):
   ext = ctx.attr.extension
   if ext:
     embedded_bundles.append(bundling_support.embedded_bundle(
-        "PlugIns", ext[AppleBundleInfo], verify_bundle_id=True))
+        "PlugIns", ext, verify_bundle_id=True))
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary

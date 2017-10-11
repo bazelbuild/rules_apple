@@ -123,6 +123,27 @@ number information propagated by the target. It contains two keys:
     }
 )
 
+AppleExtraOutputsInfo = provider(
+    doc="""
+Provides information about extra outputs that should be produced from the build.
+
+This provider propagates supplemental files that should be produced as outputs
+even if the bundle they are associated with is not a direct output of the rule.
+For example, an application that contains an extension will build both targets
+but only the application will be a rule output. However, if dSYM bundles are
+also being generated, we do want to produce the dSYMs for *both* application and
+extension as outputs of the build, not just the dSYMs of the explicit target
+being built (the application).
+""",
+    fields={
+        "files": """
+`depset` of `File`s. These files will be propagated from embedded bundles (such
+as frameworks and extensions) to the top-level bundle (such as an application)
+to ensure that they are explicitly produced as outputs of the build.
+""",
+    },
+)
+
 AppleResourceInfo = provider(
     doc="""
 Provides information about resources from transitive dependencies.
@@ -134,7 +155,7 @@ can provide attributes like `bundles`, `resources`, and `structured_resources`
 that allow users to associate resources with the code that uses them.
 """,
     fields={
-  "resource_sets": """
+        "resource_sets": """
 `list` of `struct`s. Each `struct` is one defined by
 `AppleResourceSet` and the full list describes the transitive resources
 propagated by this rule.

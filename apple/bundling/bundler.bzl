@@ -21,6 +21,7 @@ This file is only meant to be imported by the platform-specific top-level rules
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleExtraOutputsInfo",
     "AppleResourceInfo",
     "AppleResourceSet",
     "apple_resource_set_utils",
@@ -586,9 +587,19 @@ def _run(
   """
   _validate_attributes(ctx)
 
-  # A list of additional implicit outputs that should be returned by the
-  # calling rule.
-  additional_outputs = []
+  # A list of files that should be used as the outputs of the rule invoking this
+  # instance of the bundler, but which should not necessarily be propagated to
+  # bundles that embed this bundle. For example, the application/extension
+  # bundle itself is a main output but not an extra output because we don't
+  # want extensions to be treated as separate outputs from the application that
+  # depends on them.
+  main_outputs = []
+
+  # A list of extra outputs that should be returned by the calling rule and also
+  # propagated by bundles that depend on the invoking target. For example, the
+  # dSYM bundles of extensions should be propagated up to depending applications
+  # so that they are generated when the application is built.
+  extra_outputs = []
 
   # A list of output files included in the local_outputs output group. These are
   # must be requested explicitly by including "local_outputs" in the
@@ -697,7 +708,7 @@ def _run(
     # only if we're processing the main bundle and not a resource bundle.
     if not bundle_dir:
       child_infoplists = [
-          eb.bundle_info.infoplist for eb in embedded_bundles
+          eb.target[AppleBundleInfo].infoplist for eb in embedded_bundles
           if eb.verify_bundle_id
       ]
       merge_infoplist_args["child_plists"] = child_infoplists
@@ -786,7 +797,7 @@ def _run(
 
   # Include any embedded bundles.
   for eb in embedded_bundles:
-    apple_bundle = eb.bundle_info
+    apple_bundle = eb.target[AppleBundleInfo]
     if ctx.attr._propagates_frameworks:
       propagated_framework_zips += list(apple_bundle.propagated_framework_zips)
       propagated_framework_files += list(apple_bundle.propagated_framework_files)
@@ -829,14 +840,14 @@ def _run(
   if experimental_bundling in ("bundle_and_archive", "bundle_only"):
     out_bundle = ctx.experimental_new_directory(
         bundling_support.bundle_name_with_extension(ctx))
-    additional_outputs.append(out_bundle)
+    main_outputs.append(out_bundle)
     _experimental_create_and_sign_bundle(
         ctx, out_bundle, bundle_name, bundle_merge_files,
         bundle_merge_zips, mnemonic, progress_description)
 
   work_dir = None
   bundle_dir = None
-  additional_outputs.append(ctx.outputs.archive)
+  main_outputs.append(ctx.outputs.archive)
   if experimental_bundling in ("bundle_and_archive", "off"):
     unprocessed_archive = _create_unprocessed_archive(
         ctx, bundle_name, bundle_path_in_archive, bundle_merge_files,
@@ -862,15 +873,13 @@ def _run(
     additional_providers.append(binary_support.get_binary_provider(
         ctx.attr.deps, apple_common.AppleDebugOutputs))
 
-    # Create a .dSYM bundle with the expected name next to the .ipa in the
-    # output directory. We still have to check for the existence of the
-    # AppleDebugOutputs provider because some binary rules, such as
-    # apple_static_library, do not propagate it.
+    # Create a .dSYM bundle with the expected name next to the archive in the
+    # output directory.
     if ctx.fragments.objc.generate_dsym:
-      additional_outputs.extend(debug_symbol_actions.create_symbol_bundle(ctx))
+      extra_outputs.extend(debug_symbol_actions.create_symbol_bundle(ctx))
 
     if ctx.fragments.objc.generate_linkmap:
-      additional_outputs.extend(debug_symbol_actions.collect_linkmaps(ctx))
+      extra_outputs.extend(debug_symbol_actions.collect_linkmaps(ctx))
 
   objc_provider_args = {}
   if framework_files:
@@ -913,15 +922,29 @@ def _run(
   }
   if work_dir:
     apple_bundle_info_args["archive_root"] = work_dir
-
   legacy_providers["apple_bundle"] = struct(**apple_bundle_info_args)
+
+  # Collect extra outputs from embedded bundles so that they also get included
+  # as outputs of the rule.
+  transitive_extra_outputs = depset(extra_outputs)
+  propagate_embedded_extra_outputs = ctx.var.get(
+      "bazel_rules_apple.propagate_embedded_extra_outputs", "no")
+  if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
+    embedded_bundle_targets = [eb.target for eb in embedded_bundles]
+    for extra in providers.find_all(
+        embedded_bundle_targets, AppleExtraOutputsInfo):
+      transitive_extra_outputs += extra.files
+
   additional_providers.extend([
       AppleBundleInfo(**apple_bundle_info_args),
+      AppleExtraOutputsInfo(files=transitive_extra_outputs),
       OutputGroupInfo(local_outputs=depset(local_outputs)),
       _ResourceBundleInfo(resource_sets=resource_sets),
   ])
 
-  return additional_providers, legacy_providers, depset(additional_outputs)
+  return (additional_providers,
+          legacy_providers,
+          depset(main_outputs) + transitive_extra_outputs)
 
 
 def _copy_framework_files(ctx, framework_files):
