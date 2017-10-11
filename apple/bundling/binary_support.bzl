@@ -24,8 +24,8 @@ load(
     "product_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
-    "provider_support",
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
 )
 
 
@@ -46,11 +46,11 @@ def _get_binary_provider(deps, provider_key):
   if len(deps) != 1:
     fail("Only one dependency (a binary target) should be specified " +
          "as a bundling rule dependency")
-  providers = provider_support.matching_providers(deps[0], provider_key)
-  if providers:
-    if len(providers) > 1:
+  matching_providers = providers.find_all(deps[0], provider_key)
+  if matching_providers:
+    if len(matching_providers) > 1:
       fail("Expected only one binary provider")
-    return providers[0]
+    return matching_providers[0]
   return None
 
 

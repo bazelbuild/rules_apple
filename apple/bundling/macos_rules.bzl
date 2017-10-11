@@ -67,6 +67,10 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "merge_dictionaries",
 )
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
+)
 
 # Attributes that are common to all macOS bundles.
 _COMMON_MACOS_BUNDLE_ATTRS = {
@@ -118,6 +122,8 @@ def _macos_application_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosApplicationArchive", "macOS application",
@@ -127,6 +133,7 @@ def _macos_application_impl(ctx):
           ctx, ctx.attr.additional_contents),
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   # TODO(b/36556789): Add support for "bazel run".
@@ -177,6 +184,7 @@ def _macos_bundle_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
+  deps_objc_providers = providers.find_all(ctx.attr.deps, "objc")
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosBundleArchive", "macOS executable bundle",
@@ -185,6 +193,7 @@ def _macos_bundle_impl(ctx):
       additional_bundlable_files=_additional_contents_bundlable_files(
           ctx, ctx.attr.additional_contents),
       additional_resource_sets=additional_resource_sets,
+      deps_objc_providers=deps_objc_providers,
   )
 
   # TODO(b/36556789): Add support for "bazel run".
@@ -287,6 +296,8 @@ def _macos_extension_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
+  deps_objc_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "MacosExtensionArchive", "macOS extension",
@@ -295,6 +306,7 @@ def _macos_extension_impl(ctx):
       additional_bundlable_files=_additional_contents_bundlable_files(
           ctx, ctx.attr.additional_contents),
       additional_resource_sets=additional_resource_sets,
+      deps_objc_providers=[deps_objc_provider],
   )
 
   return struct(

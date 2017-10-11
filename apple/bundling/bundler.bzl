@@ -89,10 +89,6 @@ load(
     "product_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:provider_support.bzl",
-    "provider_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:resource_actions.bzl",
     "resource_actions",
 )
@@ -103,6 +99,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_support",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
 )
 
 
@@ -491,9 +495,8 @@ def _experimental_create_and_sign_bundle(
       [control_file]
   )
 
-  entitlements = None
-  if hasattr(ctx.file, "entitlements") and ctx.file.entitlements:
-    entitlements = ctx.file.entitlements
+  entitlements = attrs.get(ctx.file, "entitlements")
+  if entitlements:
     bundler_inputs.append(entitlements)
 
   signing_command_lines = ""
@@ -542,7 +545,8 @@ def _run(
     additional_resource_sets=[],
     embedded_bundles=[],
     framework_files=depset(),
-    is_dynamic_framework=False):
+    is_dynamic_framework=False,
+    deps_objc_providers=[]):
   """Implements the core bundling logic for an Apple bundle archive.
 
   Args:
@@ -571,6 +575,8 @@ def _run(
         provider keys (such as framework search paths) will be propagated
         appropriately.
     is_dynamic_framework: If True, create this bundle as a dynamic framework.
+    deps_objc_providers: objc providers containing information about the
+        dependencies of the binary target.
   Returns:
     A tuple containing three values:
     1. A list of modern providers that should be propagated by the calling rule.
@@ -583,6 +589,11 @@ def _run(
   # A list of additional implicit outputs that should be returned by the
   # calling rule.
   additional_outputs = []
+
+  # A list of output files included in the local_outputs output group. These are
+  # must be requested explicitly by including "local_outputs" in the
+  # --output_groups flag of the build command line.
+  local_outputs = []
 
   # The name of the target is used as the name of the executable in the binary,
   # which we also need to write into the Info.plist file over whatever the user
@@ -632,17 +643,16 @@ def _run(
 
   framework_resource_sets = depset()
 
-  if (hasattr(ctx.attr, "exclude_resources") and ctx.attr.exclude_resources):
+  if attrs.get(ctx.attr, "exclude_resources"):
     resource_sets.append(AppleResourceSet(infoplists=target_infoplists))
   else:
-    if hasattr(ctx.attr, "frameworks"):
-      for framework in getattr(ctx.attr, "frameworks", []):
-        if _ResourceBundleInfo in framework:
-          framework_resource_sets = (
-              framework_resource_sets |
-              framework[_ResourceBundleInfo].resource_sets)
-        if ctx.attr._propagates_frameworks:
-          propagated_framework_zips.append(framework[AppleBundleInfo].archive)
+    for framework in attrs.get(ctx.attr, "frameworks", []):
+      if _ResourceBundleInfo in framework:
+        framework_resource_sets = (
+            framework_resource_sets |
+            framework[_ResourceBundleInfo].resource_sets)
+      if ctx.attr._propagates_frameworks:
+        propagated_framework_zips.append(framework[AppleBundleInfo].archive)
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
@@ -795,9 +805,8 @@ def _run(
     root_merge_zips.extend(list(apple_bundle.root_merge_zips))
 
   # Merge in any prebuilt frameworks (i.e., objc_framework dependencies).
-  objc_providers = provider_support.matching_providers(ctx.attr.deps[0], "objc")
   propagated_framework_files = []
-  for objc in objc_providers:
+  for objc in deps_objc_providers:
     files = objc.dynamic_framework_file
     if ctx.attr._propagates_frameworks:
       propagated_framework_files.extend(list(files))
@@ -826,6 +835,7 @@ def _run(
         bundle_merge_zips, mnemonic, progress_description)
 
   work_dir = None
+  bundle_dir = None
   additional_outputs.append(ctx.outputs.archive)
   if experimental_bundling in ("bundle_and_archive", "off"):
     unprocessed_archive = _create_unprocessed_archive(
@@ -875,7 +885,7 @@ def _run(
       objc_provider_args["framework_dir"] = depset([framework_dir])
       objc_provider_args["static_framework_file"] = bundled_framework_files
 
-  objc_provider_args["providers"] = objc_providers
+  objc_provider_args["providers"] = deps_objc_providers
   legacy_objc_provider = apple_common.new_objc_provider(**objc_provider_args)
   if is_dynamic_framework:
     framework_provider = apple_common.new_dynamic_framework_provider(
@@ -889,6 +899,7 @@ def _run(
                     getattr(ctx.attr, "_extension_safe", False))
   apple_bundle_info_args = {
       "archive": ctx.outputs.archive,
+      "bundle_dir": bundle_dir,
       "bundle_id": bundle_id,
       "bundle_name": bundle_name,
       "extension_safe": extension_safe,
@@ -906,6 +917,7 @@ def _run(
   legacy_providers["apple_bundle"] = struct(**apple_bundle_info_args)
   additional_providers.extend([
       AppleBundleInfo(**apple_bundle_info_args),
+      OutputGroupInfo(local_outputs=depset(local_outputs)),
       _ResourceBundleInfo(resource_sets=resource_sets),
   ])
 

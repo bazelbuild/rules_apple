@@ -14,9 +14,15 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
-load("@build_bazel_rules_apple//apple/bundling:attribute_support.bzl",
-     "attribute_support")
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "apple_action",
+    "get_environment_supplier",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
 
 
 # Maps the strings passed in to the "families" attribute to the numerical
@@ -47,9 +53,7 @@ def _families(ctx):
   Returns:
     The list of device families that apply to the target being built.
   """
-  if hasattr(ctx.attr, "families"):
-    return ctx.attr.families
-  return ctx.attr._allowed_families
+  return attrs.get(ctx.attr, "families", ctx.attr._allowed_families)
 
 
 def _family_plist_number(family_name):
@@ -92,8 +96,8 @@ def _minimum_os(ctx):
   if not min_os:
     # TODO(b/38006810): Use the SDK version instead of the flag value as a soft
     # default.
-    apple = ctx.fragments.apple
-    min_os = str(apple.minimum_os_for_platform_type(_platform_type(ctx)))
+    min_os = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+                 .minimum_os_for_platform_type(_platform_type(ctx)))
   return min_os
 
 
@@ -106,7 +110,8 @@ def _platform_type(ctx):
     The `PlatformType` for the current target, after being converted from its
     string attribute form.
   """
-  platform_type_string = attribute_support.get(ctx.attr, "platform_type")
+  platform_type_string = attrs.get(ctx.attr, "platform_type",
+                                   default=attrs.private_fallback)
   return getattr(apple_common.platform_type, platform_type_string)
 
 
@@ -121,7 +126,8 @@ def _platform_and_sdk_version(ctx):
   """
   apple = ctx.fragments.apple
   platform = apple.multi_arch_platform(_platform_type(ctx))
-  sdk_version = apple.sdk_version_for_platform(platform)
+  sdk_version = (ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+                 .sdk_version_for_platform(platform))
 
   return platform, sdk_version
 
@@ -141,8 +147,9 @@ def _xcode_env_action(ctx, **kwargs):
     **kwargs: Arguments to be passed into apple_action.
   """
   platform, _ = _platform_and_sdk_version(ctx)
-  apple = ctx.fragments.apple
-  action_env = apple.target_apple_env(platform) + apple.apple_host_system_env()
+  environment_supplier = get_environment_supplier(ctx)
+  action_env = environment_supplier.target_apple_env(platform) + environment_supplier.apple_host_system_env()
+
   kwargs["env"] = kwargs.get("env", {}) + action_env
 
   apple_action(ctx, **kwargs)

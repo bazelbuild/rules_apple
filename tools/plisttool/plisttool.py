@@ -102,6 +102,26 @@ CHILD_BUNDLE_VERSION_MISMATCH_MSG = ('The CFBundleShortVersionString of the '
                                      'its parent\'s version string "%s", but '
                                      'found "%s".')
 
+PLUTIL_CONVERSION_TO_XML_FAILED_MSG = ('plutil failed (%d) to convert "%s" to '
+                                       'xml.')
+
+UNKNOWN_CONTROL_KEYS_MSG = 'Control structure has unknown key(s): %s'
+
+UNKNOWN_INFO_PLIST_OPTIONS_MSG = ('Control\'s info_plist_options has unknown '
+                                  'key(s): %s')
+
+# All valid keys in the a control structure.
+_CONTROL_KEYS = frozenset([
+    'binary', 'forced_plists', 'info_plist_options', 'output', 'plists',
+    'target',
+])
+
+# All valid keys in the info_plist_options control structure.
+_INFO_PLIST_OPTIONS_KEYS = frozenset([
+    'apply_default_version', 'bundle_id', 'bundle_name', 'child_plists',
+    'executable', 'pkginfo', 'version_file',
+])
+
 
 class PlistConflictError(ValueError):
   """Raised when conflicting values are found for a key.
@@ -136,8 +156,6 @@ class PlistTool(object):
     Args:
       control: The dictionary of options used to control the tool. Please see
           the moduledoc for a description of the format of this dictionary.
-    Raises:
-      ValueError: If the bundle_id parameter is missing.
     """
     self._control = control
 
@@ -162,7 +180,23 @@ class PlistTool(object):
         self._substitutions['PRODUCT_BUNDLE_IDENTIFIER'] = bundle_id
 
   def run(self):
-    """Performs the operations requested by the control struct."""
+    """Performs the operations requested by the control struct.
+
+    Raises:
+      ValueError: If the control the control structure or info_plist_options
+          contains unknown keys, or if the control structure is missing an
+          'output' entry.
+    """
+    unknown_keys = set(self._control.keys()) - _CONTROL_KEYS
+    if unknown_keys:
+      raise ValueError(
+          UNKNOWN_CONTROL_KEYS_MSG % ', '.join(sorted(unknown_keys)))
+    i_p_o_keys = self._control.get('info_plist_options', dict()).keys()
+    unknown_keys = set(i_p_o_keys) - _INFO_PLIST_OPTIONS_KEYS
+    if unknown_keys:
+      raise ValueError(
+          UNKNOWN_INFO_PLIST_OPTIONS_MSG % ', '.join(sorted(unknown_keys)))
+
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
 
@@ -228,11 +262,11 @@ class PlistTool(object):
 
     if isinstance(p, basestring):
       with open(p) as plist_file:
-        return OrderedDict(self._read_plist(plist_file))
+        return OrderedDict(self._read_plist(plist_file, p))
 
-    return OrderedDict(self._read_plist(p))
+    return OrderedDict(self._read_plist(p, '<input>'))
 
-  def _read_plist(self, plist_file):
+  def _read_plist(self, plist_file, name):
     """Reads a plist file and returns its contents as a dictionary.
 
     This method wraps the readPlist method in plistlib by checking the format
@@ -241,6 +275,7 @@ class PlistTool(object):
 
     Args:
       plist_file: The file-like object containing the plist data.
+      name: Name to report the file-like object as if it fails xml conversion.
     Returns:
       The contents of the plist file as a dictionary.
     """
@@ -258,6 +293,9 @@ class PlistTool(object):
           stdin=subprocess.PIPE
       )
       plist_contents, _ = plutil_process.communicate(plist_contents)
+      if plutil_process.returncode:
+        raise ValueError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG %
+            (plutil_process.returncode, name))
 
     return plistlib.readPlistFromString(plist_contents)
 
@@ -272,7 +310,8 @@ class PlistTool(object):
           doc.
       target: The name of the target for which the plist is being built.
     Raises:
-      ValueError: If the bundle identifier is missing.
+      ValueError: If the bundle identifier was provided and the existing
+          plist also had it, but they are different values.
     """
     executable = options.get('executable')
     if executable:
@@ -391,7 +430,7 @@ class PlistTool(object):
     plistlib.writePlist(plist, path_or_file)
 
     if self._control.get('binary') and isinstance(path_or_file, basestring):
-      subprocess.call(['plutil', '-convert', 'binary1', path_or_file])
+      subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
 
   def _write_pkginfo(self, pkginfo, plist):
     """Writes a PkgInfo file with contents from the given plist.
@@ -450,8 +489,8 @@ class PlistTool(object):
           depends on.
     Raises:
       ValueError: if there was an inconsistency between a child target's plist
-      and the current target's plist, with a message describing what was
-      incorrect.
+          and the current target's plist, with a message describing what was
+          incorrect.
     """
     for label, p in child_plists.iteritems():
       child_plist = self._get_plist_dict(p)
@@ -461,6 +500,11 @@ class PlistTool(object):
       if not child_id.startswith(prefix):
         raise ValueError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
             label, prefix, child_id))
+
+      # CFBundleVersion isn't checked because Apple seems to treat this as
+      # a build number developers can pick based on their sources, so they
+      # don't require it to match between apps and extensions, but they do
+      # require it for the CFBundleShortVersionString.
 
       version = out_plist['CFBundleShortVersionString']
       child_version = child_plist['CFBundleShortVersionString']

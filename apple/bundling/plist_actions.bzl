@@ -14,20 +14,44 @@
 
 """Actions that operate on plist files."""
 
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
-load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl", "plist_support")
-load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-     "platform_support")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "product_support")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleVersionInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "apple_action",
-     "merge_dictionaries",
-     "remove_extension")
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
+    "plist_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "product_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "apple_action",
+    "merge_dictionaries",
+    "remove_extension",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
+)
 
 
 def _environment_plist_action(ctx):
@@ -105,8 +129,8 @@ def _merge_infoplists(ctx,
   forced_plists = []
   additional_plisttool_inputs = []
 
-  if hasattr(ctx.file, "launch_storyboard") and ctx.file.launch_storyboard:
-    launch_storyboard = ctx.file.launch_storyboard
+  launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
+  if launch_storyboard:
     short_name = remove_extension(launch_storyboard.basename)
     forced_plists.append(struct(UILaunchStoryboardName=short_name))
 
@@ -116,11 +140,11 @@ def _merge_infoplists(ctx,
       "pkginfo": pkginfo.path if pkginfo else None,
   }
 
-  if hasattr(ctx.attr, "version") and ctx.attr.version:
-    version_info = ctx.attr.version[AppleBundleVersionInfo]
-    if version_info:
-      additional_plisttool_inputs.append(version_info.version_file)
-      info_plist_options["version_file"] = version_info.version_file.path
+  version_info = providers.find_one(
+      attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
+  if version_info:
+    additional_plisttool_inputs.append(version_info.version_file)
+    info_plist_options["version_file"] = version_info.version_file.path
 
   if executable_bundle and bundle_id:
     info_plist_options["bundle_id"] = bundle_id

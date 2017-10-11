@@ -95,6 +95,12 @@ filegroup(
     srcs = glob(["basic.bundle/**"]),
 )
 
+genrule(
+    name = "generate_strings",
+    outs = ["generated.strings"],
+    cmd = "echo '\"generated_string\" = \"I like turtles!\";' > $@",
+)
+
 objc_bundle_library(
     name = "bundle_library",
     asset_catalogs = [":assets_ios"],
@@ -117,6 +123,7 @@ objc_bundle_library(
     ],
     strings = [
         "nonlocalized.strings",
+        "generated.strings",
         ":localized_strings_ios",
     ],
     structured_resources = [":structured"],

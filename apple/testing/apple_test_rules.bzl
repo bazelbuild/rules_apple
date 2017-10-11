@@ -18,38 +18,56 @@ These are internal rules not to be used outside of the
 @build_bazel_rules_apple//apple package.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-     "file_actions")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "merge_dictionaries")
+load(
+    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
+    "file_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "merge_dictionaries",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
 
 
-# Provider that runner targets must conform to. The required fields that need to
-# be present are:
-#
-# test_runner_template: Template file that contains the specific mechanism with
-#   which the tests will be run. The apple_ui_test and apple_unit_test rules
-#   will substitute the following values:
-#     * %(test_host_path)s:   Path to the app being tested.
-#     * %(test_bundle_path)s: Path to the test bundle that contains the tests.
-#     * %(test_type)s:        The test type, whether it is unit or UI.
-#
-# execution_requirements: Dictionary that represents the specific hardware
-#   requirements for this test.
-#
-# test_environment: Dictionary with the environment variables required for the
-#   test.
-#
-# In addition to this, all the runfiles that the runner target declares will be
-# added to the test rules runfiles.
-AppleTestRunner = provider()
+AppleTestRunner = provider(
+    doc="""
+Provider that runner targets must propagate.
 
-# Provider used by the `coverage_files_aspect` aspect to propagate the
-# transitive closure of sources that a test depends on. These sources are then
-# made available during the coverage action as they are required by the coverage
-# insfrastructure. The sources are provided in the `coverage_files` field. This
-# provider is only available if when coverage collecting is enabled.
-CoverageFiles = provider()
+In addition to the fields, all the runfiles that the runner target declares will be
+added to the test rules runfiles.
+""",
+    fields={
+        "test_runner_template": """
+Template file that contains the specific mechanism with
+which the tests will be run. The apple_ui_test and apple_unit_test rules
+will substitute the following values:
+    * %(test_host_path)s:   Path to the app being tested.
+    * %(test_bundle_path)s: Path to the test bundle that contains the tests.
+    * %(test_type)s:        The test type, whether it is unit or UI.
+""",
+        "execution_requirements": """
+Dictionary that represents the specific hardware
+requirements for this test.
+""",
+        "test_environment": """
+Dictionary with the environment variables required for the test.
+"""
+    }
+)
+
+
+CoverageFiles = provider(
+    doc="""
+Provider used by the `coverage_files_aspect` aspect to propagate the
+transitive closure of sources that a test depends on. These sources are then
+made available during the coverage action as they are required by the coverage
+insfrastructure. The sources are provided in the `coverage_files` field. This
+provider is only available if when coverage collecting is enabled.
+"""
+)
 
 
 def _coverage_files_aspect_impl(target, ctx):
@@ -66,18 +84,17 @@ def _coverage_files_aspect_impl(target, ctx):
 
   # Collect this target's coverage files.
   for attr in ["srcs", "hdrs", "non_arc_srcs"]:
-    if hasattr(ctx.rule.attr, attr):
-      for files in [x.files for x in getattr(ctx.rule.attr, attr)]:
-        coverage_files += files
+    for files in [x.files for x in attrs.get(ctx.rule.attr, attr, [])]:
+      coverage_files += files
 
   # Collect dependencies coverage files.
-  if hasattr(ctx.rule.attr, "deps"):
-    for dep in ctx.rule.attr.deps:
-      coverage_files += dep[CoverageFiles].coverage_files
+  for dep in attrs.get(ctx.rule.attr, "deps", []):
+    coverage_files += dep[CoverageFiles].coverage_files
   for attr in ["binary", "test_host"]:
     if hasattr(ctx.rule.attr, attr):
-      coverage_files += (
-          getattr(ctx.rule.attr, attr)[CoverageFiles].coverage_files)
+      attr_value = getattr(ctx.rule.attr, attr)
+      if attr_value:
+        coverage_files += attr_value[CoverageFiles].coverage_files
 
   return struct(providers=[CoverageFiles(coverage_files=coverage_files)])
 
@@ -104,6 +121,12 @@ def _apple_test_common_attributes():
       "data": attr.label_list(
           allow_files=True,
           default=[],
+      ),
+      # The platform that this test is targeting. This should only and always be
+      # set by the platform specific macros.
+      "platform_type": attr.string(
+          mandatory=True,
+          values=["ios", "macos", "tvos"],
       ),
       # The runner target that provides the logic on how to run the test by
       # means of the AppleTestRunner provider.
@@ -200,8 +223,10 @@ def _apple_test_impl(ctx, test_type):
   execution_requirements = runner.execution_requirements
   test_environment = runner.test_environment
 
-  test_runfiles = ([ctx.outputs.test_bundle] + ctx.files.test_host +
-                   ctx.attr._mcov.files.to_list())
+  test_runfiles = [ctx.outputs.test_bundle] + ctx.attr._mcov.files.to_list()
+  test_host = ctx.attr.test_host
+  if test_host:
+    test_runfiles.append(test_host.apple_bundle.archive)
 
   if ctx.configuration.coverage_enabled:
     test_environment = merge_dictionaries(test_environment,
@@ -225,6 +250,7 @@ def _apple_test_impl(ctx, test_type):
     test_runfiles.extend(data_dep.files.to_list())
 
   return struct(
+      executable=ctx.outputs.executable,
       files=depset([ctx.outputs.test_bundle, ctx.outputs.executable]),
       instrumented_files=struct(dependency_attributes=["test_bundle"]),
       providers=[
@@ -261,6 +287,9 @@ apple_ui_test = rule(
 """Rule to execute unit (XCTest) tests for a generic Apple platform.
 
 Args:
+  data: Files to be made available to the test during its execution.
+  platform_type: The Apple platform that this test is targeting. Required.
+      Possible values are 'ios', 'macos' and 'tvos'.
   runner: The runner target that will provide the logic on how to run the tests.
       Needs to provide the AppleTestRunner provider. Required.
   test_bundle: The xctest bundle that contains the test code and resources.
@@ -288,6 +317,9 @@ apple_unit_test = rule(
 """Rule to execute UI (XCUITest) tests for a generic Apple platform.
 
 Args:
+  data: Files to be made available to the test during its execution.
+  platform_type: The Apple platform that this test is targeting. Required.
+      Possible values are 'ios', 'macos' and 'tvos'.
   runner: The runner target that will provide the logic on how to run the tests.
       Needs to provide the AppleTestRunner provider. Required.
   test_bundle: The xctest bundle that contains the test code and resources.

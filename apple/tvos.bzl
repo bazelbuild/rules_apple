@@ -24,6 +24,12 @@ load("@build_bazel_rules_apple//apple/bundling:tvos_rules.bzl",
      _tvos_extension="tvos_extension",
     )
 
+# Explicitly export this because we want it visible to users loading this file.
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+
 
 def tvos_application(name, **kwargs):
   """Builds and bundles a tvOS application.

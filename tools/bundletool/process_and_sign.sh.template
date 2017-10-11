@@ -16,7 +16,10 @@ readonly UNPROCESSED_ARCHIVE_PATH=%unprocessed_archive_path%
 readonly WORK_DIR=%work_dir%
 
 # Blow away the old working dir if it's still there from a previous build.
-rm -rf "$WORK_DIR"
+if [[ -d "$WORK_DIR" ]]; then
+  chmod -R u+w "$WORK_DIR"
+  rm -rf "$WORK_DIR"
+fi
 mkdir -p "$WORK_DIR"
 
 # Expand the unprocessed archive into the temporary directory.

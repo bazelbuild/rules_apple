@@ -20,57 +20,81 @@ consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 """
 
-AppleBundleInfo = provider()
-"""Provides information about an Apple bundle target.
+AppleBundleInfo = provider(
+    doc="""
+Provides information about an Apple bundle target.
 
 This provider propagates general information about an Apple bundle that is not
 specific to any particular bundle type.
-
-Fields:
-  archive: `File`. The archive that contains the built application.
-  archive_root: `string`. The file system path (relative to the workspace root)
-      where the signed bundle was constructed (before archiving). Other rules
-      *should not* depend on this field; it is intended to support IDEs that
-      want to read that path from the provider to avoid unzipping the output
-      archive.
-  bundle_id: `string`. The bundle identifier (i.e., `CFBundleIdentifier` in
-      `Info.plist`) of the bundle.
-  bundle_name: `string`. The name of the bundle, without the extension.
-  extension_safe: Boolean. True if the target propagating this provider was
-      compiled and linked with -application-extension, restricting it to
-      extension-safe APIs only.
-  infoplist: `File`. The complete (binary-formatted) `Info.plist` file for the
-      bundle.
-  minimum_os_version: `string`. The minimum OS version (as a dotted version
-      number like "9.0") that this bundle was built to support.
-  product_type: `string`. The dot-separated product type identifier associated
-      with the bundle (for example, `com.apple.product-type.application`).
-  propagated_framework_files: `depset` of `File`s. Individual files that make up
-      framework dependencies of the target but which are propagated to an
-      embedding target instead of being bundled with the propagator. For
-      example, an `ios_extension` propagates its frameworks to be bundled with
-      the embedding `ios_application` rather than bundling the frameworks with
-      the extension itself. (This mainly supports `objc_framework`, which
-      propagates its contents as individual files instead of a zipped framework;
-      see `propagated_framework_zips`.)
-  propagated_framework_zips: `depset` of `File`s. Files that are zipped
-      framework dependencies of the target but which are propagated to an
-      embedding target instead of being bundled with the propagator. For
-      example, an `ios_extension` propagates its frameworks to be bundled with
-      the embedding `ios_application` rather than bundling the frameworks with
-      the extension itself.
-  root_merge_zips: `list` of `File`s. A list of any `.zip` files that should be
-      merged into the root of the top-level bundle (such as `ios_application` or
-      `tvos_application`) that embeds the target propagating this provider.
-  uses_swift: Boolean. True if Swift is used by the target propagating this
-      provider. This does not consider embedded bundles; for example, an
-      Objective-C application containing a Swift extension would have this field
-      set to true for the extension but false for the application.
+""",
+    fields={
+        "archive": "`File`. The archive that contains the built application.",
+        "archive_root": """
+`string`. The file system path (relative to the workspace root)
+where the signed bundle was constructed (before archiving). Other rules
+*should not* depend on this field; it is intended to support IDEs that
+want to read that path from the provider to avoid unzipping the output
+archive.
+""",
+        "bundle_dir": "`File`. The directory that represents the bundle.",
+        "bundle_id": """
+`string`. The bundle identifier (i.e., `CFBundleIdentifier` in
+`Info.plist`) of the bundle.
+""",
+        "bundle_name": """
+`string`. The name of the bundle, without the extension.
+""",
+        "extension_safe": """
+Boolean. True if the target propagating this provider was
+compiled and linked with -application-extension, restricting it to
+extension-safe APIs only.
+""",
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` file for the bundle.
+""",
+        "minimum_os_version": """
+`string`. The minimum OS version (as a dotted version
+number like "9.0") that this bundle was built to support.
+""",
+        "product_type": """
+`string`. The dot-separated product type identifier associated
+with the bundle (for example, `com.apple.product-type.application`).
+""",
+        "propagated_framework_files": """
+`depset` of `File`s. Individual files that make up
+framework dependencies of the target but which are propagated to an
+embedding target instead of being bundled with the propagator. For
+example, an `ios_extension` propagates its frameworks to be bundled with
+the embedding `ios_application` rather than bundling the frameworks with
+the extension itself. (This mainly supports `objc_framework`, which
+propagates its contents as individual files instead of a zipped framework;
+see `propagated_framework_zips`.)
+""",
+        "propagated_framework_zips": """
+`depset` of `File`s. Files that are zipped
+framework dependencies of the target but which are propagated to an
+embedding target instead of being bundled with the propagator. For
+example, an `ios_extension` propagates its frameworks to be bundled with
+the embedding `ios_application` rather than bundling the frameworks with
+the extension itself.
+""",
+        "root_merge_zips": """
+`list` of `File`s. A list of any `.zip` files that should be
+merged into the root of the top-level bundle (such as `ios_application` or
+`tvos_application`) that embeds the target propagating this provider.
+""",
+        "uses_swift": """
+Boolean. True if Swift is used by the target propagating this
+provider. This does not consider embedded bundles; for example, an
+Objective-C application containing a Swift extension would have this field
+set to true for the extension but false for the application.
 """
+    },
+)
 
-
-AppleBundlingSwiftInfo = provider()
-"""Provides information about whether Swift needs to be bundled with a target.
+AppleBundlingSwiftInfo = provider(
+    doc="""
+Provides information about whether Swift needs to be bundled with a target.
 
 The `AppleBundlingSwiftInfo` provider is used to indicate whether Swift is
 required by any code in the bundle. Note that this only applies within the
@@ -78,42 +102,50 @@ bundle's direct dependencies (`deps`); it does not pass through
 application/extension boundaries. For example, if an extension uses Swift but an
 application does not, then the application does not "use Swift" as defined by
 this provider.
+""",
+    fields={
+        "uses_swift": """
+Boolean. True if Swift is used by the target propagating this
+provider or by any of its transitive dependencies.
+""",
+    }
+)
 
-Fields:
-  uses_swift: Boolean. True if Swift is used by the target propagating this
-      provider or by any of its transitive dependencies.
+AppleBundleVersionInfo = provider(
+    doc="Provides versioning information for an Apple bundle.",
+    fields={
+        "version_file": """
+A `File` containing JSON-formatted text describing the version
+number information propagated by the target. It contains two keys:
+`build_version`, which corresponds to `CFBundleVersion`; and
+`short_version_string`, which corresponds to `CFBundleShortVersionString`.
 """
+    }
+)
 
-
-AppleBundleVersionInfo = provider()
-"""Provides versioning information for an Apple bundle.
-
-Fields:
-  version_file: A `File` containing JSON-formatted text describing the version
-      number information propagated by the target. It contains two keys:
-      `build_version`, which corresponds to `CFBundleVersion`; and
-      `short_version_string`, which corresponds to `CFBundleShortVersionString`.
-"""
-
-
-AppleResourceInfo = provider()
-"""Provides information about resources from transitive dependencies.
+AppleResourceInfo = provider(
+    doc="""
+Provides information about resources from transitive dependencies.
 
 The `AppleResourceInfo` provider should be propagated by rules that want to
 propagate resources--such as images, strings, Interface Builder files, and so
 forth--to a depending application or extension. For example, `swift_library`
 can provide attributes like `bundles`, `resources`, and `structured_resources`
 that allow users to associate resources with the code that uses them.
+""",
+    fields={
+  "resource_sets": """
+`list` of `struct`s. Each `struct` is one defined by
+`AppleResourceSet` and the full list describes the transitive resources
+propagated by this rule.
+""",
+    }
+)
 
-Fields:
-  resource_sets: `list` of `struct`s. Each `struct` is one defined by
-      `AppleResourceSet` and the full list describes the transitive resources
-      propagated by this rule.
-"""
 
-
-IosApplicationBundleInfo = provider()
-"""Denotes that a target is an iOS application.
+IosApplicationBundleInfo = provider(
+    doc="""
+Denotes that a target is an iOS application.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS application bundle
@@ -121,10 +153,12 @@ a "marker" to indicate that a target is specifically an iOS application bundle
 dependency is an iOS application should use this provider to describe that
 requirement.
 """
+)
 
 
-IosExtensionBundleInfo = provider()
-"""Denotes that a target is an iOS application extension.
+IosExtensionBundleInfo = provider(
+    doc="""
+Denotes that a target is an iOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS application
@@ -132,10 +166,12 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is an iOS application extension should use this
 provider to describe that requirement.
 """
+)
 
 
-IosFrameworkBundleInfo = provider()
-"""Denotes that a target is an iOS dynamic framework.
+IosFrameworkBundleInfo = provider(
+    doc="""
+Denotes that a target is an iOS dynamic framework.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS dynamic framework
@@ -143,10 +179,12 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS dynamic framework should use this provider to describe
 that requirement.
 """
+)
 
 
-IosStaticFrameworkBundleInfo = provider()
-"""Denotes that a target is an iOS static framework.
+IosStaticFrameworkBundleInfo = provider(
+    doc="""
+Denotes that a target is an iOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS static framework
@@ -154,20 +192,24 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS static framework should use this provider to describe
 that requirement.
 """
+)
 
 
-IosXcTestBundleInfo = provider()
-"""Denotes a target that is an iOS .xctest bundle.
+IosXcTestBundleInfo = provider(
+    doc="""
+Denotes a target that is an iOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
 """
+)
 
 
-MacosApplicationBundleInfo = provider()
-"""Denotes that a target is a macOS application.
+MacosApplicationBundleInfo = provider(
+    doc="""
+Denotes that a target is a macOS application.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a macOS application bundle
@@ -175,10 +217,12 @@ a "marker" to indicate that a target is specifically a macOS application bundle
 dependency is a macOS application should use this provider to describe that
 requirement.
 """
+)
 
 
-MacosBundleBundleInfo = provider()
-"""Denotes that a target is a macOS loadable bundle.
+MacosBundleBundleInfo = provider(
+    doc="""
+Denotes that a target is a macOS loadable bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a macOS loadable bundle
@@ -186,10 +230,12 @@ a "marker" to indicate that a target is specifically a macOS loadable bundle
 dependency is a macOS loadable bundle should use this provider to describe that
 requirement.
 """
+)
 
 
-MacosExtensionBundleInfo = provider()
-"""Denotes that a target is a macOS application extension.
+MacosExtensionBundleInfo = provider(
+    doc="""
+Denotes that a target is a macOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a macOS application
@@ -197,9 +243,12 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
 """
+)
 
-MacosXcTestBundleInfo = provider()
-"""Denotes a target that is a macOS .xctest bundle.
+
+MacosXcTestBundleInfo = provider(
+    doc="""
+Denotes a target that is a macOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a macOS .xctest bundle
@@ -207,10 +256,12 @@ a "marker" to indicate that a target is specifically a macOS .xctest bundle
 dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
 """
+)
 
 
-SwiftInfo = provider()
-"""Provides information about a Swift library.
+SwiftInfo = provider(
+    doc="""
+Provides information about a Swift library.
 
 Fields:
   direct_lib: `File`. The single static library that was produced by compiling
@@ -225,10 +276,12 @@ Fields:
   transitive_modules: `depset` of `File`s. The set of `.swiftmodule` files
       output by the propagating target and all of its transitive dependencies.
 """
+)
 
 
-TvosApplicationBundleInfo = provider()
-"""Denotes that a target is a tvOS application.
+TvosApplicationBundleInfo = provider(
+    doc="""
+Denotes that a target is a tvOS application.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a tvOS application bundle
@@ -236,10 +289,12 @@ a "marker" to indicate that a target is specifically a tvOS application bundle
 dependency is a tvOS application should use this provider to describe that
 requirement.
 """
+)
 
 
-TvosExtensionBundleInfo = provider()
-"""Denotes that a target is a tvOS application extension.
+TvosExtensionBundleInfo = provider(
+    doc="""
+Denotes that a target is a tvOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a tvOS application
@@ -247,10 +302,12 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a tvOS application extension should use this
 provider to describe that requirement.
 """
+)
 
 
-WatchosApplicationBundleInfo = provider()
-"""Denotes that a target is a watchOS application.
+WatchosApplicationBundleInfo = provider(
+    doc="""
+Denotes that a target is a watchOS application.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a watchOS application
@@ -258,10 +315,12 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS application should use this provider to describe that
 requirement.
 """
+)
 
 
-WatchosExtensionBundleInfo = provider()
-"""Denotes that a target is a watchOS application extension.
+WatchosExtensionBundleInfo = provider(
+    doc="""
+Denotes that a target is a watchOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a watchOS application
@@ -269,6 +328,7 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """
+)
 
 
 def AppleResourceSet(bundle_dir=None,
@@ -444,7 +504,8 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
 
 def _filter_files(files, avoid_files):
   """Returns a depset containing files minus avoid_files."""
-  return depset([f for f in files if f not in avoid_files])
+  avoid_short_paths = {f.short_path: None for f in avoid_files.to_list()}
+  return depset([f for f in files if f.short_path not in avoid_short_paths])
 
 
 def _dedupe_files(files):
