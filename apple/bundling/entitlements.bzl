@@ -222,6 +222,7 @@ def _register_merge_entitlements_action(ctx,
       plists=[f.path for f in input_entitlements],
       output=merged_entitlements.path,
       binary=False,
+      target=str(ctx.label),
   )
   control_file = ctx.new_file("%s.merge-entitlements-control" % ctx.label.name)
   ctx.file_action(
