@@ -377,10 +377,10 @@ def split_extension(filename):
 
 def xcrun_env(ctx):
   """Returns the environment dictionary necessary to use xcrunwrapper."""
-  environment_supplier = get_environment_supplier(ctx)
+  environment_supplier = get_environment_supplier()
   platform = ctx.fragments.apple.single_arch_platform
-  action_env = (environment_supplier.target_apple_env(platform) +
-                environment_supplier.apple_host_system_env())
+  action_env = (environment_supplier.target_apple_env(ctx, platform) +
+                environment_supplier.apple_host_system_env(ctx))
   return action_env
 
 
@@ -399,17 +399,42 @@ def xcrun_action(ctx, **kw):
   apple_action(ctx, executable=ctx.executable._xcrunwrapper, **kw)
 
 
-def get_environment_supplier(ctx):
+def _apple_host_system_env_from_config_fragment(ctx):
+  return ctx.fragments.apple.apple_host_system_env()
+
+
+def _apple_host_system_env_from_xcode_config(ctx):
+  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+  return apple_common.apple_host_system_env(xcode_config)
+
+
+def _target_apple_env_from_config_fragment(ctx, platform):
+  return ctx.fragments.apple.target_apple_env(platform)
+
+
+def _target_apple_env_from_xcode_config(ctx, platform):
+  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+  return apple_common.target_apple_env(xcode_config, platform)
+
+
+def get_environment_supplier():
   """Returns the object that knows about Apple environment variables.
 
-  Args:
-    ctx: The context of the rule that owns this action.
-
   This is necessary because an incompatible change will make Bazel publish this
-  information through an xcode_config rule instead of ctx.fragments.apple .
+  information through apple_common instead of ctx.fragments.apple .
+
+  Returns:
+    A struct with apple_host_system_env/target_apple_env methods.
   """
-  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-  if hasattr(xcode_config, 'apple_host_system_env'):
-    return xcode_config
+  if hasattr(apple_common, 'apple_host_system_env'):
+    return struct(
+        apple_host_system_env = _apple_host_system_env_from_xcode_config,
+        target_apple_env = _target_apple_env_from_xcode_config,
+    )
   else:
-    return ctx.fragments.apple
+    # TODO(lberki): delete this branch once we don't need to support Bazel
+    # versions that don't support apple_common.target_apple_env()
+    return struct(
+        apple_host_system_env = _apple_host_system_env_from_config_fragment,
+        target_apple_env = _target_apple_env_from_config_fragment,
+    )
