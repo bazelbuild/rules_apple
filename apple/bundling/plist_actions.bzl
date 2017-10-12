@@ -129,22 +129,27 @@ def _merge_infoplists(ctx,
   forced_plists = []
   additional_plisttool_inputs = []
 
-  launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
-  if launch_storyboard:
-    short_name = remove_extension(launch_storyboard.basename)
-    forced_plists.append(struct(UILaunchStoryboardName=short_name))
+  if executable_bundle:
+    launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
+    if launch_storyboard:
+      short_name = remove_extension(launch_storyboard.basename)
+      forced_plists.append(struct(UILaunchStoryboardName=short_name))
+    bundle_name = bundling_support.bundle_name_with_extension(ctx)
+  else:
+    bundle_name = None
 
   info_plist_options = {
-      "apply_default_version": True,
-      "bundle_name": bundling_support.bundle_name_with_extension(ctx),
+      "apply_default_version": executable_bundle,
+      "bundle_name": bundle_name,
       "pkginfo": pkginfo.path if pkginfo else None,
   }
 
-  version_info = providers.find_one(
-      attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
-  if version_info:
-    additional_plisttool_inputs.append(version_info.version_file)
-    info_plist_options["version_file"] = version_info.version_file.path
+  if executable_bundle:
+    version_info = providers.find_one(
+        attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
+    if version_info:
+      additional_plisttool_inputs.append(version_info.version_file)
+      info_plist_options["version_file"] = version_info.version_file.path
 
   if executable_bundle and bundle_id:
     info_plist_options["bundle_id"] = bundle_id
