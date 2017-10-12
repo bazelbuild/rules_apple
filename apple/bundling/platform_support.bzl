@@ -147,8 +147,9 @@ def _xcode_env_action(ctx, **kwargs):
     **kwargs: Arguments to be passed into apple_action.
   """
   platform, _ = _platform_and_sdk_version(ctx)
-  environment_supplier = get_environment_supplier(ctx)
-  action_env = environment_supplier.target_apple_env(platform) + environment_supplier.apple_host_system_env()
+  environment_supplier = get_environment_supplier()
+  action_env = (environment_supplier.target_apple_env(ctx, platform) +
+                environment_supplier.apple_host_system_env(ctx))
 
   kwargs["env"] = kwargs.get("env", {}) + action_env
 
