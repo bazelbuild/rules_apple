@@ -909,6 +909,7 @@ def _run(
   apple_bundle_info_args = {
       "archive": ctx.outputs.archive,
       "bundle_dir": bundle_dir,
+      "bundle_extension": bundling_support.bundle_extension(ctx),
       "bundle_id": bundle_id,
       "bundle_name": bundle_name,
       "extension_safe": extension_safe,

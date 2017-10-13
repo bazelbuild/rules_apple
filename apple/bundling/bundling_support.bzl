@@ -94,13 +94,14 @@ def _bundle_name(ctx):
   return bundle_name
 
 
-def _bundle_name_with_extension(ctx):
-  """Returns the name of the bundle with its extension.
+def _bundle_extension(ctx):
+  """Returns the bundle extension.
 
   Args:
     ctx: The Skylark context.
+
   Returns:
-    The bundle name with its extension.
+    The bundle extension.
   """
   ext = getattr(ctx.attr, "bundle_extension", "")
   if ext:
@@ -114,7 +115,19 @@ def _bundle_name_with_extension(ctx):
     if product_type_descriptor:
       ext = product_type_descriptor.bundle_extension
 
-  return _bundle_name(ctx) + ext
+  return ext
+
+
+def _bundle_name_with_extension(ctx):
+  """Returns the name of the bundle with its extension.
+
+  Args:
+    ctx: The Skylark context.
+
+  Returns:
+    The bundle name with its extension.
+  """
+  return _bundle_name(ctx) + _bundle_extension(ctx)
 
 
 def _contents_file(ctx, src, dest, executable=False):
@@ -246,6 +259,7 @@ bundling_support = struct(
     bundlable_file=_bundlable_file,
     bundlable_file_sources=_bundlable_file_sources,
     bundle_name=_bundle_name,
+    bundle_extension=_bundle_extension,
     bundle_name_with_extension=_bundle_name_with_extension,
     contents_file=_contents_file,
     embedded_bundle=_embedded_bundle,

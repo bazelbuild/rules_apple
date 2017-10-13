@@ -44,6 +44,9 @@ archive.
         "bundle_name": """
 `string`. The name of the bundle, without the extension.
 """,
+        "bundle_extension": """
+`string`. The bundle extension.
+""",
         "extension_safe": """
 Boolean. True if the target propagating this provider was
 compiled and linked with -application-extension, restricting it to
