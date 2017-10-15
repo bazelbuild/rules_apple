@@ -88,7 +88,8 @@ inside the application bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the application. At least one
-        file must be specified.</p>
+        file must be specified. The merge is only at the top level of the
+        plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -259,7 +260,8 @@ executable inside the extension bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the extension. At least one
-        file must be specified.</p>
+        file must be specified. The merge is only at the top level of the
+        plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
