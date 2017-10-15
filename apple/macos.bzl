@@ -100,7 +100,8 @@ def macos_application(name, **kwargs):
         profile (or the default provisioning profile, if none is specified).
     extensions: A list of extensions to include in the final application.
     infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the application.
+        Info.plist that represents the application. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's archive output
         after it is assembled but before it is (optionally) signed. The tool is
         invoked with a single positional argument that represents the path to a
@@ -178,7 +179,8 @@ def macos_bundle(name, **kwargs):
         ApplicationIdentifierPrefix key from this target's provisioning
         profile (or the default provisioning profile, if none is specified).
     infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the bundle.
+        Info.plist that represents the bundle. The merge is only at the top
+        level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's archive output
         after it is assembled but before it is (optionally) signed. The tool is
         invoked with a single positional argument that represents the path to a
@@ -244,7 +246,8 @@ def macos_command_line_application(name, **kwargs):
     bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
         extension. Optional.
     infoplists: A list of plist files that will be merged and embedded in the
-        binary.
+        binary. The merge is only at the top level of the plist; so
+        sub-dictionaries are not merged.
     linkopts: A list of strings representing extra flags that should be passed
         to the linker.
     minimum_os_version: An optional string indicating the minimum macOS version

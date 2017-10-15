@@ -69,7 +69,8 @@ def ios_application(name, **kwargs):
         application depends on.
     infoplists: A list of `.plist` files that will be merged to form the
         Info.plist that represents the application. At least one file must be
-        specified.
+        specified. The merge is only at the top level of the plist; so
+        sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's IPA output after it is
         assembled but before it is (optionally) signed. The tool is invoked with
         a single command-line argument that denotes the path to a directory
@@ -152,7 +153,8 @@ def ios_extension(name, **kwargs):
     frameworks: A list of framework targets (see `ios_framework`) that this
         extension depends on.
     infoplists: A list of `.plist` files that will be merged to form the
-        `Info.plist` that represents the extension.
+        `Info.plist` that represents the extension. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
@@ -219,7 +221,8 @@ def ios_framework(name, **kwargs):
         values are `"iphone"` and `"ipad"`.
     frameworks: A list of framework targets that this framework depends on.
     infoplists: A list of `.plist` files that will be merged to form the
-        Info.plist that represents the framework.
+        Info.plist that represents the framework. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
@@ -349,7 +352,8 @@ def ios_ui_test(name, **kwargs):
         test bundle. Optional. Defaults to the test_host's postfixed with
         "Tests".
     infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the test bundle.
+        Info.plist that represents the test bundle. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     minimum_os_version: The minimum OS version that this target and its
         dependencies should be built for. Optional.
     runner: The runner target that contains the logic of how the tests should
@@ -376,7 +380,8 @@ def ios_unit_test(name, **kwargs):
         test bundle. Optional. Defaults to the test_host's postfixed with
         "Tests".
     infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the test bundle.
+        Info.plist that represents the test bundle. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     minimum_os_version: The minimum OS version that this target and its
         dependencies should be built for. Optional.
     runner: The runner target that contains the logic of how the tests should
@@ -400,7 +405,8 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
         test bundle. Optional. Defaults to the test_host's postfixed with
         "Tests".
     infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the test bundle.
+        Info.plist that represents the test bundle. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     runners: The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an AppleTestRunner
         provider. Required (minimum of 2 runners).

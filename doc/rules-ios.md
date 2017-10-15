@@ -104,7 +104,8 @@ inside the application bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the application. At least one
-        file must be specified.</p>
+        file must be specified. The merge is only at the top level of the
+        plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -318,7 +319,8 @@ executable inside the extension bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the extension. At least one
-        file must be specified.</p>
+        file must be specified. The merge is only at the top level of the
+        plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -467,7 +469,8 @@ inside the framework bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the framework. At least one
-        file must be specified.</p>
+        file must be specified. The merge is only at the top level of the
+        plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -627,7 +630,9 @@ build a single framework artifact that works for all architectures by specifying
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the framework.</p>
+        <code>Info.plist</code> that represents the framework. The merge is
+        only at the top level of the plist; so sub-dictionaries are not
+        merged.</p>
       </td>
     </tr>
     <tr>
@@ -743,7 +748,8 @@ bundle.
         <code>Info.plist</code> that represents the test bundle. If not
         specified, a default one will be provided that only contains the
         <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.</p>
+        placeholders that will be replaced when bundling. The merge is only at
+        the top level of the plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -858,7 +864,8 @@ bundle.
         <code>Info.plist</code> that represents the test bundle. If not
         specified, a default one will be provided that only contains the
         <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.</p>
+        placeholders that will be replaced when bundling. The merge is only at
+        the top level of the plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>
@@ -969,7 +976,8 @@ Builds an XCTest unit test suite with the given runners.
         <code>Info.plist</code> that represents the test bundle. If not
         specified, a default one will be provided that only contains the
         <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.</p>
+        placeholders that will be replaced when bundling. The merge is only at
+        the top level of the plist; so sub-dictionaries are not merged.</p>
       </td>
     </tr>
     <tr>

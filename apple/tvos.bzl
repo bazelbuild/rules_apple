@@ -57,7 +57,8 @@ def tvos_application(name, **kwargs):
     extensions: A list of extensions (see `tvos_extension`) to include in the
         final application.
     infoplists: A list of `.plist` files that will be merged to form the
-        Info.plist that represents the application.
+        Info.plist that represents the application. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's IPA output after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
@@ -124,7 +125,8 @@ def tvos_extension(name, **kwargs):
         target's provisioning profile (or the default provisioning profile, if
         none is specified).
     infoplists: A list of `.plist` files that will be merged to form the
-        `Info.plist` that represents the extension.
+        `Info.plist` that represents the extension. The merge is only at the
+        top level of the plist; so sub-dictionaries are not merged.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
