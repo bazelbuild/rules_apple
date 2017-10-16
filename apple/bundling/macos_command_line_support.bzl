@@ -70,9 +70,11 @@ def _macos_command_line_infoplist_impl(ctx):
       ctx,
       None,
       infoplists,
+      apply_default_version=True,
       bundle_id=bundle_id,
-      executable_bundle=True,
-      exclude_executable_name=True)
+      exclude_executable_name=True,
+      extract_from_ctxt=True,
+      include_xcode_env=True)
   merged_infoplist = plist_results.output_plist
 
   return struct(

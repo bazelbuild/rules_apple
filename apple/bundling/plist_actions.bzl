@@ -84,92 +84,93 @@ def _environment_plist_action(ctx):
 def _merge_infoplists(ctx,
                       path_prefix,
                       input_plists,
+                      apply_default_version=False,
                       bundle_id=None,
-                      executable_bundle=False,
+                      child_plists=[],
                       exclude_executable_name=False,
-                      child_plists=[]):
+                      extract_from_ctxt=False,
+                      include_xcode_env=False):
   """Creates an action that merges Info.plists and converts them to binary.
 
   This action merges multiple plists by shelling out to plisttool, then
   compiles the final result into a single binary plist file.
 
-  This action also generates a PkgInfo file for the bundle as a side effect
-  of processing the appropriate keys in the plist, if the `_needs_pkginfo`
-  attribute on the target is True.
-
   Args:
     ctx: The Skylark context.
     path_prefix: A path prefix to apply in front of any intermediate files.
     input_plists: The plist files to merge.
+    apply_default_version: If True, set CFBundleVersion and
+        CFBundleShortVersionString to be "1.0" if values are not already present
+        in the output plist.
     bundle_id: The bundle identifier to set in the output plist.
-    executable_bundle: If True, this action is intended for an executable
-        bundle's Info.plist, which means the development environment and
-        platform info should be added to the plist, and a PkgInfo should
-        (optionally) be created.
-    exclude_executable_name: If True, the executable name will not be added to
-        the plist in the `CFBundleExecutable` key. This is mainly intended for
-        plists embedded in a command line tool.
     child_plists: A list of plists from child targets (such as extensions
         or Watch apps) whose bundle IDs and version strings should be
         validated against the compiled plist for consistency.
+    exclude_executable_name: If True, the executable name will not be added to
+        the plist in the `CFBundleExecutable` key. This is mainly intended for
+        plists embedded in a command line tool.
+    extract_from_ctxt: If True, the ctx will also be inspect for additional
+        information values to be added into the final Info.plist. The ctxt
+        will also be checked to see if a PkgInfo file should be created.
+    include_xcode_env: If True, add the development environment and platform
+        platform info should be added to the plist (just like Xcode does).
   Returns:
     A struct with two fields: `output_plist`, a File object containing the
     merged binary plist, and `pkginfo`, a File object containing the PkgInfo
     file (or None, if no file was generated).
   """
-  output_plist = file_support.intermediate(
-      ctx, "%{name}-Info-binary.plist", prefix=path_prefix)
+  if exclude_executable_name and not extract_from_ctxt:
+    fail('exclude_executable_name has no meaning without extract_from_ctxt.')
 
-  if executable_bundle and ctx.attr._needs_pkginfo:
-    pkginfo = file_support.intermediate(
-        ctx, "%{name}-PkgInfo", prefix=path_prefix)
-  else:
-    pkginfo = None
-
+  outputs = []
   forced_plists = []
   additional_plisttool_inputs = []
-
-  if executable_bundle:
-    launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
-    if launch_storyboard:
-      short_name = remove_extension(launch_storyboard.basename)
-      forced_plists.append(struct(UILaunchStoryboardName=short_name))
-    bundle_name = bundling_support.bundle_name_with_extension(ctx)
-  else:
-    bundle_name = None
+  pkginfo = None
 
   info_plist_options = {
-      "apply_default_version": executable_bundle,
-      "bundle_name": bundle_name,
-      "pkginfo": pkginfo.path if pkginfo else None,
+    "apply_default_version": apply_default_version,
+    "bundle_id": bundle_id,
   }
 
-  if executable_bundle:
+  output_plist = file_support.intermediate(
+      ctx, "%{name}-Info-binary.plist", prefix=path_prefix)
+  outputs.append(output_plist)
+
+  if child_plists:
+    child_plists_for_control = struct(
+        **{str(p.owner): p.path for p in child_plists})
+    info_plist_options["child_plists"] = child_plists_for_control
+
+  if extract_from_ctxt:
+    # Extra things for info_plist_options
+
+    if not exclude_executable_name:
+      info_plist_options["executable"] = bundling_support.bundle_name(ctx)
+
+    if ctx.attr._needs_pkginfo:
+      pkginfo = file_support.intermediate(
+          ctx, "%{name}-PkgInfo", prefix=path_prefix)
+      outputs.append(pkginfo)
+      info_plist_options["pkginfo"] = pkginfo.path
+
+    bundle_name = bundling_support.bundle_name_with_extension(ctx)
+    info_plist_options["bundle_name"] = bundle_name
+
     version_info = providers.find_one(
         attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
     if version_info:
       additional_plisttool_inputs.append(version_info.version_file)
       info_plist_options["version_file"] = version_info.version_file.path
 
-  if executable_bundle and bundle_id:
-    info_plist_options["bundle_id"] = bundle_id
+    # Keys to be forced into the Info.plist file.
 
-  # Resource bundles don't need the Xcode environment plist entries;
-  # application and extension bundles do.
-  if executable_bundle:
-    if not exclude_executable_name:
-      info_plist_options["executable"] = bundling_support.bundle_name(ctx)
+    # b/67853874 - move this to the right platform specific rule(s).
+    launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
+    if launch_storyboard:
+      short_name = remove_extension(launch_storyboard.basename)
+      forced_plists.append(struct(UILaunchStoryboardName=short_name))
 
-    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
-    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-
-    min_os = platform_support.minimum_os(ctx)
-
-    environment_plist = _environment_plist_action(ctx)
-    additional_plisttool_inputs.append(environment_plist)
-
-    additional_infoplist_values = {}
-
+    # b/67853874 - move this to the right platform specific rule(s).
     # Convert the device family names to integers used in the plist; the
     # family_plist_number function handles the special case for macOS, which
     # does not use UIDeviceFamily.
@@ -179,7 +180,7 @@ def _merge_infoplists(ctx,
       if number:
         families.append(number)
     if families:
-      additional_infoplist_values["UIDeviceFamily"] = families
+      forced_plists.append(struct(UIDeviceFamily=families))
 
     # Collect any values for special product types that we have to manually put
     # in (duplicating what Xcode apparently does under the hood).
@@ -187,9 +188,18 @@ def _merge_infoplists(ctx,
     product_type_descriptor = product_support.product_type_descriptor(
         product_type)
     if product_type_descriptor:
-      additional_infoplist_values = merge_dictionaries(
-          additional_infoplist_values,
-          product_type_descriptor.additional_infoplist_values)
+      if product_type_descriptor.additional_infoplist_values:
+        forced_plists.append(
+            struct(**product_type_descriptor.additional_infoplist_values)
+        )
+
+  if include_xcode_env:
+    environment_plist = _environment_plist_action(ctx)
+    additional_plisttool_inputs.append(environment_plist)
+
+    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
+    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
+    min_os = platform_support.minimum_os(ctx)
 
     forced_plists += [
         environment_plist.path,
@@ -198,13 +208,8 @@ def _merge_infoplists(ctx,
             DTPlatformName=platform.name_in_plist.lower(),
             DTSDKName=platform_with_version,
             MinimumOSVersion=min_os,
-            **additional_infoplist_values
         ),
     ]
-
-  child_plists_for_control = struct(
-      **{str(p.owner): p.path for p in child_plists})
-  info_plist_options["child_plists"] = child_plists_for_control
 
   control = struct(
       plists=[p.path for p in input_plists],
@@ -220,10 +225,6 @@ def _merge_infoplists(ctx,
       output=control_file,
       content=control.to_json()
   )
-
-  outputs = [output_plist]
-  if pkginfo:
-    outputs.append(pkginfo)
 
   plist_support.plisttool_action(
       ctx,
