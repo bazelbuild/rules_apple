@@ -701,7 +701,6 @@ def _run(
   for bundle_dir, infoplists in process_results.bundle_infoplists.items():
     merge_infoplist_args = {
         "input_plists": list(infoplists),
-        "bundle_id": bundle_id,
     }
 
     # Compare to child plists (i.e., from extensions and nested binaries)
@@ -712,7 +711,10 @@ def _run(
           if eb.verify_bundle_id
       ]
       merge_infoplist_args["child_plists"] = child_infoplists
-      merge_infoplist_args["executable_bundle"] = True
+      merge_infoplist_args["apply_default_version"] = True
+      merge_infoplist_args["bundle_id"] = bundle_id
+      merge_infoplist_args["extract_from_ctxt"] = True
+      merge_infoplist_args["include_xcode_env"] = True
 
     plist_results = plist_actions.merge_infoplists(
         ctx, bundle_dir, **merge_infoplist_args)
