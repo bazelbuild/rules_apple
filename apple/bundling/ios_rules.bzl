@@ -23,10 +23,6 @@ wrapping macro because rules cannot invoke other rules.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-    "apple_bundling_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
