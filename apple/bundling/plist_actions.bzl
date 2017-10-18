@@ -89,7 +89,8 @@ def _merge_infoplists(ctx,
                       child_plists=[],
                       exclude_executable_name=False,
                       extract_from_ctxt=False,
-                      include_xcode_env=False):
+                      include_xcode_env=False,
+                      resource_bundle_label=None):
   """Creates an action that merges Info.plists and converts them to binary.
 
   This action merges multiple plists by shelling out to plisttool, then
@@ -114,6 +115,8 @@ def _merge_infoplists(ctx,
         will also be checked to see if a PkgInfo file should be created.
     include_xcode_env: If True, add the development environment and platform
         platform info should be added to the plist (just like Xcode does).
+    resource_bundle_label: If the is for a resource bundle, the label of the
+        target that defined it.
   Returns:
     A struct with two fields: `output_plist`, a File object containing the
     merged binary plist, and `pkginfo`, a File object containing the PkgInfo
@@ -211,13 +214,19 @@ def _merge_infoplists(ctx,
         ),
     ]
 
+  if resource_bundle_label:
+    target = '%s (while bundling under "%s")' % (
+        str(resource_bundle_label), str(ctx.label))
+  else:
+    target = str(ctx.label)
+
   control = struct(
       plists=[p.path for p in input_plists],
       forced_plists=forced_plists,
       output=output_plist.path,
       binary=True,
       info_plist_options=struct(**info_plist_options),
-      target=str(ctx.label),
+      target=target,
   )
   control_file = file_support.intermediate(
       ctx, "%{name}.plisttool-control", prefix=path_prefix)

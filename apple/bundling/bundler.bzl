@@ -703,6 +703,10 @@ def _run(
         "input_plists": list(infoplists),
     }
 
+    bundle_dir_to_labels = process_results.bundle_dir_to_resource_bundle_labels
+    resource_bundle_label = bundle_dir_to_labels.get(bundle_dir)
+    merge_infoplist_args["resource_bundle_label"] = resource_bundle_label
+
     # Compare to child plists (i.e., from extensions and nested binaries)
     # only if we're processing the main bundle and not a resource bundle.
     if not bundle_dir:
