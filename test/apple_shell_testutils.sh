@@ -99,7 +99,7 @@ function build_path() {
 # keypath replaced by dots.
 #
 # Example:
-#     dump_plist //app:app.ipa Payload/app.app/Info.plist \
+#     create_dump_plist //app:app.ipa Payload/app.app/Info.plist \
 #         CFBundleIdentifier CFBundleSupportedPlatforms:0
 #     do_build ios //app:dump_plist
 #     assert_equals "my.bundle.id" \
