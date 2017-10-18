@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
+    "AppleResourceSet",
     "SwiftInfo",
 )
 load(
@@ -812,13 +813,9 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name):
 
   # Create a resource set from the resources attached directly to this target.
   if resources or structured_resources:
-    resource_sets.append(struct(
-        bundle_dir=None,
-        infoplists=depset(),
-        objc_bundle_imports=depset(),
+    resource_sets.append(AppleResourceSet(
         resources=depset(resources),
         structured_resources=depset(structured_resources),
-        structured_resource_zips=depset(),
         swift_module=module_name,
     ))
 
