@@ -358,6 +358,7 @@ provider to describe that requirement.
 def AppleResourceSet(bundle_dir=None,
                      infoplists=depset(),
                      objc_bundle_imports=depset(),
+                     resource_bundle_label=None,
                      resources=depset(),
                      structured_resources=depset(),
                      structured_resource_zips=depset(),
@@ -375,6 +376,10 @@ def AppleResourceSet(bundle_dir=None,
     objc_bundle_imports: A `depset` of `File`s representing resources that
         came from an `objc_bundle` target and need to have their paths stripped
         of any segments before the `"*.bundle"` name.
+    resource_bundle_label: The `Label` of the target that is defining a
+        resource bundle with these resources. If the resources aren't
+        in a resource bundle (because they are from an objc_library,
+        directly in an app, etc.), then this will not be set.
     resources: A `depset` of `File`s representing resources that should be
         processed (if they are a known type) or copied (if the type is not
         recognized) and placed in the bundle at the location specified by
@@ -404,6 +409,7 @@ def AppleResourceSet(bundle_dir=None,
   return struct(bundle_dir=bundle_dir,
                 infoplists=infoplists,
                 objc_bundle_imports=objc_bundle_imports,
+                resource_bundle_label=resource_bundle_label,
                 resources=resources,
                 structured_resources=structured_resources,
                 structured_resource_zips=structured_resource_zips,
@@ -491,7 +497,18 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
       avoid_structured_resources = avoid_set.structured_resources
       avoid_structured_resource_zips = avoid_set.structured_resource_zips
 
+    resource_bundle_label = current_set.resource_bundle_label
+
     if existing_set:
+      if existing_set.resource_bundle_label:
+        if resource_bundle_label:
+          if resource_bundle_label != existing_set.resource_bundle_label:
+            fail(("Internal error: AppleResourceSets with different "
+                  + "resource_bundle_labels?! (%r: %r vs %r)") %
+                 (current_set.bundle_dir, str(resource_bundle_label),
+                  str(existing_set.resource_bundle_label)))
+        else:
+          resource_bundle_label = existing_set.resource_bundle_label
       infoplists = existing_set.infoplists + current_set.infoplists
       objc_bundle_imports = (existing_set.objc_bundle_imports
                              + current_set.objc_bundle_imports)
@@ -512,6 +529,7 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
         infoplists=infoplists,
         objc_bundle_imports=_filter_files(objc_bundle_imports,
                                           avoid_objc_bundle_imports),
+        resource_bundle_label=resource_bundle_label,
         resources=_filter_files(resources,
                                 avoid_resources),
         structured_resources=_filter_files(structured_resources,
@@ -581,6 +599,7 @@ def _dedupe_resource_set_files(resource_set):
       bundle_dir=resource_set.bundle_dir,
       infoplists=_dedupe_files(resource_set.infoplists),
       objc_bundle_imports=_dedupe_files(resource_set.objc_bundle_imports),
+      resource_bundle_label=resource_set.resource_bundle_label,
       resources=_dedupe_files(resource_set.resources),
       structured_resources=_dedupe_files(resource_set.structured_resources),
       structured_resource_zips=_dedupe_files(
@@ -618,6 +637,7 @@ def _apple_resource_set_utils_prefix_bundle_dir(resource_set, prefix):
       bundle_dir=nested_dir,
       infoplists=resource_set.infoplists,
       objc_bundle_imports=resource_set.objc_bundle_imports,
+      resource_bundle_label=resource_set.resource_bundle_label,
       resources=resource_set.resources,
       structured_resources=resource_set.structured_resources,
       structured_resource_zips=resource_set.structured_resource_zips,
