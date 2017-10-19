@@ -486,12 +486,14 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
     existing_set = minimized_dict.get(key)
     avoid_set = avoid_resource_dict.get(key)
 
+    avoid_infoplists = depset()
     avoid_objc_bundle_imports = depset()
     avoid_resources = depset()
     avoid_structured_resources = depset()
     avoid_structured_resource_zips = depset()
 
     if avoid_set:
+      avoid_infoplists = avoid_set.infoplists
       avoid_objc_bundle_imports = avoid_set.objc_bundle_imports
       avoid_resources = avoid_set.resources
       avoid_structured_resources = avoid_set.structured_resources
@@ -526,7 +528,7 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
 
     new_set = AppleResourceSet(
         bundle_dir=current_set.bundle_dir,
-        infoplists=infoplists,
+        infoplists=_filter_files(infoplists, avoid_infoplists),
         objc_bundle_imports=_filter_files(objc_bundle_imports,
                                           avoid_objc_bundle_imports),
         resource_bundle_label=resource_bundle_label,

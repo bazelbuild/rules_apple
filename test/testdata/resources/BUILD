@@ -41,6 +41,7 @@ filegroup(
     name = "resource_data_deps_platform_independent",
     srcs = [
         "BUILD",
+        "Info-template.plist",
         "nonlocalized.plist",
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
@@ -108,6 +109,9 @@ objc_bundle_library(
     datamodels = [
         ":unversioned_datamodel",
         ":versioned_datamodel",
+    ],
+    infoplists = [
+        "Info-template.plist",
     ],
     resources = [
         "nonlocalized.plist",
