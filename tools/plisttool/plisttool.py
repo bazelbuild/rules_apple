@@ -51,7 +51,7 @@ The info_plist_options dictionary can contain the following keys:
       in the output plist.
   executable: The name of the executable that will be written into the
       CFBundleExecutable key of the final plist, and will also be used in
-      ${EXECUTABLE_NAME} and ${PRODUCT_NAME} substitutions.
+      the ${EXECUTABLE_NAME} substitution.
   bundle_name: The bundle name (that is, the executable name and extension)
       that is used in the ${BUNDLE_NAME} substitution.
   bundle_id: The bundle identifier that will be written into the
@@ -61,6 +61,8 @@ The info_plist_options dictionary can contain the following keys:
       should be created from the CFBundlePackageType and CFBundleSignature keys
       in the final merged plist. (For testing purposes, this may also be a
       writable file-like object.)
+  product_name: The product name (that is, the executable name without an
+      extension) that is used in the ${PRODUCT_NAME} substitution.
   version_file: If present, a string that denotes the path to the version file
       propagated by an `AppleBundleVersionInfo` provider, which contains values
       that will be used for the version keys in the Info.plist.
@@ -128,9 +130,10 @@ UNKNOWN_INFO_PLIST_OPTIONS_MSG = (
 # Mappings from info_plist_options to substitution names that can be applied
 # to Info.plist values.
 _SUBSTITUTION_MAPPINGS = {
-  'executable': ['EXECUTABLE_NAME', 'PRODUCT_NAME'],
-  'bundle_name': ['BUNDLE_NAME'],
-  'bundle_id': ['PRODUCT_BUNDLE_IDENTIFIER'],
+  'executable': 'EXECUTABLE_NAME',
+  'product_name': 'PRODUCT_NAME',
+  'bundle_name': 'BUNDLE_NAME',
+  'bundle_id': 'PRODUCT_BUNDLE_IDENTIFIER',
 }
 
 # All valid keys in the a control structure.
@@ -142,7 +145,7 @@ _CONTROL_KEYS = frozenset([
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
     'apply_default_version', 'bundle_id', 'bundle_name', 'child_plists',
-    'executable', 'pkginfo', 'version_file',
+    'executable', 'pkginfo', 'product_name', 'version_file',
 ])
 
 
@@ -191,11 +194,9 @@ class PlistTool(object):
 
     info_plist_options = self._control.get('info_plist_options')
     if info_plist_options:
-      for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
+      for key, name in _SUBSTITUTION_MAPPINGS.iteritems():
         value = info_plist_options.get(key)
-        if not value:
-          continue
-        for name in names:
+        if value:
           self._substitutions[name] = value
 
   def run(self):
@@ -223,8 +224,8 @@ class PlistTool(object):
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
 
-    for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
-      v = self._substitutions.get(names[0])
+    for key, name in _SUBSTITUTION_MAPPINGS.iteritems():
+      v = self._substitutions.get(name)
       if not v:
         continue
       if '$' in v:

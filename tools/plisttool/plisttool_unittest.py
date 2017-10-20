@@ -258,9 +258,7 @@ class PlistToolTest(unittest.TestCase):
   def test_executable_name_substitutions(self):
     plist1 = _xml_plist(
         '<key>FooBraces</key><string>${EXECUTABLE_NAME}</string>'
-        '<key>BarBraces</key><string>${PRODUCT_NAME}</string>'
         '<key>FooParens</key><string>$(EXECUTABLE_NAME)</string>'
-        '<key>BarParens</key><string>$(PRODUCT_NAME)</string>'
     )
     outdict = _plisttool_result({
         'plists': [plist1],
@@ -269,8 +267,20 @@ class PlistToolTest(unittest.TestCase):
         },
     })
     self.assertEqual('MyApp', outdict.get('FooBraces'))
-    self.assertEqual('MyApp', outdict.get('BarBraces'))
     self.assertEqual('MyApp', outdict.get('FooParens'))
+
+  def test_product_name_substitutions(self):
+    plist1 = _xml_plist(
+        '<key>BarBraces</key><string>${PRODUCT_NAME}</string>'
+        '<key>BarParens</key><string>$(PRODUCT_NAME)</string>'
+    )
+    outdict = _plisttool_result({
+        'plists': [plist1],
+        'info_plist_options': {
+            'product_name': 'MyApp',
+        },
+    })
+    self.assertEqual('MyApp', outdict.get('BarBraces'))
     self.assertEqual('MyApp', outdict.get('BarParens'))
 
   def test_bundle_name_substitutions(self):
@@ -294,7 +304,7 @@ class PlistToolTest(unittest.TestCase):
     outdict = _plisttool_result({
         'plists': [plist1],
         'info_plist_options': {
-            'executable': 'foo_bar?baz'
+            'product_name': 'foo_bar?baz'
         },
     })
     self.assertEqual('foo-bar-baz', outdict.get('Foo'))

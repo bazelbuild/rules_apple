@@ -90,7 +90,7 @@ def _merge_infoplists(ctx,
                       exclude_executable_name=False,
                       extract_from_ctxt=False,
                       include_xcode_env=False,
-                      resource_bundle_label=None):
+                      resource_bundle_target_data=None):
   """Creates an action that merges Info.plists and converts them to binary.
 
   This action merges multiple plists by shelling out to plisttool, then
@@ -115,8 +115,9 @@ def _merge_infoplists(ctx,
         will also be checked to see if a PkgInfo file should be created.
     include_xcode_env: If True, add the development environment and platform
         platform info should be added to the plist (just like Xcode does).
-    resource_bundle_label: If the is for a resource bundle, the label of the
-        target that defined it.
+    resource_bundle_target_data: If the is for a resource bundle, the
+        AppleResourceBundleTargetData of the target that defined it. Will be
+        used to provide substitution values.
   Returns:
     A struct with two fields: `output_plist`, a File object containing the
     merged binary plist, and `pkginfo`, a File object containing the PkgInfo
@@ -124,6 +125,8 @@ def _merge_infoplists(ctx,
   """
   if exclude_executable_name and not extract_from_ctxt:
     fail('exclude_executable_name has no meaning without extract_from_ctxt.')
+  if resource_bundle_target_data and extract_from_ctxt:
+    fail("resource_bundle_target_data doesn't work with extract_from_ctxt.")
 
   outputs = []
   forced_plists = []
@@ -144,11 +147,16 @@ def _merge_infoplists(ctx,
         **{str(p.owner): p.path for p in child_plists})
     info_plist_options["child_plists"] = child_plists_for_control
 
+  if resource_bundle_target_data:
+    info_plist_options["product_name"] = resource_bundle_target_data.product_name
+    info_plist_options["bundle_name"] = resource_bundle_target_data.bundle_name
+
   if extract_from_ctxt:
     # Extra things for info_plist_options
 
+    info_plist_options["product_name"] = bundling_support.bundle_name(ctx)
     if not exclude_executable_name:
-      info_plist_options["executable"] = bundling_support.bundle_name(ctx)
+      info_plist_options["executable"] = info_plist_options["product_name"]
 
     if ctx.attr._needs_pkginfo:
       pkginfo = file_support.intermediate(
@@ -214,9 +222,11 @@ def _merge_infoplists(ctx,
         ),
     ]
 
-  if resource_bundle_label:
+  # Tweak what is passed for 'target' to provide more more comment messages if
+  # something does go wrong.
+  if resource_bundle_target_data:
     target = '%s (while bundling under "%s")' % (
-        str(resource_bundle_label), str(ctx.label))
+        str(resource_bundle_target_data.label), str(ctx.label))
   else:
     target = str(ctx.label)
 
