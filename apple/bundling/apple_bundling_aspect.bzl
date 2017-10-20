@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundlingSwiftInfo",
+    "AppleResourceBundleTargetData",
     "AppleResourceInfo",
     "AppleResourceSet",
     "apple_resource_set_utils",
@@ -65,8 +66,16 @@ def _handle_native_library_dependency(target, ctx):
   bundles = getattr(ctx.rule.attr, "bundles", [])
 
   if ctx.rule.kind == "objc_bundle_library":
-    bundle_dir = target.label.name + ".bundle"
-    resource_bundle_label = target.label
+    product_name = bundling_support.bundle_name(ctx)
+    # Can't use bundling_support.bundle_name_with_extension() because
+    # objc_bundle_library is backed by native code at the moment and doesn't
+    # expose the support needed.
+    bundle_name = product_name + ".bundle"
+
+    bundle_dir = bundle_name
+    resource_bundle_target_data = AppleResourceBundleTargetData(
+        target.label, bundle_name, product_name)
+
     infoplists = []
     if ctx.rule.attr.infoplist:
       infoplists.append(list(ctx.rule.attr.infoplist.files)[0])
@@ -84,7 +93,7 @@ def _handle_native_library_dependency(target, ctx):
       ])
   elif ctx.rule.kind == "objc_library":
     bundle_dir = None
-    resource_bundle_label = None
+    resource_bundle_target_data = None
     infoplists = []
 
     # The "bundles" attribute of an objc_library don't indicate a nesting
@@ -110,7 +119,7 @@ def _handle_native_library_dependency(target, ctx):
     resource_sets.append(AppleResourceSet(
         bundle_dir=bundle_dir,
         infoplists=depset(infoplists),
-        resource_bundle_label=resource_bundle_label,
+        resource_bundle_target_data=resource_bundle_target_data,
         resources=resources,
         structured_resources=structured_resources,
     ))
@@ -141,13 +150,13 @@ def _handle_native_bundle_imports(bundle_imports):
     resource_sets.append(AppleResourceSet(
         bundle_dir = basename(bundle_dir),
         objc_bundle_imports = depset(files),
-        # We do NOT include resource_bundle_label here because objc_bundle is
-        # too dumb of a copy, and you can have multiple targets pick up files
-        # that are all in the SameNamed.bundle directory. The build ends up
-        # merging those two .bundle directories to create on bundle out of
-        # the combined contents (presumed already processed), but that would
-        # break the requirement for resource_bundle_label, where a single
-        # target is responsible for the contents of the bundle.
+        # We do NOT include resource_bundle_target_data here because
+        # objc_bundle is too dumb of a copy, and you can have multiple targets
+        # pick up files that are all in the SameNamed.bundle directory. The
+        # build ends up merging those two .bundle directories to create on
+        # bundle out of the combined contents (presumed already processed),
+        # but that would break the requirement for resource_bundle_target_data,
+        # where a single target is responsible for the contents of the bundle.
     ))
 
   return resource_sets

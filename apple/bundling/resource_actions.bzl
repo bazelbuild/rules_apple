@@ -1024,14 +1024,14 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
        in the bundle.
     3. `bundle_merge_zips`, a list of ZIP files whose contents should be
        included in the bundle.
-    4. `bundle_dir_to_resource_bundle_labels`, a dictionary from bundle
-       directories to the Label the of the target if the target was a resource
-       bundle.
+    4. `bundle_dir_to_resource_bundle_target_datas`, a dictionary from bundle
+       directories to the AppleResourceBundleTargetData of the target if the
+       target was a resource bundle.
   """
   bundle_merge_files = []
   bundle_merge_zips = []
   bundle_infoplists = {}
-  bundle_dir_to_resource_bundle_labels = {}
+  bundle_to_tgt_datas = {}
 
   bundle_resources = _create_resource_groupings(
       resource_sets, "resources", _ALL_GROUPING_RULES)
@@ -1084,21 +1084,22 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
       infoplists_so_far.extend(list(r.infoplists))
       bundle_infoplists[r.bundle_dir] = infoplists_so_far
 
-    if r.bundle_dir and r.resource_bundle_label:
-      existing = bundle_dir_to_resource_bundle_labels.get(r.bundle_dir)
+    if r.bundle_dir and r.resource_bundle_target_data:
+      existing = bundle_to_tgt_datas.get(r.bundle_dir)
       if existing:
-        if existing != r.resource_bundle_label:
+        if existing.label != r.resource_bundle_target_data.label:
           fail(("Internal error: AppleResourceSets with different "
-                + "resource_bundle_labels?! (%r: %r vs %r)") %
-               (r.bundle_dir, str(existing), str(r.resource_bundle_label)))
+                + "resource_bundle_target_datas?! (%r: %r vs %r)") %
+               (r.bundle_dir, str(existing.label),
+                str(r.resource_bundle_target_data.label)))
       else:
-        bundle_dir_to_resource_bundle_labels[r.bundle_dir] = r.resource_bundle_label
+        bundle_to_tgt_datas[r.bundle_dir] = r.resource_bundle_target_data
 
   return struct(
       bundle_infoplists=bundle_infoplists,
       bundle_merge_files=bundle_merge_files,
       bundle_merge_zips=bundle_merge_zips,
-      bundle_dir_to_resource_bundle_labels=bundle_dir_to_resource_bundle_labels,
+      bundle_dir_to_resource_bundle_target_datas=bundle_to_tgt_datas,
   )
 
 
