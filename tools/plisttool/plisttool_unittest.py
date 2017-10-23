@@ -75,6 +75,62 @@ def _plisttool_result(control):
   return plistlib.readPlistFromString(output.getvalue())
 
 
+class PlistToolVariableReferenceTest(unittest.TestCase):
+
+  def _assert_result(self, s, expected):
+    """Asserts string is the expected variable reference."""
+    m = plisttool.VARIABLE_REFERENCE_RE.match(s)
+    # Testing that based on the whole string.
+    self.assertEqual(m.group(0), s)
+    self.assertEqual(plisttool.ExtractVariableFromMatch(m), expected)
+
+  def _assert_invalid(self, s):
+    """Asserts string is not a valid variable reference."""
+    self._assert_result(s, None)
+
+  def test_valid_parens(self):
+    self._assert_result('$(foo)', 'foo')
+    self._assert_result('$(FOO12)', 'FOO12')
+    self._assert_result('$(PRODUCT_NAME:rfc1034identifier)',
+                        'PRODUCT_NAME:rfc1034identifier')
+
+  def test_valid_braces(self):
+    self._assert_result('${foo}', 'foo')
+    self._assert_result('${FOO12}', 'FOO12')
+    self._assert_result('${PRODUCT_NAME:rfc1034identifier}',
+                        'PRODUCT_NAME:rfc1034identifier')
+
+  def test_empty_reference(self):
+    self._assert_invalid('$()')
+    self._assert_invalid('${}')
+
+  def test_mismatched_bracing(self):
+    self._assert_invalid('${foo)')
+    self._assert_invalid('$(foo}')
+
+  def test_invalid_names(self):
+    self._assert_invalid('${no space}')
+    self._assert_invalid('${no-hypens}')
+
+  def test_unknown_qualifier(self):
+    self._assert_invalid('${foo:mumble}')
+    self._assert_invalid('${foo:rfc666dentifier}')
+
+  def test_missing_closer(self):
+    # Valid, just missing the closer...
+    self._assert_invalid('$(foo')
+    self._assert_invalid('$(FOO12')
+    self._assert_invalid('$(PRODUCT_NAME:rfc1034identifier')
+    self._assert_invalid('${foo')
+    self._assert_invalid('${FOO12')
+    self._assert_invalid('${PRODUCT_NAME:rfc1034identifier')
+    # Invalid and missing the closer...
+    self._assert_invalid('${no space')
+    self._assert_invalid('${no-hypens')
+    self._assert_invalid('${foo:mumble')
+    self._assert_invalid('${foo:rfc666dentifier')
+
+
 class PlistToolTest(unittest.TestCase):
 
   def _assert_plisttool_result(self, control, expected):
@@ -310,19 +366,78 @@ class PlistToolTest(unittest.TestCase):
     self.assertEqual('foo-bar-baz', outdict.get('Foo'))
 
   def test_nonexistant_substitution(self):
+    plist1 = {
+        'FooBraces': 'A-${NOT_A_VARIABLE}-B'
+    }
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+            _testing_target, '${NOT_A_VARIABLE}', 'FooBraces',
+            'A-${NOT_A_VARIABLE}-B'))):
+      _plisttool_result({'plists': [plist1]})
+
+    plist2 = {
+        'FooParens': '$(NOT_A_VARIABLE)'
+    }
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+            _testing_target, '$(NOT_A_VARIABLE)', 'FooParens',
+            '$(NOT_A_VARIABLE)'))):
+      _plisttool_result({'plists': [plist2]})
+
+    # Nested dict, will include the keypath.
+    plist3 = {
+        'Key1': {
+            'Key2': 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'
+        }
+    }
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+            _testing_target, '$(PRODUCT_NAME:rfc1034identifier)',
+            'Key1:Key2', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
+      _plisttool_result({'plists': [plist3]})
+
+    # Array, will include the keypath.
+    plist3 = {
+        'Key': [
+            'this one is ok',
+            'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'
+        ]
+    }
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+            _testing_target, '$(PRODUCT_NAME:rfc1034identifier)',
+            'Key[1]', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
+      _plisttool_result({'plists': [plist3]})
+
+  def test_invalid_substitution(self):
+    plist1 = {
+        'Foo': 'foo.${INVALID_REFERENCE).bar'
+    }
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.INVALID_SUBSTITUTATION_REFERENCE_MSG % (
+            _testing_target, '${INVALID_REFERENCE)', 'Foo',
+            'foo.${INVALID_REFERENCE).bar'))):
+      _plisttool_result({'plists': [plist1]})
+
+  def test_multiple_substitutions(self):
     plist1 = _xml_plist(
-        '<key>FooBraces</key><string>${NOT_A_VARIABLE}</string>'
-        '<key>FooParens</key><string>$(NOT_A_VARIABLE)</string>'
+        '<key>Foo</key>'
+        '<string>${PRODUCT_NAME}--${BUNDLE_NAME}--${EXECUTABLE_NAME}</string>'
     )
     outdict = _plisttool_result({
         'plists': [plist1],
         'info_plist_options': {
-            'executable': 'MyApp',
+            'executable': 'MyExe',
+            'product_name': 'MyApp',
             'bundle_name': 'MyBundle',
         },
     })
-    self.assertEqual('${NOT_A_VARIABLE}', outdict.get('FooBraces'))
-    self.assertEqual('$(NOT_A_VARIABLE)', outdict.get('FooParens'))
+    self.assertEqual('MyApp--MyBundle--MyExe', outdict.get('Foo'))
 
   def test_recursive_substitutions(self):
     plist1 = _xml_plist(

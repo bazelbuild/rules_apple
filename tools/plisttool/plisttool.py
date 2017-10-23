@@ -43,6 +43,8 @@ the following keys:
       files. Omit this key if you are merging or converting general plists
       (such as entitlements or other files). See below for more details.
   target: The target name, used for warning/error messages.
+  warn_unknown_substitutions: If True, unknown substitutions will just be
+      a warning instead of an error.
 
 The info_plist_options dictionary can contain the following keys:
 
@@ -127,6 +129,16 @@ UNKNOWN_INFO_PLIST_OPTIONS_MSG = (
     'Target "%s" used info_plist_options that included unknown key(s): %s'
 )
 
+INVALID_SUBSTITUTATION_REFERENCE_MSG = (
+    'In target "%s"; invalid variable reference "%s" while merging '
+    'Info.plists (key: "%s", value: "%s").'
+)
+
+UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
+    'In target "%s"; unknown variable reference "%s" while merging '
+    'Info.plists (key: "%s", value: "%s").'
+)
+
 # Mappings from info_plist_options to substitution names that can be applied
 # to Info.plist values.
 _SUBSTITUTION_MAPPINGS = {
@@ -139,7 +151,7 @@ _SUBSTITUTION_MAPPINGS = {
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
     'binary', 'forced_plists', 'info_plist_options', 'output', 'plists',
-    'target',
+    'target', 'warn_unknown_substitutions',
 ])
 
 # All valid keys in the info_plist_options control structure.
@@ -147,6 +159,50 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
     'apply_default_version', 'bundle_id', 'bundle_name', 'child_plists',
     'executable', 'pkginfo', 'product_name', 'version_file',
 ])
+
+# Two regexes for variable matching/validation.
+# VARIABLE_REFERENCE_RE: Matches things that look mostly a
+#   variable reference.
+# VARIABLE_NAME_RE: Is used to match the name from the first regex to
+#     confirm it is a valid name.
+VARIABLE_REFERENCE_RE = re.compile(r'\$(\(|\{)([^\)\}]*)((\)|\})?|$)')
+VARIABLE_NAME_RE = re.compile('^([a-zA-Z0-9_]+)(:rfc1034identifier)?$')
+
+# Regex for RFC1034 normalization, see _ConvertToRFC1034()
+_RFC1034_RE = re.compile(r'[^0-9A-Za-z.]')
+
+
+def ExtractVariableFromMatch(re_match_obj):
+  """Takes a match from VARIABLE_REFERENCE_RE and extracts the variable.
+
+  This funciton is exposed to testing.
+
+  Args:
+    re_match_obj: a re.MatchObject
+  Returns:
+    The variable name (with qualifier attached) or None if the match wasn't
+    completely valid.
+  """
+  expected_close = '}' if re_match_obj.group(1) == '{' else ')'
+  if re_match_obj.group(3) == expected_close:
+    m = VARIABLE_NAME_RE.match(re_match_obj.group(2))
+    if m:
+      return m.group(0)
+  return None
+
+
+def _ConvertToRFC1034(string):
+  """Forces the given value into RFC 1034 compliance.
+
+  This function replaces any bad characters with '-' as Xcode would in its
+  plist substitution.
+
+  Args:
+    string: The string to convert.
+  Returns:
+    The converted string.
+  """
+  return _RFC1034_RE.sub('-', string)
 
 
 class PlistConflictError(ValueError):
@@ -198,6 +254,10 @@ class PlistTool(object):
         value = info_plist_options.get(key)
         if value:
           self._substitutions[name] = value
+          # Variable names can also be suffixed with ":rfc1034identifier",
+          # which replaces any non-identifier characters with hyphens.
+          name_rfc = name + ':rfc1034identifier'
+          self._substitutions[name_rfc] = _ConvertToRFC1034(value)
 
   def run(self):
     """Performs the operations requested by the control struct.
@@ -248,6 +308,9 @@ class PlistTool(object):
     if info_plist_options:
       self._perform_info_plist_operations(out_plist, info_plist_options,
                                           target)
+
+    warn_only = self._control.get('warn_unknown_substitutions')
+    self._validate_no_substitutions(target, '', out_plist, warn_only)
 
     self._write_plist(out_plist)
 
@@ -411,9 +474,6 @@ class PlistTool(object):
     be recursively applied to its members. Otherwise (for booleans or
     numbers), the value will remain untouched.
 
-    Variable names can also be suffixed with ":rfc1034identifier", which
-    replaces any non-identifier characters with hyphens.
-
     Args:
       value: The value with possible variable references to substitute.
     Returns:
@@ -421,15 +481,17 @@ class PlistTool(object):
       values.
     """
     if isinstance(value, str):
-      for key, substitute in self._substitutions.iteritems():
-        value = value.replace('${' + key + '}', substitute)
-        value = value.replace('$(' + key + ')', substitute)
+      def _helper(match_obj):
+        # Extract the parts.
+        key = ExtractVariableFromMatch(match_obj)
+        substitute = self._substitutions.get(key) if key else None
+        if substitute:
+          return substitute
+        # Unknown, leave it as is for now, a forced_plists entry could
+        # replace it, so it isn't an error...yet.
+        return match_obj.group(0)
 
-        key += ':rfc1034identifier'
-        substitute = self._convert_to_rfc1034(substitute)
-        value = value.replace('${' + key + '}', substitute)
-        value = value.replace('$(' + key + ')', substitute)
-      return value
+      return VARIABLE_REFERENCE_RE.sub(_helper, value)
 
     if isinstance(value, dict):
       return {k: self._apply_substitutions(v) for k, v in value.iteritems()}
@@ -439,18 +501,46 @@ class PlistTool(object):
 
     return value
 
-  def _convert_to_rfc1034(self, string):
-    """Forces the given value into RFC 1034 compliance.
-
-    This function replaces any bad characters with '-' as Xcode would in its
-    plist substitution.
+  def _validate_no_substitutions(self, target, key_name, value, warn_only):
+    """Ensures there are no substitutions left in value (recursively).
 
     Args:
-      string: The string to convert.
-    Returns:
-      The converted string.
+      target: The name of the target for which the plist is being built.
+      key_name: The name of the key this value is part of.
+      value: The value to check
+      warn_only: If True, print a warning instead of raising an error.
+    Raises:
+      ValueError: If there is a variable substitution that wasn't resolved.
     """
-    return re.sub(r'[^0-9A-Za-z.]', '-', string)
+    if isinstance(value, str):
+      for m in VARIABLE_REFERENCE_RE.finditer(value):
+        variable_name = ExtractVariableFromMatch(m)
+        if not variable_name:
+          # Reference wasn't property formed, raise that issue.
+          raise ValueError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
+              target, m.group(0), key_name, value))
+        # Any subs should have already happened; but assert it just to make
+        # sure nothing went wrong.
+        assert(variable_name not in self._substitutions)
+        if warn_only:
+          print('WARNING: ' + UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+              target, m.group(0), key_name, value))
+        else:
+          raise ValueError(UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+              target, m.group(0), key_name, value))
+      return
+
+    if isinstance(value, dict):
+      key_prefix = key_name + ':' if key_name else ''
+      for k, v in value.iteritems():
+        self._validate_no_substitutions(target, key_prefix + k, v, warn_only)
+      return
+
+    if isinstance(value, list):
+      for i, v in enumerate(value):
+        reporting_key = '%s[%d]' % (key_name, i)
+        self._validate_no_substitutions(target, reporting_key, v, warn_only)
+      return
 
   def _write_plist(self, plist):
     """Writes the given plist to the output file.
