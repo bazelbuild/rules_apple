@@ -52,7 +52,7 @@ ios_application(
 
 watchos_application(
     name = "watch_app",
-    bundle_id = "my.bundle.id.watch_app",
+    bundle_id = "my.bundle.id.watch-app",
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "2.0",
@@ -61,7 +61,7 @@ watchos_application(
 
 watchos_extension(
     name = "watch_ext",
-    bundle_id = "my.bundle.id.watch_app.watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
@@ -112,7 +112,7 @@ EOF
   CFBundleSignature = "????";
   NSExtension = {
     NSExtensionAttributes = {
-      WKAppBundleIdentifier = "my.bundle.id.watch_app";
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
     };
     NSExtensionPointIdentifier = "com.apple.watchkit";
   };

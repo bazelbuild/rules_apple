@@ -592,6 +592,85 @@ EOF
   expect_log "Do not provide your own binary"
 }
 
+# Helper for empty segment build id failures.
+function verify_build_fails_bundle_id_empty_segment_with_param() {
+  bundle_id_to_test="$1"; shift
+
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "${bundle_id_to_test}",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app || fail "Should fail"
+  expect_log "Empty segment in bundle_id: \"${bundle_id_to_test}\""
+}
+
+# Test that invalid bundle ids fail a build.
+
+function test_build_fails_if_bundle_id_empty() {
+  verify_build_fails_bundle_id_empty_segment_with_param ""
+}
+
+function test_build_fails_if_bundle_id_just_dot() {
+  verify_build_fails_bundle_id_empty_segment_with_param "."
+}
+
+function test_build_fails_if_bundle_id_leading_dot() {
+  verify_build_fails_bundle_id_empty_segment_with_param ".my.bundle.id"
+}
+
+function test_build_fails_if_bundle_id_trailing_dot() {
+  verify_build_fails_bundle_id_empty_segment_with_param "my.bundle.id."
+}
+
+function test_build_fails_if_bundle_id_double_dot() {
+  verify_build_fails_bundle_id_empty_segment_with_param "my..bundle.id"
+}
+
+function test_build_fails_if_bundle_id_has_invalid_character() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my#bundle",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app || fail "Should fail"
+  expect_log "Invalid character(s) in bundle_id: \"my#bundle\""
+}
+
+function test_build_fails_if_bundle_id_too_short() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "one-segment",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app || fail "Should fail"
+  expect_log "bundle_id isn't at least 2 segments: \"one-segment\""
+}
+
 # Tests that the IPA contains bitcode symbols when bitcode is embedded.
 function test_bitcode_symbol_maps_packaging() {
   # Bitcode is only availabe on device. Ignore the test for simulator builds.

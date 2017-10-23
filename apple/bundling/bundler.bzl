@@ -213,11 +213,12 @@ def _bundlable_dynamic_framework_files(ctx, files):
   return bundle_files
 
 
-def _validate_attributes(ctx):
+def _validate_attributes(ctx, bundle_id):
   """Validates the target's attributes and fails the build if any are invalid.
 
   Args:
     ctx: The Skylark context.
+    bundle_id: The bundle_id to use for this target.
   """
   families = platform_support.families(ctx)
   allowed_families = ctx.attr._allowed_families
@@ -247,6 +248,25 @@ def _validate_attributes(ctx):
            "for this target specifically by using the minimum_os_version " +
            "attribute (for example, 'minimum_os_version = \"9.0\"').") %
           (ctx.label, minimum_os, platform_type))
+
+  # Make sure the bundle id seems like a valid one. Apple's docs for
+  # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
+  # only they they specifically document is the character set, so the other
+  # two checks here are just added safety to catch likely errors by developers
+  # setting things up.
+  bundle_id_parts = bundle_id.split(".")
+  for part in bundle_id_parts:
+    if part == "":
+      fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
+    if not part.isalnum():
+      # Only non alpha numerics that are allowed are '.' and '-'. '.' was
+      # handled by the split(), so just have to check for '-'.
+      for ch in part:
+        if ch != "-" and not ch.isalnum():
+          fail("Invalid character(s) in bundle_id: \"%s\"" %
+               bundle_id)
+  if len(bundle_id_parts) < 2:
+    fail("bundle_id isn't at least 2 segments: \"%s\"" % bundle_id)
 
 
 def _dedupe_bundle_merge_files(bundlable_files):
@@ -585,7 +605,7 @@ def _run(
        rule.
     3. A set of additional outputs that should be returned by the calling rule.
   """
-  _validate_attributes(ctx)
+  _validate_attributes(ctx, bundle_id)
 
   # A list of files that should be used as the outputs of the rule invoking this
   # instance of the bundler, but which should not necessarily be propagated to
