@@ -32,6 +32,9 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_unit_test",
     )
+load("@build_bazel_rules_apple//apple:swift.bzl",
+     "swift_library"
+    )
 
 objc_library(
     name = "lib",
@@ -277,6 +280,67 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_HOST=app/app.ipa" "test-bin/app/unit_tests"
   assert_contains "TEST_BUNDLE=app/unit_tests.ipa" "test-bin/app/unit_tests"
   assert_contains "TEST_TYPE=XCTEST" "test-bin/app/unit_tests"
+}
+
+# Tests that ios_unit_test targets build if transitively depending on swift.
+function test_unit_test_depending_on_swift() {
+  create_common_files
+
+  cat > app/DepLib.m <<EOF
+int dep() {
+  return 0;
+}
+EOF
+
+  cat > app/AppDelegate.swift <<EOF
+import UIKit
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+  var window: UIWindow?
+}
+EOF
+
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleSignature = "????";
+}
+EOF
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+
+objc_library(
+    name = "unit_test_lib_with_swift",
+    srcs = ["UnitTest.m"],
+    deps = [":swiftlib"],
+)
+
+swift_library(
+    name = "swiftlib",
+    srcs = ["AppDelegate.swift"],
+)
+
+ios_unit_test(
+    name = "unit_tests",
+    deps = [":unit_test_lib_with_swift"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+)
+EOF
+
+  do_build ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
 }
 
 run_suite "ios_unit_test bundling tests"
