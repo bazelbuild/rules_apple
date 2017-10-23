@@ -701,6 +701,9 @@ def _run(
   for bundle_dir, infoplists in process_results.bundle_infoplists.items():
     merge_infoplist_args = {
         "input_plists": list(infoplists),
+        # This will become target type specific in the future and then
+        # eventually get removed as things are cleaned up.
+        "warn_unknown_substitutions": True,
     }
 
     bundles_to_datas = process_results.bundle_dir_to_resource_bundle_target_datas
