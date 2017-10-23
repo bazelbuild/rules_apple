@@ -400,6 +400,78 @@ EOF
       "Payload/app.app/foo/Bar.bundle/baz.txt"
 }
 
+# Tests that objc_bundle_library resources are compiled and bundled correctly
+# with the application. This test uses a bundle library with many types of
+# resources, both localized and nonlocalized, and also a nested bundle.
+function test_objc_bundle_library() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    bundles = [
+        "@build_bazel_rules_apple//test/testdata/resources:bundle_library"
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    minimum_os_version = "9.0",
+    infoplists = ["Info.plist"],
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  create_dump_plist "//app:app.ipa" \
+      "Payload/app.app/bundle_library.bundle/Info.plist" \
+      CFBundleIdentifier CFBundleName
+  do_build ios //app:dump_plist || fail "Should build"
+
+  # Verify the values injected by the Skylark rule for bundle_library's
+  # info.plist
+  assert_equals "org.bazel.bundle-library" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier")"
+  assert_equals "bundle_library.bundle" \
+      "$(cat "test-genfiles/app/CFBundleName")"
+
+  # TODO(b/33834903): Storyboards inside an objc_bundle_library are currently
+  # missing.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/Assets.car"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/basic.bundle/basic_bundle.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/it.lproj/localized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/it.lproj/localized.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/it.lproj/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/it.lproj/view_ios.nib"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/mapping_model.cdm"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/nonlocalized_resource.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/storyboard_ios.storyboardc/"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/nested.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/unversioned_datamodel.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/v1.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/v2.mom"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/VersionInfo.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/view_ios.nib"
+}
+
 # Tests that structured resources (both unprocessed ones, and processed ones
 # like .strings/.plist) have their paths preserved in the final bundle.
 function test_structured_resources() {
