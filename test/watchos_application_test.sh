@@ -51,7 +51,7 @@ ios_application(
 
 watchos_application(
     name = "watch_app",
-    bundle_id = "my.bundle.id.watch_app",
+    bundle_id = "my.bundle.id.watch-app",
     entitlements = "entitlements.entitlements",
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
@@ -62,7 +62,7 @@ watchos_application(
 
 watchos_extension(
     name = "watch_ext",
-    bundle_id = "my.bundle.id.watch_app.watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
     entitlements = "entitlements.entitlements",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
@@ -108,7 +108,7 @@ EOF
   CFBundleSignature = "????";
   NSExtension = {
     NSExtensionAttributes = {
-      WKAppBundleIdentifier = "my.bundle.id.watch_app";
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
     };
     NSExtensionPointIdentifier = "com.apple.watchkit";
   };
@@ -185,7 +185,7 @@ function test_watch_app_plist_contents() {
   do_build watchos --watchos_minimum_os=2.0 //app:dump_plist \
       || fail "Should build"
 
-  assert_equals "my.bundle.id.watch_app" "$(cat "test-genfiles/app/CFBundleIdentifier")"
+  assert_equals "my.bundle.id.watch-app" "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "watch_app" "$(cat "test-genfiles/app/CFBundleExecutable")"
   assert_equals "watch_app" "$(cat "test-genfiles/app/CFBundleName")"
 
@@ -216,7 +216,7 @@ function test_watch_ext_plist_contents() {
   do_build watchos //app:dump_plist \
       || fail "Should build"
 
-  assert_equals "my.bundle.id.watch_app.watch_ext" "$(cat "test-genfiles/app/CFBundleIdentifier")"
+  assert_equals "my.bundle.id.watch-app.watch-ext" "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "watch_ext" "$(cat "test-genfiles/app/CFBundleExecutable")"
   assert_equals "watch_ext" "$(cat "test-genfiles/app/CFBundleName")"
 
