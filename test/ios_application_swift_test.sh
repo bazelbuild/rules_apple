@@ -427,4 +427,22 @@ EOF
       grep "star2_iphone" || fail "Did not find star2_iphone in Assets.car"
 }
 
+# Tests that swift_library build with sanitizer enabled.
+# TODO(b/38455074): Also test that the asan dylib is packaged with the app.
+function test_swift_builds_with_asan() {
+  create_minimal_ios_application
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+  do_build ios //app:app \
+      --experimental_objc_crosstool=all \
+      --features=asan \
+      --define=apple_swift_sanitize=address || fail "Should build"
+}
+
 run_suite "ios_application with Swift bundling tests"
