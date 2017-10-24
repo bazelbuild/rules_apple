@@ -30,6 +30,10 @@ load(
     "@build_bazel_rules_apple//common:attrs.bzl",
     "attrs",
 )
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleExtraOutputsInfo",
+)
 
 
 AppleTestRunner = provider(
@@ -249,13 +253,24 @@ def _apple_test_impl(ctx, test_type):
   for data_dep in ctx.attr.data:
     test_runfiles.extend(data_dep.files.to_list())
 
+  # TODO(b/68206519): The order of this depset has to be specified as preorder
+  # to fulfill Tulsi's expectation that the first artifact in `target.files` is
+  # the archived xctest bundle. This hack will go away when AppleBundleInfo is
+  # used to get the outputs of this rule instead.
+  outputs = depset([ctx.outputs.test_bundle, ctx.outputs.executable],
+      order="preorder")
+
+  extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
+  if extra_outputs_provider:
+    outputs += extra_outputs_provider.files
+
   return struct(
       executable=ctx.outputs.executable,
-      files=depset([ctx.outputs.test_bundle, ctx.outputs.executable]),
+      files=outputs,
       instrumented_files=struct(dependency_attributes=["test_bundle"]),
       providers=[
           testing.ExecutionInfo(execution_requirements),
-          testing.TestEnvironment(test_environment)
+          testing.TestEnvironment(test_environment),
       ],
       runfiles=ctx.runfiles(
           files=test_runfiles,
@@ -284,7 +299,7 @@ apple_ui_test = rule(
     },
     fragments=["apple", "objc"],
 )
-"""Rule to execute unit (XCTest) tests for a generic Apple platform.
+"""Rule to execute UI (XCUITest) tests for a generic Apple platform.
 
 Args:
   data: Files to be made available to the test during its execution.
@@ -294,7 +309,7 @@ Args:
       Needs to provide the AppleTestRunner provider. Required.
   test_bundle: The xctest bundle that contains the test code and resources.
       Required.
-  test_host: The test app that will host the tests. Optional.
+  test_host: The test app that will be tested using XCUITests. Required.
 
 Outputs:
   test_bundle: The xctest bundle being tested. This is returned here as a
@@ -314,7 +329,7 @@ apple_unit_test = rule(
     },
     fragments=["apple", "objc"],
 )
-"""Rule to execute UI (XCUITest) tests for a generic Apple platform.
+"""Rule to execute unit (XCTest) tests for a generic Apple platform.
 
 Args:
   data: Files to be made available to the test during its execution.
@@ -324,7 +339,7 @@ Args:
       Needs to provide the AppleTestRunner provider. Required.
   test_bundle: The xctest bundle that contains the test code and resources.
       Required.
-  test_host: The test app that will be tested using XCUITests. Required.
+  test_host: The test app that will host the tests. Optional.
 
 Outputs:
   test_bundle: The xctest bundle being tested. This is returned here as a
