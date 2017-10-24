@@ -488,7 +488,7 @@ class PlistTool(object):
       The value with any variable references substituted with their new
       values.
     """
-    if isinstance(value, str):
+    if isinstance(value, basestring):
       def _helper(match_obj):
         # Extract the parts.
         key = ExtractVariableFromMatch(match_obj)
@@ -520,7 +520,7 @@ class PlistTool(object):
     Raises:
       ValueError: If there is a variable substitution that wasn't resolved.
     """
-    if isinstance(value, str):
+    if isinstance(value, basestring):
       for m in VARIABLE_REFERENCE_RE.finditer(value):
         variable_name = ExtractVariableFromMatch(m)
         if not variable_name:
