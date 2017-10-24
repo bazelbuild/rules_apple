@@ -64,7 +64,8 @@ The info_plist_options dictionary can contain the following keys:
       in the final merged plist. (For testing purposes, this may also be a
       writable file-like object.)
   product_name: The product name (that is, the executable name without an
-      extension) that is used in the ${PRODUCT_NAME} substitution.
+      extension) that is used in the ${PRODUCT_NAME} and ${TARGET_NAME}
+      substitutions.
   version_file: If present, a string that denotes the path to the version file
       propagated by an `AppleBundleVersionInfo` provider, which contains values
       that will be used for the version keys in the Info.plist.
@@ -142,10 +143,16 @@ UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
 # Mappings from info_plist_options to substitution names that can be applied
 # to Info.plist values.
 _SUBSTITUTION_MAPPINGS = {
-  'executable': 'EXECUTABLE_NAME',
-  'product_name': 'PRODUCT_NAME',
-  'bundle_name': 'BUNDLE_NAME',
-  'bundle_id': 'PRODUCT_BUNDLE_IDENTIFIER',
+  'executable': [ 'EXECUTABLE_NAME' ],
+  'product_name': [
+      'PRODUCT_NAME',
+      # Support TARGET_NAME even though it might not be the target name in
+      # the BUILD file. The default in Xcode is for PRODUCT_NAME and
+      # TARGET_NAME to be the same.
+      'TARGET_NAME'
+  ],
+  'bundle_name': [ 'BUNDLE_NAME' ],
+  'bundle_id': [ 'PRODUCT_BUNDLE_IDENTIFIER' ],
 }
 
 # All valid keys in the a control structure.
@@ -250,14 +257,15 @@ class PlistTool(object):
 
     info_plist_options = self._control.get('info_plist_options')
     if info_plist_options:
-      for key, name in _SUBSTITUTION_MAPPINGS.iteritems():
+      for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
         value = info_plist_options.get(key)
         if value:
-          self._substitutions[name] = value
           # Variable names can also be suffixed with ":rfc1034identifier",
           # which replaces any non-identifier characters with hyphens.
-          name_rfc = name + ':rfc1034identifier'
-          self._substitutions[name_rfc] = _ConvertToRFC1034(value)
+          value_rfc = _ConvertToRFC1034(value)
+          for name in names:
+            self._substitutions[name] = value
+            self._substitutions[name + ':rfc1034identifier'] = value_rfc
 
   def run(self):
     """Performs the operations requested by the control struct.
@@ -284,8 +292,8 @@ class PlistTool(object):
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
 
-    for key, name in _SUBSTITUTION_MAPPINGS.iteritems():
-      v = self._substitutions.get(name)
+    for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
+      v = self._substitutions.get(names[0])
       if not v:
         continue
       if '$' in v:
