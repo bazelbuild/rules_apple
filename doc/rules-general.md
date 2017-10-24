@@ -18,6 +18,10 @@ Targets created by this rule do not generate outputs themselves, but instead
 should be used in the `version` attribute of an Apple application or extension
 bundle target to set the version keys in that bundle's Info.plist file.
 
+NOTE: When using `build_label_pattern`, if a build is done _without_ a
+`--embed_label=...` argument (i.e., developers' interactive builds), then no
+version info will be set, and the a default of _1.0_ will be used.
+
 ### Examples
 
 ```python
