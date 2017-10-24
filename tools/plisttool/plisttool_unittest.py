@@ -327,7 +327,9 @@ class PlistToolTest(unittest.TestCase):
 
   def test_product_name_substitutions(self):
     plist1 = _xml_plist(
+        '<key>FooBraces</key><string>${TARGET_NAME}</string>'
         '<key>BarBraces</key><string>${PRODUCT_NAME}</string>'
+        '<key>FooParens</key><string>$(TARGET_NAME)</string>'
         '<key>BarParens</key><string>$(PRODUCT_NAME)</string>'
     )
     outdict = _plisttool_result({
@@ -336,7 +338,9 @@ class PlistToolTest(unittest.TestCase):
             'product_name': 'MyApp',
         },
     })
+    self.assertEqual('MyApp', outdict.get('FooBraces'))
     self.assertEqual('MyApp', outdict.get('BarBraces'))
+    self.assertEqual('MyApp', outdict.get('FooParens'))
     self.assertEqual('MyApp', outdict.get('BarParens'))
 
   def test_bundle_name_substitutions(self):
