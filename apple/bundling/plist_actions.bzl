@@ -81,6 +81,24 @@ def _environment_plist_action(ctx):
   return environment_plist
 
 
+def _infoplist_minimum_os_pair(ctx):
+  """Returns a info.plist entry of the min OS version for the current target.
+
+  Args:
+    ctx: The Skylark context.
+
+  Returns:
+    A dictionary containing the key/value pair to use in the targets Info.plist
+    to set the minimum OS version supported.
+  """
+  if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
+    plist_key = "LSMinimumSystemVersion"
+  else:
+    plist_key = "MinimumOSVersion"
+
+  return {plist_key: platform_support.minimum_os(ctx)}
+
+
 def _merge_infoplists(ctx,
                       path_prefix,
                       input_plists,
@@ -224,7 +242,7 @@ def _merge_infoplists(ctx,
 
     platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-    min_os = platform_support.minimum_os(ctx)
+    min_os_pair = _infoplist_minimum_os_pair(ctx)
 
     forced_plists += [
         environment_plist.path,
@@ -232,7 +250,7 @@ def _merge_infoplists(ctx,
             CFBundleSupportedPlatforms=[platform.name_in_plist],
             DTPlatformName=platform.name_in_plist.lower(),
             DTSDKName=platform_with_version,
-            MinimumOSVersion=min_os,
+            **min_os_pair
         ),
     ]
 
