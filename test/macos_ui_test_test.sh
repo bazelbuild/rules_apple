@@ -178,7 +178,7 @@ function test_plist_contents() {
       DTSDKName \
       DTXcode \
       DTXcodeBuild \
-      MinimumOSVersion
+      LSMinimumSystemVersion
   do_build macos //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule.
@@ -187,7 +187,7 @@ function test_plist_contents() {
   # When not providing a bundle_id, it uses the test host's and appends "Tests"
   assert_equals "my.bundle.idTests" "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "ui_tests" "$(cat "test-genfiles/app/CFBundleName")"
-  assert_equals "10.11" "$(cat "test-genfiles/app/MinimumOSVersion")"
+  assert_equals "10.11" "$(cat "test-genfiles/app/LSMinimumSystemVersion")"
 
   assert_equals "MacOSX" \
       "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
