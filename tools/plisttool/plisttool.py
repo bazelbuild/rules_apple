@@ -42,6 +42,9 @@ the following keys:
   info_plist_options: A dictionary containing options specific to Info.plist
       files. Omit this key if you are merging or converting general plists
       (such as entitlements or other files). See below for more details.
+  substitutions: A dictionary of string pairs to use for ${VAR}/$(VAR)
+      substitutions when processing the plists. All keys/values will get
+      support for the rfc1034identifier qualifier.
   target: The target name, used for warning/error messages.
   warn_unknown_substitutions: If True, unknown substitutions will just be
       a warning instead of an error.
@@ -51,21 +54,10 @@ The info_plist_options dictionary can contain the following keys:
   apply_default_version: If True, the tool will set CFBundleVersion and
       CFBundleShortVersionString to be "1.0" if values are not already present
       in the output plist.
-  executable: The name of the executable that will be written into the
-      CFBundleExecutable key of the final plist, and will also be used in
-      the ${EXECUTABLE_NAME} substitution.
-  bundle_name: The bundle name (that is, the executable name and extension)
-      that is used in the ${BUNDLE_NAME} substitution.
-  bundle_id: The bundle identifier that will be written into the
-      CFBundleIdentifier key of the final plist and will be used in the
-      ${PRODUCT_BUNDLE_IDENTIFIER} substitution.
   pkginfo: If present, a string that denotes the path to a PkgInfo file that
       should be created from the CFBundlePackageType and CFBundleSignature keys
       in the final merged plist. (For testing purposes, this may also be a
       writable file-like object.)
-  product_name: The product name (that is, the executable name without an
-      extension) that is used in the ${PRODUCT_NAME} and ${TARGET_NAME}
-      substitutions.
   version_file: If present, a string that denotes the path to the version file
       propagated by an `AppleBundleVersionInfo` provider, which contains values
       that will be used for the version keys in the Info.plist.
@@ -78,8 +70,6 @@ If info_plist_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not
 satisfied, an error will be raised:
 
-  * The CFBundleIdentifier must be present and be formatted as a valid bundle
-    identifier.
   * The CFBundleIdentifier and CFBundleShortVersionString values of the
     output file will be compared to the child plists for consistency. Child
     plists are expected to have the same bundle version string as the parent
@@ -96,11 +86,6 @@ import sys
 
 # Format strings for errors that are raised, exposed here to the tests
 # can validate against them.
-
-MISMATCHED_BUNDLE_ID_MSG = (
-    'On target "%s"; the CFBundleIdentifier of the merged Info.plists "%s" '
-    'must be equal to the bundle_id argument "%s".'
-)
 
 CHILD_BUNDLE_ID_MISMATCH_MSG = (
     'While processing target "%s"; the CFBundleIdentifier of the child target '
@@ -140,31 +125,24 @@ UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
     'Info.plists (key: "%s", value: "%s").'
 )
 
-# Mappings from info_plist_options to substitution names that can be applied
-# to Info.plist values.
-_SUBSTITUTION_MAPPINGS = {
-  'executable': [ 'EXECUTABLE_NAME' ],
-  'product_name': [
-      'PRODUCT_NAME',
-      # Support TARGET_NAME even though it might not be the target name in
-      # the BUILD file. The default in Xcode is for PRODUCT_NAME and
-      # TARGET_NAME to be the same.
-      'TARGET_NAME'
-  ],
-  'bundle_name': [ 'BUNDLE_NAME' ],
-  'bundle_id': [ 'PRODUCT_BUNDLE_IDENTIFIER' ],
-}
+INVALID_SUBSTITUTION_VARIABLE_NAME = (
+    'On target "%s"; invalid variable name for substitutions: "%s".'
+)
+
+SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER = (
+    'On target "%s"; variable name for substitutions can not have a '
+    'qualifier: "%s".'
+)
 
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
     'binary', 'forced_plists', 'info_plist_options', 'output', 'plists',
-    'target', 'warn_unknown_substitutions',
+    'substitutions', 'target', 'warn_unknown_substitutions',
 ])
 
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
-    'apply_default_version', 'bundle_id', 'bundle_name', 'child_plists',
-    'executable', 'pkginfo', 'product_name', 'version_file',
+    'apply_default_version', 'child_plists', 'pkginfo', 'version_file',
 ])
 
 # Two regexes for variable matching/validation.
@@ -234,8 +212,8 @@ class PlistConflictError(ValueError):
     self.value1 = value1
     self.value2 = value2
     ValueError.__init__(self, (
-        'While processing target "%s"; found key %r in two plists with '
-        'different values: %r != %r') % (target, key, value1, value2))
+        'While processing target "%s"; found key "%s" in two plists with '
+        'different values: "%s" != "%s"') % (target, key, value1, value2))
 
 
 class PlistTool(object):
@@ -254,18 +232,6 @@ class PlistTool(object):
     # replaced when enclosed by ${...} or $(...) in a plist value, and the
     # value is the string to substitute.
     self._substitutions = {}
-
-    info_plist_options = self._control.get('info_plist_options')
-    if info_plist_options:
-      for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
-        value = info_plist_options.get(key)
-        if value:
-          # Variable names can also be suffixed with ":rfc1034identifier",
-          # which replaces any non-identifier characters with hyphens.
-          value_rfc = _ConvertToRFC1034(value)
-          for name in names:
-            self._substitutions[name] = value
-            self._substitutions[name + ':rfc1034identifier'] = value_rfc
 
   def run(self):
     """Performs the operations requested by the control struct.
@@ -292,13 +258,21 @@ class PlistTool(object):
     if not self._control.get('output'):
       raise ValueError('No output file specified.')
 
-    for key, names in _SUBSTITUTION_MAPPINGS.iteritems():
-      v = self._substitutions.get(names[0])
-      if not v:
-        continue
-      if '$' in v:
-        raise ValueError(
-            INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (target, key, v))
+    subs = self._control.get('substitutions')
+    if subs:
+      for key, value in subs.iteritems():
+        m = VARIABLE_NAME_RE.match(key)
+        if not m:
+          raise ValueError(INVALID_SUBSTITUTION_VARIABLE_NAME % (target, key))
+        if m.group(2):
+          raise ValueError(SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
+               target, key))
+        if '$' in value:
+          raise ValueError(
+              INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (target, key, value))
+        value_rfc = _ConvertToRFC1034(value)
+        self._substitutions[key] = value
+        self._substitutions[key + ':rfc1034identifier'] = value_rfc
 
     out_plist = {}
 
@@ -420,18 +394,6 @@ class PlistTool(object):
       ValueError: If the bundle identifier was provided and the existing
           plist also had it, but they are different values.
     """
-    executable = options.get('executable')
-    if executable:
-      out_plist['CFBundleExecutable'] = executable
-
-    bundle_id = options.get('bundle_id')
-    if bundle_id:
-      old_bundle_id = out_plist.get('CFBundleIdentifier')
-      if old_bundle_id and old_bundle_id != bundle_id:
-        raise ValueError(MISMATCHED_BUNDLE_ID_MSG % (
-            target, old_bundle_id, bundle_id))
-      out_plist['CFBundleIdentifier'] = bundle_id
-
     # Pull in the version info propagated by AppleBundleVersionInfo, using "1.0"
     # as a default if there's no version info whatsoever (either there, or
     # already in the plist).

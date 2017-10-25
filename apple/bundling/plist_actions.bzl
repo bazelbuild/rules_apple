@@ -132,14 +132,23 @@ def _merge_infoplists(ctx,
     fail("resource_bundle_target_data doesn't work with extract_from_ctxt.")
 
   outputs = []
+  plists = [p.path for p in input_plists]
   forced_plists = []
   additional_plisttool_inputs = []
   pkginfo = None
+  info_plist_options = {}
+  substitutions = {}
 
-  info_plist_options = {
-    "apply_default_version": apply_default_version,
-    "bundle_id": bundle_id,
-  }
+  if apply_default_version:
+    info_plist_options["apply_default_version"] = apply_default_version
+
+  if bundle_id:
+    substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id
+    # Pass the bundle_id as a plist and not a force_plist, this way the
+    # merging will validate that any existing value matches. Historically
+    # mismatches between the input Info.plist and rules bundle_id have
+    # been valid bugs, so this will still catch that.
+    plists.append(struct(CFBundleIdentifier=bundle_id))
 
   output_plist = file_support.intermediate(
       ctx, "%{name}-Info-binary.plist", prefix=path_prefix)
@@ -151,15 +160,17 @@ def _merge_infoplists(ctx,
     info_plist_options["child_plists"] = child_plists_for_control
 
   if resource_bundle_target_data:
-    info_plist_options["product_name"] = resource_bundle_target_data.product_name
-    info_plist_options["bundle_name"] = resource_bundle_target_data.bundle_name
+    substitutions["PRODUCT_NAME"] = resource_bundle_target_data.product_name
+    substitutions["BUNDLE_NAME"] = resource_bundle_target_data.bundle_name
 
   if extract_from_ctxt:
     # Extra things for info_plist_options
 
-    info_plist_options["product_name"] = bundling_support.bundle_name(ctx)
+    name = bundling_support.bundle_name(ctx)
+    substitutions["PRODUCT_NAME"] = name
     if not exclude_executable_name:
-      info_plist_options["executable"] = info_plist_options["product_name"]
+      substitutions["EXECUTABLE_NAME"] = name
+      forced_plists.append(struct(CFBundleExecutable=name))
 
     if ctx.attr._needs_pkginfo:
       pkginfo = file_support.intermediate(
@@ -168,7 +179,7 @@ def _merge_infoplists(ctx,
       info_plist_options["pkginfo"] = pkginfo.path
 
     bundle_name = bundling_support.bundle_name_with_extension(ctx)
-    info_plist_options["bundle_name"] = bundle_name
+    substitutions["BUNDLE_NAME"] = bundle_name
 
     version_info = providers.find_one(
         attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
@@ -225,6 +236,13 @@ def _merge_infoplists(ctx,
         ),
     ]
 
+  # The default in Xcode is for PRODUCT_NAME and TARGET_NAME to be the same.
+  # Support TARGET_NAME for substitutions even though it might not be the
+  # target name in the BUILD file.
+  product_name = substitutions.get("PRODUCT_NAME")
+  if product_name:
+    substitutions["TARGET_NAME"] = product_name
+
   # Tweak what is passed for 'target' to provide more more comment messages if
   # something does go wrong.
   if resource_bundle_target_data:
@@ -234,11 +252,12 @@ def _merge_infoplists(ctx,
     target = str(ctx.label)
 
   control = struct(
-      plists=[p.path for p in input_plists],
+      plists=plists,
       forced_plists=forced_plists,
       output=output_plist.path,
       binary=True,
       info_plist_options=struct(**info_plist_options),
+      substitutions=struct(**substitutions),
       target=target,
       warn_unknown_substitutions=warn_unknown_substitutions,
   )

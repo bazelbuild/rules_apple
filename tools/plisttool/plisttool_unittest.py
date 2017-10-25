@@ -244,8 +244,8 @@ class PlistToolTest(unittest.TestCase):
     )
     self._assert_plisttool_result({
         'plists': [plist1, plist2, plist3],
-        'info_plist_options': {
-            'bundle_name': 'my'
+        'substitutions': {
+            'BUNDLE_NAME': 'my'
         },
     }, {
         'String1': 'abc',
@@ -276,54 +276,65 @@ class PlistToolTest(unittest.TestCase):
         'forced_plists': [plist2, plist3],
     }, {'Foo': 'quux'})
 
-  def test_executable_is_added_if_key_not_present(self):
-    plist1 = _xml_plist('<key>Foo</key><string>abc</string>')
-    self._assert_plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'executable': 'MyApp',
-        },
-    }, {
-        'Foo': 'abc',
-        'CFBundleExecutable': 'MyApp',
-    })
+  def test_invalid_substitution_name_space(self):
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
+            _testing_target, 'foo bar'))):
+      _plisttool_result({
+         'plists': [{}],
+         'substitutions': {
+              'foo bar': 'bad name',
+          },
+      })
 
-  def test_executable_is_overwritten_if_key_is_present(self):
-    plist1 = _xml_plist('<key>CFBundleExecutable</key><string>abc</string>')
-    self._assert_plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'executable': 'MyApp',
-        },
-    }, {
-        'CFBundleExecutable': 'MyApp',
-    })
+  def test_invalid_substitution_name_hyphen(self):
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
+            _testing_target, 'foo-bar'))):
+      _plisttool_result({
+         'plists': [{}],
+         'substitutions': {
+              'foo-bar': 'bad name',
+          },
+      })
+
+  def test_invalid_substitution_name_qualifier(self):
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
+            _testing_target, 'foo:bar'))):
+      _plisttool_result({
+         'plists': [{}],
+         'substitutions': {
+              'foo:bar': 'bad name',
+          },
+      })
+
+  def test_invalid_substitution_name_rfc_qualifier(self):
+    with self.assertRaisesRegexp(
+        ValueError,
+        re.escape(plisttool.SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
+            _testing_target, 'foo:rfc1034identifier'))):
+      _plisttool_result({
+         'plists': [{}],
+         'substitutions': {
+              'foo:rfc1034identifier': 'bad name',
+          },
+      })
 
   def test_invalid_info_plist_options_value(self):
     with self.assertRaisesRegexp(
         ValueError,
         re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (
-            _testing_target, 'bundle_id', 'foo.bar.${NotSupported}'))):
+            _testing_target, 'mumble', 'foo.bar.${NotSupported}'))):
       _plisttool_result({
          'plists': [{}],
-         'info_plist_options': {
-              'bundle_id': 'foo.bar.${NotSupported}',
+         'substitutions': {
+              'mumble': 'foo.bar.${NotSupported}',
           },
       })
-
-  def test_executable_name_substitutions(self):
-    plist1 = _xml_plist(
-        '<key>FooBraces</key><string>${EXECUTABLE_NAME}</string>'
-        '<key>FooParens</key><string>$(EXECUTABLE_NAME)</string>'
-    )
-    outdict = _plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'executable': 'MyApp',
-        },
-    })
-    self.assertEqual('MyApp', outdict.get('FooBraces'))
-    self.assertEqual('MyApp', outdict.get('FooParens'))
 
   def test_product_name_substitutions(self):
     plist1 = _xml_plist(
@@ -334,8 +345,9 @@ class PlistToolTest(unittest.TestCase):
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'info_plist_options': {
-            'product_name': 'MyApp',
+        'substitutions': {
+            'PRODUCT_NAME': 'MyApp',
+            'TARGET_NAME': 'MyApp',
         },
     })
     self.assertEqual('MyApp', outdict.get('FooBraces'))
@@ -343,28 +355,14 @@ class PlistToolTest(unittest.TestCase):
     self.assertEqual('MyApp', outdict.get('FooParens'))
     self.assertEqual('MyApp', outdict.get('BarParens'))
 
-  def test_bundle_name_substitutions(self):
-    plist1 = _xml_plist(
-        '<key>FooBraces</key><string>${BUNDLE_NAME}</string>'
-        '<key>FooParens</key><string>$(BUNDLE_NAME)</string>'
-    )
-    outdict = _plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'bundle_name': 'MyBundle',
-        },
-    })
-    self.assertEqual('MyBundle', outdict.get('FooBraces'))
-    self.assertEqual('MyBundle', outdict.get('FooParens'))
-
   def test_rfc1034_conversion(self):
     plist1 = _xml_plist(
         '<key>Foo</key><string>${PRODUCT_NAME:rfc1034identifier}</string>'
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'info_plist_options': {
-            'product_name': 'foo_bar?baz'
+        'substitutions': {
+            'PRODUCT_NAME': 'foo_bar?baz'
         },
     })
     self.assertEqual('foo-bar-baz', outdict.get('Foo'))
@@ -435,10 +433,10 @@ class PlistToolTest(unittest.TestCase):
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'info_plist_options': {
-            'executable': 'MyExe',
-            'product_name': 'MyApp',
-            'bundle_name': 'MyBundle',
+        'substitutions': {
+            'EXECUTABLE_NAME': 'MyExe',
+            'BUNDLE_NAME': 'MyBundle',
+            'PRODUCT_NAME': 'MyApp',
         },
     })
     self.assertEqual('MyApp--MyBundle--MyExe', outdict.get('Foo'))
@@ -465,8 +463,8 @@ class PlistToolTest(unittest.TestCase):
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'info_plist_options': {
-            'bundle_name': 'MyBundle',
+        'substitutions': {
+            'BUNDLE_NAME': 'MyBundle',
         },
     })
     self.assertEqual('MyBundle', outdict.get('Foo').get('Foo1'))
@@ -526,51 +524,6 @@ class PlistToolTest(unittest.TestCase):
     tool.merge_dictionaries(source_plist, outdict, _testing_target)
 
     self.assertEqual(outdict.keys(), key_order.keys())
-
-  def test_bundle_id_in_plist_does_not_raise_error(self):
-    output = StringIO.StringIO()
-    control = {
-        'plists': [{'CFBundleIdentifier': 'foo.bar.baz'}],
-        'output': output,
-        'target': _testing_target,
-    }
-    tool = plisttool.PlistTool(control)
-    tool.run()
-
-  def test_bundle_id_not_in_plist_but_overridden_does_not_raise_error(self):
-    plist1 = _xml_plist('<key>Foo</key><string>abc</string>')
-    self._assert_plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'bundle_id': 'foo.bar.baz'
-        },
-    }, {
-        'Foo': 'abc',
-        'CFBundleIdentifier': 'foo.bar.baz'
-    })
-
-  def test_bundle_id_mismatch_raises_error(self):
-    with self.assertRaisesRegexp(
-        ValueError,
-        re.escape(plisttool.MISMATCHED_BUNDLE_ID_MSG % (
-            _testing_target, 'abc', 'foo.bar.baz'))):
-      plist1 = _xml_plist('<key>CFBundleIdentifier</key><string>abc</string>')
-      _plisttool_result({
-          'plists': [plist1],
-          'info_plist_options': {
-              'bundle_id': 'foo.bar.baz'
-          },
-      })
-
-  def test_bundle_id_is_replaced_by_override(self):
-    plist1 = _xml_plist('<key>CFBundleIdentifier</key>'
-                        '<string>${PRODUCT_BUNDLE_IDENTIFIER}</string>')
-    self._assert_plisttool_result({
-        'plists': [plist1],
-        'info_plist_options': {
-            'bundle_id': 'foo.bar.baz'
-        },
-    }, {'CFBundleIdentifier': 'foo.bar.baz'})
 
   def test_pkginfo_with_valid_values(self):
     self._assert_pkginfo({
