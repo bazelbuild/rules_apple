@@ -133,8 +133,8 @@ simple command line tool as a standalone binary, use
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the application. At least one
-        file must be specified. The merge is only at the top level of the
-        plist; so sub-dictionaries are not merged.</p>
+        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
       </td>
     </tr>
     <tr>
@@ -317,8 +317,8 @@ inside the application bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the bundle. At least one
-        file must be specified. The merge is only at the top level of the
-        plist; so sub-dictionaries are not merged.</p>
+        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
       </td>
     </tr>
     <tr>
@@ -448,8 +448,8 @@ Targets created with `macos_command_line_application` can be executed using
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the application and is embedded
-        into the binary. The merge is only at the top level of the plist; so
-        sub-dictionaries are not merged.</p>
+        into the binary. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
 
       </td>
     </tr>
@@ -566,8 +566,8 @@ executable inside the extension bundle.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
         <p>A list of <code>.plist</code> files that will be merged to form the
         <code>Info.plist</code> that represents the extension. At least one
-        file must be specified. The merge is only at the top level of the plist; so
-        sub-dictionaries are not merged.</p>
+        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
       </td>
     </tr>
     <tr>
@@ -691,8 +691,9 @@ of the attributes inherited by all test rules, please check the
         <code>Info.plist</code> that represents the test bundle. If not
         specified, a default one will be provided that only contains the
         <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling. The merge is only at
-        the top level of the plist; so sub-dictionaries are not merged.</p>
+        placeholders that will be replaced when bundling. Please see
+        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
       </td>
     </tr>
     <tr>
