@@ -211,17 +211,6 @@ EOF
               "linkopts may have not propagated"
 }
 
-# Tests that the PkgInfo file exists in the bundle and has the expected
-# content.
-function test_pkginfo_contents() {
-  create_common_files
-  create_minimal_macos_bundle
-  do_build macos //app:app || fail "Should build"
-
-  assert_equals "BNDL????" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.bundle/Contents/PkgInfo")"
-}
-
 # Tests that the correct rpaths were added at link-time to the binary.
 function test_binary_has_correct_rpaths() {
   create_common_files
