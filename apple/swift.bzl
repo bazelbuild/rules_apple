@@ -176,18 +176,10 @@ def _swift_lib_dir(apple_fragment, config_vars, is_static=False):
     return "{0}/usr/lib/{1}/{2}".format(
         config_vars["xcode_toolchain_path"], dir_name, platform_str)
 
-  toolchain_name = "XcodeDefault"
-  toolchain = attrs.get(apple_fragment, "xcode_toolchain")
-
-  # We cannot use non Xcode-packaged toolchains, and the only one non-default
-  # toolchain known to exist (as of Xcode 8.1) is this one.
-  # TODO(b/29338444): Write an integration test when Xcode 8 is available.
-  if toolchain == "com.apple.dt.toolchain.Swift_2_3":
-    toolchain_name = "Swift_2.3"
-
-  return "{0}/Toolchains/{1}.xctoolchain/usr/lib/{2}/{3}".format(
-      apple_common.apple_toolchain().developer_dir(), toolchain_name,
-      dir_name, platform_str)
+  return "{0}/Toolchains/XcodeDefault.xctoolchain/usr/lib/{1}/{2}".format(
+      apple_common.apple_toolchain().developer_dir(),
+      dir_name,
+      platform_str)
 
 
 def swift_linkopts(apple_fragment, config_vars, is_static=False):
