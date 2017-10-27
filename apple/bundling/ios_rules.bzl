@@ -365,7 +365,6 @@ ios_static_framework = rule_factory.make_bundling_rule(
             mandatory=False,
             non_empty=False,
         ),
-        "strings": attr.label_list(allow_files=[".strings"]),
     },
     archive_extension=".zip",
     binary_providers=[apple_common.AppleStaticLibrary],
