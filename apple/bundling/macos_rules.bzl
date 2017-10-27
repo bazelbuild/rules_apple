@@ -223,6 +223,7 @@ macos_bundle = rule_factory.make_bundling_rule(
         ".provisionprofile", requires_signing_for_device=False
     ),
     device_families=rule_factory.device_families(allowed=["mac"]),
+    needs_pkginfo=False,
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
     product_type=rule_factory.product_type(apple_product_type.bundle),
