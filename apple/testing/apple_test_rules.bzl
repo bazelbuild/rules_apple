@@ -32,6 +32,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "AppleExtraOutputsInfo",
 )
 
@@ -271,6 +272,7 @@ def _apple_test_impl(ctx, test_type):
       providers=[
           testing.ExecutionInfo(execution_requirements),
           testing.TestEnvironment(test_environment),
+          ctx.attr.test_bundle[AppleBundleInfo],
       ],
       runfiles=ctx.runfiles(
           files=test_runfiles,
