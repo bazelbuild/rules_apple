@@ -122,7 +122,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -132,7 +131,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";
@@ -146,7 +144,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -231,7 +228,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -317,7 +313,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -327,7 +322,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";
@@ -398,7 +392,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
   cat > app/Info-App.plist <<EOF
@@ -407,7 +400,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -573,7 +565,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
   cat > app/Info-App.plist <<EOF
@@ -582,7 +573,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -684,7 +674,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -694,7 +683,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";
@@ -833,7 +821,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
   cat > app/Info-App.plist <<EOF
@@ -842,7 +829,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -941,7 +927,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
   cat > app/Info-App.plist <<EOF
@@ -950,7 +935,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -1085,7 +1069,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
   cat > app/Info-App.plist <<EOF
@@ -1094,7 +1077,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -1270,7 +1252,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -1285,7 +1266,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -1405,7 +1385,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -1415,7 +1394,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";

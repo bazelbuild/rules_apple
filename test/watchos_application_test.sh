@@ -83,7 +83,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -93,7 +92,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   WKCompanionAppBundleIdentifier = "my.bundle.id";
   WKWatchKitApp = true;
 }
@@ -105,7 +103,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
   NSExtension = {
     NSExtensionAttributes = {
       WKAppBundleIdentifier = "my.bundle.id.watch-app";

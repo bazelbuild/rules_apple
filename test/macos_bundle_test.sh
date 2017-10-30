@@ -45,7 +45,6 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "BNDL";
-  CFBundleSignature = "????";
 }
 EOF
 }
