@@ -7,7 +7,8 @@
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
 extensions, families, frameworks, infoplists, ipa_post_processor, launch_images,
 launch_storyboard, linkopts, minimum_os_version, product_type,
-provisioning_profile, settings_bundle, strings, watch_application, deps)
+provisioning_profile, settings_bundle, strings, version, watch_application,
+deps)
 ```
 
 Builds and bundles an iOS application.
@@ -204,6 +205,15 @@ inside the application bundle.
       </td>
     </tr>
     <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>watch_application</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -230,7 +240,8 @@ inside the application bundle.
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 families, frameworks, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, product_type, provisioning_profile, strings, deps)
+minimum_os_version, product_type, provisioning_profile, strings, version,
+deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -386,6 +397,15 @@ executable inside the extension bundle.
       </td>
     </tr>
     <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -403,7 +423,8 @@ executable inside the extension bundle.
 
 ```python
 ios_framework(name, bundle_id, bundle_name, extension_safe, families,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, deps)
+infoplists, ipa_post_processor, linkopts, minimum_os_version, strings,
+version, deps)
 ```
 
 Builds and bundles an iOS dynamic framework.
@@ -518,6 +539,15 @@ inside the framework bundle.
       </td>
     </tr>
     <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -536,7 +566,7 @@ inside the framework bundle.
 ```python
 ios_static_framework(name, avoid_deps, hdrs, bundle_id, bundle_name,
 exclude_resources, families, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, strings, deps)
+minimum_os_version, strings, version, deps)
 ```
 
 Builds and bundles an iOS static framework for third-party distribution.
@@ -678,6 +708,15 @@ build a single framework artifact that works for all architectures by specifying
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
       </td>
     </tr>
     <tr>

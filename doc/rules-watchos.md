@@ -6,7 +6,7 @@
 ```python
 watchos_application(name, app_icons, bundle_id, bundle_name,
 entitlements, extension, infoplists, ipa_post_processor, minimum_os_version,
-provisioning_profile, storyboards, strings, deps)
+provisioning_profile, storyboards, strings, version, deps)
 ```
 
 Builds and bundles a watchOS application.
@@ -152,6 +152,15 @@ rule.
       </td>
     </tr>
     <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -169,7 +178,7 @@ rule.
 ```python
 watchos_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 infoplists, ipa_post_processor, linkopts, minimum_os_version,
-provisioning_profile, strings, deps)
+provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles a watchOS extension.
@@ -301,6 +310,15 @@ executable inside the extension bundle.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
       </td>
     </tr>
     <tr>
