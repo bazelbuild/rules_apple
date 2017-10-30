@@ -87,7 +87,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 
@@ -266,7 +265,6 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1";
-  CFBundleSignature = "????";
 }
 EOF
 

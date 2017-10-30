@@ -68,7 +68,6 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleSignature = "????";
 }
 EOF
 }
@@ -308,7 +307,6 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleSignature = "????";
 }
 EOF
 
