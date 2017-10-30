@@ -18,9 +18,10 @@ bazel build --experimental_objc_crosstool=all $TARGET_LABEL
 ## macos_application
 
 ```python
-macos_application(name, app_icons, bundle_extension, bundle_id, bundle_name,
-entitlements, extensions, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, product_type, provisioning_profile, strings, deps)
+macos_application(name, additional_contents, app_icons, bundle_extension,
+bundle_id, bundle_name, entitlements, extensions, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, product_type,
+provisioning_profile, strings, deps)
 ```
 
 Builds and bundles a macOS application.
@@ -215,9 +216,9 @@ simple command line tool as a standalone binary, use
 ## macos_bundle
 
 ```python
-macos_bundle(name, app_icons, bundle_extension, bundle_id, bundle_name,
-entitlements, infoplists, ipa_post_processor, linkopts, minimum_os_version,
-product_type, provisioning_profile, strings, deps)
+macos_bundle(name, additional_contents, app_icons, bundle_extension, bundle_id,
+bundle_name, entitlements, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, product_type, provisioning_profile, strings, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
@@ -399,8 +400,8 @@ inside the application bundle.
 ## macos_command_line_application
 
 ```python
-macos_command_line_application(name, bundle_id, entitlements,
-infoplists, linkopts, minimum_os_version, provisioning_profile, deps)
+macos_command_line_application(name, bundle_id, infoplists, linkopts,
+minimum_os_version, deps)
 ```
 
 Builds a macOS command line application.
@@ -486,8 +487,9 @@ Targets created with `macos_command_line_application` can be executed using
 ## macos_extension
 
 ```python
-macos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, strings, deps)
+macos_extension(name, additional_contents, bundle_id, bundle_name,
+entitlements, infoplists, ipa_post_processor, linkopts, minimum_os_version,
+provisioning_profile, strings, deps)
 ```
 
 Builds and bundles a macOS extension.
@@ -640,7 +642,7 @@ executable inside the extension bundle.
 
 ```python
 macos_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, deps)
+test_host, data, deps)
 ```
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the

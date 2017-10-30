@@ -6,8 +6,8 @@
 ```python
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
 extensions, families, frameworks, infoplists, ipa_post_processor, launch_images,
-launch_storyboard, minimum_os_version, linkopts, product_type,
-provisioning_profile, settings_bundle, strings, deps)
+launch_storyboard, linkopts, minimum_os_version, product_type,
+provisioning_profile, settings_bundle, strings, watch_application, deps)
 ```
 
 Builds and bundles an iOS application.
@@ -534,8 +534,9 @@ inside the framework bundle.
 ## ios_static_framework
 
 ```python
-ios_static_framework(name, bundle_id, bundle_name, extension_safe, families,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, deps)
+ios_static_framework(name, avoid_deps, hdrs, bundle_id, bundle_name,
+exclude_resources, families, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, strings, deps)
 ```
 
 Builds and bundles an iOS static framework for third-party distribution.
@@ -701,7 +702,7 @@ build a single framework artifact that works for all architectures by specifying
 
 ```python
 ios_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, deps, [test specific attributes])
+test_host, data, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -818,7 +819,7 @@ bundle.
 
 ```python
 ios_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, deps, [test specific attributes])
+test_host, data, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
