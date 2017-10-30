@@ -92,7 +92,6 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
         allowed=["iphone", "ipad"],
         mandatory=False,
     ),
-    needs_pkginfo=False,
     path_formats=rule_factory.simple_path_formats("Payload/%s"),
     platform_type=apple_common.platform_type.ios,
     # The empty string will be overridden by the wrapping macros.
