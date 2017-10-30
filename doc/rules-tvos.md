@@ -7,7 +7,7 @@
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
 extensions, infoplists, ipa_post_processor, launch_images, launch_storyboard,
 linkopts, minimum_os_version, provisioning_profile, settings_bundle, strings,
-deps)
+version, deps)
 ```
 
 Builds and bundles a tvOS application.
@@ -179,6 +179,15 @@ inside the application bundle.
       </td>
     </tr>
     <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -196,7 +205,7 @@ inside the application bundle.
 
 ```python
 tvos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, strings, deps)
+ipa_post_processor, linkopts, minimum_os_version, strings, version, deps)
 ```
 
 Builds and bundles a tvOS extension.
@@ -315,6 +324,15 @@ executable inside the extension bundle.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
       </td>
     </tr>
     <tr>
