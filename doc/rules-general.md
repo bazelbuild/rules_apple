@@ -136,6 +136,10 @@ ios_application(
 <a name="apple_genrule"></a>
 ## apple_genrule
 
+```python
+apple_genrule(name, cmd, executable, message, output_licenses, outs, srcs, tools)
+```
+
 Variation of `genrule` that provides an Apple-specific environment and `make`
 variables. This rule will only run on macOS.
 
