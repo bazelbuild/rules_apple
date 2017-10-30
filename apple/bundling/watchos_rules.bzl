@@ -96,6 +96,7 @@ watchos_application = rule_factory.make_bundling_rule(
     archive_extension=".zip",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["watch"]),
+    needs_pkginfo=True,
     path_formats=rule_factory.simple_path_formats(
         path_in_archive_format="%s"
     ),
@@ -147,7 +148,6 @@ watchos_extension = rule_factory.make_bundling_rule(
     archive_extension=".zip",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["watch"]),
-    needs_pkginfo=False,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.watchos,
     product_type=rule_factory.product_type(

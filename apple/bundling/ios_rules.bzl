@@ -173,6 +173,7 @@ ios_application = rule_factory.make_bundling_rule(
     archive_extension=".ipa",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
+    needs_pkginfo=True,
     executable=True,
     path_formats=rule_factory.simple_path_formats(
         path_in_archive_format="Payload/%s"
@@ -229,7 +230,6 @@ ios_extension = rule_factory.make_bundling_rule(
     archive_extension=".zip",
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
-    needs_pkginfo=False,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.app_extension),
@@ -286,7 +286,6 @@ ios_framework = rule_factory.make_bundling_rule(
     binary_providers=[apple_common.AppleDylibBinary],
     code_signing=rule_factory.code_signing(skip_signing=True),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
-    needs_pkginfo=False,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.framework),
@@ -373,7 +372,6 @@ ios_static_framework = rule_factory.make_bundling_rule(
         allowed=["iphone", "ipad"],
         mandatory=False,
     ),
-    needs_pkginfo=False,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.static_framework),
