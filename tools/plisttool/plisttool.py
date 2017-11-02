@@ -107,6 +107,11 @@ PLUTIL_CONVERSION_TO_XML_FAILED_MSG = (
     'While processing target "%s", plutil failed (%d) to convert "%s" to xml.'
 )
 
+CONFLICTING_KEYS_MSG = (
+    'While processing target "%s"; found key "%s" in two plists with different '
+    'values: "%s" != "%s"'
+)
+
 UNKNOWN_CONTROL_KEYS_MSG = (
     'Target "%s" used a control structure has unknown key(s): %s'
 )
@@ -190,30 +195,20 @@ def _ConvertToRFC1034(string):
   return _RFC1034_RE.sub('-', string)
 
 
-class PlistConflictError(ValueError):
-  """Raised when conflicting values are found for a key.
+class PlistToolError(ValueError):
+  """Raised for all errors errors.
 
-  This error is raised when two plists being merged have different values for
-  the same key. The "key" attribute has the name of the key; the "value1" and
-  "value2" attributes have the values that were encountered.
+  Custom ValueError used to allow catching (and logging) just the plisttool
+  errors.
   """
 
-  def __init__(self, target, key, value1, value2):
-    """Initializes an error with the given key and values.
+  def __init__(self, msg):
+    """Initializes an error with the given message.
 
     Args:
-      target: The name of the target for which the plist is being built.
-      key: The key that had conflicting values.
-      value1: One of the conflicting values.
-      value2: One of the conflicting values.
+      msg: The message for the error.
     """
-    self.target_label = target
-    self.key = key
-    self.value1 = value1
-    self.value2 = value2
-    ValueError.__init__(self, (
-        'While processing target "%s"; found key "%s" in two plists with '
-        'different values: "%s" != "%s"') % (target, key, value1, value2))
+    ValueError.__init__(self, msg)
 
 
 class PlistTool(object):
@@ -237,38 +232,39 @@ class PlistTool(object):
     """Performs the operations requested by the control struct.
 
     Raises:
-      ValueError: If the control the control structure or info_plist_options
-          contains unknown keys, or if the control structure is missing an
-          'output' entry.
+      PlistToolError: If the control the control structure or
+          info_plist_options contains unknown keys, or if the control
+          structure is missing an 'output' entry.
     """
     target = self._control.get('target')
     if not target:
-      raise ValueError('No target name in control.')
+      raise PlistToolError('No target name in control.')
 
     unknown_keys = set(self._control.keys()) - _CONTROL_KEYS
     if unknown_keys:
-      raise ValueError(UNKNOWN_CONTROL_KEYS_MSG % (
+      raise PlistToolError(UNKNOWN_CONTROL_KEYS_MSG % (
           target, ', '.join(sorted(unknown_keys))))
     i_p_o_keys = self._control.get('info_plist_options', dict()).keys()
     unknown_keys = set(i_p_o_keys) - _INFO_PLIST_OPTIONS_KEYS
     if unknown_keys:
-      raise ValueError(UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
+      raise PlistToolError(UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
           target, ', '.join(sorted(unknown_keys))))
 
     if not self._control.get('output'):
-      raise ValueError('No output file specified.')
+      raise PlistToolError('No output file specified.')
 
     subs = self._control.get('substitutions')
     if subs:
       for key, value in subs.iteritems():
         m = VARIABLE_NAME_RE.match(key)
         if not m:
-          raise ValueError(INVALID_SUBSTITUTION_VARIABLE_NAME % (target, key))
+          raise PlistToolError(INVALID_SUBSTITUTION_VARIABLE_NAME % (
+              target, key))
         if m.group(2):
-          raise ValueError(SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
+          raise PlistToolError(SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
                target, key))
         if '$' in value:
-          raise ValueError(
+          raise PlistToolError(
               INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (target, key, value))
         value_rfc = _ConvertToRFC1034(value)
         self._substitutions[key] = value
@@ -309,7 +305,7 @@ class PlistTool(object):
           the previous value with the new value. If False, an error will be
           raised if old and new values do not match.
     Raises:
-      PlistConflictError: If the two dictionaries had different values for the
+      PlistToolError: If the two dictionaries had different values for the
           same key.
     """
     for key in src:
@@ -319,7 +315,8 @@ class PlistTool(object):
         dest_value = dest[key]
 
         if not override_collisions and src_value != dest_value:
-          raise PlistConflictError(target, key, src_value, dest_value)
+          raise PlistToolError(CONFLICTING_KEYS_MSG % (
+              target, key, src_value, dest_value))
 
       dest[key] = src_value
 
@@ -375,7 +372,7 @@ class PlistTool(object):
       )
       plist_contents, _ = plutil_process.communicate(plist_contents)
       if plutil_process.returncode:
-        raise ValueError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
+        raise PlistToolError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
             target, plutil_process.returncode, name))
 
     return plistlib.readPlistFromString(plist_contents)
@@ -391,7 +388,7 @@ class PlistTool(object):
           doc.
       target: The name of the target for which the plist is being built.
     Raises:
-      ValueError: If the bundle identifier was provided and the existing
+      PlistToolError: If the bundle identifier was provided and the existing
           plist also had it, but they are different values.
     """
     # Pull in the version info propagated by AppleBundleVersionInfo, using "1.0"
@@ -480,14 +477,14 @@ class PlistTool(object):
       value: The value to check
       warn_only: If True, print a warning instead of raising an error.
     Raises:
-      ValueError: If there is a variable substitution that wasn't resolved.
+      PlistToolError: If there is a variable substitution that wasn't resolved.
     """
     if isinstance(value, basestring):
       for m in VARIABLE_REFERENCE_RE.finditer(value):
         variable_name = ExtractVariableFromMatch(m)
         if not variable_name:
           # Reference wasn't property formed, raise that issue.
-          raise ValueError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
+          raise PlistToolError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
               target, m.group(0), key_name, value))
         # Any subs should have already happened; but assert it just to make
         # sure nothing went wrong.
@@ -496,7 +493,7 @@ class PlistTool(object):
           print('WARNING: ' + UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
               target, m.group(0), key_name, value))
         else:
-          raise ValueError(UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+          raise PlistToolError(UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
               target, m.group(0), key_name, value))
       return
 
@@ -584,9 +581,9 @@ class PlistTool(object):
           depends on.
       target: The name of the target being processed.
     Raises:
-      ValueError: if there was an inconsistency between a child target's plist
-          and the current target's plist, with a message describing what was
-          incorrect.
+      PlistToolError: if there was an inconsistency between a child target's
+          plist and the current target's plist, with a message describing what
+          was incorrect.
     """
     for label, p in child_plists.iteritems():
       child_plist = self._get_plist_dict(p, target)
@@ -594,7 +591,7 @@ class PlistTool(object):
       prefix = out_plist['CFBundleIdentifier'] + '.'
       child_id = child_plist['CFBundleIdentifier']
       if not child_id.startswith(prefix):
-        raise ValueError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
+        raise PlistToolError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
             target, label, prefix, child_id))
 
       # CFBundleVersion isn't checked because Apple seems to treat this as
@@ -605,7 +602,7 @@ class PlistTool(object):
       version = out_plist['CFBundleShortVersionString']
       child_version = child_plist['CFBundleShortVersionString']
       if version != child_version:
-        raise ValueError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
+        raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
             target, label, version, child_version))
 
 
@@ -614,7 +611,12 @@ def _main(control_path):
     control = json.load(control_file)
 
   tool = PlistTool(control)
-  tool.run()
+  try:
+    tool.run()
+  except PlistToolError as e:
+    # Log tools errors cleanly for build output.
+    print 'ERROR: %s' % e
+    sys.exit(1)
 
 
 if __name__ == '__main__':
