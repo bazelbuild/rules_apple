@@ -97,7 +97,7 @@ function test_missing_link() {
   ! do_build ios --define=apple_bundle_clang_rt=1 \
       //app:app || fail "Should not build"
 
-  expect_log "RuntimeError: Could not find clang library path."
+  expect_log "ERROR: Could not find clang library path."
 }
 
 run_suite "ios_application clang support tests"

@@ -15,6 +15,7 @@
 """Tests for Bundler."""
 
 import os
+import re
 import shutil
 import StringIO
 import tempfile
@@ -256,8 +257,9 @@ class BundlerTest(unittest.TestCase):
     foo_txt = self._scratch_file('foo.txt', 'foo')
     bar_txt = self._scratch_file('bar.txt', 'bar')
     with self.assertRaisesRegexp(
-        bundletool.BundleConflictError,
-        bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/renamed'):
+        bundletool.BundleToolError,
+        re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
+            'Payload/foo.app/renamed')):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_files': [
@@ -283,8 +285,9 @@ class BundlerTest(unittest.TestCase):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:bar')
     with self.assertRaisesRegexp(
-        bundletool.BundleConflictError,
-        bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE % 'Payload/foo.app/some.dylib'):
+        bundletool.BundleToolError,
+        re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
+            'Payload/foo.app/some.dylib')):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_zips': [

@@ -62,17 +62,20 @@ BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the archive')
 
 
-class BundleConflictError(ValueError):
-  """Raised when two different files would be bundled in the same location."""
+class BundleToolError(ValueError):
+  """Raised for all errors.
 
-  def __init__(self, dest):
-    """Initializes an error with the given key and values.
+  Custom ValueError used to allow catching (and logging) just the bundletool
+  errors.
+  """
+
+  def __init__(self, msg):
+    """Initializes an error with the given message.
 
     Args:
-      dest: The destination path inside the archive.
+      msg: The message for the error.
     """
-    self.dest = dest
-    ValueError.__init__(self, BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
+    ValueError.__init__(self, msg)
 
 
 class Bundler(object):
@@ -95,7 +98,7 @@ class Bundler(object):
     """Performs the operations requested by the control struct."""
     output_path = self._control.get('output')
     if not output_path:
-      raise ValueError('No output file specified.')
+      raise BundleToolError('No output file specified.')
 
     bundle_path = self._control.get('bundle_path', '')
     bundle_merge_files = self._control.get('bundle_merge_files', [])
@@ -180,7 +183,7 @@ class Bundler(object):
           made executable.
       out_zip: The `ZipFile` into which the files should be added.
     Raises:
-      BundleConflictError: If two files with different content would be placed
+      BundleToolError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
     new_hash = md5.new(data).digest()
@@ -188,7 +191,7 @@ class Bundler(object):
     if existing_hash:
       if existing_hash == new_hash:
         return
-      raise BundleConflictError(dest)
+      raise BundleToolError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
 
     self._entry_hashes[dest] = new_hash
 
@@ -214,7 +217,12 @@ def _main(control_path):
     control = json.load(control_file)
 
   bundler = Bundler(control)
-  bundler.run()
+  try:
+    bundler.run()
+  except BundleToolError as e:
+    # Log tools errors cleanly for build output.
+    print 'ERROR: %s' % e
+    sys.exit(1)
 
 
 if __name__ == '__main__':
