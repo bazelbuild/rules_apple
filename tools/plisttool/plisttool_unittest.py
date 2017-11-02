@@ -278,7 +278,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_invalid_substitution_name_space(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo bar'))):
       _plisttool_result({
@@ -290,7 +290,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_invalid_substitution_name_hyphen(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo-bar'))):
       _plisttool_result({
@@ -302,7 +302,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_invalid_substitution_name_qualifier(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo:bar'))):
       _plisttool_result({
@@ -314,7 +314,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_invalid_substitution_name_rfc_qualifier(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
             _testing_target, 'foo:rfc1034identifier'))):
       _plisttool_result({
@@ -326,7 +326,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_invalid_info_plist_options_value(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (
             _testing_target, 'mumble', 'foo.bar.${NotSupported}'))):
       _plisttool_result({
@@ -372,7 +372,7 @@ class PlistToolTest(unittest.TestCase):
         'FooBraces': 'A-${NOT_A_VARIABLE}-B'
     }
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
             _testing_target, '${NOT_A_VARIABLE}', 'FooBraces',
             'A-${NOT_A_VARIABLE}-B'))):
@@ -382,7 +382,7 @@ class PlistToolTest(unittest.TestCase):
         'FooParens': '$(NOT_A_VARIABLE)'
     }
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
             _testing_target, '$(NOT_A_VARIABLE)', 'FooParens',
             '$(NOT_A_VARIABLE)'))):
@@ -395,7 +395,7 @@ class PlistToolTest(unittest.TestCase):
         }
     }
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
             _testing_target, '$(PRODUCT_NAME:rfc1034identifier)',
             'Key1:Key2', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
@@ -409,7 +409,7 @@ class PlistToolTest(unittest.TestCase):
         ]
     }
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
             _testing_target, '$(PRODUCT_NAME:rfc1034identifier)',
             'Key[1]', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
@@ -420,7 +420,7 @@ class PlistToolTest(unittest.TestCase):
         'Foo': 'foo.${INVALID_REFERENCE).bar'
     }
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTATION_REFERENCE_MSG % (
             _testing_target, '${INVALID_REFERENCE)', 'Foo',
             'foo.${INVALID_REFERENCE).bar'))):
@@ -478,17 +478,13 @@ class PlistToolTest(unittest.TestCase):
     self._assert_plisttool_result({'plists': [plist1, plist2]}, {'Foo': 'Bar'})
 
   def test_conflicting_keys_raises_error(self):
-    with self.assertRaises(plisttool.PlistConflictError) as context:
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.CONFLICTING_KEYS_MSG % (
+            _testing_target, 'Foo', 'Baz', 'Bar'))):
       plist1 = _xml_plist('<key>Foo</key><string>Bar</string>')
       plist2 = _xml_plist('<key>Foo</key><string>Baz</string>')
       _plisttool_result({'plists': [plist1, plist2]})
-
-    self.assertEqual(_testing_target, context.exception.target_label)
-    self.assertEqual('Foo', context.exception.key)
-    # Don't care about the order of the values.
-    values = set([context.exception.value1, context.exception.value2])
-    self.assertIn('Bar', values)
-    self.assertIn('Baz', values)
 
   def test_order_of_elements_in_one_plist_merge_is_maintained(self):
     """Verify that we merge keys in the same order as the original dictionary.
@@ -585,7 +581,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_child_plist_with_incorrect_bundle_id_raises(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.CHILD_BUNDLE_ID_MISMATCH_MSG % (
             _testing_target, '//fake:label', 'foo.bar.', 'foo.baz'))):
       parent = _xml_plist(
@@ -604,7 +600,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_child_plist_with_incorrect_bundle_version_raises(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
             _testing_target, '//fake:label', '1.2.3', '1.2.4'))):
       parent = _xml_plist(
@@ -623,7 +619,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_unknown_control_keys_raise(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_CONTROL_KEYS_MSG % (
             _testing_target, 'unknown'))):
       plist = {'Foo': 'bar'}
@@ -634,7 +630,7 @@ class PlistToolTest(unittest.TestCase):
 
   def test_unknown_control_keys_raise(self):
     with self.assertRaisesRegexp(
-        ValueError,
+        plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
             _testing_target, 'mumble'))):
       plist = {'Foo': 'bar'}
