@@ -239,7 +239,7 @@ def _main(control_path, output_path):
     version_data = tool.run()
   except VersionToolError as e:
     # Log tools errors cleanly for build output.
-    print 'ERROR: %s' % e
+    sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
 
   with open(output_path, 'w') as output_file:

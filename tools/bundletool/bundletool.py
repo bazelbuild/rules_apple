@@ -221,7 +221,7 @@ def _main(control_path):
     bundler.run()
   except BundleToolError as e:
     # Log tools errors cleanly for build output.
-    print 'ERROR: %s' % e
+    sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
 
 

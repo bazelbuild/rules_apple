@@ -615,7 +615,7 @@ def _main(control_path):
     tool.run()
   except PlistToolError as e:
     # Log tools errors cleanly for build output.
-    print 'ERROR: %s' % e
+    sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
 
 
