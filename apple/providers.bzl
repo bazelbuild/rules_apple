@@ -292,12 +292,16 @@ Fields:
       the propagating target. (Contrast with `transitive_libs`.)
   direct_module: `File`. The single `.swiftmodule` file that was produced by
       compiling the propagating target. (Contrast with `transitive_modules`.)
+  direct_doc: `File`. The single `.swiftdoc` file that was produced by
+      compiling the propagating target.  (Contrast with `transitive_docs`.)
   transitive_defines: `depset` of `string`s. The set of conditional compilation
       flags defined by the propagating target and all of its transitive
       dependencies.
   transitive_libs: `depset` of `File`s. The set of static library files output
       by the propagating target and all of its transitive dependencies.
   transitive_modules: `depset` of `File`s. The set of `.swiftmodule` files
+      output by the propagating target and all of its transitive dependencies.
+  transitive_docs: `depset` of `File`s. The set of `.swiftdoc` files
       output by the propagating target and all of its transitive dependencies.
 """
 )
