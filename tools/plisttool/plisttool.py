@@ -196,7 +196,7 @@ def _ConvertToRFC1034(string):
 
 
 class PlistToolError(ValueError):
-  """Raised for all errors errors.
+  """Raised for all errors.
 
   Custom ValueError used to allow catching (and logging) just the plisttool
   errors.

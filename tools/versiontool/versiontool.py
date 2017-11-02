@@ -54,6 +54,22 @@ import string
 import sys
 
 
+class VersionToolError(ValueError):
+  """Raised for all errors.
+
+  Custom ValueError used to allow catching (and logging) just the VersionTool
+  errors.
+  """
+
+  def __init__(self, msg):
+    """Initializes an error with the given message.
+
+    Args:
+      msg: The message for the error.
+    """
+    ValueError.__init__(self, msg)
+
+
 class DefaultFormatDict(dict):
   """A dictionary that ignores non-present args when passed to `vformat`.
 
@@ -129,7 +145,7 @@ class VersionTool(object):
         if match:
           substitutions = match.groupdict()
         else:
-          raise ValueError(
+          raise VersionToolError(
               'The build label ("%s") did not match the pattern ("%s").' %
               (build_label, resolved_pattern))
 
@@ -159,8 +175,6 @@ class VersionTool(object):
     Returns:
       The value of the `BUILD_EMBED_LABEL` line in the build info file, or None
       if the file did not exist.
-    Raises:
-      ValueError: if there was no build label in the build info file.
     """
     if not self._build_info_path:
       return None
@@ -193,14 +207,14 @@ class VersionTool(object):
       The substituted version string, or None if it still contained
       placeholders but no --embed_label was set.
     Raises:
-      ValueError if --embed_label was provided but the version string still
-      contained placeholders after substitution.
+      VersionToolError if --embed_label was provided but the version string
+      still contained placeholders after substitution.
     """
     version = string.Formatter().vformat(
         pattern, (), DefaultFormatDict(**substitutions))
     if re.search(r"\{[^}]*\}", version):
       if build_label:
-        raise ValueError(
+        raise VersionToolError(
             '--embed_label had a non-empty label ("%s") but the version string '
             '"%s" ("%s") still contained placeholders after substitution' % (
                 build_label, key, version))
@@ -221,7 +235,12 @@ def _main(control_path, output_path):
     control = json.load(control_file)
 
   tool = VersionTool(control)
-  version_data = tool.run()
+  try:
+    version_data = tool.run()
+  except VersionToolError as e:
+    # Log tools errors cleanly for build output.
+    print 'ERROR: %s' % e
+    sys.exit(1)
 
   with open(output_path, 'w') as output_file:
     json.dump(version_data, output_file)

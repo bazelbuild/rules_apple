@@ -83,7 +83,7 @@ class VersionToolTest(unittest.TestCase):
     }, {})
 
   def test_raises_if_label_is_present_but_does_not_match(self):
-    with self.assertRaises(ValueError) as context:
+    with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
           'build_info_path': StringIO.StringIO(
               'BUILD_EMBED_LABEL app_3.1_RC41',

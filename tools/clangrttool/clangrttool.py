@@ -32,6 +32,22 @@ from macholib import mach_o
 from macholib.ptypes import sizeof
 
 
+class ClangRuntimeToolError(RuntimeError):
+  """Raised for all errors.
+
+  Custom RuntimeError used to allow catching (and logging) just the
+  ClangRuntimeTool errors.
+  """
+
+  def __init__(self, msg):
+    """Initializes an error with the given message.
+
+    Args:
+      msg: The message for the error.
+    """
+    RuntimeError.__init__(self, msg)
+
+
 class ClangRuntimeTool(object):
   """Implements the clang runtime tool."""
 
@@ -106,10 +122,10 @@ class ClangRuntimeTool(object):
       clang_libraries.update(self._get_clang_libraries(header))
 
     if not clang_lib_path:
-      raise RuntimeError("Could not find clang library path.")
+      raise ClangRuntimeToolError("Could not find clang library path.")
 
     if not clang_libraries:
-      raise RuntimeError(
+      raise ClangRuntimeToolError(
           "Could not find any clang runtime libraries to package."
           "This is likely a configuration error")
 
@@ -119,12 +135,18 @@ class ClangRuntimeTool(object):
         if os.path.exists(full_path):
           out_zip.write(full_path, arcname=lib)
         else:
-          raise RuntimeError("Could not read library at %s." % full_path)
+          raise ClangRuntimeToolError("Could not read library at %s." %
+              full_path)
 
 if __name__ == "__main__":
   binary_path = sys.argv[1]
   out_path = sys.argv[2]
 
   tool = ClangRuntimeTool(binary_path, out_path)
-  tool.run()
+  try:
+    tool.run()
+  except ClangRuntimeToolError as e:
+    # Log tools errors cleanly for build output.
+    print 'ERROR: %s' % e
+    sys.exit(1)
 
