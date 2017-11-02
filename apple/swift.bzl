@@ -569,6 +569,7 @@ def register_swift_compile_actions(ctx, reqs):
   # Collect transitive dependecies.
   dep_modules = depset()
   dep_libs = depset()
+  dep_docs = depset()
   swiftc_defines = reqs.defines[:]
 
   swift_providers = providers.find_all(reqs.deps, SwiftInfo)
@@ -577,6 +578,7 @@ def register_swift_compile_actions(ctx, reqs):
   for swift in swift_providers:
     dep_libs += swift.transitive_libs
     dep_modules += swift.transitive_modules
+    dep_docs += swift.transitive_docs
     swiftc_defines += swift.transitive_defines
 
   # A unique path for rule's outputs.
@@ -584,6 +586,7 @@ def register_swift_compile_actions(ctx, reqs):
 
   output_lib = ctx.new_file(objs_outputs_path + module_name + ".a")
   output_module = ctx.new_file(objs_outputs_path + module_name + ".swiftmodule")
+  output_doc = ctx.new_file(objs_outputs_path + module_name + ".swiftdoc")
 
   # These filenames are guaranteed to be unique, no need to scope.
   output_header = ctx.new_file(label.name + "-Swift.h")
@@ -655,7 +658,8 @@ def register_swift_compile_actions(ctx, reqs):
   xcrun_action(
       ctx,
       inputs=_swiftc_inputs(reqs.srcs, reqs.deps) + [swiftc_output_map_file],
-      outputs=[output_module, output_header] + output_objs + swiftc_outputs,
+      outputs=([output_module, output_header, output_doc] + output_objs +
+               swiftc_outputs),
       mnemonic="SwiftCompile",
       arguments=args,
       use_default_shell_env=False,
@@ -684,8 +688,9 @@ def register_swift_compile_actions(ctx, reqs):
   # The full transitive set of libraries and modules used by this target.
   transitive_libs = depset([output_lib]) + dep_libs
   transitive_modules = depset([output_module]) + dep_modules
+  transitive_docs = depset([output_doc]) + dep_docs
 
-  compile_outputs = [output_lib, output_module, output_header]
+  compile_outputs = [output_lib, output_module, output_header, output_doc]
 
   objc_provider_args = {
       "library": depset([output_lib]) + dep_libs,
@@ -709,9 +714,11 @@ def register_swift_compile_actions(ctx, reqs):
   return compile_outputs, objc_provider, SwiftInfo(
       direct_lib=output_lib,
       direct_module=output_module,
+      direct_doc=output_doc,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
       transitive_defines=swiftc_defines,
+      transitive_docs=transitive_docs,
   )
 
 
@@ -731,18 +738,22 @@ def merge_swift_info_providers(targets):
   transitive_defines = []
   transitive_libs = depset()
   transitive_modules = depset()
+  transitive_docs = depset()
 
   for swift_info in providers.find_all(targets, SwiftInfo):
     transitive_defines += swift_info.transitive_defines
     transitive_libs += swift_info.transitive_libs
     transitive_modules += swift_info.transitive_modules
+    transitive_docs += swift_info.transitive_docs
 
   return SwiftInfo(
       direct_lib=None,
       direct_module=None,
+      direct_doc=None,
       transitive_defines=transitive_defines,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
+      transitive_docs=transitive_docs,
   )
 
 
@@ -854,8 +865,10 @@ def _swift_library_impl(ctx):
       swift=struct(
           direct_lib=swift_info.direct_lib,
           direct_module=swift_info.direct_module,
+          direct_doc=swift_info.direct_doc,
           transitive_libs=swift_info.transitive_libs,
           transitive_modules=swift_info.transitive_modules,
+          transitive_docs=swift_info.transitive_docs,
           transitive_defines=swift_info.transitive_defines,
       ),
       objc=objc_provider,
