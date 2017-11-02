@@ -147,6 +147,6 @@ if __name__ == "__main__":
     tool.run()
   except ClangRuntimeToolError as e:
     # Log tools errors cleanly for build output.
-    print 'ERROR: %s' % e
+    sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
 
