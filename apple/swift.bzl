@@ -197,20 +197,6 @@ def swift_linkopts(apple_fragment, config_vars, is_static=False):
   return ["-L" + _swift_lib_dir(apple_fragment, config_vars, is_static)]
 
 
-def _swift_xcrun_args(apple_fragment):
-  """Returns additional arguments that should be passed to xcrun.
-
-  Args:
-    apple_fragment: The `apple` configuration fragment.
-  Returns:
-    A list of flags, possibly empty, that should be passed to xcrun.
-  """
-  if apple_fragment.xcode_toolchain:
-    return ["--toolchain", apple_fragment.xcode_toolchain]
-
-  return []
-
-
 def _swift_parsing_flags(srcs):
   """Returns additional parsing flags for swiftc."""
   # swiftc has two different parsing modes: script and library.
@@ -630,9 +616,7 @@ def register_swift_compile_actions(ctx, reqs):
       output=swiftc_output_map_file,
       content=swiftc_output_map.to_json())
 
-  args = (_swift_xcrun_args(reqs.apple_fragment) +
-          ["swiftc"] +
-          _swiftc_args(reqs))
+  args = ["swiftc"] + _swiftc_args(reqs)
 
   args += [
       "-I" + output_module.dirname,
