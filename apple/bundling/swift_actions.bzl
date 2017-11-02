@@ -39,17 +39,13 @@ def _zip_swift_dylibs(ctx, binary_file):
   """
   platform, _ = platform_support.platform_and_sdk_version(ctx)
 
-  xcrun_args = []
-  if ctx.fragments.apple.xcode_toolchain:
-    xcrun_args += ["--toolchain", ctx.fragments.apple.xcode_toolchain]
-
   zip_file = file_support.intermediate(ctx, "%{name}.swiftlibs.zip")
   platform_support.xcode_env_action(
       ctx,
       inputs=[binary_file],
       outputs=[zip_file],
       executable=ctx.executable._swiftstdlibtoolwrapper,
-      arguments=xcrun_args + [
+      arguments=[
           "--output_zip_path",
           zip_file.path,
           "--bundle_path",
