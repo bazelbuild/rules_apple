@@ -4,14 +4,6 @@
 Please feel free to use them and give us feedback, but be aware that there may
 be parts that are broken and/or missing.
 
-In particular, you must pass an additional flag,
-`--experimental_objc_crosstool=all`, to `bazel build` at this time for
-compilation/linking to work correctly for macOS targets. For example:
-
-```shell
-bazel build --experimental_objc_crosstool=all $TARGET_LABEL
-```
-
 ---
 
 <a name="macos_application"></a>

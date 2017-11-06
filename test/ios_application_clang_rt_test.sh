@@ -76,7 +76,6 @@ function test_asan_bundle() {
   create_minimal_ios_application
 
   do_build ios --define=apple_bundle_clang_rt=1 \
-      --experimental_objc_crosstool=all \
       --features=asan \
       //app:app || fail "Should build"
 
