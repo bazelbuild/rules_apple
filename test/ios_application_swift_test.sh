@@ -439,7 +439,6 @@ swift_library(
 EOF
 
   do_build ios //app:app \
-      --experimental_objc_crosstool=all \
       --features=asan \
       --define=apple_swift_sanitize=address || fail "Should build"
 }
