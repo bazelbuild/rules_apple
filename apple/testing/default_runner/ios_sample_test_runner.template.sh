@@ -33,20 +33,33 @@ TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/tests.XXXXXX")"
 
 # Create a simulator with a random name and the latest iOS SDK
 RANDOM_NAME="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
-SIM_VERSION="$(xcrun simctl list runtimes | grep "SimRuntime\.iOS" | sed 's/^iOS [0-9\\.]* (\([0-9\.]*\).*/\1/' | tail -n 1)"
+SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version | tr "." "-")"
+SIMULATOR_RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-$SDK_VERSION"
+NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SIMULATOR_RUNTIME")
 
-NEW_SIM_ID=$(xcrun simctl create "$RANDOM_NAME" "iPhone 6" "$SIM_VERSION")
+# Shut down and clean up our simulator and temp directory even if we fail along the way.
+did_cleanup=0
 
-# Clean up our simulator and temp directory if we fail along the way
 function cleanup {
-  rm -rf "${TEST_TMP_DIR}"
-  xcrun simctl delete $"$NEW_SIM_ID"
+  if [[ "$did_cleanup" == "0" ]]; then
+    did_cleanup=1
+    rm -rf "${TEST_TMP_DIR}"
+    xcrun simctl shutdown "$RANDOM_NAME"
+    xcrun simctl delete "$RANDOM_NAME"
+  fi
 }
+
 trap cleanup ERR EXIT
 
 # Wait a bit so that the newly created simulator can pass from the Creating
 # state to the Shutdown state.
 sleep 2
+
+# Ensure simulator is booted.
+xcrun simctl boot "$NEW_SIM_ID"
+
+# Ensure log directory exists.
+mkdir -p "/Users/$(whoami)/Library/Developer/CoreSimulator/Devices/$NEW_SIM_ID/data/Library/logs"
 
 # Extract the bundle into the tmp folder we created earlier
 TEST_BUNDLE_PATH="%(test_bundle_path)s"

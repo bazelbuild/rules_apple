@@ -253,7 +253,7 @@ function test_builds_with_default_host() {
     create_common_files
     create_minimal_ios_unit_test
 
-    do_build ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
+    do_test ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
   fi
 }
 
