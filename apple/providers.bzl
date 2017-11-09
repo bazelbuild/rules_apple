@@ -47,6 +47,7 @@ archive.
         "bundle_extension": """
 `string`. The bundle extension.
 """,
+        "entitlements": "`File`. Entitlements file used to codesign, if any.",
         "extension_safe": """
 Boolean. True if the target propagating this provider was
 compiled and linked with -application-extension, restricting it to
