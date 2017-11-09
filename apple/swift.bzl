@@ -435,7 +435,7 @@ def _swiftc_args(reqs):
 
   # Collect transitive dependecies.
   dep_modules = depset()
-  swiftc_defines = reqs.defines[:]
+  swiftc_defines = depset(reqs.defines)
 
   swift_providers = providers.find_all(deps, SwiftInfo)
   objc_providers = providers.find_all(deps, "objc")
@@ -471,7 +471,7 @@ def _swiftc_args(reqs):
 
   include_args = ["-I%s" % d for d in include_dirs + objc_includes]
   framework_args = ["-F%s" % x for x in framework_dirs]
-  define_args = ["-D%s" % x for x in swiftc_defines]
+  define_args = ["-D%s" % x for x in swiftc_defines.to_list()]
 
   # Disable the LC_LINKER_OPTION load commands for static frameworks automatic
   # linking. This is needed to correctly deduplicate static frameworks from also
@@ -552,11 +552,11 @@ def register_swift_compile_actions(ctx, reqs):
   module_name = reqs.module_name
   label = reqs.label
 
-  # Collect transitive dependecies.
+  # Collect transitive dependencies.
   dep_modules = depset()
   dep_libs = depset()
   dep_docs = depset()
-  swiftc_defines = reqs.defines[:]
+  swiftc_defines = depset(reqs.defines)
 
   swift_providers = providers.find_all(reqs.deps, SwiftInfo)
   objc_providers = providers.find_all(reqs.deps, "objc")
@@ -719,7 +719,7 @@ def merge_swift_info_providers(targets):
     A new SwiftInfo provider that contains the transitive information from all
     the targets.
   """
-  transitive_defines = []
+  transitive_defines = depset()
   transitive_libs = depset()
   transitive_modules = depset()
   transitive_docs = depset()
