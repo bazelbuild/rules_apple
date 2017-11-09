@@ -419,10 +419,12 @@ def _process_and_sign_archive(ctx,
     progress_description: The message that should be shown as the progress
         description for the bundling action.
   Returns:
-    The path to the directory that represents the root of the expanded
-    processed and signed files (before zipping). This is useful to external
-    tools that want to access the directory directly instead of unzipping the
-    final archive again.
+    Tuple containing:
+        1. The path to the directory that represents the root of the expanded
+        processed and signed files (before zipping). This is useful to external
+        tools that want to access the directory directly instead of unzipping
+        the final archive again.
+        2. The entitlements file used to sign, potentially None.
   """
   script_inputs = [unprocessed_archive]
 
@@ -433,7 +435,7 @@ def _process_and_sign_archive(ctx,
   if getattr(ctx.attr, "entitlements", None):
     if AppleEntitlementsInfo in ctx.attr.entitlements:
       entitlements = (
-          ctx.attr.entitlements[AppleEntitlementsInfo].signing_entitlements)
+          ctx.attr.entitlements[AppleEntitlementsInfo].final_entitlements)
     else:
       entitlements = ctx.file.entitlements
 
@@ -491,7 +493,7 @@ def _process_and_sign_archive(ctx,
       progress_message="Processing and signing %s: %s" % (
           progress_description, bundle_name)
   )
-  return work_dir
+  return (work_dir, entitlements)
 
 
 def _experimental_create_and_sign_bundle(
@@ -875,6 +877,7 @@ def _run(
         bundle_merge_zips, mnemonic, progress_description)
 
   work_dir = None
+  entitlements = None
   bundle_dir = None
   main_outputs.append(ctx.outputs.archive)
   if experimental_bundling in ("bundle_and_archive", "off"):
@@ -882,7 +885,7 @@ def _run(
         ctx, bundle_name, bundle_path_in_archive, bundle_merge_files,
         bundle_merge_zips, root_merge_zips_to_archive, mnemonic,
         progress_description)
-    work_dir = _process_and_sign_archive(
+    work_dir, entitlements = _process_and_sign_archive(
         ctx, bundle_name, bundle_path_in_archive, ctx.outputs.archive,
         unprocessed_archive, mnemonic, progress_description)
   else:
@@ -941,6 +944,7 @@ def _run(
       "bundle_extension": bundling_support.bundle_extension(ctx),
       "bundle_id": bundle_id,
       "bundle_name": bundle_name,
+      "entitlements": entitlements,
       "extension_safe": extension_safe,
       "infoplist": main_infoplist,
       "minimum_os_version": platform_support.minimum_os(ctx),

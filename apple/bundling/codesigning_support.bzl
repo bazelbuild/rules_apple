@@ -120,7 +120,7 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
     path_to_sign: A struct indicating the path that should be signed and its
         optionality (see `_path_to_sign`).
     entitlements_file: The entitlements file to pass to codesign. May be `None`
-        for simulator builds or non-app binaries (e.g. test bundles).
+        for non-app binaries (e.g. test bundles).
   Returns:
     The codesign command invocation for the given directory.
   """

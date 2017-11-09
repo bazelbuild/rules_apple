@@ -45,12 +45,9 @@ This provider is an internal implementation detail of the bundling rules and
 should not be used directly by users.
 """,
     fields={
-        "signing_entitlements": """
-A `File` representing the `.entitlements` file that
-should be used during code signing of device builds. May be `None` if
-there are no entitlements or if this is a simulator build where the
-entitlements are embedded in the binary instead of being applied during
-signing.
+        "final_entitlements": """
+A `File` representing the `.entitlements` file that should be used
+during code signing. May be `None` if there are no entitlements.
 """
     }
 )
@@ -286,7 +283,7 @@ def _entitlements_impl(ctx):
   if not entitlements_needing_substitution and not uses_debug_entitlements:
     return struct(
         objc=apple_common.new_objc_provider(),
-        providers=[AppleEntitlementsInfo(signing_entitlements=None)],
+        providers=[AppleEntitlementsInfo(final_entitlements=None)],
     )
 
   if entitlements_needing_substitution:
@@ -327,13 +324,13 @@ def _entitlements_impl(ctx):
         objc=linker_support.sectcreate_objc_provider(
             "__TEXT", "__entitlements", final_entitlements
         ),
-        providers=[AppleEntitlementsInfo(signing_entitlements=None)],
+        providers=[AppleEntitlementsInfo(final_entitlements=final_entitlements)],
     )
   else:
     return struct(
         objc=apple_common.new_objc_provider(),
         providers=[
-            AppleEntitlementsInfo(signing_entitlements=final_entitlements)
+            AppleEntitlementsInfo(final_entitlements=final_entitlements)
         ],
     )
 
