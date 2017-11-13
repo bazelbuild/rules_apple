@@ -347,4 +347,120 @@ function test_watch_extension_entitlements() {
   fi
 }
 
+# Tests that transitively depending on a objc_bundle_library from a watch
+# application correctly includes the bundle library resources in the final
+# app.
+function test_watch_app_bundle_library() {
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:watchos.bzl",
+     "watchos_application",
+     "watchos_extension"
+    )
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    deps = ["fooResource"],
+)
+
+objc_bundle_library(
+    name = "fooResource",
+    resources = ["foo.txt"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info-PhoneApp.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    watch_application = ":watch_app",
+    deps = [":lib"],
+)
+
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/main.m <<EOF
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+
+  cat > app/Info-PhoneApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+}
+EOF
+
+  cat > app/Info-WatchApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  WKCompanionAppBundleIdentifier = "my.bundle.id";
+  WKWatchKitApp = true;
+}
+EOF
+
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+  cat > app/foo.txt <<EOF
+foo
+EOF
+
+  cat > app/entitlements.entitlements <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>test-an-entitlement</key>
+  <false/>
+</dict>
+</plist>
+EOF
+
+  do_build watchos //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Watch/watch_app.app/fooResource.bundle/foo.txt"
+}
+
 run_suite "watchos_application bundling tests"
