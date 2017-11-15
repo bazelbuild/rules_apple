@@ -321,7 +321,8 @@ def ios_static_framework(name, **kwargs):
       name = apple_static_library_name,
       deps = deps,
       avoid_deps = avoid_deps,
-      platform_type = "ios",
+      minimum_os_version = kwargs.get("minimum_os_version"),
+      platform_type = str(apple_common.platform_type.ios),
       visibility = kwargs.get("visibility"),
   )
 
