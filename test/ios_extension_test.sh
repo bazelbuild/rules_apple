@@ -285,11 +285,11 @@ function test_sticker_pack_extension() {
   create_minimal_ios_application_with_extension \
       "apple_product_type.messages_sticker_pack_extension"
   create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
-      LSApplicationIsStickerPack
+      LSApplicationIsStickerProvider
 
   do_build ios //app:dump_plist || fail "Should build"
 
-  assert_equals "true" "$(cat "test-genfiles/app/LSApplicationIsStickerPack")"
+  assert_equals "YES" "$(cat "test-genfiles/app/LSApplicationIsStickerProvider")"
 
   # Ignore the check for simulator builds.
   is_device_build ios || return 0
