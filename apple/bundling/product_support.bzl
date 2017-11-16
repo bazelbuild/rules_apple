@@ -185,7 +185,7 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     ),
     apple_product_type.messages_sticker_pack_extension: _describe_product_type(
         bundle_extension=".appex",
-        additional_infoplist_values={"LSApplicationIsStickerPack": True},
+        additional_infoplist_values={"LSApplicationIsStickerProvider": "YES"},
         stub=_describe_stub(
             xcenv_based_path=("$(PLATFORM_DIR)/Library/Application Support/" +
                               "MessagesApplicationExtensionStub/" +
