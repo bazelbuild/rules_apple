@@ -73,6 +73,11 @@ def _apple_bundle_version_impl(ctx):
     fail("If either build_label_pattern or capture_groups is provided, then " +
          "both must be provided.")
 
+  fallback_build_label = ctx.attr.fallback_build_label
+  if fallback_build_label and not build_label_pattern:
+    fail("If fallback_build_label is provided, then build_label_pattern " +
+         "and capture_groups must be provided.")
+
   patterns_to_validate = {
       "build_version": ctx.attr.build_version,
       "short_version_string": ctx.attr.short_version_string,
@@ -90,6 +95,9 @@ def _apple_bundle_version_impl(ctx):
     inputs.append(ctx.info_file)
     optional_options["build_info_path"] = ctx.info_file.path
     optional_options["build_label_pattern"] = build_label_pattern
+
+  if fallback_build_label:
+    optional_options["fallback_build_label"] = fallback_build_label
 
   bundle_version_file = ctx.new_file(ctx.label.name + ".bundle_version")
 
@@ -133,6 +141,9 @@ apple_bundle_version = rule(
         "capture_groups": attr.string_dict(
             mandatory=False,
         ),
+        "fallback_build_label": attr.string(
+            mandatory=False,
+        ),
         "short_version_string": attr.string(
             mandatory=False,
         ),
@@ -165,6 +176,9 @@ Args:
       in `build_label_pattern` and the corresponding value is the regular
       expression that should match that placeholder. If this attribute is
       provided, then `build_label_pattern` must also be provided.
+  fallback_build_label: A build label to use when the no `--embed_label` was
+      provided on the build. Used to provide a version that will be used
+      during development.
   short_version_string: A string that will be used as the value for the
       `CFBundleShortVersionString` key in a depending bundle's Info.plist. If
       this string contains placeholders, then they will be replaced by strings
