@@ -29,6 +29,8 @@ with the following keys:
       build label, with possible placeholders corresponding to `capture_groups`.
   build_version_pattern: The string (possibly containing placeholders) that
       should be used as the value of `CFBundleVersion`.
+  fallback_build_label: A build label to use when the no `--embed_label` was
+      provided on the build.
   capture_groups: A dictionary whose keys correspond to placeholders found in
       `build_label_pattern` and whose values are regular expressions that should
       be used to match and capture those segments.
@@ -117,6 +119,8 @@ class VersionTool(object):
     self._build_label_pattern = control.get('build_label_pattern')
     self._build_version_pattern = control.get('build_version_pattern')
     self._capture_groups = control.get('capture_groups')
+    # `or None` on the next to normalize empty string to None also.
+    self._fallback_build_label = control.get('fallback_build_label') or None
 
     # Use the build_version pattern if short_version_string is not specified so
     # that they both end up the same.
@@ -129,7 +133,7 @@ class VersionTool(object):
     build_label = None
 
     if self._build_label_pattern:
-      build_label = self._extract_build_label()
+      build_label = self._extract_build_label() or self._fallback_build_label
 
       # It's ok if the build label is not present; this is common during local
       # development.
@@ -180,10 +184,10 @@ class VersionTool(object):
       return None
 
     with _testable_open(self._build_info_path) as build_info_file:
-      for line in build_info_file:
-        match = re.match(r"^BUILD_EMBED_LABEL\s(.*)$", line)
-        if match:
-          return match.group(1)
+      content = build_info_file.read()
+      match = re.search(r"^BUILD_EMBED_LABEL\s(.*)$", content, re.MULTILINE)
+      if match:
+        return match.group(1)
 
     return None
 

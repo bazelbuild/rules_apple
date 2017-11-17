@@ -116,6 +116,55 @@ EOF
       test-bin/pkg/saved_version.txt
 }
 
+# Test that the fallback_build_label is used when --embed_label is not
+# passed on the build.
+function test_build_label_substitution_from_fallback_label() {
+  cat >> pkg/BUILD <<EOF
+apple_bundle_version(
+    name = "bundle_version",
+    build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+    build_version = "{version}.{candidate}",
+    fallback_build_label = "MyApp_99.99_RC99",
+    short_version_string = "{version}",
+    capture_groups = {
+        "version": "\\d+\.\\d+",
+        "candidate": "\\d+",
+    },
+)
+EOF
+
+  do_build ios //pkg:saved_version || \
+      fail "Should build"
+  assert_contains "\"build_version\": \"99.99.99\"" \
+      test-bin/pkg/saved_version.txt
+  assert_contains "\"short_version_string\": \"99.99\"" \
+      test-bin/pkg/saved_version.txt
+}
+
+# Test that the fallback_build_label is *not* used when --embed_label *is*
+# passed on the build.
+function test_build_label_substitution_ignores_fallback_label() {
+  cat >> pkg/BUILD <<EOF
+apple_bundle_version(
+    name = "bundle_version",
+    build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+    build_version = "{version}.{candidate}",
+    fallback_build_label = "MyApp_99.99_RC99",
+    short_version_string = "{version}",
+    capture_groups = {
+        "version": "\\d+\.\\d+",
+        "candidate": "\\d+",
+    },
+)
+EOF
+
+  do_build ios //pkg:saved_version --embed_label=MyApp_1.2_RC03 || \
+      fail "Should build"
+  assert_contains "\"build_version\": \"1.2.3\"" test-bin/pkg/saved_version.txt
+  assert_contains "\"short_version_string\": \"1.2\"" \
+      test-bin/pkg/saved_version.txt
+}
+
 # Tests that short_version_string defaults to the same value as build_version
 # if not specified.
 function test_short_version_string_defaults_to_build_version_with_label_substitution() {
@@ -192,6 +241,24 @@ EOF
   expect_log "If either build_label_pattern or capture_groups is provided, " \
       "then both must be provided"
 }
+
+# Tests that the build fails if fallback_build_label is provided but
+# build_label_pattern is not.
+function test_fallback_build_label_requires_build_label_pattern() {
+  cat >> pkg/BUILD <<EOF
+apple_bundle_version(
+    name = "bundle_version",
+    build_version = "1.2",
+    fallback_build_label = "MyApp_1.2_RC03"
+)
+EOF
+
+  ! do_build ios //pkg:saved_version || \
+      fail "Should fail"
+  expect_log "If fallback_build_label is provided, then build_label_pattern " \
+      "and capture_groups must be provided."
+}
+
 
 # Test that the build fails if the build label does not match the regular
 # expression that is built after substituting the regex groups for the

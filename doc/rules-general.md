@@ -5,7 +5,7 @@
 
 ```python
 apple_bundle_version(name, build_label_pattern, build_version, capture_groups,
-short_version_string)
+fallback_build_label, short_version_string)
 ```
 
 Produces a target that contains versioning information for an Apple bundle.
@@ -17,10 +17,6 @@ command line flag.
 Targets created by this rule do not generate outputs themselves, but instead
 should be used in the `version` attribute of an Apple application or extension
 bundle target to set the version keys in that bundle's Info.plist file.
-
-NOTE: When using `build_label_pattern`, if a build is done _without_ a
-`--embed_label=...` argument (i.e., developers' interactive builds), then no
-version info will be set, and the a default of _1.0_ will be used.
 
 ### Examples
 
@@ -40,7 +36,8 @@ ios_application(
 )
 
 # A version scheme that parses version information out of the build
-# label. For example, the following command
+# label and uses a fallback for developers' builds. For example, the
+# following command
 #
 #    bazel build //myapp:myapp --embed_label=MyApp_1.2_build_345
 #
@@ -48,6 +45,15 @@ ios_application(
 #
 #    CFBundleVersion = "1.2.345"
 #    CFBundleShortVersionString = "1.2"
+#
+# and the development builds using the command:
+#
+#    bazel build //myapp:myapp
+#
+# would yield the values:
+#
+#    CFBundleVersion = "99.99.99"
+#    CFBundleShortVersionString = "99.99"
 #
 apple_bundle_version(
     name = "build_label_version",
@@ -58,6 +64,7 @@ apple_bundle_version(
         "build": "\d+",
     },
     short_version_string = "{version}",
+    fallback_build_label = "MyApp_99.99_build_99",
 )
 
 ios_application(
@@ -94,6 +101,10 @@ ios_application(
         build label passed into Bazel using the <code>--embed_label</code>
         command line flag. Each of the placeholders is expected to match one
         of the keys in the <code>capture_groups</code> attribute.</p>
+        <p>NOTE: When using <code>build_label_pattern</code>, if a build
+        is done <i>without</i> a <code>--embed_label=...</code> argument
+        and there is no <code>fallback_build_label</code>,  then no
+        version info will be set.</p>
       </td>
     </tr>
     <tr>
@@ -115,6 +126,19 @@ ios_application(
         the regular expression that should match that placeholder. If this
         attribute is provided, then <code>build_label_pattern</code> must
         also be provided.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>fallback_build_label</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>A string that will be used as the value for the build label if
+        the build was done without <code>--embed_label</code>. This is only
+        needed when also using <code>build_label_pattern</code>. This allows
+        a version label to be used for version extraction during development
+        when a label isn't normally provided. Some teams use the convention
+        of having a version like <i>99.99.99</i> so it is clear it isn't
+        being released to customers.</p>
       </td>
     </tr>
     <tr>
