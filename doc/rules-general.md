@@ -132,13 +132,17 @@ ios_application(
       <td><code>fallback_build_label</code></td>
       <td>
         <p><code>String; optional</code></p>
-        <p>A string that will be used as the value for the build label if
-        the build was done without <code>--embed_label</code>. This is only
+        <p>A string that will be used as the value for the <i>build label</i>
+        if the build was done without <code>--embed_label</code>. This is only
         needed when also using <code>build_label_pattern</code>. This allows
         a version label to be used for version extraction during development
         when a label isn't normally provided. Some teams use the convention
         of having a version like <i>99.99.99</i> so it is clear it isn't
         being released to customers.</p>
+        <p>NOTE: This is a <i>build label</i> and not a raw version number. It
+        must match <code>build_label_pattern</code> so the values can be
+        extracted and then have the <code>build_version</code> and
+        <code>short_version_string</code> templates applied.</p>
       </td>
     </tr>
     <tr>
