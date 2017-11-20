@@ -98,11 +98,6 @@ CHILD_BUNDLE_VERSION_MISMATCH_MSG = (
     '"%s", but found "%s".'
 )
 
-INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG = (
-    'Target "%s" has an info_plist_options entry "%s" that appears to contain '
-    'an unsupported variable reference: "%s".'
-)
-
 PLUTIL_CONVERSION_TO_XML_FAILED_MSG = (
     'While processing target "%s", plutil failed (%d) to convert "%s" to xml.'
 )
@@ -137,6 +132,11 @@ INVALID_SUBSTITUTION_VARIABLE_NAME = (
 SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER = (
     'On target "%s"; variable name for substitutions can not have a '
     'qualifier: "%s".'
+)
+
+SUBSTITUTION_VALUE_HAS_VARIABLE_MSG = (
+    'Target "%s" has a substitution entry "%s" that appears to contain '
+    'an unsupported variable reference: "%s".'
 )
 
 # All valid keys in the a control structure.
@@ -265,7 +265,7 @@ class PlistTool(object):
                target, key))
         if '$' in value:
           raise PlistToolError(
-              INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (target, key, value))
+              SUBSTITUTION_VALUE_HAS_VARIABLE_MSG % (target, key, value))
         value_rfc = _ConvertToRFC1034(value)
         self._substitutions[key] = value
         self._substitutions[key + ':rfc1034identifier'] = value_rfc
