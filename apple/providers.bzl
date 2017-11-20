@@ -511,14 +511,12 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
     existing_set = minimized_dict.get(key)
     avoid_set = avoid_resource_dict.get(key)
 
-    avoid_infoplists = depset()
     avoid_objc_bundle_imports = depset()
     avoid_resources = depset()
     avoid_structured_resources = depset()
     avoid_structured_resource_zips = depset()
 
     if avoid_set:
-      avoid_infoplists = avoid_set.infoplists
       avoid_objc_bundle_imports = avoid_set.objc_bundle_imports
       avoid_resources = avoid_set.resources
       avoid_structured_resources = avoid_set.structured_resources
@@ -555,7 +553,7 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
 
     new_set = AppleResourceSet(
         bundle_dir=current_set.bundle_dir,
-        infoplists=_filter_files(infoplists, avoid_infoplists),
+        infoplists=infoplists,
         objc_bundle_imports=_filter_files(objc_bundle_imports,
                                           avoid_objc_bundle_imports),
         resource_bundle_target_data=resource_bundle_target_data,
@@ -568,7 +566,17 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict={}):
         swift_module=current_set.swift_module,
     )
 
-    minimized_dict[key] = new_set
+    # If this is for the root bundle dir, it always gets saved, otherwise
+    # it has to have some resource left. This prunes bundles that no longer
+    # have resources which ensure the Info.plist won't get built for the now
+    # deduped bundle.
+    if not new_set.bundle_dir:
+      minimized_dict[key] = new_set
+    elif (new_set.objc_bundle_imports or new_set.resources or
+          new_set.structured_resources or new_set.structured_resource_zips):
+      minimized_dict[key] = new_set
+    elif existing_set:
+      fail("An empty set was already added? %s" % new_set.bundle_dir)
 
   return minimized_dict
 

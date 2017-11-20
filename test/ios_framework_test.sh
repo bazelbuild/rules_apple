@@ -1179,7 +1179,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     frameworks = [":framework"],
-    infoplists = ["Info-App.plist"],
+    infoplists = ["Info-App.plist", "Info-Common.plist"],
     minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
@@ -1190,7 +1190,7 @@ ios_framework(
     hdrs = ["DepFramework.h"],
     bundle_id = "my.depframework.id",
     families = ["iphone"],
-    infoplists = ["Framework-Info.plist"],
+    infoplists = ["Framework-Info.plist", "Info-Common.plist"],
     minimum_os_version = "9.0",
     deps = [":dep_framework_lib"],
     dedupe_unbundled_resources = True,
@@ -1202,7 +1202,7 @@ ios_framework(
     bundle_id = "my.framework.id",
     frameworks = [":depframework"],
     families = ["iphone"],
-    infoplists = ["Framework-Info.plist"],
+    infoplists = ["Framework-Info.plist", "Info-Common.plist"],
     minimum_os_version = "9.0",
     deps = [":framework_lib"],
 )
@@ -1243,6 +1243,12 @@ EOF
   cat > app/main.m <<EOF
 int main(int argc, char **argv) {
   return 0;
+}
+EOF
+
+  cat > app/Info-Common.plist <<EOF
+{
+  "CommonKey" = "CommonValue";
 }
 EOF
 
@@ -1315,7 +1321,18 @@ void frameworkDependent() {
   NSLog(@"frameworkDependent() called");
 }
 EOF
-  do_build ios //app:app || fail "Should build"
+  create_dump_plist --suffix app "//app:app.ipa" \
+      "Payload/app.app/Info.plist" \
+      CFBundleIdentifier CommonKey
+  create_dump_plist --suffix framework "//app:app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/Info.plist" \
+      CFBundleIdentifier CommonKey
+  create_dump_plist --suffix depframework "//app:app.ipa" \
+      "Payload/app.app/Frameworks/depframework.framework/Info.plist" \
+      CFBundleIdentifier CommonKey
+
+  do_build ios //app:dump_plist_app //app:dump_plist_framework \
+      //app:dump_plist_depframework || fail "Should build"
 
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
@@ -1330,6 +1347,24 @@ EOF
       "frameworkDependent"
   assert_binary_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/app" "frameworkDependent"
+
+  # They all have Info.plists with the right bundle ids (even though the
+  # frameworks share a comment infoplists entry for it).
+  assert_equals "my.bundle.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_app")"
+  assert_equals "my.framework.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_framework")"
+  assert_equals "my.depframework.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_depframework")"
+
+  # They also all share a common file to add a custom key, ensure that
+  # isn't duped away because of the overlap.
+  assert_equals "CommonValue" \
+      "$(cat "test-genfiles/app/CommonKey_app")"
+  assert_equals "CommonValue" \
+      "$(cat "test-genfiles/app/CommonKey_framework")"
+  assert_equals "CommonValue" \
+      "$(cat "test-genfiles/app/CommonKey_depframework")"
 }
 
 # Verifies that, when an extension depends on a framework with different
