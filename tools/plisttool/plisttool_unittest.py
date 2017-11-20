@@ -628,7 +628,7 @@ class PlistToolTest(unittest.TestCase):
           'unknown': True,
       })
 
-  def test_unknown_control_keys_raise(self):
+  def test_unknown_info_plist_options_keys_raise(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
