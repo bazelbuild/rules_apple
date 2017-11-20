@@ -327,7 +327,7 @@ class PlistToolTest(unittest.TestCase):
   def test_invalid_info_plist_options_value(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.INFO_PLIST_OPTION_VALUE_HAS_VARIABLE_MSG % (
+        re.escape(plisttool.SUBSTITUTION_VALUE_HAS_VARIABLE_MSG % (
             _testing_target, 'mumble', 'foo.bar.${NotSupported}'))):
       _plisttool_result({
          'plists': [{}],
