@@ -340,6 +340,7 @@ def _ios_static_framework_impl(ctx):
       additional_bundlable_files=framework_files,
       framework_files=framework_files,
       deps_objc_providers=[deps_objc_provider],
+      check_for_main_infoplist=False,
   )
 
   return struct(
