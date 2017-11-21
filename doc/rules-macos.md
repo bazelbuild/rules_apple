@@ -461,7 +461,6 @@ Targets created with `macos_command_line_application` can be executed using
         <code>Info.plist</code> that represents the application and is embedded
         into the binary. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
         for what is supported.</p>
-
       </td>
     </tr>
     <tr>
