@@ -51,9 +51,6 @@ the following keys:
 
 The info_plist_options dictionary can contain the following keys:
 
-  apply_default_version: If True, the tool will set CFBundleVersion and
-      CFBundleShortVersionString to be "1.0" if values are not already present
-      in the output plist.
   pkginfo: If present, a string that denotes the path to a PkgInfo file that
       should be created from the CFBundlePackageType and CFBundleSignature keys
       in the final merged plist. (For testing purposes, this may also be a
@@ -61,6 +58,8 @@ The info_plist_options dictionary can contain the following keys:
   version_file: If present, a string that denotes the path to the version file
       propagated by an `AppleBundleVersionInfo` provider, which contains values
       that will be used for the version keys in the Info.plist.
+  version_keys_required: If True, the tool will error if the merged Info.plist
+      does not contain both CFBundleShortVersionString and CFBundleVersion.
   child_plists: If present, a dictionary containing plists that will be
       compared against the final compiled plist for consistency. The keys of
       the dictionary are the labels of the targets to which the associated
@@ -96,6 +95,10 @@ CHILD_BUNDLE_VERSION_MISMATCH_MSG = (
     'While processing target "%s"; the CFBundleShortVersionString of the '
     'child target "%s" should be the same as its parent\'s version string '
     '"%s", but found "%s".'
+)
+
+MISSING_VERSION_KEY_MSG = (
+    'Target "%s" is missing %s.'
 )
 
 PLUTIL_CONVERSION_TO_XML_FAILED_MSG = (
@@ -147,7 +150,7 @@ _CONTROL_KEYS = frozenset([
 
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
-    'apply_default_version', 'child_plists', 'pkginfo', 'version_file',
+    'child_plists', 'pkginfo', 'version_file', 'version_keys_required',
 ])
 
 # Two regexes for variable matching/validation.
@@ -160,6 +163,22 @@ VARIABLE_NAME_RE = re.compile('^([a-zA-Z0-9_]+)(:rfc1034identifier)?$')
 
 # Regex for RFC1034 normalization, see _ConvertToRFC1034()
 _RFC1034_RE = re.compile(r'[^0-9A-Za-z.]')
+
+# Info.plist "versioning" keys: CFBundleVersion & CFBundleShortVersionString
+#
+# Apple's docs are spares and not very specific. The best info seems to be:
+#  "Core Foundation Keys" -
+#    https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+#  TN2420 - "Version Numbers and Build Numbers" -
+#    https://developer.apple.com/library/content/technotes/tn2420/_index.html
+# For mobile the details seem to be more complete, and the AppStore process
+# helps fill in some gaps by failing uploads (or installs) for wrong/missing
+# information. So while it isn't ever fully spelled out any place, the
+# Apple Bazel rules take the stance that when one key is needed, both should
+# be provided, and the formats should match what is outlines in the above
+# two documents.
+
+# TODO(b/29216266): Add regex patterns to do version format validation.
 
 
 def ExtractVariableFromMatch(re_match_obj):
@@ -410,14 +429,11 @@ class PlistTool(object):
       if short_version_string:
         out_plist['CFBundleShortVersionString'] = short_version_string
 
-    if (options.get('apply_default_version') and
-        'CFBundleVersion' not in out_plist):
-      print('WARN: The Info.plist for target "%s" did not have a '
-            'CFBundleVersion key, so "1.0" will be used as a default. Please '
-            'set up proper versioning using the "version" attribute on the '
-            'target before releasing it.' % target)
-      out_plist['CFBundleVersion'] = '1.0'
-      out_plist['CFBundleShortVersionString'] = '1.0'
+    if options.get('version_keys_required'):
+      for k in ('CFBundleVersion', 'CFBundleShortVersionString'):
+        # This also errors if they are there but the empty string or zero.
+        if not out_plist.get(k, None):
+          raise PlistToolError(MISSING_VERSION_KEY_MSG % (target, k))
 
     # TODO(b/29216266): Check for required keys, such as versions.
 
@@ -598,6 +614,7 @@ class PlistTool(object):
       # a build number developers can pick based on their sources, so they
       # don't require it to match between apps and extensions, but they do
       # require it for the CFBundleShortVersionString.
+      # TODO: Revisit: TN2420 seems to say CFBundleVersion should also match.
 
       version = out_plist['CFBundleShortVersionString']
       child_version = child_plist['CFBundleShortVersionString']

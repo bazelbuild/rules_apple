@@ -59,7 +59,9 @@ def _macos_test_bundle_impl(ctx):
       ctx,
       "MacOSTestArchive", "MacOSTest",
       bundle_id,
-      binary_artifact=binary_artifact)
+      binary_artifact=binary_artifact,
+      version_keys_required=False,
+  )
   return struct(
       files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary", "test_host"]),

@@ -69,6 +69,8 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
 }
 EOF
 }

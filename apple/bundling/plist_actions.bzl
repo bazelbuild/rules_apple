@@ -102,13 +102,13 @@ def _infoplist_minimum_os_pair(ctx):
 def _merge_infoplists(ctx,
                       path_prefix,
                       input_plists,
-                      apply_default_version=False,
                       bundle_id=None,
                       child_plists=[],
                       exclude_executable_name=False,
                       extract_from_ctxt=False,
                       include_xcode_env=False,
                       resource_bundle_target_data=None,
+                      version_keys_required=False,
                       warn_unknown_substitutions=False):
   """Creates an action that merges Info.plists and converts them to binary.
 
@@ -119,9 +119,6 @@ def _merge_infoplists(ctx,
     ctx: The Skylark context.
     path_prefix: A path prefix to apply in front of any intermediate files.
     input_plists: The plist files to merge.
-    apply_default_version: If True, set CFBundleVersion and
-        CFBundleShortVersionString to be "1.0" if values are not already present
-        in the output plist.
     bundle_id: The bundle identifier to set in the output plist.
     child_plists: A list of plists from child targets (such as extensions
         or Watch apps) whose bundle IDs and version strings should be
@@ -137,6 +134,8 @@ def _merge_infoplists(ctx,
     resource_bundle_target_data: If the is for a resource bundle, the
         AppleResourceBundleTargetData of the target that defined it. Will be
         used to provide substitution values.
+    version_keys_required: If True, the merged Info.plist file must include
+        entries for CFBundleShortVersionString and CFBundleVersion.
     warn_unknown_substitutions: If True, unknown substitutions will just be
         a warning instead of an error.
   Returns:
@@ -157,8 +156,8 @@ def _merge_infoplists(ctx,
   info_plist_options = {}
   substitutions = {}
 
-  if apply_default_version:
-    info_plist_options["apply_default_version"] = apply_default_version
+  if version_keys_required:
+    info_plist_options["version_keys_required"] = version_keys_required
 
   if bundle_id:
     substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id

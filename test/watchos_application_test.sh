@@ -83,6 +83,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
 }
 EOF
 
@@ -92,6 +93,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
   WKCompanionAppBundleIdentifier = "my.bundle.id";
   WKWatchKitApp = true;
 }
@@ -103,6 +105,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
   NSExtension = {
     NSExtensionAttributes = {
       WKAppBundleIdentifier = "my.bundle.id.watch-app";
@@ -414,6 +417,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
 }
 EOF
 
@@ -423,6 +427,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
   WKCompanionAppBundleIdentifier = "my.bundle.id";
   WKWatchKitApp = true;
 }
@@ -434,6 +439,7 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
   NSExtension = {
     NSExtensionAttributes = {
       WKAppBundleIdentifier = "my.bundle.id.watch-app";

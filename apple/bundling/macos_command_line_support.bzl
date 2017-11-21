@@ -70,7 +70,6 @@ def _macos_command_line_infoplist_impl(ctx):
       ctx,
       None,
       infoplists,
-      apply_default_version=True,
       bundle_id=bundle_id,
       exclude_executable_name=True,
       extract_from_ctxt=True,

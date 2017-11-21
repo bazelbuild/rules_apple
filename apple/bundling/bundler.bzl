@@ -570,6 +570,7 @@ def _run(
     framework_files=depset(),
     is_dynamic_framework=False,
     deps_objc_providers=[],
+    version_keys_required=True,
     check_for_main_infoplist=True):
   """Implements the core bundling logic for an Apple bundle archive.
 
@@ -601,6 +602,11 @@ def _run(
     is_dynamic_framework: If True, create this bundle as a dynamic framework.
     deps_objc_providers: objc providers containing information about the
         dependencies of the binary target.
+    version_keys_required: If True, the merged Info.plist file is required
+        to have entries for CFBundleShortVersionString and CFBundleVersion.
+        NOTE: Almost every type of bundle for Apple's platforms should get
+        version numbers; so this is done a something only needed to opt out of
+        the require for the exceptional cases (like unittest bundles).
     check_for_main_infoplist: If True, ensure the Info.plist for the Info.plist
         was created for the main bundle.
         TODO(b/69553481): To remove this argument.
@@ -744,10 +750,11 @@ def _run(
           if eb.verify_bundle_id
       ]
       merge_infoplist_args["child_plists"] = child_infoplists
-      merge_infoplist_args["apply_default_version"] = True
       merge_infoplist_args["bundle_id"] = bundle_id
       merge_infoplist_args["extract_from_ctxt"] = True
       merge_infoplist_args["include_xcode_env"] = True
+      if version_keys_required:
+        merge_infoplist_args["version_keys_required"] = True
 
     plist_results = plist_actions.merge_infoplists(
         ctx, bundle_dir, **merge_infoplist_args)
