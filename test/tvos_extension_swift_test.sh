@@ -87,7 +87,8 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleShortVersionString = "1";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
 }
 EOF
 
@@ -96,7 +97,8 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleShortVersionString = "1";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";
@@ -175,7 +177,8 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleShortVersionString = "1";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
 }
 EOF
 
@@ -184,7 +187,8 @@ EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
-  CFBundleShortVersionString = "1";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
     NSExtensionPointIdentifier = "com.apple.widget-extension";

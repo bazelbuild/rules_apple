@@ -261,6 +261,7 @@ def _ios_framework_impl(ctx):
       framework_files=prefixed_hdr_files + [bundlable_binary],
       is_dynamic_framework=True,
       deps_objc_providers=[deps_objc_provider],
+      version_keys_required=False,
   )
 
   return struct(
@@ -340,6 +341,7 @@ def _ios_static_framework_impl(ctx):
       additional_bundlable_files=framework_files,
       framework_files=framework_files,
       deps_objc_providers=[deps_objc_provider],
+      version_keys_required=False,
       check_for_main_infoplist=False,
   )
 

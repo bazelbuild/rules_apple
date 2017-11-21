@@ -643,6 +643,64 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_missing_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+            _testing_target, 'CFBundleVersion'))):
+      plist = {'CFBundleShortVersionString': '1.0'}
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'version_keys_required': True,
+          },
+      })
+
+  def test_missing_short_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+            _testing_target, 'CFBundleShortVersionString'))):
+      plist = {'CFBundleVersion': '1.0'}
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'version_keys_required': True,
+          },
+      })
+
+  def test_empty_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+            _testing_target, 'CFBundleVersion'))):
+      plist = {
+          'CFBundleShortVersionString': '1.0',
+          'CFBundleVersion': '',
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'version_keys_required': True,
+          },
+      })
+
+  def test_empty_short_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+            _testing_target, 'CFBundleShortVersionString'))):
+      plist = {
+          'CFBundleShortVersionString': '',
+          'CFBundleVersion': '1.0',
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'version_keys_required': True,
+          },
+      })
+
 
 if __name__ == '__main__':
   unittest.main()

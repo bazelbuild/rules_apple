@@ -59,6 +59,7 @@ def _ios_test_bundle_impl(ctx):
       bundle_id,
       binary_artifact=binary_artifact,
       deps_objc_providers=deps_objc_providers,
+      version_keys_required=False,
   )
   return struct(
       files=additional_outputs,
