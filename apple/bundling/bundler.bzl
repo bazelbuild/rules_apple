@@ -569,7 +569,8 @@ def _run(
     embedded_bundles=[],
     framework_files=depset(),
     is_dynamic_framework=False,
-    deps_objc_providers=[]):
+    deps_objc_providers=[],
+    check_for_main_infoplist=True):
   """Implements the core bundling logic for an Apple bundle archive.
 
   Args:
@@ -600,6 +601,9 @@ def _run(
     is_dynamic_framework: If True, create this bundle as a dynamic framework.
     deps_objc_providers: objc providers containing information about the
         dependencies of the binary target.
+    check_for_main_infoplist: If True, ensure the Info.plist for the Info.plist
+        was created for the main bundle.
+        TODO(b/69553481): To remove this argument.
   Returns:
     A tuple containing three values:
     1. A list of modern providers that should be propagated by the calling rule.
@@ -761,6 +765,18 @@ def _run(
       bundle_merge_files.append(bundling_support.contents_file(
           ctx, plist_results.pkginfo,
           optionally_prefixed_path("PkgInfo", bundle_dir)))
+
+  # The Info.plist is created in the above loop. As more things are expressed
+  # as attributes for rules, using Info.plist files directly won't be needed,
+  # and that could risk there being nothing to the plist merge to create the
+  # Info.plist that makes the product a bundle (and captures all the forced
+  # key/value pairs). This is a sanity check to ensure there the Info.plist
+  # file was created, if it fires, it is likely time to enforce the creation
+  # some way.
+  # TODO(b/69553481): To resolve the check_for_main_infoplist argument.
+  if check_for_main_infoplist and not main_infoplist:
+    fail(("Internal: The target \"%s\" did not create the Info.plist for the " +
+          "bundle.") % ctx.label)
 
   # Some application/extension types require stub executables, so collect that
   # information if necessary.
