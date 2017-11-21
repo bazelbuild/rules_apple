@@ -361,12 +361,6 @@ ios_static_framework = rule_factory.make_bundling_rule(
         "dedupe_unbundled_resources": attr.bool(default=True),
         "exclude_resources": attr.bool(default=False),
         "hdrs": attr.label_list(allow_files=[".h"]),
-        # Make plists non-mandatory.
-        "infoplists": attr.label_list(
-            allow_files=[".plist"],
-            mandatory=False,
-            non_empty=False,
-        ),
     },
     archive_extension=".zip",
     binary_providers=[apple_common.AppleStaticLibrary],
@@ -375,6 +369,7 @@ ios_static_framework = rule_factory.make_bundling_rule(
         allowed=["iphone", "ipad"],
         mandatory=False,
     ),
+    infoplists_attr_mode=rule_factory.attribute_modes.OPTIONAL,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.static_framework),
