@@ -74,10 +74,6 @@ def _ios_test_bundle_impl(ctx):
 _ios_test_bundle = rule_factory.make_bundling_rule(
     _ios_test_bundle_impl,
     additional_attrs={
-        # Override of the common_rule_attributes() bundle_id attribute in
-        # order to make it optional. Bundle identifier for the
-        # _ios_test_bundle output.
-        "bundle_id": attr.string(),
         # The test host that will run these tests. This is required in order to
         # obtain a sensible default for the tests bundle identifier.
         "test_host": attr.label(mandatory=True, providers=[AppleBundleInfo]),
@@ -85,6 +81,7 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     # TODO(b/34774324): Rename to zip.
     archive_extension=".ipa",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
+    bundle_id_attr_mode=rule_factory.attribute_modes.OPTIONAL,
     code_signing=rule_factory.code_signing(
         ".mobileprovision",
         requires_signing_for_device=False

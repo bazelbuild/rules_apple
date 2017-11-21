@@ -106,6 +106,20 @@ load(
 )
 
 
+# Serves as an enum to express if an attribute is unsupported, mandatory, or
+# optional.
+_attribute_modes = struct(
+  UNSUPPORTED = 1,
+  MANDATORY = 2,
+  OPTIONAL = 3,
+)
+
+def _is_valid_attribute_mode(mode):
+  return (mode == _attribute_modes.UNSUPPORTED or
+      mode == _attribute_modes.MANDATORY or
+      mode == _attribute_modes.OPTIONAL)
+
+
 # Private attributes on every rule that provide access to tools and other
 # file dependencies.
 _common_tool_attributes = {
@@ -317,8 +331,10 @@ def _make_bundling_rule(implementation,
                         additional_attrs={},
                         archive_extension=None,
                         binary_providers=[apple_common.AppleExecutableBinary],
+                        bundle_id_attr_mode=_attribute_modes.MANDATORY,
                         code_signing=None,
                         device_families=None,
+                        infoplists_attr_mode=_attribute_modes.MANDATORY,
                         needs_pkginfo=False,
                         path_formats=None,
                         platform_type=None,
@@ -334,10 +350,12 @@ def _make_bundling_rule(implementation,
         new rule, including the leading dot (for example, `.ipa` or `.zip`).
     binary_providers: The providers that should restrict the `binary` attribute
         of the rule. Defaults to `[apple_common.AppleExecutableBinary]`.
+    bundle_id_attr_mode: An `attribute_modes` for the `bundle_id` attribute.
     code_signing: A value returned by `rule_factory.code_signing` that provides
         information about if and how the bundle should be signed.
     device_families: A value returned by `rule_factory.device_families` that
         provides information about the allowed device families for the bundle.
+    infoplists_attr_mode: An `attribute_modes` for the `infoplists` attribute.
     needs_pkginfo: True if the bundle should include a `PkgInfo` file.
     path_formats: A dictionary containing bundle path format attributes, as
         returned from `rule_factory.simple_path_formats` or
@@ -351,14 +369,20 @@ def _make_bundling_rule(implementation,
         propagate their framework/dylib dependencies to the bundles that embed
         them, rather than being bundled with the target itself.
     **kwargs: Additional arguments that are passed directly to `rule()`.
-  Returns: The created rule.
+
+  Returns:
+    The created rule.
   """
   if not archive_extension:
     fail("Internal error: archive_extension must be provided.")
   if not binary_providers:
     fail("Internal error: binary_providers must be provided.")
+  if not _is_valid_attribute_mode(bundle_id_attr_mode):
+    fail("Internal error: bundle_id_attr_mode is invalid.")
   if not device_families:
     fail("Internal error: device_families must be provided.")
+  if not _is_valid_attribute_mode(infoplists_attr_mode):
+    fail("Internal error: infoplists_attr_mode is invalid.")
   if not path_formats:
     fail("Internal error: path_formats must be provided.")
   if not platform_type:
@@ -385,6 +409,18 @@ def _make_bundling_rule(implementation,
       ),
   }
 
+  configurable_attrs = {}
+  if bundle_id_attr_mode != _attribute_modes.UNSUPPORTED:
+    want_mandatory = (bundle_id_attr_mode == _attribute_modes.MANDATORY)
+    configurable_attrs["bundle_id"] = attr.string(mandatory=want_mandatory)
+  if infoplists_attr_mode != _attribute_modes.UNSUPPORTED:
+    want_mandatory = (infoplists_attr_mode == _attribute_modes.MANDATORY)
+    configurable_attrs["infoplists"] = attr.label_list(
+        allow_files=[".plist"],
+        mandatory=want_mandatory,
+        non_empty=want_mandatory,
+    )
+
   rule_args = dict(**kwargs)
   rule_args["attrs"] = merge_dictionaries(
       _common_tool_attributes,
@@ -395,7 +431,6 @@ def _make_bundling_rule(implementation,
               providers=binary_providers,
               single_file=True,
           ),
-          "bundle_id": attr.string(mandatory=True),
           "bundle_name": attr.string(mandatory=False),
           # Even for rules that don't bundle a user-provided binary (like
           # watchos_application and some ios_application/extension targets), the
@@ -411,11 +446,6 @@ def _make_bundling_rule(implementation,
               mandatory=True,
               providers=binary_providers,
           ),
-          "infoplists": attr.label_list(
-              allow_files=[".plist"],
-              mandatory=True,
-              non_empty=True,
-          ),
           # TODO(b/36512239): Rename to "archive_post_processor".
           "ipa_post_processor": attr.label(
               allow_files=True,
@@ -429,6 +459,7 @@ def _make_bundling_rule(implementation,
           "_platform_type": attr.string(default=str(platform_type)),
           "_propagates_frameworks": attr.bool(default=propagates_frameworks),
       },
+      configurable_attrs,
       _code_signing_attributes(code_signing),
       device_family_attrs,
       path_formats,
@@ -479,6 +510,7 @@ def _simple_path_formats(path_in_archive_format=""):
 
 # Define the loadable module that lists the exported symbols in this file.
 rule_factory = struct(
+    attribute_modes=_attribute_modes,
     bundling_tool_attributes=_bundling_tool_attributes,
     code_signing=_code_signing,
     code_signing_attributes=_code_signing_attributes,
