@@ -65,7 +65,7 @@ def _apple_genrule_impl(ctx):
 
   message = ctx.attr.message or "Executing apple_genrule"
 
-  env = ctx.configuration.default_shell_env
+  env = dict(ctx.configuration.default_shell_env)
   env.update(get_environment_supplier().apple_host_system_env(ctx))
 
   apple_action(ctx,
