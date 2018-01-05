@@ -148,10 +148,11 @@ def _xcode_env_action(ctx, **kwargs):
   """
   platform, _ = _platform_and_sdk_version(ctx)
   environment_supplier = get_environment_supplier()
-  action_env = (environment_supplier.target_apple_env(ctx, platform) +
-                environment_supplier.apple_host_system_env(ctx))
+  action_env = environment_supplier.target_apple_env(ctx, platform)
+  action_env.update(environment_supplier.apple_host_system_env(ctx))
 
-  kwargs["env"] = kwargs.get("env", {}) + action_env
+  kwargs["env"] = dict(kwargs.get("env", {}))
+  kwargs["env"].update(action_env)
 
   apple_action(ctx, **kwargs)
 
