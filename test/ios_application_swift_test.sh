@@ -20,10 +20,12 @@ set -eu
 # Integration tests for bundling iOS applications that use Swift.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
 }
 
+function tear_down() {
+  rm -rf app
+}
 # Creates common source, targets, and basic plist for iOS applications.
 #
 # This creates everything but the "lib" target, which must be created by the

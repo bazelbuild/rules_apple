@@ -18,10 +18,6 @@ provisioning_profile, strings, version, deps)
 
 Builds and bundles a macOS application.
 
-The named target produced by this macro is a ZIP file. This macro also creates
-a target named `{name}.apple_binary` that represents the linked executable
-inside the application bundle.
-
 This rule creates an application that is a `.app` bundle. If you want to build a
 simple command line tool as a standalone binary, use
 [`macos_command_line_application`](#macos_command_line_application) instead.
@@ -223,10 +219,6 @@ minimum_os_version, product_type, provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
-
-The named target produced by this macro is a ZIP file. This macro also creates
-a target named `{name}.apple_binary` that represents the linked executable
-inside the application bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -512,10 +504,6 @@ provisioning_profile, strings, version, deps)
 
 Builds and bundles a macOS extension.
 
-The named target produced by this macro is a ZIP file. This macro also creates a
-target named `{name}.apple_binary` that represents the linked binary
-executable inside the extension bundle.
-
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -674,11 +662,6 @@ test_host, data, deps)
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
-
-The named targets produced by this macro are a zip file and the test script to
-be executed by Bazel. This macro also creates a target named
-`{name}.apple_binary` that represents the linked bundle binary inside the test
-bundle.
 
 The following is a list of the `macos_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the

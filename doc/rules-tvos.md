@@ -5,16 +5,12 @@
 
 ```python
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
-extensions, infoplists, ipa_post_processor, launch_images, launch_storyboard,
-linkopts, minimum_os_version, provisioning_profile, settings_bundle, strings,
-version, deps)
+extensions, infoplists, invalid_entitlements_are_warnings, ipa_post_processor,
+launch_images, launch_storyboard, linkopts, minimum_os_version,
+provisioning_profile, settings_bundle, strings, version, deps)
 ```
 
 Builds and bundles a tvOS application.
-
-The named target produced by this macro is an IPA file. This macro also creates
-a target named `{name}.apple_binary` that represents the linked executable
-inside the application bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -153,8 +149,9 @@ inside the application bundle.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the application. This value is optional (and unused) for
-        simulator builds but <strong>required for device builds.</strong></p>
+        when bundling the application. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
       </td>
     </tr>
     <tr>
@@ -176,6 +173,24 @@ inside the application bundle.
         root of the final application bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>invalid_entitlements_are_warnings</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, when the entitlements for this rule are checked against
+        the entitlements listed as supported in the provisioning profile only
+        warnings (instead of errors) can be issued. Normally, warnings are
+        issued for things that should still work while targeting the Simulator,
+        but errors are reported when targeting a device for things that will
+        prevent the built product from installing/running or the entitlements
+        generally working.</p>
+        <p>Setting this to <code>False</code> should <i>not</i> be commonly
+        needed and only should be needed if the target undergoes some post
+        processing that resigns the binary with different entitlements and/or
+        a different provisioning profile meaning the values on the rule don't
+        really matter.</p>
       </td>
     </tr>
     <tr>
@@ -205,14 +220,11 @@ inside the application bundle.
 
 ```python
 tvos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, strings, version, deps)
+invalid_entitlements_are_warnings, ipa_post_processor, linkopts,
+minimum_os_version, strings, version, deps)
 ```
 
 Builds and bundles a tvOS extension.
-
-The named target produced by this macro is a ZIP file. This macro also creates a
-target named `{name}.apple_binary` that represents the linked binary
-executable inside the extension bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -311,8 +323,9 @@ executable inside the extension bundle.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the extension. This value is optional (and unused) for
-        simulator builds but <strong>required for device builds.</strong></p>
+        when bundling the extension. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
       </td>
     </tr>
     <tr>
@@ -324,6 +337,24 @@ executable inside the extension bundle.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>invalid_entitlements_are_warnings</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, when the entitlements for this rule are checked against
+        the entitlements listed as supported in the provisioning profile only
+        warnings (instead of errors) can be issued. Normally, warnings are
+        issued for things that should still work while targeting the Simulator,
+        but errors are reported when targeting a device for things that will
+        prevent the built product from installing/running or the entitlements
+        generally working.</p>
+        <p>Setting this to <code>False</code> should <i>not</i> be commonly
+        needed and only should be needed if the target undergoes some post
+        processing that resigns the binary with different entitlements and/or
+        a different provisioning profile meaning the values on the rule don't
+        really matter.</p>
       </td>
     </tr>
     <tr>

@@ -19,8 +19,11 @@
 set -eu
 
 function set_up() {
-  rm -rf sdk
   mkdir -p sdk
+}
+
+function tear_down() {
+  rm -rf sdk
 }
 
 # Creates the targets for a minimal static framework.
@@ -32,8 +35,6 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
     minimum_os_version = "7.0",
     deps = [":framework_lib"],
     avoid_deps = [":framework_dependent_lib"],
@@ -81,15 +82,6 @@ objc_library(
 )
 EOF
 
-  cat > sdk/Info.plist <<EOF
-{
-  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
-  CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "FMWK";
-  CFBundleShortVersionString = "1";
-}
-EOF
-
   cat > sdk/Framework.h <<EOF
 #ifndef SDK_FRAMEWORK_H_
 #define SDK_FRAMEWORK_H_
@@ -122,7 +114,7 @@ function test_sdk_contains_expected_files() {
   do_build ios //sdk:sdk || fail "Should build"
 
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
 
@@ -158,7 +150,7 @@ function test_sdk_does_not_contain_headers() {
   do_build ios //sdk:sdk || fail "Should build"
 
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
   assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
   assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
 
@@ -197,7 +189,7 @@ function test_sdk_contains_expected_files_without_excluding_resources() {
   do_build ios //sdk:sdk || fail "Should build"
 
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
 
@@ -242,9 +234,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    bundle_id = "my.bundle.id",
     bundle_name = "different",
-    infoplists = ["Info.plist"],
     minimum_os_version = "7.0",
     deps = [":framework_lib"],
 )
@@ -257,15 +247,6 @@ objc_library(
     ],
     alwayslink = 1,
 )
-EOF
-
-  cat > sdk/Info.plist <<EOF
-{
-  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
-  CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "FMWK";
-  CFBundleShortVersionString = "1";
-}
 EOF
 
   cat > sdk/Framework.h <<EOF

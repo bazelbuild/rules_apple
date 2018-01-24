@@ -123,12 +123,6 @@ def _is_valid_attribute_mode(mode):
 # Private attributes on every rule that provide access to tools and other
 # file dependencies.
 _common_tool_attributes = {
-    "_debug_entitlements": attr.label(
-        cfg="host",
-        allow_files=True,
-        single_file=True,
-        default=Label("@bazel_tools//tools/objc:device_debug_entitlements.plist"),
-    ),
     "_dsym_info_plist_template": attr.label(
         cfg="host",
         single_file=True,
@@ -158,7 +152,8 @@ _common_tool_attributes = {
         default=Label("@bazel_tools//tools/objc:xcrunwrapper"),
     ),
     "_xcode_config": attr.label(
-        default=Label("@bazel_tools//tools/osx:current_xcode_config"),
+        default=configuration_field(
+            fragment="apple", name="xcode_config_label"),
     ),
 }
 
@@ -238,7 +233,8 @@ def _attr_name(name, private=False):
 
 def _code_signing(provision_profile_extension=None,
                   requires_signing_for_device=True,
-                  skip_signing=False):
+                  skip_signing=False,
+                  support_invalid_entitlements_are_warnings=False):
   """Returns code signing information for `make_bundling_rule`.
 
   Args:
@@ -247,12 +243,19 @@ def _code_signing(provision_profile_extension=None,
     requires_signing_for_device: True if the bundle must be signed to be
         deployed on a device, or false if it does not need to be signed.
     skip_signing: True if signing should be skipped entirely for the bundle.
-  Returns: A struct that can be passed as the `code_signing` argument to
+    support_invalid_entitlements_are_warnings: True if the bundle allows
+        allows the validation of requested entitlements vs. provisioning
+        profile to be suppressed.
+
+  Returns:
+      A struct that can be passed as the `code_signing` argument to
       `make_bundling_rule`.
   """
-  return struct(provision_profile_extension=provision_profile_extension,
-                requires_signing_for_device=requires_signing_for_device,
-                skip_signing=skip_signing)
+  return struct(
+      provision_profile_extension=provision_profile_extension,
+      requires_signing_for_device=requires_signing_for_device,
+      skip_signing=skip_signing,
+      support_invalid_entitlements_are_warnings=support_invalid_entitlements_are_warnings)
 
 
 def _device_families(allowed, mandatory=True):
@@ -323,6 +326,12 @@ def _code_signing_attributes(code_signing):
         allow_files=[code_signing.provision_profile_extension],
         single_file=True,
     )
+    if code_signing.support_invalid_entitlements_are_warnings:
+      code_signing_attrs["invalid_entitlements_are_warnings"] = attr.bool(
+          doc=("If True, only issue warnings (instead of errors) when " +
+               "checking the requested entitlements against the " +
+               "provisioning profile to ensure they are supported."),
+      )
 
   return code_signing_attrs
 
@@ -340,6 +349,7 @@ def _make_bundling_rule(implementation,
                         platform_type=None,
                         product_type=None,
                         propagates_frameworks=False,
+                        use_binary_rule=True,
                         **kwargs):
   """Creates and returns an Apple bundling rule with the given properties.
 
@@ -368,6 +378,8 @@ def _make_bundling_rule(implementation,
     propagates_frameworks: True if the targets created by this rule should
         propagate their framework/dylib dependencies to the bundles that embed
         them, rather than being bundled with the target itself.
+    use_binary_rule: True if this depends on a full-fledged binary rule,
+        such as apple_binary or apple_stub_binary.
     **kwargs: Additional arguments that are passed directly to `rule()`.
 
   Returns:
@@ -421,32 +433,45 @@ def _make_bundling_rule(implementation,
         non_empty=want_mandatory,
     )
 
+  if use_binary_rule:
+    binary_dep_attrs = {
+      "binary": attr.label(
+          mandatory=True,
+          providers=binary_providers,
+          single_file=True,
+      ),
+      # Even for rules that don't bundle a user-provided binary (like
+      # watchos_application and some ios_application/extension targets), the
+      # binary acts as a "choke point" where the split transition is applied
+      # to all the deps, which gives us proper propagation of the platform
+      # type, minimum OS version, and other such attributes.
+      #
+      # "deps" as a label list is used here for consistency in traversing
+      # transitive dependencies (for example using aspects), but exactly one
+      # dependency (the binary) should be set.
+      "deps": attr.label_list(
+          aspects=[apple_bundling_aspect],
+          mandatory=True,
+          providers=binary_providers,
+      ),
+    }
+  else:
+    binary_dep_attrs = {
+      "deps": attr.label_list(
+          aspects=[apple_bundling_aspect],
+          cfg=apple_common.multi_arch_split,
+      ),
+      # Required by apple_common.multi_arch_split on 'deps'.
+      "platform_type": attr.string(mandatory=True),
+    }
+
   rule_args = dict(**kwargs)
   rule_args["attrs"] = merge_dictionaries(
       _common_tool_attributes,
       _bundling_tool_attributes,
       {
-          "binary": attr.label(
-              mandatory=True,
-              providers=binary_providers,
-              single_file=True,
-          ),
           "bundle_name": attr.string(mandatory=False),
-          # Even for rules that don't bundle a user-provided binary (like
-          # watchos_application and some ios_application/extension targets), the
-          # binary acts as a "choke point" where the split transition is applied
-          # to all the deps, which gives us proper propagation of the platform
-          # type, minimum OS version, and other such attributes.
-          #
-          # "deps" as a label list is used here for consistency in traversing
-          # transitive dependencies (for example using aspects), but exactly one
-          # dependency (the binary) should be set.
-          "deps": attr.label_list(
-              aspects=[apple_bundling_aspect],
-              mandatory=True,
-              providers=binary_providers,
-          ),
-          # TODO(b/36512239): Rename to "archive_post_processor".
+          # TODO(b/36512239): Rename to "bundle_post_processor".
           "ipa_post_processor": attr.label(
               allow_files=True,
               executable=True,
@@ -464,6 +489,7 @@ def _make_bundling_rule(implementation,
       device_family_attrs,
       path_formats,
       product_type_attrs,
+      binary_dep_attrs,
       additional_attrs,
   )
 

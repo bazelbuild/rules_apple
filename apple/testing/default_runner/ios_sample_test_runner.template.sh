@@ -52,8 +52,8 @@ sleep 2
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
 
-unzip -qq "$TEST_BUNDLE_PATH" 'Payload/*' -d "$TEST_TMP_DIR"
-TEST_BUNDLE="$TEST_TMP_DIR/Payload/$TEST_BUNDLE_NAME.xctest"
+unzip -qq "$TEST_BUNDLE_PATH" -d "$TEST_TMP_DIR"
+TEST_BUNDLE="$TEST_TMP_DIR/$TEST_BUNDLE_NAME.xctest"
 
 # Figure out the path to the xctest agent for library based tests.
 XCODE_PATH=$(xcrun xcode-select -p)

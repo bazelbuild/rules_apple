@@ -108,8 +108,7 @@ def _merge_infoplists(ctx,
                       extract_from_ctxt=False,
                       include_xcode_env=False,
                       resource_bundle_target_data=None,
-                      version_keys_required=False,
-                      warn_unknown_substitutions=False):
+                      version_keys_required=False):
   """Creates an action that merges Info.plists and converts them to binary.
 
   This action merges multiple plists by shelling out to plisttool, then
@@ -136,8 +135,6 @@ def _merge_infoplists(ctx,
         used to provide substitution values.
     version_keys_required: If True, the merged Info.plist file must include
         entries for CFBundleShortVersionString and CFBundleVersion.
-    warn_unknown_substitutions: If True, unknown substitutions will just be
-        a warning instead of an error.
   Returns:
     A struct with two fields: `output_plist`, a File object containing the
     merged binary plist, and `pkginfo`, a File object containing the PkgInfo
@@ -274,9 +271,8 @@ def _merge_infoplists(ctx,
       output=output_plist.path,
       binary=True,
       info_plist_options=struct(**info_plist_options),
-      substitutions=struct(**substitutions),
+      variable_substitutions=struct(**substitutions),
       target=target,
-      warn_unknown_substitutions=warn_unknown_substitutions,
   )
   control_file = file_support.intermediate(
       ctx, "%{name}.plisttool-control", prefix=path_prefix)

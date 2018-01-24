@@ -37,7 +37,7 @@ def _zip_swift_dylibs(ctx, binary_file):
   Returns:
     A `File` object representing the ZIP file containing the Swift dylibs.
   """
-  platform, _ = platform_support.platform_and_sdk_version(ctx)
+  platform = platform_support.platform(ctx)
 
   zip_file = file_support.intermediate(ctx, "%{name}.swiftlibs.zip")
   platform_support.xcode_env_action(

@@ -19,8 +19,11 @@ set -eu
 # Integration tests for bundling simple macOS applications that use Swift.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates a minimal macOS application target.

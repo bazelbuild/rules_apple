@@ -135,7 +135,7 @@ bazel build //target:app
       <td>
         <p><code>Integer; optional; default is 3</code></p>
         <p>A number that specifies the Swift language version to use. Valid
-        options are 3, 4. This value is ignored for Xcode &lt; 8.3.</p>
+        options are 3, 4. This value is ignored for Xcode &lt; 9.0.</p>
       </td>
     </tr>
   </tbody>

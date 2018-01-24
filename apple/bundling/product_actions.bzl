@@ -48,7 +48,7 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
   product_support_basename = product_support_zip.basename
   archive_path = bash_quote(stub_descriptor.path_in_archive)
 
-  platform, _ = platform_support.platform_and_sdk_version(ctx)
+  platform = platform_support.platform(ctx)
   platform_name = platform.name_in_plist
 
   # TODO(b/23975430): Remove the /bin/bash workaround once this bug is fixed.

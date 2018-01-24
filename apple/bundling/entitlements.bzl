@@ -15,6 +15,10 @@
 """Actions that manipulate entitlements and provisioning profiles."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:linker_support.bzl",
     "linker_support",
 )
@@ -23,17 +27,12 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:plist_actions.bzl",
-    "plist_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
     "plist_support",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
-    "bash_quote",
+    "apple_action"
 )
 
 
@@ -61,124 +60,11 @@ def _new_entitlements_artifact(ctx, extension):
   Args:
     ctx: The Skylark context.
     extension: The file extension (including the leading dot).
+
   Returns:
     The requested file object.
   """
   return ctx.new_file("entitlements/%s%s" % (ctx.label.name, extension))
-
-
-def _extract_team_prefix_action(ctx):
-  """Extracts the team prefix from the target's provisioning profile.
-
-  Args:
-    ctx: The Skylark context.
-  Returns:
-    The file containing the team prefix extracted from the provisioning
-    profile.
-  """
-  provisioning_profile = ctx.file.provisioning_profile
-  extract_plist_cmd = plist_support.extract_provisioning_plist_command(
-      ctx, provisioning_profile)
-  team_prefix_file = _new_entitlements_artifact(ctx, ".team_prefix_file")
-
-  # TODO(b/23975430): Remove the /bin/bash workaround once this bug is fixed.
-  apple_action(
-      ctx,
-      inputs=[provisioning_profile],
-      outputs=[team_prefix_file],
-      command=[
-          "/bin/bash", "-c",
-          ("set -e && " +
-           "PLIST=$(mktemp -t teamprefix.plist) && " +
-           "trap \"rm ${PLIST}\" EXIT && " +
-           extract_plist_cmd + " > ${PLIST} && " +
-           "/usr/libexec/PlistBuddy -c " +
-           "'Print ApplicationIdentifierPrefix:0' " +
-           "${PLIST} > " + bash_quote(team_prefix_file.path)),
-      ],
-      mnemonic = "ExtractAppleTeamPrefix",
-      no_sandbox = True,  # "security" tool requires this
-  )
-
-  return team_prefix_file
-
-
-def _extract_entitlements_action(ctx):
-  """Extracts entitlements from the target's provisioning profile.
-
-  Args:
-    ctx: The Skylark context.
-  Returns:
-    The file containing the extracted entitlements.
-  """
-  provisioning_profile = ctx.file.provisioning_profile
-  extract_plist_cmd = plist_support.extract_provisioning_plist_command(
-      ctx, provisioning_profile)
-  extracted_entitlements_file = _new_entitlements_artifact(
-      ctx, ".entitlements_with_variables")
-
-  # TODO(b/23975430): Remove the /bin/bash workaround once this bug is fixed.
-  apple_action(
-      ctx,
-      inputs=[provisioning_profile],
-      outputs=[extracted_entitlements_file],
-      command=[
-          "/bin/bash", "-c",
-          ("set -e && " +
-           "PLIST=$(mktemp -t entitlements.plist) && " +
-           "trap \"rm ${PLIST}\" EXIT && " +
-           extract_plist_cmd + " > ${PLIST} && " +
-           "/usr/libexec/PlistBuddy -x -c 'Print Entitlements' " +
-           "${PLIST} > " + bash_quote(extracted_entitlements_file.path)),
-      ],
-      mnemonic = "ExtractAppleEntitlements",
-      no_sandbox = True,  # "security" tool requires this
-  )
-
-  return extracted_entitlements_file
-
-
-def _substitute_entitlements_action(ctx,
-                                    input_entitlements,
-                                    team_prefix_file,
-                                    output_entitlements):
-  """Creates actions to substitute values in the entitlements file.
-
-  Args:
-    ctx: The Skylark context.
-    input_entitlements: The entitlements file with placeholders that must be
-        substituted.
-    team_prefix_file: The file containing the team prefix extracted from the
-        provisioning profile, or None if this value should not be substituted.
-    output_entitlements: The file to which the substituted entitlements should
-        be written.
-  """
-  bundle_id = ctx.attr.bundle_id
-
-  inputs = [input_entitlements]
-  if team_prefix_file:
-    inputs.append(team_prefix_file)
-
-  command_line = "set -e && "
-  if team_prefix_file:
-    command_line += ("PREFIX=\"$(cat " + bash_quote(team_prefix_file.path) +
-                     ")\" && ")
-  command_line += "sed "
-  if bundle_id:
-    command_line += ("-e \"s#${PREFIX}\\.\\*#${PREFIX}." + bundle_id + "#g\" " +
-                     "-e \"s#\\$(CFBundleIdentifier)#" + bundle_id + "#g\" ")
-  if team_prefix_file:
-    command_line += "-e \"s#\\$(AppIdentifierPrefix)#${PREFIX}.#g\" "
-
-  command_line += (bash_quote(input_entitlements.path) +
-                   " > " + bash_quote(output_entitlements.path))
-
-  ctx.action(
-      inputs=inputs,
-      outputs=[output_entitlements],
-      command=command_line,
-      mnemonic = "SubstituteAppleEntitlements",
-  )
 
 
 def _include_debug_entitlements(ctx):
@@ -192,6 +78,7 @@ def _include_debug_entitlements(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     True if the debug entitlements should be included, otherwise False.
   """
@@ -204,35 +91,53 @@ def _include_debug_entitlements(ctx):
   return True
 
 
-def _register_merge_entitlements_action(ctx,
-                                        input_entitlements,
-                                        merged_entitlements):
-  """Merges the given entitlements files into a single file.
+def _extract_signing_info(ctx):
+  """Inspects the current context and extracts the signing information.
 
   Args:
     ctx: The Skylark context.
-    input_entitlements: The entitlements files to be merged.
-    merged_entitlements: The File where the merged entitlements will be
-        written.
-  """
-  control = struct(
-      plists=[f.path for f in input_entitlements],
-      output=merged_entitlements.path,
-      binary=False,
-      target=str(ctx.label),
-  )
-  control_file = ctx.new_file("%s.merge-entitlements-control" % ctx.label.name)
-  ctx.file_action(
-      output=control_file,
-      content=control.to_json()
-  )
 
-  plist_support.plisttool_action(
-      ctx,
-      inputs=input_entitlements,
-      outputs=[merged_entitlements],
-      control_file=control_file,
-      mnemonic="MergeEntitlementsFiles",
+  Returns:
+    A `struct` with two items: the entitlements file to use, a
+    profile_metadata file.
+  """
+  entitlements = ctx.file.entitlements
+  profile_metadata = None
+
+  provisioning_profile = ctx.file.provisioning_profile
+  if provisioning_profile:
+    profile_metadata = _new_entitlements_artifact(ctx, ".profile_metadata")
+    outputs = [profile_metadata]
+    control = {
+      "provisioning_profile": provisioning_profile.path,
+      "target": str(ctx.label),
+      "profile_metadata": profile_metadata.path,
+    }
+    if not entitlements:
+      # No entitlements, extract the default one from the profile.
+      entitlements = _new_entitlements_artifact(ctx, ".extracted_entitlements")
+      control['entitlements'] = entitlements.path
+      outputs.append(entitlements)
+
+    control_file = _new_entitlements_artifact(
+        ctx, "provisioning_profile_tool-control")
+    ctx.file_action(
+        output=control_file,
+        content=struct(**control).to_json()
+    )
+
+    apple_action(
+        ctx,
+        inputs=[control_file, provisioning_profile],
+        outputs=outputs,
+        executable=ctx.executable._provisioning_profile_tool,
+        arguments=[control_file.path],
+        mnemonic="ExtractFromProvisioningProfile",
+    )
+
+  return struct(
+      entitlements=entitlements,
+      profile_metadata=profile_metadata,
   )
 
 
@@ -259,63 +164,72 @@ def _entitlements_impl(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     A `struct` containing the `objc` provider that propagates the additional
     linker options if necessary for simulator builds, and the internal
     `AppleEntitlementsInfo` provider used elsewhere during bundling.
   """
-  is_device = platform_support.is_device_build(ctx)
+  # Things can fail in odd ways without a bundle id, so ensure that it is provided.
+  # NOTE: bundler.run() also does the validation, but because entitlements are
+  # linked into a segment for some build, the output of this rule is an input to
+  # almost all the bundling code, so a bad bundle id actually gets here. In an ideal
+  # world, validation wouldn't have to happen here.
+  bundle_id = ctx.attr.bundle_id
+  bundling_support.validate_bundle_id(bundle_id)
 
-  if ctx.file.provisioning_profile:
-    team_prefix_file = _extract_team_prefix_action(ctx)
-    # Use the entitlements from the target if given; otherwise, extract them
-    # from the provisioning profile.
-    entitlements_needing_substitution = (
-        ctx.file.entitlements or _extract_entitlements_action(ctx))
-  else:
-    team_prefix_file = None
-    entitlements_needing_substitution = ctx.file.entitlements
+  signing_info = _extract_signing_info(ctx)
+  plists = []
+  forced_plists = []
+  if signing_info.entitlements:
+    plists.append(signing_info.entitlements)
+  if _include_debug_entitlements(ctx):
+    forced_plists.append(ctx.file._debug_entitlements)
 
-  uses_debug_entitlements = _include_debug_entitlements(ctx)
+  inputs = plists + forced_plists
 
-  # If we don't have any entitlements (explicit, from the provisioning profile,
-  # or debug ones), then create an empty .c file and return empty providers.
-  if not entitlements_needing_substitution and not uses_debug_entitlements:
+  # If there is no entitlements to use; return empty info.
+  if not inputs:
     return struct(
         objc=apple_common.new_objc_provider(),
         providers=[AppleEntitlementsInfo(final_entitlements=None)],
     )
 
-  if entitlements_needing_substitution:
-    final_entitlements = ctx.new_file("%s.entitlements" % ctx.label.name)
+  final_entitlements = ctx.new_file("%s.entitlements" % ctx.label.name)
+  is_device = platform_support.is_device_build(ctx)
 
-    # The ordering of this can be slightly confusing because the actions aren't
-    # registered in the same order that they would be executed (because
-    # registering actions just builds the dependency graph). If debug
-    # entitlements are not being included, we simply make substitutions in the
-    # target's entitlements and write that to the final entitlements file. If
-    # debug entitlements are included, then we make the substitutions in the
-    # target's entitlements, merge that with the debug entitlements, and the
-    # result is used as the final entitlements.
-    if _include_debug_entitlements(ctx):
-      substituted_entitlements = _new_entitlements_artifact(ctx, ".substituted")
+  entitlements_options = {
+      "bundle_id": bundle_id,
+  }
+  if signing_info.profile_metadata:
+    inputs.append(signing_info.profile_metadata)
+    entitlements_options["profile_metadata_file"] = signing_info.profile_metadata.path
+  if platform_support.platform_type(ctx) == apple_common.platform_type.ios:
+    entitlements_options["target_env"] = "ios:device" if is_device else "ios:simulator"
+  if ctx.attr.validation_as_warnings:
+    entitlements_options["validation_as_warnings"] = True
 
-      _register_merge_entitlements_action(
-          ctx,
-          input_entitlements=[
-              substituted_entitlements,
-              ctx.file._debug_entitlements
-          ],
-          merged_entitlements=final_entitlements)
-    else:
-      substituted_entitlements = final_entitlements
+  control = struct(
+    plists=[f.path for f in plists],
+    forced_plists=[f.path for f in forced_plists],
+    entitlements_options=struct(**entitlements_options),
+    output=final_entitlements.path,
+    target=str(ctx.label),
+    variable_substitutions=struct(CFBundleIdentifier=ctx.attr.bundle_id),
+  )
+  control_file = _new_entitlements_artifact(ctx, "plisttool-control")
+  ctx.file_action(
+      output=control_file,
+      content=control.to_json()
+  )
 
-    _substitute_entitlements_action(ctx,
-                                    entitlements_needing_substitution,
-                                    team_prefix_file,
-                                    substituted_entitlements)
-  else:
-    final_entitlements = ctx.file._debug_entitlements
+  plist_support.plisttool_action(
+      ctx,
+      inputs=inputs,
+      outputs=[final_entitlements],
+      control_file=control_file,
+      mnemonic="ProcessEntitlementsFiles",
+  )
 
   # Only propagate linkopts for simulator builds to embed the entitlements into
   # the binary; for device builds, the entitlements are applied during signing.
@@ -339,7 +253,7 @@ entitlements = rule(
     implementation=_entitlements_impl,
     attrs={
         "bundle_id": attr.string(
-            mandatory=False,
+            mandatory=True,
         ),
         "_debug_entitlements": attr.label(
             cfg="host",
@@ -357,13 +271,23 @@ entitlements = rule(
                 "@build_bazel_rules_apple//tools/plisttool"),
             executable=True,
         ),
+        "_provisioning_profile_tool": attr.label(
+            cfg="host",
+            default=Label(
+                "@build_bazel_rules_apple//tools/provisioning_profile_tool"),
+            executable=True,
+        ),
         # Used to pass the platform type through from the calling rule.
         "platform_type": attr.string(),
         "provisioning_profile": attr.label(
             allow_files=[".mobileprovision", ".provisionprofile"],
             single_file=True,
         ),
-        "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
+        "validation_as_warnings": attr.bool(),
+        # This needs to be an attribute on the rule for platform_support
+        # to access it.
+        "_xcode_config": attr.label(default=configuration_field(
+            fragment="apple", name="xcode_config_label")),
     },
     fragments=["apple", "objc"],
 )

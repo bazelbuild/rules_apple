@@ -59,6 +59,9 @@ def tvos_application(name, **kwargs):
     infoplists: A list of `.plist` files that will be merged to form the
         Info.plist that represents the application. The merge is only at the
         top level of the plist; so sub-dictionaries are not merged.
+    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
+        errors) when checking the requested entitlements against the
+        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's IPA output after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
@@ -127,6 +130,9 @@ def tvos_extension(name, **kwargs):
     infoplists: A list of `.plist` files that will be merged to form the
         `Info.plist` that represents the extension. The merge is only at the
         top level of the plist; so sub-dictionaries are not merged.
+    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
+        errors) when checking the requested entitlements against the
+        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a

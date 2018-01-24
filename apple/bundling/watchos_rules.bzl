@@ -57,10 +57,8 @@ def _watchos_application_impl(ctx):
     embedded_bundles.append(bundling_support.embedded_bundle(
         "PlugIns", ext, verify_bundle_id=True))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_artifact = binary_support.create_stub_binary(ctx)
+
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "WatchosApplicationArchive", "watchOS application",
@@ -68,7 +66,6 @@ def _watchos_application_impl(ctx):
       additional_resource_sets=additional_resource_sets,
       binary_artifact=binary_artifact,
       embedded_bundles=embedded_bundles,
-      deps_objc_providers=[deps_objc_provider],
   )
 
   # TODO(b/36513412): Support 'bazel run'.
@@ -94,7 +91,10 @@ watchos_application = rule_factory.make_bundling_rule(
         ),
     },
     archive_extension=".zip",
-    code_signing=rule_factory.code_signing(".mobileprovision"),
+    code_signing=rule_factory.code_signing(
+        ".mobileprovision",
+        support_invalid_entitlements_are_warnings=True,
+    ),
     device_families=rule_factory.device_families(allowed=["watch"]),
     needs_pkginfo=True,
     path_formats=rule_factory.simple_path_formats(
@@ -104,6 +104,7 @@ watchos_application = rule_factory.make_bundling_rule(
     product_type=rule_factory.product_type(
         apple_product_type.watch2_application, private=True
     ),
+    use_binary_rule=False,
 )
 
 
@@ -146,7 +147,10 @@ watchos_extension = rule_factory.make_bundling_rule(
         "app_icons": attr.label_list(allow_files=True),
     },
     archive_extension=".zip",
-    code_signing=rule_factory.code_signing(".mobileprovision"),
+    code_signing=rule_factory.code_signing(
+        ".mobileprovision",
+        support_invalid_entitlements_are_warnings=True,
+    ),
     device_families=rule_factory.device_families(allowed=["watch"]),
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.watchos,

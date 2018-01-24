@@ -15,7 +15,8 @@
 
 """Tests for PlistTool."""
 
-from collections import OrderedDict
+import datetime
+import json
 import plistlib
 import random
 import re
@@ -131,6 +132,176 @@ class PlistToolVariableReferenceTest(unittest.TestCase):
     self._assert_invalid('${foo:rfc666dentifier')
 
 
+class PlistToolVersionStringTest(unittest.TestCase):
+
+  def _assert_valid(self, s):
+    self.assertEqual(plisttool.IsValidVersionString(s), True)
+
+  def _assert_invalid(self, s):
+    self.assertEqual(plisttool.IsValidVersionString(s), False)
+
+  def test_all_good(self):
+    self._assert_valid('1')
+    self._assert_valid('1.2')
+    self._assert_valid('1.2.3')
+    self._assert_valid('1.2.3.4')
+    self._assert_valid('1.0')
+    self._assert_valid('1.0.0')
+    self._assert_valid('1.0.0.0')
+    self._assert_valid('1.0.3')
+    self._assert_valid('10.11.12')
+    self._assert_valid('10.11.12.13')
+
+  def test_non_numbers(self):
+    self._assert_invalid('abc')
+    self._assert_invalid('abc1')
+    self._assert_invalid('1abc')
+    self._assert_invalid('1abc1')
+    self._assert_invalid('1.abc')
+    self._assert_invalid('1.1abc')
+    self._assert_invalid('1.abc1')
+    self._assert_invalid('1.1abc1')
+    self._assert_invalid('abc.1')
+    self._assert_invalid('1.abc.2')
+
+  def test_to_many_segments(self):
+    self._assert_invalid('1.2.3.4.5')
+    self._assert_invalid('1.2.3.4.0')
+    self._assert_invalid('1.2.3.4.5.6')
+
+  def test_to_badly_formed(self):
+    self._assert_invalid('1.')
+    self._assert_invalid('1.2.')
+    self._assert_invalid('1.2.3.')
+    self._assert_invalid('1.2.3.4.')
+    self._assert_invalid('.1')
+    self._assert_invalid('.1.2')
+    self._assert_invalid('.1.2.3')
+    self._assert_invalid('.1.2.3.4')
+    self._assert_invalid('1..3')
+    self._assert_invalid('1.2..4')
+
+  def test_to_other_punct(self):
+    self._assert_invalid('1,2')
+    self._assert_invalid('1$2')
+    self._assert_invalid('1:2')
+
+  def test_to_long(self):
+    self._assert_invalid('123456789.123456789')
+    self._assert_invalid('1234.6789.123456789')
+    self._assert_invalid('1234.6789.1234.6789')
+
+  def test_all_good_padded(self):
+    self._assert_valid('01')
+    self._assert_valid('01.1')
+    self._assert_valid('01.01')
+    self._assert_valid('01.0.1')
+    self._assert_valid('01.0.01')
+    self._assert_valid('1.00')
+    self._assert_valid('1.0.00')
+    self._assert_valid('1.001')
+    self._assert_valid('1.0.001')
+
+  def test_all_good_with_tracks(self):
+    self._assert_valid('1a1')
+    self._assert_valid('1.2d12')
+    self._assert_valid('1.2.3b7')
+    self._assert_valid('1.0fc100')
+    self._assert_valid('1.0.0b7')
+    self._assert_valid('1.0.3fc1')
+    self._assert_valid('10.11.12d123')
+
+  def test_invalid_tracks(self):
+    self._assert_invalid('1a0')
+    self._assert_invalid('1a')
+    self._assert_invalid('1.2d')
+    self._assert_invalid('1.2d01')
+    self._assert_invalid('1.2.3b')
+    self._assert_invalid('1.2.3b1234')
+    self._assert_invalid('1.0fc')
+    self._assert_invalid('1.0fc256')
+
+
+class PlistToolShortVersionStringTest(unittest.TestCase):
+
+  def _assert_valid(self, s):
+    self.assertEqual(plisttool.IsValidShortVersionString(s), True)
+
+  def _assert_invalid(self, s):
+    self.assertEqual(plisttool.IsValidShortVersionString(s), False)
+
+  def test_all_good(self):
+    self._assert_valid('1')
+    self._assert_valid('1.2')
+    self._assert_valid('1.2.3')
+    self._assert_valid('1.2.3.4')
+    self._assert_valid('1.0')
+    self._assert_valid('1.0.0')
+    self._assert_valid('1.0.0.0')
+    self._assert_valid('1.0.3')
+    self._assert_valid('10.11.12')
+    self._assert_valid('10.11.12.13')
+
+  def test_non_numbers(self):
+    self._assert_invalid('abc')
+    self._assert_invalid('abc1')
+    self._assert_invalid('1abc')
+    self._assert_invalid('1abc1')
+    self._assert_invalid('1.abc')
+    self._assert_invalid('1.1abc')
+    self._assert_invalid('1.abc1')
+    self._assert_invalid('1.1abc1')
+    self._assert_invalid('abc.1')
+    self._assert_invalid('1.abc.2')
+
+  def test_to_many_segments(self):
+    self._assert_invalid('1.2.3.4.5')
+    self._assert_invalid('1.2.3.4.0')
+    self._assert_invalid('1.2.3.4.5.6')
+
+  def test_to_badly_formed(self):
+    self._assert_invalid('1.')
+    self._assert_invalid('1.2.')
+    self._assert_invalid('1.2.3.')
+    self._assert_invalid('1.2.3.4.')
+    self._assert_invalid('.1')
+    self._assert_invalid('.1.2')
+    self._assert_invalid('.1.2.3')
+    self._assert_invalid('.1.2.3.4')
+    self._assert_invalid('1..3')
+    self._assert_invalid('1.2..4')
+
+  def test_to_other_punct(self):
+    self._assert_invalid('1,2')
+    self._assert_invalid('1$2')
+    self._assert_invalid('1:2')
+
+  def test_to_long(self):
+    self._assert_invalid('123456789.123456789')
+    self._assert_invalid('1234.6789.123456789')
+    self._assert_invalid('1234.6789.1234.6789')
+
+  def test_all_good_padded(self):
+    self._assert_valid('01')
+    self._assert_valid('01.1')
+    self._assert_valid('01.01')
+    self._assert_valid('01.0.1')
+    self._assert_valid('01.0.01')
+    self._assert_valid('1.00')
+    self._assert_valid('1.0.00')
+    self._assert_valid('1.001')
+    self._assert_valid('1.0.001')
+
+  def test_all_good_with_tracks_are_bad(self):
+    self._assert_invalid('1a1')
+    self._assert_invalid('1.2d12')
+    self._assert_invalid('1.2.3b7')
+    self._assert_invalid('1.0fc100')
+    self._assert_invalid('1.0.0b7')
+    self._assert_invalid('1.0.3fc1')
+    self._assert_invalid('10.11.12d123')
+
+
 class PlistToolTest(unittest.TestCase):
 
   def _assert_plisttool_result(self, control, expected):
@@ -244,7 +415,7 @@ class PlistToolTest(unittest.TestCase):
     )
     self._assert_plisttool_result({
         'plists': [plist1, plist2, plist3],
-        'substitutions': {
+        'variable_substitutions': {
             'BUNDLE_NAME': 'my'
         },
     }, {
@@ -276,67 +447,55 @@ class PlistToolTest(unittest.TestCase):
         'forced_plists': [plist2, plist3],
     }, {'Foo': 'quux'})
 
-  def test_invalid_substitution_name_space(self):
+  def test_invalid_variable_substitution_name_space(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo bar'))):
       _plisttool_result({
          'plists': [{}],
-         'substitutions': {
+         'variable_substitutions': {
               'foo bar': 'bad name',
           },
       })
 
-  def test_invalid_substitution_name_hyphen(self):
+  def test_invalid_variable_substitution_name_hyphen(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo-bar'))):
       _plisttool_result({
          'plists': [{}],
-         'substitutions': {
+         'variable_substitutions': {
               'foo-bar': 'bad name',
           },
       })
 
-  def test_invalid_substitution_name_qualifier(self):
+  def test_invalid_variable_substitution_name_qualifier(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo:bar'))):
       _plisttool_result({
          'plists': [{}],
-         'substitutions': {
+         'variable_substitutions': {
               'foo:bar': 'bad name',
           },
       })
 
-  def test_invalid_substitution_name_rfc_qualifier(self):
+  def test_invalid_variable_substitution_name_rfc_qualifier(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
             _testing_target, 'foo:rfc1034identifier'))):
       _plisttool_result({
          'plists': [{}],
-         'substitutions': {
+         'variable_substitutions': {
               'foo:rfc1034identifier': 'bad name',
           },
       })
 
-  def test_invalid_info_plist_options_value(self):
-    with self.assertRaisesRegexp(
-        plisttool.PlistToolError,
-        re.escape(plisttool.SUBSTITUTION_VALUE_HAS_VARIABLE_MSG % (
-            _testing_target, 'mumble', 'foo.bar.${NotSupported}'))):
-      _plisttool_result({
-         'plists': [{}],
-         'substitutions': {
-              'mumble': 'foo.bar.${NotSupported}',
-          },
-      })
-
-  def test_product_name_substitutions(self):
+  def test_both_types_variable_substitutions(self):
     plist1 = _xml_plist(
         '<key>FooBraces</key><string>${TARGET_NAME}</string>'
         '<key>BarBraces</key><string>${PRODUCT_NAME}</string>'
@@ -345,7 +504,7 @@ class PlistToolTest(unittest.TestCase):
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'substitutions': {
+        'variable_substitutions': {
             'PRODUCT_NAME': 'MyApp',
             'TARGET_NAME': 'MyApp',
         },
@@ -361,13 +520,77 @@ class PlistToolTest(unittest.TestCase):
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'substitutions': {
+        'variable_substitutions': {
             'PRODUCT_NAME': 'foo_bar?baz'
         },
     })
     self.assertEqual('foo-bar-baz', outdict.get('Foo'))
 
-  def test_nonexistant_substitution(self):
+  def test_raw_substitutions(self):
+    plist1 = _xml_plist(
+        '<key>One</key><string>RAW1</string>'
+        '<key>Two</key><string>RAW2</string>'
+        '<key>SpaceOneSpaceTwoSpace</key><string> RAW1 RAW2 </string>'
+        '<key>OneTwoOneTwo</key><string>RAW1RAW2RAW1RAW2</string>'
+        '<key>XOneX</key><string>XRAW1X</string>'
+        '<key>XTwoX</key><string>XRAW2X</string>'
+    )
+    outdict = _plisttool_result({
+        'plists': [plist1],
+        'raw_substitutions': {
+            'RAW1': 'a',
+            'RAW2': 'b',
+        },
+    })
+    self.assertEqual('a', outdict.get('One'))
+    self.assertEqual('b', outdict.get('Two'))
+    self.assertEqual(' a b ', outdict.get('SpaceOneSpaceTwoSpace'))
+    self.assertEqual('abab', outdict.get('OneTwoOneTwo'))
+    self.assertEqual('XaX', outdict.get('XOneX'))
+    self.assertEqual('XbX', outdict.get('XTwoX'))
+
+  def test_raw_substitutions_overlap_raw(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.OVERLAP_IN_SUBSTITUTION_KEYS % (
+            _testing_target, 'mum', 'mumble'))):
+      _plisttool_result({
+         'plists': [{}],
+         'raw_substitutions': {
+              'mumble': 'value1',
+              'mum': 'value2',
+          },
+      })
+
+  def test_raw_substitutions_overlap_variable(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.OVERLAP_IN_SUBSTITUTION_KEYS % (
+            _testing_target, '$(mumble)', 'mum'))):
+      _plisttool_result({
+         'plists': [{}],
+         'variable_substitutions': {
+              'mumble': 'value1',
+          },
+         'raw_substitutions': {
+              'mum': 'value2',
+          },
+      })
+
+  def test_raw_substitutions_key_in_value(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.RAW_SUBSTITUTION_KEY_IN_VALUE % (
+            _testing_target, 'value', '1value2', 'mumble'))):
+      _plisttool_result({
+         'plists': [{}],
+         'raw_substitutions': {
+              'mumble': '1value2',
+              'value': 'spam',
+          },
+      })
+
+  def test_nonexistant_variable_substitution(self):
     plist1 = {
         'FooBraces': 'A-${NOT_A_VARIABLE}-B'
     }
@@ -415,7 +638,51 @@ class PlistToolTest(unittest.TestCase):
             'Key[1]', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
       _plisttool_result({'plists': [plist3]})
 
-  def test_invalid_substitution(self):
+  def test_variable_substitution_in_key(self):
+    plist1 = {
+        'Foo${Braces}': 'Bar'
+    }
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
+            _testing_target, '${Braces}', 'Foo${Braces}'))):
+      _plisttool_result({'plists': [plist1]})
+
+    plist2 = {
+        'Foo$(Parens)': 'Bar'
+    }
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
+            _testing_target, '$(Parens)', 'Foo$(Parens)'))):
+      _plisttool_result({'plists': [plist2]})
+
+    # Nested dict, will include the keypath.
+    plist3 = {
+        'Key1': {
+            'Key${2}': 'value'
+        }
+    }
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
+            _testing_target, '${2}', 'Key1:Key${2}'))):
+      _plisttool_result({'plists': [plist3]})
+
+    # Array (of dict), will include the keypath.
+    plist3 = {
+        'Key1': [
+            {'Foo': 'Bar'},
+            {'Key${2}': 'value'},
+        ]
+    }
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
+            _testing_target, '${2}', 'Key1[1]:Key${2}'))):
+      _plisttool_result({'plists': [plist3]})
+
+  def test_invalid_variable_substitution(self):
     plist1 = {
         'Foo': 'foo.${INVALID_REFERENCE).bar'
     }
@@ -429,14 +696,16 @@ class PlistToolTest(unittest.TestCase):
   def test_multiple_substitutions(self):
     plist1 = _xml_plist(
         '<key>Foo</key>'
-        '<string>${PRODUCT_NAME}--${BUNDLE_NAME}--${EXECUTABLE_NAME}</string>'
+        '<string>${PRODUCT_NAME}--A_RAW_SUB--${EXECUTABLE_NAME}</string>'
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'substitutions': {
+        'variable_substitutions': {
             'EXECUTABLE_NAME': 'MyExe',
-            'BUNDLE_NAME': 'MyBundle',
             'PRODUCT_NAME': 'MyApp',
+        },
+        'raw_substitutions': {
+            'A_RAW_SUB': 'MyBundle',
         },
     })
     self.assertEqual('MyApp--MyBundle--MyExe', outdict.get('Foo'))
@@ -448,29 +717,42 @@ class PlistToolTest(unittest.TestCase):
         '  <key>Foo1</key>'
         '  <string>${BUNDLE_NAME}</string>'
         '  <key>Foo2</key>'
+        '  <string>RAW_NAME</string>'
+        '  <key>Foo3</key>'
         '  <array>'
         '    <string>${BUNDLE_NAME}</string>'
+        '    <string>RAW_NAME</string>'
         '  </array>'
         '</dict>'
         '<key>Bar</key>'
         '<array>'
         '  <string>${BUNDLE_NAME}</string>'
+        '  <string>RAW_NAME</string>'
         '  <dict>'
         '    <key>Baz</key>'
         '    <string>${BUNDLE_NAME}</string>'
+        '    <key>Baz2</key>'
+        '    <string>RAW_NAME</string>'
         '  </dict>'
         '</array>'
     )
     outdict = _plisttool_result({
         'plists': [plist1],
-        'substitutions': {
+        'variable_substitutions': {
             'BUNDLE_NAME': 'MyBundle',
+        },
+        'raw_substitutions': {
+            'RAW_NAME': 'MyValue',
         },
     })
     self.assertEqual('MyBundle', outdict.get('Foo').get('Foo1'))
-    self.assertEqual('MyBundle', outdict.get('Foo').get('Foo2')[0])
+    self.assertEqual('MyValue', outdict.get('Foo').get('Foo2'))
+    self.assertEqual('MyBundle', outdict.get('Foo').get('Foo3')[0])
+    self.assertEqual('MyValue', outdict.get('Foo').get('Foo3')[1])
     self.assertEqual('MyBundle', outdict.get('Bar')[0])
-    self.assertEqual('MyBundle', outdict.get('Bar')[1].get('Baz'))
+    self.assertEqual('MyValue', outdict.get('Bar')[1])
+    self.assertEqual('MyBundle', outdict.get('Bar')[2].get('Baz'))
+    self.assertEqual('MyValue', outdict.get('Bar')[2].get('Baz2'))
 
   def test_keys_with_same_values_do_not_raise_error(self):
     plist1 = _xml_plist('<key>Foo</key><string>Bar</string>')
@@ -485,41 +767,6 @@ class PlistToolTest(unittest.TestCase):
       plist1 = _xml_plist('<key>Foo</key><string>Bar</string>')
       plist2 = _xml_plist('<key>Foo</key><string>Baz</string>')
       _plisttool_result({'plists': [plist1, plist2]})
-
-  def test_order_of_elements_in_one_plist_merge_is_maintained(self):
-    """Verify that we merge keys in the same order as the original dictionary.
-
-    Ordering of keys is important in build caching -- the ordering must be
-    deterministic. Xcode, which is built on Foundation's non-order-preserving
-    NSDictionary, is harmful to caching because it merges keys in arbitrary
-    order.
-
-    We do our merging in insertion order, which is deterministic. The plistlib
-    module reads plists into a standard Python dictionary, which is hashed, and
-    then we immediately copy the entries into an OrderedDict. The original
-    arbitrary ordering initially seems problematic, but we can assume that two
-    dictionaries that are built by inserting the same keys in the same order,
-    without any intervening removals, will produce the same hashtable structure
-    and would be iterated in the same order (this matters when building the
-    OrderedDict). From that point on, we operate only on OrderedDicts, which
-    preserves the order, and finally, writePlist iterates over the OrderedDict
-    and writes the XML plist back out in that order.
-    """
-    # NOTE: With this seed, one key is generated twice so the dictionary only
-    # ends up with 49999 items.
-    random.seed(8675309)
-    key_order = OrderedDict()
-    source_plist = OrderedDict()
-    for _ in range(50000):
-      key = 'key#%d' % random.randint(0, 2 ** 32 - 1)
-      key_order[key] = True
-      source_plist[key] = 'value'
-
-    outdict = OrderedDict()
-    tool = plisttool.PlistTool({})
-    tool.merge_dictionaries(source_plist, outdict, _testing_target)
-
-    self.assertEqual(outdict.keys(), key_order.keys())
 
   def test_pkginfo_with_valid_values(self):
     self._assert_pkginfo({
@@ -631,8 +878,8 @@ class PlistToolTest(unittest.TestCase):
   def test_unknown_info_plist_options_keys_raise(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.UNKNOWN_INFO_PLIST_OPTIONS_MSG % (
-            _testing_target, 'mumble'))):
+        re.escape(plisttool.UNKNOWN_TASK_OPTIONS_KEYS_MSG % (
+            _testing_target, 'info_plist_options', 'mumble'))):
       plist = {'Foo': 'bar'}
       children = {'//fake:label': {'foo': 'bar'}}
       _plisttool_result({
@@ -698,6 +945,522 @@ class PlistToolTest(unittest.TestCase):
           'plists': [plist],
           'info_plist_options': {
               'version_keys_required': True,
+          },
+      })
+
+  def test_invalid_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.INVALID_VERSION_KEY_VALUE_MSG % (
+            _testing_target, 'CFBundleVersion', '1foo'))):
+      plist = {
+          'CFBundleVersion': '1foo',
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': { }  # presence triggers checking
+      })
+
+  def test_invalid_short_version(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.INVALID_VERSION_KEY_VALUE_MSG % (
+            _testing_target, 'CFBundleShortVersionString', '1foo'))):
+      plist = {
+          'CFBundleShortVersionString': '1foo',
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': { }  # presence triggers checking
+      })
+
+  def test_versions_not_checked_without_options(self):
+    plist = {
+        'CFBundleShortVersionString': '1foo',
+        'CFBundleVersion': '1foo',
+    }
+    # Even though they numbers are invalid, the plist comes back fine because
+    # there was no info_plist_options to trigger validation.
+    self._assert_plisttool_result(
+        { 'plists': [plist] },
+        plist
+    )
+
+  def test_entitlements_options_var_subs(self):
+    plist1 = {'Foo': '$(AppIdentifierPrefix)'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'ApplicationIdentifierPrefix': ['abc123'],
+                'Version': 1,
+            },
+        },
+    }, {'Foo': 'abc123.'})
+
+  def test_entitlements_options_raw_subs(self):
+    plist1 = {'Bar': 'abc123.*'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'ApplicationIdentifierPrefix': ['abc123'],
+                'Version': 1,
+            },
+        },
+    }, {'Bar': 'abc123.my.bundle.id'})
+
+  def test_entitlements_bundle_id_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+        },
+    }, plist1)
+
+  def test_entitlements_bundle_id_wildcard_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.*'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+        },
+    }, plist1)
+
+  def test_entitlements_bundle_id_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_BUNDLE_ID_MISMATCH % (
+            _testing_target, 'my.bundle.id', 'other.bundle.id'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.other.bundle.id'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+          },
+      })
+
+  def test_entitlements_bundle_id_wildcard_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_BUNDLE_ID_MISMATCH % (
+            _testing_target, 'my.bundle.id', 'other.*'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.other.*'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+          },
+      })
+
+  def test_entitlements_profile_not_expired(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'foo': 'bar'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'ExpirationDate': datetime.datetime.max,
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_profile_expired(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_PROFILE_HAS_EXPIRED % (
+            _testing_target, '0001-01-01T00:00:00'))):
+      _plisttool_result({
+          'plists': [{'foo': 'bar'}],
+          'entitlements_options': {
+            'profile_metadata_file': {
+                'ExpirationDate': datetime.datetime.min,
+                'Version': 1,
+            },
+          },
+      })
+
+  def test_entitlements_profile_team_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY', 'TeamIdentifier', "['ASDFGH']"))):
+      _plisttool_result({
+          'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'ApplicationIdentifierPrefix': [ 'QWERTY' ],
+                  'TeamIdentifier': [ 'ASDFGH' ],
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_profile_app_id_prefix_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY', 'ApplicationIdentifierPrefix', "['ASDFGH']"))):
+      _plisttool_result({
+          'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'TeamIdentifier': [ 'QWERTY' ],
+                  'ApplicationIdentifierPrefix': [ 'ASDFGH' ],
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_profile_teams_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'com.apple.developer.team-identifier': 'QWERTY'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'ApplicationIdentifierPrefix': [ 'ASDFGH', 'QWERTY' ],
+                'TeamIdentifier': [ 'ASDFGH', 'QWERTY' ],
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_app_id_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.my.bundle.id',
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_app_id_wildcard_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.*',
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_app_id_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY.my.bundle.id', 'ASDFGH.my.bundle.id'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.my.bundle.id'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'ASDFGH.my.bundle.id'
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_app_id_mismatch_wildcard(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY.my.bundle.id', 'ASDFGH.*'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.my.bundle.id'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'ASDFGH.*',
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  # The edge case in EntitlementsTask._does_id_match()
+  def test_entitlements_app_id_wildcard_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.*'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.my.bundle.id',
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  # The edge case in EntitlementsTask._does_id_match()
+  def test_entitlements_app_id_wildcard_match_wildcard(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.*'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.*',
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  # The edge case in EntitlementsTask._does_id_match()
+  def test_entitlements_app_id_wildcard_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY.*', 'ASDFGH.*'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.*'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'ASDFGH.*',
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  # The edge case in EntitlementsTask._does_id_match()
+  def test_entitlements_app_id_wildcard_mismatch_wildcard(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+            _testing_target, 'QWERTY.*', 'ASDFGH.my.bundle.id'))):
+      _plisttool_result({
+          'plists': [{'application-identifier': 'QWERTY.*'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'ASDFGH.my.bundle.id',
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_keychain_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'keychain-access-groups': ['QWERTY.my.bundle.id']}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'keychain-access-groups': ['QWERTY.my.bundle.id'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_keychain_match_wildcard(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'keychain-access-groups': ['QWERTY.my.bundle.id']}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'keychain-access-groups': ['QWERTY.*'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_no_keychain_requested(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.*',
+                    'keychain-access-groups': ['ASDFGH.*'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_keychain_not_allowed(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
+            _testing_target, 'keychain-access-groups'))):
+      _plisttool_result({
+          'plists': [{'keychain-access-groups': ['QWERTY.my.bundle.id']}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                      # No 'keychain-access-groups'
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_keychain_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+            _testing_target, 'keychain-access-groups', 'QWERTY.my.bundle.id',
+            'ASDFGH.*", "QWERTY.my.bundle.id.also'))):
+      _plisttool_result({
+          'plists': [{'keychain-access-groups': ['QWERTY.my.bundle.id']}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'keychain-access-groups': [
+                          'ASDFGH.*',
+                          'QWERTY.my.bundle.id.also',
+                      ],
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_app_groups_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.security.application-groups': ['QWERTY.my.bundle.id'],
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.security.application-groups': [
+                        'QWERTY.my.bundle.id',
+                    ],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_app_groups_wildcard_no_match(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+            _testing_target, 'com.apple.security.application-groups',
+            'QWERTY.my.bundle.id', 'QWERTY.*'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.security.application-groups': ['QWERTY.my.bundle.id'],
+          }],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.security.application-groups': ['QWERTY.*'],
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_no_app_groups_requested(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.*',
+                    'com.apple.security.application-groups': ['ASDFGH.*'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_app_groups_not_allowed(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
+            _testing_target, 'com.apple.security.application-groups'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.security.application-groups': ['QWERTY.my.bundle.id'],
+          }],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                      # No 'com.apple.security.application-groups'
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_app_groups_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+            _testing_target, 'com.apple.security.application-groups',
+            'QWERTY.my.bundle.id', 'ASDFGH.*", "QWERTY.my.bundle.id.also'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.security.application-groups': ['QWERTY.my.bundle.id'],
+          }],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.security.application-groups': [
+                          'ASDFGH.*',
+                          'QWERTY.my.bundle.id.also',
+                      ],
+                  },
+                  'Version': 1,
+              },
           },
       })
 

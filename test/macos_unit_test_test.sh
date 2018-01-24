@@ -19,8 +19,11 @@
 set -eu
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for macOS applications and
@@ -41,10 +44,6 @@ objc_library(
 objc_library(
     name = "unit_test_lib",
     srcs = ["UnitTest.m"],
-    copts = [
-      # TODO(b/64032879): Remove this workaround.
-      "-F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks",
-    ],
 )
 EOF
 
@@ -265,7 +264,7 @@ function test_runner_script_contains_expected_values() {
   do_build macos //app:unit_tests || fail "Should build"
 
   assert_contains "TEST_HOST=app/app.zip" "test-bin/app/unit_tests"
-  assert_contains "TEST_BUNDLE=app/unit_tests.ipa" "test-bin/app/unit_tests"
+  assert_contains "TEST_BUNDLE=app/unit_tests.zip" "test-bin/app/unit_tests"
   assert_contains "TEST_TYPE=XCTEST" "test-bin/app/unit_tests"
 }
 

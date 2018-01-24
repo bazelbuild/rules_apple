@@ -19,8 +19,11 @@ set -eu
 # Integration tests for bundling simple iOS applications.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for iOS applications.
@@ -450,6 +453,33 @@ EOF
         print_debug_entitlements - | \
         assert_contains "<key>test-an-entitlement</key>" -
   fi
+}
+
+# Tests that failures to extract from a provisioning profile are propertly
+# reported.
+function test_provisioning_profile_extraction_failure() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "bogus.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/bogus.mobileprovision <<EOF
+BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS
+EOF
+
+  ! do_build ios //app:app || fail "Should fail"
+  # The fact that multiple things are tried is left as an impl detail and
+  # only the final message is looked for.
+  expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Tests that an iMessage application contains the appropriate stub executable

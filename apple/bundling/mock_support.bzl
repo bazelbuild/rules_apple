@@ -32,7 +32,7 @@ def _is_provisioning_mocked(ctx):
   Args:
     ctx: The Skylark context.
   Returns:
-    The list of device families that apply to the target being built.
+    True/False on if the provisioning should be mocked out.
   """
   return ctx.var.get(
       "bazel_rules_apple.mock_provisioning", "").lower() == "true"

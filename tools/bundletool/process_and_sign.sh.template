@@ -4,9 +4,9 @@ set -eu
 # The path where the archive should be created, including the name of the
 # archive itself.
 readonly OUTPUT_PATH=%output_path%
-# The name of the post processor executable, if any, that should be run on the
-# directory containing the package contents.
-readonly POST_PROCESSOR=%post_processor%
+# The name of the ipa post processor executable, if any, that should be run on
+# the directory containing the package contents.
+readonly POST_PROCESSOR=%ipa_post_processor%
 # Indicates whether the final archive should be compressed (1) or not (0).
 readonly SHOULD_COMPRESS=%should_compress%
 # The path to archive with the unprocessed and unsigned bundle.

@@ -55,10 +55,6 @@ load(
     "run_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:test_support.bzl",
-    "test_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleResourceSet",
@@ -133,9 +129,6 @@ def _ios_application_impl(ctx):
       deps_objc_providers=[deps_objc_provider],
   )
 
-  if ctx.attr.deps:
-    legacy_providers["xctest_app"] = test_support.new_xctest_app_provider(ctx)
-
   runfiles = run_actions.start_simulator(ctx)
 
   return struct(
@@ -171,7 +164,10 @@ ios_application = rule_factory.make_bundling_rule(
         ),
     },
     archive_extension=".ipa",
-    code_signing=rule_factory.code_signing(".mobileprovision"),
+    code_signing=rule_factory.code_signing(
+        ".mobileprovision",
+        support_invalid_entitlements_are_warnings=True,
+    ),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
     needs_pkginfo=True,
     executable=True,
@@ -228,7 +224,10 @@ ios_extension = rule_factory.make_bundling_rule(
         "_extension_safe": attr.bool(default=True),
     },
     archive_extension=".zip",
-    code_signing=rule_factory.code_signing(".mobileprovision"),
+    code_signing=rule_factory.code_signing(
+        ".mobileprovision",
+        support_invalid_entitlements_are_warnings=True,
+    ),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
@@ -336,13 +335,13 @@ def _ios_static_framework_impl(ctx):
   additional_providers, legacy_providers, additional_outputs = bundler.run(
       ctx,
       "IosStaticFrameworkArchive", "iOS static framework",
-      ctx.attr.bundle_id,
+      None,  # static frameworks have no bundle id (nor final Info.plist).
       binary_artifact=binary_artifact,
       additional_bundlable_files=framework_files,
       framework_files=framework_files,
       deps_objc_providers=[deps_objc_provider],
+      suppress_bundle_infoplist=True,
       version_keys_required=False,
-      check_for_main_infoplist=False,
   )
 
   return struct(
@@ -364,12 +363,13 @@ ios_static_framework = rule_factory.make_bundling_rule(
     },
     archive_extension=".zip",
     binary_providers=[apple_common.AppleStaticLibrary],
+    bundle_id_attr_mode=rule_factory.attribute_modes.UNSUPPORTED,
     code_signing=rule_factory.code_signing(skip_signing=True),
     device_families=rule_factory.device_families(
         allowed=["iphone", "ipad"],
         mandatory=False,
     ),
-    infoplists_attr_mode=rule_factory.attribute_modes.OPTIONAL,
+    infoplists_attr_mode=rule_factory.attribute_modes.UNSUPPORTED,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
     product_type=rule_factory.product_type(apple_product_type.static_framework),

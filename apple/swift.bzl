@@ -507,8 +507,6 @@ def _swiftc_args(reqs):
       target,
       "-sdk",
       apple_toolchain.sdk_dir(),
-      "-module-cache-path",
-      module_cache_path(reqs.genfiles_dir),
   ]
 
   if reqs.default_configuration.coverage_enabled:
@@ -885,7 +883,9 @@ SWIFT_LIBRARY_ATTRS = {
         allow_empty=True,
         allow_files=True),
     "swift_version": attr.int(default=3, values=[3, 4], mandatory=False),
-    "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
+    "_xcode_config": attr.label(
+        default=configuration_field(
+            fragment="apple", name="xcode_config_label")),
     "_xcrunwrapper": attr.label(
         executable=True,
         cfg="host",
@@ -915,5 +915,5 @@ Args:
   defines: Each VALUE in this attribute is passed as -DVALUE to the compiler for
       this and dependent targets.
   swift_version: A number that specifies the Swift language version to use.
-      Valid options are 3, 4. This value is ignored for Xcode < 8.3.
+      Valid options are 3, 4. This value is ignored for Xcode < 9.0.
 """

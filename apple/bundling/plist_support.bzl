@@ -19,38 +19,6 @@ load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl", "mock_support"
 load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
-def _extract_provisioning_plist_command(ctx, provisioning_profile):
-  """Returns the shell command to extract a plist from a provisioning profile.
-
-  Args:
-    ctx: The Skylark context.
-    provisioning_profile: The `File` representing the provisioning profile.
-  Returns:
-    The shell command used to extract the plist.
-  """
-  if mock_support.is_provisioning_mocked(ctx):
-    # If provisioning is mocked, treat the provisioning profile as a plain XML
-    # plist without a signature.
-    return "cat " + bash_quote(provisioning_profile.path)
-  else:
-    # Use a fallback mechanism to call first the security command and if that
-    # fails (e.g. when running in El Capitan) call the openssl command.
-    # The whole output for that fallback command group is then rerouted to
-    # STDERR which is only printed if the command actually failed (security and
-    # openssl print information into stderr even if the command succeeded).
-    profile_path = bash_quote(provisioning_profile.path)
-    extract_plist_cmd = (
-        "(security cms -D -i %s || " % profile_path +
-        "openssl smime -inform der -verify -noverify -in %s)" % profile_path)
-    return ("( " +
-            "STDERR=$(mktemp -t openssl.stderr) && " +
-            "trap \"rm -f ${STDERR}\" EXIT && " +
-            extract_plist_cmd + " 2> ${STDERR} || " +
-            "( >&2 echo 'Could not extract plist from provisioning profile' " +
-            " && >&2 cat ${STDERR} && exit 1 ) " +
-            ")")
-
-
 def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic=None):
   """Registers an action that invokes `plisttool`.
 
@@ -83,6 +51,5 @@ def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic=None):
 
 # Define the loadable module that lists the exported symbols in this file.
 plist_support = struct(
-    extract_provisioning_plist_command=_extract_provisioning_plist_command,
     plisttool_action=_plisttool_action,
 )

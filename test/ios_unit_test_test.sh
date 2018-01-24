@@ -19,8 +19,11 @@
 set -eu
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for iOS applications and
@@ -170,7 +173,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_plist "//app:unit_tests_test_bundle.ipa" "Payload/unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -230,7 +233,7 @@ function test_plist_contents() {
 function test_bundle_id_override() {
   create_common_files
   create_minimal_ios_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.ipa" "Payload/unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -242,7 +245,7 @@ function test_bundle_id_override() {
 function test_bundle_id_same_as_test_host_error() {
   create_common_files
   create_minimal_ios_application_with_tests "my.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.ipa" "Payload/unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   ! do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -267,7 +270,7 @@ function test_builds_with_default_host() {
 function test_bundle_is_signed() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_codesign "//app:unit_tests_test_bundle.ipa" "Payload/unit_tests.xctest" -vv
+  create_dump_codesign "//app:unit_tests_test_bundle.zip" "unit_tests.xctest" -vv
   do_build ios --ios_minimum_os=9.0 //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -281,7 +284,7 @@ function test_runner_script_contains_expected_values() {
   do_build ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
 
   assert_contains "TEST_HOST=app/app.ipa" "test-bin/app/unit_tests"
-  assert_contains "TEST_BUNDLE=app/unit_tests.ipa" "test-bin/app/unit_tests"
+  assert_contains "TEST_BUNDLE=app/unit_tests.zip" "test-bin/app/unit_tests"
   assert_contains "TEST_TYPE=XCTEST" "test-bin/app/unit_tests"
 }
 

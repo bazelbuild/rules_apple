@@ -80,7 +80,7 @@ def _is_device_build(ctx):
   Returns:
     True if this is a device build, or False if it is a simulator build.
   """
-  platform, _ = _platform_and_sdk_version(ctx)
+  platform = _platform(ctx)
   return platform.is_device
 
 
@@ -115,6 +115,19 @@ def _platform_type(ctx):
   return getattr(apple_common.platform_type, platform_type_string)
 
 
+def _platform(ctx):
+  """Returns the platform for the current target.
+
+  Args:
+    ctx: The Skylark context.
+  Returns:
+    The Platform object for the target.
+  """
+  apple = ctx.fragments.apple
+  platform = apple.multi_arch_platform(_platform_type(ctx))
+  return platform
+
+
 def _platform_and_sdk_version(ctx):
   """Returns the platform and SDK version for the current target.
 
@@ -124,8 +137,7 @@ def _platform_and_sdk_version(ctx):
     A tuple containing the Platform object for the target and the SDK version
     to build against for that platform.
   """
-  apple = ctx.fragments.apple
-  platform = apple.multi_arch_platform(_platform_type(ctx))
+  platform = _platform(ctx)
   sdk_version = (ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
                  .sdk_version_for_platform(platform))
 
@@ -146,13 +158,13 @@ def _xcode_env_action(ctx, **kwargs):
     ctx: The Skylark context.
     **kwargs: Arguments to be passed into apple_action.
   """
-  platform, _ = _platform_and_sdk_version(ctx)
+  platform = _platform(ctx)
   environment_supplier = get_environment_supplier()
-  action_env = environment_supplier.target_apple_env(ctx, platform)
+  action_env = dict(kwargs.get("env", {}))
+  action_env.update(environment_supplier.target_apple_env(ctx, platform))
   action_env.update(environment_supplier.apple_host_system_env(ctx))
 
-  kwargs["env"] = dict(kwargs.get("env", {}))
-  kwargs["env"].update(action_env)
+  kwargs["env"] = action_env
 
   apple_action(ctx, **kwargs)
 
@@ -163,6 +175,7 @@ platform_support = struct(
     family_plist_number=_family_plist_number,
     is_device_build=_is_device_build,
     minimum_os=_minimum_os,
+    platform=_platform,
     platform_and_sdk_version=_platform_and_sdk_version,
     platform_type=_platform_type,
     xcode_env_action=_xcode_env_action,
