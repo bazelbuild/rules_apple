@@ -19,8 +19,11 @@ set -eu
 # Integration tests for bundling iOS apps with extensions.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for iOS applications.
@@ -437,9 +440,7 @@ EOF
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
-  expect_log 'While processing target "//app:app"; the CFBundleIdentifier of ' \
-      'the child target "//app:ext" should have "my.bundle.id." as its ' \
-      'prefix, but found "my.extension.bundle.id".'
+  expect_log 'While processing target "//app:app"; the CFBundleIdentifier of the child target "//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
 }
 
 # Tests that a prebuilt static framework (i.e., objc_framework with is_dynamic

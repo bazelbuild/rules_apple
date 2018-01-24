@@ -5,17 +5,14 @@
 
 ```python
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
-extensions, families, frameworks, infoplists, ipa_post_processor, launch_images,
+extensions, families, frameworks, infoplists,
+invalid_entitlements_are_warnings, ipa_post_processor, launch_images,
 launch_storyboard, linkopts, minimum_os_version, product_type,
 provisioning_profile, settings_bundle, strings, version, watch_application,
 deps)
 ```
 
 Builds and bundles an iOS application.
-
-The named target produced by this macro is an IPA file. This macro also creates
-a target named `{name}.apple_binary` that represents the linked executable
-inside the application bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -179,8 +176,9 @@ inside the application bundle.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the application. This value is optional (and unused) for
-        simulator builds but <strong>required for device builds.</strong></p>
+        when bundling the application. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
       </td>
     </tr>
     <tr>
@@ -202,6 +200,24 @@ inside the application bundle.
         root of the final application bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>invalid_entitlements_are_warnings</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, when the entitlements for this rule are checked against
+        the entitlements listed as supported in the provisioning profile only
+        warnings (instead of errors) can be issued. Normally, warnings are
+        issued for things that should still work while targeting the Simulator,
+        but errors are reported when targeting a device for things that will
+        prevent the built product from installing/running or the entitlements
+        generally working.</p>
+        <p>Setting this to <code>False</code> should <i>not</i> be commonly
+        needed and only should be needed if the target undergoes some post
+        processing that resigns the binary with different entitlements and/or
+        a different provisioning profile meaning the values on the rule don't
+        really matter.</p>
       </td>
     </tr>
     <tr>
@@ -239,16 +255,12 @@ inside the application bundle.
 
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
-families, frameworks, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, product_type, provisioning_profile, strings, version,
-deps)
+families, frameworks, infoplists, ipa_post_processor,
+invalid_entitlements_are_warnings, linkopts, minimum_os_version, product_type,
+provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles an iOS application extension.
-
-The named target produced by this macro is a ZIP file. This macro also creates a
-target named `{name}.apple_binary` that represents the linked binary
-executable inside the extension bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -381,8 +393,9 @@ executable inside the extension bundle.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the extension. This value is optional (and unused) for
-        simulator builds but <strong>required for device builds.</strong></p>
+        when bundling the extension. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
       </td>
     </tr>
     <tr>
@@ -394,6 +407,24 @@ executable inside the extension bundle.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>invalid_entitlements_are_warnings</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, when the entitlements for this rule are checked against
+        the entitlements listed as supported in the provisioning profile only
+        warnings (instead of errors) can be issued. Normally, warnings are
+        issued for things that should still work while targeting the Simulator,
+        but errors are reported when targeting a device for things that will
+        prevent the built product from installing/running or the entitlements
+        generally working.</p>
+        <p>Setting this to <code>False</code> should <i>not</i> be commonly
+        needed and only should be needed if the target undergoes some post
+        processing that resigns the binary with different entitlements and/or
+        a different provisioning profile meaning the values on the rule don't
+        really matter.</p>
       </td>
     </tr>
     <tr>
@@ -427,11 +458,9 @@ infoplists, ipa_post_processor, linkopts, minimum_os_version, strings,
 version, deps)
 ```
 
-Builds and bundles an iOS dynamic framework.
-
-The named target produced by this macro is a ZIP file. This macro also creates a
-target named `{name}.apple_binary` that represents the linked dynamic library
-inside the framework bundle.
+Builds and bundles an iOS dynamic framework. To use this framework for your
+app and extensions, list it in the `frameworks` attributes of those
+`ios_application` and/or `ios_extension` rules.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -564,9 +593,9 @@ inside the framework bundle.
 ## ios_static_framework
 
 ```python
-ios_static_framework(name, avoid_deps, hdrs, bundle_id, bundle_name,
-exclude_resources, families, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, strings, version, deps)
+ios_static_framework(name, avoid_deps, hdrs, bundle_name, exclude_resources,
+families, ipa_post_processor, linkopts, minimum_os_version, strings, version,
+deps)
 ```
 
 Builds and bundles an iOS static framework for third-party distribution.
@@ -621,14 +650,6 @@ build a single framework artifact that works for all architectures by specifying
       </td>
     </tr>
     <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        framework.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>bundle_name</code></td>
       <td>
         <p><code>String; optional</code></p>
@@ -654,16 +675,6 @@ build a single framework artifact that works for all architectures by specifying
         <p>A list of device families supported by this framework. Valid values
         are <code>iphone</code> and <code>ipad</code>. If omitted, both values
         listed previously will be used.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the framework. Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
       </td>
     </tr>
     <tr>
@@ -746,11 +757,6 @@ test_host, data, deps, [test specific attributes])
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
-
-The named targets produced by this macro are an IPA file and the test script to
-be executed by bazel. This macro also creates a target named
-`{name}.apple_binary` that represents the linked bundle binary inside the test
-bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -863,11 +869,6 @@ test_host, data, deps, [test specific attributes])
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
-
-The named targets produced by this macro are an IPA file and the test script to
-be executed by bazel. This macro also creates a target named
-`{name}.apple_binary` that represents the linked bundle binary inside the test
-bundle.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>

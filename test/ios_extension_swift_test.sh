@@ -20,10 +20,12 @@ set -eu
 # Integration tests for bundling iOS extensions that use Swift.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
 }
 
+function tear_down() {
+  rm -rf app
+}
 # Creates the targets for a minimal iOS application written in Objective-C that
 # uses Swift in an app extension.
 function create_minimal_ios_application_with_swift_extension() {

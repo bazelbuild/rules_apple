@@ -18,11 +18,7 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundleInfo",
      "MacosXcTestBundleInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl",
-     "full_label",
-     "merge_dictionaries")
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
-     "bundler")
+     "full_label")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
@@ -30,60 +26,29 @@ load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
 load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
      "apple_unit_test",
      "apple_ui_test")
+load("@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
+     "apple_test_bundle_support")
 
 
 def _macos_test_bundle_impl(ctx):
   """Implementation for the _macos_test_bundle rule."""
-  bundle_id = None
-  test_host_bundle_id = None
-
-  if ctx.attr.test_host:
-    host_bundle_info = ctx.attr.test_host[AppleBundleInfo]
-    test_host_bundle_id = host_bundle_info.bundle_id
-    bundle_id = test_host_bundle_id + "Tests"
-  if ctx.attr.bundle_id:
-    bundle_id = ctx.attr.bundle_id
-
-  if not bundle_id:
-    fail("Bundle identifier missing. You need to either provide a bundle_id " +
-         "or a sensible test_host.")
-
-  if bundle_id == test_host_bundle_id:
-    fail("The test bundle's identifier of '" + bundle_id + "' can't be the " +
-         "same as the test host's bundle identifier. Please change one of " +
-         "them.")
-
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  return apple_test_bundle_support.apple_test_bundle_impl(
       ctx,
-      "MacOSTestArchive", "MacOSTest",
-      bundle_id,
-      binary_artifact=binary_artifact,
-      version_keys_required=False,
-  )
-  return struct(
-      files=additional_outputs,
-      instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
-      providers=[
-          MacosXcTestBundleInfo(),
-      ] + additional_providers,
-      **legacy_providers
+      "MacOSTestArchive",
+      "MacOSTest",
+      [MacosXcTestBundleInfo()],
   )
 
 
 _macos_test_bundle = rule_factory.make_bundling_rule(
     _macos_test_bundle_impl,
     additional_attrs={
-        # Override of the common_rule_attributes() bundle_id attribute in
-        # order to make it optional. Bundle identifier for the
-        # _macos_test_bundle output.
-        "bundle_id": attr.string(),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(providers=[AppleBundleInfo]),
     },
     archive_extension=".zip",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
+    bundle_id_attr_mode=rule_factory.attribute_modes.OPTIONAL,
     code_signing=rule_factory.code_signing(
         ".provisionprofile",
         requires_signing_for_device=False
@@ -132,8 +97,6 @@ def _macos_test(name,
       # TODO(b/62481675): Move these rpath flags into crosstool features.
       "-rpath", "@executable_path/../Frameworks",
       "-rpath", "@loader_path/../Frameworks",
-      # TODO(b/64032879): Cleanup this framework include path.
-      "-F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks",
   ]
 
   native.apple_binary(

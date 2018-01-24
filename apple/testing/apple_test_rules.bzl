@@ -218,7 +218,10 @@ def _get_coverage_test_environment(ctx):
   gcov_files = ctx.attr._gcov.files.to_list()
   return {
       "APPLE_COVERAGE": "1",
-      "COVERAGE_GCOV_PATH": gcov_files[0].path,
+      # TODO(b/72383680): Remove the workspace_name prefix for the path.
+      "COVERAGE_GCOV_PATH": "/".join(["runfiles",
+                                      ctx.workspace_name,
+                                      gcov_files[0].path]),
   }
 
 
@@ -228,7 +231,7 @@ def _apple_test_impl(ctx, test_type):
   execution_requirements = runner.execution_requirements
   test_environment = runner.test_environment
 
-  test_runfiles = [ctx.outputs.test_bundle] + ctx.attr._mcov.files.to_list()
+  test_runfiles = [ctx.outputs.test_bundle]
   test_host = ctx.attr.test_host
   if test_host:
     test_runfiles.append(test_host.apple_bundle.archive)
@@ -238,10 +241,17 @@ def _apple_test_impl(ctx, test_type):
                                           _get_coverage_test_environment(ctx))
     test_runfiles.extend(
         list(ctx.attr.test_bundle[CoverageFiles].coverage_files))
+    test_runfiles.extend(ctx.attr._gcov.files.to_list())
+    test_runfiles.extend(ctx.attr._mcov.files.to_list())
 
   file_actions.symlink(ctx,
                        ctx.attr.test_bundle.apple_bundle.archive,
                        ctx.outputs.test_bundle)
+
+  # TODO(b/70525901): Remove this extra symlink.
+  file_actions.symlink(ctx,
+                       ctx.attr.test_bundle.apple_bundle.archive,
+                       ctx.outputs.test_bundle_legacy)
 
   ctx.template_action(
       template = runner.test_runner_template,
@@ -259,13 +269,14 @@ def _apple_test_impl(ctx, test_type):
   # the archived xctest bundle. This hack will go away when AppleBundleInfo is
   # used to get the outputs of this rule instead.
   outputs = depset([ctx.outputs.test_bundle, ctx.outputs.executable],
-      order="preorder")
+                   order="preorder")
 
   extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
   if extra_outputs_provider:
     outputs += extra_outputs_provider.files
 
   return struct(
+      apple_bundle=ctx.attr.test_bundle[AppleBundleInfo],
       executable=ctx.outputs.executable,
       files=outputs,
       instrumented_files=struct(dependency_attributes=["test_bundle"]),
@@ -296,8 +307,13 @@ apple_ui_test = rule(
     test=True,
     attrs=_apple_ui_test_attributes(),
     outputs={
-        # TODO(b/34978210): Revert to .zip once Tulsi supports this use case.
-        "test_bundle": "%{name}.ipa",
+        "test_bundle": "%{name}.zip",
+        # TODO(b/70525901): There are tests still depending on the .ipa artifact
+        # directly. They need to be migrated to the .zip version before we can
+        # eliminate this artifact. Because this artifact is not added to the
+        # implicit outputs, it will only be built when requested directly, which
+        # means that it doesn't affect build times.
+        "test_bundle_legacy": "%{name}.ipa",
     },
     fragments=["apple", "objc"],
 )
@@ -326,8 +342,13 @@ apple_unit_test = rule(
     test=True,
     attrs=_apple_unit_test_attributes(),
     outputs={
-        # TODO(b/34978210): Revert to .zip once Tulsi supports this use case.
-        "test_bundle": "%{name}.ipa",
+        "test_bundle": "%{name}.zip",
+        # TODO(b/70525901): There are tests still depending on the .ipa artifact
+        # directly. They need to be migrated to the .zip version before we can
+        # eliminate this artifact. Because this artifact is not added to the
+        # implicit outputs, it will only be built when requested directly, which
+        # means that it doesn't affect build times.
+        "test_bundle_legacy": "%{name}.ipa",
     },
     fragments=["apple", "objc"],
 )

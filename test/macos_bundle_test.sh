@@ -19,8 +19,11 @@ set -eu
 # Integration tests for bundling simple macOS loadable bundles.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for macOS loadable bundles.

@@ -20,8 +20,11 @@ set -eu
 # Integration tests for Swift libraries.
 
 function set_up() {
-  rm -rf ios
   mkdir -p ios
+}
+
+function tear_down() {
+  rm -rf ios
 }
 
 function test_objc_depends_on_swift() {
@@ -116,7 +119,6 @@ EOF
 
   do_build ios --objccopt=-DCOPTS_FOO=1 --subcommands \
       //ios:swift_lib || fail "should build"
-  expect_log "-module-cache-path [^/]*-out/[^/]*/genfiles/_objc_module_cache"
 }
 
 function test_swift_imports_swift() {

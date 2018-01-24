@@ -212,8 +212,8 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     apple_product_type.watch2_application: _describe_product_type(
         bundle_extension=".app",
         stub=_describe_stub(
-            xcenv_based_path=("$(SDKROOT)/Library/Application Support/" +
-                              "WatchKit/WK"),
+            xcenv_based_path=("__BAZEL_XCODE_SDKROOT__/Library/" +
+                              "Application Support/WatchKit/WK"),
             path_in_archive="WatchKitSupport2/WK",
             additional_bundle_path="_WatchKitStub/WK",
         ),

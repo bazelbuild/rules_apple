@@ -245,6 +245,7 @@ genrule(
 EOF
 }
 
+
 # Usage: current_archs <platform>
 #
 # Prints the architectures for the given platform that were specified in the
@@ -274,9 +275,8 @@ function current_archs() {
 #
 # Helper function to invoke `bazel build` that applies --verbose_failures and
 # log redirection for the test harness, along with any extra arguments that
-# were passed in via the `apple_shell_test`'s `configurations` attribute.
-# The first argument is the platform needed; the remaining arguments are passed
-# directly to bazel.
+# were passed in via the `apple_shell_test`'s attribute. The first argument is
+# the platform required; the remaining arguments are passed directly to bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
 # should expect to find their outputs in "test-bin" and "test-genfiles".
@@ -284,7 +284,44 @@ function current_archs() {
 # Example:
 #     do_build ios --some_other_flag //foo:bar
 function do_build() {
-  platform="$1"; shift
+  do_action build "$@"
+}
+
+
+# Usage: do_test <platform> <other options...>
+#
+# Helper function to invoke `bazel test` that applies --verbose_failures and
+# log redirection for the test harness, along with any extra arguments that
+# were passed in via the `apple_shell_test`'s attribute. The first argument is
+# the platform required; the remaining arguments are passed directly to bazel.
+#
+# Test builds use "test-" as the output directory symlink prefix, so tests
+# should expect to find their outputs in "test-bin" and "test-genfiles".
+#
+# Example:
+#     do_test ios --some_other_flag //foo:bar_tests
+function do_test() {
+  do_action test "$@"
+}
+
+
+# Usage: do_action <action> <platform> <other options...>
+#
+# Internal helper function to invoke `bazel <action>` that applies
+# --verbose_failures and log redirection for the test harness, along with any
+# extra arguments that were passed in via the `apple_shell_test`'s attribute.
+# The first argument is the action to perform (i.e. `build` or `test`), followed
+# by the platform required; the remaining arguments are passed directly to
+# bazel.
+#
+# Test builds use "test-" as the output directory symlink prefix, so tests
+# should expect to find their outputs in "test-bin" and "test-genfiles".
+#
+# Example:
+#     do_action build ios --some_other_flag //foo:bar
+function do_action() {
+  local action="$1"; shift
+  local platform="$1"; shift
 
   declare -a bazel_options=("--symlink_prefix=test-" "--verbose_failures")
 
@@ -312,7 +349,7 @@ function do_build() {
   )
 
   echo "Executing: bazel build ${bazel_options[*]}" > "$TEST_log"
-  bazel build "${bazel_options[@]}" > "$TEST_log" 2>&1
+  bazel "${action}" "${bazel_options[@]}" > "$TEST_log" 2>&1
 }
 
 
@@ -412,7 +449,7 @@ function assert_binary_contains() {
   unzip_single_file "$archive" "$path" > $fat_path
   declare -a archs=( $(current_archs "ios") )
   for arch in "${archs[@]}"; do
-    assert_nm_contains "$arch" "$fat_path" "$symbol_string"
+    assert_objdump_contains "$arch" "$fat_path" "$symbol_string"
   done
   rm -rf tempdir
 }
@@ -434,37 +471,39 @@ function assert_binary_not_contains() {
   unzip_single_file "$archive" "$path" > $fat_path
   declare -a archs=( $(current_archs "ios") )
   for arch in "${archs[@]}"; do
-    assert_nm_not_contains "$arch" "$fat_path" "$symbol_string"
+    assert_objdump_not_contains "$arch" "$fat_path" "$symbol_string"
   done
   rm -rf tempdir
 }
 
-# Usage: assert_nm_contains <arch> <path> <symbol_string>
+# Usage: assert_objdump_contains <arch> <path> <symbol_string>
 #
-# Uses nm and asserts that the binary at `path`
+# Uses objdump and asserts that the binary at `path`
 # contains the string `symbol_string` in its objc runtime.
-function assert_nm_contains() {
+function assert_objdump_contains() {
   arch="$1"
   path="$2"
   symbol_string="$3"
 
-  nm_contents=$(nm -defined-only -arch="$arch" "$fat_path")
-  echo "$nm_contents" | grep "$symbol_string" >& /dev/null && return 0
-  fail "Expected binary '$path' to contain '$symbol_string' but it did not"
+  local contents=$(objdump -t -macho -arch="$arch" "$fat_path" | grep -v "*UND*")
+  echo "$contents" | grep "$symbol_string" >& /dev/null && return 0
+  fail "Expected binary '$path' to contain '$symbol_string' but it did not." \
+      "contents were: $contents"
 }
 
-# Usage: assert_nm_contains <arch> <path> <symbol_string>
+# Usage: assert_objdump_not_contains <arch> <path> <symbol_string>
 #
-# Uses nm and asserts that the binary at `path`
+# Uses objdump and asserts that the binary at `path`
 # does not contain the string `symbol_string` in its objc runtime.
-function assert_nm_not_contains() {
+function assert_objdump_not_contains() {
   arch="$1"
   path="$2"
   symbol_string="$3"
 
-  nm_contents=$(nm -defined-only -arch="$arch" "$fat_path")
-  echo "$nm_contents" | grep "$symbol_string" >& /dev/null || return 0
-  fail "Expected binary '$path' to not contain '$symbol_string' but it did"
+  local contents=$(objdump -t -macho -arch="$arch" "$fat_path" | grep -v "*UND*")
+  echo "$contents" | grep "$symbol_string" >& /dev/null || return 0
+  fail "Expected binary '$path' to not contain '$symbol_string' but it did."  \
+      "contents were: $contents"
 }
 
 # Usage: assert_contains_bitcode_maps <platform> <archive> <path_in_archive>

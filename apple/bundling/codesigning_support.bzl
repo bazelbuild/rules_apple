@@ -26,6 +26,43 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "bash_quote")
 
 
+def _extract_provisioning_plist_command(ctx, provisioning_profile):
+  """Returns the shell command to extract a plist from a provisioning profile.
+
+  Args:
+    ctx: The Skylark context.
+    provisioning_profile: The `File` representing the provisioning profile.
+
+  Returns:
+    The shell command used to extract the plist.
+  """
+  if mock_support.is_provisioning_mocked(ctx):
+    # If provisioning is mocked, treat the provisioning profile as a plain XML
+    # plist without a signature.
+    return "cat " + bash_quote(provisioning_profile.path)
+  else:
+    # NOTE: Until the bundling rules are updated to merge entitlements support
+    # and signing, this extraction command should be kept in sync with what
+    # exists in provisioning_profile_tool.
+    #
+    # Use a fallback mechanism to call first the security command and if that
+    # fails (e.g. when running in El Capitan) call the openssl command.
+    # The whole output for that fallback command group is then rerouted to
+    # STDERR which is only printed if the command actually failed (security and
+    # openssl print information into stderr even if the command succeeded).
+    profile_path = bash_quote(provisioning_profile.path)
+    extract_plist_cmd = (
+        "(security cms -D -i %s || " % profile_path +
+        "openssl smime -inform der -verify -noverify -in %s)" % profile_path)
+    return ("( " +
+            "STDERR=$(mktemp -t openssl.stderr) && " +
+            "trap \"rm -f ${STDERR}\" EXIT && " +
+            extract_plist_cmd + " 2> ${STDERR} || " +
+            "( >&2 echo 'Could not extract plist from provisioning profile' " +
+            " && >&2 cat ${STDERR} && exit 1 ) " +
+            ")")
+
+
 def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
   """Extracts the first signing certificate hex ID from a provisioning profile.
 
@@ -39,7 +76,7 @@ def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
     provisioning profile. This expression can then be used in later commands
     to include the ID in code-signing commands.
   """
-  extract_plist_cmd = plist_support.extract_provisioning_plist_command(
+  extract_plist_cmd = _extract_provisioning_plist_command(
       ctx, provisioning_profile)
   return ("$( " +
           "PLIST=$(mktemp -t cert.plist) && trap \"rm ${PLIST}\" EXIT && " +

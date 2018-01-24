@@ -64,6 +64,9 @@ def watchos_application(name, **kwargs):
     infoplists: A list of `.plist` files that will be merged to form the
         Info.plist that represents the application. The merge is only at the
         top level of the plist; so sub-dictionaries are not merged.
+    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
+        errors) when checking the requested entitlements against the
+        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's IPA output after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a
@@ -85,10 +88,10 @@ def watchos_application(name, **kwargs):
         application bundle. (Since a watchOS application does not contain any
         code of its own, any code in the dependent libraries will be ignored.)
   """
-  bundling_args = binary_support.create_binary(
+
+  bundling_args = binary_support.entitlement_args_for_stub(
       name,
-      str(apple_common.platform_type.watchos),
-      _product_type=apple_product_type.watch2_application,
+      platform_type=str(apple_common.platform_type.watchos),
       **kwargs)
 
   _watchos_application(
@@ -127,6 +130,9 @@ def watchos_extension(name, **kwargs):
     infoplists: A list of `.plist` files that will be merged to form the
         Info.plist that represents the extension. The merge is only at the top
         level of the plist; so sub-dictionaries are not merged.
+    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
+        errors) when checking the requested entitlements against the
+        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a

@@ -253,6 +253,31 @@ def _resource_file(ctx, src, dest, executable=False, contents_only=False):
       src, _path_in_resources_dir(ctx, dest), executable, contents_only)
 
 
+def _validate_bundle_id(bundle_id):
+  """Ensure the valie is a valid bundle it or fail the build.
+
+  Args:
+    bundle_id: The string to check.
+  """
+  # Make sure the bundle id seems like a valid one. Apple's docs for
+  # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
+  # only they they specifically document is the character set, so the other
+  # two checks here are just added safety to catch likely errors by developers
+  # setting things up.
+  bundle_id_parts = bundle_id.split(".")
+  for part in bundle_id_parts:
+    if part == "":
+      fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
+    if not part.isalnum():
+      # Only non alpha numerics that are allowed are '.' and '-'. '.' was
+      # handled by the split(), so just have to check for '-'.
+      for ch in part:
+        if ch != "-" and not ch.isalnum():
+          fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
+  if len(bundle_id_parts) < 2:
+    fail("bundle_id isn't at least 2 segments: \"%s\"" % bundle_id)
+
+
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     binary_file=_binary_file,
@@ -268,4 +293,5 @@ bundling_support = struct(
     path_in_contents_dir=_path_in_contents_dir,
     path_in_resources_dir=_path_in_resources_dir,
     resource_file=_resource_file,
+    validate_bundle_id=_validate_bundle_id,
 )

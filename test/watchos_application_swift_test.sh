@@ -20,8 +20,11 @@ set -eu
 # Integration tests for bundling simple watchOS applications that use Swift.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates watchOS application and extension targets along with a

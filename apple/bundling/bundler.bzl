@@ -119,7 +119,8 @@ _FRAMEWORK_DIRS_TO_EXCLUDE = [
 
 
 # Resource sets with None for their bundle_dir represent resources that belong
-# in the root of the bundle, as opposed to a .bundle subdirectory.
+# in the root of the bundle, as opposed to a .bundle subdirectory. This matches
+# the default value for AppleResourceSet's `bundle_dir` (in providers.bzl).
 _ROOT_BUNDLE_DIR = None
 
 
@@ -249,24 +250,9 @@ def _validate_attributes(ctx, bundle_id):
            "attribute (for example, 'minimum_os_version = \"9.0\"').") %
           (ctx.label, minimum_os, platform_type))
 
-  # Make sure the bundle id seems like a valid one. Apple's docs for
-  # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
-  # only they they specifically document is the character set, so the other
-  # two checks here are just added safety to catch likely errors by developers
-  # setting things up.
-  bundle_id_parts = bundle_id.split(".")
-  for part in bundle_id_parts:
-    if part == "":
-      fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
-    if not part.isalnum():
-      # Only non alpha numerics that are allowed are '.' and '-'. '.' was
-      # handled by the split(), so just have to check for '-'.
-      for ch in part:
-        if ch != "-" and not ch.isalnum():
-          fail("Invalid character(s) in bundle_id: \"%s\"" %
-               bundle_id)
-  if len(bundle_id_parts) < 2:
-    fail("bundle_id isn't at least 2 segments: \"%s\"" % bundle_id)
+  # bundle_id is optional for some rules, hence nil check.
+  if bundle_id != None:
+    bundling_support.validate_bundle_id(bundle_id)
 
 
 def _dedupe_bundle_merge_files(bundlable_files):
@@ -453,11 +439,12 @@ def _process_and_sign_archive(ctx,
     signing_command_lines = codesigning_support.signing_command_lines(
         ctx, paths_to_sign, entitlements)
 
-  post_processor = ctx.executable.ipa_post_processor
-  post_processor_path = ""
-  if post_processor:
-    post_processor_path = post_processor.path
-    script_inputs.append(post_processor)
+
+  ipa_post_processor = ctx.executable.ipa_post_processor
+  ipa_post_processor_path = ""
+  if ipa_post_processor:
+    ipa_post_processor_path = ipa_post_processor.path
+    script_inputs.append(ipa_post_processor)
 
   # The directory where the archive contents will be collected. This path is
   # also passed out via the AppleBundleInfo provider so that external tools can
@@ -476,7 +463,7 @@ def _process_and_sign_archive(ctx,
       executable=True,
       substitutions={
           "%output_path%": output_archive.path,
-          "%post_processor%": post_processor_path or "",
+          "%ipa_post_processor%": ipa_post_processor_path or "",
           "%signing_command_lines%": signing_command_lines,
           "%should_compress%": "1" if should_compress else "",
           "%unprocessed_archive_path%": unprocessed_archive.path,
@@ -563,15 +550,15 @@ def _run(
     mnemonic,
     progress_description,
     bundle_id,
-    binary_artifact=None,
+    binary_artifact,
     additional_bundlable_files=depset(),
     additional_resource_sets=[],
     embedded_bundles=[],
     framework_files=depset(),
     is_dynamic_framework=False,
     deps_objc_providers=[],
-    version_keys_required=True,
-    check_for_main_infoplist=True):
+    suppress_bundle_infoplist=False,
+    version_keys_required=True):
   """Implements the core bundling logic for an Apple bundle archive.
 
   Args:
@@ -602,14 +589,13 @@ def _run(
     is_dynamic_framework: If True, create this bundle as a dynamic framework.
     deps_objc_providers: objc providers containing information about the
         dependencies of the binary target.
+    suppress_bundle_infoplist: If True, ensure the Info.plist was created for
+        the main bundle.
     version_keys_required: If True, the merged Info.plist file is required
         to have entries for CFBundleShortVersionString and CFBundleVersion.
         NOTE: Almost every type of bundle for Apple's platforms should get
         version numbers; so this is done a something only needed to opt out of
         the require for the exceptional cases (like unittest bundles).
-    check_for_main_infoplist: If True, ensure the Info.plist for the Info.plist
-        was created for the main bundle.
-        TODO(b/69553481): To remove this argument.
   Returns:
     A tuple containing three values:
     1. A list of modern providers that should be propagated by the calling rule.
@@ -618,6 +604,13 @@ def _run(
     3. A set of additional outputs that should be returned by the calling rule.
   """
   _validate_attributes(ctx, bundle_id)
+  if suppress_bundle_infoplist:
+    if bundle_id:
+      fail("Internal Error: Suppressing bundle Info.plist, but got a " +
+           "bundle_id?")
+    if version_keys_required:
+      fail("Internal Error: Suppressing bundle Info.plist, but expected " +
+           "version keys in one?")
 
   # A list of files that should be used as the outputs of the rule invoking this
   # instance of the bundler, but which should not necessarily be propagated to
@@ -725,6 +718,16 @@ def _run(
   bundle_merge_files.extend(process_results.bundle_merge_files)
   bundle_merge_zips.extend(process_results.bundle_merge_zips)
 
+  if suppress_bundle_infoplist:
+    # Remove any value (default is so pop won't fail if there was no entry for
+    # the root).
+    process_results.bundle_infoplists.pop(_ROOT_BUNDLE_DIR, None)
+  else:
+    # When not suppressed, ensure the root is there so merge will happen to
+    # record the bundle_id, build info, etc.
+    if _ROOT_BUNDLE_DIR not in process_results.bundle_infoplists:
+      process_results.bundle_infoplists[_ROOT_BUNDLE_DIR] = []
+
   # Merge the Info.plists into binary format and collect the resulting PkgInfo
   # file as well. Keep track of the Info.plist for the main bundle while we do
   # this so that it can be propagated out (for situations where this bundle is a
@@ -733,18 +736,15 @@ def _run(
   for bundle_dir, infoplists in process_results.bundle_infoplists.items():
     merge_infoplist_args = {
         "input_plists": list(infoplists),
-        # This will become target type specific in the future and then
-        # eventually get removed as things are cleaned up.
-        "warn_unknown_substitutions": True,
     }
 
     bundles_to_datas = process_results.bundle_dir_to_resource_bundle_target_datas
     bundle_target_data = bundles_to_datas.get(bundle_dir)
     merge_infoplist_args["resource_bundle_target_data"] = bundle_target_data
 
-    # Compare to child plists (i.e., from extensions and nested binaries)
-    # only if we're processing the main bundle and not a resource bundle.
     if not bundle_dir:
+      # Compare to child plists (i.e., from extensions and nested binaries)
+      # only if we're processing the main bundle and not a resource bundle.
       child_infoplists = [
           eb.target[AppleBundleInfo].infoplist for eb in embedded_bundles
           if eb.verify_bundle_id
@@ -773,18 +773,6 @@ def _run(
           ctx, plist_results.pkginfo,
           optionally_prefixed_path("PkgInfo", bundle_dir)))
 
-  # The Info.plist is created in the above loop. As more things are expressed
-  # as attributes for rules, using Info.plist files directly won't be needed,
-  # and that could risk there being nothing to the plist merge to create the
-  # Info.plist that makes the product a bundle (and captures all the forced
-  # key/value pairs). This is a sanity check to ensure there the Info.plist
-  # file was created, if it fires, it is likely time to enforce the creation
-  # some way.
-  # TODO(b/69553481): To resolve the check_for_main_infoplist argument.
-  if check_for_main_infoplist and not main_infoplist:
-    fail(("Internal: The target \"%s\" did not create the Info.plist for the " +
-          "bundle.") % ctx.label)
-
   # Some application/extension types require stub executables, so collect that
   # information if necessary.
   product_type = product_support.product_type(ctx)
@@ -794,18 +782,18 @@ def _run(
     stub_descriptor = product_type_descriptor.stub
     has_built_binary = False
     bundle_merge_files.append(bundling_support.binary_file(
-        ctx, ctx.file.binary, bundle_name, executable=True))
+        ctx, binary_artifact, bundle_name, executable=True))
     if stub_descriptor.additional_bundle_path:
       # TODO(b/34684393): Figure out if macOS ever uses stub binaries for any
       # product types, and if so, is this the right place for them?
       bundle_merge_files.append(bundling_support.contents_file(
-          ctx, ctx.file.binary, stub_descriptor.additional_bundle_path,
+          ctx, binary_artifact, stub_descriptor.additional_bundle_path,
           executable=True))
     # TODO(b/34047985): This should be conditioned on a flag, not just
     # compilation mode.
     if ctx.var["COMPILATION_MODE"] == "opt":
       support_zip = product_actions.create_stub_zip_for_archive_merging(
-          ctx, ctx.file.binary, stub_descriptor)
+          ctx, binary_artifact, stub_descriptor)
       root_merge_zips.append(bundling_support.bundlable_file(support_zip, "."))
   elif hasattr(ctx.attr, "deps"):
     if not ctx.attr.deps:
@@ -829,7 +817,7 @@ def _run(
       bundle_merge_zips.append(bundling_support.contents_file(
           ctx, swift_zip, "Frameworks"))
 
-    platform, _ = platform_support.platform_and_sdk_version(ctx)
+    platform = platform_support.platform(ctx)
     root_merge_zips.append(bundling_support.bundlable_file(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
@@ -945,9 +933,6 @@ def _run(
       # uses the values in the dynamic framework provider.
       objc_provider_args["dynamic_framework_dir"] = depset([framework_dir])
       objc_provider_args["dynamic_framework_file"] = bundled_framework_files
-    else:
-      objc_provider_args["framework_dir"] = depset([framework_dir])
-      objc_provider_args["static_framework_file"] = bundled_framework_files
 
   objc_provider_args["providers"] = deps_objc_providers
   legacy_objc_provider = apple_common.new_objc_provider(**objc_provider_args)

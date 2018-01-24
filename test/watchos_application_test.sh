@@ -19,13 +19,17 @@ set -eu
 # Integration tests for bundling simple watchOS applications.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
 }
 
-# Creates minimal watchOS application and extension targets along with a
-# companion iOS app.
-function create_minimal_watchos_application_with_companion() {
+function tear_down() {
+  rm -rf app
+}
+
+# Creates the minimal companion iOS app and the support files needed to
+# make a watchOS app (allowing the caller to manually add the watchOS
+# targets to the BUILD file).
+function create_companion_app_and_watchos_application_support_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:watchos.bzl",
@@ -49,26 +53,6 @@ ios_application(
     deps = [":lib"],
 )
 
-watchos_application(
-    name = "watch_app",
-    bundle_id = "my.bundle.id.watch-app",
-    entitlements = "entitlements.entitlements",
-    extension = ":watch_ext",
-    infoplists = ["Info-WatchApp.plist"],
-    minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
-    deps = [":lib"],
-)
-
-watchos_extension(
-    name = "watch_ext",
-    bundle_id = "my.bundle.id.watch-app.watch-ext",
-    entitlements = "entitlements.entitlements",
-    infoplists = ["Info-WatchExt.plist"],
-    minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
-    deps = [":lib"],
-)
 EOF
 
   cat > app/main.m <<EOF
@@ -124,6 +108,35 @@ EOF
   <false/>
 </dict>
 </plist>
+EOF
+}
+
+# Creates minimal watchOS application and extension targets along with a
+# companion iOS app.
+function create_minimal_watchos_application_with_companion() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
 EOF
 }
 
@@ -350,6 +363,78 @@ function test_watch_extension_entitlements() {
   fi
 }
 
+# Tests that failures to extract from a provisioning profile are propertly
+# reported (from watchOS application profile).
+function test_provisioning_profile_extraction_failure_watch_application() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "bogus.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/bogus.mobileprovision <<EOF
+BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS
+EOF
+
+  ! do_build watchos //app:app || fail "Should fail"
+  # The fact that multiple things are tried is left as an impl detail and
+  # only the final message is looked for.
+  expect_log 'While processing target "//app:watch_app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+}
+
+# Tests that failures to extract from a provisioning profile are propertly
+# reported (from watchOS extension profile).
+function test_provisioning_profile_extraction_failure_watch_extension() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "bogus.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/bogus.mobileprovision <<EOF
+BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS
+EOF
+
+  ! do_build watchos //app:app || fail "Should fail"
+  # The fact that multiple things are tried is left as an impl detail and
+  # only the final message is looked for.
+  expect_log 'While processing target "//app:watch_ext_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+}
+
 # Tests that transitively depending on a objc_bundle_library from a watch
 # application correctly includes the bundle library resources in the final
 # app.
@@ -361,10 +446,20 @@ load("@build_bazel_rules_apple//apple:watchos.bzl",
      "watchos_extension"
     )
 
+# Using this config_setting for the resource dependency verifies that resources
+# are processed in the appropriate configuration.
+config_setting(
+    name = "platform_watchos",
+    values = {"apple_platform_type": "watchos"},
+)
+
 objc_library(
     name = "lib",
     srcs = ["main.m"],
-    deps = ["fooResource"],
+    deps = select({
+        ":platform_watchos": ["fooResource"],
+        "//conditions:default": [],
+    })
 )
 
 objc_bundle_library(

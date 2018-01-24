@@ -20,8 +20,11 @@ set -eu
 # Integration tests for bundling tvOS applications that use Swift.
 
 function set_up() {
-  rm -rf app
   mkdir -p app
+}
+
+function tear_down() {
+  rm -rf app
 }
 
 # Creates common source, targets, and basic plist for tvOS applications.

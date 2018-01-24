@@ -3,8 +3,8 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 py_binary(
-    name = "clangrttool",
-    srcs = ["clangrttool.py"],
+    name = "provisioning_profile_tool",
+    srcs = ["provisioning_profile_tool.py"],
 )
 
 # Consumed by bazel tests.

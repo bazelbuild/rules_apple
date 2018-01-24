@@ -27,6 +27,10 @@ load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
 
 
 def _get_binary_provider(deps, provider_key):
@@ -43,15 +47,53 @@ def _get_binary_provider(deps, provider_key):
   Returns:
     The provider propagated by the single "deps" target of the current rule.
   """
-  if len(deps) != 1:
-    fail("Only one dependency (a binary target) should be specified " +
-         "as a bundling rule dependency")
-  matching_providers = providers.find_all(deps[0], provider_key)
+  matching_providers = providers.find_all(deps, provider_key)
   if matching_providers:
     if len(matching_providers) > 1:
       fail("Expected only one binary provider")
     return matching_providers[0]
   return None
+
+
+def _create_stub_binary(ctx):
+  """Creates a binary for a bundle by copying a stub from the SDK.
+
+  Some Apple bundles may not need a binary target depending on their product
+  type; for example, watchOS applications and iMessage sticker packs contain
+  stub binaries copied from the platform SDK, rather than binaries with user
+  code. This function creates an `apple_stub_binary` target (instead of
+  `apple_binary`) that ensures that the platform transition is correct (for
+  platform selection in downstream dependencies) but that does not cause any
+  user code to be linked.
+
+  Args:
+    ctx: The bundling rule context.
+
+  Returns:
+    The binary stub artifact copied out of the SDK.
+  """
+  product_type = product_support.product_type(ctx)
+  product_type_descriptor = product_support.product_type_descriptor(
+      product_type)
+
+  if not product_type_descriptor or not product_type_descriptor.stub:
+    fail(('%s failed: create_stub_binary may only be called from a bundling ' +
+         'rule of a product type which declares a stub') % ctx.label)
+
+  output_artifact = ctx.new_file("stubs/%s.binary_stub" % (ctx.label.name))
+
+  platform_support.xcode_env_action(
+      ctx,
+      outputs=[output_artifact],
+      executable=ctx.executable._xcrunwrapper,
+      arguments=["/bin/cp",
+                 product_type_descriptor.stub.xcenv_based_path,
+                 output_artifact.path],
+      mnemonic="CopyStubExecutable",
+      progress_message="Copying stub executable for %s" % (ctx.label)
+  )
+
+  return output_artifact
 
 
 def _create_stub_binary_target(
@@ -75,9 +117,17 @@ def _create_stub_binary_target(
     platform_type: The platform type for which the binary should be copied.
     stub_descriptor: The information about the product type's stub executable.
     **kwargs: The arguments that were passed into the top-level macro.
+
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
+
+  Deprecated:
+    Stub binary targets are deprecated. Use create_stub_binary in the bundling
+    rule context instead.
   """
+  # TODO(b/69630422): Migrate all callers off of apple_stub_binary. Use
+  # create_stub_binary in the rule context instead.
+
   bundling_args = dict(kwargs)
 
   apple_binary_name = "%s.apple_binary" % name
@@ -112,8 +162,51 @@ def _create_stub_binary_target(
       entitlements = entitlements_value,
       platform_type = platform_type,
       provisioning_profile = provisioning_profile,
+      validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
   )
   bundling_args["entitlements"] = ":" + entitlements_name
+
+  return bundling_args
+
+
+def _entitlement_args_for_stub(
+    name,
+    platform_type,
+    **kwargs):
+  """Creates an entitlements target for a bundle needing only an SDK stub.
+
+  Apple bundles not needing a binary target, for example, watchOS applications
+  and iMessage sticker packs, only contain stub binaries copied from the
+  platform SDK rather than binaries with user code. This function creates
+  only an entitlements target to ensure the stub binary gets appropriately
+  signed.
+
+  Args:
+    name: The name of the bundle target, from which the binary target's name
+        will be derived.
+    platform_type: The platform type for which the binary should be copied.
+    **kwargs: The arguments that were passed into the top-level macro.
+
+  Returns:
+    A modified copy of `**kwargs` that should be passed to the bundling rule.
+  """
+  bundling_args = dict(kwargs)
+
+  entitlements_value = kwargs.get("entitlements")
+  provisioning_profile = kwargs.get("provisioning_profile")
+  entitlements_name = "%s_entitlements" % name
+  entitlements(
+      name = entitlements_name,
+      bundle_id = kwargs.get("bundle_id"),
+      entitlements = entitlements_value,
+      platform_type = platform_type,
+      provisioning_profile = provisioning_profile,
+      validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
+  )
+  bundling_args["entitlements"] = ":" + entitlements_name
+  # This is required by the configuration transition on the 'deps' attribute
+  # of the bundling rule.
+  bundling_args["platform_type"] = platform_type
 
   return bundling_args
 
@@ -125,6 +218,7 @@ def _create_linked_binary_target(
     binary_type="executable",
     sdk_frameworks=[],
     extension_safe=False,
+    suppress_entitlements=False,
     **kwargs):
   """Creates a binary target for a bundle by linking user code.
 
@@ -142,6 +236,8 @@ def _create_linked_binary_target(
     extension_safe: If true, compiles and links this framework with
         '-application-extension', restricting the binary to use only
         extension-safe APIs. False by default.
+    suppress_entitlements: True/False, indicates that the entitlements() should
+        be suppressed.
     **kwargs: The arguments that were passed into the top-level macro.
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
@@ -151,17 +247,21 @@ def _create_linked_binary_target(
   minimum_os_version = kwargs.get("minimum_os_version")
   provisioning_profile = kwargs.get("provisioning_profile")
 
-  entitlements_value = bundling_args.pop("entitlements", None)
-  entitlements_name = "%s_entitlements" % name
-  entitlements(
-      name = entitlements_name,
-      bundle_id = kwargs.get("bundle_id"),
-      entitlements = entitlements_value,
-      platform_type = platform_type,
-      provisioning_profile = provisioning_profile,
-  )
-  bundling_args["entitlements"] = ":" + entitlements_name
-  entitlements_deps = [":" + entitlements_name]
+  if suppress_entitlements:
+    entitlements_deps = []
+  else:
+    entitlements_value = bundling_args.pop("entitlements", None)
+    entitlements_name = "%s_entitlements" % name
+    entitlements(
+        name = entitlements_name,
+        bundle_id = kwargs.get("bundle_id"),
+        entitlements = entitlements_value,
+        platform_type = platform_type,
+        provisioning_profile = provisioning_profile,
+        validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
+    )
+    bundling_args["entitlements"] = ":" + entitlements_name
+    entitlements_deps = [":" + entitlements_name]
 
   # Remove the deps so that we only pass them to the binary, not to the
   # bundling rule.
@@ -196,7 +296,7 @@ def _create_linked_binary_target(
   return bundling_args
 
 
-def _create_binary(name, platform_type, **kwargs):
+def _create_binary(name, platform_type, suppress_entitlements=False, **kwargs):
   """Creates a binary target for a bundle.
 
   This function checks the desired product type of the bundle and creates either
@@ -209,6 +309,8 @@ def _create_binary(name, platform_type, **kwargs):
     name: The name of the bundle target, from which the binary target's name
         will be derived.
     platform_type: The platform type for which the binary should be built.
+    suppress_entitlements: True/False, indicates that the entitlements() should
+        be suppressed.
     **kwargs: The arguments that were passed into the top-level macro.
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
@@ -240,16 +342,20 @@ def _create_binary(name, platform_type, **kwargs):
   product_type_descriptor = product_support.product_type_descriptor(
       product_type)
   if product_type_descriptor and product_type_descriptor.stub:
+    if suppress_entitlements:
+      fail("INTERNAL ERROR: suppress_entitlements unsupported on stubs.")
     return _create_stub_binary_target(
         name, platform_type, product_type_descriptor.stub, **args_copy)
   else:
     return _create_linked_binary_target(
         name, platform_type, linkopts, binary_type, sdk_frameworks,
-        extension_safe, **args_copy)
+        extension_safe, suppress_entitlements=suppress_entitlements, **args_copy)
 
 
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
     create_binary=_create_binary,
+    create_stub_binary=_create_stub_binary,
+    entitlement_args_for_stub=_entitlement_args_for_stub,
     get_binary_provider=_get_binary_provider,
 )

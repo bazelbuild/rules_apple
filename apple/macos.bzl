@@ -304,9 +304,9 @@ def macos_command_line_application(name, **kwargs):
       name,
       str(apple_common.platform_type.macos),
       deps=binary_deps,
+      suppress_entitlements=True,
       **binary_args)
   cmd_line_app_args.pop("deps")
-  cmd_line_app_args.pop("entitlements")
 
   _macos_command_line_application(
       name = name,

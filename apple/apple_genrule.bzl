@@ -91,7 +91,8 @@ _apple_genrule_inner = rule(
         "message": attr.string(),
         "output_licenses": attr.license(),
         "executable": attr.bool(default=False),
-        "_xcode_config": attr.label(default=Label("@bazel_tools//tools/osx:current_xcode_config")),
+        "_xcode_config": attr.label(default=configuration_field(
+            fragment="apple", name="xcode_config_label")),
         },
     output_to_genfiles = True,
     fragments=["apple"])

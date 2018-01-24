@@ -354,7 +354,7 @@ def _actool(ctx, asset_catalogs, resource_info):
       ctx, "%{name}.resources/%{path}", path="actool-PartialInfo.plist",
       prefix=bundle_dir)
 
-  platform, _ = platform_support.platform_and_sdk_version(ctx)
+  platform = platform_support.platform(ctx)
   min_os = platform_support.minimum_os(ctx)
   actool_platform = platform.name_in_plist.lower()
 
@@ -678,7 +678,7 @@ def _momc(ctx, input_files, resource_info):
 
   bundle_merge_files = []
 
-  platform, _ = platform_support.platform_and_sdk_version(ctx)
+  platform = platform_support.platform(ctx)
   platform_name = platform.name_in_plist.lower()
   deployment_target_option = "--%s-deployment-target" % platform_name
   min_os = platform_support.minimum_os(ctx)

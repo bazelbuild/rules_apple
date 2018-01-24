@@ -19,7 +19,6 @@ set -eu
 # Integration tests for the Apple bundle versioning rule.
 
 function set_up() {
-  rm -rf pkg
   mkdir -p pkg
 
   cat > pkg/saver.bzl <<EOF
@@ -58,6 +57,10 @@ saver(
     bundle_version = ":bundle_version",
 )
 EOF
+}
+
+function tear_down() {
+  rm -rf pkg
 }
 
 # Tests that manual version numbers work correctly.
@@ -219,8 +222,7 @@ EOF
 
   ! do_build ios //pkg:saved_version --embed_label=MyApp_1.2_RC03 || \
       fail "Should fail"
-  expect_log "If either build_label_pattern or capture_groups is provided, " \
-      "then both must be provided"
+  expect_log "If either build_label_pattern or capture_groups is provided, then both must be provided"
 }
 
 # Tests that the build fails if capture_groups is provided but
@@ -238,8 +240,7 @@ EOF
 
   ! do_build ios //pkg:saved_version --embed_label=MyApp_1.2_RC03 || \
       fail "Should fail"
-  expect_log "If either build_label_pattern or capture_groups is provided, " \
-      "then both must be provided"
+  expect_log "If either build_label_pattern or capture_groups is provided, then both must be provided"
 }
 
 # Tests that the build fails if fallback_build_label is provided but
@@ -255,8 +256,7 @@ EOF
 
   ! do_build ios //pkg:saved_version || \
       fail "Should fail"
-  expect_log "If fallback_build_label is provided, then build_label_pattern " \
-      "and capture_groups must be provided."
+  expect_log "If fallback_build_label is provided, then build_label_pattern and capture_groups must be provided."
 }
 
 

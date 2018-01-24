@@ -18,68 +18,35 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundleInfo",
      "IosXcTestBundleInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl",
-     "full_label",
-     "merge_dictionaries")
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundler.bzl",
-     "bundler")
+     "full_label")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type")
 load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
      "rule_factory")
-load("@build_bazel_rules_apple//common:providers.bzl",
-    "providers")
 load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
      "apple_unit_test",
      "apple_ui_test")
+load("@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
+     "apple_test_bundle_support")
 
 
 def _ios_test_bundle_impl(ctx):
   """Implementation for the _ios_test_bundle rule."""
-  host_bundle_info = ctx.attr.test_host[AppleBundleInfo]
-  bundle_id = host_bundle_info.bundle_id + "Tests"
-  if ctx.attr.bundle_id:
-    bundle_id = ctx.attr.bundle_id
-
-  if not bundle_id:
-    fail("Bundle identifier missing. You need to either provide a test_host " +
-         "or a bundle_id.")
-
-  if bundle_id == host_bundle_info.bundle_id:
-    fail("The test bundle's identifier of '" + bundle_id + "' can't be the " +
-         "same as the test host's bundle identifier. Please change one of " +
-         "them.")
-
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
-  deps_objc_providers = providers.find_all(ctx.attr.deps, "objc")
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  return apple_test_bundle_support.apple_test_bundle_impl(
       ctx,
-      "IosTestArchive", "IosTest",
-      bundle_id,
-      binary_artifact=binary_artifact,
-      deps_objc_providers=deps_objc_providers,
-      version_keys_required=False,
-  )
-  return struct(
-      files=additional_outputs,
-      instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
-      providers=[
-          IosXcTestBundleInfo(),
-      ] + additional_providers,
-      **legacy_providers
+      "IosTestArchive",
+      "IosTest",
+      [IosXcTestBundleInfo()],
   )
 
 
 _ios_test_bundle = rule_factory.make_bundling_rule(
     _ios_test_bundle_impl,
     additional_attrs={
-        # The test host that will run these tests. This is required in order to
-        # obtain a sensible default for the tests bundle identifier.
-        "test_host": attr.label(mandatory=True, providers=[AppleBundleInfo]),
+        # The test host that will run these tests. Optional.
+        "test_host": attr.label(mandatory=False, providers=[AppleBundleInfo]),
     },
-    # TODO(b/34774324): Rename to zip.
-    archive_extension=".ipa",
+    archive_extension=".zip",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
     bundle_id_attr_mode=rule_factory.attribute_modes.OPTIONAL,
     code_signing=rule_factory.code_signing(
@@ -90,7 +57,7 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
         allowed=["iphone", "ipad"],
         mandatory=False,
     ),
-    path_formats=rule_factory.simple_path_formats("Payload/%s"),
+    path_formats=rule_factory.simple_path_formats("%s"),
     platform_type=apple_common.platform_type.ios,
     # The empty string will be overridden by the wrapping macros.
     product_type=rule_factory.product_type(""),
@@ -180,16 +147,18 @@ def _ios_test(name,
 def ios_unit_test(
     name,
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
-    test_host = "@build_bazel_rules_apple//apple/testing/default_host/ios",
+    test_host = None,
     **kwargs):
-  bundle_loader = full_label(test_host) + ".apple_binary"
+  bundle_loader = None
+  if test_host:
+    bundle_loader = full_label(test_host) + ".apple_binary"
   _ios_test(
-      name = name,
-      product_type = apple_product_type.unit_test_bundle,
-      bundle_loader = bundle_loader,
-      runner = runner,
-      test_rule = apple_unit_test,
-      test_host = test_host,
+      name=name,
+      product_type=apple_product_type.unit_test_bundle,
+      bundle_loader=bundle_loader,
+      runner=runner,
+      test_rule=apple_unit_test,
+      test_host=test_host,
       **kwargs
   )
 
