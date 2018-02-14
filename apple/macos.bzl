@@ -400,7 +400,7 @@ def macos_ui_test(
   """Builds an XCUITest test bundle and tests it using the provided runner.
 
   The named target produced by this macro is an test target that can be executed
-  with the `blaze test` command.
+  with the `bazel test` command.
 
   Args:
     name: The name of the target.
@@ -440,7 +440,7 @@ def macos_unit_test(
   """Builds an XCTest unit test bundle and tests it using the provided runner.
 
   The named target produced by this macro is a test target that can be executed
-  with the `blaze test` command.
+  with the `bazel test` command.
 
   Args:
     name: The name of the target.
