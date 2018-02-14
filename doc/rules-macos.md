@@ -438,7 +438,7 @@ embedding an `Info.plist` into the binary and allows the binary to be
 code-signed.
 
 Targets created with `macos_command_line_application` can be executed using
-`blaze run`.
+`bazel run`.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>

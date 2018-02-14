@@ -77,9 +77,7 @@ def apple_shell_test(name,
                      **kwargs):
   """Creates a test target for an Apple shell integration test script.
 
-  This macro creates an sh_test target that's configured to run the released
-  version of exoblaze, by ensuring that the correct exoblaze dependencies are
-  present when running the test script.
+  This macro creates an sh_test target that uses bazel to run integration tests.
 
   Args:
     name: Name for the test target.
