@@ -295,6 +295,10 @@ Fields:
       compiling the propagating target. (Contrast with `transitive_modules`.)
   direct_doc: `File`. The single `.swiftdoc` file that was produced by
       compiling the propagating target.  (Contrast with `transitive_docs`.)
+  swift_version: `string`. The version of the Swift language that was used when
+      compiling the propagating target; that is, the value passed via the
+      `-swift-version` compiler flag. This will be `None` if the flag was not
+      set.
   transitive_defines: `depset` of `string`s. The set of conditional compilation
       flags defined by the propagating target and all of its transitive
       dependencies.

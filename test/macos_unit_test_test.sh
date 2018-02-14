@@ -92,7 +92,6 @@ macos_application(
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     minimum_os_version = "10.11",
-    #provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
 
@@ -142,7 +141,6 @@ macos_application(
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     minimum_os_version = "10.11",
-    #provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
     deps = [":lib"],
 )
 

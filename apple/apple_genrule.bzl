@@ -75,7 +75,8 @@ def _apple_genrule_impl(ctx):
                command=argv,
                progress_message="%s %s" % (message, ctx.label),
                mnemonic="Genrule",
-               input_manifests=runfiles_manifests)
+               input_manifests=runfiles_manifests,
+               no_sandbox=ctx.attr.no_sandbox)
 
   return struct(files=files_to_build,
                 data_runfiles=ctx.runfiles(transitive_files=files_to_build))
@@ -91,6 +92,7 @@ _apple_genrule_inner = rule(
         "message": attr.string(),
         "output_licenses": attr.license(),
         "executable": attr.bool(default=False),
+        "no_sandbox": attr.bool(),
         "_xcode_config": attr.label(default=configuration_field(
             fragment="apple", name="xcode_config_label")),
         },
@@ -153,11 +155,12 @@ def apple_genrule(
         **kwargs)
     # Remove anything from kwargs that might have a meaning that isn't wanted
     # on the genrule that does the copy. Generally, we are just trying to
-    # keep things like test_only, visibility, etc.
+    # keep things like testonly, visibility, etc.
     trimmed_kwargs = dict(kwargs)
     trimmed_kwargs.pop("srcs", None)
     trimmed_kwargs.pop("tools", None)
     trimmed_kwargs.pop("stamp", None)
+    trimmed_kwargs.pop("no_sandbox", None)
     native.genrule(
         name = name,
         outs = outs,

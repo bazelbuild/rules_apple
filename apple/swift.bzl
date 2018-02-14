@@ -507,6 +507,8 @@ def _swiftc_args(reqs):
       target,
       "-sdk",
       apple_toolchain.sdk_dir(),
+      "-module-cache-path",
+      module_cache_path(reqs.genfiles_dir),
   ]
 
   if reqs.default_configuration.coverage_enabled:
@@ -531,6 +533,28 @@ def _swiftc_args(reqs):
   args.extend(reqs.copts)
 
   return args
+
+
+def _find_swift_version(args):
+  """Returns the value of the `-swift-version` argument, if found.
+
+  Args:
+    args: The command-line arguments to be scanned.
+
+  Returns:
+    The value of the `-swift-version` argument, or None if it was not found in
+    the argument list.
+  """
+  # Note that the argument can occur multiple times, and the last one wins.
+  last_swift_version = None
+
+  count = len(args)
+  for i in range(count):
+    arg = args[i]
+    if arg == "-swift-version" and i + 1 < count:
+      last_swift_version = args[i + 1]
+
+  return last_swift_version
 
 
 def register_swift_compile_actions(ctx, reqs):
@@ -616,6 +640,8 @@ def register_swift_compile_actions(ctx, reqs):
 
   args = ["swiftc"] + _swiftc_args(reqs)
 
+  swift_version = _find_swift_version(args)
+
   args += [
       "-I" + output_module.dirname,
       "-emit-module-path",
@@ -697,6 +723,7 @@ def register_swift_compile_actions(ctx, reqs):
       direct_lib=output_lib,
       direct_module=output_module,
       direct_doc=output_doc,
+      swift_version=swift_version,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
       transitive_defines=swiftc_defines,
@@ -732,6 +759,7 @@ def merge_swift_info_providers(targets):
       direct_lib=None,
       direct_module=None,
       direct_doc=None,
+      swift_version=None,
       transitive_defines=transitive_defines,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
@@ -848,6 +876,7 @@ def _swift_library_impl(ctx):
           direct_lib=swift_info.direct_lib,
           direct_module=swift_info.direct_module,
           direct_doc=swift_info.direct_doc,
+          swift_version=swift_info.swift_version,
           transitive_libs=swift_info.transitive_libs,
           transitive_modules=swift_info.transitive_modules,
           transitive_docs=swift_info.transitive_docs,

@@ -11,8 +11,8 @@ be parts that are broken and/or missing.
 
 ```python
 macos_application(name, additional_contents, app_icons, bundle_extension,
-bundle_id, bundle_name, entitlements, extensions, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, product_type,
+bundle_id, bundle_name, entitlements, entitlements_validation, extensions,
+infoplists, ipa_post_processor, linkopts, minimum_os_version, product_type,
 provisioning_profile, strings, version, deps)
 ```
 
@@ -106,6 +106,17 @@ simple command line tool as a standalone binary, use
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -214,8 +225,9 @@ simple command line tool as a standalone binary, use
 
 ```python
 macos_bundle(name, additional_contents, app_icons, bundle_extension, bundle_id,
-bundle_name, entitlements, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, product_type, provisioning_profile, strings, version, deps)
+bundle_name, entitlements, entitlements_validation, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, product_type,
+provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
@@ -303,6 +315,17 @@ Builds and bundles a macOS loadable bundle.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -498,8 +521,8 @@ Targets created with `macos_command_line_application` can be executed using
 
 ```python
 macos_extension(name, additional_contents, bundle_id, bundle_name,
-entitlements, infoplists, ipa_post_processor, linkopts, minimum_os_version,
-provisioning_profile, strings, version, deps)
+entitlements, entitlements_validation, infoplists, ipa_post_processor,
+linkopts, minimum_os_version, provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles a macOS extension.
@@ -566,6 +589,17 @@ Builds and bundles a macOS extension.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -663,6 +697,14 @@ test_host, data, deps)
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
+`macos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `macos_application` target, the tests will
+run within that application's context. If no `test_host` is provided, the tests
+will run outside the context of an macOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
 The following is a list of the `macos_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
@@ -689,10 +731,10 @@ of the attributes inherited by all test rules, please check the
       <td><code>bundle_id</code></td>
       <td>
         <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. It cannot be the same bundle ID as the <code>test_host</code>
-        bundle ID. If not specified, the <code>test_host</code>'s bundle ID
-        will be used with a "Tests" suffix.</p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
       </td>
     </tr>
     <tr>
@@ -755,6 +797,122 @@ of the attributes inherited by all test rules, please check the
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="macos_ui_test"></a>
+## macos_ui_test
+
+```python
+macos_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
+test_host, data, deps, [test specific attributes])
+```
+
+Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+The following is a list of the `macos_ui_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the test bundle. If not
+        specified, a default one will be provided that only contains the
+        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
+        placeholders that will be replaced when bundling.  Please see
+        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.12"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>runner</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A target that will specify how the tests are to be run. This target
+        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
+        provider.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_host</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>An <code>ios_application</code> target that represents the app that
+        will be tested using XCUITests. This is required as passing a default
+        has no meaning in UI tests.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the `*.runfiles`
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
       </td>
     </tr>
   </tbody>

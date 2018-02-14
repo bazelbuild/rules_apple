@@ -19,7 +19,7 @@
 # Use the `apple_shell_test` rule in //test:test_rules.bzl to spawn this.
 #
 # Usage:
-#   apple_shell_testrunner.sh <test_script>
+#   bazel_testrunner.sh <test_script>
 #
 # test_script: The name of the test script to execute inside the test
 #     directory.

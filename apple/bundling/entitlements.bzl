@@ -15,6 +15,10 @@
 """Actions that manipulate entitlements and provisioning profiles."""
 
 load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -50,6 +54,35 @@ during code signing. May be `None` if there are no entitlements.
 """
     }
 )
+
+
+def _tool_validation_mode(rules_mode, is_device):
+  """Returns the tools validation_mode to use.
+
+  Args:
+    rules_mode: The validation_mode attribute of the rule.
+    is_device: True if this is a device build, False otherwise.
+
+  Returns:
+    The value to use the for the validation_mode in the entitlement
+    options of the tool.
+  """
+  # In the current implementation of the "rules", things actually
+  # are macros that expand to be a few targets. So when an
+  # entitlements() is created by the macros, they just have access to
+  # the kwargs, so the default has to be repeated here.
+  if not rules_mode:
+    rules_mode = entitlements_validation_mode.loose
+
+  value = {
+    entitlements_validation_mode.error: "error",
+    entitlements_validation_mode.warn: "warn",
+    entitlements_validation_mode.loose: "error" if is_device else "warn",
+    entitlements_validation_mode.skip: "skip",
+  }[rules_mode]
+  # TODO(thomasvl): Return the calculated value when ready to enable.
+  return "skip"
+
 
 def _new_entitlements_artifact(ctx, extension):
   """Returns a new file artifact for entitlements.
@@ -133,6 +166,9 @@ def _extract_signing_info(ctx):
         executable=ctx.executable._provisioning_profile_tool,
         arguments=[control_file.path],
         mnemonic="ExtractFromProvisioningProfile",
+        # Since the tools spawns openssl and/or security tool, it doesn't
+        # support being sandboxed.
+        no_sandbox=True,
     )
 
   return struct(
@@ -204,10 +240,9 @@ def _entitlements_impl(ctx):
   if signing_info.profile_metadata:
     inputs.append(signing_info.profile_metadata)
     entitlements_options["profile_metadata_file"] = signing_info.profile_metadata.path
-  if platform_support.platform_type(ctx) == apple_common.platform_type.ios:
-    entitlements_options["target_env"] = "ios:device" if is_device else "ios:simulator"
-  if ctx.attr.validation_as_warnings:
-    entitlements_options["validation_as_warnings"] = True
+    entitlements_options["validation_mode"] = _tool_validation_mode(
+        ctx.attr.validation_mode, is_device,
+    )
 
   control = struct(
     plists=[f.path for f in plists],
@@ -283,7 +318,7 @@ entitlements = rule(
             allow_files=[".mobileprovision", ".provisionprofile"],
             single_file=True,
         ),
-        "validation_as_warnings": attr.bool(),
+        "validation_mode": attr.string(),
         # This needs to be an attribute on the rule for platform_support
         # to access it.
         "_xcode_config": attr.label(default=configuration_field(

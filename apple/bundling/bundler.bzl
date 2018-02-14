@@ -778,9 +778,9 @@ def _run(
   product_type = product_support.product_type(ctx)
   product_type_descriptor = product_support.product_type_descriptor(
       product_type)
+  has_built_binary = False
   if product_type_descriptor and product_type_descriptor.stub:
     stub_descriptor = product_type_descriptor.stub
-    has_built_binary = False
     bundle_merge_files.append(bundling_support.binary_file(
         ctx, binary_artifact, bundle_name, executable=True))
     if stub_descriptor.additional_bundle_path:
@@ -822,8 +822,9 @@ def _run(
         swift_zip, "SwiftSupport/%s" % platform.name_in_plist.lower()))
 
   # Add Clang runtime inputs when needed.
-  if clang_support.should_package_clang_runtime(ctx):
-    clang_rt_zip = clang_support.register_runtime_lib_actions(ctx)
+  if has_built_binary and clang_support.should_package_clang_runtime(ctx):
+    clang_rt_zip = clang_support.register_runtime_lib_actions(ctx,
+                                                              binary_artifact)
     bundle_merge_zips.append(
         bundling_support.contents_file(ctx, clang_rt_zip, "Frameworks"))
 
@@ -910,19 +911,22 @@ def _run(
   additional_providers = []
   legacy_providers = {}
 
-  if has_built_binary and binary_support.get_binary_provider(
-      ctx.attr.deps,
-      apple_common.AppleDebugOutputs):
-    additional_providers.append(binary_support.get_binary_provider(
-        ctx.attr.deps, apple_common.AppleDebugOutputs))
-
+  debug_outputs = binary_support.get_binary_provider(ctx.attr.deps,
+      apple_common.AppleDebugOutputs)
+  if has_built_binary and debug_outputs:
+    additional_providers.append(debug_outputs)
     # Create a .dSYM bundle with the expected name next to the archive in the
     # output directory.
     if ctx.fragments.objc.generate_dsym:
-      extra_outputs.extend(debug_symbol_actions.create_symbol_bundle(ctx))
+      bundle_extension = bundling_support.bundle_extension(ctx)
+      symbol_bundle = debug_symbol_actions.create_symbol_bundle(ctx,
+          debug_outputs, bundle_name, bundle_extension)
+      extra_outputs.extend(symbol_bundle)
 
     if ctx.fragments.objc.generate_linkmap:
-      extra_outputs.extend(debug_symbol_actions.collect_linkmaps(ctx))
+      linkmaps = debug_symbol_actions.collect_linkmaps(ctx, debug_outputs,
+          bundle_name)
+      extra_outputs.extend(linkmaps)
 
   objc_provider_args = {}
   if framework_files:

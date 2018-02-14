@@ -66,7 +66,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -197,7 +197,7 @@ tvos_application(
     entitlements = "entitlements.plist",
     infoplists = ["Info.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
 EOF

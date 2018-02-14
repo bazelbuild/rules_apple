@@ -21,35 +21,31 @@ load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
 
 
-def _collect_linkmaps(ctx):
+def _collect_linkmaps(ctx, debug_outputs, bundle_name):
   """Collects the available linkmaps from the binary.
 
   Args:
-    ctx: The Skylark context.
+    ctx: The current context.
+    debug_outputs: dSYM bundle binary provider.
+    bundle_name: Anticipated name of the dSYM bundle.
   Returns:
     A list of linkmap files, one per linked architecture.
   """
-  debug_outputs = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleDebugOutputs)
-  if not debug_outputs:
-    return []
-
-  bundle_name = bundling_support.bundle_name(ctx)
-
   outputs = []
+  actions = ctx.actions
 
   # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
   for arch in debug_outputs.outputs_map:
     arch_outputs = debug_outputs.outputs_map[arch]
     linkmap = arch_outputs["linkmap"]
-    out_linkmap = ctx.new_file("%s_%s.linkmap" % (bundle_name, arch))
+    out_linkmap = actions.declare_file("%s_%s.linkmap" % (bundle_name, arch))
     outputs.append(out_linkmap)
     file_actions.symlink(ctx, linkmap, out_linkmap)
 
   return outputs
 
 
-def _create_symbol_bundle(ctx):
+def _create_symbol_bundle(ctx, debug_outputs, bundle_name, bundle_extension=""):
   """Creates the .dSYM bundle next to the output archive.
 
   The generated bundle will have the same name as the bundle being built
@@ -64,26 +60,24 @@ def _create_symbol_bundle(ctx):
 
   Args:
     ctx: The Skylark context.
+    debug_outputs: dSYM bundle binary provider.
+    bundle_name: Anticipated name of the dSYM bundle.
+    bundle_extension: Anticipated extension of the dSYM bundle, empty string if
+                      it does not have one.
   Returns:
     A list of files that comprise the .dSYM bundle, which should be returned as
     additional outputs from the rule.
   """
-  debug_outputs = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleDebugOutputs)
-  if not debug_outputs:
-    return []
-
-  bundle_name = bundling_support.bundle_name(ctx)
-  bundle_name_with_extension = bundling_support.bundle_name_with_extension(ctx)
-  dsym_bundle_name = bundle_name_with_extension + ".dSYM"
+  dsym_bundle_name = bundle_name + bundle_extension + ".dSYM"
 
   outputs = []
+  actions = ctx.actions
 
   # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
   for arch in debug_outputs.outputs_map:
     arch_outputs = debug_outputs.outputs_map[arch]
     dsym_binary = arch_outputs["dsym_binary"]
-    out_symbols = ctx.new_file("%s/Contents/Resources/DWARF/%s_%s" % (
+    out_symbols = actions.declare_file("%s/Contents/Resources/DWARF/%s_%s" % (
         dsym_bundle_name, bundle_name, arch))
     outputs.append(out_symbols)
     file_actions.symlink(ctx, dsym_binary, out_symbols)
@@ -94,13 +88,14 @@ def _create_symbol_bundle(ctx):
   # propagate the other one from the apple_binary. (See
   # https://github.com/llvm-mirror/llvm/blob/master/tools/dsymutil/dsymutil.cpp)
   if outputs:
-    out_plist = ctx.new_file("%s/Contents/Info.plist" % dsym_bundle_name)
+    out_plist = actions.declare_file("%s/Contents/Info.plist" %
+                                     dsym_bundle_name)
     outputs.append(out_plist)
-    ctx.template_action(
+    actions.expand_template(
         template=ctx.file._dsym_info_plist_template,
         output=out_plist,
         substitutions={
-            "%bundle_name_with_extension%": bundle_name_with_extension,
+            "%bundle_name_with_extension%": bundle_name + bundle_extension,
         })
 
   return outputs

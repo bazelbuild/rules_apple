@@ -119,6 +119,7 @@ EOF
 
   do_build ios --objccopt=-DCOPTS_FOO=1 --subcommands \
       //ios:swift_lib || fail "should build"
+  expect_log "-module-cache-path [^/]*-out/[^/]*/genfiles/_objc_module_cache"
 }
 
 function test_swift_imports_swift() {

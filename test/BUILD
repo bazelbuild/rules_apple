@@ -33,6 +33,13 @@ config_setting(
     },
 )
 
+# Export shell test utilities so that they can be referenced from
+# other packages.
+filegroup(
+    name = "test_utils",
+    srcs = ["apple_shell_testutils.sh"],
+)
+
 # Ballpark number for shared_count:
 #  grep -c function\ test test/*_test.sh
 
@@ -278,4 +285,24 @@ apple_multi_shell_test(
     size = "medium",
     src = "dtrace_test.sh",
     configurations = MACOS_CONFIGURATIONS,
+)
+
+apple_shell_test(
+    name = "ios_test_runner_unit_test",
+    size = "large",
+    src = "ios_test_runner_unit_test.sh",
+    args = [
+        "--ios_multi_cpus=i386,x86_64",
+    ],
+    shard_count = 8,
+)
+
+apple_shell_test(
+    name = "ios_test_runner_ui_test",
+    size = "large",
+    src = "ios_test_runner_ui_test.sh",
+    args = [
+        "--ios_multi_cpus=i386,x86_64",
+    ],
+    shard_count = 4,
 )

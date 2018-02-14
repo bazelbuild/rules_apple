@@ -162,7 +162,7 @@ def _create_stub_binary_target(
       entitlements = entitlements_value,
       platform_type = platform_type,
       provisioning_profile = provisioning_profile,
-      validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
+      validation_mode = kwargs.get("entitlements_validation"),
   )
   bundling_args["entitlements"] = ":" + entitlements_name
 
@@ -201,7 +201,7 @@ def _entitlement_args_for_stub(
       entitlements = entitlements_value,
       platform_type = platform_type,
       provisioning_profile = provisioning_profile,
-      validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
+      validation_mode = kwargs.get("entitlements_validation"),
   )
   bundling_args["entitlements"] = ":" + entitlements_name
   # This is required by the configuration transition on the 'deps' attribute
@@ -258,7 +258,7 @@ def _create_linked_binary_target(
         entitlements = entitlements_value,
         platform_type = platform_type,
         provisioning_profile = provisioning_profile,
-        validation_as_warnings = kwargs.get("invalid_entitlements_are_warnings"),
+        validation_mode = kwargs.get("entitlements_validation"),
     )
     bundling_args["entitlements"] = ":" + entitlements_name
     entitlements_deps = [":" + entitlements_name]

@@ -100,7 +100,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -119,7 +119,7 @@ EOF
   fi
 
   cat >> app/BUILD <<EOF
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -140,7 +140,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [
         ":frameworkDependingLib",
         ":lib",
@@ -153,7 +153,7 @@ ios_extension(
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -316,7 +316,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -328,7 +328,7 @@ ios_extension(
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
     product_type = apple_product_type.messages_sticker_pack_extension,
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -349,7 +349,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -361,7 +361,7 @@ ios_extension(
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
     product_type = apple_product_type.messages_sticker_pack_extension,
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -394,7 +394,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -404,7 +404,7 @@ ios_extension(
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -565,7 +565,7 @@ ios_extension(
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -608,7 +608,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
     minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -618,7 +618,7 @@ ios_extension(
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "8.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF

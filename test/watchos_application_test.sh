@@ -48,7 +48,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-PhoneApp.plist"],
     minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     watch_application = ":watch_app",
     deps = [":lib"],
 )
@@ -124,7 +124,7 @@ watchos_application(
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -134,7 +134,7 @@ watchos_extension(
     entitlements = "entitlements.entitlements",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -384,7 +384,7 @@ watchos_extension(
     bundle_id = "my.bundle.id.watch-app.watch-ext",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -411,7 +411,7 @@ watchos_application(
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -473,7 +473,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info-PhoneApp.plist"],
     minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     watch_application = ":watch_app",
     deps = [":lib"],
 )
@@ -485,7 +485,7 @@ watchos_application(
     extension = ":watch_ext",
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
@@ -495,7 +495,7 @@ watchos_extension(
     entitlements = "entitlements.entitlements",
     infoplists = ["Info-WatchExt.plist"],
     minimum_os_version = "2.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing.mobileprovision",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF

@@ -104,7 +104,7 @@ def apple_shell_test(name,
 
   native.sh_test(
       name = name,
-      srcs = ["apple_shell_testrunner.sh"],
+      srcs = ["bazel_testrunner.sh"],
       args = [
           src,
       ] + args,
@@ -113,7 +113,7 @@ def apple_shell_test(name,
           "//:for_bazel_tests",
           "//test:apple_shell_testutils.sh",
           "//test/testdata/provisioning:BUILD",
-          "//test/testdata/provisioning:integration_testing.mobileprovision",
+          "//test/testdata/provisioning:integration_testing_profiles",
           "//test:unittest.bash",
       ] + (data or []),
       deps = deps or [],

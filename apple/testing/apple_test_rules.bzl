@@ -107,8 +107,7 @@ def _coverage_files_aspect_impl(target, ctx):
 coverage_files_aspect = aspect(
     implementation = _coverage_files_aspect_impl,
     attr_aspects = ["binary", "deps", "test_host"],
-)
-"""
+    doc="""
 This aspect walks the dependency graph through the `binary`, `deps` and
 `test_host` attributes and collects all the sources and headers that are
 depended upon transitively. These files are needed to calculate test coverage on
@@ -116,57 +115,63 @@ a test run.
 
 This aspect propagates a `CoverageFiles` provider which is just a set that
 contains all the `srcs` and `hdrs` files.
-"""
+""",
+)
 
 
 def _apple_test_common_attributes():
   """Returns the attribute that are common for all apple test rules."""
   return {
-      # List of files to make available during the running of the test.
       "data": attr.label_list(
           allow_files=True,
           default=[],
+          doc="Files to be made available to the test during its execution.",
       ),
-      # The platform that this test is targeting. This should only and always be
-      # set by the platform specific macros.
       "platform_type": attr.string(
+          doc="""
+The Apple platform that this test is targeting. Required. Possible values are
+'ios', 'macos' and 'tvos'.
+""",
           mandatory=True,
           values=["ios", "macos", "tvos"],
       ),
-      # The runner target that provides the logic on how to run the test by
-      # means of the AppleTestRunner provider.
       "runner": attr.label(
+          doc="""
+The runner target that will provide the logic on how to run the tests. Needs to
+provide the AppleTestRunner provider. Required.
+""",
           # TODO(b/31854716): Enable provider enforcing once it accepts the
           # new declared providers style.
           # providers=[AppleTestRunner],
           mandatory=True,
       ),
-      # The test_bundle target that provides the xctest bundle with the test
-      # code.
       "test_bundle": attr.label(
-          mandatory=True,
           aspects=[coverage_files_aspect],
-          providers=["apple_bundle"],
+          doc="""
+The xctest bundle that contains the test code and resources. Required.
+""",
+          mandatory=True,
+          providers=[AppleBundleInfo],
       ),
       # gcov and mcov are binary files required to calculate test coverage.
       "_gcov": attr.label(
-          cfg="host",
           allow_files=True,
-          single_file=True,
+          cfg="host",
           default=Label("@bazel_tools//tools/objc:gcov"),
+          single_file=True,
       ),
       "_mcov": attr.label(
-          cfg="host",
           allow_files=True,
-          single_file=True,
+          cfg="host",
           default=Label("@bazel_tools//tools/objc:mcov"),
+          single_file=True,
       ),
       # The realpath binary needed for symlinking.
       "_realpath": attr.label(
-          cfg="host",
           allow_files=True,
-          single_file=True,
+          cfg="host",
           default=Label("@build_bazel_rules_apple//tools/realpath"),
+          single_file=True,
       ),
   }
 
@@ -176,10 +181,10 @@ def _apple_unit_test_attributes():
   return merge_dictionaries(
       _apple_test_common_attributes(),
       {
-          # The test host app being tested.
           "test_host": attr.label(
+              doc="The test app that will host the tests. Optional.",
               mandatory=False,
-              providers=["apple_bundle"],
+              providers=[AppleBundleInfo],
           ),
       }
   )
@@ -190,10 +195,10 @@ def _apple_ui_test_attributes():
   return merge_dictionaries(
       _apple_test_common_attributes(),
       {
-          # The test host app being tested.
           "test_host": attr.label(
+              doc="The app to be tested. Required.",
               mandatory=True,
-              providers=["apple_bundle"],
+              providers=[AppleBundleInfo],
           ),
       }
   )
@@ -204,7 +209,7 @@ def _get_template_substitutions(ctx, test_type):
   subs = {}
 
   if ctx.attr.test_host:
-    subs["test_host_path"] = ctx.attr.test_host.apple_bundle.archive.short_path
+    subs["test_host_path"] = ctx.attr.test_host[AppleBundleInfo].archive.short_path
   else:
     subs["test_host_path"] = ""
   subs["test_bundle_path"] = ctx.outputs.test_bundle.short_path
@@ -234,7 +239,7 @@ def _apple_test_impl(ctx, test_type):
   test_runfiles = [ctx.outputs.test_bundle]
   test_host = ctx.attr.test_host
   if test_host:
-    test_runfiles.append(test_host.apple_bundle.archive)
+    test_runfiles.append(test_host[AppleBundleInfo].archive)
 
   if ctx.configuration.coverage_enabled:
     test_environment = merge_dictionaries(test_environment,
@@ -245,12 +250,12 @@ def _apple_test_impl(ctx, test_type):
     test_runfiles.extend(ctx.attr._mcov.files.to_list())
 
   file_actions.symlink(ctx,
-                       ctx.attr.test_bundle.apple_bundle.archive,
+                       ctx.attr.test_bundle[AppleBundleInfo].archive,
                        ctx.outputs.test_bundle)
 
   # TODO(b/70525901): Remove this extra symlink.
   file_actions.symlink(ctx,
-                       ctx.attr.test_bundle.apple_bundle.archive,
+                       ctx.attr.test_bundle[AppleBundleInfo].archive,
                        ctx.outputs.test_bundle_legacy)
 
   ctx.template_action(
@@ -303,9 +308,18 @@ def _apple_ui_test_impl(ctx):
 
 
 apple_ui_test = rule(
-    _apple_ui_test_impl,
-    test=True,
+    implementation=_apple_ui_test_impl,
     attrs=_apple_ui_test_attributes(),
+    doc="""
+Rule to execute UI (XCUITest) tests for a generic Apple platform.
+
+Outputs:
+  test_bundle: The xctest bundle being tested. This is returned here as a
+      symlink to the bundle target in order to make it available for inspection
+      when executing `blaze build` on this target.
+  executable: The test script to be executed to run the tests.
+""",
+    fragments=["apple", "objc"],
     outputs={
         "test_bundle": "%{name}.zip",
         # TODO(b/70525901): There are tests still depending on the .ipa artifact
@@ -315,32 +329,23 @@ apple_ui_test = rule(
         # means that it doesn't affect build times.
         "test_bundle_legacy": "%{name}.ipa",
     },
-    fragments=["apple", "objc"],
+    test=True,
 )
-"""Rule to execute UI (XCUITest) tests for a generic Apple platform.
-
-Args:
-  data: Files to be made available to the test during its execution.
-  platform_type: The Apple platform that this test is targeting. Required.
-      Possible values are 'ios', 'macos' and 'tvos'.
-  runner: The runner target that will provide the logic on how to run the tests.
-      Needs to provide the AppleTestRunner provider. Required.
-  test_bundle: The xctest bundle that contains the test code and resources.
-      Required.
-  test_host: The test app that will be tested using XCUITests. Required.
-
-Outputs:
-  test_bundle: The xctest bundle being tested. This is returned here as a
-      symlink to the bundle target in order to make it available for inspection
-      when executing `blaze build` on this target.
-  executable: The test script to be executed to run the tests.
-"""
 
 
 apple_unit_test = rule(
     _apple_unit_test_impl,
-    test=True,
     attrs=_apple_unit_test_attributes(),
+    doc="""
+Rule to execute unit (XCTest) tests for a generic Apple platform.
+
+Outputs:
+  test_bundle: The xctest bundle being tested. This is returned here as a
+      symlink to the bundle target in order to make it available for inspection
+      when executing `blaze build` on this target.
+  executable: The test script to be executed to run the tests.
+""",
+    fragments=["apple", "objc"],
     outputs={
         "test_bundle": "%{name}.zip",
         # TODO(b/70525901): There are tests still depending on the .ipa artifact
@@ -350,23 +355,5 @@ apple_unit_test = rule(
         # means that it doesn't affect build times.
         "test_bundle_legacy": "%{name}.ipa",
     },
-    fragments=["apple", "objc"],
+    test=True,
 )
-"""Rule to execute unit (XCTest) tests for a generic Apple platform.
-
-Args:
-  data: Files to be made available to the test during its execution.
-  platform_type: The Apple platform that this test is targeting. Required.
-      Possible values are 'ios', 'macos' and 'tvos'.
-  runner: The runner target that will provide the logic on how to run the tests.
-      Needs to provide the AppleTestRunner provider. Required.
-  test_bundle: The xctest bundle that contains the test code and resources.
-      Required.
-  test_host: The test app that will host the tests. Optional.
-
-Outputs:
-  test_bundle: The xctest bundle being tested. This is returned here as a
-      symlink to the bundle target in order to make it available for inspection
-      when executing `blaze build` on this target.
-  executable: The test script to be executed to run the tests.
-"""

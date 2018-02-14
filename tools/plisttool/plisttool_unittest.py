@@ -1012,6 +1012,41 @@ class PlistToolTest(unittest.TestCase):
         },
     }, {'Bar': 'abc123.my.bundle.id'})
 
+  def test_entitlements_no_profile_for_app_id_prefix(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(
+          ' '.join([
+            plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+              _testing_target, '${AppIdentifierPrefix}', 'Foo',
+              '${AppIdentifierPrefix}.my.bundle.id'),
+            plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
+          ]))):
+      _plisttool_result({
+          'plists': [{'Foo': '${AppIdentifierPrefix}.my.bundle.id'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+          },
+      })
+
+  def test_entitlements_no_profile_for_app_id_prefix_rfc_reference(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(
+          ' '.join([
+            plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+              _testing_target, '$(AppIdentifierPrefix:rfc1034identifier)', 'Foo',
+              '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'),
+            plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
+          ]))):
+      _plisttool_result({
+          'plists': [{'Foo': '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+          },
+      })
+
+
   def test_entitlements_bundle_id_match(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
