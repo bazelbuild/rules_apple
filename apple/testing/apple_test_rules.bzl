@@ -316,7 +316,7 @@ Rule to execute UI (XCUITest) tests for a generic Apple platform.
 Outputs:
   test_bundle: The xctest bundle being tested. This is returned here as a
       symlink to the bundle target in order to make it available for inspection
-      when executing `blaze build` on this target.
+      when executing `bazel build` on this target.
   executable: The test script to be executed to run the tests.
 """,
     fragments=["apple", "objc"],
@@ -342,7 +342,7 @@ Rule to execute unit (XCTest) tests for a generic Apple platform.
 Outputs:
   test_bundle: The xctest bundle being tested. This is returned here as a
       symlink to the bundle target in order to make it available for inspection
-      when executing `blaze build` on this target.
+      when executing `bazel build` on this target.
   executable: The test script to be executed to run the tests.
 """,
     fragments=["apple", "objc"],

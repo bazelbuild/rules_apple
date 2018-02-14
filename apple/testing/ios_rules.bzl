@@ -86,7 +86,7 @@ def _ios_test(name,
   * name + "_test_bundle": Represents the xctest bundle that contains the binary
       along with the test resources. It captures the bundle_id and infoplists
       arguments.
-  * name: The actual test target that can be invoked with `blaze test`. This
+  * name: The actual test target that can be invoked with `bazel test`. This
       target takes all the remaining arguments passed.
   """
   if "platform_type" in kwargs:
