@@ -30,25 +30,24 @@ def _should_package_clang_runtime(ctx):
   return ctx.var.get("apple_bundle_clang_rt") == "1"
 
 
-def _register_runtime_lib_actions(ctx):
+def _register_runtime_lib_actions(ctx, binary_artifact):
   """Creates an archive with Clang runtime libraries.
 
   Args:
     ctx: The Skylark context.
+    binary_artifact: The bundle binary to be processed with clang's runtime
+        tool.
   Returns:
     A `File` object representing the ZIP file containing runtime libraries.
   """
   zip_file = file_support.intermediate(ctx, "%{name}.clang_rt_libs.zip")
-  binary = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-
   platform_support.xcode_env_action(
       ctx,
-      inputs=[binary],
+      inputs=[binary_artifact],
       outputs=[zip_file],
       executable=ctx.executable._clangrttool,
       arguments=[
-        binary.path,
+        binary_artifact.path,
         zip_file.path,
       ],
       mnemonic="ClangRuntimeLibsCopy",

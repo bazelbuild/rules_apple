@@ -84,16 +84,12 @@ satisfied, an error will be raised:
 The entitlements_options dictionary can contain the following keys:
 
   bundle_id: String with the bundle id for the app the entitlements are for.
-  target_env: String with the targeted environment for the entitlements. This
-      can be used to alter the validations because the iOS simulator allows
-      things the do not work on devices, but developers sometimes use this
-      "feature" during developement (especially in unittesting).
   profile_metadata_file: A string that denotes the path to a provisioning
       profiles metadata plist. This is the the subset of data as created by
       provisioning_profile_tool.
-  validation_as_warnings: Only issue warnings (never errors) when checking
-      the requested entitlements against those supported by the provisioning
-      profile.
+  validation_mode: A string of "error", "warn", or "skip" to control how
+      entitlements are checked against the provisioning profile's entitlements.
+      If no value is given, "error" is assumed.
 
 If entitlements_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not
@@ -201,6 +197,11 @@ UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
     'plists (key: "%s", value: "%s").'
 )
 
+UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG = (
+   'This can mean the rule failed to set the "provisioning_profile" ' +
+   'attribute so the prefix could be extracted.'
+)
+
 UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG = (
     'In target "%s"; variable reference "%s" found in key "%s" merging '
     'plists.'
@@ -269,8 +270,7 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
-    'bundle_id', 'profile_metadata_file', 'target_env',
-    'validation_as_warnings',
+    'bundle_id', 'profile_metadata_file', 'validation_mode',
 ])
 
 # Two regexes for variable matching/validation.
@@ -526,44 +526,60 @@ class SubstitutionEngine(object):
     return value
 
   @classmethod
-  def validate_no_variable_references(self, target, key_name, value):
+  def validate_no_variable_references(self, target, key_name, value, msg_additions=None):
     """Ensures there are no variable references left in value (recursively).
 
     Args:
       target: The name of the target for which the plist is being built.
       key_name: The name of the key this value is part of.
-      value: The value to check
+      value: The value to check.
+      msg_additions: Dictionary of variable names to custom strings to add to the
+        error messages.
     Raises:
       PlistToolError: If there is a variable substitution that wasn't resolved.
     """
-    if isinstance(value, basestring):
-      m = VARIABLE_REFERENCE_RE.search(value)
-      if m:
-        variable_name = ExtractVariableFromMatch(m)
-        if not variable_name:
-          # Reference wasn't property formed, raise that issue.
-          raise PlistToolError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
-              target, m.group(0), key_name, value))
-        raise PlistToolError(UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
-            target, m.group(0), key_name, value))
-      return
+    additions = {}
+    if msg_additions:
+      for k, v in msg_additions.iteritems():
+        additions[k] = v
+        additions[k + ':rfc1034identifier'] = v
 
-    if isinstance(value, dict):
-      key_prefix = key_name + ':' if key_name else ''
-      for k, v in value.iteritems():
-        self.validate_no_variable_references(target, key_prefix + k, v)
-        m = VARIABLE_REFERENCE_RE.search(k)
+    def _helper(key_name, value):
+      if isinstance(value, basestring):
+        m = VARIABLE_REFERENCE_RE.search(value)
         if m:
-          raise PlistToolError(
-              UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
-              target, m.group(0), key_prefix + k))
-      return
+          variable_name = ExtractVariableFromMatch(m)
+          if not variable_name:
+            # Reference wasn't property formed, raise that issue.
+            raise PlistToolError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
+                target, m.group(0), key_name, value))
+          err_msg = UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+              target, m.group(0), key_name, value)
+          msg_addition = additions.get(variable_name)
+          if msg_addition:
+            err_msg = err_msg + ' ' + msg_addition
+          raise PlistToolError(err_msg)
+        return
 
-    if isinstance(value, list):
-      for i, v in enumerate(value):
-        reporting_key = '%s[%d]' % (key_name, i)
-        self.validate_no_variable_references(target, reporting_key, v)
-      return
+      if isinstance(value, dict):
+        key_prefix = key_name + ':' if key_name else ''
+        for k, v in value.iteritems():
+          _helper(key_prefix + k, v)
+          m = VARIABLE_REFERENCE_RE.search(k)
+          if m:
+            raise PlistToolError(
+                UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
+                target, m.group(0), key_prefix + k))
+        return
+
+      if isinstance(value, list):
+        for i, v in enumerate(value):
+          reporting_key = '%s[%d]' % (key_name, i)
+          _helper(reporting_key, v)
+        return
+
+    # Off we go...
+    _helper(key_name, value)
 
 
 class PlistIO(object):
@@ -683,6 +699,13 @@ class PlistToolTask(object):
 
   def extra_raw_substitutions(self):
     """Raw substitutions specific to this task to apply to plist merging."""
+    return {}  # Default to nothing for subclasses.
+
+  def unknown_variable_message_additions(self):
+    """Things to add to unknown variable messages.
+
+    The resulting dictionary should be keyed by the variable name.
+    """
     return {}  # Default to nothing for subclasses.
 
   def update_plist(self, out_plist, subs_engine):
@@ -853,6 +876,7 @@ class EntitlementsTask(PlistToolTask):
     super(EntitlementsTask, self).__init__(target, options)
     self._extra_raw_subs = {}
     self._extra_var_subs = {}
+    self._unknown_var_msg_addtions = {}
     self._profile_metadata = {}
 
     # Load the metadata so the content can be used for substitutions and
@@ -863,8 +887,8 @@ class EntitlementsTask(PlistToolTask):
       ver = self._profile_metadata.get('Version')
       if ver != 1:
         # Just log the message incase something else goes wrong.
-        print(('WARNING: On target "%s", got a provisioning with a "Version" ' +
-               'other than "1" (%s).') % (self.target, ver))
+        print(('WARNING: On target "%s", got a provisioning profile with a ' +
+               '"Version" other than "1" (%s).') % (self.target, ver))
 
     if self._profile_metadata:
       # Even though the provisioning profile had a TeamIdentifier, the previous
@@ -889,6 +913,12 @@ class EntitlementsTask(PlistToolTask):
         # - "$(AppIdentifierPrefix)" -> "PREFIX."
         self._extra_var_subs['AppIdentifierPrefix'] = '%s.' % team_prefix
 
+    else:
+      self._unknown_var_msg_addtions.update({
+          'AppIdentifierPrefix':
+            UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG,
+      })
+
   @classmethod
   def control_structure_options_name(self):
     return 'entitlements_options'
@@ -903,6 +933,9 @@ class EntitlementsTask(PlistToolTask):
   def extra_raw_substitutions(self):
     return self._extra_raw_subs
 
+  def unknown_variable_message_additions(self):
+    return self._unknown_var_msg_addtions
+
   def validate_plist(self, plist):
     bundle_id = self.options.get('bundle_id')
     if bundle_id:
@@ -910,8 +943,12 @@ class EntitlementsTask(PlistToolTask):
 
     if self._profile_metadata:
       self._sanity_check_profile()
-      self._validate_entitlements_against_profile(
-          plist, self.options.get('validation_as_warnings', False))
+
+      validation_mode = self.options.get('validation_mode', 'error')
+      assert validation_mode in ('error', 'warn', 'skip')
+      if validation_mode != 'skip':
+        self._validate_entitlements_against_profile(
+            plist, warn_only=(validation_mode == 'warn'))
 
   def _validate_bundle_id_covered(self, bundle_id, entitlements):
     """Checks that the bundle id is covered by the entitlements.
@@ -963,24 +1000,18 @@ class EntitlementsTask(PlistToolTask):
     # is being done.
 
   def _validate_entitlements_against_profile(
-      self, entitlements, validation_as_warnings):
+      self, entitlements, warn_only):
     """Checks that the given entitlements are valid for the current profile.
 
     Args:
       entitlements: The entitlements.
-      validation_as_warnings: Only issue warnings for issues.
+      warn_only: Only issue warnings for issues.
     Raises:
       PlistToolError: For any issues found.
     """
     report_extras = {}
-    if validation_as_warnings:
+    if warn_only:
       report_extras['warn_only'] = True
-
-    # The iOS Simulator is some what permissive about entitlements vs
-    # provisioning, see the full details in _ios_report_extras().
-    target_env = self.options.get('target_env')
-    permissive_report_extras = self._ios_report_extras(target_env)
-    permissive_report_extras.update(report_extras)
 
     # com.apple.developer.team-identifier vs profile's TeamIdentifier and
     # ApplicationIdentifierPrefix
@@ -1006,7 +1037,7 @@ class EntitlementsTask(PlistToolTask):
         self._report(
             ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
               self.target, src_app_id, profile_app_id),
-            **permissive_report_extras)
+            **report_extras)
 
     # keychain-access-groups
     self._check_entitlements_array(
@@ -1019,7 +1050,7 @@ class EntitlementsTask(PlistToolTask):
     self._check_entitlements_array(
         entitlements, profile_entitlements,
         'com.apple.security.application-groups', self.target,
-        report_extras=permissive_report_extras)
+        report_extras=report_extras)
 
     # TODO: aps-environment ?
     # TODO: com.apple.developer.associated-domains ?
@@ -1145,49 +1176,6 @@ class EntitlementsTask(PlistToolTask):
     else:
       raise PlistToolError(full_msg)
 
-  @staticmethod
-  def _ios_report_extras(target_env):
-    """Helper to fetch extras for _report().
-
-    The iOS Simulator is very lax on checking entitlements against the
-    provisioning profile, however it does use the values even it they
-    aren't valid (com.apple.security.application-groups can get queried
-    form the entitlements even though the profile didn't allow any).
-
-    This method provides a bottleneck for allowing things to warn/fail
-    based on targeting the iOS simulator vs. a real device; including
-    extra a messaging to explain the difference in behaviors.
-
-    Args:
-      target_env: String with the target_env option.
-    Returns:
-      A dictionary of the args.
-    """
-    return {
-        'ios:device': {
-            'msg_suffix': (
-                'Things might be working in the iOS Simulator but that is '
-                'because it is very lax on provisioning vs. entitlements '
-                'enforcement. On devices the checks are strict and it will '
-                'not work. You need to use a provisioning profile that '
-                'supports all of the entitlements you are trying to use.'
-            ),
-            # TODO(thomasvl): Revisit/remove this as we want device builds
-            # failing when we know things won't work. Currently we're seeing
-            # some new reports that we're failing things that folks say
-            # were working on devices before.
-            'warn_only': True,
-        },
-        'ios:simulator': {
-            'warn_only': True,
-            'msg_suffix': (
-                'This may be working fine under the iOS Simulator, but when '
-                'targeting devices it will fail because iOS is much more '
-                'strict on provisioning profile vs. entitlements enforcement.'
-            ),
-        },
-    }.get(target_env, dict())
-
 
 class PlistTool(object):
   """Implements the core functionality of the plist tool."""
@@ -1233,6 +1221,7 @@ class PlistTool(object):
     tasks = []
     var_subs = self._control.get('variable_substitutions', {})
     raw_subs = self._control.get('raw_substitutions', {})
+    unknown_var_msg_additions = {}
 
     task_types = (
       EntitlementsTask,
@@ -1247,6 +1236,8 @@ class PlistTool(object):
         task = task_type(target, options)
         var_subs.update(task.extra_variable_substitutions())
         raw_subs.update(task.extra_raw_substitutions())
+        unknown_var_msg_additions.update(
+            task.unknown_variable_message_additions())
         tasks.append(task)
 
     subs_engine = SubstitutionEngine(target, var_subs, raw_subs)
@@ -1264,7 +1255,8 @@ class PlistTool(object):
     for t in tasks:
       t.update_plist(out_plist, subs_engine)
 
-    SubstitutionEngine.validate_no_variable_references(target, '', out_plist)
+    SubstitutionEngine.validate_no_variable_references(
+        target, '', out_plist, msg_additions=unknown_var_msg_additions)
 
     if tasks:
       saved_copy = copy.deepcopy(out_plist)

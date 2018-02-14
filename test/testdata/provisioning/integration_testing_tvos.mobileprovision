@@ -19,7 +19,7 @@
     <date>2017-01-04T13:44:01Z</date>
     <key>Platform</key>
     <array>
-        <string>iOS</string>
+        <string>tvOS</string>
     </array>
     <key>DeveloperCertificates</key>
     <array>
@@ -45,7 +45,7 @@
     <key>ExpirationDate</key>
     <date>2117-01-04T13:44:01Z</date>
     <key>Name</key>
-    <string>Integration Testing</string>
+    <string>Integration Testing tvOS</string>
     <key>ProvisionedDevices</key>
     <array>
     </array>

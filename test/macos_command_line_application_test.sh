@@ -127,4 +127,30 @@ EOF
               "linkopts may have not propagated"
 }
 
+# Tests that a dSYM bundle is generated alongside the apple_binary target.
+function test_dsym_bundle_generated() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+macos_command_line_application(
+    name = "app",
+    minimum_os_version = "10.11",
+    deps = [":lib"],
+)
+EOF
+
+  do_build macos \
+      --apple_generate_dsym \
+      //app:app || fail "Should build"
+
+  # Make sure that a dSYM bundle was generated.
+  assert_exists "test-bin/app/app.dSYM/Contents/Info.plist"
+
+  declare -a archs=( $(current_archs macos) )
+  for arch in "${archs[@]}"; do
+    assert_exists \
+        "test-bin/app/app.dSYM/Contents/Resources/DWARF/app_${arch}"
+  done
+}
+
 run_suite "macos_command_line_application tests"

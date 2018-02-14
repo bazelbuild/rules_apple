@@ -39,6 +39,10 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:debug_symbol_actions.bzl",
+    "debug_symbol_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -234,6 +238,22 @@ def _macos_command_line_application_impl(ctx):
   """Implementation of the macos_command_line_application rule."""
   output_path = ctx.outputs.executable.path
 
+  extra_outputs = []
+
+  debug_outputs = ctx.attr.binary[apple_common.AppleDebugOutputs]
+  if debug_outputs:
+    # Create a .dSYM bundle with the expected name next to the binary in the
+    # output directory.
+    if ctx.fragments.objc.generate_dsym:
+      symbol_bundle = debug_symbol_actions.create_symbol_bundle(ctx,
+          debug_outputs, ctx.label.name)
+      extra_outputs.extend(symbol_bundle)
+
+    if ctx.fragments.objc.generate_linkmap:
+      linkmaps = debug_symbol_actions.collect_linkmaps(ctx, debug_outputs,
+          ctx.label.name)
+      extra_outputs.extend(linkmaps)
+
   # It's not hermetic to sign the binary that was built by the apple_binary
   # target that this rule takes as an input, so we copy it and then execute the
   # code signing commands on that copy in the same action.
@@ -241,9 +261,12 @@ def _macos_command_line_application_impl(ctx):
   signing_commands = codesigning_support.signing_command_lines(
       ctx, [path_to_sign], None)
 
+  inputs = [ctx.file.binary]
+  inputs.extend(extra_outputs)
+
   platform_support.xcode_env_action(
       ctx,
-      inputs=[ctx.file.binary],
+      inputs=inputs,
       outputs=[ctx.outputs.executable],
       command=["/bin/bash", "-c",
                "cp {input_binary} {output_binary}".format(
@@ -264,6 +287,8 @@ macos_command_line_application = rule(
         rule_factory.code_signing_attributes(rule_factory.code_signing(
             ".provisionprofile", requires_signing_for_device=False)
         ), {
+            # TODO(b/73292865): Replace "binary" with "deps" when Tulsi
+            # migrates off of "binary".
             "binary": attr.label(
                 mandatory=True,
                 providers=[apple_common.AppleExecutableBinary],

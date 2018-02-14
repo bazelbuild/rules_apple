@@ -5,7 +5,7 @@
 
 ```python
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
-extensions, infoplists, invalid_entitlements_are_warnings, ipa_post_processor,
+entitlements_validation, extensions, infoplists, ipa_post_processor,
 launch_images, launch_storyboard, linkopts, minimum_os_version,
 provisioning_profile, settings_bundle, strings, version, deps)
 ```
@@ -68,6 +68,17 @@ Builds and bundles a tvOS application.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -176,24 +187,6 @@ Builds and bundles a tvOS application.
       </td>
     </tr>
     <tr>
-      <td><code>invalid_entitlements_are_warnings</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>If true, when the entitlements for this rule are checked against
-        the entitlements listed as supported in the provisioning profile only
-        warnings (instead of errors) can be issued. Normally, warnings are
-        issued for things that should still work while targeting the Simulator,
-        but errors are reported when targeting a device for things that will
-        prevent the built product from installing/running or the entitlements
-        generally working.</p>
-        <p>Setting this to <code>False</code> should <i>not</i> be commonly
-        needed and only should be needed if the target undergoes some post
-        processing that resigns the binary with different entitlements and/or
-        a different provisioning profile meaning the values on the rule don't
-        really matter.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>version</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -219,8 +212,8 @@ Builds and bundles a tvOS application.
 ## tvos_extension
 
 ```python
-tvos_extension(name, bundle_id, bundle_name, entitlements, infoplists,
-invalid_entitlements_are_warnings, ipa_post_processor, linkopts,
+tvos_extension(name, bundle_id, bundle_name, entitlements,
+entitlements_validation, infoplists, ipa_post_processor, linkopts,
 minimum_os_version, strings, version, deps)
 ```
 
@@ -273,6 +266,17 @@ Builds and bundles a tvOS extension.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -337,24 +341,6 @@ Builds and bundles a tvOS extension.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>invalid_entitlements_are_warnings</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>If true, when the entitlements for this rule are checked against
-        the entitlements listed as supported in the provisioning profile only
-        warnings (instead of errors) can be issued. Normally, warnings are
-        issued for things that should still work while targeting the Simulator,
-        but errors are reported when targeting a device for things that will
-        prevent the built product from installing/running or the entitlements
-        generally working.</p>
-        <p>Setting this to <code>False</code> should <i>not</i> be commonly
-        needed and only should be needed if the target undergoes some post
-        processing that resigns the binary with different entitlements and/or
-        a different provisioning profile meaning the values on the rule don't
-        really matter.</p>
       </td>
     </tr>
     <tr>

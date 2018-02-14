@@ -5,11 +5,10 @@
 
 ```python
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
-extensions, families, frameworks, infoplists,
-invalid_entitlements_are_warnings, ipa_post_processor, launch_images,
-launch_storyboard, linkopts, minimum_os_version, product_type,
-provisioning_profile, settings_bundle, strings, version, watch_application,
-deps)
+entitlements_validation, extensions, families, frameworks, infoplists,
+ipa_post_processor, launch_images, launch_storyboard, linkopts,
+minimum_os_version, product_type, provisioning_profile, settings_bundle,
+strings, version, watch_application, deps)
 ```
 
 Builds and bundles an iOS application.
@@ -70,6 +69,17 @@ Builds and bundles an iOS application.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -203,24 +213,6 @@ Builds and bundles an iOS application.
       </td>
     </tr>
     <tr>
-      <td><code>invalid_entitlements_are_warnings</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>If true, when the entitlements for this rule are checked against
-        the entitlements listed as supported in the provisioning profile only
-        warnings (instead of errors) can be issued. Normally, warnings are
-        issued for things that should still work while targeting the Simulator,
-        but errors are reported when targeting a device for things that will
-        prevent the built product from installing/running or the entitlements
-        generally working.</p>
-        <p>Setting this to <code>False</code> should <i>not</i> be commonly
-        needed and only should be needed if the target undergoes some post
-        processing that resigns the binary with different entitlements and/or
-        a different provisioning profile meaning the values on the rule don't
-        really matter.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>version</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -255,9 +247,9 @@ Builds and bundles an iOS application.
 
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
-families, frameworks, infoplists, ipa_post_processor,
-invalid_entitlements_are_warnings, linkopts, minimum_os_version, product_type,
-provisioning_profile, strings, version, deps)
+entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
+linkopts, minimum_os_version, product_type, provisioning_profile, strings,
+version, deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -318,6 +310,17 @@ Builds and bundles an iOS application extension.
         and <code>$(AppIdentifierPrefix)</code> with the value of the
         <code>ApplicationIdentifierPrefix</code> key from the target's
         provisioning profile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>entitlements_validation</code></td>
+      <td>
+        <p><code>String; optional; default is
+        entitlements_validation_mode.loose</code></p>
+        <p>An
+        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
+        to control the validation of the requested entitlements against the
+        provisioning profile to ensure they are supported.</p>
       </td>
     </tr>
     <tr>
@@ -407,24 +410,6 @@ Builds and bundles an iOS application extension.
         root of the final extension bundle, unless a file's immediate containing
         directory is named <code>*.lproj</code>, in which case it will be placed
         under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>invalid_entitlements_are_warnings</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>If true, when the entitlements for this rule are checked against
-        the entitlements listed as supported in the provisioning profile only
-        warnings (instead of errors) can be issued. Normally, warnings are
-        issued for things that should still work while targeting the Simulator,
-        but errors are reported when targeting a device for things that will
-        prevent the built product from installing/running or the entitlements
-        generally working.</p>
-        <p>Setting this to <code>False</code> should <i>not</i> be commonly
-        needed and only should be needed if the target undergoes some post
-        processing that resigns the binary with different entitlements and/or
-        a different provisioning profile meaning the values on the rule don't
-        really matter.</p>
       </td>
     </tr>
     <tr>
@@ -758,6 +743,10 @@ test_host, data, deps, [test specific attributes])
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
+The following is a list of the `ios_ui_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -780,10 +769,10 @@ provided test runner when invoked with `bazel test`.
       <td><code>bundle_id</code></td>
       <td>
         <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. It cannot be the same bundle ID as the <code>test_host</code>
-        bundle ID. If not specified, the <code>test_host</code>'s bundle ID
-        will be used with a "Tests" suffix.</p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
       </td>
     </tr>
     <tr>
@@ -870,6 +859,18 @@ test_host, data, deps, [test specific attributes])
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
+`ios_unit_test` targets can work in two modes: as app or library
+tests. If the `test_host` attribute is set to an `ios_application` target, the
+tests will run within that application's context. If no `test_host` is provided,
+the tests will run outside the context of an iOS application. Because of this,
+certain functionalities might not be present (e.g. UI layout, NSUserDefaults).
+You can find more information about app and library testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+The following is a list of the `ios_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -892,10 +893,10 @@ provided test runner when invoked with `bazel test`.
       <td><code>bundle_id</code></td>
       <td>
         <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. It cannot be the same bundle ID as the <code>test_host</code>
-        bundle ID. If not specified, the <code>test_host</code>'s bundle ID
-        will be used with a "Tests" suffix.</p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
       </td>
     </tr>
     <tr>
@@ -938,8 +939,8 @@ provided test runner when invoked with `bazel test`.
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>An <code>ios_application</code> target that represents the app that
-        will host the tests. If not specified, an empty shell app will be
-        provided as the test host.</p>
+        will host the tests. If not specified, the runner will assume it's a
+        library-based test.</p>
       </td>
     </tr>
     <tr>
@@ -1005,10 +1006,10 @@ Builds an XCTest unit test suite with the given runners.
       <td><code>bundle_id</code></td>
       <td>
         <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. It cannot be the same bundle ID as the <code>test_host</code>
-        bundle ID. If not specified, the <code>test_host</code>'s bundle ID
-        will be used with a "Tests" suffix.</p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
       </td>
     </tr>
     <tr>

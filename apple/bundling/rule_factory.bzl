@@ -97,6 +97,10 @@ load(
     "AppleEntitlementsInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
@@ -233,8 +237,7 @@ def _attr_name(name, private=False):
 
 def _code_signing(provision_profile_extension=None,
                   requires_signing_for_device=True,
-                  skip_signing=False,
-                  support_invalid_entitlements_are_warnings=False):
+                  skip_signing=False):
   """Returns code signing information for `make_bundling_rule`.
 
   Args:
@@ -243,9 +246,6 @@ def _code_signing(provision_profile_extension=None,
     requires_signing_for_device: True if the bundle must be signed to be
         deployed on a device, or false if it does not need to be signed.
     skip_signing: True if signing should be skipped entirely for the bundle.
-    support_invalid_entitlements_are_warnings: True if the bundle allows
-        allows the validation of requested entitlements vs. provisioning
-        profile to be suppressed.
 
   Returns:
       A struct that can be passed as the `code_signing` argument to
@@ -254,8 +254,7 @@ def _code_signing(provision_profile_extension=None,
   return struct(
       provision_profile_extension=provision_profile_extension,
       requires_signing_for_device=requires_signing_for_device,
-      skip_signing=skip_signing,
-      support_invalid_entitlements_are_warnings=support_invalid_entitlements_are_warnings)
+      skip_signing=skip_signing)
 
 
 def _device_families(allowed, mandatory=True):
@@ -326,12 +325,18 @@ def _code_signing_attributes(code_signing):
         allow_files=[code_signing.provision_profile_extension],
         single_file=True,
     )
-    if code_signing.support_invalid_entitlements_are_warnings:
-      code_signing_attrs["invalid_entitlements_are_warnings"] = attr.bool(
-          doc=("If True, only issue warnings (instead of errors) when " +
-               "checking the requested entitlements against the " +
-               "provisioning profile to ensure they are supported."),
-      )
+    code_signing_attrs["entitlements_validation"] = attr.string(
+        default=entitlements_validation_mode.loose,
+        doc=("An `entitlements_validation_mode` to control the " +
+             "validation of the requested entitlements against the " +
+             "provisioning profile to ensure they are supported."),
+        values=[
+            entitlements_validation_mode.error,
+            entitlements_validation_mode.warn,
+            entitlements_validation_mode.loose,
+            entitlements_validation_mode.skip,
+        ],
+    )
 
   return code_signing_attrs
 

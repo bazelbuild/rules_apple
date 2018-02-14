@@ -30,7 +30,19 @@ rules you wish to depend on:
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.0.1",
+    tag = "0.2.0",
+)
+```
+
+If you're going to use `ios_unit_test` or `ios_ui_test`, you'll also need to add
+the following to your `WORKSPACE`, which is an external dependency needed to run
+the tests.
+
+```python
+http_file(
+    name = "xctestrunner",
+    executable = 1,
+    url = "https://github.com/google/xctestrunner/releases/download/0.2.1/ios_test_runner.par",
 )
 ```
 
@@ -81,6 +93,5 @@ update your build targets.
 
 ## Coming soon
 
-* macOS support
 * Support for compiling texture atlases
 * Improved rules for creating resource bundles

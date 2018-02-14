@@ -304,6 +304,22 @@ function do_test() {
   do_action test "$@"
 }
 
+# Usage: do_coverage <platform> <other options...>
+#
+# Helper function to invoke `bazel coverage` that applies --verbose_failures and
+# log redirection for the test harness, along with any extra arguments that
+# were passed in via the `apple_shell_test`'s attribute. The first argument is
+# the platform required; the remaining arguments are passed directly to bazel.
+#
+# Test builds use "test-" as the output directory symlink prefix, so tests
+# should expect to find their outputs in "test-bin" and "test-genfiles".
+#
+# Example:
+#     do_coverage ios --some_other_flag //foo:bar_tests
+function do_coverage() {
+  do_action coverage "$@"
+}
+
 
 # Usage: do_action <action> <platform> <other options...>
 #
@@ -325,11 +341,13 @@ function do_action() {
 
   declare -a bazel_options=("--symlink_prefix=test-" "--verbose_failures")
 
-  declare -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
-  if [ -n "${sdk_options[*]}" ]; then
-    bazel_options+=("${sdk_options[@]}")
-  else
-    fail "Could not find a valid version of Xcode"
+  if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
+    declare -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
+    if [ -n "${sdk_options[*]}" ]; then
+      bazel_options+=("${sdk_options[@]}")
+    else
+      fail "Could not find a valid version of Xcode"
+    fi
   fi
 
   if is_device_build "$platform"; then

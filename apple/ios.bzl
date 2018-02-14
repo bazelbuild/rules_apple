@@ -61,6 +61,9 @@ def ios_application(name, **kwargs):
         the bundle ID and `$(AppIdentifierPrefix)` with the value of the
         `ApplicationIdentifierPrefix` key from this target's provisioning
         profile.
+    entitlements_validation: An `entitlements_validation_mode` to control the
+        validation of the requested entitlements against the provisioning
+        profile to ensure they are supported.
     extensions: A list of extensions (see `ios_extension`) to include in the
         final application bundle.
     families: A list of device families supported by this application. Valid
@@ -71,9 +74,6 @@ def ios_application(name, **kwargs):
         Info.plist that represents the application. At least one file must be
         specified. The merge is only at the top level of the plist; so
         sub-dictionaries are not merged.
-    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
-        errors) when checking the requested entitlements against the
-        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's IPA output after it is
         assembled but before it is (optionally) signed. The tool is invoked with
         a single command-line argument that denotes the path to a directory
@@ -151,6 +151,9 @@ def ios_extension(name, **kwargs):
         with the value of the `ApplicationIdentifierPrefix` key from this
         target's provisioning profile (or the default provisioning profile, if
         none is specified).
+    entitlements_validation: An `entitlements_validation_mode` to control the
+        validation of the requested entitlements against the provisioning
+        profile to ensure they are supported.
     families: A list of device families supported by this extension. Valid
         values are `"iphone"` and `"ipad"`.
     frameworks: A list of framework targets (see `ios_framework`) that this
@@ -158,9 +161,6 @@ def ios_extension(name, **kwargs):
     infoplists: A list of `.plist` files that will be merged to form the
         `Info.plist` that represents the extension. The merge is only at the
         top level of the plist; so sub-dictionaries are not merged.
-    invalid_entitlements_are_warnings: If True, only issue warnings (instead of
-        errors) when checking the requested entitlements against the
-        provisioning profile to ensure they are supported.
     ipa_post_processor: A tool that edits this target's archive after it is
         assembled but before it is (optionally) signed. The tool is invoked
         with a single positional argument that represents the path to a

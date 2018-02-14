@@ -34,7 +34,7 @@ def apple_action(ctx, **kw):
 
   no_sandbox = kw.pop("no_sandbox", False)
   if no_sandbox:
-    execution_requirements["nosandbox"] = "1"
+    execution_requirements["no-sandbox"] = "1"
 
   kw["execution_requirements"] = execution_requirements
   ctx.action(**kw)
@@ -55,7 +55,7 @@ def apple_actions_run(ctx_actions, **kw):
 
   no_sandbox = kw.pop("no_sandbox", False)
   if no_sandbox:
-    execution_requirements["nosandbox"] = "1"
+    execution_requirements["no-sandbox"] = "1"
 
   kw["execution_requirements"] = execution_requirements
   ctx_actions.run(**kw)
@@ -77,7 +77,7 @@ def apple_actions_runshell(ctx_actions, **kw):
 
   no_sandbox = kw.pop("no_sandbox", False)
   if no_sandbox:
-    execution_requirements["nosandbox"] = "1"
+    execution_requirements["no-sandbox"] = "1"
 
   kw["execution_requirements"] = execution_requirements
   ctx_actions.run_shell(**kw)
