@@ -37,6 +37,39 @@ load(
 )
 
 
+AppleTestInfo = provider(
+    doc="""
+Provider that test targets propagate to be used for IDE integration.
+
+This includes information regarding test source files, transitive include paths,
+transitive module maps, and transitive Swift modules. Test source files are
+considered to be all of which belong to the first-level dependencies on the test
+target.
+""",
+    fields={
+        "sources": """
+`depset` of `File`s containing sources from the test's immediate deps.
+""",
+        "non_arc_sources": """
+`depset` of `File`s containing non-ARC sources from the test's immediate
+deps.
+""",
+        "includes": """
+`depset` of `string`s representing transitive include paths which are needed by
+IDEs to be used for indexing the test sources.
+""",
+        "module_maps": """
+`depset` of `File`s representing module maps which are needed by IDEs to be used
+for indexing the test sources.
+""",
+        "swift_modules": """
+`depset` of `File`s representing transitive swift modules which are needed by
+IDEs to be used for indexing the test sources.
+"""
+    }
+)
+
+
 AppleTestRunner = provider(
     doc="""
 Provider that runner targets must propagate.
@@ -119,6 +152,92 @@ contains all the `srcs` and `hdrs` files.
 )
 
 
+def _collect_files(rule_attr, attr_name):
+  """Collects files from attr_name (if present) into a depset."""
+
+  attr_val = getattr(rule_attr, attr_name, None)
+  if not attr_val:
+    return depset()
+
+  attr_val_as_list = attr_val if type(attr_val) == "list" else [attr_val]
+  files = [f for src in attr_val_as_list for f in getattr(src, "files", [])]
+  return depset(files)
+
+
+def _merge_depsets(a, b):
+  """Combines two depsets into one."""
+  return depset(transitive=[a, b])
+
+
+def _test_info_aspect_impl(target, ctx):
+  """See `test_info_aspect` for full documentation."""
+
+  rule_attr = ctx.rule.attr
+
+  # Forward the AppleTestInfo directly if the target is a test bundle.
+  if AppleBundleInfo in target:
+    return [rule_attr.binary[AppleTestInfo]]
+
+  sources = depset()
+  non_arc_sources = depset()
+  includes = depset()
+  module_maps = depset()
+  swift_modules = depset()
+
+  # Collect transitive information from deps.
+  for dep in getattr(rule_attr, "deps", []):
+    test_info = dep[AppleTestInfo]
+    includes = _merge_depsets(test_info.includes, includes)
+    module_maps = _merge_depsets(test_info.module_maps, module_maps)
+    swift_modules = _merge_depsets(test_info.swift_modules, swift_modules)
+
+  # Combine the AppleTestInfo sources info from deps into one for apple_binary.
+  if ctx.rule.kind == "apple_binary":
+    for dep in getattr(rule_attr, "deps", []):
+      test_info = dep[AppleTestInfo]
+      sources = _merge_depsets(test_info.sources, sources)
+      non_arc_sources = _merge_depsets(test_info.non_arc_sources,
+                                       non_arc_sources)
+  else:
+    # Collect sources from the current target and add any relevant transitive
+    # information. Note that we do not propagate sources transitively as we
+    # intentionally only show test sources from the test's first-level of
+    # dependencies instead of all transitive dependencies.
+    sources = _collect_files(rule_attr, "srcs")
+    non_arc_sources = _collect_files(rule_attr, "non_arc_srcs")
+
+    if hasattr(target, "objc"):
+      includes = _merge_depsets(target.objc.include, includes)
+      # Module maps should only be used by Swift targets.
+      if hasattr(target, "swift"):
+        module_maps = _merge_depsets(target.objc.module_map, module_maps)
+
+    if hasattr(target, "swift"):
+      swift_modules = _merge_depsets(target.swift.transitive_modules,
+                                     swift_modules)
+
+  return [AppleTestInfo(
+      sources=sources,
+      non_arc_sources=non_arc_sources,
+      includes=includes,
+      module_maps=module_maps,
+      swift_modules=swift_modules,
+  )]
+
+
+test_info_aspect = aspect(
+    implementation = _test_info_aspect_impl,
+    attr_aspects = ["binary", "deps"],
+    doc="""
+This aspect walks the dependency graph through the `binary` and `deps`
+attributes and collects sources, transitive includes, transitive module maps,
+and transitive Swift modules.
+
+This aspect propagates an `AppleTestInfo` provider.
+""",
+)
+
+
 def _apple_test_common_attributes():
   """Returns the attribute that are common for all apple test rules."""
   return {
@@ -146,7 +265,7 @@ provide the AppleTestRunner provider. Required.
           mandatory=True,
       ),
       "test_bundle": attr.label(
-          aspects=[coverage_files_aspect],
+          aspects=[coverage_files_aspect, test_info_aspect],
           doc="""
 The xctest bundle that contains the test code and resources. Required.
 """,
@@ -289,6 +408,7 @@ def _apple_test_impl(ctx, test_type):
           testing.ExecutionInfo(execution_requirements),
           testing.TestEnvironment(test_environment),
           ctx.attr.test_bundle[AppleBundleInfo],
+          ctx.attr.test_bundle[AppleTestInfo],
       ],
       runfiles=ctx.runfiles(
           files=test_runfiles,
