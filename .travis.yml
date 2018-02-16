@@ -1,0 +1,66 @@
+os: osx
+# Not really swift, but stops travis from saying it is ruby.
+language: swift
+
+# Travis does not use osx_image when it computes the matrix itself, if we want
+# to test on multiple versions, then it required manually building the matrix
+# to set a different osx_image for each configuration.
+osx_image: xcode9.2
+
+# Build out the matrix ourselves so we can set multiple variables.
+# - `BAZEL_VERSION`: Used in `before_install` to pick the version of bazel to
+#    use, "HEAD" uses the last good version on ci.bazel.build
+# - `TARGET` & `BUILD_TARGET`: Are used in the `script` to issue a build
+#   `script` phase will be used for an optional `bazel build` and then
+#   `bazel test`.
+#
+# NOTE: The different testing targets are currently split because //test/...
+# takes a long time (>25min), and this will allow other things to pass/fail
+# independently and provide a shorter log file to look at when things do fail,
+# but if getting all to run take too long it might make sense to merge
+# things back together, potentially all the way down to just two configs for
+# the two different bazel versions.
+matrix:
+  include:
+    - env: BAZEL_VERSION=0.10.1 TARGET=//tools/...
+    - env: BAZEL_VERSION=0.10.1 TARGET=//test/...
+    - env: BAZEL_VERSION=0.10.1 BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
+    - env: BAZEL_VERSION=HEAD TARGET=//tools/...
+    - env: BAZEL_VERSION=HEAD TARGET=//test/...
+    - env: BAZEL_VERSION=HEAD BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
+
+before_install:
+  # The travis images already include java, so use the smaller downloads.
+  - |
+    if [[ "${BAZEL_VERSION}" == "HEAD" ]]; then
+      URL="https://ci.bazel.build/view/Bazel%20bootstrap%20and%20maintenance/job/bazel/job/nightly/lastSuccessfulBuild/artifact/node=darwin-x86_64/bazel--without-jdk-installer-darwin-x86_64.sh"
+    else
+      URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-without-jdk-installer-darwin-x86_64.sh"
+    fi
+    wget -O install.sh "${URL}"
+    chmod +x install.sh
+    ./install.sh --user
+    rm -f install.sh
+    bazel version
+
+script:
+  # - Turn off our test sharding to swamp the machine
+  # - Crank down the progress messages to not flood the travis log, but still
+  #   provide some output so there is an indicator things aren't hung.
+  - |
+    if [[ -n "${BUILD_TARGET:-}" ]]; then
+      bazel \
+        --bazelrc=/dev/null \
+        build \
+        --show_progress_rate_limit=30.0 \
+        "${BUILD_TARGET}"
+    fi
+    bazel \
+      --bazelrc=/dev/null \
+      test \
+      --show_progress_rate_limit=30.0 \
+      --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
+      "${TARGET}"
+
+notifications:
+  email: false
