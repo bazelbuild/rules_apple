@@ -627,9 +627,9 @@ EOF
   do_build ios //app:app || fail "Should build"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
-  assert_binary_not_contains "test-bin/app/app.ipa" \
+  assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/app" "fooFunction"
-  assert_binary_contains "test-bin/app/app.ipa" \
+  assert_binary_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/framework" "fooFunction"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
@@ -1362,13 +1362,13 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/depframework.framework/Images/foo.png"
 
-  assert_binary_contains "test-bin/app/app.ipa" \
+  assert_binary_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/depframework.framework/depframework" \
       "frameworkDependent"
-  assert_binary_not_contains "test-bin/app/app.ipa" \
+  assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/framework" \
       "frameworkDependent"
-  assert_binary_not_contains "test-bin/app/app.ipa" \
+  assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/app" "frameworkDependent"
 
   # They all have Info.plists with the right bundle ids (even though the
@@ -1463,9 +1463,9 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_binary_not_contains "test-bin/app/app.ipa" \
+  assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appex/ext" "doStuff"
-  assert_binary_contains "test-bin/app/app.ipa" \
+  assert_binary_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/framework" "doStuff"
 }
 
@@ -1641,9 +1641,9 @@ EOF
 
   do_build ios //app:app -s || fail "Should build"
 
-  assert_binary_contains "test-bin/app/app.ipa" \
+  assert_binary_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/outer_framework.framework/outer_framework" "doStuff"
-  assert_binary_not_contains "test-bin/app/app.ipa" \
+  assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/app" "doStuff"
 }
 

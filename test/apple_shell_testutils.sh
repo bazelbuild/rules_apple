@@ -456,16 +456,17 @@ function unzip_single_file() {
 # Asserts that the binary at `path_in_archive` within the zip `archive`
 # contains the string `symbol_string` in its objc runtime.
 function assert_binary_contains() {
-  archive="$1"
-  path="$2"
-  symbol_string="$3"
+  platform="$1"
+  archive="$2"
+  path="$3"
+  symbol_string="$4"
 
   mkdir -p tempdir
   fat_path="tempdir/fat_binary"
   thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  declare -a archs=( $(current_archs "ios") )
+  declare -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
     assert_objdump_contains "$arch" "$fat_path" "$symbol_string"
   done
@@ -478,16 +479,17 @@ function assert_binary_contains() {
 # Asserts that the binary at `path_in_archive` within the zip `archive`
 # does not contain the string `symbol_string` in its objc runtime.
 function assert_binary_not_contains() {
-  archive="$1"
-  path="$2"
-  symbol_string="$3"
+  platform="$1"
+  archive="$2"
+  path="$3"
+  symbol_string="$4"
 
   mkdir -p tempdir
   fat_path="tempdir/fat_binary"
   thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  declare -a archs=( $(current_archs "ios") )
+  declare -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
     assert_objdump_not_contains "$arch" "$fat_path" "$symbol_string"
   done
