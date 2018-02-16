@@ -1,5 +1,7 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
+[![Build Status](https://travis-ci.org/bazelbuild/rules_apple.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_apple)
+
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms. They replace the bundling
 rules defined in Bazel itself (such as `ios_application`, `ios_extension`, and
