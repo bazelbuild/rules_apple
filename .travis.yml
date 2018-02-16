@@ -68,3 +68,9 @@ script:
 
 notifications:
   email: false
+
+# Don't build the google branch since that is used by the export process and a PR
+# will be made after the fact.
+branches:
+  except:
+    - google
