@@ -32,6 +32,17 @@ def _get_template_substitutions(ctx):
   return {"%(" + k + ")s": subs[k] for k in subs}
 
 
+def _get_test_environment(ctx):
+  """Returns the test environment for this runner."""
+  test_environment = dict(ctx.configuration.test_env)
+  xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+                      .xcode_version())
+  if xcode_version:
+    test_environment["XCODE_VERSION"] = xcode_version
+
+  return test_environment
+
+
 def _ios_test_runner_impl(ctx):
   """Implementation for the ios_test_runner rule."""
   ctx.template_action(
@@ -44,7 +55,7 @@ def _ios_test_runner_impl(ctx):
           AppleTestRunner(
               test_runner_template = ctx.outputs.test_runner_template,
               execution_requirements = ctx.attr.execution_requirements,
-              test_environment = ctx.configuration.test_env,
+              test_environment = _get_test_environment(ctx),
           ),
       ],
       runfiles = ctx.runfiles(
@@ -100,7 +111,12 @@ The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
 """
-            )
+            ),
+        "_xcode_config":
+            attr.label(
+                default=configuration_field(
+                    fragment="apple", name="xcode_config_label"),
+            ),
     },
     outputs={
         "test_runner_template": "%{name}.sh",
