@@ -184,8 +184,12 @@ def _test_info_aspect_impl(target, ctx):
   module_maps = depset()
   swift_modules = depset()
 
+  # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
+  # dep doesn't, just filter it out.
+  deps = [x for x in getattr(rule_attr, "deps", []) if AppleTestInfo in x]
+
   # Collect transitive information from deps.
-  for dep in getattr(rule_attr, "deps", []):
+  for dep in deps:
     test_info = dep[AppleTestInfo]
     includes = _merge_depsets(test_info.includes, includes)
     module_maps = _merge_depsets(test_info.module_maps, module_maps)
@@ -193,7 +197,7 @@ def _test_info_aspect_impl(target, ctx):
 
   # Combine the AppleTestInfo sources info from deps into one for apple_binary.
   if ctx.rule.kind == "apple_binary":
-    for dep in getattr(rule_attr, "deps", []):
+    for dep in deps:
       test_info = dep[AppleTestInfo]
       sources = _merge_depsets(test_info.sources, sources)
       non_arc_sources = _merge_depsets(test_info.non_arc_sources,
@@ -212,7 +216,7 @@ def _test_info_aspect_impl(target, ctx):
       if hasattr(target, "swift"):
         module_maps = _merge_depsets(target.objc.module_map, module_maps)
 
-    if hasattr(target, "swift"):
+    if hasattr(target, "swift") and hasattr(target.swift, "transitive_modules"):
       swift_modules = _merge_depsets(target.swift.transitive_modules,
                                      swift_modules)
 
