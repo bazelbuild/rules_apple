@@ -21,7 +21,7 @@ filegroup(
         "//examples/macos/HelloToday",
         "//examples/macos/HelloWorld",
         "//examples/macos/HelloWorldSwift",
-        "//examples/multi_platform/Buttons:Buttons",
+        "//examples/multi_platform/Buttons",
         "//examples/multi_platform/Buttons:ButtonsMac",
         "//examples/multi_platform/Buttons:ButtonsTV",
         "//examples/tvos/HelloWorld",
