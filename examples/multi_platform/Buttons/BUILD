@@ -1,5 +1,5 @@
 package(
-    default_visibility = ["//visibility:private"],
+    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])
