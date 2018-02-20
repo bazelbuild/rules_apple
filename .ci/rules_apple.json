@@ -3,16 +3,14 @@
         "variation": "",
         "node": "darwin-x86_64",
         "parameters": {
-            "targets": ["//examples:ci_build_targets"],
-            "tests": ["//examples:ci_test_targets"]
-        }
-    },
-    {
-        "variation": "",
-        "node": "darwin-x86_64",
-        "parameters": {
-            "targets": ["//tools/..."],
-            "tests": ["//tools/..."]
+            "targets": [
+                "//tools/...",
+                "//examples:ci_build_targets"
+            ],
+            "tests": [
+                "//tools/...",
+                "//examples:ci_test_targets"
+            ]
         }
     }
 ]
