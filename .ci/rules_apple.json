@@ -11,11 +11,8 @@
         "variation": "",
         "node": "darwin-x86_64",
         "parameters": {
-            "targets": ["//test/..."],
-            "tests": ["//test/..."],
-            "test_opts": [
-                "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
-            ]
+            "targets": ["//examples:ci_build_targets"],
+            "tests": ["//examples:ci_test_targets"],
         }
     }
 ]
