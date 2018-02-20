@@ -35,9 +35,7 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "group_files_by_directory",
      "intersperse",
      "optionally_prefixed_path",
-     "remove_extension",
-     "replace_extension",
-     "split_extension")
+     "remove_extension")
 load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 
 
@@ -145,7 +143,7 @@ def _group_files(files, groupings):
 
     # If no directory match was found, use the file's extension to group it.
     if not matched_extension:
-      _, extension = split_extension(path)
+      _, extension = paths.split_extension(path)
       # Strip the leading dot.
       extension = extension[1:]
       matched_extension = (
@@ -456,8 +454,10 @@ def _compile_xib(ctx, input_file, resource_info):
   # to the --compile argument, for example. So we just create a directory to
   # hold the outputs and then bundle the _contents_ of that directory.
   bundle_relative_path = resource_info.path_transform(input_file)
-  out_dir_path = replace_extension(bundle_relative_path, ".ibtool-outputs")
-  nib_name = replace_extension(paths.basename(bundle_relative_path), ".nib")
+  out_dir_path = paths.replace_extension(
+      bundle_relative_path, ".ibtool-outputs")
+  nib_name = paths.replace_extension(
+      paths.basename(bundle_relative_path), ".nib")
 
   out_dir = file_support.intermediate_dir(
       ctx,
@@ -505,7 +505,7 @@ def _compile_storyboard(ctx, input_file, resource_info):
   swift_module = resource_info.swift_module
 
   path = resource_info.path_transform(input_file)
-  path = replace_extension(path, ".storyboardc")
+  path = paths.replace_extension(path, ".storyboardc")
 
   out_dir = file_support.intermediate_dir(
       ctx,
@@ -600,7 +600,8 @@ def _mapc(ctx, input_files, resource_info):
   out_files = []
 
   for model, children in grouped_models.items():
-    compiled_model_name = replace_extension(paths.basename(model), ".cdm")
+    compiled_model_name = paths.replace_extension(
+        paths.basename(model), ".cdm")
 
     out_file = file_support.intermediate(
         ctx, "%%{name}.%s" % compiled_model_name, bundle_dir)

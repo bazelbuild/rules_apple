@@ -362,40 +362,6 @@ def remove_extension(filename):
   return filename[:last_dot]
 
 
-def replace_extension(filename, new_extension):
-  """Replaces the extension of the file at the end of a path.
-
-  If the file has no extension, the new extension is added to it.
-
-  Args:
-    filename: The filename whose extension should be replaced.
-    new_extension: The new extension for the file. The new extension should
-        begin with a dot if you want the new filename to have one.
-  Returns:
-    The path with the extension replaced (or added, if it did not have one).
-  """
-  return remove_extension(filename) + new_extension
-
-
-def split_extension(filename):
-  """Splits the name of a file from its extension and returns both.
-
-  Args:
-    filename: The filename that should be split.
-  Returns:
-    A tuple containing two values: the name of the file without the extension,
-    and the extension (with the leading dot). If the file had no extension,
-    then the second element of the tuple is the empty string.
-  """
-  last_dot = filename.rfind('.')
-  if last_dot == -1:
-    return (filename, '')
-  last_slash = filename.rfind('/')
-  if last_slash > last_dot:
-    return (filename, '')
-  return (filename[:last_dot], filename[last_dot:])
-
-
 def xcrun_env(ctx):
   """Returns the environment dictionary necessary to use xcrunwrapper."""
   environment_supplier = get_environment_supplier()
