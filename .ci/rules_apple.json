@@ -12,10 +12,6 @@
                 "//tools/..."
             ],
 
-            "startup_opts": [
-                "--bazelrc=/dev/null"
-            ],
-
             "test_opts": [
                 "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
             ]
