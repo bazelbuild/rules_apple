@@ -1,9 +1,11 @@
 [
     {
-        "variation": "tvl test",
+        "variation": "",
         "node": "darwin-x86_64",
         "parameters": {
-	        "targets": ["//examples:ci_build_targets"],
+            "targets": [
+                "//examples:ci_build_targets"
+            ],
 
             "tests": [
                 "//examples:ci_test_targets",
