@@ -3,19 +3,19 @@
         "variation": "",
         "node": "darwin-x86_64",
         "parameters": {
-            "targets": ["//tools/..."],
-            "tests": ["//tools/..."]
+            "targets": ["//test/..."],
+            "tests": ["//test/..."],
+            "test_opts": [
+                "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
+            ]
         }
     },
     {
         "variation": "",
         "node": "darwin-x86_64",
         "parameters": {
-            "targets": ["//tests/..."],
-            "tests": ["//tests/..."],
-            "test_opts": [
-                "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
-            ]
+            "targets": ["//tools/..."],
+            "tests": ["//tools/..."]
         }
-    }
+    },
 ]
