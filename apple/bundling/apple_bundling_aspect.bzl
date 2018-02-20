@@ -15,6 +15,10 @@
 """An aspect that collects information used during Apple bundling."""
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths"
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundlingSwiftInfo",
     "AppleResourceBundleTargetData",
@@ -24,7 +28,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "basename",
     "group_files_by_directory",
 )
 load(
@@ -148,7 +151,7 @@ def _handle_native_bundle_imports(bundle_imports):
     # We use basename in case the path to the bundle includes other segments
     # (like foo/bar/baz.bundle), which is allowed.
     resource_sets.append(AppleResourceSet(
-        bundle_dir = basename(bundle_dir),
+        bundle_dir = paths.basename(bundle_dir),
         objc_bundle_imports = depset(files),
         # We do NOT include resource_bundle_target_data here because
         # objc_bundle is too dumb of a copy, and you can have multiple targets

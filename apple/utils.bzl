@@ -83,17 +83,6 @@ def apple_actions_runshell(ctx_actions, **kw):
   ctx_actions.run_shell(**kw)
 
 
-def basename(path):
-  """Returns the basename (i.e., the file portion) of a path.
-
-  Args:
-    path: The path whose basename should be returned.
-  Returns:
-    The basename of the path, which includes the extension.
-  """
-  return path.rpartition('/')[-1]
-
-
 def bash_array_string(iterable):
   """Creates a string from a sequence that can be used as a Bash array.
 
@@ -120,17 +109,6 @@ def bash_quote(s):
     in a Bash script.
   """
   return '"' + s.replace('$', '\\$').replace('"', '\\"') + '"'
-
-
-def dirname(path):
-  """Returns the dirname (i.e., everything but the file portion) of a path.
-
-  Args:
-    path: The path whose dirname should be returned.
-  Returns:
-    The dirname of the path.
-  """
-  return path.rpartition('/')[0]
 
 
 def full_label(l):

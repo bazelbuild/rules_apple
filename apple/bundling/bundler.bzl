@@ -19,6 +19,10 @@ This file is only meant to be imported by the platform-specific top-level rules
 """
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths"
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
@@ -28,10 +32,8 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "basename",
     "bash_array_string",
     "bash_quote",
-    "dirname",
     "group_files_by_directory",
     "optionally_prefixed_path",
     "relativize_path",
@@ -203,7 +205,7 @@ def _bundlable_dynamic_framework_files(ctx, files):
 
   grouped_files = group_files_by_directory(files, ["framework"], "deps")
   for framework, framework_files in grouped_files.items():
-    framework_name = basename(framework)
+    framework_name = paths.basename(framework)
     for f in framework_files:
       relative_path = relativize_path(f.path, framework)
       first_segment = relative_path.partition("/")[0]

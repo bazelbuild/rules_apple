@@ -55,6 +55,12 @@ function create_new_workspace() {
   cat > WORKSPACE <<EOF
 workspace(name = 'build_bazel_rules_apple_integration_tests')
 
+git_repository(
+    name = "bazel_skylib",
+    remote = "https://github.com/bazelbuild/bazel-skylib.git",
+    tag = "0.2.0",
+)
+
 local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',
