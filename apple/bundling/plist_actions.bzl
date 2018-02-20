@@ -15,6 +15,10 @@
 """Actions that operate on plist files."""
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths"
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -42,7 +46,6 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "apple_action",
     "merge_dictionaries",
-    "remove_extension",
 )
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
@@ -206,7 +209,7 @@ def _merge_infoplists(ctx,
     # b/67853874 - move this to the right platform specific rule(s).
     launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
     if launch_storyboard:
-      short_name = remove_extension(launch_storyboard.basename)
+      short_name = paths.split_extension(launch_storyboard.basename)[0]
       forced_plists.append(struct(UILaunchStoryboardName=short_name))
 
     # b/67853874 - move this to the right platform specific rule(s).

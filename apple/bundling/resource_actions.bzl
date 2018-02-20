@@ -34,8 +34,7 @@ load("@build_bazel_rules_apple//apple:utils.bzl",
      "bash_array_string",
      "group_files_by_directory",
      "intersperse",
-     "optionally_prefixed_path",
-     "remove_extension")
+     "optionally_prefixed_path")
 load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 
 
@@ -303,7 +302,7 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
            "*.%s among its asset catalogs, " % appicon_extension +
            "but found the following: " + formatted_dirs, "app_icons")
 
-    app_icon_name = remove_extension(paths.basename(icon_dirs[0]))
+    app_icon_name = paths.split_extension(paths.basename(icon_dirs[0]))[0]
     args += ["--app-icon", app_icon_name]
 
   # Add arguments for launch images, if there are any.
@@ -318,7 +317,8 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
            "*.launchimage among its asset catalogs, but found the " +
            "following: " + formatted_dirs, "launch_images")
 
-    launch_image_name = remove_extension(paths.basename(launch_image_dirs[0]))
+    launch_image_name = paths.split_extension(
+        paths.basename(launch_image_dirs[0]))[0]
     args += ["--launch-image", launch_image_name]
 
   return args
@@ -692,7 +692,7 @@ def _momc(ctx, input_files, resource_info):
     if model in xccurrentversions:
       children += depset([xccurrentversions[model]])
 
-    model_name = remove_extension(paths.basename(model))
+    model_name = paths.split_extension(paths.basename(model))[0]
     if model.endswith(".xcdatamodeld"):
       out_file_name = model_name + ".momd"
       out_file = file_support.intermediate_dir(
