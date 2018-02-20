@@ -37,7 +37,6 @@ load(
     "group_files_by_directory",
     "optionally_prefixed_path",
     "relativize_path",
-    "remove_extension",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
@@ -451,7 +450,7 @@ def _process_and_sign_archive(ctx,
   # The directory where the archive contents will be collected. This path is
   # also passed out via the AppleBundleInfo provider so that external tools can
   # access the bundle layout directly, saving them an extra unzipping step.
-  work_dir = remove_extension(output_archive.path) + ".archive-root"
+  work_dir = paths.replace_extension(output_archive.path, ".archive-root")
 
   # Only compress the IPA for optimized (release) builds. For debug builds,
   # zip without compression, which will speed up the build.

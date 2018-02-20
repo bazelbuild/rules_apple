@@ -341,27 +341,6 @@ def relativize_path(path, ancestor):
   return '/'.join(result_segments)
 
 
-def remove_extension(filename):
-  """Removes the extension from a file.
-
-  The filename is returned unchanged if the basename does not have an
-  extension.
-
-  Args:
-    filename: The filename whose extension should be removed.
-  Returns:
-    The filename with the extension removed, or the same filename if it did not
-    have an extension.
-  """
-  last_dot = filename.rfind('.')
-  if last_dot == -1:
-    return filename
-  last_slash = filename.rfind('/')
-  if last_slash > last_dot:
-    return filename
-  return filename[:last_dot]
-
-
 def xcrun_env(ctx):
   """Returns the environment dictionary necessary to use xcrunwrapper."""
   environment_supplier = get_environment_supplier()
