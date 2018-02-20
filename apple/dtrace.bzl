@@ -14,11 +14,12 @@
 
 """Bazel rules for working with dtrace."""
 
+load("@bazel_skylib//lib:paths.bzl",
+     "paths")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
      "label_scoped_path",
-     "relativize_path",
-     "replace_extension")
+     "relativize_path")
 
 def _dtrace_compile_impl(ctx):
   """Implementation for dtrace_compile."""
@@ -27,7 +28,7 @@ def _dtrace_compile_impl(ctx):
   for src in ctx.files.srcs:
     owner_relative_path = relativize_path(src.path, src.owner.package)
     label_scoped_owner_path = label_scoped_path(ctx.label, owner_relative_path)
-    hdr = ctx.new_file(replace_extension(label_scoped_owner_path, ".h"))
+    hdr = ctx.new_file(paths.replace_extension(label_scoped_owner_path, ".h"))
     output_hdrs.append(hdr)
     apple_action(
         ctx,
