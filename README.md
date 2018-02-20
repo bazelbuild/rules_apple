@@ -1,6 +1,7 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
 [![Build Status](https://travis-ci.org/bazelbuild/rules_apple.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_apple)
+[![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_apple)](http://ci.bazel.io/job/rules_apple)
 
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms. They replace the bundling
