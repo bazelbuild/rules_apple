@@ -1,0 +1,16 @@
+[
+    {
+        "variation": "",
+        "node": "darwin-x86_64",
+        "parameters": {
+            "targets": [
+                "//tools/...",
+                "//examples:ci_build_targets"
+            ],
+            "tests": [
+                "//tools/...",
+                "//examples:ci_test_targets"
+            ]
+        }
+    }
+]
