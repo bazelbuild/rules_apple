@@ -51,6 +51,8 @@ script:
   # - Turn off our test sharding to swamp the machine
   # - Crank down the progress messages to not flood the travis log, but still
   #   provide some output so there is an indicator things aren't hung.
+  # - "--test_output=errors" causes failures to report more completely since
+  #   just getting the log file info isn't that useful on CI.
   - |
     if [[ -n "${BUILD_TARGET:-}" ]]; then
       bazel \
@@ -64,6 +66,7 @@ script:
       test \
       --show_progress_rate_limit=30.0 \
       --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
+      --test_output=errors \
       "${TARGET}"
 
 notifications:
