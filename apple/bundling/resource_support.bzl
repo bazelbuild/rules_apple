@@ -15,7 +15,6 @@
 """Support functions used when processing resources in Apple bundles."""
 
 load("@build_bazel_rules_apple//apple:utils.bzl",
-     "basename",
      "relativize_path")
 
 

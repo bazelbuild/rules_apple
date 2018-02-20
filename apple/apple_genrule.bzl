@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//lib:paths.bzl",
+     "paths")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
      "DARWIN_EXECUTION_REQUIREMENTS",
-     "dirname",
      "get_environment_supplier")
 
 def _compute_make_variables(genfiles_dir,
@@ -28,7 +29,7 @@ def _compute_make_variables(genfiles_dir,
     variables["<"] = list(resolved_srcs)[0].path
   if len(files_to_build.to_list()) == 1:
     variables["@"] = list(files_to_build)[0].path
-    variables["@D"] = dirname(variables["@"])
+    variables["@D"] = paths.dirname(variables["@"])
   else:
     variables["@D"] = genfiles_dir.path + "/" + label.package
   return variables

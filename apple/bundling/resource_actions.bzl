@@ -14,6 +14,10 @@
 
 """Actions used to process resources in Apple bundles."""
 
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths"
+)
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
@@ -27,9 +31,7 @@ load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
      "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
-     "basename",
      "bash_array_string",
-     "dirname",
      "group_files_by_directory",
      "intersperse",
      "optionally_prefixed_path",
@@ -60,7 +62,7 @@ def _lproj_rooted_path_or_basename(f):
   """
   if f.dirname.endswith(".lproj"):
     filename = f.basename
-    dirname = basename(f.dirname)
+    dirname = paths.basename(f.dirname)
     return dirname + "/" + filename
 
   return f.basename
@@ -303,7 +305,7 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
            "*.%s among its asset catalogs, " % appicon_extension +
            "but found the following: " + formatted_dirs, "app_icons")
 
-    app_icon_name = remove_extension(basename(icon_dirs[0]))
+    app_icon_name = remove_extension(paths.basename(icon_dirs[0]))
     args += ["--app-icon", app_icon_name]
 
   # Add arguments for launch images, if there are any.
@@ -318,7 +320,7 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
            "*.launchimage among its asset catalogs, but found the " +
            "following: " + formatted_dirs, "launch_images")
 
-    launch_image_name = remove_extension(basename(launch_image_dirs[0]))
+    launch_image_name = remove_extension(paths.basename(launch_image_dirs[0]))
     args += ["--launch-image", launch_image_name]
 
   return args
@@ -455,7 +457,7 @@ def _compile_xib(ctx, input_file, resource_info):
   # hold the outputs and then bundle the _contents_ of that directory.
   bundle_relative_path = resource_info.path_transform(input_file)
   out_dir_path = replace_extension(bundle_relative_path, ".ibtool-outputs")
-  nib_name = replace_extension(basename(bundle_relative_path), ".nib")
+  nib_name = replace_extension(paths.basename(bundle_relative_path), ".nib")
 
   out_dir = file_support.intermediate_dir(
       ctx,
@@ -480,7 +482,7 @@ def _compile_xib(ctx, input_file, resource_info):
   )
 
   full_bundle_path = optionally_prefixed_path(
-      dirname(bundle_relative_path), bundle_dir)
+      paths.dirname(bundle_relative_path), bundle_dir)
   return struct(bundle_merge_files=depset([
       bundling_support.resource_file(
           ctx, out_dir, full_bundle_path, contents_only=True)
@@ -598,7 +600,7 @@ def _mapc(ctx, input_files, resource_info):
   out_files = []
 
   for model, children in grouped_models.items():
-    compiled_model_name = replace_extension(basename(model), ".cdm")
+    compiled_model_name = replace_extension(paths.basename(model), ".cdm")
 
     out_file = file_support.intermediate(
         ctx, "%%{name}.%s" % compiled_model_name, bundle_dir)
@@ -689,7 +691,7 @@ def _momc(ctx, input_files, resource_info):
     if model in xccurrentversions:
       children += depset([xccurrentversions[model]])
 
-    model_name = remove_extension(basename(model))
+    model_name = remove_extension(paths.basename(model))
     if model.endswith(".xcdatamodeld"):
       out_file_name = model_name + ".momd"
       out_file = file_support.intermediate_dir(
