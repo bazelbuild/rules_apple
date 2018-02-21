@@ -83,18 +83,6 @@ def apple_actions_runshell(ctx_actions, **kw):
   ctx_actions.run_shell(**kw)
 
 
-def bash_array_string(iterable):
-  """Creates a string from a sequence that can be used as a Bash array.
-
-  Args:
-    iterable: A sequence of elements.
-  Returns:
-    A string that represents the sequence as a Bash array; that is, parentheses
-    containing the elements surrounded by double-quotes.
-  """
-  return '(' + ' '.join([bash_quote(i) for i in iterable]) + ')'
-
-
 def bash_quote(s):
   """Returns a quoted representation of the given string for Bash.
 

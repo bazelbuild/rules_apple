@@ -31,7 +31,6 @@ load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
      "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
-     "bash_array_string",
      "group_files_by_directory",
      "intersperse",
      "optionally_prefixed_path")
