@@ -23,6 +23,10 @@ wrapping macro because rules cannot invoke other rules.
 """
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts"
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
@@ -66,10 +70,6 @@ load(
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "merge_dictionaries",
 )
 load(
     "@build_bazel_rules_apple//common:providers.bzl",
@@ -152,7 +152,7 @@ def _macos_application_impl(ctx):
 
 macos_application = rule_factory.make_bundling_rule(
     _macos_application_impl,
-    additional_attrs=merge_dictionaries(
+    additional_attrs=dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
             "app_icons": attr.label_list(allow_files=True),
@@ -213,7 +213,7 @@ def _macos_bundle_impl(ctx):
 
 macos_bundle = rule_factory.make_bundling_rule(
     _macos_bundle_impl,
-    additional_attrs=merge_dictionaries(
+    additional_attrs=dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
             "app_icons": attr.label_list(allow_files=True),
@@ -282,7 +282,7 @@ def _macos_command_line_application_impl(ctx):
 
 macos_command_line_application = rule(
     _macos_command_line_application_impl,
-    attrs=merge_dictionaries(
+    attrs=dicts.add(
         rule_factory.common_tool_attributes,
         rule_factory.code_signing_attributes(rule_factory.code_signing(
             ".provisionprofile", requires_signing_for_device=False)
@@ -346,7 +346,7 @@ def _macos_extension_impl(ctx):
 
 macos_extension = rule_factory.make_bundling_rule(
     _macos_extension_impl,
-    additional_attrs=merge_dictionaries(
+    additional_attrs=dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
             "app_icons": attr.label_list(allow_files=True),

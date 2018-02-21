@@ -219,24 +219,6 @@ def label_scoped_path(label, path):
   return label.name + "/" + path.lstrip("/")
 
 
-def merge_dictionaries(*dictionaries):
-  """Merges at least two dictionaries.
-
-  If any of the dictionaries share keys, the result will contain the value from
-  the latest one in the list.
-
-  Args:
-    *dictionaries: The dictionaries that should be merged.
-  Returns:
-    The dictionary with all the attributes.
-  """
-  result = {}
-  for d in dictionaries:
-    for name, value in d.items():
-      result[name] = value
-  return result
-
-
 def module_cache_path(genfiles_dir):
   """Returns the Clang module cache path to use for this rule."""
   return genfiles_dir.path + "/_objc_module_cache"
@@ -263,37 +245,6 @@ def optionally_prefixed_path(path, prefix):
   if prefix:
     return prefix + "/" + path
   return path
-
-
-def relativize_path(path, ancestor):
-  """Returns the portion of `path` that is relative to `ancestor`.
-
-  This function does not normalize paths (for example, it does not handle
-  segments that are ".." or "."), so it should not be used in contexts where
-  those segments might exist. It will fail the build if `path` is not beneath
-  `ancestor`.
-
-  Args:
-    path: The path to relativize.
-    ancestor: The ancestor path against which to relativize.
-  Returns:
-    The portion of `path` that is relative to `ancestor`.
-  """
-  segments = [s for s in path.split('/') if s]
-  ancestor_segments = [s for s in ancestor.split('/') if s]
-  ancestor_length = len(ancestor_segments)
-
-  if (path.startswith('/') != ancestor.startswith('/') or
-      len(segments) < ancestor_length):
-    fail('Path %r is not beneath %r' % (path, ancestor))
-
-  for ancestor_segment, segment in zip(ancestor_segments, segments):
-    if ancestor_segment != segment:
-      fail('Path %r is not beneath %r' % (path, ancestor))
-
-  length = len(segments) - ancestor_length
-  result_segments = segments[-length:]
-  return '/'.join(result_segments)
 
 
 def xcrun_env(ctx):

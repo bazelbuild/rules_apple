@@ -14,8 +14,8 @@
 
 """Support functions used when processing resources in Apple bundles."""
 
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "relativize_path")
+load("@bazel_skylib//lib:paths.bzl",
+     "paths")
 
 
 def _bundle_relative_path(f):
@@ -29,7 +29,7 @@ def _bundle_relative_path(f):
   Returns:
     The `.bundle`-relative path to the file.
   """
-  return relativize_path(
+  return paths.relativize(
       f.short_path, _farthest_directory_matching(f.short_path, "bundle"))
 
 
@@ -62,7 +62,7 @@ def _owner_relative_path(f):
   Returns:
     The owner-relative path to the file.
   """
-  return relativize_path(f.short_path, f.owner.package)
+  return paths.relativize(f.short_path, f.owner.package)
 
 
 # Define the loadable module that lists the exported symbols in this file.

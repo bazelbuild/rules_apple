@@ -89,6 +89,10 @@ for their platform through either `simple_path_formats` or `macos_path_formats`.
 """
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts"
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
     "apple_bundling_aspect",
 )
@@ -103,10 +107,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "merge_dictionaries",
 )
 
 
@@ -471,7 +471,7 @@ def _make_bundling_rule(implementation,
     }
 
   rule_args = dict(**kwargs)
-  rule_args["attrs"] = merge_dictionaries(
+  rule_args["attrs"] = dicts.add(
       _common_tool_attributes,
       _bundling_tool_attributes,
       {

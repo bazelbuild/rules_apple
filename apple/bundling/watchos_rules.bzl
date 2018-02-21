@@ -36,7 +36,6 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleResourceSet",
      "WatchosApplicationBundleInfo",
      "WatchosExtensionBundleInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
 def _watchos_application_impl(ctx):

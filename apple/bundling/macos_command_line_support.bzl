@@ -15,6 +15,10 @@
 """Internal helper definitions used by macOS command line rules."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts"
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:linker_support.bzl",
     "linker_support",
 )
@@ -33,10 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "merge_dictionaries",
 )
 
 
@@ -83,7 +83,7 @@ def _macos_command_line_infoplist_impl(ctx):
 
 macos_command_line_infoplist = rule(
     _macos_command_line_infoplist_impl,
-    attrs=merge_dictionaries(
+    attrs=dicts.add(
         rule_factory.common_tool_attributes,
         {
             "bundle_id": attr.string(mandatory=False),
