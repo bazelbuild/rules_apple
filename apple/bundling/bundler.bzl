@@ -34,7 +34,6 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
     "optionally_prefixed_path",
-    "relativize_path",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
@@ -204,7 +203,7 @@ def _bundlable_dynamic_framework_files(ctx, files):
   for framework, framework_files in grouped_files.items():
     framework_name = paths.basename(framework)
     for f in framework_files:
-      relative_path = relativize_path(f.path, framework)
+      relative_path = paths.relativize(f.path, framework)
       first_segment = relative_path.partition("/")[0]
       if first_segment not in _FRAMEWORK_DIRS_TO_EXCLUDE:
         bundle_files.append(bundling_support.contents_file(

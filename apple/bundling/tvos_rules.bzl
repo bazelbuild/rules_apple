@@ -36,7 +36,6 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleResourceSet",
      "TvosApplicationBundleInfo",
      "TvosExtensionBundleInfo")
-load("@build_bazel_rules_apple//apple:utils.bzl", "merge_dictionaries")
 
 
 def _tvos_application_impl(ctx):

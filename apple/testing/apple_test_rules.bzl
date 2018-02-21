@@ -19,12 +19,12 @@ These are internal rules not to be used outside of the
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts"
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "merge_dictionaries",
+    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
+    "file_actions",
 )
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
@@ -301,7 +301,7 @@ The xctest bundle that contains the test code and resources. Required.
 
 def _apple_unit_test_attributes():
   """Returns the attributes for the apple_unit_test rule."""
-  return merge_dictionaries(
+  return dicts.add(
       _apple_test_common_attributes(),
       {
           "test_host": attr.label(
@@ -315,7 +315,7 @@ def _apple_unit_test_attributes():
 
 def _apple_ui_test_attributes():
   """Returns the attributes for the apple_ui_test rule."""
-  return merge_dictionaries(
+  return dicts.add(
       _apple_test_common_attributes(),
       {
           "test_host": attr.label(
@@ -365,8 +365,8 @@ def _apple_test_impl(ctx, test_type):
     test_runfiles.append(test_host[AppleBundleInfo].archive)
 
   if ctx.configuration.coverage_enabled:
-    test_environment = merge_dictionaries(test_environment,
-                                          _get_coverage_test_environment(ctx))
+    test_environment = dicts.add(test_environment,
+                                 _get_coverage_test_environment(ctx))
     test_runfiles.extend(
         list(ctx.attr.test_bundle[CoverageFiles].coverage_files))
     test_runfiles.extend(ctx.attr._gcov.files.to_list())

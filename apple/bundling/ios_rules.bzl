@@ -65,10 +65,6 @@ load(
     "WatchosApplicationBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "merge_dictionaries",
-)
-load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
