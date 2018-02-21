@@ -218,6 +218,7 @@ def _create_linked_binary_target(
     binary_type="executable",
     sdk_frameworks=[],
     extension_safe=False,
+    bundle_loader=None,
     suppress_entitlements=False,
     **kwargs):
   """Creates a binary target for a bundle by linking user code.
@@ -231,11 +232,17 @@ def _create_linked_binary_target(
     name: The name of the bundle target, from which the binary target's name
         will be derived.
     platform_type: The platform type for which the binary should be built.
+    linkopts: Extra linking options to be passed to the binary target.
+    binary_type: The type of binary to create. Can be "executable",
+        "loadable_bundle" or "dylib".
     sdk_frameworks: Additional SDK frameworks that should be linked with the
         final binary.
     extension_safe: If true, compiles and links this framework with
         '-application-extension', restricting the binary to use only
         extension-safe APIs. False by default.
+    bundle_loader: Label to an apple_binary target that will act as the
+        bundle_loader for this apple_binary. Can only be set if binary_type is
+        "loadable_bundle".
     suppress_entitlements: True/False, indicates that the entitlements() should
         be suppressed.
     **kwargs: The arguments that were passed into the top-level macro.
@@ -274,6 +281,7 @@ def _create_linked_binary_target(
   native.apple_binary(
       name = apple_binary_name,
       binary_type = binary_type,
+      bundle_loader = bundle_loader,
       dylibs = kwargs.get("frameworks"),
       extension_safe = extension_safe,
       features = kwargs.get("features"),
@@ -321,6 +329,7 @@ def _create_binary(name, platform_type, suppress_entitlements=False, **kwargs):
   linkopts = args_copy.pop("linkopts", [])
   sdk_frameworks = args_copy.pop("sdk_frameworks", [])
   extension_safe = args_copy.pop("extension_safe", False)
+  bundle_loader = args_copy.pop("bundle_loader", None)
 
   # If a user provides a "binary" attribute of their own, it is ignored and
   # silently overwritten below. Instead of allowing this, we should fail fast
@@ -349,7 +358,8 @@ def _create_binary(name, platform_type, suppress_entitlements=False, **kwargs):
   else:
     return _create_linked_binary_target(
         name, platform_type, linkopts, binary_type, sdk_frameworks,
-        extension_safe, suppress_entitlements=suppress_entitlements, **args_copy)
+        extension_safe, bundle_loader, suppress_entitlements=suppress_entitlements,
+        **args_copy)
 
 
 # Define the loadable module that lists the exported symbols in this file.
