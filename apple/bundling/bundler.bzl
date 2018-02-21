@@ -32,7 +32,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "bash_array_string",
     "bash_quote",
     "group_files_by_directory",
     "optionally_prefixed_path",
