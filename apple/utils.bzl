@@ -195,23 +195,6 @@ def group_files_by_directory(files, extensions, attr):
   return grouped_files
 
 
-def intersperse(separator, iterable):
-  """Inserts separator before each item in iterable.
-
-  Args:
-    separator: The value to insert before each item in iterable.
-    iterable: The list into which to intersperse the separator.
-  Returns:
-    A new list with separator before each item in iterable.
-  """
-  result = []
-  for x in iterable:
-    result.append(separator)
-    result.append(x)
-
-  return result
-
-
 def join_commands(cmds):
   """Joins a list of shell commands with ' && '.
 

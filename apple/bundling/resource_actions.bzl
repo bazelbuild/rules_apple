@@ -14,10 +14,10 @@
 
 """Actions used to process resources in Apple bundles."""
 
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths"
-)
+load("@bazel_skylib//lib:collections.bzl",
+     "collections")
+load("@bazel_skylib//lib:paths.bzl",
+     "paths")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
 load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
@@ -32,7 +32,6 @@ load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
      "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "group_files_by_directory",
-     "intersperse",
      "optionally_prefixed_path")
 load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 
@@ -373,7 +372,8 @@ def _actool(ctx, asset_catalogs, resource_info):
 
   args.extend(_actool_args_for_special_file_types(
       ctx, asset_catalogs, resource_info))
-  args.extend(intersperse("--target-device", platform_support.families(ctx)))
+  args.extend(collections.before_each(
+      "--target-device", platform_support.families(ctx)))
 
   xcassets = group_files_by_directory(asset_catalogs,
                                       ["xcassets", "xcstickers"],
@@ -430,7 +430,8 @@ def _ibtool_arguments(ctx):
 
   return [
       "--minimum-deployment-target", min_os,
-  ] + intersperse("--target-device", platform_support.families(ctx))
+  ] + collections.before_each(
+      "--target-device", platform_support.families(ctx))
 
 
 def _compile_xib(ctx, input_file, resource_info):
