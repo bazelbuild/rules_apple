@@ -301,4 +301,143 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" "app.prefPane/"
 }
 
+function test_bundle_loader_macos_application_symbols_deduped() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+
+objc_library(
+    name = "shared_lib",
+    srcs = ["shared.m"],
+)
+
+objc_library(
+    name = "bundle_lib",
+    srcs = ["bundle.m"],
+    deps = [":shared_lib"],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.app.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [
+      ":lib",
+      ":shared_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle",
+    bundle_id = "my.bundle.id",
+    bundle_loader = ":app",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [":bundle_lib"],
+)
+EOF
+
+  cat > app/shared.m <<EOF
+#import <Foundation/Foundation.h>
+
+@interface RAShared: NSObject
+@end
+
+@implementation RAShared
+@end
+EOF
+
+  cat > app/bundle.m <<EOF
+#import <Foundation/Foundation.h>
+
+@interface RABundle: NSObject
+@end
+
+@implementation RABundle
+@end
+EOF
+
+  do_build macos //app:bundle //app:app || fail "Should build"
+
+  assert_binary_not_contains macos "test-bin/app/bundle.zip" \
+      "bundle.bundle/Contents/MacOS/bundle" "RAShared"
+  assert_binary_contains macos "test-bin/app/bundle.zip" \
+      "bundle.bundle/Contents/MacOS/bundle" "RABundle"
+  assert_binary_contains macos "test-bin/app/app.zip" \
+      "app.app/Contents/MacOS/app" "RAShared"
+}
+
+function test_bundle_loader_macos_command_line_application_symbols_deduped() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+load(
+    "@build_bazel_rules_apple//apple:macos.bzl",
+    "macos_command_line_application",
+)
+
+objc_library(
+    name = "shared_lib",
+    srcs = ["shared.m"],
+)
+
+objc_library(
+    name = "bundle_lib",
+    srcs = ["bundle.m"],
+    deps = [":shared_lib"],
+)
+
+macos_command_line_application(
+    name = "app",
+    bundle_id = "my.app.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [
+      ":lib",
+      ":shared_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle",
+    bundle_id = "my.bundle.id",
+    bundle_loader = ":app",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [":bundle_lib"],
+)
+EOF
+
+  cat > app/shared.m <<EOF
+#import <Foundation/Foundation.h>
+
+@interface RAShared: NSObject
+@end
+
+@implementation RAShared
+@end
+EOF
+
+  cat > app/bundle.m <<EOF
+#import <Foundation/Foundation.h>
+
+@interface RABundle: NSObject
+@end
+
+@implementation RABundle
+@end
+EOF
+
+  do_build macos //app:bundle //app:app || fail "Should build"
+
+  assert_binary_not_contains macos "test-bin/app/bundle.zip" \
+      "bundle.bundle/Contents/MacOS/bundle" "RAShared"
+  assert_binary_contains macos "test-bin/app/bundle.zip" \
+      "bundle.bundle/Contents/MacOS/bundle" "RABundle"
+  nm -jU test-bin/app/app | grep RAShared \
+      || fail "Could not find RAShared on app binary"
+}
+
 run_suite "macos_bundle bundling tests"
