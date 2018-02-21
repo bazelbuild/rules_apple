@@ -15,6 +15,10 @@
 """Skylark rules for Swift."""
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
     "apple_bundling_aspect",
 )
@@ -52,16 +56,6 @@ def _parent_dirs(dirs):
 def _framework_names(dirs):
   """Returns the framework name for each directory in dir."""
   return depset([f.rpartition("/")[2].partition(".")[0] for f in dirs])
-
-
-def _intersperse(separator, iterable):
-  """Inserts separator before each item in iterable."""
-  result = []
-  for x in iterable:
-    result.append(separator)
-    result.append(x)
-
-  return result
 
 
 def _swift_target(cpu, platform, sdk_version):
@@ -476,11 +470,11 @@ def _swiftc_args(reqs):
   # Disable the LC_LINKER_OPTION load commands for static frameworks automatic
   # linking. This is needed to correctly deduplicate static frameworks from also
   # being linked into test binaries where it is also linked into the app binary.
-  autolink_args =_intersperse(
+  autolink_args = collections.before_each(
       "-Xfrontend",
-      _intersperse("-disable-autolink-framework", static_frameworks))
+      collections.before_each("-disable-autolink-framework", static_frameworks))
 
-  clang_args = _intersperse(
+  clang_args = collections.before_each(
       "-Xcc",
 
       # Add the current directory to clang's search path.
