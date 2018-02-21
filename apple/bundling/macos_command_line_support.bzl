@@ -36,7 +36,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "bash_quote",
     "merge_dictionaries",
 )
 
