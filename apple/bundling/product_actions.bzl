@@ -15,16 +15,16 @@
 """Actions to manipulate support files for Apple product types."""
 
 load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell"
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
     "file_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "bash_quote",
 )
 
 
@@ -44,9 +44,9 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
     A `File` that is the zip that should be merged into the archive root.
   """
   product_support_zip = ctx.new_file(ctx.label.name + "-Support.zip")
-  product_support_path = bash_quote(product_support_zip.path)
+  product_support_path = shell.quote(product_support_zip.path)
   product_support_basename = product_support_zip.basename
-  archive_path = bash_quote(stub_descriptor.path_in_archive)
+  archive_path = shell.quote(stub_descriptor.path_in_archive)
 
   platform = platform_support.platform(ctx)
   platform_name = platform.name_in_plist
@@ -71,7 +71,7 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
            "mv ${{ZIPDIR}}/{product_support_basename} {product_support_path}"
           ).format(
               archive_path=archive_path,
-              file_path=bash_quote(stub_binary.path),
+              file_path=shell.quote(stub_binary.path),
               platform_name=platform_name,
               product_support_basename=product_support_basename,
               product_support_path=product_support_path,

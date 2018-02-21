@@ -83,22 +83,6 @@ def apple_actions_runshell(ctx_actions, **kw):
   ctx_actions.run_shell(**kw)
 
 
-def bash_quote(s):
-  """Returns a quoted representation of the given string for Bash.
-
-  This function double-quotes the given string (in case it contains spaces or
-  other special characters) and escapes any dollar signs or double-quotes that
-  might already be inside it.
-
-  Args:
-    s: The string to quote.
-  Returns:
-    An escaped and quoted version of the string that can be passed to a command
-    in a Bash script.
-  """
-  return '"' + s.replace('$', '\\$').replace('"', '\\"') + '"'
-
-
 def full_label(l):
   """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 

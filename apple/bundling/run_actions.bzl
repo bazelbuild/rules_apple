@@ -14,7 +14,7 @@
 
 """Common definitions used to make runnable Apple bundling rules."""
 
-load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
+load("@bazel_skylib//lib:shell.bzl", "shell")
 
 
 def _start_simulator(ctx):
@@ -40,7 +40,7 @@ def _start_simulator(ctx):
           "%app_name%": ctx.label.name,
           "%ipa_file%": ctx.outputs.archive.short_path,
           "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
-          "%sim_device%": bash_quote(ctx.fragments.objc.ios_simulator_device),
+          "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
           "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
       },
   )

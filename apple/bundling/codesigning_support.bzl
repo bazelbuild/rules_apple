@@ -14,6 +14,8 @@
 
 """Functions related to code signing of Apple bundles."""
 
+load("@bazel_skylib//lib:shell.bzl",
+     "shell")
 load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
      "mock_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
@@ -22,8 +24,6 @@ load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
      "plist_support")
 load("@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
      "swift_support")
-load("@build_bazel_rules_apple//apple:utils.bzl",
-     "bash_quote")
 
 
 def _extract_provisioning_plist_command(ctx, provisioning_profile):
@@ -39,7 +39,7 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
   if mock_support.is_provisioning_mocked(ctx):
     # If provisioning is mocked, treat the provisioning profile as a plain XML
     # plist without a signature.
-    return "cat " + bash_quote(provisioning_profile.path)
+    return "cat " + shell.quote(provisioning_profile.path)
   else:
     # NOTE: Until the bundling rules are updated to merge entitlements support
     # and signing, this extraction command should be kept in sync with what
@@ -50,7 +50,7 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
     # The whole output for that fallback command group is then rerouted to
     # STDERR which is only printed if the command actually failed (security and
     # openssl print information into stderr even if the command succeeded).
-    profile_path = bash_quote(provisioning_profile.path)
+    profile_path = shell.quote(provisioning_profile.path)
     extract_plist_cmd = (
         "(security cms -D -i %s || " % profile_path +
         "openssl smime -inform der -verify -noverify -in %s)" % profile_path)
@@ -174,7 +174,7 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
     entitlements_flag = ""
     if entitlements_file:
       entitlements_flag = (
-          "--entitlements %s" % bash_quote(entitlements_file.path))
+          "--entitlements %s" % shell.quote(entitlements_file.path))
 
     return (cmd_prefix + "/usr/bin/codesign --force " +
             "--sign $VERIFIED_ID %s %s" % (entitlements_flag, path))
@@ -251,7 +251,7 @@ def _signing_command_lines(ctx,
   # matches valid, unexpired entitlements in the keychain and return the first
   # unique hexadecimal identifier.
   if identity == "-" or mock_support.is_provisioning_mocked(ctx):
-    commands.append("VERIFIED_ID=" + bash_quote(identity) + "\n")
+    commands.append("VERIFIED_ID=" + shell.quote(identity) + "\n")
   else:
     commands.append(
         _verify_signing_id_commands(ctx, identity, provisioning_profile))

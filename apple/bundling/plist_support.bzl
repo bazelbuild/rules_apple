@@ -16,7 +16,6 @@
 
 load("@build_bazel_rules_apple//apple:utils.bzl", "apple_action")
 load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl", "mock_support")
-load("@build_bazel_rules_apple//apple:utils.bzl", "bash_quote")
 
 
 def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic=None):
