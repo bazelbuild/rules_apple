@@ -513,7 +513,6 @@ def _swiftc_args(reqs):
   args.extend(_swift_bitcode_flags(apple_fragment))
   args.extend(_swift_parsing_flags(reqs.srcs))
   args.extend(_swift_sanitizer_flags(reqs.config_vars))
-  args.extend(_swift_version_flags(reqs.xcode_config, reqs.swift_version))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
@@ -525,6 +524,12 @@ def _swiftc_args(reqs):
   # unterminated flag pairs (e.g. -Xcc) and not clash with generated flags.
   args.extend(reqs.swift_fragment.copts())
   args.extend(reqs.copts)
+
+  # Put the value from the swift_version attribute after any copts, to ease with
+  # migration as we delete this attribute (i.e., we can move the default value
+  # to the copts of targets but still let explicit swift_version attributes
+  # override it).
+  args.extend(_swift_version_flags(reqs.xcode_config, reqs.swift_version))
 
   return args
 
