@@ -80,8 +80,8 @@ def _tool_validation_mode(rules_mode, is_device):
     entitlements_validation_mode.loose: "error" if is_device else "warn",
     entitlements_validation_mode.skip: "skip",
   }[rules_mode]
-  # TODO(thomasvl): Return the calculated value when ready to enable.
-  return "skip"
+
+  return value
 
 
 def _new_entitlements_artifact(ctx, extension):
