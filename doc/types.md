@@ -1,6 +1,6 @@
 # Related types
 
-This file documents other special types used by the Apple Bazel rules.
+This page documents other special types used by the Apple Bazel rules.
 
 <a name="apple_product_type"></a>
 ## apple_product_type
