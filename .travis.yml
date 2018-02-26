@@ -64,6 +64,7 @@ script:
       test \
       --show_progress_rate_limit=30.0 \
       --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
+      --test_output=errors \
       "${TARGET}"
 
 notifications:
