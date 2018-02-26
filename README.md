@@ -38,7 +38,7 @@ git_repository(
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.2.0",
+    tag = "0.3.0",
 )
 ```
 
