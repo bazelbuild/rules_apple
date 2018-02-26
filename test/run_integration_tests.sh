@@ -36,4 +36,22 @@ else
   readonly tests="$@"
 fi
 
-bazel test "$tests" --test_strategy=standalone --strategy=TestRunner=standalone
+SKYLIB_TMP=/tmp/_skylib
+SKYLIB_VERSION=0.2.0
+
+# Download skylib into a known location, so that we don't
+# download it everytime we run integration tests locally.
+mkdir -p "${SKYLIB_TMP}"
+pushd "${SKYLIB_TMP}"
+if [[ ! -f "bazel-skylib-${SKYLIB_VERSION}.zip" ]]; then
+  rm -rf "bazel-skylib-${SKYLIB_VERSION}"
+  curl -L "https://github.com/bazelbuild/bazel-skylib/archive/${SKYLIB_VERSION}.zip" \
+      --output "bazel-skylib-${SKYLIB_VERSION}.zip"
+  unzip "bazel-skylib-${SKYLIB_VERSION}.zip"
+fi
+popd
+
+bazel test "$tests" \
+    --test_strategy=standalone \
+    --strategy=TestRunner=standalone \
+    --test_env=SKYLIB_LOCATION="${SKYLIB_TMP}/bazel-skylib-${SKYLIB_VERSION}"
