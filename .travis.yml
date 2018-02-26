@@ -47,6 +47,19 @@ before_install:
     rm -f install.sh
     bazel version
 
+    SKYLIB_TMP=/tmp/_skylib
+    SKYLIB_VERSION=0.2.0
+
+    # Download skylib into a temporal location so that it's not
+    # downloaded for every test suite.
+    mkdir -p "${SKYLIB_TMP}"
+    pushd "${SKYLIB_TMP}"
+    curl -L "https://github.com/bazelbuild/bazel-skylib/archive/${SKYLIB_VERSION}.zip" \
+        --output "bazel-skylib-${SKYLIB_VERSION}.zip"
+    unzip "bazel-skylib-${SKYLIB_VERSION}.zip"
+    popd
+    export SKYLIB_LOCATION="${SKYLIB_TMP}/bazel-skylib-${SKYLIB_VERSION}"
+
 script:
   # - Turn off our test sharding to swamp the machine
   # - Crank down the progress messages to not flood the travis log, but still
@@ -67,6 +80,7 @@ script:
       --show_progress_rate_limit=30.0 \
       --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
       --test_output=errors \
+      --test_env=SKYLIB_LOCATION="${SKYLIB_LOCATION}" \
       "${TARGET}"
 
 notifications:
