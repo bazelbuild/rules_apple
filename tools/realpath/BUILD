@@ -2,8 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-load("//apple:apple_genrule.bzl",
-     "apple_genrule")
+load(
+    "//apple:apple_genrule.bzl",
+    "apple_genrule",
+)
 
 # This target will only build on a Mac.
 apple_genrule(

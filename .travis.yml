@@ -22,52 +22,30 @@ osx_image: xcode9.2
 # the two different bazel versions.
 matrix:
   include:
-    - env: BAZEL_VERSION=0.10.1 TARGET=//tools/...
-    - env: BAZEL_VERSION=0.10.1 TARGET=//test/...
-    - env: BAZEL_VERSION=0.10.1 BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
-    - env: BAZEL_VERSION=HEAD TARGET=//tools/...
-    - env: BAZEL_VERSION=HEAD TARGET=//test/...
-    - env: BAZEL_VERSION=HEAD BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
+    # One build on linux to run buildifer since linux agents are faster on travis.
+    - os: linux
+      dist: trusty
+      sudo: false
+      language: cpp
+      env: BUILDIFER=RELEASE
+    # The normal macOS builds.
+    - env: BAZEL=RELEASE TARGET=//tools/...
+    - env: BAZEL=RELEASE TARGET=//test/...
+    - env: BAZEL=RELEASE BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
+    - env: BAZEL=HEAD TARGET=//tools/...
+    - env: BAZEL=HEAD TARGET=//test/...
+    - env: BAZEL=HEAD BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
+
   # There are a few issue to resolve in the current tests, all them to fail.
   allow_failures:
-    - env: BAZEL_VERSION=0.10.1 TARGET=//test/...
-    - env: BAZEL_VERSION=HEAD TARGET=//test/...
+    - env: BAZEL=RELEASE TARGET=//test/...
+    - env: BAZEL=HEAD TARGET=//test/...
 
 before_install:
-  # The travis images already include java, so use the smaller downloads.
-  - |
-    if [[ "${BAZEL_VERSION}" == "HEAD" ]]; then
-      URL="https://ci.bazel.build/view/Bazel%20bootstrap%20and%20maintenance/job/bazel/job/nightly/lastSuccessfulBuild/artifact/node=darwin-x86_64/bazel--without-jdk-installer-darwin-x86_64.sh"
-    else
-      URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-without-jdk-installer-darwin-x86_64.sh"
-    fi
-    wget -O install.sh "${URL}"
-    chmod +x install.sh
-    ./install.sh --user
-    rm -f install.sh
-    bazel version
+  - ./.travis_install.sh
 
 script:
-  # - Turn off our test sharding to swamp the machine
-  # - Crank down the progress messages to not flood the travis log, but still
-  #   provide some output so there is an indicator things aren't hung.
-  # - "--test_output=errors" causes failures to report more completely since
-  #   just getting the log file info isn't that useful on CI.
-  - |
-    if [[ -n "${BUILD_TARGET:-}" ]]; then
-      bazel \
-        --bazelrc=/dev/null \
-        build \
-        --show_progress_rate_limit=30.0 \
-        "${BUILD_TARGET}"
-    fi
-    bazel \
-      --bazelrc=/dev/null \
-      test \
-      --show_progress_rate_limit=30.0 \
-      --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
-      --test_output=errors \
-      "${TARGET}"
+  - ./.travis_build.sh
 
 notifications:
   email: false
