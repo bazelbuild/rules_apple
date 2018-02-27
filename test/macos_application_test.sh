@@ -253,6 +253,7 @@ EOF
 filegroup(
     name = "filegroup",
     srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
 )
 EOF
 
