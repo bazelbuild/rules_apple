@@ -263,9 +263,7 @@ The Apple platform that this test is targeting. Required. Possible values are
 The runner target that will provide the logic on how to run the tests. Needs to
 provide the AppleTestRunner provider. Required.
 """,
-          # TODO(b/31854716): Enable provider enforcing once it accepts the
-          # new declared providers style.
-          # providers=[AppleTestRunner],
+          providers=[AppleTestRunner],
           mandatory=True,
       ),
       "test_bundle": attr.label(
@@ -376,11 +374,6 @@ def _apple_test_impl(ctx, test_type):
                        ctx.attr.test_bundle[AppleBundleInfo].archive,
                        ctx.outputs.test_bundle)
 
-  # TODO(b/70525901): Remove this extra symlink.
-  file_actions.symlink(ctx,
-                       ctx.attr.test_bundle[AppleBundleInfo].archive,
-                       ctx.outputs.test_bundle_legacy)
-
   ctx.template_action(
       template = runner.test_runner_template,
       output = ctx.outputs.executable,
@@ -446,12 +439,6 @@ Outputs:
     fragments=["apple", "objc"],
     outputs={
         "test_bundle": "%{name}.zip",
-        # TODO(b/70525901): There are tests still depending on the .ipa artifact
-        # directly. They need to be migrated to the .zip version before we can
-        # eliminate this artifact. Because this artifact is not added to the
-        # implicit outputs, it will only be built when requested directly, which
-        # means that it doesn't affect build times.
-        "test_bundle_legacy": "%{name}.ipa",
     },
     test=True,
 )
@@ -472,12 +459,6 @@ Outputs:
     fragments=["apple", "objc"],
     outputs={
         "test_bundle": "%{name}.zip",
-        # TODO(b/70525901): There are tests still depending on the .ipa artifact
-        # directly. They need to be migrated to the .zip version before we can
-        # eliminate this artifact. Because this artifact is not added to the
-        # implicit outputs, it will only be built when requested directly, which
-        # means that it doesn't affect build times.
-        "test_bundle_legacy": "%{name}.ipa",
     },
     test=True,
 )
