@@ -50,12 +50,12 @@ load(
 
 def _parent_dirs(dirs):
   """Returns a set of parent directories for each directory in dirs."""
-  return depset([f.rpartition("/")[0] for f in dirs])
+  return depset(direct=[f.rpartition("/")[0] for f in dirs])
 
 
 def _framework_names(dirs):
   """Returns the framework name for each directory in dir."""
-  return depset([f.rpartition("/")[2].partition(".")[0] for f in dirs])
+  return depset(direct=[f.rpartition("/")[2].partition(".")[0] for f in dirs])
 
 
 def _swift_target(cpu, platform, sdk_version):
@@ -353,21 +353,23 @@ def _swiftc_inputs(srcs, deps=[]):
     action.
   """
   swift_providers = providers.find_all(deps, SwiftInfo)
-  objc_providers = providers.find_all(deps, "objc")
 
-  dep_modules = depset()
-  for swift in swift_providers:
-    dep_modules += swift.transitive_modules
+  dep_modules = depset(transitive=[
+      swift.transitive_modules for swift in swift_providers
+  ])
 
-  objc_files = depset()
-  for objc in objc_providers:
-    objc_files += objc.header
-    objc_files += objc.module_map
-    objc_files += objc.umbrella_header
-    objc_files += depset(objc.static_framework_file)
-    objc_files += depset(objc.dynamic_framework_file)
+  transitive_objc = apple_common.new_objc_provider(
+      providers=providers.find_all(deps, "objc"))
 
-  return srcs + dep_modules.to_list() + list(objc_files)
+  objc_files = depset(transitive=[
+      transitive_objc.header,
+      transitive_objc.module_map,
+      transitive_objc.umbrella_header,
+      transitive_objc.static_framework_file,
+      transitive_objc.dynamic_framework_file,
+  ])
+
+  return srcs + dep_modules.to_list() + objc_files.to_list()
 
 
 def swiftc_args(ctx):
@@ -423,37 +425,45 @@ def _swiftc_args(reqs):
   target = _swift_target(cpu, platform, target_os)
   apple_toolchain = apple_common.apple_toolchain()
 
-  # A list of paths to pass with -F flag.
-  framework_dirs = depset([
-      apple_toolchain.platform_developer_framework_dir(apple_fragment)])
-
   # Collect transitive dependecies.
   dep_modules = depset()
   swiftc_defines = depset(reqs.defines)
 
   swift_providers = providers.find_all(deps, SwiftInfo)
-  objc_providers = providers.find_all(deps, "objc")
 
   for swift in swift_providers:
     dep_modules += swift.transitive_modules
     swiftc_defines += swift.transitive_defines
 
-  objc_includes = depset()     # Everything that needs to be included with -I
-  objc_module_maps = depset()  # Module maps for dependent targets
-  objc_defines = depset()
-  static_frameworks = depset()
+  objc_providers = providers.find_all(deps, "objc")
+  transitive_objc = apple_common.new_objc_provider(providers=objc_providers)
+
+  # Everything that needs to be included with -I. These need to be pulled from
+  # the list of providers because there are currently issues with some required
+  # header search paths for ObjC protos not being available to ClangImporter.
+  objc_includes = []
   for objc in objc_providers:
-    objc_includes += objc.include
-    objc_module_maps += objc.module_map
+    objc_includes += objc.include.to_list()
+  objc_includes = depset(objc_includes)
 
-    static_frameworks += _framework_names(objc.framework_dir)
-    framework_dirs += _parent_dirs(objc.framework_dir)
-    framework_dirs += _parent_dirs(objc.dynamic_framework_dir)
+  # Module maps for dependent targets. These should be pulled from the combined
+  # provider to ensure that we only get direct deps.
+  objc_module_maps = transitive_objc.module_map
 
-    # objc_library#copts is not propagated to its dependencies and so it is not
-    # collected here. In theory this may lead to un-importable targets (since
-    # their module cannot be compiled by clang), but did not occur in practice.
-    objc_defines += objc.define
+  static_frameworks = _framework_names(transitive_objc.framework_dir)
+
+    # A list of paths to pass with -F flag.
+  framework_dirs = depset(
+      direct=[apple_toolchain.platform_developer_framework_dir(apple_fragment)],
+      transitive=[
+          _parent_dirs(transitive_objc.framework_dir),
+          _parent_dirs(transitive_objc.dynamic_framework_dir),
+      ])
+
+  # objc_library#copts is not propagated to its dependencies and so it is not
+  # collected here. In theory this may lead to un-importable targets (since
+  # their module cannot be compiled by clang), but did not occur in practice.
+  objc_defines = transitive_objc.define
 
   srcs_args = [f.path for f in reqs.srcs]
 
@@ -580,7 +590,6 @@ def register_swift_compile_actions(ctx, reqs):
   swiftc_defines = depset(reqs.defines)
 
   swift_providers = providers.find_all(reqs.deps, SwiftInfo)
-  objc_providers = providers.find_all(reqs.deps, "objc")
 
   for swift in swift_providers:
     dep_libs += swift.transitive_libs
@@ -699,6 +708,7 @@ def register_swift_compile_actions(ctx, reqs):
 
   compile_outputs = [output_lib, output_module, output_header, output_doc]
 
+  objc_providers = providers.find_all(reqs.deps, "objc")
   objc_provider_args = {
       "library": depset([output_lib]) + dep_libs,
       "header": depset([output_header]),
@@ -706,6 +716,12 @@ def register_swift_compile_actions(ctx, reqs):
       "link_inputs": depset([output_module]),
       "uses_swift": True,
   }
+
+  # Re-propagate direct Objective-C module maps to dependents, because those
+  # Swift modules still need to see them. We need to construct a new transitive
+  # objc provider to get the correct strict propagation behavior.
+  transitive_objc = apple_common.new_objc_provider(providers=objc_providers)
+  objc_provider_args["module_map"] = transitive_objc.module_map
 
   # TODO(b/63674406): For macOS, don't propagate the runtime linker path flags,
   # because we need to be able to be able to choose the static version of the
