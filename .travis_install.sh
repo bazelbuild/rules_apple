@@ -46,7 +46,10 @@ function install_bazel() {
 
   # macOS and trusty images have jdk8, so install bazel without jdk.
   if [[ "${VERSION}" == "HEAD" ]]; then
-    URL="https://ci.bazel.build/view/Bazel%20bootstrap%20and%20maintenance/job/bazel/job/nightly/lastSuccessfulBuild/artifact/node=${OS}-x86_64/bazel--without-jdk-installer-${OS}-x86_64.sh"
+    # Still need a way to pull green build from buildkite.
+    # https://github.com/bazelbuild/continuous-integration/issues/95
+    echo "ERROR: Building of HEAD not currently supported."
+    exit 1
   else
     URL="https://github.com/bazelbuild/bazel/releases/download/${VERSION}/bazel-${VERSION}-without-jdk-installer-${OS}-x86_64.sh"
   fi

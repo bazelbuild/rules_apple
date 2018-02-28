@@ -8,8 +8,9 @@ language: swift
 osx_image: xcode9.2
 
 # Build out the matrix ourselves so we can set multiple variables.
-# - `BAZEL_VERSION`: Used in `before_install` to pick the version of bazel to
-#    use, "HEAD" uses the last good version on ci.bazel.build
+# - `BAZEL`: Used in `before_install` to pick the version of bazel to use,
+#    "RELEASE" extracts from https://github.com/bazelbuild/bazel/releases/latest,
+#    otherwise it is the tag to fetch.
 # - `TARGET` & `BUILD_TARGET`: Are used in the `script` to issue a build
 #   `script` phase will be used for an optional `bazel build` and then
 #   `bazel test`.
@@ -26,20 +27,16 @@ matrix:
     - os: linux
       dist: trusty
       sudo: false
-      language: cpp
+      language: c++
       env: BUILDIFER=RELEASE
     # The normal macOS builds.
     - env: BAZEL=RELEASE TARGET=//tools/...
     - env: BAZEL=RELEASE TARGET=//test/...
     - env: BAZEL=RELEASE BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
-    - env: BAZEL=HEAD TARGET=//tools/...
-    - env: BAZEL=HEAD TARGET=//test/...
-    - env: BAZEL=HEAD BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
 
-  # There are a few issue to resolve in the current tests, all them to fail.
+  # There are a few issues to resolve in the current tests, all them to fail.
   allow_failures:
     - env: BAZEL=RELEASE TARGET=//test/...
-    - env: BAZEL=HEAD TARGET=//test/...
 
 before_install:
   - ./.travis_install.sh
