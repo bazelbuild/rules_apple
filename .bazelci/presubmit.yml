@@ -4,10 +4,13 @@ platforms:
     build_targets:
     - "tools/..."
     - "test/..."
-    - "examples:ci_build_targets"
     test_flags:
-    - "--define bazel_rules_apple.apple_shell_test.enable_sharding=0"
+    - "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
     test_targets:
     - "tools/..."
     - "test/..."
+    # Examples are listed as tests (and last) so they only happen after
+    # the rule tests. That way if an example fails to build, we still get
+    # the results from the rule tests.
+    - "examples:ci_build_targets"
     - "examples:ci_test_targets"
