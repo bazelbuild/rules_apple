@@ -34,6 +34,18 @@ function github_latest_release_tag() {
   | sed -e 's,https://.*/releases/tag/\(.*\),\1,'
 }
 
+# -------------------------------------------------------------------------------------------------
+# Helper to get a download url out of bazel build metadata file.
+function url_from_bazel_manifest() {
+  local MANIFEST_URL=$1
+    if [[ "${OS}" == "darwin" ]]; then
+      local JSON_OS="macos"
+    else
+      local JSON_OS="ubuntu1404"
+    fi
+  wget -O - "${MANIFEST_URL}" \
+    | python -c "import json; import sys; print json.load(sys.stdin)['platforms']['${JSON_OS}']['url']"
+}
 
 # -------------------------------------------------------------------------------------------------
 # Helper to install bazel.
@@ -46,18 +58,20 @@ function install_bazel() {
 
   # macOS and trusty images have jdk8, so install bazel without jdk.
   if [[ "${VERSION}" == "HEAD" ]]; then
-    # Still need a way to pull green build from buildkite.
-    # https://github.com/bazelbuild/continuous-integration/issues/95
-    echo "ERROR: Building of HEAD not currently supported."
-    exit 1
+    # bazelbuild/continuous-integration/issues/234 - they don't seem to have an installed
+    # just raw binaries?
+    mkdir -p "$HOME/bin"
+    wget -O "$HOME/bin/bazel" \
+      "$(url_from_bazel_manifest https://storage.googleapis.com/bazel-builds/metadata/latest.json)"
+    chmod +x "$HOME/bin/bazel"
   else
-    URL="https://github.com/bazelbuild/bazel/releases/download/${VERSION}/bazel-${VERSION}-without-jdk-installer-${OS}-x86_64.sh"
+    wget -O install.sh \
+      "https://github.com/bazelbuild/bazel/releases/download/${VERSION}/bazel-${VERSION}-without-jdk-installer-${OS}-x86_64.sh"
+    chmod +x install.sh
+    ./install.sh --user
+    rm -f install.sh
   fi
 
-  wget -O install.sh "${URL}"
-  chmod +x install.sh
-  ./install.sh --user
-  rm -f install.sh
   bazel version
 }
 
@@ -81,6 +95,7 @@ function install_buildifier() {
     URL="https://github.com/bazelbuild/buildtools/releases/download/${VERSION}/buildifier"
   fi
 
+  mkdir -p "$HOME/bin"
   wget -O "${HOME}/bin/buildifier" "${URL}"
   chmod +x "${HOME}/bin/buildifier"
   buildifier --version
