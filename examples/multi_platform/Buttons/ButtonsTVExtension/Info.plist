@@ -32,7 +32,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.tv-services</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).ServiceProvider</string>
+		<string>ButtonsTVExtension.ServiceProvider</string>
 	</dict>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
