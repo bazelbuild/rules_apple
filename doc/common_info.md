@@ -87,3 +87,36 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
   </tbody>
 </table>
 
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Variables Explicitly Not Supported</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>PRODUCT_MODULE_NAME</code></td>
+      <td>
+        <p>This is a variable commonly used in extensions to specify the
+        <code>NSExtensionPrincipalClass</code> attribute, which signals which
+        class is the entry point to the extension (e.g.
+        <code>$(PRODUCT_MODULE_NAME).ServiceExtension</code>). When not
+        explicitly set, Xcode sets it to the same value as
+        <code>PRODUCT_NAME</code>, which is the name of the Xcode target. This
+        is mostly safe to do when using plain Xcode, as by default it defines
+        one module per target, and all classes belong to that module. When using
+        Bazel to build an extension, through <code>objc_library</code> and/or
+        <code>swift_library</code>, each of the targets defines a new module,
+        which makes it harder to automatically detect the module name which
+        contains the principal class. Because of this reason, this value is not
+        supported and therefore should be explicitly set in your targets'
+        Info.plist files.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
