@@ -408,16 +408,17 @@ def _make_bundling_rule(implementation,
     fail("Internal error: product_type must be provided.")
 
   # Add the private _allowed_families attribute, and if multiple device families
-  # were present, add the public families attribute that requires the user to
+  # were present, add the public families attribute that allows the user to
   # specify the subset they want.
   allowed_device_families = device_families.allowed
   device_family_attrs = {
       "_allowed_families": attr.string_list(default=allowed_device_families),
   }
-  if device_families.mandatory and len(allowed_device_families) > 1:
+  if len(allowed_device_families) > 1:
     device_family_attrs["families"] = attr.string_list(
-        mandatory=True,
+        mandatory=device_families.mandatory,
         allow_empty=False,
+        default=allowed_device_families
     )
 
   product_type_attrs = {
