@@ -221,6 +221,7 @@ tvos_application(
     bundle_id = "com.google.ButtonsTV",
     extensions = [":ButtonsTVExtension"],
     infoplists = ["ButtonsTV/Info.plist"],
+    minimum_os_version = "10.2",
     deps = [
         ":ButtonsTVLib",
         ":ButtonsTVResources",
@@ -231,6 +232,7 @@ tvos_extension(
     name = "ButtonsTVExtension",
     bundle_id = "com.google.ButtonsTV.ButtonsTVExtension",
     infoplists = ["ButtonsTVExtension/Info.plist"],
+    minimum_os_version = "10.2",
     deps = [":ButtonsTVExtensionLib"],
 )
 
