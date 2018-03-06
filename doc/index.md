@@ -65,9 +65,6 @@ extensions, and frameworks) and for running unit tests and UI tests.
   </tbody>
 </table>
 
-More information about the architecture of the test rules in particular can be
-found in the [Apple testing overview](testing.md).
-
 ## Other rules
 
 General rules that are not specific to a particular Apple platform are listed
