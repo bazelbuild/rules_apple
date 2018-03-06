@@ -135,7 +135,8 @@ def _swift_version_flags(xcode_config, swift_version):
   """Returns the swift version flags, when applicable."""
   # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
   # https://bugs.swift.org/browse/SR-3791.
-  if xcode_support.is_xcode_at_least_version(xcode_config, "8.999.999"):
+  if (xcode_support.is_xcode_at_least_version(xcode_config, "8.999.999") and
+      swift_version):
     return ["-swift-version", "%d" % swift_version]
 
   return []
@@ -926,7 +927,7 @@ SWIFT_LIBRARY_ATTRS = {
         mandatory=False,
         allow_empty=True,
         allow_files=True),
-    "swift_version": attr.int(default=3, values=[3, 4], mandatory=False),
+    "swift_version": attr.int(mandatory=False),
     "_xcode_config": attr.label(
         default=configuration_field(
             fragment="apple", name="xcode_config_label")),
