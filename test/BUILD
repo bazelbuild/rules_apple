@@ -25,7 +25,11 @@ config_setting(
     },
 )
 
+# To disable sharding of the apple_shell_test rules, invoke bazel with
 #   '--define bazel_rules_apple.apple_shell_test.enable_sharding=0'
+# Note: '--test_sharding_strategy=disabled' also works, but is global,
+# the define allows one to disable the sharding on just these tests
+# while allowing others to still be sharded.
 config_setting(
     name = "apple_shell_test_disable_sharding",
     values = {
