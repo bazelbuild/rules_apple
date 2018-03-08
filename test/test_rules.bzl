@@ -53,11 +53,13 @@ def apple_multi_shell_test(name,
     fail("You must specify at least one configuration in the " +
          "'configurations' attribute.")
 
+  tags = kwargs.pop("tags", [])
   for (config_name, config_options) in configurations.items():
     apple_shell_test(
         name = "%s.%s" % (name, config_name),
         src = src,
         args = config_options,
+        tags = [ "config_%s" % config_name ] + tags,
         **kwargs
     )
 
