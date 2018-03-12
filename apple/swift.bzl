@@ -131,17 +131,6 @@ def _swift_sanitizer_flags(config_vars):
     fail("Swift sanitizer '%s' is not supported" % sanitizer)
 
 
-def _swift_version_flags(xcode_config, swift_version):
-  """Returns the swift version flags, when applicable."""
-  # Only use this flag starting with Xcode 9, because of a bug in Swift 3.1
-  # https://bugs.swift.org/browse/SR-3791.
-  if (xcode_support.is_xcode_at_least_version(xcode_config, "8.999.999") and
-      swift_version):
-    return ["-swift-version", "%d" % swift_version]
-
-  return []
-
-
 def swift_module_name(label):
   """Returns a module name for the given label."""
   prefix = label.package.lstrip("//").replace("/", "_").replace("-", "_")
@@ -274,7 +263,6 @@ def swift_compile_requirements(
     deps,
     module_name,
     label,
-    swift_version,
     copts,
     defines,
     apple_fragment,
@@ -294,7 +282,6 @@ def swift_compile_requirements(
         belong.
     label: The label used to generate the Swift module name if one was not
         provided.
-    swift_version: The Swift language version to pass to the compiler.
     copts: A list of compiler options to pass to `swiftc`. Defaults to an empty
         list.
     defines: A list of compiler defines to pass to `swiftc`. Defaults to an
@@ -316,7 +303,6 @@ def swift_compile_requirements(
       deps=deps,
       module_name=module_name,
       label=label,
-      swift_version=swift_version,
       copts=copts,
       defines=defines,
       apple_fragment=apple_fragment,
@@ -394,10 +380,9 @@ def swiftc_args(ctx):
   # out with swiftc_args.
   reqs = swift_compile_requirements(
       ctx.files.srcs, ctx.attr.deps, ctx.attr.module_name, ctx.label,
-      ctx.attr.swift_version, ctx.attr.copts, ctx.attr.defines,
-      ctx.fragments.apple, ctx.fragments.objc, ctx.fragments.swift, ctx.var,
-      ctx.configuration, ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-      ctx.genfiles_dir)
+      ctx.attr.copts, ctx.attr.defines, ctx.fragments.apple, ctx.fragments.objc,
+      ctx.fragments.swift, ctx.var, ctx.configuration,
+      ctx.attr._xcode_config[apple_common.XcodeVersionConfig], ctx.genfiles_dir)
   return _swiftc_args(reqs)
 
 
@@ -535,12 +520,6 @@ def _swiftc_args(reqs):
   # unterminated flag pairs (e.g. -Xcc) and not clash with generated flags.
   args.extend(reqs.swift_fragment.copts())
   args.extend(reqs.copts)
-
-  # Put the value from the swift_version attribute after any copts, to ease with
-  # migration as we delete this attribute (i.e., we can move the default value
-  # to the copts of targets but still let explicit swift_version attributes
-  # override it).
-  args.extend(_swift_version_flags(reqs.xcode_config, reqs.swift_version))
 
   return args
 
@@ -868,7 +847,6 @@ def _swift_library_impl(ctx):
       ctx.attr.deps,
       resolved_module_name,
       ctx.label,
-      ctx.attr.swift_version,
       ctx.attr.copts,
       ctx.attr.defines,
       ctx.fragments.apple,
@@ -927,7 +905,6 @@ SWIFT_LIBRARY_ATTRS = {
         mandatory=False,
         allow_empty=True,
         allow_files=True),
-    "swift_version": attr.int(mandatory=False),
     "_xcode_config": attr.label(
         default=configuration_field(
             fragment="apple", name="xcode_config_label")),
@@ -959,6 +936,4 @@ Args:
   copts: A list of flags passed to swiftc command line.
   defines: Each VALUE in this attribute is passed as -DVALUE to the compiler for
       this and dependent targets.
-  swift_version: A number that specifies the Swift language version to use.
-      Valid options are 3, 4. This value is ignored for Xcode < 9.0.
 """
