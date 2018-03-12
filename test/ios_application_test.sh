@@ -367,9 +367,9 @@ function test_pkginfo_contents() {
       "Payload/app.app/PkgInfo")"
 }
 
-# Tests that entitlements are added to the application correctly. For debug
+# Tests that entitlements are added to the application correctly. For simulator
 # builds, we make sure that the appropriate Mach-O section is present; for
-# release builds, we check the code signing.
+# device builds, we check the code signing.
 function test_entitlements() {
   create_common_files
 
@@ -413,6 +413,60 @@ EOF
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
         assert_contains "<key>test-an-entitlement</key>" -
+  fi
+}
+
+# Tests that debug entitlements are added to the application correctly. For
+# simulator builds, we make sure that the appropriate Mach-O section is
+# present; for device builds, we check the code signing.
+function test_debug_entitlements() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    entitlements = "entitlements.plist",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  # Use a local entitlements file so the default isn't extracted from the
+  # provisioning profile (which likely has get-task-allow).
+  cat > app/entitlements.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>keychain-access-groups</key>
+  <array>
+    <string>\$(AppIdentifierPrefix)\$(CFBundleIdentifier)</string>
+  </array>
+</dict>
+</plist>
+EOF
+
+  if is_device_build ios ; then
+    # For device builds, entitlements are in the codesign output.
+    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
+    do_build ios //app:dump_codesign || fail "Should build"
+
+    # For device builds, configuration.bzl also forces -c opt, so there will
+    # be no debug entitlements.
+    assert_not_contains "<key>get-task-allow</key>" \
+        "test-genfiles/app/codesign_output"
+  else
+    # For simulator builds, entitlements are added as a Mach-O section in
+    # the binary.
+    do_build ios //app:app || fail "Should build"
+
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+        print_debug_entitlements - | \
+        assert_contains "<key>get-task-allow</key>" -
   fi
 }
 

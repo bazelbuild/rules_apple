@@ -103,9 +103,8 @@ def _new_entitlements_artifact(ctx, extension):
 def _include_debug_entitlements(ctx):
   """Returns a value indicating whether debug entitlements should be used.
 
-  Debug entitlements are used if the _debug_entitlements attribute is present
-  and if the --device_debug_entitlements command-line option indicates that
-  they should be included.
+  Debug entitlements are used if the --device_debug_entitlements command-line
+  option indicates that they should be included.
 
   Debug entitlements are also not used on macOS.
 
@@ -118,8 +117,6 @@ def _include_debug_entitlements(ctx):
   if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
     return False
   if not ctx.fragments.objc.uses_device_debug_entitlements:
-    return False
-  if not ctx.file._debug_entitlements:
     return False
   return True
 
@@ -220,9 +217,10 @@ def _entitlements_impl(ctx):
   if signing_info.entitlements:
     plists.append(signing_info.entitlements)
   if _include_debug_entitlements(ctx):
-    forced_plists.append(ctx.file._debug_entitlements)
+    get_task_allow = {"get-task-allow": True}
+    forced_plists.append(struct(**get_task_allow))
 
-  inputs = plists + forced_plists
+  inputs = list(plists)
 
   # If there is no entitlements to use; return empty info.
   if not inputs:
@@ -246,7 +244,7 @@ def _entitlements_impl(ctx):
 
   control = struct(
     plists=[f.path for f in plists],
-    forced_plists=[f.path for f in forced_plists],
+    forced_plists=forced_plists,
     entitlements_options=struct(**entitlements_options),
     output=final_entitlements.path,
     target=str(ctx.label),
@@ -289,12 +287,6 @@ entitlements = rule(
     attrs={
         "bundle_id": attr.string(
             mandatory=True,
-        ),
-        "_debug_entitlements": attr.label(
-            cfg="host",
-            allow_files=True,
-            single_file=True,
-            default=Label("@bazel_tools//tools/objc:device_debug_entitlements.plist"),
         ),
         "entitlements": attr.label(
             allow_files=[".entitlements", ".plist"],
