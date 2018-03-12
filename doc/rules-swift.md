@@ -4,7 +4,7 @@
 ## swift_library
 
 ```python
-swift_library(name, srcs, deps, module_name, defines, copts, swift_version)
+swift_library(name, srcs, deps, module_name, defines, copts)
 ```
 
 Produces a static library from Swift sources. The output is a pair of .a and
@@ -128,14 +128,6 @@ bazel build //target:app
         <p><code>List of strings; optional</code></p>
         <p>Additional compiler flags. Passed to the compile actions of this
         target only.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>swift_version</code></td>
-      <td>
-        <p><code>Integer; optional; default is 3</code></p>
-        <p>A number that specifies the Swift language version to use. Valid
-        options are 3, 4. This value is ignored for Xcode &lt; 9.0.</p>
       </td>
     </tr>
   </tbody>
