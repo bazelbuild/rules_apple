@@ -19,7 +19,6 @@ set -eu
 # -------------------------------------------------------------------------------------------------
 # Asked to do a bazel build.
 if [[ -n "${BAZEL:-}" ]]; then
-  # - Turn off our test sharding to not swamp the machine
   # - Crank down the progress messages to not flood the travis log, but still
   #   provide some output so there is an indicator things aren't hung.
   # - "--test_output=errors" causes failures to report more completely since
@@ -36,7 +35,6 @@ if [[ -n "${BAZEL:-}" ]]; then
     --bazelrc=/dev/null \
     test \
     --show_progress_rate_limit=30.0 \
-    --define bazel_rules_apple.apple_shell_test.enable_sharding=0 \
     --test_output=errors \
     "${TARGET}"
   set +x
