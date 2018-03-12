@@ -4,8 +4,6 @@ platforms:
     build_targets:
     - "tools/..."
     - "test/..."
-    test_flags:
-    - "--define=bazel_rules_apple.apple_shell_test.enable_sharding=0"
     test_targets:
     - "tools/..."
     - "test/..."
