@@ -426,6 +426,10 @@ def _process_and_sign_archive(ctx,
   if entitlements:
     script_inputs.append(entitlements)
 
+  provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+  if provisioning_profile:
+    script_inputs.append(provisioning_profile)
+
   signing_command_lines = ""
   if not ctx.attr._skip_signing:
     paths_to_sign = [
