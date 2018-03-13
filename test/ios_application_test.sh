@@ -351,7 +351,7 @@ EOF
   do_build ios //app:app || fail "Should build"
 
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
-      nm -j - | grep _linkopts_test_main \
+      nm -j - | grep _linkopts_test_main  > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }

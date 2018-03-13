@@ -86,7 +86,7 @@ EOF
 
   # The symbol should be labeled "T" for text section if statically linked, not
   # "U" (which would indicate dynamic linkage).
-  nm test-bin/app/app | grep "T _swift_slowAlloc" \
+  nm test-bin/app/app | grep "T _swift_slowAlloc" > /dev/null \
       || fail "Should have found _swift_slowAlloc in TEXT section, but did not"
 }
 

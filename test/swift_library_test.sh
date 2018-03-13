@@ -302,7 +302,7 @@ EOF
   # No bitcode
   do_build ios --ios_multi_cpus=arm64 \
       //ios:swift_lib >$TEST_log 2>&1 || fail "should build"
-  ! otool -l $ARCHIVE | grep __bitcode -sq \
+  ! otool -l $ARCHIVE | grep -sq __bitcode \
       || fail "expected a.o to not contain bitcode"
 
   # Bitcode marker
@@ -314,13 +314,13 @@ EOF
   # Full bitcode
   do_build ios --apple_bitcode=embedded --ios_multi_cpus=arm64 \
       //ios:swift_lib || fail "should build"
-  otool -l $ARCHIVE | grep __bitcode -sq \
+  otool -l $ARCHIVE | grep -sq __bitcode \
       || fail "expected a.o to contain bitcode"
 
   # Bitcode disabled because of simulator architecture
   do_build ios --apple_bitcode=embedded --ios_multi_cpus=x86_64 \
       //ios:swift_lib || fail "should build"
-  ! otool -l $ARCHIVE | grep __bitcode -sq \
+  ! otool -l $ARCHIVE | grep -sq __bitcode \
       || fail "expected a.o to not contain bitcode"
 }
 

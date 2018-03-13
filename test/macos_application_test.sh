@@ -210,7 +210,7 @@ EOF
   do_build macos //app:app || fail "Should build"
 
   unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" |
-      nm -j - | grep _linkopts_test_main \
+      nm -j - | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }
