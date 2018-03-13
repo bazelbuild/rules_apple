@@ -26,14 +26,14 @@ load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
      "apple_product_type",
      "product_support")
-load("@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
-     "resource_support")
 load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
      "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "group_files_by_directory",
-     "optionally_prefixed_path")
-load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
+     "optionally_prefixed_path",
+     "xcrun_action")
+load("@build_bazel_rules_apple//common:path_utils.bzl",
+     "path_utils")
 
 
 # Sentinel value used as the key in the dictionary returned by
@@ -1069,10 +1069,10 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
   # else, copy the files verbatim.
   bundle_merge_files.extend(_process_plists_and_strings(
       ctx, bundle_id, resource_sets, "objc_bundle_imports",
-      resource_support.bundle_relative_path))
+      path_utils.bundle_relative_path))
   bundle_merge_files.extend(_process_plists_and_strings(
       ctx, bundle_id, resource_sets, "structured_resources",
-      resource_support.owner_relative_path))
+      path_utils.owner_relative_path))
 
   for r in resource_sets:
     # Copy any structured_resource_zips found in the resource sets.

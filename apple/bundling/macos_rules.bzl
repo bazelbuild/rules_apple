@@ -55,10 +55,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:resource_support.bzl",
-    "resource_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
     "rule_factory",
 )
@@ -70,6 +66,10 @@ load(
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
 )
 load(
     "@build_bazel_rules_apple//common:providers.bzl",
@@ -102,7 +102,7 @@ def _additional_contents_bundlable_files(ctx, file_map):
 
   for target, contents_subdir in file_map.items():
     bundlable_files.extend([bundling_support.contents_file(
-        ctx, f, contents_subdir + "/" + resource_support.owner_relative_path(f),
+        ctx, f, contents_subdir + "/" + path_utils.owner_relative_path(f),
     ) for f in target.files])
 
   return depset(bundlable_files)
