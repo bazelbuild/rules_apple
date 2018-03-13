@@ -122,7 +122,7 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  nm -j test-bin/app/app | grep _linkopts_test_main \
+  nm -j test-bin/app/app | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }

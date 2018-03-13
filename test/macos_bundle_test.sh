@@ -210,7 +210,7 @@ EOF
   do_build macos //app:app || fail "Should build"
 
   unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" |
-      nm -j - | grep _linkopts_test_main \
+      nm -j - | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }
@@ -437,7 +437,7 @@ EOF
       "bundle.bundle/Contents/MacOS/bundle" "RAShared"
   assert_binary_contains macos "test-bin/app/bundle.zip" \
       "bundle.bundle/Contents/MacOS/bundle" "RABundle"
-  nm -jU test-bin/app/app | grep RAShared \
+  nm -jU test-bin/app/app | grep RAShared > /dev/null \
       || fail "Could not find RAShared on app binary"
 }
 

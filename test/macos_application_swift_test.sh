@@ -86,7 +86,7 @@ function test_swift_dylibs_present() {
   # This should be implied by the previous check, but we also check that Swift
   # symbols are not found in the TEXT section (which would imply static
   # linkage).
-  nm test-bin/app/app | grep "T _swift_slowAlloc" \
+  nm test-bin/app/app | grep "T _swift_slowAlloc" > /dev/null \
       && fail "Should not have found _swift_slowAlloc in TEXT section but did" \
       || :
 }

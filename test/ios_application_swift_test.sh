@@ -239,18 +239,18 @@ EOF
   # iOS version.
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/unversioned_datamodel.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
 }
 
 # Tests that swift_library properly propagates resources from transitive
@@ -336,18 +336,18 @@ EOF
   # iOS version.
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/unversioned_datamodel.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom" \
-      | grep "$module_name"
+      | grep "$module_name" > /dev/null
 }
 
 # Tests that swift_library targets have their intermediate compiled storyboards
@@ -425,9 +425,9 @@ EOF
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
-      grep "star_iphone" || fail "Did not find star_iphone in Assets.car"
+      grep "star_iphone" > /dev/null || fail "Did not find star_iphone in Assets.car"
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
-      grep "star2_iphone" || fail "Did not find star2_iphone in Assets.car"
+      grep "star2_iphone" > /dev/null || fail "Did not find star2_iphone in Assets.car"
 }
 
 # Tests that swift_library build with sanitizer enabled.
