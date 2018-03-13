@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Support functions used when processing resources in Apple bundles."""
+"""Support functions common path operations."""
 
 load("@bazel_skylib//lib:paths.bzl",
      "paths")
@@ -66,7 +66,7 @@ def _owner_relative_path(f):
 
 
 # Define the loadable module that lists the exported symbols in this file.
-resource_support = struct(
+path_utils = struct(
     bundle_relative_path=_bundle_relative_path,
     owner_relative_path=_owner_relative_path,
 )
