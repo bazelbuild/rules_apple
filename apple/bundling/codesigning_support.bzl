@@ -39,7 +39,7 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
   if mock_support.is_provisioning_mocked(ctx):
     # If provisioning is mocked, treat the provisioning profile as a plain XML
     # plist without a signature.
-    return "cat " + shell.quote(provisioning_profile.path)
+    return "cat " + shell.quote(provisioning_profile)
   else:
     # NOTE: Until the bundling rules are updated to merge entitlements support
     # and signing, this extraction command should be kept in sync with what
@@ -50,7 +50,7 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
     # The whole output for that fallback command group is then rerouted to
     # STDERR which is only printed if the command actually failed (security and
     # openssl print information into stderr even if the command succeeded).
-    profile_path = shell.quote(provisioning_profile.path)
+    profile_path = provisioning_profile
     extract_plist_cmd = (
         "(security cms -D -i %s || " % profile_path +
         "openssl smime -inform der -verify -noverify -in %s)" % profile_path)
@@ -114,7 +114,7 @@ def _verify_signing_id_commands(ctx, identity, provisioning_profile):
   # to point the user at the source of the identity being used.
   if provisioning_profile:
     found_in_prov_profile_msg = (" found in provisioning profile " +
-                                 provisioning_profile.path)
+                                 provisioning_profile)
   else:
     found_in_prov_profile_msg = ""
 
@@ -223,7 +223,7 @@ def _signing_command_lines(ctx,
   # Verify that a provisioning profile was provided for device builds on
   # platforms that require it.
   is_device = platform_support.is_device_build(ctx)
-  provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+  provisioning_profile = "$(find . -name 'embedded.mobileprovision')"
   if (is_device and
       ctx.attr._requires_signing_for_device and
       not provisioning_profile):
