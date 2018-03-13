@@ -50,7 +50,7 @@ def _extract_provisioning_plist_command(ctx, provisioning_profile):
     # The whole output for that fallback command group is then rerouted to
     # STDERR which is only printed if the command actually failed (security and
     # openssl print information into stderr even if the command succeeded).
-    profile_path = shell.quote(provisioning_profile)
+    profile_path = provisioning_profile
     extract_plist_cmd = (
         "(security cms -D -i %s || " % profile_path +
         "openssl smime -inform der -verify -noverify -in %s)" % profile_path)
