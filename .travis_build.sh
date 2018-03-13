@@ -31,12 +31,16 @@ if [[ -n "${BAZEL:-}" ]]; then
       --show_progress_rate_limit=30.0 \
       "${BUILD_TARGET}"
   fi
-  bazel \
-    --bazelrc=/dev/null \
-    test \
-    --show_progress_rate_limit=30.0 \
-    --test_output=errors \
-    "${TARGET}"
+  TEST_ARGS=(
+    --bazelrc=/dev/null
+    test
+    --show_progress_rate_limit=30.0
+    --test_output=errors
+  )
+  if [[ -n "${TAGS:-}" ]]; then
+    TEST_ARGS+=( "--test_tag_filters=${TAGS}" )
+  fi
+  bazel "${TEST_ARGS[@]}" "${TARGET}"
   set +x
 fi
 
