@@ -102,6 +102,12 @@ genrule(
     cmd = "echo '\"generated_string\" = \"I like turtles!\";' > $@",
 )
 
+genrule(
+    name = "generate_structured_strings",
+    outs = ["structured/generated.strings"],
+    cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
+)
+
 objc_bundle_library(
     name = "bundle_library",
     asset_catalogs = [":assets_ios"],
@@ -130,7 +136,10 @@ objc_bundle_library(
         "generated.strings",
         ":localized_strings_ios",
     ],
-    structured_resources = [":structured"],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
     xibs = [
         "view_ios.xib",
         ":localized_xibs_ios",

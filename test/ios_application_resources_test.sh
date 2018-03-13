@@ -474,6 +474,29 @@ EOF
       "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/VersionInfo.plist"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library.bundle/view_ios.nib"
+
+  # Verify that the processed structured resources are present and compiled (if
+  # required).
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/nested.txt"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/generated.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/generated.strings" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.plist"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.plist" | \
+      assert_contains "^bplist00" -
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.strings" | \
+      assert_contains "^bplist00" -
 }
 
 # Tests that structured resources (both unprocessed ones, and processed ones
@@ -498,10 +521,16 @@ EOF
 EOF
 
   cat >> app/BUILD <<EOF
+genrule(
+    name = "generate_structured_strings",
+    outs = ["structured/generated.strings"],
+    cmd = "echo '\"generated_structured_string\" = \"I like turtles!\";' > \$@",
+)
+
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    structured_resources = glob(["structured/**"]),
+    structured_resources = glob(["structured/**"]) + [":generate_structured_strings"],
 )
 
 ios_application(
@@ -532,6 +561,13 @@ EOF
       "Payload/app.app/structured/nested.plist"
   unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/structured/nested.plist" | \
+      assert_contains "^bplist00" -
+
+  # And the generated one...
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/generated.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/structured/generated.strings" | \
       assert_contains "^bplist00" -
 }
 
