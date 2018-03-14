@@ -93,8 +93,8 @@ def apple_shell_test(name,
   """
   # Depending on the memory on a machine, the sharding of these integration
   # tests can take out a machine, so make it opt in via a define:
-  #   '--define bazel_rules_apple.apple_shell_test.enable_sharding=1'
-  #   '--define bazel_rules_apple.apple_shell_test.enable_sharding=0'
+  #   '--define bazel_rules_apple.shell_test_sharding=1'
+  #   '--define bazel_rules_apple.shell_test_sharding=0'
   requested_shard_count = kwargs.pop("shard_count", 0)
   shard_count = select({
       "//test:apple_shell_test_disable_sharding": 0,
