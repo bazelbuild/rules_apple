@@ -26,13 +26,11 @@ if [[ -n "${BAZEL:-}" ]]; then
   set -x
   if [[ -n "${BUILD_TARGET:-}" ]]; then
     bazel \
-      --bazelrc=/dev/null \
       build \
       --show_progress_rate_limit=30.0 \
       "${BUILD_TARGET}"
   fi
   TEST_ARGS=(
-    --bazelrc=/dev/null
     test
     --show_progress_rate_limit=30.0
     --test_output=errors
