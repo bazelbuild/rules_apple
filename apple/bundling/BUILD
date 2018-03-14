@@ -17,7 +17,9 @@ filegroup(
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = glob(["**"]),
+    srcs = glob(["**"]) + [
+        "//apple/bundling/runners:for_bazel_tests",
+    ],
     visibility = [
         "//apple:__subpackages__",
     ],

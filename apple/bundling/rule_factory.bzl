@@ -190,11 +190,13 @@ _bundling_tool_attributes = {
         executable=True,
         default=Label("@build_bazel_rules_apple//tools/ibtoolwrapper"),
     ),
-    "_ios_runner": attr.label(
+    # TODO(b/74731511): Refactor this attribute into being specified for each
+    # platform.
+    "_runner_template": attr.label(
         cfg="host",
         allow_files=True,
         single_file=True,
-        default=Label("@bazel_tools//tools/objc:ios_runner.sh.mac_template"),
+        default=Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
     ),
     "_mapcwrapper": attr.label(
         cfg="host",

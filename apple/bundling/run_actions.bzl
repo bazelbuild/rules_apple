@@ -35,7 +35,7 @@ def _start_simulator(ctx):
   ctx.template_action(
       output=ctx.outputs.executable,
       executable=True,
-      template=ctx.file._ios_runner,
+      template=ctx.file._runner_template,
       substitutions={
           "%app_name%": ctx.label.name,
           "%ipa_file%": ctx.outputs.archive.short_path,
