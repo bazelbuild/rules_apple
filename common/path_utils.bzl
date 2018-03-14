@@ -62,7 +62,17 @@ def _owner_relative_path(f):
   Returns:
     The owner-relative path to the file.
   """
-  return paths.relativize(f.short_path, f.owner.package)
+  if f.is_source:
+    # Even though the docs says a File's `short_path` doesn't include the
+    # root, Bazel special cases anything that is external and includes a
+    # relative path (../) to the file. On the File's `owner` we can get the
+    # `workspace_root` to try and line things up, but it is in the form of
+    # "external/[name]". However the File's `path` does include the root and
+    # leaves it in the "externa/" form.
+    return paths.relativize(f.path,
+                            paths.join(f.owner.workspace_root, f.owner.package))
+  else:
+    return paths.relativize(f.short_path, f.owner.package)
 
 
 # Define the loadable module that lists the exported symbols in this file.
