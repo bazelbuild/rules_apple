@@ -238,7 +238,7 @@ def _macos_command_line_application_impl(ctx):
   """Implementation of the macos_command_line_application rule."""
   output_path = ctx.outputs.executable.path
 
-  extra_outputs = []
+  outputs = []
 
   debug_outputs = ctx.attr.binary[apple_common.AppleDebugOutputs]
   if debug_outputs:
@@ -247,12 +247,12 @@ def _macos_command_line_application_impl(ctx):
     if ctx.fragments.objc.generate_dsym:
       symbol_bundle = debug_symbol_actions.create_symbol_bundle(ctx,
           debug_outputs, ctx.label.name)
-      extra_outputs.extend(symbol_bundle)
+      outputs.extend(symbol_bundle)
 
     if ctx.fragments.objc.generate_linkmap:
       linkmaps = debug_symbol_actions.collect_linkmaps(ctx, debug_outputs,
           ctx.label.name)
-      extra_outputs.extend(linkmaps)
+      outputs.extend(linkmaps)
 
   # It's not hermetic to sign the binary that was built by the apple_binary
   # target that this rule takes as an input, so we copy it and then execute the
@@ -262,7 +262,6 @@ def _macos_command_line_application_impl(ctx):
       ctx, [path_to_sign], None)
 
   inputs = [ctx.file.binary]
-  inputs.extend(extra_outputs)
 
   platform_support.xcode_env_action(
       ctx,
@@ -277,7 +276,8 @@ def _macos_command_line_application_impl(ctx):
       mnemonic="SignBinary",
   )
 
-  return []
+  outputs.append(ctx.outputs.executable)
+  return [DefaultInfo(files=depset(direct=outputs))]
 
 
 macos_command_line_application = rule(
