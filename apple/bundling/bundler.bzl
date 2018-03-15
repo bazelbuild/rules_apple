@@ -496,7 +496,7 @@ def _experimental_create_and_sign_bundle(
   """Bundles and signs the current target.
 
   THIS IS CURRENTLY EXPERIMENTAL. It can be enabled by building with the
-  `bazel_rules_apple.experimental_bundling` define set to `bundle_and_archive`
+  `apple.experimental_bundling` define set to `bundle_and_archive`
   or `bundle_only` but it should not be used for production builds yet.
   """
   control_file = file_support.intermediate(
@@ -874,10 +874,10 @@ def _run(
   # Perform the final bundling tasks.
   root_merge_zips_to_archive = root_merge_zips if _is_ipa(ctx) else []
 
-  experimental_bundling = ctx.var.get("bazel_rules_apple.experimental_bundling",
+  experimental_bundling = ctx.var.get("apple.experimental_bundling",
                                       "off").lower()
   if experimental_bundling not in ("bundle_and_archive", "bundle_only", "off"):
-    fail("Valid values for --define=bazel_rules_apple.experimental_bundling" +
+    fail("Valid values for --define=apple.experimental_bundling" +
          "are: bundle_and_archive, bundle_only, off.")
   # Only use experimental bundling for main app's bundle.
   if bundling_support.bundle_name_with_extension(ctx).endswith(".app"):
@@ -976,7 +976,11 @@ def _run(
   # as outputs of the rule.
   transitive_extra_outputs = depset(extra_outputs)
   propagate_embedded_extra_outputs = ctx.var.get(
-      "bazel_rules_apple.propagate_embedded_extra_outputs", "no")
+      "apple.propagate_embedded_extra_outputs", "no")
+  # b/74782299 remove this fallback.
+  if propagate_embedded_extra_outputs == "no":
+    propagate_embedded_extra_outputs = ctx.var.get(
+        "bazel_rules_apple.propagate_embedded_extra_outputs", "no")
   if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
     embedded_bundle_targets = [eb.target for eb in embedded_bundles]
     for extra in providers.find_all(

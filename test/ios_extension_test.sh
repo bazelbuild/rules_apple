@@ -634,7 +634,7 @@ function test_all_dsyms_propagated() {
   create_minimal_ios_application_with_extension
   do_build ios \
       --apple_generate_dsym \
-      --define=bazel_rules_apple.propagate_embedded_extra_outputs=1 \
+      --define=apple.propagate_embedded_extra_outputs=1 \
       //app:app || fail "Should build"
 
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
