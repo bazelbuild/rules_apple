@@ -442,9 +442,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app \
-      --features=asan \
-      --define=apple_swift_sanitize=address || fail "Should build"
+  do_build ios //app:app --features=asan || fail "Should build"
 }
 
 run_suite "ios_application with Swift bundling tests"
