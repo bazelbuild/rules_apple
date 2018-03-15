@@ -228,7 +228,8 @@ EOF
 
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
-        assert_contains "<key>test-an-entitlement</key>" -
+        grep -sq "<key>test-an-entitlement</key>" || \
+        fail "Failed to find custom entitlement"
   fi
 }
 

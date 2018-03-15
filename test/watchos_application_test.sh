@@ -359,7 +359,8 @@ function test_watch_extension_entitlements() {
     unzip_single_file "test-bin/app/app.ipa" \
         "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext" | \
         print_debug_entitlements - | \
-        assert_contains "<key>test-an-entitlement</key>" -
+        grep -sq "<key>test-an-entitlement</key>" || \
+        fail "Failed to find custom entitlement"
   fi
 }
 
