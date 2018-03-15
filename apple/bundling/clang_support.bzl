@@ -27,7 +27,18 @@ load("@build_bazel_rules_apple//apple:utils.bzl", "xcrun_action")
 
 def _should_package_clang_runtime(ctx):
   """Returns whether the Clang runtime should be bundled."""
-  return ctx.var.get("apple_bundle_clang_rt") == "1"
+  # List of crosstool sanitizer features that require packaging some clang
+  # runtime libraries.
+  features_requiring_clang_runtime = {
+      "asan": True,
+      "tsan": True,
+      "ubsan": True,
+  }
+
+  for feature in ctx.features:
+    if feature in features_requiring_clang_runtime:
+      return True
+  return False
 
 
 def _register_runtime_lib_actions(ctx, binary_artifact):
