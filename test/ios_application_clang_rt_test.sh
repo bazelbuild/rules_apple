@@ -80,8 +80,7 @@ function test_asan_bundle() {
   create_common_files
   create_minimal_ios_application
 
-  do_build ios --define=apple_bundle_clang_rt=1 \
-      --features=asan \
+  do_build ios --features=asan \
       //app:app || fail "Should build"
 
   if is_device_build ios ; then
@@ -93,15 +92,35 @@ function test_asan_bundle() {
   fi
 }
 
-# Tests that the tool correctly fails if no runtime libraries were linked.
-function test_missing_link() {
+function test_tsan_bundle() {
+  # Skip the device version as tsan is not supported on devices.
+  if ! is_device_build ios ; then
+    create_common_files
+    create_minimal_ios_application
+
+    # Override --ios_multi_cpus to only contain the 64 bit simulator, as 32 bit
+    # is not supported.
+    do_build ios --features=tsan --ios_multi_cpus=x86_64\
+        //app:app || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
+  fi
+}
+
+function test_ubsan_bundle() {
   create_common_files
   create_minimal_ios_application
 
-  ! do_build ios --define=apple_bundle_clang_rt=1 \
-      //app:app || fail "Should not build"
+  do_build ios --features=ubsan \
+      //app:app || fail "Should build"
 
-  expect_log "ERROR: Could not find clang library path."
+  if is_device_build ios ; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.ubsan_ios_dynamic.dylib"
+  else
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.ubsan_iossim_dynamic.dylib"
+  fi
 }
 
 run_suite "ios_application clang support tests"
