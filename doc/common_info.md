@@ -1,5 +1,60 @@
 # Apple Bazel definitions - Common Information
 
+## Controlling Builds
+
+Most aspect of your builds should be controlled via the attributes you set on
+the rules. However there are some things where bazel and/or the rules allow you
+to opt in/out of something on a per-build basis without the need to express it
+in a BUILD file.
+
+### dSYMs Generation {#apple_generate_dsym}
+
+dSYMs are needed for debugging, decode crash logs, etc.; but they can take a
+while to generate and aren't always needed. All of the Apple rules support
+generating a dSYM bundle via `--apple_generate_dsym` when doing a `bazel build`.
+
+```
+bazel build --apple_generate_dsym //your/target
+```
+
+<!-- Blocked on b/73547215
+
+### linkmap Generation {#objc_generate_linkmap}
+
+Linkmaps can be useful for figuring out how the `deps` going into a target are
+contributing to the final size of the binary. Bazel will generate a link map
+when linking by adding `--objc_generate_linkmap` to a `bazel build`.
+
+```
+bazel build --objc_generate_linkmap //your/target
+```
+-->
+
+### Include Embedded Bundles in Rule Output {#apple.propagate_embedded_extra_outputs}
+
+Some Apple bundles include other bundles within them (for example, an
+application extension inside an iOS application). When you build a top-level
+application target and ask for extra outputs such as linkmaps or dSYM bundles,
+Bazel typically only produces the extra outputs for the top-level application
+but not for the embedded extension.
+
+In order to produce those extra outputs for all embedded bundles as well, you
+can pass `--define=apple.propagate_embedded_extra_outputs=(yes|true|1)` to
+`bazel build`.
+
+```
+bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
+```
+
+<!--
+ Define not currently documented:
+
+   apple.experimental_bundling=[bundle_and_archive,bundle_only,off]
+
+ Support for this option is tracked in b/35451264, but because of the tree
+ artifact issues, it isn't really useful at the moment.
+-->
+
 ## Info.plist Handling
 
 ### Merging
