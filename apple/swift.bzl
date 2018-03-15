@@ -120,15 +120,18 @@ def _swift_bitcode_flags(apple_fragment):
   return []
 
 
-def _swift_sanitizer_flags(config_vars):
-  """Returns sanitizer mode flags."""
-  sanitizer = config_vars.get("apple_swift_sanitize")
-  if not sanitizer:
-    return []
-  elif sanitizer == "address":
-    return ["-sanitize=address"]
-  else:
-    fail("Swift sanitizer '%s' is not supported" % sanitizer)
+def _swift_sanitizer_flags(features):
+  """Returns sanitizer flags."""
+  sanitizer_features_to_flags = {
+      "asan": ["-sanitize=address"],
+  }
+
+  sanitizer_flags = []
+  for (feature, flags) in sanitizer_features_to_flags.items():
+    if feature in features:
+      sanitizer_flags.extend(flags)
+
+  return sanitizer_flags
 
 
 def swift_module_name(label):
@@ -271,7 +274,8 @@ def swift_compile_requirements(
     config_vars,
     default_configuration,
     xcode_config,
-    genfiles_dir):
+    genfiles_dir,
+    features):
   """Returns a struct that contains the requirements to compile Swift code.
 
   Args:
@@ -295,6 +299,8 @@ def swift_compile_requirements(
         context.
     xcode_config: the XcodeVersionConfig to use
     genfiles_dir: The directory where genfiles are written.
+    features: List of enabled features as passed with --features or set into the
+        features attribute.
   Returns:
     A structure that contains the information required to compile Swift code.
   """
@@ -312,6 +318,7 @@ def swift_compile_requirements(
       default_configuration=default_configuration,
       xcode_config=xcode_config,
       genfiles_dir=genfiles_dir,
+      features=features,
   )
 
 
@@ -382,7 +389,8 @@ def swiftc_args(ctx):
       ctx.files.srcs, ctx.attr.deps, ctx.attr.module_name, ctx.label,
       ctx.attr.copts, ctx.attr.defines, ctx.fragments.apple, ctx.fragments.objc,
       ctx.fragments.swift, ctx.var, ctx.configuration,
-      ctx.attr._xcode_config[apple_common.XcodeVersionConfig], ctx.genfiles_dir)
+      ctx.attr._xcode_config[apple_common.XcodeVersionConfig], ctx.genfiles_dir,
+      ctx.features)
   return _swiftc_args(reqs)
 
 
@@ -508,7 +516,7 @@ def _swiftc_args(reqs):
       reqs.config_vars, reqs.objc_fragment))
   args.extend(_swift_bitcode_flags(apple_fragment))
   args.extend(_swift_parsing_flags(reqs.srcs))
-  args.extend(_swift_sanitizer_flags(reqs.config_vars))
+  args.extend(_swift_sanitizer_flags(reqs.features))
   args.extend(srcs_args)
   args.extend(include_args)
   args.extend(framework_args)
@@ -855,7 +863,8 @@ def _swift_library_impl(ctx):
       ctx.var,
       ctx.configuration,
       ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-      ctx.genfiles_dir)
+      ctx.genfiles_dir,
+      ctx.features)
 
   compile_outputs, objc_provider, swift_info = register_swift_compile_actions(
       ctx, reqs)
