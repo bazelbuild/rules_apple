@@ -412,7 +412,8 @@ EOF
 
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
-        assert_contains "<key>test-an-entitlement</key>" -
+        grep -sq "<key>test-an-entitlement</key>" || \
+        fail "Failed to find custom entitlement"
   fi
 }
 
@@ -466,7 +467,8 @@ EOF
 
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
         print_debug_entitlements - | \
-        assert_contains "<key>get-task-allow</key>" -
+        grep -sq "<key>get-task-allow</key>" || \
+        fail "Failed get-task-allow entitlement"
   fi
 }
 
@@ -505,7 +507,8 @@ EOF
     unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
         "Payload/app-with-hyphen.app/app-with-hyphen" | \
         print_debug_entitlements - | \
-        assert_contains "<key>test-an-entitlement</key>" -
+        grep -sq "<key>test-an-entitlement</key>" || \
+        fail "Failed to find custom entitlement"
   fi
 }
 
