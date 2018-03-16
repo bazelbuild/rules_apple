@@ -30,6 +30,38 @@ bazel build --objc_generate_linkmap //your/target
 ```
 -->
 
+<!-- Blocked on b/73547309
+
+### Sanitizers {#sanitizers}
+
+Sanitizers are useful for validating your code by detecting runtime corruptions
+in memory (Address Sanitizer), data race conditions (Thread Sanitizer), or
+undefined behavior (Undefined Behavior Sanitizer). When running an application,
+or its tests, using Bazel, you can enable these sanitizers using the following
+flags:
+
+
+```
+# Address Sanitizer
+bazel test --features=asan //your/target
+
+# Thread Sanitizer
+bazel test --features=tsan //your/target
+
+# Undefined Behavior Sanitizer
+bazel test --features=ubsan //your/target
+```
+
+When you enable these features, the appropriate compilation and linking flags
+will be added to the build, and the rules will package the corresponding dylibs
+into your output bundle.
+
+Similar to what you can find in Xcode, the Address and Thread sanitizers are
+mutually exclusive, i.e. you can only specify one or the other for a particular
+build.
+
+-->
+
 ### Include Embedded Bundles in Rule Output {#apple.propagate_embedded_extra_outputs}
 
 Some Apple bundles include other bundles within them (for example, an
@@ -59,20 +91,19 @@ bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 
 ### Merging
 
-The `infoplists` attribute on the Apple rules takes a list of files that will
-be merged. This allows developers to provide fragments of the final Info.plist
-and use `select()` statements to pull in different bits based on different
-configuration settings. For example, a `select()` on some `config_setting`
-could allow the rule to pull in a file with a different
-`CFBundleDisplayName` pair for the TestFlight build.
+The `infoplists` attribute on the Apple rules takes a list of files that will be
+merged. This allows developers to provide fragments of the final Info.plist and
+use `select()` statements to pull in different bits based on different
+configuration settings. For example, a `select()` on some `config_setting` could
+allow the rule to pull in a file with a different `CFBundleDisplayName` pair for
+the TestFlight build.
 
-The merging though is done only at the root level of these plists. If two
-files being merged have the same key, their values must match. That means
-if two files both have a value for something (e.g., `CFBundleDisplayName`),
-then as long as the values are the same, the build will succeed; but if they
-have different values, then the build will fail. If a key's value is an array
-or a dictionary, those values won't be merged and must match to avoid the
-failure.
+The merging though is done only at the root level of these plists. If two files
+being merged have the same key, their values must match. That means if two files
+both have a value for something (e.g., `CFBundleDisplayName`), then as long as
+the values are the same, the build will succeed; but if they have different
+values, then the build will fail. If a key's value is an array or a dictionary,
+those values won't be merged and must match to avoid the failure.
 
 ### Variable Substitution
 
@@ -174,4 +205,3 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
     </tr>
   </tbody>
 </table>
-
