@@ -28,8 +28,8 @@ when linking by adding `--objc_generate_linkmap` to a `bazel build`.
 ```
 bazel build --objc_generate_linkmap //your/target
 ```
--->
 
+-->
 <!-- Blocked on b/73547309
 
 ### Sanitizers {#sanitizers}
