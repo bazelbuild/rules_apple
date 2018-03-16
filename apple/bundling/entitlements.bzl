@@ -116,6 +116,15 @@ def _include_debug_entitlements(ctx):
   """
   if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
     return False
+  add_debugger_entitlement = ctx.var.get(
+      "apple.add_debugger_entitlement", None)
+  if add_debugger_entitlement != None:
+    if add_debugger_entitlement.lower() in ("true", "yes", "1"):
+      return True
+    if add_debugger_entitlement.lower() in ("false", "no", "0"):
+      return False
+    fail("Valid values for --define=apple.add_debugger_entitlement" +
+         " are: true|yes|1 or false|no|0.")
   if not ctx.fragments.objc.uses_device_debug_entitlements:
     return False
   return True

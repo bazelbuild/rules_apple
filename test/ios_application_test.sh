@@ -417,10 +417,14 @@ EOF
   fi
 }
 
-# Tests that debug entitlements are added to the application correctly. For
-# simulator builds, we make sure that the appropriate Mach-O section is
-# present; for device builds, we check the code signing.
-function test_debug_entitlements() {
+# Helper to test different values if a build adds the debugger entitlement.
+# First arg is "y|n" for if it was expected for device builds
+# Second arg is "y|n" for if it was expected for simulator builds.
+# Any other args are passed to `do_build`.
+function verify_debugger_entitlements_with_params() {
+  readonly FOR_DEVICE=$1; shift
+  readonly FOR_SIM=$1; shift
+
   create_common_files
 
   cat >> app/BUILD <<EOF
@@ -454,22 +458,53 @@ EOF
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
     create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
-    do_build ios //app:dump_codesign || fail "Should build"
+    do_build ios "$@" //app:dump_codesign || fail "Should build"
 
-    # For device builds, configuration.bzl also forces -c opt, so there will
-    # be no debug entitlements.
-    assert_not_contains "<key>get-task-allow</key>" \
-        "test-genfiles/app/codesign_output"
+    readonly FILE_TO_CHECK="test-genfiles/app/codesign_output"
+    readonly SHOULD_CONTAIN="${FOR_DEVICE}"
   else
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
-    do_build ios //app:app || fail "Should build"
-
+    do_build ios "$@" //app:app || fail "Should build"
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
-        print_debug_entitlements - | \
-        grep -sq "<key>get-task-allow</key>" || \
-        fail "Failed get-task-allow entitlement"
+        print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
+
+    readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
+    readonly SHOULD_CONTAIN="${FOR_SIM}"
   fi
+
+  if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
+    assert_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+  else
+    assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+  fi
+}
+
+# Tests that debugger entitlements are auto-added to the application correctly.
+function test_debugger_entitlements_default() {
+  # For device builds, configuration.bzl also forces -c opt, so there will be
+  #   no debug entitlements.
+  # For simulator builds, no config is passed, so it is dbg, so they will be
+  #   added.
+  verify_debugger_entitlements_with_params n y
+}
+
+# Test the different values for apple.add_debugger_entitlement.
+function test_debugger_entitlements_forced_false() {
+  verify_debugger_entitlements_with_params n n \
+      --define=apple.add_debugger_entitlement=false
+}
+function test_debugger_entitlements_forced_no() {
+  verify_debugger_entitlements_with_params n n \
+      --define=apple.add_debugger_entitlement=no
+}
+function test_debugger_entitlements_forced_yes() {
+  verify_debugger_entitlements_with_params y y \
+      --define=apple.add_debugger_entitlement=YES
+}
+function test_debugger_entitlements_forced_true() {
+  verify_debugger_entitlements_with_params y y \
+      --define=apple.add_debugger_entitlement=True
 }
 
 # Tests that the target name is sanitized before it is used as the symbol name

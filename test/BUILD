@@ -63,7 +63,7 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/binaries:empty_staticlib",
     ],
-    shard_count = 8,
+    shard_count = 16,
 )
 
 apple_multi_shell_test(
