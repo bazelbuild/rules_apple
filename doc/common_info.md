@@ -13,23 +13,10 @@ dSYMs are needed for debugging, decode crash logs, etc.; but they can take a
 while to generate and aren't always needed. All of the Apple rules support
 generating a dSYM bundle via `--apple_generate_dsym` when doing a `bazel build`.
 
-```
+```shell
 bazel build --apple_generate_dsym //your/target
 ```
 
-<!-- Blocked on b/73547215
-
-### linkmap Generation {#objc_generate_linkmap}
-
-Linkmaps can be useful for figuring out how the `deps` going into a target are
-contributing to the final size of the binary. Bazel will generate a link map
-when linking by adding `--objc_generate_linkmap` to a `bazel build`.
-
-```
-bazel build --objc_generate_linkmap //your/target
-```
-
--->
 <!-- Blocked on b/73547309
 
 ### Sanitizers {#sanitizers}
@@ -40,8 +27,7 @@ undefined behavior (Undefined Behavior Sanitizer). When running an application,
 or its tests, using Bazel, you can enable these sanitizers using the following
 flags:
 
-
-```
+```shell
 # Address Sanitizer
 bazel test --features=asan //your/target
 
@@ -62,6 +48,45 @@ build.
 
 -->
 
+<!-- Blocked on b/73547215
+
+### linkmap Generation {#objc_generate_linkmap}
+
+Linkmaps can be useful for figuring out how the `deps` going into a target are
+contributing to the final size of the binary. Bazel will generate a link map
+when linking by adding `--objc_generate_linkmap` to a `bazel build`.
+
+```shell
+bazel build --objc_generate_linkmap //your/target
+```
+
+-->
+
+### Debugging Entitlement Support {#apple.add_debugger_entitlement}
+
+Some Apple platforms require an entitlement (`get-task-allow`) to support
+debugging tools. The rules will auto add the entitlement for non optimized
+builds (i.e. - anything that isn't `-c opt`). However when looking at specific
+issues (performance of a release build via Instruments), the entitlement is also
+needed.
+
+The rules support direct control over the inclusion/exclusion of any bundle
+being built by
+`--define=apple.add_debugger_entitlement=(yes|true|1|no|false|0)`.
+
+Add `get-task-allow` entitlement:
+
+```shell
+bazel build --define=apple.add_debugger_entitlement=yes //your/target
+```
+
+Ensure `get-task-allow` entitlement is *not* added (even if the default would
+have added it):
+
+```shell
+bazel build --define=apple.add_debugger_entitlement=no //your/target
+```
+
 ### Include Embedded Bundles in Rule Output {#apple.propagate_embedded_extra_outputs}
 
 Some Apple bundles include other bundles within them (for example, an
@@ -74,7 +99,7 @@ In order to produce those extra outputs for all embedded bundles as well, you
 can pass `--define=apple.propagate_embedded_extra_outputs=(yes|true|1)` to
 `bazel build`.
 
-```
+```shell
 bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 ```
 
