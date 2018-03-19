@@ -211,6 +211,48 @@ function test_plist_contents() {
   assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
 }
 
+# Test missing the CFBundleVersion fails the build.
+function test_missing_version_fails() {
+  create_common_files
+  create_minimal_ios_application
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+}
+
+# Test missing the CFBundleShortVersionString fails the build.
+function test_missing_short_version_fails() {
+  create_common_files
+  create_minimal_ios_application
+
+  # Replace the file, but without CFBundleShortVersionString.
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleVersion = "1.0.0";
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+}
+
 # Tests that multiple infoplists are merged properly.
 function test_multiple_plist_merging() {
   create_common_files

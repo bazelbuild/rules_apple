@@ -741,9 +741,7 @@ class InfoPlistTask(PlistToolTask):
     return _INFO_PLIST_OPTIONS_KEYS
 
   def update_plist(self, out_plist, subs_engine):
-    # Pull in the version info propagated by AppleBundleVersionInfo, using "1.0"
-    # as a default if there's no version info whatsoever (either there, or
-    # already in the plist).
+    # Pull in the version info propagated by AppleBundleVersionInfo.
     version_file = self.options.get('version_file')
     if version_file:
       version_info = _load_json(version_file)

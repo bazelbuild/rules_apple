@@ -156,6 +156,52 @@ function test_extension_plist_contents() {
   assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
 }
 
+# Test missing the CFBundleVersion fails the build.
+function test_missing_version_fails() {
+  create_minimal_tvos_application_with_extension
+
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:ext" is missing CFBundleVersion.'
+}
+
+# Test missing the CFBundleShortVersionString fails the build.
+function test_missing_short_version_fails() {
+  create_minimal_tvos_application_with_extension
+
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:ext" is missing CFBundleShortVersionString.'
+}
+
 # Tests that the extension inside the app bundle is properly signed.
 function test_extension_is_signed() {
   create_minimal_tvos_application_with_extension

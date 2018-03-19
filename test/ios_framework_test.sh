@@ -463,6 +463,29 @@ function test_framework_contains_expected_files() {
       "framework.framework/Headers/Framework.h"
 }
 
+# Tests that an ios_framework builds fine without any version info
+# since it isn't required.
+function test_framework_no_versions() {
+  create_minimal_ios_framework
+  create_whole_dump_plist "//framework:framework" \
+      "framework.framework/Info.plist"
+
+  cat > framework/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "FMWK";
+}
+EOF
+
+  do_build ios //framework:dump_whole_plist || fail "Should build"
+
+  assert_not_contains "CFBundleVersion" \
+      "test-genfiles/framework/dump_whole_plist.txt"
+  assert_not_contains "CFBundleShortVersionString" \
+      "test-genfiles/framework/dump_whole_plist.txt"
+}
+
 # Tests that the bundled application contains the framework but that the
 # extension inside it does *not* contain another copy.
 function test_application_contains_expected_files() {
