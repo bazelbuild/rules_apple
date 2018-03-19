@@ -283,6 +283,56 @@ function test_contains_provisioning_profile() {
       "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
 }
 
+# Test missing the CFBundleVersion fails the build.
+function test_missing_version_fails() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:ext" is missing CFBundleVersion.'
+}
+
+# Test missing the CFBundleShortVersionString fails the build.
+function test_missing_short_version_fails() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:ext" is missing CFBundleShortVersionString.'
+}
+
 # Tests that a sticker pack application contains the correct stub executable
 # and automatically-injected plist entries.
 function test_sticker_pack_extension() {

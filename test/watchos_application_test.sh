@@ -236,6 +236,102 @@ function test_watch_ext_plist_contents() {
   assert_common_watch_app_and_extension_plist_values
 }
 
+# Test missing the CFBundleVersion fails the build.
+function test_watch_app_missing_version_fails() {
+  create_minimal_watchos_application_with_companion
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-WatchApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  WKCompanionAppBundleIdentifier = "my.bundle.id";
+  WKWatchKitApp = true;
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:watch_app" is missing CFBundleVersion.'
+}
+
+# Test missing the CFBundleShortVersionString fails the build.
+function test_watch_app_missing_short_version_fails() {
+  create_minimal_watchos_application_with_companion
+
+  # Replace the file, but without CFBundleShortVersionString.
+  cat > app/Info-WatchApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleVersion = "1";
+  WKCompanionAppBundleIdentifier = "my.bundle.id";
+  WKWatchKitApp = true;
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:watch_app" is missing CFBundleShortVersionString.'
+}
+
+# Test missing the CFBundleVersion fails the build.
+function test_watch_ext_missing_version_fails() {
+  create_minimal_watchos_application_with_companion
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:watch_ext" is missing CFBundleVersion.'
+}
+
+# Test missing the CFBundleShortVersionString fails the build.
+function test_watch_ext_missing_short_version_fails() {
+  create_minimal_watchos_application_with_companion
+
+  # Replace the file, but without CFBundleShortVersionString.
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleVersion = "1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
+}
+
 # Tests that the watch application is signed correctly.
 function test_watch_application_is_signed() {
   create_minimal_watchos_application_with_companion
