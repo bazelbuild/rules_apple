@@ -131,7 +131,7 @@ function test_missing_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build macos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:app" is missing CFBundleVersion.'
@@ -152,7 +152,7 @@ function test_missing_short_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build macos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
