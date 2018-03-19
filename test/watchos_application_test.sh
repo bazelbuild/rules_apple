@@ -252,7 +252,7 @@ function test_watch_app_missing_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build watchos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:watch_app" is missing CFBundleVersion.'
@@ -274,7 +274,7 @@ function test_watch_app_missing_short_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build watchos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:watch_app" is missing CFBundleShortVersionString.'
@@ -300,7 +300,7 @@ function test_watch_ext_missing_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build watchos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:watch_ext" is missing CFBundleVersion.'
@@ -326,7 +326,7 @@ function test_watch_ext_missing_short_version_fails() {
 }
 EOF
 
-  ! do_build ios //app:app \
+  ! do_build watchos //app:app \
     || fail "Should fail build"
 
   expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
