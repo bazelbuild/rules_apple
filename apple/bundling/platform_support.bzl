@@ -32,9 +32,9 @@ _DEVICE_FAMILY_VALUES = {
     "ipad": 2,
     "tv": 3,
     "watch": 4,
-    # We want _family_plist_number to return None for the valid "mac" family
-    # since macOS doesn't use the UIDeviceFamily Info.plist key, but we still
-    # want to catch invalid families with a KeyError.
+    # We want _ui_device_family_plist_value to find None for the valid "mac"
+    # family since macOS doesn't use the UIDeviceFamily Info.plist key, but we
+    # still want to catch invalid families with a KeyError.
     "mac": None,
 }
 
@@ -56,20 +56,26 @@ def _families(ctx):
   return attrs.get(ctx.attr, "families", ctx.attr._allowed_families)
 
 
-def _family_plist_number(family_name):
-  """Returns the `UIDeviceFamily` integer for a device family.
+def _ui_device_family_plist_value(ctx):
+  """Returns the value to use for `UIDeviceFamily` in an info.plist.
 
-  This function returns None for valid device families that do not use the
-  `UIDeviceFamily` Info.plist key (currently, only `mac`).
+  This function returns the array of value to use or None if there should be
+  no plist entry (currently, only macOS doesn't use UIDeviceFamily).
 
   Args:
-    family_name: The device family name, as given in the `families` attribute
-        of an Apple bundle target.
+    ctx: The Skylark context.
   Returns:
-    The integer to use in the `UIDeviceFamily` key of an Info.plist file, or
-    None if the key should not be added to the Info.plist.
+    A list of integers to use for the `UIDeviceFamily` in an Info.plist
+    or None if the key should not be added to the Info.plist.
   """
-  return _DEVICE_FAMILY_VALUES[family_name]
+  families = []
+  for f in _families(ctx):
+    number = _DEVICE_FAMILY_VALUES[f]
+    if number:
+      families.append(number)
+  if families:
+    return families
+  return None
 
 
 def _is_device_build(ctx):
@@ -172,11 +178,11 @@ def _xcode_env_action(ctx, **kwargs):
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
     families=_families,
-    family_plist_number=_family_plist_number,
     is_device_build=_is_device_build,
     minimum_os=_minimum_os,
     platform=_platform,
     platform_and_sdk_version=_platform_and_sdk_version,
     platform_type=_platform_type,
+    ui_device_family_plist_value=_ui_device_family_plist_value,
     xcode_env_action=_xcode_env_action,
 )
