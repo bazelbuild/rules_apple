@@ -834,4 +834,113 @@ EOF
   expect_log "While processing target \"//app:watch_app\"; the CFBundleShortVersionString of the child target \"//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
 }
 
+# Test that a watchOS app with a different CFBundleVersion than the iOS app
+# fails the build.
+function test_app_with_mismatched_version_fails_to_build() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  # Give the watch app and extension a different version.
+  cat > app/Info-WatchApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.1";
+  WKCompanionAppBundleIdentifier = "my.bundle.id";
+  WKWatchKitApp = true;
+}
+EOF
+
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
+  ! do_build watchos //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:app\"; the CFBundleVersion of the child target \"//app:watch_app\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+}
+
+# Test that a watchOS extension with a different CFBundleVersion than the
+# watchOS app fails the build.
+function test_extension_with_mismatched_version_fails_to_build() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
+  ! do_build watchos //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:watch_app\"; the CFBundleVersion of the child target \"//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+}
+
 run_suite "watchos_application bundling tests"

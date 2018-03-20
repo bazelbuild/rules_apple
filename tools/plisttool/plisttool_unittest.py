@@ -813,11 +813,9 @@ class PlistToolTest(unittest.TestCase):
 
   def test_child_plist_that_matches_parent_does_not_raise(self):
     parent = _xml_plist(
-        '<key>CFBundleIdentifier</key><string>foo.bar</string>'
-        '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
+        '<key>CFBundleIdentifier</key><string>foo.bar</string>')
     child = _xml_plist(
-        '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>'
-        '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
+        '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
     children = {'//fake:label': child}
     _plisttool_result({
         'plists': [parent],
@@ -832,11 +830,9 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.CHILD_BUNDLE_ID_MISMATCH_MSG % (
             _testing_target, '//fake:label', 'foo.bar.', 'foo.baz'))):
       parent = _xml_plist(
-          '<key>CFBundleIdentifier</key><string>foo.bar</string>'
-          '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
       child = _xml_plist(
-          '<key>CFBundleIdentifier</key><string>foo.baz</string>'
-          '<key>CFBundleShortVersionString</key><string>1.2.3</string>')
+          '<key>CFBundleIdentifier</key><string>foo.baz</string>')
       children = {'//fake:label': child}
       _plisttool_result({
           'plists': [parent],
@@ -849,7 +845,28 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
-            _testing_target, '//fake:label', '1.2.3', '1.2.4'))):
+            _testing_target, 'CFBundleVersion', '//fake:label',
+            '1.2.3', '1.2.4'))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>'
+          '<key>CFBundleVersion</key><string>1.2.3</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>'
+          '<key>CFBundleVersion</key><string>1.2.4</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+          },
+      })
+
+  def test_child_plist_with_incorrect_bundle_short_version_raises(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
+            _testing_target, 'CFBundleShortVersionString', '//fake:label',
+            '1.2.3', '1.2.4'))):
       parent = _xml_plist(
           '<key>CFBundleIdentifier</key><string>foo.bar</string>'
           '<key>CFBundleShortVersionString</key><string>1.2.3</string>')

@@ -154,9 +154,8 @@ CHILD_BUNDLE_ID_MISMATCH_MSG = (
 )
 
 CHILD_BUNDLE_VERSION_MISMATCH_MSG = (
-    'While processing target "%s"; the CFBundleShortVersionString of the '
-    'child target "%s" should be the same as its parent\'s version string '
-    '"%s", but found "%s".'
+    'While processing target "%s"; the %s of the child target "%s" should be '
+    'the same as its parent\'s version string "%s", but found "%s".'
 )
 
 MISSING_VERSION_KEY_MSG = (
@@ -800,26 +799,38 @@ class InfoPlistTask(PlistToolTask):
           plist and the current target's plist, with a message describing what
           was incorrect.
     """
+    prefix = plist['CFBundleIdentifier'] + '.'
+    version = plist.get('CFBundleVersion')
+    short_version = plist.get('CFBundleShortVersionString')
+
     for label, p in child_plists.iteritems():
       child_plist = PlistIO.get_dict(p, target)
 
-      prefix = plist['CFBundleIdentifier'] + '.'
       child_id = child_plist['CFBundleIdentifier']
       if not child_id.startswith(prefix):
         raise PlistToolError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
             target, label, prefix, child_id))
 
-      # CFBundleVersion isn't checked because Apple seems to treat this as
-      # a build number developers can pick based on their sources, so they
-      # don't require it to match between apps and extensions, but they do
-      # require it for the CFBundleShortVersionString.
-      # TODO: Revisit: TN2420 seems to say CFBundleVersion should also match.
+      # - TN2420 calls out CFBundleVersion and CFBundleShortVersionString
+      #   has having to match for watchOS targets.
+      #   https://developer.apple.com/library/content/technotes/tn2420/_index.html
+      # - The Application Loader (and Xcode) have also given errors for
+      #   iOS Extensions that don't share the same values for the two
+      #   version keys as they parent App. So we enforce this for all
+      #   platforms just to be safe even though it isn't otherwise
+      #   documented.
+      #   https://stackoverflow.com/questions/30441750/use-same-cfbundleversion-and-cfbundleshortversionstring-in-all-targets
 
-      version = plist['CFBundleShortVersionString']
-      child_version = child_plist['CFBundleShortVersionString']
+      child_version = child_plist.get('CFBundleVersion')
       if version != child_version:
         raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
-            target, label, version, child_version))
+            target, 'CFBundleVersion', label, version, child_version))
+
+      child_version = child_plist.get('CFBundleShortVersionString')
+      if short_version != child_version:
+        raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
+            target, 'CFBundleShortVersionString', label, short_version,
+            child_version))
 
   @classmethod
   def _write_pkginfo(self, pkginfo, plist):
