@@ -67,7 +67,7 @@ def _tvos_application_impl(ctx):
   # TODO(b/32910122): Obtain framework information from extensions.
   embedded_bundles = [
       bundling_support.embedded_bundle(
-          "PlugIns", extension, verify_bundle_id=True)
+          "PlugIns", extension, verify_has_child_plist=True)
       for extension in ctx.attr.extensions
   ]
 

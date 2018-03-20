@@ -54,7 +54,7 @@ def _watchos_application_impl(ctx):
   ext = ctx.attr.extension
   if ext:
     embedded_bundles.append(bundling_support.embedded_bundle(
-        "PlugIns", ext, verify_bundle_id=True))
+        "PlugIns", ext, verify_has_child_plist=True))
 
   binary_artifact = binary_support.create_stub_binary(ctx)
 
