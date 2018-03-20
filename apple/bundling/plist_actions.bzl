@@ -211,15 +211,8 @@ def _merge_infoplists(ctx,
       short_name = paths.split_extension(launch_storyboard.basename)[0]
       forced_plists.append(struct(UILaunchStoryboardName=short_name))
 
-    # b/67853874 - move this to the right platform specific rule(s).
-    # Convert the device family names to integers used in the plist; the
-    # family_plist_number function handles the special case for macOS, which
-    # does not use UIDeviceFamily.
-    families = []
-    for f in platform_support.families(ctx):
-      number = platform_support.family_plist_number(f)
-      if number:
-        families.append(number)
+    # Add any UIDeviceFamily entry needed.
+    families = platform_support.ui_device_family_plist_value(ctx)
     if families:
       forced_plists.append(struct(UIDeviceFamily=families))
 
