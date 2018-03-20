@@ -316,4 +316,80 @@ EOF
   expect_log 'While processing target "//app:app"; the CFBundleIdentifier of the child target "//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.id".'
 }
 
+# Tests that if an application contains an extension with different
+# CFBundleShortVersionString the build fails.
+function test_extension_with_mismatched_short_version_fails_to_build() {
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:tvos.bzl",
+     "tvos_application",
+     "tvos_extension",
+    )
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+)
+
+tvos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    deps = [":lib"],
+)
+
+tvos_extension(
+    name = "ext",
+    bundle_id = "my.bundle.id.extension",
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/main.m <<EOF
+#import <Foundation/Foundation.h>
+// This dummy class is needed to generate code in the extension target,
+// which does not take main() from here, rather from an SDK.
+@interface Foo: NSObject
+@end
+@implementation Foo
+@end
+
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+
+  cat > app/Info-App.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.1";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build tvos //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:app\"; the CFBundleShortVersionString of the child target \"//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
+}
+
 run_suite "tvos_extension bundling tests"

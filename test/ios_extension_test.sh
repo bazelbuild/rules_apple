@@ -493,6 +493,77 @@ EOF
   expect_log 'While processing target "//app:app"; the CFBundleIdentifier of the child target "//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
 }
 
+# Tests that if an application contains an extension with different
+# CFBundleShortVersionString the build fails.
+function test_extension_with_mismatched_short_version_fails_to_build() {
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+     "apple_product_type",
+     "ios_application",
+     "ios_extension",
+    )
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_extension(
+    name = "ext",
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/main.m <<EOF
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+
+  cat > app/Info-App.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.1";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPrincipalClass = "DummyValue";
+    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:app\"; the CFBundleShortVersionString of the child target \"//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
+}
+
 # Tests that a prebuilt static framework (i.e., objc_framework with is_dynamic
 # set to False) is not bundled with the application or extension.
 function test_prebuilt_static_framework_dependency() {
