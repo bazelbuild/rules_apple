@@ -749,7 +749,7 @@ def _run(
       # only if we're processing the main bundle and not a resource bundle.
       child_infoplists = [
           eb.target[AppleBundleInfo].infoplist for eb in embedded_bundles
-          if eb.verify_bundle_id
+          if eb.verify_has_child_plist
       ]
       merge_infoplist_args["child_plists"] = child_infoplists
       merge_infoplist_args["bundle_id"] = bundle_id

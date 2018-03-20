@@ -145,7 +145,7 @@ def _contents_file(ctx, src, dest, executable=False):
   return _bundlable_file(src, _path_in_contents_dir(ctx, dest), executable)
 
 
-def _embedded_bundle(path, target, verify_bundle_id):
+def _embedded_bundle(path, target, verify_has_child_plist):
   """Returns a value that represents an embedded bundle in another bundle.
 
   These values are used by the bundler to indicate how dependencies that are
@@ -156,15 +156,16 @@ def _embedded_bundle(path, target, verify_bundle_id):
     path: The relative path within the depender's bundle where the given bundle
         should be located.
     target: The target representing the embedded bundle.
-    verify_bundle_id: If True, the bundler should verify that the bundle
+    verify_has_child_plist: If True, the bundler should verify the info.plist
+        of this bundle against the parents. That means checking that the bundle
         identifier of the depender is a prefix of the bundle identifier of the
-        embedded bundle.
+        embedded bundle; checking that the version numbers are the same, etc.
   Returns:
-    A struct with `path`, `target`, and `verify_bundle_id` fields equal to the
-    values given in the arguments.
+    A struct with `path`, `target`, and `verify_has_child_plist` fields equal
+    to the values given in the arguments.
   """
   return struct(
-      path=path, target=target, verify_bundle_id=verify_bundle_id)
+      path=path, target=target, verify_has_child_plist=verify_has_child_plist)
 
 
 def _header_prefix(input_file):

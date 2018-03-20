@@ -98,18 +98,18 @@ def _ios_application_impl(ctx):
 
   embedded_bundles = [
       bundling_support.embedded_bundle(
-          "PlugIns", extension, verify_bundle_id=True)
+          "PlugIns", extension, verify_has_child_plist=True)
       for extension in ctx.attr.extensions
   ] + [
       bundling_support.embedded_bundle(
-          "Frameworks", framework, verify_bundle_id=False)
+          "Frameworks", framework, verify_has_child_plist=False)
       for framework in ctx.attr.frameworks
   ]
 
   watch_app = ctx.attr.watch_application
   if watch_app:
     embedded_bundles.append(bundling_support.embedded_bundle(
-        "Watch", watch_app, verify_bundle_id=True))
+        "Watch", watch_app, verify_has_child_plist=True))
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
