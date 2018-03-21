@@ -9,5 +9,5 @@ git_repository(
 http_file(
     name = "xctestrunner",
     executable = 1,
-    url = "https://github.com/google/xctestrunner/releases/download/0.2.1/ios_test_runner.par",
+    url = "https://github.com/google/xctestrunner/releases/download/0.2.2/ios_test_runner.par",
 )
