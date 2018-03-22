@@ -402,7 +402,7 @@ function test_bitcode_symbol_maps_packaging() {
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
 # present.
-function test_linkmaps_generated() {
+function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
   create_minimal_watchos_application_with_companion
   do_build watchos --objc_generate_linkmap \
       //app:watch_ext || fail "Should build"

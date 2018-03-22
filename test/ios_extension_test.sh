@@ -721,7 +721,7 @@ function test_bitcode_symbol_maps_packaging() {
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
 # present.
-function test_linkmaps_generated() {
+function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
   create_common_files
   create_minimal_ios_application_with_extension
   do_build ios --objc_generate_linkmap \
