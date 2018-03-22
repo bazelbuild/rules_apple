@@ -188,7 +188,7 @@ function test_dsyms_generated() {
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
 # present.
-function test_linkmaps_generated() {
+function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
   create_common_files
   create_minimal_tvos_application
   do_build tvos --objc_generate_linkmap //app:app || fail "Should build"
