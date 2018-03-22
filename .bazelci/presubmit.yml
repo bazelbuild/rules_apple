@@ -4,6 +4,9 @@ platforms:
     build_targets:
     - "tools/..."
     - "test/..."
+    test_flags:
+    # b/73546952 - skip config_device_bitcode until bitcode generation works.
+    - "--test_tag_filters=-config_device_bitcode"
     test_targets:
     - "tools/..."
     - "test/..."
