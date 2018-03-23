@@ -24,9 +24,10 @@ IOS_DEVICE_OPTIONS = ["--ios_multi_cpus=arm64,armv7", "-c opt"]
 IOS_CONFIGURATIONS = {
     "simulator": ["--ios_multi_cpus=i386,x86_64"],
     "device": IOS_DEVICE_OPTIONS,
-    "device_bitcode": IOS_DEVICE_OPTIONS + [
-        "--apple_bitcode=embedded_markers",
-    ],
+    # Blocked on b/73546952
+    # "device_bitcode": IOS_DEVICE_OPTIONS + [
+    #    "--apple_bitcode=embedded_markers",
+    #],
 }
 
 IOS_TEST_CONFIGURATIONS = {
@@ -47,9 +48,10 @@ TVOS_DEVICE_OPTIONS = ["--tvos_cpus=arm64", "-c opt"]
 TVOS_CONFIGURATIONS = {
     "simulator": ["--tvos_cpus=x86_64"],
     "device": TVOS_DEVICE_OPTIONS,
-    "device_bitcode": TVOS_DEVICE_OPTIONS + [
-        "--apple_bitcode=embedded_markers",
-    ],
+    # Blocked on b/73546952
+    # "device_bitcode": TVOS_DEVICE_OPTIONS + [
+    #    "--apple_bitcode=embedded_markers",
+    #],
 }
 
 # Configuration options used with `apple_shell_test` to run tests for
@@ -63,7 +65,8 @@ WATCHOS_DEVICE_OPTIONS = [
 WATCHOS_CONFIGURATIONS = {
     "simulator": ["--ios_multi_cpus=i386,x86_64", "--watchos_cpus=i386"],
     "device": WATCHOS_DEVICE_OPTIONS,
-    "device_bitcode": WATCHOS_DEVICE_OPTIONS + [
-        "--apple_bitcode=embedded_markers",
-    ],
+    # Blocked on b/73546952
+    # "device_bitcode": WATCHOS_DEVICE_OPTIONS + [
+    #    "--apple_bitcode=embedded_markers",
+    #],
 }

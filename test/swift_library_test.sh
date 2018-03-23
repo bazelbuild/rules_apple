@@ -284,7 +284,7 @@ EOF
       //ios:swift_lib || fail "should build"
 }
 
-function test_swift_bitcode() {
+function disabled_test_swift_bitcode() {  # Blocked on b/73546952
   cat >ios/main.swift <<EOF
 func f() {}
 EOF
