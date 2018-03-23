@@ -30,7 +30,6 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]) + [
-        "@xctestrunner//file",
     ],
     visibility = [
         "//:__subpackages__",
