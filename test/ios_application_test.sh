@@ -663,10 +663,10 @@ objc_library(
 objc_bundle_library(
     name = "appResources",
     resources = select({
-        "@build_bazel_rules_apple//apple:ios_cpu_x86_64": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_cpu_i386": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_cpu_armv7": ["foo_device.txt"],
-        "@build_bazel_rules_apple//apple:ios_cpu_arm64": ["foo_device.txt"],
+        "@build_bazel_rules_apple//apple:ios_x86_64": ["foo_sim.txt"],
+        "@build_bazel_rules_apple//apple:ios_i386": ["foo_sim.txt"],
+        "@build_bazel_rules_apple//apple:ios_armv7": ["foo_device.txt"],
+        "@build_bazel_rules_apple//apple:ios_arm64": ["foo_device.txt"],
     }),
 )
 EOF
