@@ -432,7 +432,7 @@ EOF
 
 # Tests that swift_library build with sanitizer enabled.
 # TODO(b/38455074): Also test that the asan dylib is packaged with the app.
-function test_swift_builds_with_asan() {
+function disabled_test_swift_builds_with_asan() {  # Blocked on b/73547309
   create_minimal_ios_application
 
   cat >> app/BUILD <<EOF
