@@ -76,7 +76,7 @@ EOF
 }
 
 # Tests that ASAN libraries and packaged into the IPA when enabled.
-function test_asan_bundle() {
+function disabled_test_asan_bundle() {  # Blocked on b/73547309
   create_common_files
   create_minimal_ios_application
 
@@ -92,7 +92,7 @@ function test_asan_bundle() {
   fi
 }
 
-function test_tsan_bundle() {
+function disabled_test_tsan_bundle() {  # Blocked on b/73547309
   # Skip the device version as tsan is not supported on devices.
   if ! is_device_build ios ; then
     create_common_files
@@ -107,7 +107,7 @@ function test_tsan_bundle() {
   fi
 }
 
-function test_ubsan_bundle() {
+function disabled_test_ubsan_bundle() {  # Blocked on b/73547309
   create_common_files
   create_minimal_ios_application
 
