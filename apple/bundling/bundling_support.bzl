@@ -145,7 +145,8 @@ def _contents_file(ctx, src, dest, executable=False):
   return _bundlable_file(src, _path_in_contents_dir(ctx, dest), executable)
 
 
-def _embedded_bundle(path, target, verify_has_child_plist):
+def _embedded_bundle(path, target, verify_has_child_plist,
+                     parent_bundle_id_reference=None):
   """Returns a value that represents an embedded bundle in another bundle.
 
   These values are used by the bundler to indicate how dependencies that are
@@ -160,12 +161,20 @@ def _embedded_bundle(path, target, verify_has_child_plist):
         of this bundle against the parents. That means checking that the bundle
         identifier of the depender is a prefix of the bundle identifier of the
         embedded bundle; checking that the version numbers are the same, etc.
+    parent_bundle_id_reference: A list of keys to make a keypath into this
+        bundle's Info.plist where the parent's bundle_id should be found. The
+        bundler will then ensure they match the parent's bundle_id.
   Returns:
-    A struct with `path`, `target`, and `verify_has_child_plist` fields equal
-    to the values given in the arguments.
+    A struct with `path`, `target`, `verify_has_child_plist`, and
+    `parent_bundle_id_reference` fields equal to the values given in the
+    arguments.
   """
+  if parent_bundle_id_reference != None and not verify_has_child_plist:
+    fail("Internal Error: parent_bundle_id_reference without " +
+         "verify_has_child_plist does not make sense.")
   return struct(
-      path=path, target=target, verify_has_child_plist=verify_has_child_plist)
+      path=path, target=target, verify_has_child_plist=verify_has_child_plist,
+      parent_bundle_id_reference=parent_bundle_id_reference)
 
 
 def _header_prefix(input_file):

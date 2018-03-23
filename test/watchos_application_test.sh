@@ -689,6 +689,23 @@ watchos_extension(
 )
 EOF
 
+  # The WKAppBundleIdentifier has to also match.
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle2.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
   ! do_build watchos //app:app || fail "Should not build"
   expect_log 'While processing target "//app:app"; the CFBundleIdentifier of the child target "//app:watch_app" should have "my.bundle.id." as its prefix, but found "my.bundle2.id.watch-app".'
 }
@@ -941,6 +958,98 @@ EOF
 
   ! do_build watchos //app:app || fail "Should not build"
   expect_log "While processing target \"//app:watch_app\"; the CFBundleVersion of the child target \"//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+}
+
+# Test that a watchOS app with the wrong bundle_id for its
+# WKCompanionAppBundleIdentifier fails to build.
+function test_app_wrong_WKCompanionAppBundleIdentifier_fails_to_build() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/Info-WatchApp.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
+  WKCompanionAppBundleIdentifier = "my.bundle2.id";
+  WKWatchKitApp = true;
+}
+EOF
+
+  ! do_build watchos //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:app\"; the Info.plist for child target \"//app:watch_app\" has the wrong value for \"WKCompanionAppBundleIdentifier\"; expected u'my.bundle.id', but found 'my.bundle2.id'."
+}
+
+# Test that a watchOS extension with the wrong bundle_id for its
+# WKAppBundleIdentifier fails to build.
+function test_extension_wrong_WKAppBundleIdentifier_fails_to_build() {
+  create_companion_app_and_watchos_application_support_files
+
+  cat >> app/BUILD <<EOF
+watchos_application(
+    name = "watch_app",
+    bundle_id = "my.bundle.id.watch-app",
+    entitlements = "entitlements.entitlements",
+    extension = ":watch_ext",
+    infoplists = ["Info-WatchApp.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+watchos_extension(
+    name = "watch_ext",
+    bundle_id = "my.bundle.id.watch-app.watch-ext",
+    entitlements = "entitlements.entitlements",
+    infoplists = ["Info-WatchExt.plist"],
+    minimum_os_version = "2.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/Info-WatchExt.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1";
+  NSExtension = {
+    NSExtensionAttributes = {
+      WKAppBundleIdentifier = "my.bundle2.id.watch-app";
+    };
+    NSExtensionPointIdentifier = "com.apple.watchkit";
+  };
+}
+EOF
+
+  ! do_build watchos //app:app || fail "Should not build"
+  expect_log "While processing target \"//app:watch_app\"; the Info.plist for child target \"//app:watch_ext\" has the wrong value for \"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; expected u'my.bundle.id.watch-app', but found 'my.bundle2.id.watch-app'."
 }
 
 run_suite "watchos_application bundling tests"

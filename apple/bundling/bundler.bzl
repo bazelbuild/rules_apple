@@ -745,18 +745,23 @@ def _run(
     merge_infoplist_args["resource_bundle_target_data"] = bundle_target_data
 
     if not bundle_dir:
-      # Compare to child plists (i.e., from extensions and nested binaries)
-      # only if we're processing the main bundle and not a resource bundle.
+      # Extra work/options only when doing the main bundle and not some
+      # resource bundle being include in the product.
       child_infoplists = [
           eb.target[AppleBundleInfo].infoplist for eb in embedded_bundles
           if eb.verify_has_child_plist
       ]
+      child_required_values = [
+          (eb.target[AppleBundleInfo].infoplist,
+           [[eb.parent_bundle_id_reference, bundle_id]])
+          for eb in embedded_bundles if eb.parent_bundle_id_reference
+      ]
       merge_infoplist_args["child_plists"] = child_infoplists
+      merge_infoplist_args["child_required_values"] = child_required_values
       merge_infoplist_args["bundle_id"] = bundle_id
       merge_infoplist_args["extract_from_ctxt"] = True
       merge_infoplist_args["include_xcode_env"] = True
-      if version_keys_required:
-        merge_infoplist_args["version_keys_required"] = True
+      merge_infoplist_args["version_keys_required"] = version_keys_required
 
     plist_results = plist_actions.merge_infoplists(
         ctx, bundle_dir, **merge_infoplist_args)

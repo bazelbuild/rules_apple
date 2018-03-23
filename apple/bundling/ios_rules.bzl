@@ -109,7 +109,8 @@ def _ios_application_impl(ctx):
   watch_app = ctx.attr.watch_application
   if watch_app:
     embedded_bundles.append(bundling_support.embedded_bundle(
-        "Watch", watch_app, verify_has_child_plist=True))
+        "Watch", watch_app, verify_has_child_plist=True,
+        parent_bundle_id_reference=["WKCompanionAppBundleIdentifier"]))
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
