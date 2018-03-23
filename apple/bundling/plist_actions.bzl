@@ -106,6 +106,7 @@ def _merge_infoplists(ctx,
                       input_plists,
                       bundle_id=None,
                       child_plists=[],
+                      child_required_values=[],
                       exclude_executable_name=False,
                       extract_from_ctxt=False,
                       include_xcode_env=False,
@@ -124,6 +125,10 @@ def _merge_infoplists(ctx,
     child_plists: A list of plists from child targets (such as extensions
         or Watch apps) whose bundle IDs and version strings should be
         validated against the compiled plist for consistency.
+    child_required_values: A list of pair containing a client target plist
+        and the pairs to check. For more information on the second item in the
+        pair, see plisttool's `child_plist_required_values`, as this is passed
+        straight throught to it.
     exclude_executable_name: If True, the executable name will not be added to
         the plist in the `CFBundleExecutable` key. This is mainly intended for
         plists embedded in a command line tool.
@@ -156,7 +161,7 @@ def _merge_infoplists(ctx,
   substitutions = {}
 
   if version_keys_required:
-    info_plist_options["version_keys_required"] = version_keys_required
+    info_plist_options["version_keys_required"] = True
 
   if bundle_id:
     substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id
@@ -171,9 +176,13 @@ def _merge_infoplists(ctx,
   outputs.append(output_plist)
 
   if child_plists:
-    child_plists_for_control = struct(
+    for_control = struct(
         **{str(p.owner): p.path for p in child_plists})
-    info_plist_options["child_plists"] = child_plists_for_control
+    info_plist_options["child_plists"] = for_control
+  if child_required_values:
+    for_control = struct(
+        **{str(p.owner): v for (p, v) in child_required_values})
+    info_plist_options["child_plist_required_values"] = for_control
 
   if resource_bundle_target_data:
     substitutions["PRODUCT_NAME"] = resource_bundle_target_data.product_name

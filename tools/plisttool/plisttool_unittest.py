@@ -302,6 +302,42 @@ class PlistToolShortVersionStringTest(unittest.TestCase):
     self._assert_invalid('10.11.12d123')
 
 
+class PlistToolGetWithKeyPath(unittest.TestCase):
+
+  def test_one_level(self):
+    d = { 'a': 'A', 'b': 2, 3: 'c', 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['a']), 'A')
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['b']), 2)
+    self.assertEqual(plisttool.GetWithKeyPath(d, [3]), 'c')
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['list']), ['x', 'y'])
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict']), {1:2, 3:4})
+
+  def test_two_level(self):
+    d = { 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 1]), 'y')
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 3]), 4)
+
+  def test_deep(self):
+    d = { 1: { 'a': ['c', [4, 'e']]}}
+    self.assertEqual(plisttool.GetWithKeyPath(d, [1, 'a', 1, 1]), 'e')
+
+  def test_misses(self):
+    d = { 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['not_found']), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, [99]), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 99]), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 'not_found']), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 99]), None)
+
+  def test_invalids(self):
+    d = { 'list': [ 'x', 'y' ], 'str': 'foo', 'int': 42 }
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 'not_int']), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['str', 'nope']), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['str', 99]), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['int', 'nope']), None)
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['int', 99]), None)
+
+
 class PlistToolTest(unittest.TestCase):
 
   def _assert_plisttool_result(self, control, expected):
@@ -878,6 +914,114 @@ class PlistToolTest(unittest.TestCase):
           'plists': [parent],
           'info_plist_options': {
               'child_plists': children,
+          },
+      })
+
+  def test_child_plist_missing_required_child(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.REQUIRED_CHILD_MISSING_MSG % (
+            _testing_target, '//unknown:label'))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+              'child_plist_required_values': {
+                '//unknown:label': [['foo', 'bar']],
+              }
+          },
+      })
+
+  def test_child_plist_required_invalid_format_not_list(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.REQUIRED_CHILD_NOT_PAIR % (
+            _testing_target, '//fake:label', 'not_right'))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+              'child_plist_required_values': {
+                '//fake:label': ['not_right'],
+              }
+          },
+      })
+
+  def test_child_plist_required_invalid_format_not_pair(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.REQUIRED_CHILD_NOT_PAIR % (
+            _testing_target, '//fake:label', ['not_right']))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+              'child_plist_required_values': {
+                '//fake:label': [['not_right']],
+              }
+          },
+      })
+
+  def test_child_plist_required_missing_keypath(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.REQUIRED_CHILD_KEYPATH_NOT_FOUND % (
+            _testing_target, '//fake:label', 'not-there', 'blah'))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+              'child_plist_required_values': {
+                '//fake:label': [
+                  # This will be found and pass.
+                  [['CFBundleIdentifier'], 'foo.bar.baz' ],
+                  # This will raise.
+                  [['not-there'], 'blah' ],
+                ],
+              }
+          },
+      })
+
+  def test_child_plist_required_not_matching(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.REQUIRED_CHILD_KEYPATH_NOT_MATCHING % (
+            _testing_target, '//fake:label', 'CFBundleIdentifier',
+            'foo.bar.baz.not', 'foo.bar.baz'))):
+      parent = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar</string>')
+      child = _xml_plist(
+          '<key>CFBundleIdentifier</key><string>foo.bar.baz</string>')
+      children = {'//fake:label': child}
+      _plisttool_result({
+          'plists': [parent],
+          'info_plist_options': {
+              'child_plists': children,
+              'child_plist_required_values': {
+                '//fake:label': [
+                  [['CFBundleIdentifier'], 'foo.bar.baz.not' ],
+                ],
+              }
           },
       })
 

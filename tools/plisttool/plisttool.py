@@ -70,6 +70,12 @@ The info_plist_options dictionary can contain the following keys:
       compared against the final compiled plist for consistency. The keys of
       the dictionary are the labels of the targets to which the associated
       plists belong. See below for the details of how these are validated.
+  child_plist_required_values: If present, a dictionary constaining the
+      entries for key/value pairs a child is required to have. This
+      dictionary is keyed by the label of the child targets (just like the
+      `child_plists`), and the valures are a list of key/value pairs. The
+      key/value pairs are encoded as a list of exactly two items, the key is
+      actually an array of keys, so it can walk into the child plist.
 
 If info_plist_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not
@@ -156,6 +162,26 @@ CHILD_BUNDLE_ID_MISMATCH_MSG = (
 CHILD_BUNDLE_VERSION_MISMATCH_MSG = (
     'While processing target "%s"; the %s of the child target "%s" should be '
     'the same as its parent\'s version string "%s", but found "%s".'
+)
+
+REQUIRED_CHILD_MISSING_MSG = (
+    'While processing target "%s"; "child_plist_required_values" wanted to '
+    'check "%s", but it wasn\'t in the the "child_plists".'
+)
+
+REQUIRED_CHILD_NOT_PAIR = (
+    'While processing target "%s"; "child_plist_required_values" for "%s", '
+    'got something other than a key/value pair: %r'
+)
+
+REQUIRED_CHILD_KEYPATH_NOT_FOUND = (
+    'While processing target "%s"; the Info.plist for child target "%s" '
+    'should have and entry for "%s" or %r, but does not.'
+)
+
+REQUIRED_CHILD_KEYPATH_NOT_MATCHING = (
+    'While processing target "%s"; the Info.plist for child target "%s" '
+    'has the wrong value for "%s"; expected %r, but found %r.'
 )
 
 MISSING_VERSION_KEY_MSG = (
@@ -264,7 +290,8 @@ _CONTROL_KEYS = frozenset([
 
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
-    'child_plists', 'pkginfo', 'version_file', 'version_keys_required',
+    'child_plists', 'child_plist_required_values', 'pkginfo', 'version_file',
+    'version_keys_required',
 ])
 
 # All valid keys in the entitlements_options control structure.
@@ -392,6 +419,30 @@ def IsValidShortVersionString(s):
     return False
   m = CF_BUNDLE_SHORT_VERSION_RE.match(s)
   return m is not None
+
+
+def GetWithKeyPath(a_dict, key_path):
+  """Helper to walk a keypath into a dict and return the value.
+
+  Remember when walking into lists, they are zero indexed.
+
+  Args:
+    a_dict: The dictionary to walk into.
+    key_path: A list of keys to walk into the dictionary.
+  Returns:
+    The object or None if the keypath can't be walked.
+  """
+  value = a_dict
+  try:
+    for key in key_path:
+      if isinstance(value, (basestring, int, long, float)):
+        # There are leaf types, can't keep pathing down
+        return None
+      value = value[key]
+  except (IndexError, KeyError, TypeError):
+    # List index out of range, unknown dict key, passing a string key to a list
+    return None
+  return value
 
 
 def _ConvertToRFC1034(string):
@@ -770,8 +821,11 @@ class InfoPlistTask(PlistToolTask):
             self.target, k, v))
 
     child_plists = self.options.get('child_plists')
+    child_plist_required_values = self.options.get(
+        'child_plist_required_values')
     if child_plists:
-      self._validate_against_children(plist, child_plists, self.target)
+      self._validate_children(
+          plist, child_plists, child_plist_required_values, self.target)
 
     pkginfo_file = self.options.get('pkginfo')
     if pkginfo_file:
@@ -782,23 +836,28 @@ class InfoPlistTask(PlistToolTask):
         self._write_pkginfo(pkginfo_file, plist)
 
   @staticmethod
-  def _validate_against_children(plist, child_plists, target):
-    """Validates that a target's plist is consistent with its children.
+  def _validate_children(plist, child_plists, child_required_values, target):
+    """Validates a target's plist is consistent with its children.
 
     This function checks each of the given child plists (which are typically
     extensions or sub-apps embedded in another application) and fails the build
-    if their bundle IDs or bundle version strings are inconsistent.
+    if there are any issues.
 
     Args:
       plist: The final plist of the target being built.
       child_plists: The plists of child targets that the target being built
           depends on.
+      child_required_values: Mapping of any key/value pairs to validate in
+          the children.
       target: The name of the target being processed.
     Raises:
       PlistToolError: if there was an inconsistency between a child target's
           plist and the current target's plist, with a message describing what
           was incorrect.
     """
+    if child_required_values is None:
+      child_required_values = dict()
+
     prefix = plist['CFBundleIdentifier'] + '.'
     version = plist.get('CFBundleVersion')
     short_version = plist.get('CFBundleShortVersionString')
@@ -831,6 +890,30 @@ class InfoPlistTask(PlistToolTask):
         raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
             target, 'CFBundleShortVersionString', label, short_version,
             child_version))
+
+      required_info = child_required_values.get(label, [])
+      for pair in required_info:
+        if not isinstance(pair, list) or len(pair) != 2:
+          raise PlistToolError(REQUIRED_CHILD_NOT_PAIR % (target, label, pair))
+
+        [key_path, expected] = pair
+        value = GetWithKeyPath(child_plist, key_path)
+        if value is None:
+          key_path_str = ":".join([str(x) for x in key_path])
+          raise PlistToolError(REQUIRED_CHILD_KEYPATH_NOT_FOUND % (
+              target, label, key_path_str, expected))
+
+        if value != expected:
+          key_path_str = ":".join([str(x) for x in key_path])
+          raise PlistToolError(REQUIRED_CHILD_KEYPATH_NOT_MATCHING % (
+              target, label, key_path_str, expected, value))
+
+    # Make sure there wasn't anything listed in required that wasn't listed
+    # as a child.
+    for label in child_required_values.iterkeys():
+      if label not in child_plists:
+        raise PlistToolError(REQUIRED_CHILD_MISSING_MSG % (target, label))
+
 
   @classmethod
   def _write_pkginfo(self, pkginfo, plist):
