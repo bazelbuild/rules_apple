@@ -32,8 +32,7 @@ matrix:
     # The normal macOS builds.
     - env: BAZEL=HEAD TARGET=//tools/...
     # //test/... is split because it takes too long and times out on travis.
-    # b/73546952 - config_device_bitcode left off the first one here.
-    - env: BAZEL=HEAD TARGET=//test/... TAGS=config_device
+    - env: BAZEL=HEAD TARGET=//test/... TAGS=config_device,config_device_bitcode
     - env: BAZEL=HEAD TARGET=//test/... TAGS=-config_device,-config_device_bitcode
     - env: BAZEL=HEAD BUILD_TARGET=//examples:ci_build_targets TARGET=//examples:ci_test_targets
 

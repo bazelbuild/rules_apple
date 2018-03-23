@@ -300,7 +300,7 @@ EOF
 }
 
 # Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function test_bitcode_symbol_maps_packaging() {
+function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
   # Bitcode is only availabe on device. Ignore the test for simulator builds.
   is_device_build tvos || return 0
 
