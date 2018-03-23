@@ -28,17 +28,17 @@ function tear_down() {
 }
 
 function test_objc_depends_on_swift() {
-  cat >ios/main.swift <<EOF
+  cat >ios/foo.swift <<EOF
 import Foundation
 
 @objc public class Foo: NSObject {
-  public func bar() -> Int { return 42; }
+  @objc public func bar() -> Int { return 42; }
 }
 EOF
 
   cat >ios/app.m <<EOF
 #import <UIKit/UIKit.h>
-#import "ios/SwiftMain-Swift.h"
+#import "ios/SwiftFoo-Swift.h"
 
 int main(int argc, char *argv[]) {
   @autoreleasepool {
@@ -52,12 +52,12 @@ EOF
 load("@build_bazel_rules_apple//apple:swift.bzl",
      "swift_library")
 
-swift_library(name = "SwiftMain",
-              srcs = ["main.swift"])
+swift_library(name = "SwiftFoo",
+              srcs = ["foo.swift"])
 
 objc_library(name = "app",
              srcs = ["app.m"],
-             deps = [":SwiftMain"])
+             deps = [":SwiftFoo"])
 
 apple_binary(name = "bin",
              minimum_os_version = "8.0",
