@@ -1638,6 +1638,7 @@ genrule(
 
 apple_static_library(
     name = "dostuff_staticlib",
+    minimum_os_version = "9.0",
     platform_type = "ios",
     deps = [":dostuff_lib"],
 )
