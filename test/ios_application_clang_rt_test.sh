@@ -123,4 +123,10 @@ function disabled_test_ubsan_bundle() {  # Blocked on b/73547309
   fi
 }
 
+function test_empty() {
+  # Empty test so there is still an enabled test in here.
+  # Remove after b/73547309 is fixed.
+  assert_equals "abc" "abc"
+}
+
 run_suite "ios_application clang support tests"
