@@ -71,6 +71,21 @@ def _owner_relative_path(f):
     # leaves it in the "externa/" form.
     return paths.relativize(f.path,
                             paths.join(f.owner.workspace_root, f.owner.package))
+  elif f.owner.workspace_root:
+    # Just like the above comment but for generated files, the same mangling
+    # happen in `short_path`, but since it is generated, the `path` includes
+    # the extra output directories bazel makes. So pick off what bazel will do
+    # to the `short_path` ("../"), and turn it into an "external/" so a
+    # relative path from the owner can be calculated.
+    workspace_root = f.owner.workspace_root
+    short_path = f.short_path
+    if (not workspace_root.startswith("external/") or
+        not short_path.startswith("../")):
+      fail(("Generated file in a different workspace with unexpected " +
+            "short_path (%s) and owner.workspace_root (%r).") % (
+           short_path, workspace_root))
+    return paths.relativize("external" + short_path[2:],
+                            paths.join(f.owner.workspace_root, f.owner.package))
   else:
     return paths.relativize(f.short_path, f.owner.package)
 
