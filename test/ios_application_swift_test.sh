@@ -138,34 +138,6 @@ EOF
   assert_ipa_contains_swift_dylibs
 }
 
-# For device builds, tests that the Swift dylibs and the app are signed with
-# the same certificate.
-#
-# This test does not work for ad hoc signed builds. To test it, make sure you
-# specify a real certificate using the --ios_signing_cert_name command line
-# flag.
-function test_swift_dylibs_are_signed_with_same_certificate_as_app() {
-  is_device_build ios || return 0
-  ! is_ad_hoc_signed_build || return 0
-
-  create_minimal_ios_application
-
-  cat >> app/BUILD <<EOF
-swift_library(
-    name = "lib",
-    srcs = ["AppDelegate.swift"],
-)
-EOF
-
-  create_dump_codesign_count "//app:app.ipa" \
-      "Payload/app.app/app" \
-      "Payload/app.app/Frameworks/libswiftCore.dylib"
-  do_build ios //app:dump_codesign_count || fail "Should build"
-
-  # We checked two files, but there should be exactly one unique certificate.
-  assert_equals "1" "$(cat "test-genfiles/app/codesign_count_output")"
-}
-
 # Tests that the bundler includes resources propagated by swift_library using
 # the AppleResource provider.
 function test_app_contains_resources_from_swift_library() {
