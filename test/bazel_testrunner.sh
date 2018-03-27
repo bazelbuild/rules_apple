@@ -35,6 +35,10 @@ function print_message_and_exit() {
   echo "$1" >&2; exit 1;
 }
 
+# Location of the external dependencies linked to the test through @workspace
+# links.
+EXTERNAL_DIR="$(pwd)/external"
+
 CURRENT_SCRIPT="${BASH_SOURCE[0]}"
 # Go to the directory where the script is running
 cd "$(dirname ${CURRENT_SCRIPT})" \
@@ -51,25 +55,46 @@ function create_new_workspace() {
   mkdir -p "${new_workspace_dir}"
   cd "${new_workspace_dir}"
 
+  # Make a modifiable copy of external, so that we can mock out missing
+  # test resources. This should only be needed for mocking the xctestrunner
+  # BUILD file below; if we can workaround this, we don't need to make this
+  # copy and we should reference it from the original location.
+  cp -rf "$EXTERNAL_DIR" ../external
+
+  # Because for xctestrunner we use the http_file rule, we need to create a
+  # similar BUILD file manually. This is not the case for bazel_skylib as it
+  # only needs an empty top level BUILD file.
+  cat > ../external/xctestrunner/file/BUILD <<EOF
+filegroup(
+    name = "file",
+    srcs = ["ios_test_runner.par"],
+    visibility = ["//visibility:public"],
+)
+EOF
+
   touch WORKSPACE
   cat > WORKSPACE <<EOF
 workspace(name = 'build_bazel_rules_apple_integration_tests')
 
-git_repository(
+# We can't use local_repository as the dependencies won't
+# copy some of the build files or WORKSPACE. new_local_repository
+# will create a new WORKSPACE file and we just need to pass the
+# contents for a top level BUILD file, which can be empty.
+new_local_repository(
     name = "bazel_skylib",
-    remote = "https://github.com/bazelbuild/bazel-skylib.git",
-    tag = "0.3.1",
+    build_file_content = '',
+    path = '$PWD/../external/bazel_skylib',
+)
+
+new_local_repository(
+    name = 'xctestrunner',
+    build_file_content = '',
+    path = '$PWD/../external/xctestrunner',
 )
 
 local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',
-)
-
-http_file(
-    name = "xctestrunner",
-    executable = 1,
-    url = "https://github.com/google/xctestrunner/releases/download/0.2.2/ios_test_runner.par",
 )
 EOF
 }
