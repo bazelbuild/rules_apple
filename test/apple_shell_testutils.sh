@@ -342,7 +342,11 @@ function do_action() {
   local action="$1"; shift
   local platform="$1"; shift
 
-  declare -a bazel_options=("--symlink_prefix=test-" "--verbose_failures")
+  declare -a bazel_options=(
+      "--announce_rc"
+      "--symlink_prefix=test-"
+      "--verbose_failures"
+  )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
     declare -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
