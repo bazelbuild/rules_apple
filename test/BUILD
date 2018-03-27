@@ -44,6 +44,23 @@ filegroup(
     srcs = ["apple_shell_testutils.sh"],
 )
 
+# Gather external dependencies into a target that can be injected
+# into the tests. The test runner will then mock out the BUILD files
+# required to make these proper WORKSPACES that can be used in tests.
+# This enables us to:
+#   1. Reuse the download of the external dependencies across all tests.
+#   2. Remove the need to update dependency versions in the repo's
+#      WORKSPACE and the test WORKSPACE.
+filegroup(
+    name = "external_deps",
+    testonly = 1,
+    srcs = [
+        "@bazel_skylib//:test_deps",
+        "@xctestrunner//file",
+    ],
+    visibility = ["//visibility:private"],
+)
+
 # Ballpark number for shared_count:
 #  grep -c function\ test test/*_test.sh
 
