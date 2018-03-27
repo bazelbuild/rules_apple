@@ -129,7 +129,8 @@ class Bundler(object):
           represents the directory into which the files underneath `src` will
           be recursively added.
       executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
+          be made executable. If a file is already executable, it will remain
+          executable, regardless of this value.
       contents_only: A Boolean value indicating whether only the files in `src`
           or `src` itself should be added to the bundle (if `src` is a
           directory).
@@ -143,11 +144,13 @@ class Bundler(object):
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
+          fexec = executable or os.access(fsrc, os.X_OK)
           with open(fsrc, 'r') as f:
-            self._write_entry(fdest, f.read(), executable, out_zip)
+            self._write_entry(fdest, f.read(), fexec, out_zip)
     elif os.path.isfile(src):
+      fexec = executable or os.access(src, os.X_OK)
       with open(src, 'r') as f:
-        self._write_entry(dest, f.read(), executable, out_zip)
+        self._write_entry(dest, f.read(), fexec, out_zip)
 
   def _add_zip_contents(self, src, dest, out_zip):
     """Adds the contents of another ZIP file to the output ZIP archive.

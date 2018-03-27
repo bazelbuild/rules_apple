@@ -17,6 +17,7 @@
 import os
 import re
 import shutil
+import stat
 import StringIO
 import tempfile
 import unittest
@@ -55,7 +56,7 @@ class BundlerTest(unittest.TestCase):
   def tearDown(self):
     shutil.rmtree(self._scratch_dir)
 
-  def _scratch_file(self, name, content=''):
+  def _scratch_file(self, name, content='', executable=False):
     """Creates a scratch file with the given name.
 
     The scratch file's path, which is returned by this function, can then be
@@ -74,6 +75,9 @@ class BundlerTest(unittest.TestCase):
 
     with open(path, 'w') as f:
       f.write(content)
+    if executable:
+      st = os.stat(path)
+      os.chmod(path, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     return path
 
   def _scratch_zip(self, name, *entries):
@@ -151,11 +155,14 @@ class BundlerTest(unittest.TestCase):
              'executable': True},
             {'src': self._scratch_file('bar.txt'), 'dest': 'bar.txt',
              'executable': False},
+            {'src': self._scratch_file('baz.txt', executable=True),
+             'dest': 'baz.txt', 'executable': False},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/foo.exe', True)
       self._assert_zip_contains(z, 'Payload/foo.app/bar.txt', False)
+      self._assert_zip_contains(z, 'Payload/foo.app/baz.txt', True)
 
   def test_bundle_merge_files_with_renaming(self):
     out_zip = _run_bundler({
@@ -174,7 +181,7 @@ class BundlerTest(unittest.TestCase):
     root = os.path.dirname(a_txt)
     self._scratch_file('b.txt')
     self._scratch_file('c/d.txt')
-    self._scratch_file('c/e/f.txt')
+    self._scratch_file('c/e/f.txt', executable=True)
 
     out_zip = _run_bundler({
         'bundle_path': 'Payload/foo.app',
@@ -184,7 +191,7 @@ class BundlerTest(unittest.TestCase):
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/a.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/b.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/c/d.txt')
-      self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/c/e/f.txt')
+      self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/c/e/f.txt', True)
 
   def test_bundle_merge_zips(self):
     foo_zip = self._scratch_zip('foo.zip',
