@@ -57,7 +57,7 @@ swift_library(
 ```
 
 It can also be enabled for all targets in the build using the Bazel flag
-`--swift_whole_module_optimization`.
+`--swiftcopt=-whole-module-optimization`.
 
 ### Toolchains
 

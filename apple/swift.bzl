@@ -229,36 +229,14 @@ def _validate_rule_and_deps(ctx):
 def _get_wmo_state(copts, swift_fragment):
   """Returns the status of Whole Module Optimization feature.
 
-  Whole Module Optimization can be enabled for the whole build by setting a
-  bazel flag, in which case we still need to insert a corresponding compiler
-  flag into the swiftc command line.
-
-  It can also be enabled per target, by putting the compiler flag
-  (-whole-module-optimization or -wmo) into the copts of the target.
-  In this case, the compiler flag is already there, and we need not to
-  insert one.
-
-  This method checks whether WMO is enabled, and if it is, whether the compiler
-  flag is already present.
-
   Args:
     copts: The list of copts to search for WMO flags.
     swift_fragment: The Swift configuration fragment.
   Returns:
-    A tuple with two booleans. First value indicates whether WMO has been
-    enabled, the second indicates whether a compiler flag is needed.
+    A Boolean value indicating whether WMO has been enabled.
   """
-  has_wmo = False
-  has_flag = False
-
-  if "-wmo" in copts or "-whole-module-optimization" in copts:
-    has_wmo = True
-    has_flag = True
-  elif swift_fragment.enable_whole_module_optimization():
-    has_wmo = True
-    has_flag = False
-
-  return has_wmo, has_flag
+  all_copts = copts + swift_fragment.copts()
+  return "-wmo" in all_copts or "-whole-module-optimization" in all_copts
 
 
 def swift_compile_requirements(
@@ -600,7 +578,7 @@ def register_swift_compile_actions(ctx, reqs):
   output_objs = []  # Object file outputs, used in archive action.
   swiftc_outputs = []  # Other swiftc outputs that aren't processed further.
 
-  has_wmo, has_wmo_flag = _get_wmo_state(reqs.copts, reqs.swift_fragment)
+  has_wmo = _get_wmo_state(reqs.copts, reqs.swift_fragment)
 
   for source in reqs.srcs:
     basename = source.basename
@@ -649,9 +627,6 @@ def register_swift_compile_actions(ctx, reqs):
   ]
 
   if has_wmo:
-    if not has_wmo_flag:
-      args.append("-whole-module-optimization")
-
     # WMO has two modes: threaded and not. We want the threaded mode because it
     # will use the output map we generate. This leads to a better debug
     # experience in lldb and Xcode.
