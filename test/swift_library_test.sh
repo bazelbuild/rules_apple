@@ -505,23 +505,6 @@ EOF
   expect_log "-whole-module-optimization"
 }
 
-function test_swift_wmo_flag() {
-  echo 'class SwiftClass { func bar() -> Int { return 1 } }' > ios/main.swift
-
-  cat >ios/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:swift.bzl",
-     "swift_library")
-
-swift_library(name = "swift_lib_copt_wmo_flag",
-              srcs = ["main.swift"])
-EOF
-
-  do_build ios //ios:swift_lib_copt_wmo_flag -s \
-      --swift_whole_module_optimization || fail "should build"
-  expect_log "-num-threads"
-  expect_log "-whole-module-optimization"
-}
-
 function test_swift_dsym() {
   cat >ios/main.swift <<EOF
 import Foundation
