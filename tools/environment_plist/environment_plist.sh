@@ -85,6 +85,6 @@ xcode_version=$(/usr/bin/printf '%02d%d%d\n' $(echo "${xcode_version_string//./ 
     -c "Add :DTXcodeBuild string ${xcode_build:-""}" \
     -c "Add :DTCompiler string ${compiler:-""}" \
     -c "Add :BuildMachineOSBuild string ${os_build:-""}" \
-    "$PLIST"
+    "$PLIST" > /dev/null
 
 plutil -convert binary1 -o "${OUTPUT}" -s  -- "${PLIST}"
