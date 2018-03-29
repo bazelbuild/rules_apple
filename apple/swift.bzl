@@ -532,6 +532,43 @@ def _find_swift_version(args):
   return last_swift_version
 
 
+def _swift_generated_header_name(target_name):
+  """Returns the name of the generated header file for a Swift module.
+
+  Args:
+    target_name: The name of the `swift_library` target being built.
+
+  Returns:
+    The basename of the Swift generated header.
+  """
+  return "{}-Swift.h".format(target_name)
+
+
+def _write_generated_header_module_map(
+    actions,
+    module_name,
+    output,
+    target_name):
+  """Writes a module map for a generated Swift header to a file.
+
+  Args:
+    actions: The context's actions object.
+    module_name: The name of the Swift module.
+    output: The `File` to which the module map should be written.
+    target_name: The name of the target being built, which is used to determine
+        the generated header name.
+  """
+  actions.write(
+      content=('module "{module_name}" {{\n' +
+               '  header "../{header_name}"\n' +
+               '}}\n').format(
+                   header_name=_swift_generated_header_name(target_name),
+                   module_name=module_name,
+               ),
+      output=output,
+  )
+
+
 def register_swift_compile_actions(ctx, reqs):
   """Registers actions to compile Swift sources.
 
@@ -571,8 +608,27 @@ def register_swift_compile_actions(ctx, reqs):
   output_doc = ctx.new_file(objs_outputs_path + module_name + ".swiftdoc")
 
   # These filenames are guaranteed to be unique, no need to scope.
-  output_header = ctx.new_file(label.name + "-Swift.h")
+  output_header = ctx.actions.declare_file(
+      _swift_generated_header_name(label.name))
   swiftc_output_map_file = ctx.new_file(label.name + ".output_file_map.json")
+
+  # Generated module maps are incompatible with the hack that some folks are
+  # using to support mixed Objective-C and Swift modules. This trap door lets
+  # them escape the module redefinition error, with the caveat that certain
+  # import scenarios could lead to incorrect behavior because a header can be
+  # imported textually instead of modularly.
+  output_module_map = None
+  if not getattr(ctx.attr, "no_generated_module_map", None):
+    # Create a module map for the generated header file. This ensures that
+    # inclusions of it are treated modularly, not textually.
+    output_module_map = ctx.actions.declare_file(
+        label.name + ".modulemaps/module.modulemap")
+    _write_generated_header_module_map(
+        actions=ctx.actions,
+        module_name=module_name,
+        output=output_module_map,
+        target_name=ctx.label.name,
+    )
 
   swiftc_output_map = struct()  # Maps output types to paths.
   output_objs = []  # Object file outputs, used in archive action.
@@ -680,10 +736,16 @@ def register_swift_compile_actions(ctx, reqs):
       "uses_swift": True,
   }
 
-  # Re-propagate direct Objective-C module maps to dependents, because those
-  # Swift modules still need to see them. We need to construct a new transitive
-  # objc provider to get the correct strict propagation behavior.
-  transitive_objc = apple_common.new_objc_provider(providers=objc_providers)
+  # In addition to the generated header's module map, we must re-propagate the
+  # direct deps' Objective-C module maps to dependents, because those Swift
+  # modules still need to see them. We need to construct a new transitive objc
+  # provider to get the correct strict propagation behavior.
+  transitive_objc_provider_args = {"providers": objc_providers}
+  if output_module_map:
+    transitive_objc_provider_args["module_map"] = (
+        depset(direct=[output_module_map]))
+  transitive_objc = apple_common.new_objc_provider(
+      **transitive_objc_provider_args)
   objc_provider_args["module_map"] = transitive_objc.module_map
 
   # TODO(b/63674406): For macOS, don't propagate the runtime linker path flags,
@@ -881,6 +943,7 @@ SWIFT_LIBRARY_ATTRS = {
     "module_name": attr.string(mandatory=False),
     "defines": attr.string_list(mandatory=False, allow_empty=True),
     "copts": attr.string_list(mandatory=False, allow_empty=True),
+    "no_generated_module_map": attr.bool(mandatory=False),
     "resources": attr.label_list(
         mandatory=False,
         allow_empty=True,
