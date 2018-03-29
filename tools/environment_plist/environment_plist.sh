@@ -77,11 +77,14 @@ xcode_version_string=$(/usr/bin/xcodebuild -version | grep Xcode | cut -d ' ' -f
 # Converts '7.1' -> 0710, and '7.1.1' -> 0711.
 xcode_version=$(/usr/bin/printf '%02d%d%d\n' $(echo "${xcode_version_string//./ }"))
 
-/usr/bin/defaults write "${PLIST}" DTPlatformBuild -string ${platform_build:-""}
-/usr/bin/defaults write "${PLIST}" DTSDKBuild -string ${sdk_build:-""}
-/usr/bin/defaults write "${PLIST}" DTPlatformVersion -string ${platform_version:-""}
-/usr/bin/defaults write "${PLIST}" DTXcode -string ${xcode_version:-""}
-/usr/bin/defaults write "${PLIST}" DTXcodeBuild -string ${xcode_build:-""}
-/usr/bin/defaults write "${PLIST}" DTCompiler -string ${compiler:-""}
-/usr/bin/defaults write "${PLIST}" BuildMachineOSBuild -string ${os_build:-""}
-cat "${PLIST}" > "${OUTPUT}"
+/usr/libexec/PlistBuddy \
+    -c "Add :DTPlatformBuild string ${platform_build:-""}" \
+    -c "Add :DTSDKBuild string ${sdk_build:-""}" \
+    -c "Add :DTPlatformVersion string ${platform_version:-""}" \
+    -c "Add :DTXcode string ${xcode_version:-""}" \
+    -c "Add :DTXcodeBuild string ${xcode_build:-""}" \
+    -c "Add :DTCompiler string ${compiler:-""}" \
+    -c "Add :BuildMachineOSBuild string ${os_build:-""}" \
+    "$PLIST"
+
+plutil -convert binary1 -o "${OUTPUT}" -s  -- "${PLIST}"
