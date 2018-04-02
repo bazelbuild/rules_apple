@@ -310,7 +310,7 @@ def macos_command_line_application(name, **kwargs):
     )
     binary_deps.extend([":" + merged_infoplist_name])
 
-  testonly = binary_args.get("testonly", default=False)
+  testonly = binary_args.get("testonly", False)
 
   # Propagate the linker flags that statically link the Swift runtime.
   binary_deps.append(
