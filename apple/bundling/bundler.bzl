@@ -967,7 +967,7 @@ def _run(
       "extension_safe": extension_safe,
       "infoplist": main_infoplist,
       "minimum_os_version": platform_support.minimum_os(ctx),
-      "product_type": product_support.product_type(ctx),
+      "product_type": product_type,
       "propagated_framework_files": depset(propagated_framework_files),
       "propagated_framework_zips": depset(propagated_framework_zips),
       "root_merge_zips": root_merge_zips if not _is_ipa(ctx) else [],
