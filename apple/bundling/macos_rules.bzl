@@ -172,7 +172,13 @@ macos_application = rule_factory.make_bundling_rule(
     needs_pkginfo=True,
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
-    product_type=rule_factory.product_type(apple_product_type.application),
+    product_type=rule_factory.product_type(
+        apple_product_type.application,
+        values=[
+            apple_product_type.application,
+            apple_product_type.xpc_service,
+        ],
+    ),
 )
 
 
@@ -230,7 +236,14 @@ macos_bundle = rule_factory.make_bundling_rule(
     device_families=rule_factory.device_families(allowed=["mac"]),
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
-    product_type=rule_factory.product_type(apple_product_type.bundle),
+    product_type=rule_factory.product_type(
+        apple_product_type.bundle,
+        values=[
+            apple_product_type.bundle,
+            apple_product_type.kernel_extension,
+            apple_product_type.spotlight_importer,
+        ],
+    ),
 )
 
 
@@ -359,6 +372,8 @@ macos_extension = rule_factory.make_bundling_rule(
     device_families=rule_factory.device_families(allowed=["mac"]),
     path_formats=rule_factory.macos_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.macos,
-    product_type=rule_factory.product_type(apple_product_type.app_extension),
+    product_type=rule_factory.product_type(
+        apple_product_type.app_extension, private=True,
+    ),
     propagates_frameworks=True,
 )

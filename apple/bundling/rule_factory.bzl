@@ -426,6 +426,7 @@ def _make_bundling_rule(implementation,
   product_type_attrs = {
       _attr_name("product_type", product_type.private): attr.string(
           default=product_type.default,
+          values=product_type.values,
       ),
   }
 
@@ -508,17 +509,27 @@ def _make_bundling_rule(implementation,
               **rule_args)
 
 
-def _product_type(default, private=False):
+def _product_type(default, private=False, values=None):
   """Returns code signing information for `make_bundling_rule`.
 
   Args:
     default: The default value for the product type identifier.
     private: True if the attribute should be defined privately (that is, the
         user cannot override it in a target).
-  Returns: A struct that can be passed as the `product_type` argument to
+    values: The list of values that are acceptable for this target. If
+        `private` is True, and no value is given for this, it will default
+        to a list of the one value provided, if `private` is False, then
+        an explict list must be provided.
+  Returns:
+      A struct that can be passed as the `product_type` argument to
       `make_bundling_rule`.
   """
-  return struct(default=default, private=private)
+  # If no values provide and it is private, just use the default as the only value.
+  if values == None and private:
+    values = [default]
+  if values == None:
+    fail("Internal Error: A list of possible values must be provided.")
+  return struct(default=default, values=values, private=private)
 
 
 def _simple_path_formats(path_in_archive_format=""):

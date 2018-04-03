@@ -169,7 +169,13 @@ ios_application = rule_factory.make_bundling_rule(
         path_in_archive_format="Payload/%s"
     ),
     platform_type=apple_common.platform_type.ios,
-    product_type=rule_factory.product_type(apple_product_type.application),
+    product_type=rule_factory.product_type(
+        apple_product_type.application,
+        values=[
+            apple_product_type.application,
+            apple_product_type.messages_application,
+        ],
+    ),
 )
 
 
@@ -222,7 +228,14 @@ ios_extension = rule_factory.make_bundling_rule(
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
-    product_type=rule_factory.product_type(apple_product_type.app_extension),
+    product_type=rule_factory.product_type(
+        apple_product_type.app_extension,
+        values=[
+            apple_product_type.app_extension,
+            apple_product_type.messages_extension,
+            apple_product_type.messages_sticker_pack_extension,
+        ],
+    ),
     propagates_frameworks=True,
 )
 
@@ -279,7 +292,9 @@ ios_framework = rule_factory.make_bundling_rule(
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
-    product_type=rule_factory.product_type(apple_product_type.framework),
+    product_type=rule_factory.product_type(
+        apple_product_type.framework, private=True,
+    ),
     propagates_frameworks=True,
 )
 
@@ -363,6 +378,8 @@ ios_static_framework = rule_factory.make_bundling_rule(
     infoplists_attr_mode=rule_factory.attribute_modes.UNSUPPORTED,
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.ios,
-    product_type=rule_factory.product_type(apple_product_type.static_framework),
+    product_type=rule_factory.product_type(
+        apple_product_type.static_framework, private=True,
+    ),
     propagates_frameworks=True,
 )

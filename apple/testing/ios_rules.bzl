@@ -59,8 +59,14 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     ),
     path_formats=rule_factory.simple_path_formats("%s"),
     platform_type=apple_common.platform_type.ios,
-    # The empty string will be overridden by the wrapping macros.
-    product_type=rule_factory.product_type(""),
+    # The real value will be force by the macro when it invokes this.
+    product_type=rule_factory.product_type(
+       "",
+       values=[
+         apple_product_type.ui_test_bundle,
+         apple_product_type.unit_test_bundle,
+       ],
+    ),
 )
 
 

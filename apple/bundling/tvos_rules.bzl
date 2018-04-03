@@ -119,7 +119,9 @@ tvos_application = rule_factory.make_bundling_rule(
         path_in_archive_format="Payload/%s"
     ),
     platform_type=apple_common.platform_type.tvos,
-    product_type=rule_factory.product_type(apple_product_type.application),
+    product_type=rule_factory.product_type(
+        apple_product_type.application, private=True,
+    ),
 )
 
 
@@ -153,6 +155,8 @@ tvos_extension = rule_factory.make_bundling_rule(
     device_families=rule_factory.device_families(allowed=["tv"]),
     path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
     platform_type=apple_common.platform_type.tvos,
-    product_type=rule_factory.product_type(apple_product_type.app_extension),
+    product_type=rule_factory.product_type(
+        apple_product_type.app_extension, private=True,
+    ),
     propagates_frameworks=True,
 )
