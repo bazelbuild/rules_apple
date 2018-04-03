@@ -982,10 +982,6 @@ def _run(
   transitive_extra_outputs = depset(extra_outputs)
   propagate_embedded_extra_outputs = ctx.var.get(
       "apple.propagate_embedded_extra_outputs", "no")
-  # b/74782299 remove this fallback.
-  if propagate_embedded_extra_outputs == "no":
-    propagate_embedded_extra_outputs = ctx.var.get(
-        "bazel_rules_apple.propagate_embedded_extra_outputs", "no")
   if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
     embedded_bundle_targets = [eb.target for eb in embedded_bundles]
     for extra in providers.find_all(
