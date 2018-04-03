@@ -71,6 +71,7 @@ def _ios_test(name,
               infoplists=[
                   "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
               ],
+              linkopts=None,
               minimum_os_version=None,
               runner=None,
               test_rule=None,
@@ -98,9 +99,8 @@ def _ios_test(name,
 
   # TODO(b/38350264): Remove these linkopts once bazel adds the
   # @loader_path/Frameworks rpath by default.
-  linkopts = None
   if not bundle_loader:
-    linkopts = ["-rpath", "@loader_path/Frameworks"]
+    linkopts = ["-rpath", "@loader_path/Frameworks"] + (linkopts or [])
 
   # back door to support tags on the apple_binary for systems that
   # collect binaries from a package as they see this (and tag

@@ -68,6 +68,7 @@ def _macos_test(name,
                 infoplists=[
                     "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
                 ],
+                linkopts=None,
                 minimum_os_version=None,
                 runner=None,
                 test_host=None,
@@ -97,7 +98,7 @@ def _macos_test(name,
       # TODO(b/62481675): Move these rpath flags into crosstool features.
       "-rpath", "@executable_path/../Frameworks",
       "-rpath", "@loader_path/../Frameworks",
-  ]
+  ] + (linkopts or [])
 
   native.apple_binary(
       name = test_binary_name,
