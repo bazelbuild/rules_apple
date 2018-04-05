@@ -148,6 +148,43 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
 }
 
+# Tests that empty strings files can be processed.
+function test_empty_strings_files() {
+  create_common_files
+
+  touch app/empty.strings
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    strings = [
+        "empty.strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  # Verify strings and plists (that they exist and that they are in binary
+  # format).
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/empty.strings"
+  unzip_single_file "test-bin/app/app.ipa" \
+      "Payload/app.app/empty.strings" | \
+      grep -sq "^bplist00" || fail "Is not a binary file."
+}
+
 # Tests that various localized resource types are bundled correctly with the
 # application (preserving their parent .lproj directory).
 function test_localized_processed_resources() {
