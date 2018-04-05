@@ -384,6 +384,13 @@ ios_extension(
 EOF
 
   do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/Info.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sequence.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sticker.png"
 }
 
 # Tests that a sticker pack application fails to build and emits a reasonable
