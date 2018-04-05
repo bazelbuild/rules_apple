@@ -270,6 +270,12 @@ EOF
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  # Verify that one of the image names shows up in the asset catalog. (The file
+  # format is a black box to us, but we can at a minimum grep the name out
+  # because it's visible in the raw bytes).
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in Assets.car"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/unversioned_datamodel.mom"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -397,9 +403,11 @@ EOF
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
-      grep "star_iphone" > /dev/null || fail "Did not find star_iphone in Assets.car"
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in Assets.car"
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
-      grep "star2_iphone" > /dev/null || fail "Did not find star2_iphone in Assets.car"
+      grep "star2_iphone" > /dev/null || \
+      fail "Did not find star2_iphone in Assets.car"
 }
 
 # Tests that swift_library build with sanitizer enabled.

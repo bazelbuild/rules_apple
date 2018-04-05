@@ -195,6 +195,12 @@ function test_sdk_contains_expected_files_without_excluding_resources() {
 
   # Verify asset catalogs.
   assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
+  # Verify that one of the image names shows up in the asset catalog. (The file
+  # format is a black box to us, but we can at a minimum grep the name out
+  # because it's visible in the raw bytes).
+  unzip_single_file "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car" | \
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in Assets.car"
 
   # Verify Core Data models.
   assert_zip_contains "test-bin/sdk/sdk.zip" \
