@@ -324,8 +324,6 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  zipinfo "test-bin/app/app.zip"
-
   assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
       "app.app/Contents/Simple/simple.txt")"
   assert_equals "1" "$(unzip_single_file "test-bin/app/app.zip" \
