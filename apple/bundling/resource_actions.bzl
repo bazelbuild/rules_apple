@@ -29,6 +29,7 @@ load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
 load("@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
      "xcode_support")
 load("@build_bazel_rules_apple//apple:utils.bzl",
+     "apple_action",
      "group_files_by_directory",
      "optionally_prefixed_path",
      "xcrun_action")
@@ -179,15 +180,28 @@ def _compile_plist(ctx, input_file, resource_info):
   else:
     mnemonic = "CompilePlist"
 
-  xcrun_action(
+  # This command will check whether the input file is non-empty, and then
+  # execute the version of plutil that takes the file directly. If the file is
+  # empty, it will echo an new line and then pipe it into plutil. We do this to
+  # handle empty files as plutil doesn't handle them very well.
+  plutil_command = "plutil -convert binary1 -o %s --" % out_file.path
+  complete_command = ("([[ -s {in_file} ]] && {plutil_command} {in_file} ) " +
+                      "|| ( echo | {plutil_command} -)").format(
+      in_file=input_file.path,
+      plutil_command=plutil_command,
+  )
+
+  # Ideally we should be able to use command, which would set up the /bin/sh -c
+  # prefix for us.
+  # TODO(b/77637734): Change this to use command instead.
+  apple_action(
       ctx,
       inputs=[input_file],
       outputs=[out_file],
+      executable="/bin/sh",
       arguments=[
-          "/usr/bin/plutil",
-          "-convert", "binary1",
-          "-o", out_file.path,
-          "--", input_file.path,
+          "-c",
+          complete_command,
       ],
       mnemonic=mnemonic,
   )
