@@ -442,8 +442,6 @@ EOF
   assert_equals "bundle_library.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
 
-  # TODO(b/33834903): Storyboards inside an objc_bundle_library are currently
-  # missing.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library.bundle/Assets.car"
   assert_zip_contains "test-bin/app/app.ipa" \
