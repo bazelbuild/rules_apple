@@ -99,10 +99,13 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  # Verify asset catalogs. (We just check to make sure Assets.car is present;
-  # getting more specific would require reverse engineering the catalog, which
-  # is not easy.)
+  # Verify that at least one name shows up in the asset catalog. (The file
+  # format is a black box to us, but we can at a minimum grep the name out
+  # because it's visible in the raw bytes).
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in Assets.car"
 
   # Verify Core Data models.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -444,6 +447,13 @@ EOF
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library.bundle/Assets.car"
+  # Verify that one of the image names shows up in the asset catalog. (The file
+  # format is a black box to us, but we can at a minimum grep the name out
+  # because it's visible in the raw bytes).
+  unzip_single_file "test-bin/app/app.ipa" \
+        "Payload/app.app/bundle_library.bundle/Assets.car" | \
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in bundle_library.bundle/Assets.car"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library.bundle/basic.bundle/basic_bundle.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -672,6 +682,18 @@ EOF
   # Verify that the asset catalog exists.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Assets.car"
+
+  # Verify that both names show up in the asset catalog. (The file format is a
+  # black box to us, but we can at a minimum grep the name out because it's
+  # visible in the raw bytes).
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+      grep "star_iphone" > /dev/null || \
+      fail "Did not find star_iphone in Assets.car"
+  # TODO: b/77633270 the check the sticker packs are showing up, they don't
+  # appear to be.
+  #unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  #    grep "sequence" > /dev/null || \
+  #    fail "Did not find sequence sticker in Assets.car"
 }
 
 run_suite "ios_application bundling with resources tests"
