@@ -76,16 +76,6 @@ filegroup(
     srcs = glob(["assets2_ios.xcassets/**"]),
 )
 
-filegroup(
-    name = "assets_tvos",
-    srcs = glob(["assets_tvos.xcassets/**"]),
-)
-
-filegroup(
-    name = "assets_watchos",
-    srcs = glob(["assets_watchos.xcassets/**"]),
-)
-
 objc_bundle(
     name = "basic_bundle",
     bundle_imports = [":basic_bundle_files"],
