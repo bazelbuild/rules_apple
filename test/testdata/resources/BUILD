@@ -136,6 +136,35 @@ objc_bundle_library(
     ],
 )
 
+# This is just like :bundle_library but with a subset of the resource, the the subset
+# are all the resources that don't require Apple's processing tools (actool, ibtool,
+# etc.) which some times fail for "reasons". This then provides a bundle that does
+# get some processing, but is less likely to cause build/test flake. It is useful
+# for some of the simpler tests looking at resource deduping, etc.
+objc_bundle_library(
+    name = "simple_bundle_library",
+    bundles = [":basic_bundle"],
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "nonlocalized.plist",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":localized_generic_resources",
+        ":localized_plists",
+    ],
+    strings = [
+        "nonlocalized.strings",
+        "generated.strings",
+        ":localized_strings_ios",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+)
+
 filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),

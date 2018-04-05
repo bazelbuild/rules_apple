@@ -96,10 +96,6 @@ objc_library(
         "Framework.m",
     ],
     structured_resources = [":FrameworkResources"],
-    bundles = [
-        "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
-        "@build_bazel_rules_apple//test/testdata/resources:bundle_library",
-    ],
     alwayslink = 1,
 )
 
@@ -108,7 +104,6 @@ filegroup(
     srcs = glob(["Images/framework.png"]),
 )
 EOF
-
 
   mkdir -p app/Images
   cat > app/Images/app.png <<EOF
@@ -389,7 +384,7 @@ objc_library(
     ],
     bundles = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
-        "@build_bazel_rules_apple//test/testdata/resources:bundle_library",
+        "@build_bazel_rules_apple//test/testdata/resources:simple_bundle_library",
     ],
     alwayslink = 1,
 )
@@ -442,12 +437,12 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/bundle_library.bundle/Assets.car"
+      "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/generated.strings"
   # ...and that the application doesn't.
   assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/"
+      "Payload/app.app/simple_bundle_library.bundle"
   assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/"
+      "Payload/app.app/basic.bundle"
 }
 
 # Tests that the bundled .framework contains the expected files.
@@ -955,7 +950,7 @@ objc_library(
     ],
     bundles = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
-        "@build_bazel_rules_apple//test/testdata/resources:bundle_library",
+        "@build_bazel_rules_apple//test/testdata/resources:simple_bundle_library",
     ],
     alwayslink = 1,
 )
@@ -1004,27 +999,27 @@ void doStuff() {
 EOF
 
   create_dump_plist "//app:app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/bundle_library.bundle/Info.plist" \
+      "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
-  assert_equals "org.bazel.bundle-library" \
+  assert_equals "org.bazel.simple-bundle-library" \
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "bundle_library.bundle" \
+  assert_equals "simple_bundle_library.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
 
   # Assert that the framework contains the bundled files...
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/bundle_library.bundle/Assets.car"
+      "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/generated.strings"
   # ...and that the application doesn't.
   assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/Assets.car"
+      "Payload/app.app/simple_bundle_library.bundle"
   assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/basic_bundle.txt"
+      "Payload/app.app/basic.bundle"
 }
 
 # Test that if an ios_framework target depends on a prebuilt framework (i.e.,
