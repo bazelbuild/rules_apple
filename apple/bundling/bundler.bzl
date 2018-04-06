@@ -253,6 +253,61 @@ def _validate_attributes(ctx, bundle_id):
     bundling_support.validate_bundle_id(bundle_id)
 
 
+def _invalid_top_level_directories_for_platform(platform_type):
+  """List of invalid top level directories for the given platform.
+
+  Args:
+    platform_type: String containing the platform type for the bundle being
+        validated.
+
+  Returns:
+    A list of top level directory names that have to be avoided for the given
+    platform.
+  """
+  # As far as we know, there are no locations in macOS bundles that would break
+  # codesigning.
+  if platform_type == "macos":
+    return []
+
+  # Non macOS bundles can't have a top level Resources folder, as it breaks
+  # codesigning for some reason. With this, we validate that there are no
+  # Resources folder going to be created in the bundle, with a message that
+  # better explains which files are incorrectly placed.
+  return ["Resources"]
+
+
+def _validate_files_to_bundle(invalid_top_level_dirs,
+                              platform_type,
+                              files_to_bundle):
+  """Validates that the files to bundle are not placed in invalid locations.
+
+  codesign will complain when building a non macOS bundle that contains certain
+  folders at the top level. We check if there are files that would break
+  codesign, and fail early with a nicer message.
+
+  Args:
+    invalid_top_level_dirs: String list containing the top level
+        directories that have to be avoided when bundling resources.
+    platform_type: String containing the platform type for the bundle being
+        validated.
+    files_to_bundle: String list of paths of where resources are going to be
+        placed in the final bundle.
+  """
+  invalid_destinations = []
+  for invalid_dir in invalid_top_level_dirs:
+    for file_to_bundle in files_to_bundle:
+      if file_to_bundle.startswith(invalid_dir + "/"):
+        invalid_destinations.append(file_to_bundle)
+
+  if invalid_destinations:
+    fail(("Error: The following files would be bundled in invalid " +
+          "locations.\n\n%s\n\nFor %s bundles, the following top level " +
+          "directories are invalid: %s") %
+         ("\n".join(sorted(invalid_destinations)),
+          platform_type,
+          ", ".join(invalid_top_level_dirs)))
+
+
 def _dedupe_bundle_merge_files(bundlable_files):
   """Deduplicates bundle files by destination.
 
@@ -719,6 +774,18 @@ def _run(
 
   bundle_merge_files.extend(process_results.bundle_merge_files)
   bundle_merge_zips.extend(process_results.bundle_merge_zips)
+
+  platform_type = platform_support.platform_type(ctx)
+  invalid_top_level_dirs = _invalid_top_level_directories_for_platform(
+      platform_type,
+  )
+  if invalid_top_level_dirs:
+    # Avoid processing the files if invalid_top_level_dirs is empty.
+    _validate_files_to_bundle(
+        invalid_top_level_dirs,
+        platform_type,
+        [x.dest for x in bundle_merge_files if hasattr(x, "dest")],
+    )
 
   if suppress_bundle_infoplist:
     # Remove any value (default is so pop won't fail if there was no entry for

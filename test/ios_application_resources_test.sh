@@ -185,6 +185,37 @@ EOF
       grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
+# Tests bundling a Resources folder as top level would fail with a nicer message.
+function test_invalid_top_level_directory() {
+  create_common_files
+  mkdir -p app/Resources
+
+  touch app/Resources/some.file
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    structured_resources = [
+        "Resources/some.file",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+  expect_log "For ios bundles, the following top level directories are invalid: Resources."
+}
+
 # Tests that various localized resource types are bundled correctly with the
 # application (preserving their parent .lproj directory).
 function test_localized_processed_resources() {
