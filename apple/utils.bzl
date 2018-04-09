@@ -146,16 +146,18 @@ def group_files_by_directory(files, extensions, attr):
     values are the sets of files within them.
   """
   grouped_files = {}
-  files_that_matched = depset()
+  paths_not_matched = {}
 
-  for extension in extensions:
-    search_string = '.%s' % extension
+  ext_info = [('.%s' % e, len(e) + 1) for e in extensions]
 
-    for f in files:
-      if type(f) == type(''):
-        path = f
-      else:
-        path = f.path
+  for f in files:
+    if type(f) == type(''):
+      path = f
+    else:
+      path = f.path
+
+    not_matched = True
+    for search_string, search_string_len in ext_info:
 
       # Make sure the matched string either has a '/' after it, or occurs at
       # the end of the string (this lets us match directories without requiring
@@ -165,13 +167,12 @@ def group_files_by_directory(files, extensions, attr):
       # with common Apple file structures, like passing 'xcdatamodel' and
       # correctly parsing paths matching 'foo.xcdatamodeld/bar.xcdatamodel/...'.
       after_index = -1
-      search_len = len(search_string)
       index_with_slash = path.find(search_string + '/')
       if index_with_slash != -1:
-        after_index = index_with_slash + search_len
+        after_index = index_with_slash + search_string_len
       else:
         index_without_slash = path.find(search_string)
-        after_index = index_without_slash + search_len
+        after_index = index_without_slash + search_string_len
         # If the search string wasn't at the end of the string, it must have a
         # non-slash character after it (because we already checked the slash case
         # above), so eliminate it.
@@ -179,16 +180,20 @@ def group_files_by_directory(files, extensions, attr):
           after_index = -1
 
       if after_index != -1:
-        files_that_matched += [f]
+        not_matched = False
         container = path[:after_index]
         if container in grouped_files:
           grouped_files[container] += [f]
         else:
           grouped_files[container] = depset([f])
+        # No need to check other extensions
+        break
 
-  if len(files_that_matched) < len(files):
-    unmatched_files = [f.path for f in files if f not in files_that_matched]
-    formatted_files = '[\n  %s\n]' % ',\n  '.join(unmatched_files)
+    if not_matched:
+      paths_not_matched[path] = True
+
+  if len(paths_not_matched):
+    formatted_files = '[\n  %s\n]' % ',\n  '.join(paths_not_matched.keys())
     fail('Expected only files inside directories named with the extensions ' +
          '%r, but found: %s' % (extensions, formatted_files), attr)
 
