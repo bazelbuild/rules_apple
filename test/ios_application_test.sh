@@ -816,24 +816,6 @@ EOF
   expect_log "Invalid character(s) in bundle_id: \"my#bundle\""
 }
 
-function test_build_fails_if_bundle_id_too_short() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "one-segment",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "bundle_id isn't at least 2 segments: \"one-segment\""
-}
-
 # Tests that the IPA contains bitcode symbols when bitcode is embedded.
 function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
   # Bitcode is only availabe on device. Ignore the test for simulator builds.
