@@ -284,8 +284,6 @@ def _validate_bundle_id(bundle_id):
       for ch in part:
         if ch != "-" and not ch.isalnum():
           fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
-  if len(bundle_id_parts) < 2:
-    fail("bundle_id isn't at least 2 segments: \"%s\"" % bundle_id)
 
 
 # Define the loadable module that lists the exported symbols in this file.
