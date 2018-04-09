@@ -124,18 +124,11 @@ def group_files_by_directory(files, extensions, attr):
         ])
     }
 
-  Note that |files| can be an iterable of either strings (paths) or File
-  objects, and the returned dictionary preserves these input values. In other
-  words, if it contains strings, then the sets in the dictionary will also
-  contain strings (retaining the directory path as well). If the input elements
-  are File objects, the returned dictionary values will also be sets of those
-  File objects.
-
   If an input file does not have a containing directory with the given
   extension, the build will fail.
 
   Args:
-    files: An iterable of File objects or strings representing paths.
+    files: An iterable of File objects.
     extensions: The list of extensions of the containing directories to return.
         The extensions should NOT include the leading dot.
     attr: The attribute to associate with the build failure if the list of
@@ -151,10 +144,7 @@ def group_files_by_directory(files, extensions, attr):
   ext_info = [('.%s' % e, len(e) + 1) for e in extensions]
 
   for f in files:
-    if type(f) == type(''):
-      path = f
-    else:
-      path = f.path
+    path = f.path
 
     not_matched = True
     for search_string, search_string_len in ext_info:
