@@ -1210,7 +1210,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
 objc_library(
     name = "lib",
     srcs = ["main.m"],
-    deps = [":framework_dependent_lib"],
+    deps = [
+        ":dep_framework_lib",
+        ":framework_lib",
+    ],
 )
 
 ios_application(
@@ -1225,17 +1228,6 @@ ios_application(
 )
 
 ios_framework(
-    name = "depframework",
-    hdrs = ["DepFramework.h"],
-    bundle_id = "my.depframework.id",
-    families = ["iphone"],
-    infoplists = ["Framework-Info.plist", "Info-Common.plist"],
-    minimum_os_version = "9.0",
-    deps = [":dep_framework_lib"],
-    dedupe_unbundled_resources = True,
-)
-
-ios_framework(
     name = "framework",
     hdrs = ["Framework.h"],
     bundle_id = "my.framework.id",
@@ -1244,6 +1236,17 @@ ios_framework(
     infoplists = ["Framework-Info.plist", "Info-Common.plist"],
     minimum_os_version = "9.0",
     deps = [":framework_lib"],
+)
+
+ios_framework(
+    name = "depframework",
+    hdrs = ["DepFramework.h"],
+    bundle_id = "my.depframework.id",
+    families = ["iphone"],
+    infoplists = ["Framework-Info.plist", "Info-Common.plist"],
+    minimum_os_version = "9.0",
+    deps = [":dep_framework_lib"],
+    dedupe_unbundled_resources = True,
 )
 
 objc_library(
@@ -1375,6 +1378,8 @@ EOF
   do_build ios //app:dump_plist_app //app:dump_plist_framework \
       //app:dump_plist_depframework || fail "Should build"
 
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Images/foo.png"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
   assert_zip_contains "test-bin/app/app.ipa" \
