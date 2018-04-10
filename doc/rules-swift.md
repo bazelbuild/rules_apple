@@ -4,7 +4,8 @@
 ## swift_library
 
 ```python
-swift_library(name, srcs, deps, module_name, defines, copts)
+swift_library(name, srcs, deps, module_name, defines, copts, resources,
+structured_resources)
 ```
 
 Produces a static library from Swift sources. The output is a pair of .a and
@@ -128,6 +129,33 @@ bazel build //target:app
         <p><code>List of strings; optional</code></p>
         <p>Additional compiler flags. Passed to the compile actions of this
         target only.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>Files to include in the final application bundle. Based on their
+        extensions, they will be processed or compiled as needed (.xib via
+        ibtool, .xcassets via actool, etc.).</p>
+        <p>These files are placed in the root of the bundle (e.g.
+        <code>foo.app/...</code>) in most cases. However, if they appear to be
+        localized (i.e. are contained in a directory called
+        <code>*.lproj</code>), they will be placed in a directory of the same
+        name in the app bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>structured_resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>Files to include in the final application bundle. They are not
+        processed or compiled in any way besides the processing done by the
+        rules that actually generate them.</p>
+        <p>Unlike <code>resources</code> these files are placed in the bundle
+        root in the same structure passed to this argument, so
+        <code>["res/foo.png"]</code> will end up in
+        <code>foo.app/res/foo.png</code>.</p>
       </td>
     </tr>
   </tbody>
