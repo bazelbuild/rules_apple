@@ -734,15 +734,14 @@ def _run(
 
   resource_sets = list(additional_resource_sets)
 
-  framework_resource_sets = depset()
+  framework_resource_sets = []
 
   if attrs.get(ctx.attr, "exclude_resources"):
     resource_sets.append(AppleResourceSet(infoplists=target_infoplists))
   else:
     for framework in attrs.get(ctx.attr, "frameworks", []):
       if _ResourceBundleInfo in framework:
-        framework_resource_sets = (
-            framework_resource_sets |
+        framework_resource_sets.extend(
             framework[_ResourceBundleInfo].resource_sets)
       if ctx.attr._propagates_frameworks:
         propagated_framework_zips.append(framework[AppleBundleInfo].archive)
@@ -1059,7 +1058,10 @@ def _run(
       AppleBundleInfo(**apple_bundle_info_args),
       AppleExtraOutputsInfo(files=transitive_extra_outputs),
       OutputGroupInfo(local_outputs=depset(local_outputs)),
-      _ResourceBundleInfo(resource_sets=resource_sets),
+      # Propagate the resource sets contained by this bundle along with the ones
+      # contained in the frameworks dependencies, so that higher level bundles
+      # can also skip the bundling of those resources.
+      _ResourceBundleInfo(resource_sets=resource_sets + framework_resource_sets),
   ])
 
   return (additional_providers,
