@@ -110,8 +110,14 @@ def _additional_contents_bundlable_files(ctx, file_map):
 
 def _macos_application_impl(ctx):
   """Implementation of the macos_application rule."""
+
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons)
+  additional_resources = depset(app_icons)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
@@ -184,8 +190,13 @@ macos_application = rule_factory.make_bundling_rule(
 
 def _macos_bundle_impl(ctx):
   """Implementation of the macos_bundle rule."""
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons)
+  additional_resources = depset(app_icons)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
@@ -326,8 +337,13 @@ macos_command_line_application = rule(
 
 def _macos_extension_impl(ctx):
   """Implementation of the macos_extension rule."""
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons)
+  additional_resources = depset(app_icons)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,

@@ -264,7 +264,7 @@ def _resource_file(ctx, src, dest, executable=False, contents_only=False):
 
 
 def _validate_bundle_id(bundle_id):
-  """Ensure the valie is a valid bundle it or fail the build.
+  """Ensure the value is a valid bundle it or fail the build.
 
   Args:
     bundle_id: The string to check.
@@ -286,6 +286,70 @@ def _validate_bundle_id(bundle_id):
           fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
 
 
+def _ensure_single_asset_type(
+      files, extensions, attr,
+      assets_catalog_suffix="xcassets",
+      message=None):
+  """Ensure the files are valid for the sub type of an asset bundle.
+
+  TODO(b/77804841): The places calling this should go away and these types of
+  checks should be done during the resource processing. Right now these checks
+  are being wedged in at the attribute collection steps, and they then get
+  combined into a single list of resources; the bundling then resplits them
+  up in groups to process they by type. So the more validation/splitting done
+  here the slower things get (as double work is done). The bug is to revisit
+  all of this and instead pass through individual things in a structured way
+  so they don't have to be resplit. That would allow the validation to be
+  done while processing (in a single pass) instead.
+
+  Args:
+    files: An iterable of files to use.
+    extensions: The extensions that should be used for the different asset
+        types witin the catalog.
+    attr: The attribute to associate with the build failure if the list of
+        files has an element that is not in a directory with the given
+        extension.
+    assets_catalog_suffix: The suffix for the asset catalog directory.
+    message: A custom error message to use instead, the list of found
+        files that didn't match will be printed afterwards.
+  """
+  bad_paths = {}
+  catalog_suffix = ".%s/" % assets_catalog_suffix
+
+  ext_suffixes = [".%s/" % e for e in extensions]
+
+  # Just check that the paths include the expected nesting. More complete
+  # checks would likely be the number of outer directories with that suffix,
+  # the number of inner ones, extra directories segments where not expected,
+  # etc.
+  for f in files:
+    path = f.path
+    catalog_offset = path.find(catalog_suffix)
+    if catalog_offset == -1:
+      bad_paths[path] = True
+      continue
+    not_found = True
+    for ext_suffix in ext_suffixes:
+      if path.find(ext_suffix, start=catalog_offset) != -1:
+        not_found = False
+        break  # No need to check other extensions
+      # The only thing that shouldn't be within the sub folder is the root
+      # Contents.json.
+      if path[catalog_offset:] == (catalog_suffix + "Contents.json"):
+        not_found = False
+
+    if not_found:
+      bad_paths[path] = True
+
+  if len(bad_paths):
+    if message == None:
+      message = ("Expected only files inside directory named '*.%s' and " +
+                 "then with directories with the extensions %r") % (
+                assets_catalog_suffix, extensions)
+    formatted_paths = '[\n  %s\n]' % ',\n  '.join(bad_paths.keys())
+    fail('%s, but found the following: %s' % (message, formatted_paths), attr)
+
+
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     binary_file=_binary_file,
@@ -296,6 +360,7 @@ bundling_support = struct(
     bundle_name_with_extension=_bundle_name_with_extension,
     contents_file=_contents_file,
     embedded_bundle=_embedded_bundle,
+    ensure_single_asset_type=_ensure_single_asset_type,
     header_prefix=_header_prefix,
     path_in_binary_dir=_path_in_binary_dir,
     path_in_contents_dir=_path_in_contents_dir,

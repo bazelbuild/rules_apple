@@ -41,9 +41,14 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
 def _watchos_application_impl(ctx):
   """Implementation of the watchos_application Skylark rule."""
 
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+
   # Collect asset catalogs and storyboards, if any are present.
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons + ctx.files.storyboards)
+  additional_resources = depset(app_icons + ctx.files.storyboards)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
@@ -109,9 +114,14 @@ watchos_application = rule_factory.make_bundling_rule(
 def _watchos_extension_impl(ctx):
   """Implementation of the watchos_extension Skylark rule."""
 
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+
   # Collect asset catalogs and storyboards, if any are present.
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons)
+  additional_resources = depset(app_icons)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,

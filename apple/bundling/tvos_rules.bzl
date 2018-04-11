@@ -41,10 +41,19 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
 def _tvos_application_impl(ctx):
   """Implementation of the `tvos_application` Skylark rule."""
 
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["brandassets"], "app_icons")
+  launch_images = ctx.files.launch_images
+  if launch_images:
+    bundling_support.ensure_single_asset_type(
+        launch_images, ["launchimage"], "launch_images")
+
   # Collect asset catalogs, launch images, and the launch storyboard, if any are
   # present.
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons + ctx.files.launch_images)
+  additional_resources = depset(app_icons + launch_images)
   launch_storyboard = ctx.file.launch_storyboard
   if launch_storyboard:
     additional_resources += [launch_storyboard]

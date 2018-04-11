@@ -45,6 +45,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
+    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
@@ -73,10 +74,19 @@ load(
 def _ios_application_impl(ctx):
   """Implementation of the ios_application Skylark rule."""
 
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    bundling_support.ensure_single_asset_type(
+        app_icons, ["appiconset"], "app_icons")
+  launch_images = ctx.files.launch_images
+  if launch_images:
+    bundling_support.ensure_single_asset_type(
+        launch_images, ["launchimage"], "launch_images")
+
   # Collect asset catalogs, launch images, and the launch storyboard, if any are
   # present.
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons + ctx.files.launch_images)
+  additional_resources = depset(app_icons + launch_images)
   launch_storyboard = ctx.file.launch_storyboard
   if launch_storyboard:
     additional_resources += [launch_storyboard]
@@ -182,9 +192,27 @@ ios_application = rule_factory.make_bundling_rule(
 def _ios_extension_impl(ctx):
   """Implementation of the ios_extension Skylark rule."""
 
+  app_icons = ctx.files.app_icons
+  if app_icons:
+    product_type = product_support.product_type(ctx)
+    if product_type in (apple_product_type.messages_extension,
+                        apple_product_type.messages_sticker_pack_extension):
+      # TODO: Enable this validation, once some more details are sorted
+      # out, it doesn't seem like stickers have to be within a stickerpack,
+      # but can also in just in xcassets. Xcode doesn't appear to support
+      # doing setups like that, but folks have made them...
+      message = ("Message extensions must use Messages Extensions Icon Sets " +
+                 "(named .stickersiconset), not traditional App Icon Sets")
+      #bundling_support.ensure_single_asset_type(
+      #    app_icons, ["stickersiconset", "stickerpack"], "app_icons",
+      #    assets_catalog_suffix="xcstickers", message=message)
+    else:
+      bundling_support.ensure_single_asset_type(
+          app_icons, ["appiconset"], "app_icons")
+
   # Collect asset catalogs and launch images if any are present.
   additional_resource_sets = []
-  additional_resources = depset(ctx.files.app_icons + ctx.files.asset_catalogs)
+  additional_resources = depset(app_icons + ctx.files.asset_catalogs)
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
