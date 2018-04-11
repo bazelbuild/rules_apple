@@ -284,6 +284,12 @@ def _actool_args_for_special_file_types(ctx, asset_catalogs, resource_info):
 
     # Fail if the user has included .appiconset folders in their asset catalog;
     # Message extensions must use .stickersiconset instead.
+    #
+    # NOTE: This is mostly caught via the validation in ios_extension of the
+    # app_icons attribute; however, since different resource attributes from
+    # *_library targets are merged into here, other resources could show up
+    # so until the resource handing is revisited (b/77804841), things could
+    # still show up that don't make sense.
     appiconset_files = [f for f in asset_catalogs if ".appiconset/" in f.path]
     if appiconset_files:
       appiconset_dirs = group_files_by_directory(appiconset_files,
