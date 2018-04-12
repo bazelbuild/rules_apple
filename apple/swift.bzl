@@ -763,6 +763,7 @@ def register_swift_compile_actions(ctx, reqs):
       direct_lib=output_lib,
       direct_module=output_module,
       direct_doc=output_doc,
+      module_name=module_name,
       swift_version=swift_version,
       transitive_libs=transitive_libs,
       transitive_modules=transitive_modules,
