@@ -26,6 +26,11 @@ load(
     "AppleResourceSet",
     "apple_resource_set_utils",
 )
+# Do not combine this with the load above.
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "SwiftInfo",
+)
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
@@ -130,6 +135,31 @@ def _handle_native_library_dependency(target, ctx):
   return resource_sets
 
 
+def _handle_swift_library_dependency(target, ctx):
+  """Handles resources from a `swift_library` that doesn't propagate resources.
+
+  Args:
+    target: The target to which the aspect is being applied.
+    ctx: The Skylark context.
+
+  Returns:
+    A list of `AppleResourceSet` values that should be included in the list
+    propagated by the `AppleResource` provider.
+  """
+  resources = depset(ctx.rule.files.resources)
+  structured_resources = depset(ctx.rule.files.structured_resources)
+
+  # Only create the resource set if it's non-empty.
+  if resources or structured_resources:
+    return [AppleResourceSet(
+        resources=resources,
+        structured_resources=structured_resources,
+        swift_module=target[SwiftInfo].module_name,
+    )]
+
+  return []
+
+
 def _handle_native_bundle_imports(bundle_imports):
   """Handles resources from an `objc_bundle` target.
 
@@ -226,6 +256,8 @@ def _transitive_apple_resource_info(target, ctx):
 
   if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
     resource_sets.extend(_handle_native_library_dependency(target, ctx))
+  elif ctx.rule.kind == "swift_library":
+    resource_sets.extend(_handle_swift_library_dependency(target, ctx))
   elif ctx.rule.kind == "objc_bundle":
     bundle_imports = ctx.rule.files.bundle_imports
     resource_sets.extend(_handle_native_bundle_imports(bundle_imports))
@@ -256,7 +288,7 @@ def _transitive_apple_bundling_swift_info(target, ctx):
     An `AppleBundlingSwiftInfo` provider, or `None` if nothing should be
     propagated for this target.
   """
-  uses_swift = hasattr(target, "swift")
+  uses_swift = hasattr(target, "swift") or SwiftInfo in target
 
   # If the target itself doesn't use Swift, check its deps.
   if not uses_swift:
