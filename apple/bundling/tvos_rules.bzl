@@ -43,12 +43,12 @@ def _tvos_application_impl(ctx):
 
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["brandassets"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "brandassets")
   launch_images = ctx.files.launch_images
   if launch_images:
-    bundling_support.ensure_single_asset_type(
-        launch_images, ["launchimage"], "launch_images")
+    bundling_support.ensure_single_xcassets_type(
+        "launch_images", launch_images, "launchimage")
 
   # Collect asset catalogs, launch images, and the launch storyboard, if any are
   # present.

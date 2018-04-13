@@ -276,9 +276,18 @@ Builds and bundles an iOS application extension.
       <td><code>app_icons</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the extension. Each file
-        must have a containing directory named<code>*.xcassets/*.appiconset</code> and
-        there may be only one such <code>.appiconset</code> directory in the list.</p>
+        <p>Files that comprise the app icons for the extension.</p>
+        <p>For most extensions, each file must have a containing directory named
+        <code>*.xcassets/*.appiconset</code> and there may be only one such
+        <code>.appiconset</code> directory in the list.</p>
+        <p>For Message StickerPack extensions (<code>product_type</code> of
+        <code>apple_product_type.messages_sticker_pack_extension</code>), the
+        collection of assets should be under a folder named
+        <code>*.*.xcstickers</code>. The main icons go in a
+        <code>*.stickersiconset</code> (instead of <code>*.appiconset</code>);
+        and the files for the stickers should all be in Sticker Pack
+        directories, so <code>*.stickerpack/*.sticker</code> or
+        <code>*.stickerpack/*.stickersequence</code>.</p>
       </td>
     </tr>
     <tr>

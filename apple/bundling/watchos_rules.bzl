@@ -43,8 +43,8 @@ def _watchos_application_impl(ctx):
 
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
 
   # Collect asset catalogs and storyboards, if any are present.
   additional_resource_sets = []
@@ -116,8 +116,8 @@ def _watchos_extension_impl(ctx):
 
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
 
   # Collect asset catalogs and storyboards, if any are present.
   additional_resource_sets = []
