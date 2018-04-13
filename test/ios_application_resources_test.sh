@@ -232,7 +232,7 @@ objc_library(
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
     ],
     strings = [
-        "@build_bazel_rules_apple//test/testdata/resources:localized_strings_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
     ],
     xibs = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_xibs_ios",
@@ -486,7 +486,7 @@ objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     bundles = [
-        "@build_bazel_rules_apple//test/testdata/resources:bundle_library"
+        "@build_bazel_rules_apple//test/testdata/resources:bundle_library_ios"
     ],
 )
 
@@ -502,76 +502,76 @@ ios_application(
 EOF
 
   create_dump_plist "//app:app.ipa" \
-      "Payload/app.app/bundle_library.bundle/Info.plist" \
+      "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
-  assert_equals "org.bazel.bundle-library" \
+  assert_equals "org.bazel.bundle-library-ios" \
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "bundle_library.bundle" \
+  assert_equals "bundle_library_ios.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
 
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/Assets.car"
+      "Payload/app.app/bundle_library_ios.bundle/Assets.car"
   # Verify that one of the image names shows up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
   unzip_single_file "test-bin/app/app.ipa" \
-        "Payload/app.app/bundle_library.bundle/Assets.car" | \
+        "Payload/app.app/bundle_library_ios.bundle/Assets.car" | \
       grep "star_iphone" > /dev/null || \
-      fail "Did not find star_iphone in bundle_library.bundle/Assets.car"
+      fail "Did not find star_iphone in bundle_library_ios.bundle/Assets.car"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/basic.bundle/basic_bundle.txt"
+      "Payload/app.app/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/it.lproj/localized.strings"
+      "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.strings"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/it.lproj/localized.txt"
+      "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/it.lproj/storyboard_ios.storyboardc/"
+      "Payload/app.app/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/it.lproj/view_ios.nib"
+      "Payload/app.app/bundle_library_ios.bundle/it.lproj/view_ios.nib"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/mapping_model.cdm"
+      "Payload/app.app/bundle_library_ios.bundle/mapping_model.cdm"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/nonlocalized_resource.txt"
+      "Payload/app.app/bundle_library_ios.bundle/nonlocalized_resource.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/storyboard_ios.storyboardc/"
+      "Payload/app.app/bundle_library_ios.bundle/storyboard_ios.storyboardc/"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/nested.txt"
+      "Payload/app.app/bundle_library_ios.bundle/structured/nested.txt"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/unversioned_datamodel.mom"
+      "Payload/app.app/bundle_library_ios.bundle/unversioned_datamodel.mom"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/v1.mom"
+      "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/v1.mom"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/v2.mom"
+      "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/v2.mom"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/versioned_datamodel.momd/VersionInfo.plist"
+      "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/VersionInfo.plist"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/view_ios.nib"
+      "Payload/app.app/bundle_library_ios.bundle/view_ios.nib"
 
   # Verify that the processed structured resources are present and compiled (if
   # required).
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/nested.txt"
+      "Payload/app.app/bundle_library_ios.bundle/structured/nested.txt"
 
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/generated.strings"
+      "Payload/app.app/bundle_library_ios.bundle/structured/generated.strings"
   unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/generated.strings" | \
+      "Payload/app.app/bundle_library_ios.bundle/structured/generated.strings" | \
       grep -sq "^bplist00" || fail "Is not a binary file."
 
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.plist"
+      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.plist"
   unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.plist" | \
+      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.plist" | \
       grep -sq "^bplist00" || fail "Is not a binary file."
 
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.strings"
+      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings"
   unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library.bundle/structured/should_be_binary.strings" | \
+      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings" | \
       grep -sq "^bplist00" || fail "Is not a binary file."
 }
 

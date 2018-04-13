@@ -27,13 +27,9 @@ filegroup(
         ":assets_ios",
         ":launch_images_ios",
         ":localized_storyboards_ios",
-        ":localized_strings_ios",
         ":localized_xibs_ios",
-        ":mapping_model",
         ":settings_bundle_ios_files",
         ":sticker_pack_ios",
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
     ],
 )
 
@@ -49,7 +45,11 @@ filegroup(
         ":basic_bundle_files",
         ":localized_generic_resources",
         ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
         ":structured",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
     ],
 )
 
@@ -99,7 +99,7 @@ genrule(
 )
 
 objc_bundle_library(
-    name = "bundle_library",
+    name = "bundle_library_ios",
     asset_catalogs = [":assets_ios"],
     bundles = [":basic_bundle"],
     datamodels = [
@@ -124,7 +124,7 @@ objc_bundle_library(
     strings = [
         "nonlocalized.strings",
         "generated.strings",
-        ":localized_strings_ios",
+        ":localized_strings",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -136,11 +136,47 @@ objc_bundle_library(
     ],
 )
 
-# This is just like :bundle_library but with a subset of the resource, the the subset
-# are all the resources that don't require Apple's processing tools (actool, ibtool,
-# etc.) which some times fail for "reasons". This then provides a bundle that does
-# get some processing, but is less likely to cause build/test flake. It is useful
-# for some of the simpler tests looking at resource deduping, etc.
+objc_bundle_library(
+    name = "bundle_library_macos",
+    # TODO: asset_catalogs
+    bundles = [":basic_bundle"],
+    # TODO: Bazel seems to crash with an exception if given datamodels
+    # and targeting macOS. So until objc_bundle_library is redone in
+    # skylark we might just have to live this this.
+    #datamodels = [
+    #    ":unversioned_datamodel",
+    #    ":versioned_datamodel",
+    #],
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "nonlocalized.plist",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":mapping_model",
+    ],
+    # TODO: storyboards
+    strings = [
+        "nonlocalized.strings",
+        "generated.strings",
+        ":localized_strings",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    # TODO: xibs
+)
+
+# This is just like :bundle_library_* but with a subset of the resources. The
+# subset are all the resources that don't require Apple's processing tools
+# (actool, ibtool, etc.) which some times fail for "reasons". This then
+# provides a bundle that does get some processing, but is less likely to cause
+# build/test flake. It is useful for some of the simpler tests looking at
+# resource deduping, etc.
 objc_bundle_library(
     name = "simple_bundle_library",
     bundles = [":basic_bundle"],
@@ -157,7 +193,7 @@ objc_bundle_library(
     strings = [
         "nonlocalized.strings",
         "generated.strings",
-        ":localized_strings_ios",
+        ":localized_strings",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -186,7 +222,7 @@ filegroup(
 )
 
 filegroup(
-    name = "localized_strings_ios",
+    name = "localized_strings",
     srcs = glob(["*.lproj/*.strings"]),
 )
 

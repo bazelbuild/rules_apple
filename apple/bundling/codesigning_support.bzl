@@ -176,11 +176,11 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
       entitlements_flag = (
           "--entitlements %s" % shell.quote(entitlements_file.path))
 
-    return ((cmd_prefix + "/usr/bin/codesign --deep --force " +
+    return ((cmd_prefix + "/usr/bin/codesign --force " +
              "--sign $VERIFIED_ID %s %s") % (entitlements_flag, path))
   else:
     # Use ad hoc signing for simulator builds.
-    return ((cmd_prefix + "/usr/bin/codesign --deep --force " +
+    return ((cmd_prefix + "/usr/bin/codesign --force " +
              "--timestamp=none --sign \"-\" %s") % path)
 
 
