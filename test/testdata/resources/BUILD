@@ -28,6 +28,7 @@ filegroup(
         ":launch_images_ios",
         ":localized_storyboards_ios",
         ":localized_xibs_ios",
+        ":message_ext_app_icon_ios",
         ":settings_bundle_ios_files",
         ":sticker_pack_ios",
     ],
@@ -254,6 +255,11 @@ filegroup(
 filegroup(
     name = "sticker_pack_ios",
     srcs = glob(["sticker_pack_ios.xcstickers/**"]),
+)
+
+filegroup(
+    name = "message_ext_app_icon_ios",
+    srcs = glob(["message_ext_app_icon_ios.xcassets/**"]),
 )
 
 filegroup(
