@@ -432,6 +432,83 @@ EOF
   expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 11
 }
 
+# Tests that a message extension fails to build with *.appiconset assets.
+function test_message_extension_builds_with_appiconset_fails() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_extension(
+    name = "ext",
+    app_icons = ["@build_bazel_rules_apple//test/testdata/resources:app_icons_ios"],
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    product_type = apple_product_type.messages_extension,
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  # Check for the start of the log message
+  expect_log "Message extensions must use Messages Extensions Icon Sets "
+  # The 10 icons and the Contents.json should all be listed, so 11 hits.
+  expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 11
+}
+
+# Tests that a message extension builds correctly when its app icons are
+# in an asset directory named ".stickersiconset".
+function test_message_extension_builds_with_stickersiconset() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_extension(
+    name = "ext",
+    app_icons = ["@build_bazel_rules_apple//test/testdata/resources:message_ext_app_icon_ios"],
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    product_type = apple_product_type.messages_extension,
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  # Spot check that a few icons end up correctly there.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/app_icon27x20@2x.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/ext.appex/app_icon32x24@2x.png"
+}
+
 # Tests that if an application contains an extension with a bundle ID that is
 # not the app's ID followed by at least another component, the build fails.
 function test_extension_with_mismatched_bundle_id_fails_to_build() {
