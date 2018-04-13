@@ -58,11 +58,10 @@ done
 TEMPDIR="$(create_temp_dir swiftstdlibtoolZippingOutput.XXXXXX)"
 FULLPATH="$TEMPDIR/$PATH_INSIDE_ZIP"
 
-XCRUN_ARGS=()
+XCRUN_ARGS=(swift-stdlib-tool --copy)
 if [[ -n "${TOOLCHAIN:-}" ]]; then
   XCRUN_ARGS+=(--toolchain "$TOOLCHAIN")
 fi
-XCRUN_ARGS+=(swift-stdlib-tool --copy)
 XCRUN_ARGS+=(--destination "$FULLPATH")
 XCRUN_ARGS+=("${TOOL_ARGS[@]}")
 
