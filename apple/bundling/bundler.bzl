@@ -837,12 +837,15 @@ def _run(
 
     # The files below need to be merged with specific names in the final
     # bundle.
-    bundle_merge_files.append(bundling_support.contents_file(
+    if bundle_dir:
+      file_creator = bundling_support.resource_file
+    else:
+      file_creator = bundling_support.contents_file
+    bundle_merge_files.append(file_creator(
         ctx, plist_results.output_plist,
         optionally_prefixed_path("Info.plist", bundle_dir)))
-
     if plist_results.pkginfo:
-      bundle_merge_files.append(bundling_support.contents_file(
+      bundle_merge_files.append(file_creator(
           ctx, plist_results.pkginfo,
           optionally_prefixed_path("PkgInfo", bundle_dir)))
 
