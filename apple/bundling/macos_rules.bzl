@@ -113,8 +113,8 @@ def _macos_application_impl(ctx):
 
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
 
   additional_resource_sets = []
   additional_resources = depset(app_icons)
@@ -192,8 +192,8 @@ def _macos_bundle_impl(ctx):
   """Implementation of the macos_bundle rule."""
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
 
   additional_resource_sets = []
   additional_resources = depset(app_icons)
@@ -339,8 +339,8 @@ def _macos_extension_impl(ctx):
   """Implementation of the macos_extension rule."""
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
 
   additional_resource_sets = []
   additional_resources = depset(app_icons)

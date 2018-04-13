@@ -76,12 +76,12 @@ def _ios_application_impl(ctx):
 
   app_icons = ctx.files.app_icons
   if app_icons:
-    bundling_support.ensure_single_asset_type(
-        app_icons, ["appiconset"], "app_icons")
+    bundling_support.ensure_single_xcassets_type(
+        "app_icons", app_icons, "appiconset")
   launch_images = ctx.files.launch_images
   if launch_images:
-    bundling_support.ensure_single_asset_type(
-        launch_images, ["launchimage"], "launch_images")
+    bundling_support.ensure_single_xcassets_type(
+        "launch_images", launch_images, "launchimage")
 
   # Collect asset catalogs, launch images, and the launch storyboard, if any are
   # present.
@@ -195,8 +195,7 @@ def _ios_extension_impl(ctx):
   app_icons = ctx.files.app_icons
   if app_icons:
     product_type = product_support.product_type(ctx)
-    if product_type in (apple_product_type.messages_extension,
-                        apple_product_type.messages_sticker_pack_extension):
+    if product_type == apple_product_type.messages_extension:
       # TODO: Enable this validation, once some more details are sorted
       # out, it doesn't seem like stickers have to be within a stickerpack,
       # but can also in just in xcassets. Xcode doesn't appear to support
@@ -206,9 +205,25 @@ def _ios_extension_impl(ctx):
       #bundling_support.ensure_single_asset_type(
       #    app_icons, ["stickersiconset", "stickerpack"], "app_icons",
       #    assets_catalog_suffix="xcstickers", message=message)
+    elif product_type == apple_product_type.messages_sticker_pack_extension:
+      path_fragments = [
+        # Replacement for appiconset.
+        ["xcstickers", "stickersiconset" ],
+        # The stickers.
+        ["xcstickers", "stickerpack", "sticker"],
+        ["xcstickers", "stickerpack", "stickersequence"],
+      ]
+      message = (
+          "Message StickerPack extensions use an asset catalog named " +
+          "*.xcstickers. Their main icons use *.stickersiconset; and then " +
+          "under the Sticker Pack (*.stickerpack) goes the Stickers " +
+          "(named *.sticker) and/or Sticker Sequences (named " +
+          "*.stickersequence)")
+      bundling_support.ensure_path_format(
+          "app_icons", app_icons, path_fragments, message=message)
     else:
-      bundling_support.ensure_single_asset_type(
-          app_icons, ["appiconset"], "app_icons")
+      bundling_support.ensure_single_xcassets_type(
+          "app_icons", app_icons, "appiconset")
 
   # Collect asset catalogs and launch images if any are present.
   additional_resource_sets = []

@@ -426,7 +426,10 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log "Message extensions must use Messages Extensions Icon Sets (named .stickersiconset)"
+  # Check for the start of the log message
+  expect_log "Message StickerPack extensions use an asset catalog named "
+  # The 10 icons and the Contents.json should all be listed, so 11 hits.
+  expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 11
 }
 
 # Tests that if an application contains an extension with a bundle ID that is
