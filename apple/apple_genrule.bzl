@@ -16,8 +16,7 @@ load("@bazel_skylib//lib:paths.bzl",
      "paths")
 load("@build_bazel_rules_apple//apple:utils.bzl",
      "apple_action",
-     "DARWIN_EXECUTION_REQUIREMENTS",
-     "get_environment_supplier")
+     "DARWIN_EXECUTION_REQUIREMENTS")
 
 def _compute_make_variables(genfiles_dir,
                             label,
@@ -67,7 +66,8 @@ def _apple_genrule_impl(ctx):
   message = ctx.attr.message or "Executing apple_genrule"
 
   env = dict(ctx.configuration.default_shell_env)
-  env.update(get_environment_supplier().apple_host_system_env(ctx))
+  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+  env.update(apple_common.apple_host_system_env(xcode_config))
 
   apple_action(ctx,
                inputs=list(resolved_srcs) + resolved_inputs,
