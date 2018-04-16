@@ -17,7 +17,6 @@
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "apple_action",
-    "get_environment_supplier",
 )
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
@@ -165,10 +164,10 @@ def _xcode_env_action(ctx, **kwargs):
     **kwargs: Arguments to be passed into apple_action.
   """
   platform = _platform(ctx)
-  environment_supplier = get_environment_supplier()
+  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
   action_env = dict(kwargs.get("env", {}))
-  action_env.update(environment_supplier.target_apple_env(ctx, platform))
-  action_env.update(environment_supplier.apple_host_system_env(ctx))
+  action_env.update(apple_common.target_apple_env(xcode_config, platform))
+  action_env.update(apple_common.apple_host_system_env(xcode_config))
 
   kwargs["env"] = action_env
 
