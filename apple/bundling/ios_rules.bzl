@@ -171,6 +171,7 @@ ios_application = rule_factory.make_bundling_rule(
         ),
     },
     archive_extension=".ipa",
+    bundles_frameworks=True,
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["iphone", "ipad"]),
     needs_pkginfo=True,
@@ -274,7 +275,6 @@ ios_extension = rule_factory.make_bundling_rule(
             apple_product_type.messages_sticker_pack_extension,
         ],
     ),
-    propagates_frameworks=True,
 )
 
 
@@ -333,7 +333,6 @@ ios_framework = rule_factory.make_bundling_rule(
     product_type=rule_factory.product_type(
         apple_product_type.framework, private=True,
     ),
-    propagates_frameworks=True,
 )
 
 
@@ -419,5 +418,4 @@ ios_static_framework = rule_factory.make_bundling_rule(
     product_type=rule_factory.product_type(
         apple_product_type.static_framework, private=True,
     ),
-    propagates_frameworks=True,
 )

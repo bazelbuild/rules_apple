@@ -49,6 +49,14 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     archive_extension=".zip",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
     bundle_id_attr_mode=rule_factory.attribute_modes.OPTIONAL,
+    # When running tests, non-logic test bundles are expected to be embedded
+    # inside an application bundle. But because of how bazel expects test
+    # targets to be organized, the application target does not have a reference
+    # to the test target. Therefore, whichever frameworks that are only used by
+    # the test binary need to be embedded inside the test bundle, so we set
+    # bundles_frameworks to True, and implementation of the rule should
+    # deduplicate frameworks that are already present in the test host.
+    bundles_frameworks=True,
     code_signing=rule_factory.code_signing(
         ".mobileprovision",
         requires_signing_for_device=False

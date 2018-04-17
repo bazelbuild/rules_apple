@@ -67,6 +67,15 @@ def _apple_test_bundle_impl(ctx,
          "same as the test host's bundle identifier. Please change one of " +
          "them.")
 
+  bundler_extra_args = {}
+  if ctx.attr.test_host:
+    # We gather the framework files which have already been bundled inside the
+    # application bundle, so that the bundler can deduplicate framework files
+    # that do not need to be present in both bundles, reducing overall size.
+    test_host_apple_bundle = ctx.attr.test_host[AppleBundleInfo]
+    bundler_extra_args["avoid_propagated_framework_files"] = (
+        test_host_apple_bundle.propagated_framework_files)
+
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
@@ -79,6 +88,7 @@ def _apple_test_bundle_impl(ctx,
       binary_artifact=binary_artifact,
       deps_objc_providers=[deps_objc_provider],
       version_keys_required=False,
+      **bundler_extra_args
   )
   return struct(
       files=additional_outputs,

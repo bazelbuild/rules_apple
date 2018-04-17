@@ -171,6 +171,7 @@ macos_application = rule_factory.make_bundling_rule(
         },
     ),
     archive_extension=".zip",
+    bundles_frameworks=True,
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False
     ),
@@ -241,6 +242,7 @@ macos_bundle = rule_factory.make_bundling_rule(
     ),
     archive_extension=".zip",
     binary_providers=[apple_common.AppleLoadableBundleBinary],
+    bundles_frameworks=True,
     code_signing=rule_factory.code_signing(
         ".provisionprofile", requires_signing_for_device=False
     ),
@@ -391,5 +393,4 @@ macos_extension = rule_factory.make_bundling_rule(
     product_type=rule_factory.product_type(
         apple_product_type.app_extension, private=True,
     ),
-    propagates_frameworks=True,
 )

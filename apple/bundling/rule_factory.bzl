@@ -348,6 +348,7 @@ def _make_bundling_rule(implementation,
                         archive_extension=None,
                         binary_providers=[apple_common.AppleExecutableBinary],
                         bundle_id_attr_mode=_attribute_modes.MANDATORY,
+                        bundles_frameworks=False,
                         code_signing=None,
                         device_families=None,
                         infoplists_attr_mode=_attribute_modes.MANDATORY,
@@ -355,7 +356,6 @@ def _make_bundling_rule(implementation,
                         path_formats=None,
                         platform_type=None,
                         product_type=None,
-                        propagates_frameworks=False,
                         use_binary_rule=True,
                         **kwargs):
   """Creates and returns an Apple bundling rule with the given properties.
@@ -368,6 +368,9 @@ def _make_bundling_rule(implementation,
     binary_providers: The providers that should restrict the `binary` attribute
         of the rule. Defaults to `[apple_common.AppleExecutableBinary]`.
     bundle_id_attr_mode: An `attribute_modes` for the `bundle_id` attribute.
+    bundles_frameworks: True if the targets created by this rule should
+        bundle its framework/dylib dependencies plus the frameworks/dylibs of
+        embedded bundles.
     code_signing: A value returned by `rule_factory.code_signing` that provides
         information about if and how the bundle should be signed.
     device_families: A value returned by `rule_factory.device_families` that
@@ -382,9 +385,6 @@ def _make_bundling_rule(implementation,
     product_type: A value returned by `rule_factory.product_type` that provides
         information about the default product type for targets created by this
         rule and whether or not the attribute is private.
-    propagates_frameworks: True if the targets created by this rule should
-        propagate their framework/dylib dependencies to the bundles that embed
-        them, rather than being bundled with the target itself.
     use_binary_rule: True if this depends on a full-fledged binary rule,
         such as apple_binary or apple_stub_binary.
     **kwargs: Additional arguments that are passed directly to `rule()`.
@@ -489,9 +489,9 @@ def _make_bundling_rule(implementation,
           "minimum_os_version": attr.string(mandatory=False),
           "strings": attr.label_list(allow_files=[".strings"]),
           "version": attr.label(providers=[[AppleBundleVersionInfo]]),
+          "_bundles_frameworks": attr.bool(default=bundles_frameworks),
           "_needs_pkginfo": attr.bool(default=needs_pkginfo),
           "_platform_type": attr.string(default=str(platform_type)),
-          "_propagates_frameworks": attr.bool(default=propagates_frameworks),
       },
       configurable_attrs,
       _code_signing_attributes(code_signing),
