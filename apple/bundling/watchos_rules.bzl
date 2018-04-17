@@ -97,6 +97,7 @@ watchos_application = rule_factory.make_bundling_rule(
         ),
     },
     archive_extension=".zip",
+    bundles_frameworks=True,
     code_signing=rule_factory.code_signing(".mobileprovision"),
     device_families=rule_factory.device_families(allowed=["watch"]),
     needs_pkginfo=True,
@@ -162,5 +163,4 @@ watchos_extension = rule_factory.make_bundling_rule(
     product_type=rule_factory.product_type(
         apple_product_type.watch2_extension, private=True
     ),
-    propagates_frameworks=True,
 )

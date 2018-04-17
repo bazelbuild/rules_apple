@@ -610,6 +610,7 @@ def _run(
     binary_artifact,
     additional_bundlable_files=depset(),
     additional_resource_sets=[],
+    avoid_propagated_framework_files=None,
     embedded_bundles=[],
     framework_files=depset(),
     is_dynamic_framework=False,
@@ -634,6 +635,10 @@ def _run(
         represent resources not included by dependencies that should also be
         processed among the other resources in the target (for example, app
         icons, launch images, launch storyboards, and settings bundle files).
+    avoid_propagated_framework_files: An optional list of framework files to be
+        avoided when bundling the target. This exists to allow test bundles to
+        deduplicate framework files which have already been bundled in the test
+        host.
     embedded_bundles: A list of values (as returned by
         `bundling_support.embedded_bundle`) that denote bundles such as
         extensions or frameworks that should be included in the bundle being
@@ -743,7 +748,6 @@ def _run(
       if _ResourceBundleInfo in framework:
         framework_resource_sets.extend(
             framework[_ResourceBundleInfo].resource_sets)
-      if ctx.attr._propagates_frameworks:
         propagated_framework_zips.append(framework[AppleBundleInfo].archive)
 
     # Add the transitive resource sets, except for those that have already been
@@ -887,11 +891,11 @@ def _run(
   if uses_swift:
     swift_zip = swift_actions.zip_swift_dylibs(ctx, binary_artifact)
 
-    if ctx.attr._propagates_frameworks:
-      propagated_framework_zips.append(swift_zip)
-    else:
+    if ctx.attr._bundles_frameworks:
       bundle_merge_zips.append(bundling_support.contents_file(
           ctx, swift_zip, "Frameworks"))
+    else:
+      propagated_framework_zips.append(swift_zip)
 
     platform = platform_support.platform(ctx)
     root_merge_zips.append(bundling_support.bundlable_file(
@@ -915,12 +919,13 @@ def _run(
           bitcode_maps_zip, "BCSymbolMaps"))
 
   # Include any embedded bundles.
+  propagated_framework_files = depset()
   for eb in embedded_bundles:
     apple_bundle = eb.target[AppleBundleInfo]
-    if ctx.attr._propagates_frameworks:
-      propagated_framework_zips += list(apple_bundle.propagated_framework_zips)
-      propagated_framework_files += list(apple_bundle.propagated_framework_files)
-    else:
+
+    propagated_framework_files = depset(
+        transitive=[propagated_framework_files, apple_bundle.propagated_framework_files])
+    if ctx.attr._bundles_frameworks:
       if apple_bundle.propagated_framework_zips:
         bundle_merge_zips.extend([
             bundling_support.contents_file(ctx, f, "Frameworks")
@@ -929,18 +934,31 @@ def _run(
       if apple_bundle.propagated_framework_files:
         bundle_merge_files.extend(_bundlable_dynamic_framework_files(
             ctx, apple_bundle.propagated_framework_files))
+    else:
+      # TODO(kaipi): This is needed to avoid propagating watchOS frameworks into
+      # the iOS bundle. But we should differentiate the _bundles_frameworks into
+      # 2 dimensions: whether to propagate and whether to bundle. For instance,
+      # we want ios_application to bundle and propagate frameworks (for
+      # ios_unit_test to deduplicate), but watchos_application to only bundle
+      # and not propagate.
+      propagated_framework_zips += list(apple_bundle.propagated_framework_zips)
 
     bundle_merge_zips.append(bundling_support.contents_file(
         ctx, apple_bundle.archive, eb.path))
     root_merge_zips.extend(list(apple_bundle.root_merge_zips))
 
   # Merge in any prebuilt frameworks (i.e., objc_framework dependencies).
-  propagated_framework_files = []
   for objc in deps_objc_providers:
     files = objc.dynamic_framework_file
-    if ctx.attr._propagates_frameworks:
-      propagated_framework_files.extend(list(files))
-    else:
+    propagated_framework_files = depset(
+        transitive=[propagated_framework_files, files])
+    if ctx.attr._bundles_frameworks:
+      # Deduplicate framework files which have already been packaged in the
+      # container bundle. This enables test bundles from bundling frameworks
+      # which have already been bundled in the test host.
+      if avoid_propagated_framework_files:
+        paths = [x.short_path for x in avoid_propagated_framework_files]
+        files = depset([x for x in files if x.short_path not in paths])
       bundle_merge_files.extend(_bundlable_dynamic_framework_files(ctx, files))
 
   bundle_merge_files = _dedupe_bundle_merge_files(bundle_merge_files)
@@ -1037,7 +1055,7 @@ def _run(
       "infoplist": main_infoplist,
       "minimum_os_version": platform_support.minimum_os(ctx),
       "product_type": product_type,
-      "propagated_framework_files": depset(propagated_framework_files),
+      "propagated_framework_files": propagated_framework_files,
       "propagated_framework_zips": depset(propagated_framework_zips),
       "root_merge_zips": root_merge_zips if not _is_ipa(ctx) else [],
       "uses_swift": uses_swift,

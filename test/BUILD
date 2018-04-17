@@ -266,6 +266,7 @@ apple_multi_shell_test(
     src = "ios_unit_test_test.sh",
     configurations = IOS_TEST_CONFIGURATIONS,
     data = [
+        "//test/testdata/binaries:empty_dylib",
         "//test/testdata/rules:dummy_runner",
     ],
     shard_count = 8,

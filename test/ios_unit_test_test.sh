@@ -366,4 +366,168 @@ function test_dsyms_generated() {
   done
 }
 
+function test_logic_unit_test_packages_objc_framework_targets {
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+     "ios_unit_test",
+    )
+
+objc_framework(
+    name = "my_framework",
+    framework_imports = ["my_framework.framework/my_framework"],
+    is_dynamic = 1,
+)
+
+objc_library(
+    name = "test_lib",
+    srcs = [
+        "Tests.m",
+    ],
+    deps = [":my_framework"],
+)
+
+ios_unit_test(
+    name = "test",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":test_lib"],
+)
+EOF
+
+  mkdir -p app/my_framework.framework
+  cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin) \
+      app/my_framework.framework/my_framework
+
+  cat > app/my_framework.framework/Info.plist <<EOF
+Dummy plist
+EOF
+
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/Tests.m <<EOF
+#import <Foundation/Foundation.h>
+#import <XCTest/XCTest.h>
+
+@interface Tests: XCTestCase
+@end
+
+@implementation Tests
+
+- (void)testSomething {
+  XCTAssertTrue(true);
+}
+
+@end
+EOF
+
+  do_build ios //app:test || fail "Should build"
+
+  assert_zip_contains "test-bin/app/test.zip" \
+      "test.xctest/Frameworks/my_framework.framework/my_framework"
+
+}
+
+function test_hosted_unit_test_doesnt_package_objc_framework_targets {
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+     "ios_unit_test",
+     "ios_application",
+    )
+
+objc_framework(
+    name = "my_framework",
+    framework_imports = ["my_framework.framework/my_framework"],
+    is_dynamic = 1,
+)
+
+objc_library(
+    name = "test_lib",
+    srcs = [
+        "Tests.m",
+    ],
+    deps = [":my_framework"],
+)
+
+objc_library(
+    name = "main_lib",
+    srcs = [
+        "main.m",
+    ],
+    deps = [":my_framework"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "com.google.test",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":main_lib"],
+)
+
+ios_unit_test(
+    name = "test",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+    deps = [":test_lib"],
+)
+EOF
+
+  mkdir -p app/my_framework.framework
+  cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin) \
+      app/my_framework.framework/my_framework
+
+  cat > app/my_framework.framework/Info.plist <<EOF
+Dummy plist
+EOF
+
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/main.m <<EOF
+int main() { return 0; }
+EOF
+
+  cat > app/Tests.m <<EOF
+#import <Foundation/Foundation.h>
+#import <XCTest/XCTest.h>
+
+@interface Tests: XCTestCase
+@end
+
+@implementation Tests
+
+- (void)testSomething {
+  XCTAssertTrue(true);
+}
+
+@end
+EOF
+
+  do_build ios //app:test || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/my_framework.framework/my_framework"
+  assert_zip_not_contains "test-bin/app/test.zip" \
+      "test.xctest/Frameworks/my_framework.framework/my_framework"
+
+}
+
 run_suite "ios_unit_test bundling tests"
