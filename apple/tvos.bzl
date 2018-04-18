@@ -74,11 +74,6 @@ def tvos_application(name, **kwargs):
         Each file must have a containing directory named
         `"*.xcassets/*.launchimage"` and there may be only one such
         `.launchimage` directory in the list.
-    launch_storyboard: The `.storyboard` or `.xib` file that should be used as
-        the launch screen for the application. The provided file will be
-        compiled into the appropriate format and placed in the root of the
-        final bundle. The generated file is registered in the final bundle's
-        `Info.plist` under the key `UILaunchStoryboardName`.
     linkopts: A list of strings representing extra flags that the underlying
         `apple_binary` target should pass to the linker.
     provisioning_profile: The provisioning profile (`.mobileprovision` file) to
