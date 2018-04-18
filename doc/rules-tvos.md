@@ -6,8 +6,8 @@
 ```python
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, extensions, infoplists, ipa_post_processor,
-launch_images, launch_storyboard, linkopts, minimum_os_version,
-provisioning_profile, settings_bundle, strings, version, deps)
+launch_images, linkopts, minimum_os_version, provisioning_profile,
+settings_bundle, strings, version, deps)
 ```
 
 Builds and bundles a tvOS application.
@@ -120,20 +120,6 @@ Builds and bundles a tvOS application.
         <p>Files that comprise the launch images for the application. Each file
         must have a containing directory named<code>*.xcassets/*.launchimage</code> and
         there may be only one such <code>.launchimage</code> directory in the list.</p>
-        <p>It is recommended that you use a <code>launch_storyboard</code> instead if
-        you are targeting only iOS 8 and later.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>launch_storyboard</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The <code>.storyboard</code> or <code>.xib</code> file that should
-        be used as the launch screen for the application. The provided file will
-        be compiled into the appropriate format (<code>.storyboardc</code> or
-        <code>.nib</code>) and placed in the root of the final bundle. The
-        generated file will also be registered in the bundle's <code>Info.plist</code>
-        under the key <code>UILaunchStoryboardName</code>.</p>
       </td>
     </tr>
     <tr>

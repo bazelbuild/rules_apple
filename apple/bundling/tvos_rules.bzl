@@ -50,13 +50,9 @@ def _tvos_application_impl(ctx):
     bundling_support.ensure_single_xcassets_type(
         "launch_images", launch_images, "launchimage")
 
-  # Collect asset catalogs, launch images, and the launch storyboard, if any are
-  # present.
+  # Collect asset catalogs and launch images, if any are present.
   additional_resource_sets = []
   additional_resources = depset(app_icons + launch_images)
-  launch_storyboard = ctx.file.launch_storyboard
-  if launch_storyboard:
-    additional_resources += [launch_storyboard]
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
@@ -113,10 +109,6 @@ tvos_application = rule_factory.make_bundling_rule(
             providers=[[AppleBundleInfo, TvosExtensionBundleInfo]],
         ),
         "launch_images": attr.label_list(allow_files=True),
-        "launch_storyboard": attr.label(
-            allow_files=[".storyboard", ".xib"],
-            single_file=True,
-        ),
         "settings_bundle": attr.label(providers=[["objc"]]),
     },
     archive_extension=".ipa",
