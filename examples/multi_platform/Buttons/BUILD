@@ -81,8 +81,7 @@ ios_application(
     ],
     infoplists = ["Buttons/Info.plist"],
     minimum_os_version = "8.0",
-    # Enable when watchOS CROSSTOOL is fixed.
-    # watch_application = ":ButtonsWatch",
+    watch_application = ":ButtonsWatch",
     deps = [
         ":ButtonsLib",
         ":ButtonsResources",
@@ -150,27 +149,26 @@ objc_library(
 
 ## Packaging
 
-# Enable when watchOS CROSSTOOL is fixed.
-# watchos_application(
-#     name = "ButtonsWatch",
-#     bundle_id = "com.google.Buttons.watchkitapp",
-#     extension = ":ButtonsWatchExtension",
-#     infoplists = ["ButtonsWatch/Info.plist"],
-#     minimum_os_version = "3.0",
-#     deps = [
-#         ":ButtonsWatchResources",
-#     ],
-# )
-#
-# watchos_extension(
-#     name = "ButtonsWatchExtension",
-#     bundle_id = "com.google.Buttons.watchkitapp.watchkitextension",
-#     infoplists = ["ButtonsWatchExtension/Info.plist"],
-#     minimum_os_version = "3.0",
-#     deps = [
-#         ":ButtonsWatchExtensionLib",
-#     ],
-# )
+watchos_application(
+    name = "ButtonsWatch",
+    bundle_id = "com.google.Buttons.watchkitapp",
+    extension = ":ButtonsWatchExtension",
+    infoplists = ["ButtonsWatch/Info.plist"],
+    minimum_os_version = "3.0",
+    deps = [
+        ":ButtonsWatchResources",
+    ],
+)
+
+watchos_extension(
+    name = "ButtonsWatchExtension",
+    bundle_id = "com.google.Buttons.watchkitapp.watchkitextension",
+    infoplists = ["ButtonsWatchExtension/Info.plist"],
+    minimum_os_version = "3.0",
+    deps = [
+        ":ButtonsWatchExtensionLib",
+    ],
+)
 
 # tvOS
 
