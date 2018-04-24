@@ -103,3 +103,34 @@ macos_command_line_infoplist = rule(
         }),
     fragments=["apple", "objc"],
 )
+
+def _macos_command_line_launchdplist_impl(ctx):
+  launchdplists = ctx.files.launchdplists
+
+  if not launchdplists:
+    fail("Internal error: launchdplists should have been provided")
+
+  plist_results = plist_actions.merge_infoplists(
+      ctx,
+      None,
+      launchdplists)
+  merged_launchdplist = plist_results.output_plist
+
+  return struct(
+      objc=linker_support.sectcreate_objc_provider(
+          "__TEXT", "__launchd_plist", merged_launchdplist
+      ))
+
+macos_command_line_launchdplist = rule(
+    _macos_command_line_launchdplist_impl,
+    attrs=dicts.add(
+        rule_factory.common_tool_attributes,
+        {
+            "launchdplists": attr.label_list(
+                allow_files=[".plist"],
+                mandatory=False,
+                non_empty=False,
+            ),
+        }),
+    fragments=["apple", "objc"],
+)
