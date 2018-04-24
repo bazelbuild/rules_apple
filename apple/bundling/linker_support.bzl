@@ -31,7 +31,9 @@ def _sectcreate_objc_provider(segname, sectname, file):
   Returns:
     An objc provider that propagates the section linkopts.
   """
-  linkopts = ["-sectcreate", segname, sectname, file.path]
+  # linkopts get deduped, so use a single option to pass then through as a
+  # set.
+  linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
   return apple_common.new_objc_provider(
       linkopt=depset(linkopts, order="topological"),
       link_inputs=depset([file]),
