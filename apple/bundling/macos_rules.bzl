@@ -326,6 +326,11 @@ macos_command_line_application = rule(
                 mandatory=False,
                 non_empty=False,
             ),
+            "launchdplists": attr.label_list(
+                allow_files=[".plist"],
+                mandatory=False,
+                non_empty=False,
+            ),
             "minimum_os_version": attr.string(mandatory=False),
             "version": attr.label(providers=[[AppleBundleVersionInfo]]),
             "_platform_type": attr.string(

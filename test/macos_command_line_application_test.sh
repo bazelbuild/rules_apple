@@ -63,10 +63,12 @@ EOF
 
   # Make sure that an Info.plist did *not* get embedded in this case.
   otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __launchd_plist test-bin/app/app >> $TEST_TMPDIR/otool.out
   assert_not_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
+  assert_not_contains "__TEXT,__launchd_plist" $TEST_TMPDIR/otool.out
 }
 
-# Tests that a bare-bones command line app builds.
+# Tests that a bare-bones command line app builds embeds an info plist.
 function test_info_plist_embedding() {
   create_common_files
 
@@ -100,6 +102,56 @@ EOF
   # Make sure that an Info.plist did get embedded.
   otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
   assert_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
+}
+
+# Tests that a bare-bones command line app builds and embeds an info and
+# launchd plist.
+function test_info_launchd_plist_embedding() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+macos_command_line_application(
+    name = "app",
+    bundle_id = "com.test.bundle",
+    infoplists = [
+        "Info.plist",
+        "Another.plist",
+    ],
+    launchdplists = [
+        "launchd.plist",
+        "Another.plist",
+    ],
+    minimum_os_version = "10.11",
+    deps = [":lib"],
+)
+EOF
+
+  cat > app/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+}
+EOF
+
+  cat > app/Another.plist <<EOF
+{
+  AnotherKey = "AnotherValue";
+}
+EOF
+
+  cat > app/launchd.plist <<EOF
+{
+  Label = "com.test.bundle";
+  MachServices = { com.test.bundle = true; };
+}
+EOF
+
+  do_build macos //app:app || fail "Should build"
+
+  # Make sure that an Info.plist and launchd.plist did get embedded.
+  otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __launchd_plist test-bin/app/app >> $TEST_TMPDIR/otool.out
+  assert_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
+  assert_contains "__TEXT,__launchd_plist" $TEST_TMPDIR/otool.out
 }
 
 # Tests that linkopts get passed to the underlying apple_binary target.

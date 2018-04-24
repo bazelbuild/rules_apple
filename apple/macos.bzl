@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:macos_command_line_support.bzl",
     "macos_command_line_infoplist",
+    "macos_command_line_launchdplist",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
@@ -265,6 +266,7 @@ def macos_command_line_application(name, **kwargs):
     infoplists: A list of plist files that will be merged and embedded in the
         binary. The merge is only at the top level of the plist; so
         sub-dictionaries are not merged.
+    launchdplists: A list of plist files that will be merged and embedded.
     linkopts: A list of strings representing extra flags that should be passed
         to the linker.
     minimum_os_version: An optional string indicating the minimum macOS version
@@ -295,11 +297,11 @@ def macos_command_line_application(name, **kwargs):
   # must become a dependency of the binary as well.
   bundle_id = binary_args.get("bundle_id")
   infoplists = binary_args.get("infoplists")
+  launchdplists = binary_args.get("launchdplists")
   version = binary_args.get("version")
 
   if bundle_id or infoplists or version:
     merged_infoplist_name = name + ".merged_infoplist"
-    merged_infoplist_lib_name = merged_infoplist_name + "_lib"
 
     macos_command_line_infoplist(
         name = merged_infoplist_name,
@@ -309,6 +311,15 @@ def macos_command_line_application(name, **kwargs):
         version = version,
     )
     binary_deps.extend([":" + merged_infoplist_name])
+
+  if launchdplists:
+    merged_launchdplists_name = name + ".merged_launchdplists"
+
+    macos_command_line_launchdplist(
+        name = merged_launchdplists_name,
+        launchdplists = launchdplists,
+    )
+    binary_deps.extend([":" + merged_launchdplists_name])
 
   testonly = binary_args.get("testonly", False)
 
