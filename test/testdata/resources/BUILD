@@ -26,6 +26,7 @@ filegroup(
         ":assets2_ios",
         ":assets_ios",
         ":launch_images_ios",
+        ":localized_assets_ios",
         ":localized_storyboards_ios",
         ":localized_xibs_ios",
         ":message_ext_app_icon_ios",
@@ -44,6 +45,7 @@ filegroup(
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle_files",
+        ":localized_datamodel",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
@@ -101,9 +103,13 @@ genrule(
 
 objc_bundle_library(
     name = "bundle_library_ios",
-    asset_catalogs = [":assets_ios"],
+    asset_catalogs = [
+        ":assets_ios",
+        ":localized_assets_ios",
+    ],
     bundles = [":basic_bundle"],
     datamodels = [
+        ":localized_datamodel",
         ":unversioned_datamodel",
         ":versioned_datamodel",
     ],
@@ -145,6 +151,7 @@ objc_bundle_library(
     # and targeting macOS. So until objc_bundle_library is redone in
     # skylark we might just have to live this this.
     #datamodels = [
+    #    ":localized_datamodel",
     #    ":unversioned_datamodel",
     #    ":versioned_datamodel",
     #],
@@ -208,6 +215,11 @@ filegroup(
 )
 
 filegroup(
+    name = "localized_assets_ios",
+    srcs = glob(["*.lproj/*.xcassets/**"]),
+)
+
+filegroup(
     name = "localized_generic_resources",
     srcs = glob(["*.lproj/*.txt"]),
 )
@@ -230,6 +242,11 @@ filegroup(
 filegroup(
     name = "localized_xibs_ios",
     srcs = glob(["*.lproj/*.xib"]),
+)
+
+filegroup(
+    name = "localized_datamodel",
+    srcs = glob(["*.lproj/*.xcdatamodeld/**"]),
 )
 
 filegroup(

@@ -169,7 +169,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios --define "apple.locales_to_include=all" //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
@@ -266,7 +266,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios --define "apple.locales_to_include=all" //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
@@ -357,7 +357,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios --define "apple.locales_to_include=all" //app:app || fail "Should build"
 
   # Verify that nonlocalized processed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
