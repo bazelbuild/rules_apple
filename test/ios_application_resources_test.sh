@@ -225,12 +225,6 @@ function test_localized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    asset_catalogs = [
-        "@build_bazel_rules_apple//test/testdata/resources:localized_assets_ios",
-    ],
-    datamodels = [
-        "@build_bazel_rules_apple//test/testdata/resources:localized_datamodel",
-    ],
     resources = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_plists",
     ],
@@ -256,7 +250,7 @@ ios_application(
 )
 EOF
 
-  do_build ios --define "apple.locales_to_include=all" //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify compiled storyboards.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -278,14 +272,6 @@ EOF
   # Verify compiled NIBs.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/view_ios.nib"
-
-  # Verify compiled Assets.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/Assets.car"
-
-  # Verify compiled Datamodel.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.mom"
 }
 
 # Tests that generic flattened but unprocessed resources are bundled correctly
@@ -314,55 +300,10 @@ ios_application(
 )
 EOF
 
-  # Localized resource stripping only occurs on
-  do_build ios //app:app -c opt || fail "Should build"
+  do_build ios //app:app || fail "Should build"
+
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c dbg || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c fastbuild || fail "Should build"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c opt --define "apple.locales_to_include=fr" || fail "Should build"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c dbg --define "apple.locales_to_include=fr" || fail "Should build"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c fastbuild --define "apple.locales_to_include=fr" || fail "Should build"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c opt --define "apple.locales_to_include=it" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c dbg --define "apple.locales_to_include=it" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c fastbuild --define "apple.locales_to_include=it" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c opt --define "apple.locales_to_include=all" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c dbg --define "apple.locales_to_include=all" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
-  do_build ios //app:app -c fastbuild --define "apple.locales_to_include=all" || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.txt"
-
 }
 
 # Tests that the app icons and launch images are bundled with the application
@@ -563,7 +504,7 @@ EOF
   create_dump_plist "//app:app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
-  do_build ios --define "apple.locales_to_include=all" //app:dump_plist || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
@@ -723,7 +664,7 @@ ios_application(
 )
 EOF
 
-  do_build ios --define "apple.locales_to_include=all" //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the files exist and are compiled in binary format.
   assert_zip_contains "test-bin/app/app.ipa" \

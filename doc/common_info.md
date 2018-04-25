@@ -72,6 +72,7 @@ mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
 -->
+
 <!-- Blocked on b/73547215
 
 ### linkmap Generation {#objc_generate_linkmap}
@@ -135,21 +136,6 @@ bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
  Support for this option is tracked in b/35451264, but because of the tree
  artifact issues, it isn't really useful at the moment.
 -->
-
-### Localization Handling
-
-To improve compile/debug/test cycles, the Apple rules only copy `Base.lproj/*`,
-`en.lproj/*`, `English.lproj/*` and `en_US.lproj/*` resources when building in
-`-c fastbuild`. Note that `-c fastbuild` is the default build. To override the
-resources for localization testing add `--define
-"apple.locales_to_include=foo,bar,bam"` where `foo,bar,bam` are the exact names
-of the locales to be included. For example `pt` may not be sufficient as `pt_BR`
-or `pt_PT` is likely the name of the lproj folder. To include all locales, use
-the special value `all`. Note that `Base.lproj` is always included if it exists.
-
-Note that by default this only happens in `fastbuild`. `dbg` and `opt` are not
-affected unless `--define "apple.locales_to_include=foo,bar,bam"` is explicitly
-set for those build configurations.
 
 ## Info.plist Handling
 
