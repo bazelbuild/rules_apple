@@ -191,7 +191,7 @@ macos_application(
 )
 EOF
 
-  do_build macos //app:app || fail "Should build"
+  do_build macos --define "apple.locales_to_include=all" //app:app || fail "Should build"
 
   # TODO: storyboards
 
@@ -235,7 +235,7 @@ macos_application(
 )
 EOF
 
-  do_build macos //app:app || fail "Should build"
+  do_build macos --define "apple.locales_to_include=all" //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
@@ -365,7 +365,7 @@ EOF
   create_dump_plist "//app:app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
-  do_build macos //app:dump_plist || fail "Should build"
+  do_build macos --define "apple.locales_to_include=all" //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist

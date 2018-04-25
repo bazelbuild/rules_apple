@@ -16,11 +16,16 @@
 
 load("@bazel_skylib//lib:collections.bzl",
      "collections")
+load("@bazel_skylib//lib:partial.bzl",
+     "partial")
 load("@bazel_skylib//lib:paths.bzl",
      "paths")
+load("@bazel_skylib//lib:sets.bzl",
+     "sets")
 load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
      "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
+load("@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+     "file_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
 load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -824,7 +829,8 @@ def _process_single_resource_grouping(
     files,
     resource_info,
     group_extensions,
-    grouping_rules):
+    grouping_rules,
+    file_filter_partial):
   """Creates actions that processes files in a single resource group.
 
   The specified files are already assumed to have been grouped such that all of
@@ -845,6 +851,9 @@ def _process_single_resource_grouping(
         the rules to be applied; for example, the strings and plists in an
         `objc_bundle` can be processed while the other files can be copied
         without processing.
+    file_filter_partial: A partial that can be used to filter files out of
+        `files` before they are processed. If it is None, then `files `is passed
+        through unfiltered.
   Returns:
     A struct containing information that needs to be propagated back from
     individual actions to the main bundler. It contains the following fields:
@@ -859,36 +868,43 @@ def _process_single_resource_grouping(
   compiled_storyboards = depset()
   partial_infoplists = depset()
 
-  if group_extensions != _UNGROUPED:
-    # Find the grouping rule that was used to create this group.
-    for grouping_rule in grouping_rules:
-      if group_extensions == grouping_rule[0]:
-        _, arity, uses_module, function = grouping_rule
-
-    if arity == _arity.all:
-      action_results = [function(ctx, files, resource_info)]
-    elif arity == _arity.each:
-      action_results = [function(ctx, f, resource_info) for f in files]
-    else:
-      fail(("_process_resources is broken. Expected arity 'all' or 'each' " +
-            "but got '%s'") % arity)
-
-    # Collect the results from the individual actions.
-    for result in action_results:
-      bundle_merge_files = (
-          bundle_merge_files | getattr(result, "bundle_merge_files", []))
-      compiled_storyboards = (
-         compiled_storyboards | getattr(result, "compiled_storyboards", []))
-      partial_infoplists = (
-          partial_infoplists | getattr(result, "partial_infoplists", []))
+  if file_filter_partial:
+    filtered_files = [f for f in files if partial.call(file_filter_partial, f)]
   else:
-    # Add any unprocessed resources to the list of files that will just be
-    # copied into the bundle.
-    bundle_merge_files = bundle_merge_files | depset([
-        bundling_support.resource_file(ctx, f, optionally_prefixed_path(
-            resource_info.path_transform(f), resource_info.bundle_dir))
-        for f in files
-    ])
+    filtered_files = files
+
+  if filtered_files:
+    if group_extensions != _UNGROUPED:
+      # Find the grouping rule that was used to create this group.
+      for grouping_rule in grouping_rules:
+        if group_extensions == grouping_rule[0]:
+          _, arity, uses_module, function = grouping_rule
+
+      if arity == _arity.all:
+        action_results = [function(ctx, filtered_files, resource_info)]
+      elif arity == _arity.each:
+        action_results = [function(ctx, f, resource_info)
+                          for f in filtered_files]
+      else:
+        fail(("_process_resources is broken. Expected arity 'all' or 'each' " +
+              "but got '%s'") % arity)
+
+      # Collect the results from the individual actions.
+      for result in action_results:
+        bundle_merge_files = (
+            bundle_merge_files | getattr(result, "bundle_merge_files", []))
+        compiled_storyboards = (
+           compiled_storyboards | getattr(result, "compiled_storyboards", []))
+        partial_infoplists = (
+            partial_infoplists | getattr(result, "partial_infoplists", []))
+    else:
+      # Add any unprocessed resources to the list of files that will just be
+      # copied into the bundle.
+      bundle_merge_files = bundle_merge_files | depset([
+          bundling_support.resource_file(ctx, f, optionally_prefixed_path(
+              resource_info.path_transform(f), resource_info.bundle_dir))
+          for f in filtered_files
+      ])
 
   return struct(
       bundle_merge_files=bundle_merge_files,
@@ -991,7 +1007,8 @@ def _process_plists_and_strings(
     bundle_id,
     resource_sets,
     resource_set_key,
-    path_transform):
+    path_transform,
+    file_filter_partial):
   """Processes plists and strings but ignores other resource types.
 
   This function is used to handle legacy objc_bundles and structured_resources,
@@ -1009,6 +1026,9 @@ def _process_plists_and_strings(
         "structured_resources", or "objc_bundle_imports".
     path_transform: A function that will be called on each input file to obtain
         its relative output path in the bundle.
+    file_filter_partial: A partial that can be used to filter files out of
+        `files` before they are processed. If it is None, then `files `is passed
+        through unfiltered.
   Returns:
     A list of bundlable files that should be included among the
     `bundle_merge_files` of the bundle being processed.
@@ -1025,10 +1045,73 @@ def _process_plists_and_strings(
             bundle_id, bundle_dir, path_transform=path_transform)
         result = _process_single_resource_grouping(
             ctx, files, resource_info, group_extensions,
-            _PLIST_AND_STRING_GROUPING_RULES)
+            _PLIST_AND_STRING_GROUPING_RULES, file_filter_partial)
         bundle_merge_files.extend(list(result.bundle_merge_files))
 
   return bundle_merge_files
+
+
+def _locales_to_include(ctx):
+  """
+  Determines which locales to include in resource actions.
+
+  'Base' is always included.
+  If it is fastbuild and the user has not specified any locales to use we
+  use [Base, en, English, en_US] assuming that the user has en as their
+  CFBundleDevelopmentRegion.
+  If the user has specified "apple.locales_to_include" we use those.
+  Otherwise we don't filter.
+
+  Args:
+    ctx: The rule context.
+  Returns:
+    A list of locales to include and the list of locales that were
+    added by default that were not requested by the user.
+  """
+  user_locales = ctx.var.get("apple.locales_to_include")
+  is_fastbuild = ctx.var["COMPILATION_MODE"] == "fastbuild"
+  if user_locales != None:
+    locales_filtered = ["Base"]
+    locales = locales_filtered + [l.strip() for l in user_locales.split(",")]
+  elif is_fastbuild:
+    locales_filtered = ["Base", "en", "English", "en_US"]
+    locales = list(locales_filtered)
+  else:
+    locales_filtered = ["all"]
+    locales = list(locales_filtered)
+  return locales, locales_filtered
+
+
+def _locale_filter(locales_to_include, locales_filtered, f):
+  """Filters out any *.lproj folders that are not in `locales_to_include`.
+
+  Args:
+    locales_to_include: the locales to not filter out.
+    locales_filtered: the locales that have been filtered.
+    f: The file to potentially filter.
+  Returns:
+    True if the file should be used.
+  """
+  dirname = f.dirname
+  loc = dirname.find(".lproj")
+  if loc == -1:
+    return True
+  for locale in locales_to_include:
+    locale_len = len(locale)
+    locale_start = loc - locale_len
+    if locale_start < 0:
+      # String is shorter than the locale we are checking.
+      continue
+    dirlocale = dirname[locale_start:loc]
+    # Check to see if locale.lproj exists, and is at the end of the string or
+    # at the beginning of a string or is surrounded by /.
+    # 6 is the len(".lproj")
+    if ((dirlocale == locale) and
+        ((loc + 6) == len(dirname) or dirname[loc + 6] == "/") and
+        ((locale_start == 0) or dirname[locale_start - 1] == "/")):
+      locales_filtered.append(locale)
+      return True
+  return False
 
 
 def _process_resource_sets(ctx, bundle_id, resource_sets):
@@ -1056,6 +1139,13 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
   bundle_infoplists = {}
   bundle_to_tgt_datas = {}
 
+  locales_to_include, locales_filtered = _locales_to_include(ctx)
+  if "all" not in locales_to_include:
+    file_filter_partial = partial.make(_locale_filter, locales_to_include,
+                                       locales_filtered)
+  else:
+    file_filter_partial = None
+
   bundle_resources = _create_resource_groupings(
       resource_sets, "resources", _ALL_GROUPING_RULES)
   for bundle_dir, resource_map in bundle_resources.items():
@@ -1065,7 +1155,8 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
         resource_info = _resource_info(
             bundle_id, bundle_dir, swift_module=resource_group.swift_module)
         result = _process_single_resource_grouping(
-            ctx, files, resource_info, group_extensions, _ALL_GROUPING_RULES)
+            ctx, files, resource_info, group_extensions, _ALL_GROUPING_RULES,
+            file_filter_partial)
         bundle_merge_files.extend(list(result.bundle_merge_files))
 
         # Link the storyboards in the bundle, which not only resolves references
@@ -1089,10 +1180,10 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
   # else, copy the files verbatim.
   bundle_merge_files.extend(_process_plists_and_strings(
       ctx, bundle_id, resource_sets, "objc_bundle_imports",
-      path_utils.bundle_relative_path))
+      path_utils.bundle_relative_path, file_filter_partial))
   bundle_merge_files.extend(_process_plists_and_strings(
       ctx, bundle_id, resource_sets, "structured_resources",
-      path_utils.owner_relative_path))
+      path_utils.owner_relative_path, file_filter_partial))
 
   for r in resource_sets:
     # Copy any structured_resource_zips found in the resource sets.
@@ -1118,6 +1209,15 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
       else:
         bundle_to_tgt_datas[r.bundle_dir] = r.resource_bundle_target_data
 
+  if file_filter_partial:
+    # Warn the user if they have passed us locales that we don't filter.
+    # This is often just a typo in the command line which could be
+    # really frustrating to find without a warning.
+    if not sets.is_equal(locales_to_include, locales_filtered):
+      unused_locales = sets.difference(locales_to_include, locales_filtered)
+      print(("Warning: Did not use " + repr(unused_locales.to_list()) +
+             " in locale filter. Please verify apple.locales_to_include is" +
+             " defined properly."))
   return struct(
       bundle_infoplists=bundle_infoplists,
       bundle_merge_files=bundle_merge_files,
