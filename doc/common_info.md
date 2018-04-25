@@ -17,6 +17,31 @@ generating a dSYM bundle via `--apple_generate_dsym` when doing a `bazel build`.
 bazel build --apple_generate_dsym //your/target
 ```
 
+<!-- Begin-External -->
+
+### Codesigning identity
+
+When building for devices, by default the codesigning step will use the first
+codesigning identity present in the given provisioning profile. This should
+accomodate most cases, but there are certain scenarios when the provisioning
+profile will have more than one allowed signing identity, and developers may
+have different development certificates installed on their devices. For these
+cases you can use the `--ios_signing_cert_name` flag to force the signing
+identity to be used when codesigning your app.
+
+```shell
+bazel build //your/target --ios_signing_cert_name="iPhone Developer: [CERT OWNER NAME]"
+```
+
+To make this easier to use, we recommend adding the following to the
+`~/.bazelrc` file, which will configure bazel to pass this flag to all
+invocations:
+
+```text
+build --ios_signing_cert_name="iPhone Developer: [CERT OWNER NAME]"
+```
+
+<!-- End-External -->
 <!-- Blocked on b/73547309
 
 ### Sanitizers {#sanitizers}
