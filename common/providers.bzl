@@ -27,6 +27,7 @@ def _find_all(target_or_targets, name_or_provider):
         list to be returned.
     name_or_provider: The string name of the legacy provider or the reference
         to a modern provider to return.
+
   Returns:
     A list of providers from the given targets. This list may have fewer
     elements than the given number of targets (including being empty) if not all
@@ -61,6 +62,7 @@ def _find_one(target, name_or_provider):
         list to be returned.
     name_or_provider: The string name of the legacy provider or the reference
         to a modern provider to return.
+
   Returns:
     A list of providers from the given targets. This list may have fewer
     elements than the given number of targets (including being empty) if not all
