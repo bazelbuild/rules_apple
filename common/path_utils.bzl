@@ -26,6 +26,7 @@ def _bundle_relative_path(f):
 
   Args:
     f: A file.
+
   Returns:
     The `.bundle`-relative path to the file.
   """
@@ -42,6 +43,7 @@ def _farthest_directory_matching(path, extension):
   Args:
     path: The path.
     extension: The extension of the directory to find.
+
   Returns:
     The portion of the path that ends in the given extension that is closest
     to the root of the path.
@@ -59,6 +61,7 @@ def _owner_relative_path(f):
 
   Args:
     f: A file.
+
   Returns:
     The owner-relative path to the file.
   """

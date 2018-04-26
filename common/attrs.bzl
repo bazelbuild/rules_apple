@@ -33,8 +33,9 @@ def _get(obj, attr_name, default=None):
         technique used to provide hard-coded defaults in rule declarations). If
         the underscore-prefixed version of the attribute does not exist, this is
         considered an internal consistency error and the function will fail.
-  Returns: The value of the attribute, or the default if the attribute is not
-    set.
+
+  Returns:
+    The value of the attribute, or the default if the attribute is not set.
   """
   if hasattr(obj, attr_name):
     return getattr(obj, attr_name, default)
