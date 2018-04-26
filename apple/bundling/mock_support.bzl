@@ -31,6 +31,7 @@ def _is_provisioning_mocked(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     True/False on if the provisioning should be mocked out.
   """

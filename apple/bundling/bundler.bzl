@@ -138,6 +138,7 @@ def _bundlable_files_for_control(bundlable_files):
 
   Args:
     bundlable_files: A list of bundlable file values.
+
   Returns:
     A list representing the same bundlable files, but with the `File` objects
     replaced by their paths.
@@ -167,6 +168,7 @@ def _convert_native_bundlable_file(bf, bundle_dir=_ROOT_BUNDLE_DIR):
     bf: A bundlable file, potentially from a native provider.
     bundle_dir: If provided, a directory path that will be prepended to the
         `bundle_path` of the bundlable file's destination path.
+
   Returns:
     A list of bundlable file values corresponding to the inputs, as returned by
     `bundling_support.bundlable_file`.
@@ -193,6 +195,7 @@ def _bundlable_dynamic_framework_files(ctx, files):
     ctx: The Skylark context.
     files: A `depset` of `File`s inside .framework folders that should be merged
         into the bundle.
+
   Returns:
     A list of bundlable file structs corresponding to the files that should be
     copied into the bundle.
@@ -318,6 +321,7 @@ def _dedupe_bundle_merge_files(bundlable_files):
 
   Args:
     bundlable_files: The list of bundlable files to deduplicate.
+
   Returns:
     A list of bundle files with duplicates purged.
   """
@@ -349,6 +353,7 @@ def _safe_files(ctx, name):
   Args:
     ctx: The Skylark context.
     name: The attribute name.
+
   Returns:
     The `depset` of `File`s if the attribute exists, or an empty set otherwise.
   """
@@ -365,6 +370,7 @@ def _is_ipa(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     True if the target is archived as an IPA, or False if it is archived as a
     ZIP.
@@ -402,6 +408,7 @@ def _create_unprocessed_archive(ctx,
     mnemonic: The mnemonic to use for the bundling action.
     progress_description: The message that should be shown as the progress
         description for the bundling action.
+
   Returns:
     A `File` representing the unprocessed archive.
   """
@@ -457,6 +464,7 @@ def _process_and_sign_archive(ctx,
     mnemonic: The mnemonic to use for the bundling action.
     progress_description: The message that should be shown as the progress
         description for the bundling action.
+
   Returns:
     Tuple containing:
         1. The path to the directory that represents the root of the expanded
@@ -661,6 +669,7 @@ def _run(
         the require for the exceptional cases (like unittest bundles).
     extra_runfiles: List of additional files to be marked as required for
         running this target.
+
   Returns:
     A tuple containing two values:
     1. A list of modern providers that should be propagated by the calling rule.
@@ -1103,6 +1112,7 @@ def _copy_framework_files(ctx, framework_files):
   Args:
     ctx: The Skylark context.
     framework_files: A list of files to copy into the framework.
+
   Returns:
     A two-element tuple: the framework directory path, and a set containing the
     output files in their final locations.

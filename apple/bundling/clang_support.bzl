@@ -47,6 +47,7 @@ def _register_runtime_lib_actions(ctx, binary_artifact):
     ctx: The Skylark context.
     binary_artifact: The bundle binary to be processed with clang's runtime
         tool.
+
   Returns:
     A `File` object representing the ZIP file containing runtime libraries.
   """

@@ -23,6 +23,7 @@ def _get_link_declarations(dylibs=[], frameworks=[]):
         be referenced in the module map.
     frameworks: A sequence of framework names that will be referenced in the
         module map.
+
   Returns:
     A list of "link" and "link framework" lines that reference the given
     libraries and frameworks.
@@ -45,6 +46,7 @@ def _get_umbrella_header_declaration(basename):
   Args:
     basename: The basename of the umbrella header file to be referenced in the
         module map.
+
   Returns:
     The module map line that references the umbrella header.
   """

@@ -44,6 +44,7 @@ def _get_binary_provider(deps, provider_key):
   Args:
     deps: The list of the target's dependencies.
     provider_key: The key of the provider to return.
+
   Returns:
     The provider propagated by the single "deps" target of the current rule.
   """
@@ -246,6 +247,7 @@ def _create_linked_binary_target(
     suppress_entitlements: True/False, indicates that the entitlements() should
         be suppressed.
     **kwargs: The arguments that were passed into the top-level macro.
+
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
   """
@@ -320,6 +322,7 @@ def _create_binary(name, platform_type, suppress_entitlements=False, **kwargs):
     suppress_entitlements: True/False, indicates that the entitlements() should
         be suppressed.
     **kwargs: The arguments that were passed into the top-level macro.
+
   Returns:
     A modified copy of `**kwargs` that should be passed to the bundling rule.
   """

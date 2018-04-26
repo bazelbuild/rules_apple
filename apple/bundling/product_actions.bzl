@@ -40,6 +40,7 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
     ctx: The Skylark context.
     stub_binary: The stub binary executable to ZIP.
     stub_descriptor: The stub descriptor.
+
   Returns:
     A `File` that is the zip that should be merged into the archive root.
   """

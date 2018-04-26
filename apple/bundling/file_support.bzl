@@ -51,6 +51,7 @@ def _intermediate(ctx, pattern, path=None, prefix=None):
     path: The path to be substituted for `%{path}`.
     prefix: An optional prefix that, if present, will be added just before
         `%{path}`, separated by the rest of the path by a slash.
+
   Returns:
     A new `File` object.
   """
@@ -69,6 +70,7 @@ def _intermediate_dir(ctx, pattern, path=None, prefix=None):
     path: The path to be substituted for `%{path}`.
     prefix: An optional prefix that, if present, will be added just before
         `%{path}`, separated by the rest of the path by a slash.
+
   Returns:
     A new `File` object (which actually represents a directory).
   """

@@ -54,6 +54,7 @@ def _attr_files(ctx, name):
   Args:
     ctx: The Skylark context.
     name: The name of the attribute.
+
   Returns:
     A list of Files.
   """
@@ -66,6 +67,7 @@ def _handle_native_library_dependency(target, ctx):
   Args:
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
+
   Returns:
     A list of `AppleResourceSet` values that should be included in the list
     propagated by the `AppleResource` provider.
@@ -165,6 +167,7 @@ def _handle_native_bundle_imports(bundle_imports):
 
   Args:
     bundle_imports: The list of `File`s in the bundle.
+
   Returns:
     A list of `AppleResourceSet` values that should be included in the list
     propagated by the `AppleResource` provider.
@@ -204,6 +207,7 @@ def _handle_unknown_objc_provider(objc):
 
   Args:
     objc: The `objc` provider.
+
   Returns:
     An `AppleResourceSet` value that should be included in the list propagated
     by the `AppleResource` provider.
@@ -242,6 +246,7 @@ def _transitive_apple_resource_info(target, ctx):
   Args:
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
+
   Returns:
     An `AppleResourceInfo` provider.
   """
@@ -284,6 +289,7 @@ def _transitive_apple_bundling_swift_info(target, ctx):
   Args:
     target: The target to which the aspect is being applied.
     ctx: The Skylark context.
+
   Returns:
     An `AppleBundlingSwiftInfo` provider, or `None` if nothing should be
     propagated for this target.
@@ -308,6 +314,7 @@ def _apple_bundling_aspect_impl(target, ctx):
   Args:
     target: The target on which the aspect is being applied.
     ctx: The Skylark context.
+
   Returns:
     A list of providers for the aspect. Refer to the rule documentation for a
     description of these providers.

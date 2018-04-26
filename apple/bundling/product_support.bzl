@@ -123,6 +123,7 @@ def _describe_stub(xcenv_based_path,
     additional_bundle_path: A path relative to the bundle where the stub binary
         should be copied, *in addition to* the standard location of the
         executable.
+
   Returns:
     A struct suitable for the `stub` field of a product type struct.
   """
@@ -144,6 +145,7 @@ def _describe_product_type(bundle_extension,
         added to the `Info.plist` for bundles with this product type.
     stub: A descriptor returned by `_stub_descriptor` that contains information
         about the stub binary for the bundle, if any.
+
   Returns:
     A new product type descriptor.
   """
@@ -232,6 +234,7 @@ def _product_type(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The product type identifier for the current target, or None if there is
     none.
@@ -262,6 +265,7 @@ def _product_type_descriptor(product_type):
 
   Args:
     product_type: The product type.
+
   Returns:
     The product type descriptor.
   """

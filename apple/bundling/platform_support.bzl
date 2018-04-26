@@ -49,6 +49,7 @@ def _families(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The list of device families that apply to the target being built.
   """
@@ -63,6 +64,7 @@ def _ui_device_family_plist_value(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     A list of integers to use for the `UIDeviceFamily` in an Info.plist
     or None if the key should not be added to the Info.plist.
@@ -82,6 +84,7 @@ def _is_device_build(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     True if this is a device build, or False if it is a simulator build.
   """
@@ -94,6 +97,7 @@ def _minimum_os(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     A string containing the dotted minimum OS version.
   """
@@ -111,6 +115,7 @@ def _platform_type(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The `PlatformType` for the current target, after being converted from its
     string attribute form.
@@ -125,6 +130,7 @@ def _platform(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The Platform object for the target.
   """
@@ -138,6 +144,7 @@ def _platform_and_sdk_version(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     A tuple containing the Platform object for the target and the SDK version
     to build against for that platform.

@@ -44,6 +44,7 @@ def _zip_bitcode_symbols_maps(ctx, binary_artifact):
   Args:
     ctx: The Skylark context.
     binary_artifact: The binary artifact being generated for the current rule.
+
   Returns:
     A `File` object representing the ZIP file containing the bitcode symbol
     maps, or `None` if no bitcode symbols were found.

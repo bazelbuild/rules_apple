@@ -70,6 +70,7 @@ def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
     ctx: The Skylark context.
     provisioning_profile: The provisioning profile from which to extract the
         signing identity.
+
   Returns:
     A Bash output-capturing subshell expression (`$( ... )`) that executes
     commands needed to extract the hex ID of a signing certificate from a
@@ -97,6 +98,7 @@ def _verify_signing_id_commands(ctx, identity, provisioning_profile):
     provisioning_profile: The provisioning profile, if the signing identity was
         extracted from it. If provided, this is included in the error message
         that is printed if the identity is not valid.
+
   Returns:
     A string containing Bash commands that verify the signing identity and
     assign it to the environment variable `VERIFIED_ID` if it is valid.
@@ -141,6 +143,7 @@ def _embedded_provisioning_profile_name(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The name of the embedded provisioning profile in the bundle.
   """
@@ -158,6 +161,7 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
         optionality (see `_path_to_sign`).
     entitlements_file: The entitlements file to pass to codesign. May be `None`
         for non-app binaries (e.g. test bundles).
+
   Returns:
     The codesign command invocation for the given directory.
   """
@@ -196,6 +200,7 @@ def _path_to_sign(path, optional=False):
     optional: If `True`, the path is an optional path that is ignored if it does
         not exist. This is used to handle Frameworks directories cleanly since
         they may or may not be present in the bundle.
+
   Returns:
     A `struct` that can be passed to `signing_command_lines`.
   """
@@ -216,6 +221,7 @@ def _signing_command_lines(ctx,
     paths_to_sign: A list of values returned from `path_to_sign` that indicate
         paths that should be code-signed.
     entitlements_file: The entitlements file to pass to codesign.
+
   Returns:
     A multi-line string with codesign invocations for the bundle.
   """
