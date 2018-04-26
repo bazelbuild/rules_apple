@@ -19,22 +19,22 @@ load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
     )
 
 def _dummy_test_runner_impl(ctx):
-  ctx.template_action(
+  ctx.actions.expand_template(
       template = ctx.file._test_template,
       output = ctx.outputs.test_runner_template,
       substitutions = {}
   )
 
-  return struct(
-      providers = [
-          AppleTestRunner(
-              test_runner_template = ctx.outputs.test_runner_template,
-              execution_requirements = {},
-              test_environment = {},
-          ),
-      ],
-      runfiles = ctx.runfiles(files = []),
-  )
+  return [
+      AppleTestRunner(
+          test_runner_template = ctx.outputs.test_runner_template,
+          execution_requirements = {},
+          test_environment = {},
+      ),
+      DefaultInfo(
+          runfiles = ctx.runfiles(files=[]),
+      ),
+  ]
 
 dummy_test_runner = rule(
     _dummy_test_runner_impl,
