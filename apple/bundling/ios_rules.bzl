@@ -126,7 +126,7 @@ def _ios_application_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosApplicationArchive", "iOS application",
       ctx.attr.bundle_id,
@@ -134,14 +134,11 @@ def _ios_application_impl(ctx):
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
       deps_objc_providers=[deps_objc_provider],
+      extra_runfiles=run_actions.start_simulator(ctx),
   )
 
-  runfiles = run_actions.start_simulator(ctx)
-
   return struct(
-      files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary"]),
-      runfiles=ctx.runfiles(files=runfiles),
       providers=[
           IosApplicationBundleInfo(),
       ] + additional_providers,
@@ -233,7 +230,7 @@ def _ios_extension_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
       ctx.attr.bundle_id,
@@ -243,7 +240,6 @@ def _ios_extension_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           IosExtensionBundleInfo(),
       ] + additional_providers,
@@ -293,7 +289,7 @@ def _ios_framework_impl(ctx):
       ctx.attr.deps, apple_common.AppleDylibBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleDylibBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosFrameworkArchive", "iOS framework",
       ctx.attr.bundle_id,
@@ -306,7 +302,6 @@ def _ios_framework_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           IosFrameworkBundleInfo(),
       ] + additional_providers,
@@ -375,7 +370,7 @@ def _ios_static_framework_impl(ctx):
       ctx.attr.deps, apple_common.AppleStaticLibrary).archive
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleStaticLibrary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosStaticFrameworkArchive", "iOS static framework",
       None,  # static frameworks have no bundle id (nor final Info.plist).
@@ -388,7 +383,6 @@ def _ios_static_framework_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           IosStaticFrameworkBundleInfo(),
       ] + additional_providers,

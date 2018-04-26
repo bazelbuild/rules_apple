@@ -65,7 +65,7 @@ def _watchos_application_impl(ctx):
 
   binary_artifact = binary_support.create_stub_binary(ctx)
 
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "WatchosApplicationArchive", "watchOS application",
       ctx.attr.bundle_id,
@@ -76,7 +76,6 @@ def _watchos_application_impl(ctx):
 
   # TODO(b/36513412): Support 'bazel run'.
   return struct(
-      files=additional_outputs,
       providers=[
           WatchosApplicationBundleInfo(),
       ] + additional_providers,
@@ -132,7 +131,7 @@ def _watchos_extension_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",
       ctx.attr.bundle_id,
@@ -142,7 +141,6 @@ def _watchos_extension_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           WatchosExtensionBundleInfo(),
       ] + additional_providers,

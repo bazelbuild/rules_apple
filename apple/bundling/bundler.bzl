@@ -616,7 +616,8 @@ def _run(
     is_dynamic_framework=False,
     deps_objc_providers=[],
     suppress_bundle_infoplist=False,
-    version_keys_required=True):
+    version_keys_required=True,
+    extra_runfiles=[]):
   """Implements the core bundling logic for an Apple bundle archive.
 
   Args:
@@ -658,12 +659,13 @@ def _run(
         NOTE: Almost every type of bundle for Apple's platforms should get
         version numbers; so this is done a something only needed to opt out of
         the require for the exceptional cases (like unittest bundles).
+    extra_runfiles: List of additional files to be marked as required for
+        running this target.
   Returns:
-    A tuple containing three values:
+    A tuple containing two values:
     1. A list of modern providers that should be propagated by the calling rule.
     2. A dictionary of legacy providers that should be propagated by the calling
        rule.
-    3. A set of additional outputs that should be returned by the calling rule.
   """
   _validate_attributes(ctx, bundle_id)
   if suppress_bundle_infoplist:
@@ -1066,18 +1068,25 @@ def _run(
 
   # Collect extra outputs from embedded bundles so that they also get included
   # as outputs of the rule.
-  transitive_extra_outputs = depset(extra_outputs)
+  transitive_extra_outputs = depset(items=extra_outputs)
   propagate_embedded_extra_outputs = ctx.var.get(
       "apple.propagate_embedded_extra_outputs", "no")
   if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
     embedded_bundle_targets = [eb.target for eb in embedded_bundles]
     for extra in providers.find_all(
         embedded_bundle_targets, AppleExtraOutputsInfo):
-      transitive_extra_outputs += extra.files
+      transitive_extra_outputs = depset(
+          transitive=[transitive_extra_outputs, extra.files])
 
   additional_providers.extend([
       AppleBundleInfo(**apple_bundle_info_args),
       AppleExtraOutputsInfo(files=transitive_extra_outputs),
+      DefaultInfo(
+          files=depset(items=main_outputs, transitive=[transitive_extra_outputs]),
+          runfiles=ctx.runfiles(
+              files=[ctx.outputs.archive] + extra_runfiles,
+          ),
+      ),
       OutputGroupInfo(local_outputs=depset(local_outputs)),
       # Propagate the resource sets contained by this bundle along with the ones
       # contained in the frameworks dependencies, so that higher level bundles
@@ -1085,9 +1094,7 @@ def _run(
       _ResourceBundleInfo(resource_sets=resource_sets + framework_resource_sets),
   ])
 
-  return (additional_providers,
-          legacy_providers,
-          depset(main_outputs) + transitive_extra_outputs)
+  return (additional_providers, legacy_providers)
 
 
 def _copy_framework_files(ctx, framework_files):
