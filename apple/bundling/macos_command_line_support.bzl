@@ -50,6 +50,7 @@ def _macos_command_line_infoplist_impl(ctx):
 
   Args:
     ctx: The rule context.
+
   Returns:
     A `struct` containing the `objc` provider that should be propagated to a
     binary that should have this plist embedded.

@@ -28,6 +28,7 @@ def _sectcreate_objc_provider(segname, sectname, file):
     segname: The name of the segment in which the section will be created.
     sectname: The name of the section to create.
     file: The file whose contents will be used as the content of the section.
+
   Returns:
     An objc provider that propagates the section linkopts.
   """

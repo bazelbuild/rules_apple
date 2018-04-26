@@ -95,6 +95,7 @@ def _additional_contents_bundlable_files(ctx, file_map):
   Args:
     ctx: The rule context.
     file_map: The label-keyed dictionary.
+
   Returns:
     A `depset` of bundlable files gathered from the targets.
   """

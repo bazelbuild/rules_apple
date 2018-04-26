@@ -61,6 +61,7 @@ def _environment_plist_action(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The plist file that contains the extracted environment.
   """
@@ -142,6 +143,7 @@ def _merge_infoplists(ctx,
         used to provide substitution values.
     version_keys_required: If True, the merged Info.plist file must include
         entries for CFBundleShortVersionString and CFBundleVersion.
+
   Returns:
     A struct with two fields: `output_plist`, a File object containing the
     merged binary plist, and `pkginfo`, a File object containing the PkgInfo

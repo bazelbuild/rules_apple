@@ -28,6 +28,7 @@ def _collect_linkmaps(ctx, debug_outputs, bundle_name):
     ctx: The current context.
     debug_outputs: dSYM bundle binary provider.
     bundle_name: Anticipated name of the dSYM bundle.
+
   Returns:
     A list of linkmap files, one per linked architecture.
   """
@@ -64,6 +65,7 @@ def _create_symbol_bundle(ctx, debug_outputs, bundle_name, bundle_extension=""):
     bundle_name: Anticipated name of the dSYM bundle.
     bundle_extension: Anticipated extension of the dSYM bundle, empty string if
                       it does not have one.
+
   Returns:
     A list of files that comprise the .dSYM bundle, which should be returned as
     additional outputs from the rule.

@@ -29,6 +29,7 @@ def _binary_file(ctx, src, dest, executable=False):
     dest: The path within the bundle's binary directory where the file should
         be placed.
     executable: True if the file should be made executable.
+
   Returns:
     A bundlable file struct (see `bundling_support.bundlable_file`).
   """
@@ -53,6 +54,7 @@ def _bundlable_file(src, dest, executable=False, contents_only=False):
         of the directory will be added at `dest` to the bundle; if this is
         False (the default) then the directory _itself_ will be added at `dest`
         to the bundle.
+
   Returns:
     A struct with `src`, `dest`, and `executable` fields representing the
     bundlable file.
@@ -71,6 +73,7 @@ def _bundlable_file_sources(bundlable_files):
   Args:
     bundlable_files: A list or set of bundlable file values (as returned by
         `bundling_support.bundlable_file`).
+
   Returns:
     A `depset` containing the `File` artifacts from the given bundlable files.
   """
@@ -85,6 +88,7 @@ def _bundle_name(ctx):
 
   Args:
     ctx: The Skylark context.
+
   Returns:
     The bundle name.
   """
@@ -139,6 +143,7 @@ def _contents_file(ctx, src, dest, executable=False):
     dest: The path within the bundle's contents directory where the file should
         be placed.
     executable: True if the file should be made executable.
+
   Returns:
     A bundlable file struct (see `bundling_support.bundlable_file`).
   """
@@ -164,6 +169,7 @@ def _embedded_bundle(path, target, verify_has_child_plist,
     parent_bundle_id_reference: A list of keys to make a keypath into this
         bundle's Info.plist where the parent's bundle_id should be found. The
         bundler will then ensure they match the parent's bundle_id.
+
   Returns:
     A struct with `path`, `target`, `verify_has_child_plist`, and
     `parent_bundle_id_reference` fields equal to the values given in the
@@ -182,6 +188,7 @@ def _header_prefix(input_file):
 
   Args:
     input_file: The File to be bundled
+
   Returns:
     A bundlable file struct with the same File object, but whose path has been
     transformed to start with "Headers/".
@@ -200,6 +207,7 @@ def _path_in_binary_dir(ctx, path):
   Args:
     ctx: The Skylark context.
     path: The path to make relative to where the bundle's binary is stored.
+
   Returns:
     The path, made relative to where the bundle's binary is stored.
   """
@@ -220,6 +228,7 @@ def _path_in_contents_dir(ctx, path):
   Args:
     ctx: The Skylark context.
     path: The path to make relative to where the bundle's contents are stored.
+
   Returns:
     The path, made relative to where the bundle's contents are stored.
   """
@@ -236,6 +245,7 @@ def _path_in_resources_dir(ctx, path):
   Args:
     ctx: The Skylark context.
     path: The path to make relative to where the bundle's resources are stored.
+
   Returns:
     The path, made relative to where the bundle's resources are stored.
   """
@@ -256,6 +266,7 @@ def _resource_file(ctx, src, dest, executable=False, contents_only=False):
         of the directory will be added at `dest` to the bundle; if this is
         False (the default) then the directory _itself_ will be added at `dest`
         to the bundle.
+
   Returns:
     A bundlable file struct (see `bundling_support.bundlable_file`).
   """
