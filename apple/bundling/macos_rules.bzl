@@ -134,7 +134,7 @@ def _macos_application_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosApplicationArchive", "macOS application",
       ctx.attr.bundle_id,
@@ -148,7 +148,6 @@ def _macos_application_impl(ctx):
 
   # TODO(b/36556789): Add support for "bazel run".
   return struct(
-      files=additional_outputs,
       providers=[
           MacosApplicationBundleInfo(),
       ] + additional_providers,
@@ -208,7 +207,7 @@ def _macos_bundle_impl(ctx):
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
   deps_objc_providers = providers.find_all(ctx.attr.deps, "objc")
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosBundleArchive", "macOS executable bundle",
       ctx.attr.bundle_id,
@@ -221,7 +220,6 @@ def _macos_bundle_impl(ctx):
 
   # TODO(b/36556789): Add support for "bazel run".
   return struct(
-      files=additional_outputs,
       providers=[
           MacosBundleBundleInfo(),
       ] + additional_providers,
@@ -360,7 +358,7 @@ def _macos_extension_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosExtensionArchive", "macOS extension",
       ctx.attr.bundle_id,
@@ -372,7 +370,6 @@ def _macos_extension_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           MacosExtensionBundleInfo(),
       ] + additional_providers,

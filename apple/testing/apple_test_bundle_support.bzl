@@ -80,7 +80,7 @@ def _apple_test_bundle_impl(ctx,
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).objc
-  bundler_providers, legacy_providers, additional_outputs = bundler.run(
+  bundler_providers, legacy_providers = bundler.run(
       ctx,
       mnemonic,
       progress_description,
@@ -91,7 +91,6 @@ def _apple_test_bundle_impl(ctx,
       **bundler_extra_args
   )
   return struct(
-      files=additional_outputs,
       instrumented_files=struct(dependency_attributes=["binary", "test_host"]),
       providers=extra_providers + bundler_providers,
       **legacy_providers

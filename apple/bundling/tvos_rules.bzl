@@ -80,7 +80,7 @@ def _tvos_application_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS application",
       ctx.attr.bundle_id,
@@ -88,12 +88,10 @@ def _tvos_application_impl(ctx):
       additional_resource_sets=additional_resource_sets,
       embedded_bundles=embedded_bundles,
       deps_objc_providers=[deps_objc_provider],
+      extra_runfiles=run_actions.start_simulator(ctx),
   )
-  runfiles = run_actions.start_simulator(ctx)
 
   return struct(
-      files=additional_outputs,
-      runfiles=ctx.runfiles(files=runfiles),
       providers=[
           TvosApplicationBundleInfo(),
       ] + additional_providers,
@@ -133,7 +131,7 @@ def _tvos_extension_impl(ctx):
       ctx.attr.deps, apple_common.AppleExecutableBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleExecutableBinary).objc
-  additional_providers, legacy_providers, additional_outputs = bundler.run(
+  additional_providers, legacy_providers = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS extension",
       ctx.attr.bundle_id,
@@ -142,7 +140,6 @@ def _tvos_extension_impl(ctx):
   )
 
   return struct(
-      files=additional_outputs,
       providers=[
           TvosExtensionBundleInfo(),
       ] + additional_providers,
