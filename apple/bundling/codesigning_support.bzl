@@ -20,10 +20,6 @@ load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
      "mock_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
-load("@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
-     "plist_support")
-load("@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
-     "swift_support")
 
 
 def _extract_provisioning_plist_command(ctx, provisioning_profile):

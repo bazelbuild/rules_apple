@@ -43,10 +43,6 @@ load(
     "AppleBundleVersionInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
-)
-load(
     "@build_bazel_rules_apple//common:attrs.bzl",
     "attrs",
 )

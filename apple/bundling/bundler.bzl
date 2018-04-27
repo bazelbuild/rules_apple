@@ -64,10 +64,6 @@ load(
     "AppleEntitlementsInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
     "file_support",
 )
