@@ -14,10 +14,6 @@
 
 """Actions to manipulate debug symbol outputs."""
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
 load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
 
 
