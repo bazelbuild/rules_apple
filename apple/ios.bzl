@@ -372,6 +372,32 @@ def ios_ui_test(name, **kwargs):
   _ios_ui_test(name=name, **kwargs)
 
 
+def ios_ui_test_suite(name, runners = [], tags = [], **kwargs):
+  """Builds an XCUITest test suite with the given runners.
+
+  Args:
+    name: The name of the target.
+    runners: The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an AppleTestRunner
+        provider. Required (minimum of 2 runners).
+    tags: List of arbitrary text tags to be added to the test_suite. Tags may be
+        any valid string. Optional. Defaults to an empty list.
+    **kwargs: All arguments you would normally provide to an ios_unit_test
+        target.
+  """
+  if len(runners) < 2:
+    fail("You need to specify at least 2 runners to create a test suite.")
+  tests = []
+  for runner in runners:
+    test_name = "_".join([name, runner.partition(":")[2]])
+    tests.append(":" + test_name)
+    ios_ui_test(name = test_name, runner = runner, tags = tags, **kwargs)
+  native.test_suite(
+      name = name,
+      tests = tests,
+      tags = tags,
+  )
+
 def ios_unit_test(name, **kwargs):
   """Builds an XCTest unit test bundle and tests it using the provided runner.
 
