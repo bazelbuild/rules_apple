@@ -31,7 +31,7 @@ def _get_template_substitutions(ctx):
 
 def _macos_test_runner_impl(ctx):
   """Implementation for the macos_runner rule."""
-  ctx.template_action(
+  ctx.actions.expand_template(
       template = ctx.file._test_template,
       output = ctx.outputs.test_runner_template,
       substitutions = _get_template_substitutions(ctx)

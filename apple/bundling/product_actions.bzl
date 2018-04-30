@@ -40,7 +40,8 @@ def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):
   Returns:
     A `File` that is the zip that should be merged into the archive root.
   """
-  product_support_zip = ctx.new_file(ctx.label.name + "-Support.zip")
+  product_support_zip = ctx.actions.declare_file(
+      ctx.label.name + "-Support.zip")
   product_support_path = shell.quote(product_support_zip.path)
   product_support_basename = product_support_zip.basename
   archive_path = shell.quote(stub_descriptor.path_in_archive)

@@ -419,7 +419,7 @@ def _create_unprocessed_archive(ctx,
       root_merge_zips=_bundlable_files_for_control(root_merge_zips),
   )
   control_file = file_support.intermediate(ctx, "%{name}.bundler-control")
-  ctx.file_action(
+  ctx.actions.write(
       output=control_file,
       content=control.to_json()
   )
@@ -518,10 +518,10 @@ def _process_and_sign_archive(ctx,
 
   process_and_sign_script = file_support.intermediate(
       ctx, "%{name}.process-and-sign.sh")
-  ctx.template_action(
+  ctx.actions.expand_template(
       template=ctx.file._process_and_sign_template,
       output=process_and_sign_script,
-      executable=True,
+      is_executable=True,
       substitutions={
           "%output_path%": output_archive.path,
           "%ipa_post_processor%": ipa_post_processor_path or "",
@@ -589,7 +589,7 @@ def _experimental_create_and_sign_bundle(
       code_signing_commands=signing_command_lines,
       output=bundle_dir.path,
   )
-  ctx.file_action(
+  ctx.actions.write(
       output=control_file,
       content=control.to_json()
   )
@@ -1004,7 +1004,7 @@ def _run(
   else:
     # Create a dummy archive for the bundle_only case, because we have to create
     # something.
-    ctx.file_action(
+    ctx.actions.write(
         output=ctx.outputs.archive,
         content="This is a dummy archive.",
     )
@@ -1117,7 +1117,7 @@ def _copy_framework_files(ctx, framework_files):
   framework_dir_name = "_frameworks/" + bundle_name + ".framework/"
   bundled_framework_files = []
   for framework_file in framework_files:
-    output_file = ctx.new_file(
+    output_file = ctx.actions.declare_file(
         framework_dir_name + framework_file.dest)
     ctx.action(
         outputs=[output_file],

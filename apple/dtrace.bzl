@@ -29,7 +29,8 @@ def _dtrace_compile_impl(ctx):
   for src in ctx.files.srcs:
     owner_relative_path = path_utils.owner_relative_path(src)
     label_scoped_owner_path = label_scoped_path(ctx.label, owner_relative_path)
-    hdr = ctx.new_file(paths.replace_extension(label_scoped_owner_path, ".h"))
+    hdr = ctx.actions.declare_file(
+        paths.replace_extension(label_scoped_owner_path, ".h"))
     output_hdrs.append(hdr)
     apple_action(
         ctx,

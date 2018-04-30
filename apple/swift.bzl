@@ -603,14 +603,17 @@ def register_swift_compile_actions(ctx, reqs):
   # A unique path for rule's outputs.
   objs_outputs_path = label_scoped_path(reqs.label, "_objs/")
 
-  output_lib = ctx.new_file(objs_outputs_path + module_name + ".a")
-  output_module = ctx.new_file(objs_outputs_path + module_name + ".swiftmodule")
-  output_doc = ctx.new_file(objs_outputs_path + module_name + ".swiftdoc")
+  output_lib = ctx.actions.declare_file(objs_outputs_path + module_name + ".a")
+  output_module = ctx.actions.declare_file(
+      objs_outputs_path + module_name + ".swiftmodule")
+  output_doc = ctx.actions.declare_file(
+      objs_outputs_path + module_name + ".swiftdoc")
 
   # These filenames are guaranteed to be unique, no need to scope.
   output_header = ctx.actions.declare_file(
       _swift_generated_header_name(label.name))
-  swiftc_output_map_file = ctx.new_file(label.name + ".output_file_map.json")
+  swiftc_output_map_file = ctx.actions.declare_file(
+      label.name + ".output_file_map.json")
 
   # Generated module maps are incompatible with the hack that some folks are
   # using to support mixed Objective-C and Swift modules. This trap door lets
@@ -641,15 +644,15 @@ def register_swift_compile_actions(ctx, reqs):
     output_map_entry = {}
 
     # Output an object file
-    obj = ctx.new_file(objs_outputs_path + basename + ".o")
+    obj = ctx.actions.declare_file(objs_outputs_path + basename + ".o")
     output_objs.append(obj)
     output_map_entry["object"] = obj.path
 
     # Output a partial module file, unless WMO is enabled in which case only
     # the final, complete module will be generated.
     if not has_wmo:
-      partial_module = ctx.new_file(objs_outputs_path + basename +
-                                    ".partial_swiftmodule")
+      partial_module = ctx.actions.declare_file(objs_outputs_path + basename +
+                                                ".partial_swiftmodule")
       swiftc_outputs.append(partial_module)
       output_map_entry["swiftmodule"] = partial_module.path
 
@@ -664,7 +667,7 @@ def register_swift_compile_actions(ctx, reqs):
   #       {'object': 'foo.o', 'bitcode': 'foo.bc', 'dependencies': 'foo.d'}}
   # There's currently no documentation on this option, however all of the keys
   # are listed here https://github.com/apple/swift/blob/swift-2.2.1-RELEASE/include/swift/Driver/Types.def
-  ctx.file_action(
+  ctx.actions.write(
       output=swiftc_output_map_file,
       content=swiftc_output_map.to_json())
 
