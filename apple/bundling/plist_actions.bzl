@@ -64,7 +64,8 @@ def _environment_plist_action(ctx):
   platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
   platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
 
-  environment_plist = ctx.new_file(ctx.label.name + "_environment.plist")
+  environment_plist = ctx.actions.declare_file(
+      ctx.label.name + "_environment.plist")
   platform_support.xcode_env_action(
       ctx,
       outputs=[environment_plist],
@@ -278,7 +279,7 @@ def _merge_infoplists(ctx,
   )
   control_file = file_support.intermediate(
       ctx, "%{name}.plisttool-control", prefix=path_prefix)
-  ctx.file_action(
+  ctx.actions.write(
       output=control_file,
       content=control.to_json()
   )

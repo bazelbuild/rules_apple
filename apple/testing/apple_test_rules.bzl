@@ -375,7 +375,7 @@ def _apple_test_impl(ctx, test_type):
                        ctx.attr.test_bundle[AppleBundleInfo].archive,
                        ctx.outputs.test_bundle)
 
-  ctx.template_action(
+  ctx.actions.expand_template(
       template = runner.test_runner_template,
       output = ctx.outputs.executable,
       substitutions = _get_template_substitutions(ctx, test_type),

@@ -99,7 +99,8 @@ def _apple_bundle_version_impl(ctx):
   if fallback_build_label:
     optional_options["fallback_build_label"] = fallback_build_label
 
-  bundle_version_file = ctx.new_file(ctx.label.name + ".bundle_version")
+  bundle_version_file = ctx.actions.declare_file(
+      ctx.label.name + ".bundle_version")
 
   # Write the control file that sends arguments to versiontool.
   control = struct(
@@ -108,8 +109,9 @@ def _apple_bundle_version_impl(ctx):
       capture_groups=struct(**ctx.attr.capture_groups),
       **optional_options
   )
-  control_file = ctx.new_file(ctx.label.name + ".versiontool-control")
-  ctx.file_action(
+  control_file = ctx.actions.declare_file(
+      ctx.label.name + ".versiontool-control")
+  ctx.actions.write(
       output=control_file,
       content=control.to_json()
   )

@@ -55,7 +55,8 @@ def _intermediate(ctx, pattern, path=None, prefix=None):
   Returns:
     A new `File` object.
   """
-  return ctx.new_file(_intermediate_name(pattern, ctx.label, path, prefix))
+  return ctx.actions.declare_file(
+      _intermediate_name(pattern, ctx.label, path, prefix))
 
 
 def _intermediate_dir(ctx, pattern, path=None, prefix=None):

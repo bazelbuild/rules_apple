@@ -97,7 +97,8 @@ def _new_entitlements_artifact(ctx, extension):
   Returns:
     The requested file object.
   """
-  return ctx.new_file("entitlements/%s%s" % (ctx.label.name, extension))
+  return ctx.actions.declare_file(
+      "entitlements/%s%s" % (ctx.label.name, extension))
 
 
 def _include_debug_entitlements(ctx):
@@ -160,7 +161,7 @@ def _extract_signing_info(ctx):
 
     control_file = _new_entitlements_artifact(
         ctx, "provisioning_profile_tool-control")
-    ctx.file_action(
+    ctx.actions.write(
         output=control_file,
         content=struct(**control).to_json()
     )
@@ -238,7 +239,8 @@ def _entitlements_impl(ctx):
         providers=[AppleEntitlementsInfo(final_entitlements=None)],
     )
 
-  final_entitlements = ctx.new_file("%s.entitlements" % ctx.label.name)
+  final_entitlements = ctx.actions.declare_file(
+      "%s.entitlements" % ctx.label.name)
   is_device = platform_support.is_device_build(ctx)
 
   entitlements_options = {
@@ -260,7 +262,7 @@ def _entitlements_impl(ctx):
     variable_substitutions=struct(CFBundleIdentifier=ctx.attr.bundle_id),
   )
   control_file = _new_entitlements_artifact(ctx, "plisttool-control")
-  ctx.file_action(
+  ctx.actions.write(
       output=control_file,
       content=control.to_json()
   )

@@ -45,7 +45,7 @@ def _get_test_environment(ctx):
 
 def _ios_test_runner_impl(ctx):
   """Implementation for the ios_test_runner rule."""
-  ctx.template_action(
+  ctx.actions.expand_template(
       template = ctx.file._test_template,
       output = ctx.outputs.test_runner_template,
       substitutions = _get_template_substitutions(ctx)

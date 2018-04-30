@@ -80,7 +80,8 @@ def _create_stub_binary(ctx):
     fail(('%s failed: create_stub_binary may only be called from a bundling ' +
          'rule of a product type which declares a stub') % ctx.label)
 
-  output_artifact = ctx.new_file("stubs/%s.binary_stub" % (ctx.label.name))
+  output_artifact = ctx.actions.declare_file(
+      "stubs/%s.binary_stub" % (ctx.label.name))
 
   platform_support.xcode_env_action(
       ctx,

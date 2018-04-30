@@ -32,9 +32,9 @@ def _start_simulator(ctx):
   Returns:
     A list of files that should be added to the calling rule's runfiles.
   """
-  ctx.template_action(
+  ctx.actions.expand_template(
       output=ctx.outputs.executable,
-      executable=True,
+      is_executable=True,
       template=ctx.file._runner_template,
       substitutions={
           "%app_name%": ctx.label.name,
