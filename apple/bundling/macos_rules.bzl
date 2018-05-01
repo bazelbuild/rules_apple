@@ -261,7 +261,7 @@ macos_bundle = rule_factory.make_bundling_rule(
 
 def _macos_command_line_application_impl(ctx):
   """Implementation of the macos_command_line_application rule."""
-  output_path = ctx.outputs.executable.path
+  output_file = ctx.actions.declare_file(ctx.label.name)
 
   outputs = []
 
@@ -282,7 +282,7 @@ def _macos_command_line_application_impl(ctx):
   # It's not hermetic to sign the binary that was built by the apple_binary
   # target that this rule takes as an input, so we copy it and then execute the
   # code signing commands on that copy in the same action.
-  path_to_sign = codesigning_support.path_to_sign(output_path)
+  path_to_sign = codesigning_support.path_to_sign(output_file.path)
   signing_commands = codesigning_support.signing_command_lines(
       ctx, [path_to_sign], None)
 
@@ -291,18 +291,23 @@ def _macos_command_line_application_impl(ctx):
   platform_support.xcode_env_action(
       ctx,
       inputs=inputs,
-      outputs=[ctx.outputs.executable],
+      outputs=[output_file],
       command=["/bin/bash", "-c",
                "cp {input_binary} {output_binary}".format(
                    input_binary=ctx.file.binary.path,
-                   output_binary=output_path,
+                   output_binary=output_file.path,
                ) + "\n" + signing_commands,
               ],
       mnemonic="SignBinary",
   )
 
-  outputs.append(ctx.outputs.executable)
-  return [DefaultInfo(files=depset(direct=outputs))]
+  outputs.append(output_file)
+  return [
+      DefaultInfo(
+          executable=output_file,
+          files=depset(direct=outputs),
+      ),
+  ]
 
 
 macos_command_line_application = rule(
