@@ -85,11 +85,10 @@ def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
           ")")
 
 
-def _verify_signing_id_commands(ctx, identity, provisioning_profile):
+def _verify_signing_id_commands(identity, provisioning_profile):
   """Returns commands that verify that the given identity is valid.
 
   Args:
-    ctx: The Skylark context.
     identity: The signing identity to verify.
     provisioning_profile: The provisioning profile, if the signing identity was
         extracted from it. If provided, this is included in the error message
@@ -257,7 +256,7 @@ def _signing_command_lines(ctx,
     commands.append("VERIFIED_ID=" + shell.quote(identity) + "\n")
   else:
     commands.append(
-        _verify_signing_id_commands(ctx, identity, provisioning_profile))
+        _verify_signing_id_commands(identity, provisioning_profile))
 
   for path_to_sign in paths_to_sign:
     commands.append(_codesign_command(ctx, path_to_sign, entitlements_file))

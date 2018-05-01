@@ -557,6 +557,18 @@ def _experimental_create_and_sign_bundle(
   THIS IS CURRENTLY EXPERIMENTAL. It can be enabled by building with the
   `apple.experimental_bundling` define set to `bundle_and_archive`
   or `bundle_only` but it should not be used for production builds yet.
+
+  Args:
+    ctx: The Skylark context.
+    bundle_dir: The directory of the bundle.
+    bundle_name: The name of the bundle.
+    bundle_merge_files: A list of bundlable file values that represent files
+        that should be copied to specific locations in the bundle.
+    bundle_merge_zips: A list of bundlable file values that represent ZIP
+        archives that should be expanded into specific locations in the bundle.
+    mnemonic: The mnemonic to use for the bundling action.
+    progress_description: The message that should be shown as the progress
+        description for the bundling action.
   """
   control_file = file_support.intermediate(
       ctx, "%{name}.experimental-bundler-control")

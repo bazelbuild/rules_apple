@@ -30,6 +30,9 @@ def _intermediate_name(pattern, label, path, prefix):
     path: The path to be substituted for `%{path}`.
     prefix: An optional prefix that, if present, will be added just before
         `%{path}`, separated by the rest of the path by a slash.
+
+  Returns:
+    The name to use for an intermediate.
   """
   name = pattern.replace("%{name}", label.name)
   if path:
