@@ -430,7 +430,7 @@ def _create_unprocessed_archive(ctx,
       [control_file]
   )
 
-  ctx.action(
+  ctx.actions.run(
       inputs=bundler_inputs,
       outputs=[unprocessed_archive],
       executable=ctx.executable._bundletool,
@@ -1129,7 +1129,7 @@ def _copy_framework_files(ctx, framework_files):
   for framework_file in framework_files:
     output_file = ctx.actions.declare_file(
         framework_dir_name + framework_file.dest)
-    ctx.action(
+    ctx.actions.run_shell(
         outputs=[output_file],
         inputs=[framework_file.src],
         mnemonic="Cp",
