@@ -76,10 +76,11 @@ def _macos_command_line_infoplist_impl(ctx):
       include_xcode_env=True)
   merged_infoplist = plist_results.output_plist
 
-  return struct(
-      objc=linker_support.sectcreate_objc_provider(
+  return [
+      linker_support.sectcreate_objc_provider(
           "__TEXT", "__info_plist", merged_infoplist,
-      ))
+      ),
+  ]
 
 
 macos_command_line_infoplist = rule(
@@ -117,10 +118,11 @@ def _macos_command_line_launchdplist_impl(ctx):
       launchdplists)
   merged_launchdplist = plist_results.output_plist
 
-  return struct(
-      objc=linker_support.sectcreate_objc_provider(
+  return [
+      linker_support.sectcreate_objc_provider(
           "__TEXT", "__launchd_plist", merged_launchdplist
-      ))
+      ),
+  ]
 
 macos_command_line_launchdplist = rule(
     _macos_command_line_launchdplist_impl,

@@ -210,8 +210,8 @@ def _test_info_aspect_impl(target, ctx):
     sources = _collect_files(rule_attr, "srcs")
     non_arc_sources = _collect_files(rule_attr, "non_arc_srcs")
 
-    if hasattr(target, "objc"):
-      includes = _merge_depsets(target.objc.include, includes)
+    if apple_common.Objc in target:
+      includes = _merge_depsets(target[apple_common.Objc].include, includes)
       # Module maps should only be used by Swift targets.
       if hasattr(target, "swift"):
         module_maps = _merge_depsets(target.objc.module_map, module_maps)

@@ -331,7 +331,7 @@ def _swiftc_inputs(srcs, deps=[]):
   ])
 
   transitive_objc = apple_common.new_objc_provider(
-      providers=providers.find_all(deps, "objc"))
+      providers=providers.find_all(deps, apple_common.Objc))
 
   objc_files = depset(transitive=[
       transitive_objc.header,
@@ -407,7 +407,7 @@ def _swiftc_args(reqs):
     dep_modules += swift.transitive_modules
     swiftc_defines += swift.transitive_defines
 
-  objc_providers = providers.find_all(deps, "objc")
+  objc_providers = providers.find_all(deps, apple_common.Objc)
   transitive_objc = apple_common.new_objc_provider(providers=objc_providers)
 
   # Everything that needs to be included with -I. These need to be pulled from
@@ -730,7 +730,7 @@ def register_swift_compile_actions(ctx, reqs):
 
   compile_outputs = [output_lib, output_module, output_header, output_doc]
 
-  objc_providers = providers.find_all(reqs.deps, "objc")
+  objc_providers = providers.find_all(reqs.deps, apple_common.Objc)
   objc_provider_args = {
       "library": depset([output_lib]) + dep_libs,
       "header": depset([output_header]),
@@ -834,7 +834,7 @@ def merge_swift_objc_providers(targets):
   link_inputs = depset()
   linkopts = depset()
 
-  for objc in providers.find_all(targets, "objc"):
+  for objc in providers.find_all(targets, apple_common.Objc):
     libraries += objc.library
     headers += objc.header
     link_inputs += objc.link_inputs
