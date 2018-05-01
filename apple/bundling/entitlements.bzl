@@ -234,10 +234,10 @@ def _entitlements_impl(ctx):
 
   # If there is no entitlements to use; return empty info.
   if not inputs:
-    return struct(
-        objc=apple_common.new_objc_provider(),
-        providers=[AppleEntitlementsInfo(final_entitlements=None)],
-    )
+    return [
+        apple_common.new_objc_provider(),
+        AppleEntitlementsInfo(final_entitlements=None),
+    ]
 
   final_entitlements = ctx.actions.declare_file(
       "%s.entitlements" % ctx.label.name)
@@ -278,19 +278,17 @@ def _entitlements_impl(ctx):
   # Only propagate linkopts for simulator builds to embed the entitlements into
   # the binary; for device builds, the entitlements are applied during signing.
   if not is_device:
-    return struct(
-        objc=linker_support.sectcreate_objc_provider(
+    return [
+        linker_support.sectcreate_objc_provider(
             "__TEXT", "__entitlements", final_entitlements
         ),
-        providers=[AppleEntitlementsInfo(final_entitlements=final_entitlements)],
-    )
+        AppleEntitlementsInfo(final_entitlements=final_entitlements),
+    ]
   else:
-    return struct(
-        objc=apple_common.new_objc_provider(),
-        providers=[
-            AppleEntitlementsInfo(final_entitlements=final_entitlements)
-        ],
-    )
+    return [
+        apple_common.new_objc_provider(),
+        AppleEntitlementsInfo(final_entitlements=final_entitlements),
+    ]
 
 
 entitlements = rule(

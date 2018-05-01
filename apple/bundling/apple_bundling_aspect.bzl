@@ -274,8 +274,8 @@ def _transitive_apple_resource_info(target, ctx):
     # information from the transitive objc providers on the way back up
     # (because we'll have already gotten that information in the form we want
     # from the transitive AppleResource providers).
-    if hasattr(target, "objc"):
-      resource_set = _handle_unknown_objc_provider(target.objc)
+    if apple_common.Objc in target:
+      resource_set = _handle_unknown_objc_provider(target[apple_common.Objc])
       if resource_set:
         resource_sets.append(resource_set)
 

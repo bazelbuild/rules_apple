@@ -207,7 +207,7 @@ def _macos_bundle_impl(ctx):
 
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
-  deps_objc_providers = providers.find_all(ctx.attr.deps, "objc")
+  deps_objc_providers = providers.find_all(ctx.attr.deps, apple_common.Objc)
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosBundleArchive", "macOS executable bundle",

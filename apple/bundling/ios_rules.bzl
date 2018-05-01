@@ -339,7 +339,7 @@ def _ios_static_framework_impl(ctx):
 
   sdk_dylibs = depset()
   sdk_frameworks = depset()
-  for objc in providers.find_all(ctx.attr.deps, "objc"):
+  for objc in providers.find_all(ctx.attr.deps, apple_common.Objc):
     sdk_dylibs += objc.sdk_dylib
     sdk_frameworks += objc.sdk_framework
 
