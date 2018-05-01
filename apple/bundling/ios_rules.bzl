@@ -89,7 +89,8 @@ def _ios_application_impl(ctx):
   additional_resources = depset(app_icons + launch_images)
   launch_storyboard = ctx.file.launch_storyboard
   if launch_storyboard:
-    additional_resources += [launch_storyboard]
+    additional_resources = depset([launch_storyboard],
+                                  transitive=[additional_resources])
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
@@ -337,11 +338,11 @@ def _ios_static_framework_impl(ctx):
   hdr_files = ctx.files.hdrs
   framework_files = [bundling_support.header_prefix(f) for f in hdr_files]
 
-  sdk_dylibs = depset()
-  sdk_frameworks = depset()
-  for objc in providers.find_all(ctx.attr.deps, apple_common.Objc):
-    sdk_dylibs += objc.sdk_dylib
-    sdk_frameworks += objc.sdk_framework
+  deps_providers_objcs = providers.find_all(ctx.attr.deps, apple_common.Objc)
+  sdk_dylibs = depset(
+      [x.sdk_dylib for x in deps_providers_objcs if x.sdk_dylib])
+  sdk_frameworks = depset(
+      [x.sdk_framework for x in deps_providers_objcs if x.sdk_framework])
 
   # Create an umbrella header if the framework has any header files.
   umbrella_header_name = None
