@@ -150,7 +150,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 5,
+    shard_count = 6,
 )
 
 apple_multi_shell_test(

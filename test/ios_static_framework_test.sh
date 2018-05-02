@@ -280,4 +280,57 @@ EOF
   assert_zip_contains "test-bin/sdk/sdk.zip" "different.framework/different"
 }
 
+# Tests sdk_dylib and sdk_framework attributes are captured into the modulemap.
+function test_sdk_attribute_support() {
+  cat >> sdk/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
+
+ios_static_framework(
+    name = "sdk",
+    minimum_os_version = "7.0",
+    deps = [":framework_lib"],
+)
+
+objc_library(
+    name = "framework_lib",
+    srcs = [
+        "Framework.h",
+        "Framework.m",
+    ],
+    sdk_dylibs = ["libz"],
+    sdk_frameworks = ["CFNetwork"],
+    alwayslink = 1,
+)
+EOF
+
+  cat > sdk/Framework.h <<EOF
+#ifndef SDK_FRAMEWORK_H_
+#define SDK_FRAMEWORK_H_
+
+void doStuff();
+
+#endif  // SDK_FRAMEWORK_H_
+EOF
+
+  cat > sdk/Framework.m <<EOF
+#import <Foundation/Foundation.h>
+
+void doStuff() {
+  NSLog(@"Framework method called\n");
+}
+EOF
+
+  do_build ios //sdk:sdk || fail "Should build"
+
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/module.modulemap"
+  unzip_single_file "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/module.modulemap" \
+    | grep -sq 'link "z"' || fail "Should have said to link libz"
+  unzip_single_file "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/module.modulemap" \
+    | grep -sq 'link framework "CFNetwork"' \
+    || fail "Should have said to link CFNetwork.framework"
+}
+
 run_suite "ios_static_framework bundling tests"
