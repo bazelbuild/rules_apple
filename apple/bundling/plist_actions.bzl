@@ -205,9 +205,8 @@ def _merge_infoplists(ctx,
     bundle_name = bundling_support.bundle_name_with_extension(ctx)
     substitutions["BUNDLE_NAME"] = bundle_name
 
-    version_info = providers.find_one(
-        attrs.get(ctx.attr, "version"), AppleBundleVersionInfo)
-    if version_info:
+    if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
+      version_info = ctx.attr.version[AppleBundleVersionInfo]
       additional_plisttool_inputs.append(version_info.version_file)
       info_plist_options["version_file"] = version_info.version_file.path
 
