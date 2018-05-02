@@ -338,11 +338,11 @@ def _ios_static_framework_impl(ctx):
   hdr_files = ctx.files.hdrs
   framework_files = [bundling_support.header_prefix(f) for f in hdr_files]
 
-  sdk_dylibs = depset()
-  sdk_frameworks = depset()
-  for objc in providers.find_all(ctx.attr.deps, apple_common.Objc):
-    sdk_dylibs += objc.sdk_dylib
-    sdk_frameworks += objc.sdk_framework
+  deps_providers_objcs = providers.find_all(ctx.attr.deps, apple_common.Objc)
+  sdk_dylibs = depset(
+      transitive=[x.sdk_dylib for x in deps_providers_objcs if x.sdk_dylib])
+  sdk_frameworks = depset(
+      transitive=[x.sdk_framework for x in deps_providers_objcs if x.sdk_framework])
 
   # Create an umbrella header if the framework has any header files.
   umbrella_header_name = None
