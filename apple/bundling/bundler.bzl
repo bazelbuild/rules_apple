@@ -1083,7 +1083,7 @@ def _run(
 
   # Collect extra outputs from embedded bundles so that they also get included
   # as outputs of the rule.
-  transitive_extra_outputs = depset(items=extra_outputs)
+  transitive_extra_outputs = depset(direct=extra_outputs)
   propagate_embedded_extra_outputs = ctx.var.get(
       "apple.propagate_embedded_extra_outputs", "no")
   if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
@@ -1097,7 +1097,8 @@ def _run(
       AppleBundleInfo(**apple_bundle_info_args),
       AppleExtraOutputsInfo(files=transitive_extra_outputs),
       DefaultInfo(
-          files=depset(items=main_outputs, transitive=[transitive_extra_outputs]),
+          files=depset(direct=main_outputs,
+                       transitive=[transitive_extra_outputs]),
           runfiles=ctx.runfiles(
               files=[ctx.outputs.archive] + extra_runfiles,
           ),
