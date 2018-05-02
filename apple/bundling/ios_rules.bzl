@@ -89,7 +89,8 @@ def _ios_application_impl(ctx):
   additional_resources = depset(app_icons + launch_images)
   launch_storyboard = ctx.file.launch_storyboard
   if launch_storyboard:
-    additional_resources += [launch_storyboard]
+    additional_resources = depset(direct=[launch_storyboard],
+                                  transitive=[additional_resources])
   if additional_resources:
     additional_resource_sets.append(AppleResourceSet(
         resources=additional_resources,
