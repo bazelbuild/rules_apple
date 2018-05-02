@@ -108,6 +108,11 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             allow_single_file = True,
             default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
         ),
+        "_codesigningtool": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/codesigningtool"),
+        ),
         # TODO(b/117933004): Find out whether realpath is still needed for symlinking, and if not,
         # remove this attribute, which is still used by file_actions.symlink.
         "_realpath": attr.label(
