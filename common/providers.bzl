@@ -15,18 +15,14 @@
 """Support functions for working with providers in build rules."""
 
 
-def _find_all(target_or_targets, name_or_provider):
+def _find_all(target_or_targets, provider_ref):
   """Returns a list with all of the given provider from one or more targets.
-
-  This function supports legacy providers (referenced by name) and modern
-  providers (referenced by their provider object).
 
   Args:
     target_or_targets: A target or list of targets whose providers should be
         searched. This argument may also safely be None, which causes the empty
         list to be returned.
-    name_or_provider: The string name of the legacy provider or the reference
-        to a modern provider to return.
+    provider_ref: The reference to the provider to return.
 
   Returns:
     A list of providers from the given targets. This list may have fewer
@@ -41,13 +37,7 @@ def _find_all(target_or_targets, name_or_provider):
   else:
     targets = [target_or_targets]
 
-  # If name_or_provider is a string, find it as a legacy provider.
-  if type(name_or_provider) == type(""):
-    return [getattr(x, name_or_provider) for x in targets
-            if hasattr(x, name_or_provider)]
-
-  # Otherwise, find it as a modern provider.
-  return [x[name_or_provider] for x in targets if name_or_provider in x]
+  return [x[provider_ref] for x in targets if provider_ref in x]
 
 
 # Define the loadable module that lists the exported symbols in this file.
