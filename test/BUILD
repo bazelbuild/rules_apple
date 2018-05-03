@@ -61,8 +61,18 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
+# ----------------------------------------------------------------------------
+
 # Ballpark number for shared_count:
 #  grep -c function\ test test/*_test.sh
+
+# Tests that end up needing things like ibtool or actool run under the hood
+# are better off as a dedicated *_resources_test.sh that can then be marked
+# with `flaky = 1`. When building for some Apple platforms, the tools can end
+# up talking to other services running on the machine (CoreSimulator) during
+# the build and flake/fail. So by grouping them and marking them as flaky, it
+# allows bazel to auto retry them and help minimize the unreliability in those
+# tools.
 
 apple_shell_test(
     name = "apple_bundle_version_test",
@@ -92,7 +102,8 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 8,
+    flaky = 1,
+    shard_count = 7,
 )
 
 apple_multi_shell_test(
@@ -100,11 +111,20 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_application_swift_test.sh",
     configurations = IOS_CONFIGURATIONS,
+    shard_count = 3,
+)
+
+apple_multi_shell_test(
+    name = "ios_application_swift_resources_test",
+    size = "medium",
+    src = "ios_application_swift_resources_test.sh",
+    configurations = IOS_CONFIGURATIONS,
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 8,
+    flaky = 1,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -115,9 +135,20 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/binaries:empty_staticlib",
+    ],
+    shard_count = 12,
+)
+
+apple_multi_shell_test(
+    name = "ios_extension_resources_test",
+    size = "medium",
+    src = "ios_extension_resources_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+    data = [
         "//test/testdata/resources:resource_data_deps_ios",
     ],
-    shard_count = 8,
+    flaky = 1,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -135,7 +166,6 @@ apple_multi_shell_test(
     configurations = IOS_CONFIGURATIONS,
     data = [
         "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
     shard_count = 8,
@@ -146,11 +176,20 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_static_framework_test.sh",
     configurations = IOS_CONFIGURATIONS,
+    shard_count = 3,
+)
+
+apple_multi_shell_test(
+    name = "ios_static_framework_resources_test",
+    size = "medium",
+    src = "ios_static_framework_resources_test.sh",
+    configurations = IOS_CONFIGURATIONS,
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 6,
+    flaky = 1,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
