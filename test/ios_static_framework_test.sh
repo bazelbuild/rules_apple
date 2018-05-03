@@ -26,25 +26,17 @@ function tear_down() {
   rm -rf sdk
 }
 
-# Creates the targets for a minimal static framework.
-function create_minimal_ios_static_framework() {
-  local exclude_resources="$1"; shift
-  local include_headers="$1"; shift
-  cat > sdk/BUILD <<EOF
+# Tests that attempting to generate dSYMs does not cause the build to fail
+# (apple_static_library does not generate dSYMs, and the bundler should not
+# unconditionally assume that the provider will be present).
+function test_building_with_dsyms_enabled() {
+  cat >> sdk/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
     minimum_os_version = "7.0",
     deps = [":framework_lib"],
-    avoid_deps = [":framework_dependent_lib"],
-EOF
-  if [[ "$include_headers" = "True" ]]; then
-    echo "    hdrs = [\"Framework.h\"],"  >> sdk/BUILD
-  fi
-  echo "    exclude_resources = $exclude_resources" >> sdk/BUILD
-
-  cat >> sdk/BUILD <<EOF
 )
 
 objc_library(
@@ -53,32 +45,9 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    asset_catalogs = [
-        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
-    ],
-    datamodels = [
-        "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
-        "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
-    ],
-    storyboards = [
-        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
-    ],
-    strings = [
-        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
-    ],
-    xibs = [
-        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
-    ],
-    deps = [":framework_dependent_lib"],
+    sdk_dylibs = ["libz"],
+    sdk_frameworks = ["CFNetwork"],
     alwayslink = 1,
-)
-
-objc_library(
-    name = "framework_dependent_lib",
-    srcs = ["FrameworkDependent.m"],
-    xibs = [
-        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
-    ],
 )
 EOF
 
@@ -99,137 +68,6 @@ void doStuff() {
 }
 EOF
 
-  cat > sdk/FrameworkDependent.m <<EOF
-#import <Foundation/Foundation.h>
-
-void frameworkDependent() {
-  NSLog(@"frameworkDependent() called");
-}
-EOF
-}
-
-# Tests that the SDK's .framework bundle contains the expected files.
-function test_sdk_contains_expected_files() {
-  create_minimal_ios_static_framework True True
-  do_build ios //sdk:sdk || fail "Should build"
-
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
-
-  # Verify asset catalogs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
-
-  # Verify Core Data models.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
-
-  # Verify compiled storyboards.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/storyboard_ios.storyboardc/"
-
-  # Verify strings.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/nonlocalized.strings"
-
-  # Verify compiled NIBs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
-}
-
-# Tests that the SDK's .framework bundle does not contain headers when not needed.
-function test_sdk_does_not_contain_headers() {
-  create_minimal_ios_static_framework True False
-  do_build ios //sdk:sdk || fail "Should build"
-
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
-
-  # Verify asset catalogs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
-
-  # Verify Core Data models.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
-
-  # Verify compiled storyboards.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/storyboard_ios.storyboardc/"
-
-  # Verify strings.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/nonlocalized.strings"
-
-  # Verify compiled NIBs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
-}
-
-
-# Tests that the SDK's .framework bundle contains the expected files when
-# "exclude_resources = False". The "not_contains" resource tests become
-# "contains".
-function test_sdk_contains_expected_files_without_excluding_resources() {
-  create_minimal_ios_static_framework False True
-  do_build ios //sdk:sdk || fail "Should build"
-
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
-
-  # Verify asset catalogs.
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
-  # Verify that one of the image names shows up in the asset catalog. (The file
-  # format is a black box to us, but we can at a minimum grep the name out
-  # because it's visible in the raw bytes).
-  unzip_single_file "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car" | \
-      grep "star_iphone" > /dev/null || \
-      fail "Did not find star_iphone in Assets.car"
-
-  # Verify Core Data models.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
-
-  # Verify compiled storyboards.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/storyboard_ios.storyboardc/"
-
-  # Verify strings.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/nonlocalized.strings"
-
-  # Verify compiled NIBs.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
-}
-
-# Tests that attempting to generate dSYMs does not cause the build to fail
-# (apple_static_library does not generate dSYMs, and the bundler should not
-# unconditionally assume that the provider will be present).
-function test_sdk_contains_expected_files() {
-  create_minimal_ios_static_framework True True
   do_build ios --apple_generate_dsym //sdk:sdk || fail "Should build"
 }
 

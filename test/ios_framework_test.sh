@@ -338,6 +338,9 @@ EOF
 #
 # Verifies that resource bundles that are dependencies of a framework are
 # bundled with the framework if no deduplication is happening.
+#
+# NOTE: This does now use xibs, storyboards, xcassets to avoid flake from
+# ibtool/actool. See the note in the BUILD file.
 function verify_resource_bundle_deduping() {
   application_minimum_os="$1"; shift
   framework_minimum_os="$1"; shift
@@ -908,6 +911,9 @@ function test_resource_bundle_is_in_framework_different_min_os() {
 
 # Tests that resource bundles that are dependencies of a framework are
 # bundled with the framework if no deduplication is happening.
+#
+# NOTE: This does now use xibs, storyboards, xcassets to avoid flake from
+# ibtool/actool. See the note in the BUILD file.
 function test_resource_bundle_is_in_framework() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
@@ -1025,6 +1031,9 @@ EOF
 # Test that if an ios_framework target depends on a prebuilt framework (i.e.,
 # objc_framework), that the inner framework is propagated up to the application
 # and not nested in the outer framework.
+#
+# NOTE: This does now use xibs, storyboards, xcassets to avoid flake from
+# ibtool/actool. See the note in the BUILD file.
 function test_framework_depends_on_prebuilt_framework() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
