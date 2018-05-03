@@ -46,10 +46,6 @@ load(
     "@build_bazel_rules_apple//common:attrs.bzl",
     "attrs",
 )
-load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
-)
 
 
 def _environment_plist_action(ctx):
