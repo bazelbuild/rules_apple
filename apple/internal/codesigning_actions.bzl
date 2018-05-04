@@ -139,6 +139,9 @@ def _post_process_and_sign_archive_action(
         executable = process_and_sign_template,
         mnemonic = "ProcessAndSign",
         progress_message = "Processing and signing %s" % ctx.label.name,
+        tools = [
+            ctx.executable._codesigningtool,
+        ],
     )
 
 def _sign_binary_action(ctx, input_binary, output_binary):
@@ -173,6 +176,9 @@ def _sign_binary_action(ctx, input_binary, output_binary):
             ) + "\n" + signing_commands,
         ],
         mnemonic = "SignBinary",
+        tools = [
+            ctx.executable._codesigningtool,
+        ],
     )
 
 codesigning_actions = struct(
