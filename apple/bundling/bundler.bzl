@@ -579,6 +579,9 @@ def _process_and_sign_archive(
             progress_description,
             bundle_name,
         ),
+        tools = [
+            ctx.executable._codesigningtool,
+        ]
     )
     return (work_dir, entitlements)
 
