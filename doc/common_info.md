@@ -128,6 +128,32 @@ can pass `--define=apple.propagate_embedded_extra_outputs=(yes|true|1)` to
 bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 ```
 
+### Codesign Bundles for the Simulator {#apple.codesign_simulator_bundles}
+
+The simulators are far more lax about a lot of things compared to working on
+real devices. One of these areas is the codesigning of bundles (applications,
+extensions, etc.). As of Xcode 9.3.x on macOS High Sierra, the Simulator will
+run any bundle just fine as long as its Frameworks are signed (if it has any),
+the main bundle does *not* appear to need to be signed.
+
+By default, the rules will do what Xcode would otherwise do and *will* sign
+the main bundle (with an adhoc signature) when targeting the Simulator.
+However, this `--define` can be used to opt out of this if you are more
+concerned with build speed vs. potential correctness.
+
+Remember, at any time, Apple could do a macOS point release and/or an Xcode
+release that changes this and opting out of could mean your binary doesn't
+run under the simulator.
+
+The rules support direct control over this signing via
+`--define=apple.codesign_simulator_bundles=(yes|true|1|no|false|0)`.
+
+Disable the signing of simulator bundles:
+
+```shell
+bazel build --define=apple.codesign_simulator_bundles=no //your/target
+```
+
 <!--
  Define not currently documented:
 

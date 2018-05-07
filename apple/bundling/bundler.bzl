@@ -495,8 +495,13 @@ def _process_and_sign_archive(ctx,
         codesigning_support.path_to_sign(
             "$WORK_DIR/" + bundle_path_in_archive + "/Frameworks/*",
             optional=True),
-        codesigning_support.path_to_sign("$WORK_DIR/" + bundle_path_in_archive),
     ]
+    is_device = platform_support.is_device_build(ctx)
+    if is_device or codesigning_support.should_sign_simulator_bundles(ctx):
+      paths_to_sign.append(
+          codesigning_support.path_to_sign(
+              "$WORK_DIR/" + bundle_path_in_archive),
+      )
     signing_command_lines = codesigning_support.signing_command_lines(
         ctx, paths_to_sign, entitlements)
 
@@ -588,8 +593,12 @@ def _experimental_create_and_sign_bundle(
         codesigning_support.path_to_sign(
             "$WORK_DIR/" + bundle_dir.basename + "/Frameworks/*",
             optional=True),
-        codesigning_support.path_to_sign("$WORK_DIR/" + bundle_dir.basename),
     ]
+    is_device = platform_support.is_device_build(ctx)
+    if is_device or codesigning_support.should_sign_simulator_bundles(ctx):
+      paths_to_sign.append(
+          codesigning_support.path_to_sign("$WORK_DIR/" + bundle_dir.basename),
+      )
     signing_command_lines = codesigning_support.signing_command_lines(
         ctx, paths_to_sign, entitlements)
 
