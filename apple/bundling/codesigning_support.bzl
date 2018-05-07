@@ -264,9 +264,36 @@ def _signing_command_lines(ctx,
   return "\n".join(commands)
 
 
+def _should_sign_simulator_bundles(ctx):
+  """Check if a main bundle should be codesigned.
+
+  The Frameworks/* bundles should *always* be signed, this is just for
+  the other bundles.
+
+  Args:
+    ctx: The Skylark context.
+
+  Returns:
+    True/False for if the bundle should be signed.
+
+  """
+  codesign_simulator_bundles = ctx.var.get(
+      "apple.codesign_simulator_bundles", None)
+  if codesign_simulator_bundles != None:
+    if codesign_simulator_bundles.lower() in ("true", "yes", "1"):
+      return True
+    if codesign_simulator_bundles.lower() in ("false", "no", "0"):
+      return False
+    fail("Valid values for --define=apple.codesign_simulator_bundles" +
+         " are: true|yes|1 or false|no|0.")
+  # Default is to sign.
+  return True
+
+
 # Define the loadable module that lists the exported symbols in this file.
 codesigning_support = struct(
     embedded_provisioning_profile_name=_embedded_provisioning_profile_name,
     path_to_sign=_path_to_sign,
+    should_sign_simulator_bundles=_should_sign_simulator_bundles,
     signing_command_lines=_signing_command_lines,
 )
