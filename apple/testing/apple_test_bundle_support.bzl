@@ -23,6 +23,10 @@ load(
     "bundler",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
 )
@@ -76,6 +80,11 @@ def _apple_test_bundle_impl(ctx,
     bundler_extra_args["avoid_propagated_framework_files"] = (
         test_host_apple_bundle.propagated_framework_files)
 
+  # Only set the test host as a dependency if it's a unit test, as in UI tests,
+  # the test bundle doesn't run from within the test host.
+  if ctx.attr.product_type == apple_product_type.unit_test_bundle:
+    bundler_extra_args["resource_dep_bundle_attributes"] = "test_host"
+
   binary_artifact = binary_support.get_binary_provider(
       ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
   deps_objc_provider = binary_support.get_binary_provider(
@@ -88,7 +97,6 @@ def _apple_test_bundle_impl(ctx,
       binary_artifact=binary_artifact,
       deps_objc_providers=[deps_objc_provider],
       version_keys_required=False,
-      resource_dep_bundle_attributes=["test_host"],
       **bundler_extra_args
   )
   return struct(
