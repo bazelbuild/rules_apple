@@ -633,7 +633,8 @@ def _run(
     deps_objc_providers=[],
     suppress_bundle_infoplist=False,
     version_keys_required=True,
-    extra_runfiles=[]):
+    extra_runfiles=[],
+    resource_dep_bundle_attributes=["frameworks"]):
   """Implements the core bundling logic for an Apple bundle archive.
 
   Args:
@@ -677,6 +678,9 @@ def _run(
         the require for the exceptional cases (like unittest bundles).
     extra_runfiles: List of additional files to be marked as required for
         running this target.
+    resource_dep_bundle_attributes: List of attributes that reference bundles
+        which contain resources that need to be deduplicated from the current
+        bundle.
 
   Returns:
     A tuple containing two values:
@@ -758,16 +762,21 @@ def _run(
 
   resource_sets = list(additional_resource_sets)
 
-  framework_resource_sets = []
+  dep_bundle_resource_sets = []
 
+  # Collect dependencies framework zips to be bundled and/or propagated.
+  for framework in attrs.get(ctx.attr, "frameworks", []):
+    propagated_framework_zips.append(framework[AppleBundleInfo].archive)
+
+  # Collect resource sets from dependencies.
   if attrs.get(ctx.attr, "exclude_resources"):
     resource_sets.append(AppleResourceSet(infoplists=target_infoplists))
   else:
-    for framework in attrs.get(ctx.attr, "frameworks", []):
-      if _ResourceBundleInfo in framework:
-        framework_resource_sets.extend(
-            framework[_ResourceBundleInfo].resource_sets)
-        propagated_framework_zips.append(framework[AppleBundleInfo].archive)
+    for dep_bundle_attribute in resource_dep_bundle_attributes:
+      for dep_bundle in attrs.get_as_list(ctx.attr, dep_bundle_attribute, []):
+        if dep_bundle and _ResourceBundleInfo in dep_bundle:
+          dep_bundle_resource_sets.extend(
+              dep_bundle[_ResourceBundleInfo].resource_sets)
 
     # Add the transitive resource sets, except for those that have already been
     # included by a framework dependency.
@@ -789,7 +798,7 @@ def _run(
   # processed independently.
   dedupe_unbundled = getattr(ctx.attr, "dedupe_unbundled_resources", False)
   resource_sets = apple_resource_set_utils.minimize(resource_sets,
-                                                    framework_resource_sets,
+                                                    dep_bundle_resource_sets,
                                                     dedupe_unbundled)
   process_results = resource_actions.process_resource_sets(
       ctx, bundle_id, resource_sets)
@@ -1107,7 +1116,7 @@ def _run(
       # Propagate the resource sets contained by this bundle along with the ones
       # contained in the frameworks dependencies, so that higher level bundles
       # can also skip the bundling of those resources.
-      _ResourceBundleInfo(resource_sets=resource_sets + framework_resource_sets),
+      _ResourceBundleInfo(resource_sets=resource_sets + dep_bundle_resource_sets),
   ])
 
   return (additional_providers, legacy_providers)

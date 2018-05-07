@@ -43,6 +43,8 @@ def _macos_test_bundle_impl(ctx):
 _macos_test_bundle = rule_factory.make_bundling_rule(
     _macos_test_bundle_impl,
     additional_attrs={
+        # TODO(b/79348248): Flip this to True.
+        "dedupe_unbundled_resources": attr.bool(default=False),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(providers=[AppleBundleInfo]),
     },
@@ -79,6 +81,7 @@ def _macos_test(name,
                 product_type,
                 bundle_id=None,
                 bundle_loader=None,
+                dedupe_unbundled_resources=None,
                 infoplists=[
                     "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
                 ],
@@ -132,6 +135,7 @@ def _macos_test(name,
       binary = ":" + test_binary_name,
       bundle_id = bundle_id,
       bundle_name = name,
+      dedupe_unbundled_resources = dedupe_unbundled_resources,
       infoplists = infoplists,
       minimum_os_version = minimum_os_version,
       product_type = product_type,
