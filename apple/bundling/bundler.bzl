@@ -100,6 +100,10 @@ load(
     "attrs",
 )
 load(
+    "@build_bazel_rules_apple//common:define_utils.bzl",
+    "define_utils",
+)
+load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
@@ -1102,9 +1106,9 @@ def _run(
   # Collect extra outputs from embedded bundles so that they also get included
   # as outputs of the rule.
   transitive_extra_outputs = depset(direct=extra_outputs)
-  propagate_embedded_extra_outputs = ctx.var.get(
-      "apple.propagate_embedded_extra_outputs", "no")
-  if propagate_embedded_extra_outputs.lower() in ("true", "yes", "1"):
+  propagate_embedded_extra_outputs = define_utils.bool_value(
+      ctx, "apple.propagate_embedded_extra_outputs", False)
+  if propagate_embedded_extra_outputs:
     embedded_bundle_targets = [eb.target for eb in embedded_bundles]
     for extra in providers.find_all(
         embedded_bundle_targets, AppleExtraOutputsInfo):

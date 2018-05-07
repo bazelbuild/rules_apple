@@ -20,6 +20,8 @@ load("@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
      "mock_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
      "platform_support")
+load("@build_bazel_rules_apple//common:define_utils.bzl",
+     "define_utils")
 
 
 def _extract_provisioning_plist_command(ctx, provisioning_profile):
@@ -277,17 +279,9 @@ def _should_sign_simulator_bundles(ctx):
     True/False for if the bundle should be signed.
 
   """
-  codesign_simulator_bundles = ctx.var.get(
-      "apple.codesign_simulator_bundles", None)
-  if codesign_simulator_bundles != None:
-    if codesign_simulator_bundles.lower() in ("true", "yes", "1"):
-      return True
-    if codesign_simulator_bundles.lower() in ("false", "no", "0"):
-      return False
-    fail("Valid values for --define=apple.codesign_simulator_bundles" +
-         " are: true|yes|1 or false|no|0.")
   # Default is to sign.
-  return True
+  return define_utils.bool_value(
+    ctx, "apple.codesign_simulator_bundles", True)
 
 
 # Define the loadable module that lists the exported symbols in this file.
