@@ -38,6 +38,10 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "apple_action"
 )
+load(
+    "@build_bazel_rules_apple//common:define_utils.bzl",
+    "define_utils"
+)
 
 
 AppleEntitlementsInfo = provider(
@@ -117,15 +121,10 @@ def _include_debug_entitlements(ctx):
   """
   if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
     return False
-  add_debugger_entitlement = ctx.var.get(
-      "apple.add_debugger_entitlement", None)
+  add_debugger_entitlement = define_utils.bool_value(
+      ctx, "apple.add_debugger_entitlement", None)
   if add_debugger_entitlement != None:
-    if add_debugger_entitlement.lower() in ("true", "yes", "1"):
-      return True
-    if add_debugger_entitlement.lower() in ("false", "no", "0"):
-      return False
-    fail("Valid values for --define=apple.add_debugger_entitlement" +
-         " are: true|yes|1 or false|no|0.")
+    return add_debugger_entitlement
   if not ctx.fragments.objc.uses_device_debug_entitlements:
     return False
   return True
