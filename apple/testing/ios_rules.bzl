@@ -43,6 +43,8 @@ def _ios_test_bundle_impl(ctx):
 _ios_test_bundle = rule_factory.make_bundling_rule(
     _ios_test_bundle_impl,
     additional_attrs={
+        # TODO(b/79348248): Flip this to True.
+        "dedupe_unbundled_resources": attr.bool(default=False),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(mandatory=False, providers=[AppleBundleInfo]),
     },
@@ -82,6 +84,7 @@ def _ios_test(name,
               product_type,
               bundle_id=None,
               bundle_loader=None,
+              dedupe_unbundled_resources=None,
               infoplists=[
                   "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
               ],
@@ -138,15 +141,16 @@ def _ios_test(name,
   _ios_test_bundle(
       name = test_bundle_name,
       binary = ":" + test_binary_name,
-      deps = [":" + test_binary_name],
       bundle_name = name,
       bundle_id = bundle_id,
+      dedupe_unbundled_resources = dedupe_unbundled_resources,
       infoplists = infoplists,
       minimum_os_version = minimum_os_version,
       product_type = product_type,
       test_host = test_host,
       testonly = 1,
       visibility = ["//visibility:private"],
+      deps = [":" + test_binary_name],
   )
 
   test_rule(

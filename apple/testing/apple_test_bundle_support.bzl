@@ -88,6 +88,7 @@ def _apple_test_bundle_impl(ctx,
       binary_artifact=binary_artifact,
       deps_objc_providers=[deps_objc_provider],
       version_keys_required=False,
+      resource_dep_bundle_attributes=["test_host"],
       **bundler_extra_args
   )
   return struct(
