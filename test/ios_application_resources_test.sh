@@ -127,19 +127,11 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/sample.png"
 
-  # Verify strings and plists (that they exist and that they are in binary
-  # format).
-  assert_zip_contains "test-bin/app/app.ipa" \
+  # Verify strings and plists.
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/nonlocalized.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
-
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/nonlocalized.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # Verify compiled NIBs. Note that NIB folders might have different structures
   # depending on the minimum OS version passed to ibtool (in fact, they can
@@ -176,13 +168,8 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  # Verify strings and plists (that they exist and that they are in binary
-  # format).
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/empty.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/empty.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests bundling a Resources folder as top level would fail with a nicer message.
@@ -257,17 +244,11 @@ EOF
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
 
   # Verify strings and plists.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # Verify compiled NIBs.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -410,25 +391,16 @@ EOF
       "Payload/app.app/basic.bundle/basic_bundle.txt"
 
   # Verify strings and plists are in binary format.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/should_be_binary.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/should_be_binary.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/should_be_binary.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/should_be_binary.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/nested/should_be_nested.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that objc_bundle files are bundled correctly with the application if
@@ -507,7 +479,7 @@ EOF
   do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
-  # info.plist
+  # info.plist.
   assert_equals "org.bazel.bundle-library-ios" \
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "bundle_library_ios.bundle" \
@@ -524,7 +496,7 @@ EOF
       fail "Did not find star_iphone in bundle_library_ios.bundle/Assets.car"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.strings"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.txt"
@@ -556,23 +528,14 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/structured/nested.txt"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/structured/generated.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library_ios.bundle/structured/generated.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that structured resources (both unprocessed ones, and processed ones
@@ -627,24 +590,15 @@ EOF
       "Payload/app.app/structured/nested.txt"
 
   # Verify that the processed structured resources are present and compiled.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/structured/nested.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/structured/nested.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/structured/nested.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/structured/nested.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # And the generated one...
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/structured/generated.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/structured/generated.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that the Settings.bundle is bundled correctly with the application.
@@ -666,18 +620,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  # Verify that the files exist and are compiled in binary format.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  # Verify that the files exist.
+  assert_plist_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/Root.plist"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/Settings.bundle/Root.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/Settings.bundle/it.lproj/Root.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that resources generated by a genrule, which produces a separate copy
@@ -714,7 +662,7 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/generated_resource.strings"
 }
 
@@ -762,6 +710,56 @@ EOF
   #unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
   #    grep "sequence" > /dev/null || \
   #    fail "Did not find sequence sticker in Assets.car"
+}
+
+# Tests strings and plists aren't compiled in fastbuild and dbg.
+function test_compilation_mode_on_strings_and_plist_files() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+      "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
+    ],
+    strings = [
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios --compilation_mode=opt //app:app || fail "Should build"
+
+  assert_strings_is_binary "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings"
+  assert_plist_is_binary "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.plist"
+
+
+  do_build ios --compilation_mode=fastbuild //app:app || fail "Should build"
+
+  assert_strings_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings"
+  assert_plist_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.plist"
+
+  do_build ios --compilation_mode=dbg //app:app || fail "Should build"
+
+  assert_strings_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.strings"
+  assert_plist_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/nonlocalized.plist"
 }
 
 run_suite "ios_application bundling with resources tests"

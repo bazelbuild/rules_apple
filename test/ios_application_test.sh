@@ -524,11 +524,9 @@ EOF
 
 # Tests that debugger entitlements are auto-added to the application correctly.
 function test_debugger_entitlements_default() {
-  # For device builds, configuration.bzl also forces -c opt, so there will be
+  # For default builds, configuration.bzl also forces -c opt, so there will be
   #   no debug entitlements.
-  # For simulator builds, no config is passed, so it is dbg, so they will be
-  #   added.
-  verify_debugger_entitlements_with_params n y
+  verify_debugger_entitlements_with_params n n
 }
 
 # Test the different values for apple.add_debugger_entitlement.
