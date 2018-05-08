@@ -621,7 +621,7 @@ def register_swift_compile_actions(ctx, reqs):
   # import scenarios could lead to incorrect behavior because a header can be
   # imported textually instead of modularly.
   output_module_map = None
-  if not getattr(ctx.attr, "no_generated_module_map", None):
+  if not "swift.no_generated_module_map" in ctx.features:
     # Create a module map for the generated header file. This ensures that
     # inclusions of it are treated modularly, not textually.
     output_module_map = ctx.actions.declare_file(
@@ -947,7 +947,6 @@ SWIFT_LIBRARY_ATTRS = {
     "module_name": attr.string(mandatory=False),
     "defines": attr.string_list(mandatory=False, allow_empty=True),
     "copts": attr.string_list(mandatory=False, allow_empty=True),
-    "no_generated_module_map": attr.bool(mandatory=False),
     "resources": attr.label_list(
         mandatory=False,
         allow_empty=True,
