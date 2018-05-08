@@ -72,7 +72,6 @@ mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
 -->
-
 <!-- Blocked on b/73547215
 
 ### linkmap Generation {#objc_generate_linkmap}
@@ -162,6 +161,21 @@ bazel build --define=apple.codesign_simulator_bundles=no //your/target
  Support for this option is tracked in b/35451264, but because of the tree
  artifact issues, it isn't really useful at the moment.
 -->
+
+### Localization Handling
+
+The Apple bundling rules now have support for limiting which \*.lproj
+directories are copied as part of your build using `--define
+"apple.locales_to_include=foo,bar,bam"` where `foo,bar,bam` are the exact names
+of the locales to be included. For example `pt` may not be sufficient as `pt_BR`
+or `pt_PT` is likely the name of the lproj folder.
+
+Note that `Base.lproj` is always included if it exists.
+
+Without this flag, all locales are copied.
+
+This can be used to improve compile/debug/test cycles because most developers
+only work/test in one language.
 
 ## Info.plist Handling
 
