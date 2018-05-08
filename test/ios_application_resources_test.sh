@@ -281,8 +281,53 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  # do_build default is "-c opt"
+  do_build ios //app:app -c opt || fail "Should build"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
 
+  do_build ios //app:app -c dbg || fail "Should build"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c fastbuild || fail "Should build"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  # These next six should pass, but generate warnings about fr
+  do_build ios //app:app -c opt --define "apple.locales_to_include=fr" || \
+      fail "Should build"
+  expect_log "[\"fr\"]"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c dbg --define "apple.locales_to_include=fr" || \
+      fail "Should build"
+  expect_log "[\"fr\"]"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c fastbuild --define "apple.locales_to_include=fr" \
+      || fail "Should build"
+  expect_log "[\"fr\"]"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c opt --define "apple.locales_to_include=fr,it" \
+      || fail "Should build"
+  expect_log "[\"fr\"]"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c dbg --define "apple.locales_to_include=fr,it" \
+      || fail "Should build"
+  expect_log "[\"fr\"]"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+
+  do_build ios //app:app -c fastbuild \
+      --define "apple.locales_to_include=fr,it" || fail "Should build"
+  expect_log "[\"fr\"]"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
 }
