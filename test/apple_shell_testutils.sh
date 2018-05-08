@@ -42,7 +42,7 @@ function assert_zip_contains() {
   # appear in filenames, then surround it by ^ and $.
   path_regex="$(echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&$/g')"
 
-  zip_contents=$(zipinfo -1 "$archive")
+  zip_contents=$(zipinfo -1 "$archive" || fail "Cannot list contents of $archive")
   echo "$zip_contents" | grep "$path_regex" > /dev/null \
       || fail "Archive $archive did not contain ${path};" \
               "contents were: $zip_contents"
@@ -61,7 +61,7 @@ function assert_zip_not_contains() {
   # appear in filenames, then surround it by ^ and $.
   path_regex="$(echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&$/g')"
 
-  zip_contents=$(zipinfo -1 "$archive")
+  zip_contents=$(zipinfo -1 "$archive" || fail "Cannot extract contents of $archive")
   echo "$zip_contents" | grep "$path_regex" > /dev/null \
       && fail "Archive $archive contained $path, but it should not;" \
               "contents were: $zip_contents" \
@@ -439,7 +439,7 @@ function print_debug_entitlements() {
 function unzip_single_file() {
   archive="$1"
   path="$2"
-  unzip -p "$archive" "$path"
+  unzip -p "$archive" "$path" || fail "Unable to find $path in $archive"
 }
 
 
@@ -535,4 +535,51 @@ function assert_ipa_contains_bitcode_maps() {
     assert_zip_contains "$archive" \
       "BCSymbolMaps/${BIN_UUID}.bcsymbolmap"
   done
+}
+
+# Usage: assert_plist_is_binary <archive> <path_in_archive>
+#
+# Asserts that the IPA/zip at `archive` contains a binary plist file at
+# `path_in_archive`.
+function assert_plist_is_binary() {
+  archive="$1"
+  path_in_archive="$2"
+
+  assert_zip_contains "$archive" "$path_in_archive"
+  unzip_single_file "$archive" "$path_in_archive" | \
+      grep -sq "^bplist00" || fail "Expected binary file for $path_in_archive"
+}
+
+# Usage: assert_strings_is_binary <archive> <path_in_archive>
+#
+# Asserts that the IPA/zip at `archive` contains a binary strings file at
+# `path_in_archive`.
+function assert_strings_is_binary() {
+  archive="$1"
+  path_in_archive="$2"
+  assert_plist_is_binary "$archive" "$path_in_archive"
+}
+
+# Usage: assert_plist_is_text <archive> <path_in_archive>
+#
+# Asserts that the IPA/zip at `archive` contains a text plist file at
+# `path_in_archive`.
+function assert_plist_is_text() {
+  archive="$1"
+  path_in_archive="$2"
+
+  assert_zip_contains "$archive" "$path_in_archive"
+  unzip_single_file "$archive" "$path_in_archive" | \
+      grep -sq "^bplist00" && fail "Expected text file for $path_in_archive" \
+      || true
+}
+
+# Usage: assert_strings_is_text <archive> <path_in_archive>
+#
+# Asserts that the IPA/zip at `archive` contains a text strings file at
+# `path_in_archive`.
+function assert_strings_is_text() {
+  archive="$1"
+  path_in_archive="$2"
+  assert_plist_is_text "$archive" "$path_in_archive"
 }

@@ -111,19 +111,12 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/sample.png"
 
-  # Verify strings and plists (that they exist and that they are in binary
-  # format).
-  assert_zip_contains "test-bin/app/app.zip" \
+  # Verify strings and plists.
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/nonlocalized.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/nonlocalized.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_plist_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/nonlocalized.plist"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/nonlocalized.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # TODO: nibs from xibs.
 }
@@ -154,13 +147,9 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  # Verify strings and plists (that they exist and that they are in binary
-  # format).
-  assert_zip_contains "test-bin/app/app.zip" \
+  # Verify strings.
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/empty.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/empty.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that various localized resource types are bundled correctly with the
@@ -196,17 +185,11 @@ EOF
   # TODO: storyboards
 
   # Verify strings and plists.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_plist_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.plist"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # TODO: nibs from xibs.
 }
@@ -274,26 +257,17 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/basic_bundle.txt"
 
-  # Verify strings and plists are in binary format.
-  assert_zip_contains "test-bin/app/app.zip" \
+  # Verify strings and plists.
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/basic.bundle/should_be_binary.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_plist_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.plist"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/basic.bundle/should_be_binary.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/nested/should_be_nested.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/basic.bundle/nested/should_be_nested.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that objc_bundle files are bundled correctly with the application if
@@ -377,7 +351,7 @@ EOF
   # TODO: Assets.car from asset_catalogs
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.strings"
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.txt"
@@ -408,24 +382,15 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/nested.txt"
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/generated.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/generated.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_plist_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.plist"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
-}
+ }
 
 # Tests that structured resources (both unprocessed ones, and processed ones
 # like .strings/.plist) have their paths preserved in the final bundle.
@@ -477,24 +442,15 @@ EOF
       "app.app/Contents/Resources/structured/nested.txt"
 
   # Verify that the processed structured resources are present and compiled.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/structured/nested.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/structured/nested.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_plist_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/structured/nested.plist"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/structured/nested.plist" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 
   # And the generated one...
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/structured/generated.strings"
-  unzip_single_file "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/structured/generated.strings" | \
-      grep -sq "^bplist00" || fail "Is not a binary file."
 }
 
 # Tests that resources generated by a genrule, which produces a separate copy
@@ -529,8 +485,55 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_strings_is_binary "test-bin/app/app.zip" \
       "app.app/Contents/Resources/generated_resource.strings"
+}
+
+# Tests strings and plists aren't compiled in fastbuild and dbg.
+function test_compilation_mode_on_strings_and_plist_files() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+      "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
+    ],
+   strings = [
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+    ],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build macos --compilation_mode=opt //app:app || fail "Should build"
+
+  assert_strings_is_binary "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.strings"
+  assert_plist_is_binary "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.plist"
+
+ do_build macos --compilation_mode=fastbuild //app:app || fail "Should build"
+
+  assert_strings_is_text "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.strings"
+  assert_plist_is_text "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.plist"
+
+ do_build macos --compilation_mode=dbg //app:app || fail "Should build"
+
+  assert_strings_is_text "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.strings"
+  assert_plist_is_text "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/nonlocalized.plist"
 }
 
 run_suite "macos_application bundling with resources tests"

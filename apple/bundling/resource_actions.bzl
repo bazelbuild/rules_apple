@@ -157,7 +157,10 @@ def _group_files(files, groupings):
 
 
 def _compile_plist(ctx, input_file, resource_info):
-  """Creates an action that converts a plist file to binary format.
+  """Creates an action that compiles plist and strings files.
+
+  When compilation mode is "opt" the compiler will convert plist and strings
+  files into binary format.
 
   Args:
     ctx: The Skylark context.
@@ -171,40 +174,43 @@ def _compile_plist(ctx, input_file, resource_info):
   bundle_dir = resource_info.bundle_dir
 
   path = resource_info.path_transform(input_file)
-  out_file = file_support.intermediate(
-      ctx, "%{name}.resources/%{path}", path=path, prefix=bundle_dir)
+  if ctx.var["COMPILATION_MODE"] == "opt":
+    out_file = file_support.intermediate(
+        ctx, "%{name}.resources/%{path}", path=path, prefix=bundle_dir)
 
-  input_path = input_file.path
-  if input_path.endswith(".strings"):
-    mnemonic = "CompileStrings"
+    input_path = input_file.path
+    if input_path.endswith(".strings"):
+      mnemonic = "CompileStrings"
+    else:
+      mnemonic = "CompilePlist"
+
+    # This command will check whether the input file is non-empty, and then
+    # execute the version of plutil that takes the file directly. If the file is
+    # empty, it will echo an new line and then pipe it into plutil. We do this
+    # to handle empty files as plutil doesn't handle them very well.
+    plutil_command = "plutil -convert binary1 -o %s --" % out_file.path
+    complete_command = ("([[ -s {in_file} ]] && {plutil_command} {in_file} ) " +
+                        "|| ( echo | {plutil_command} -)").format(
+        in_file=input_file.path,
+        plutil_command=plutil_command,
+    )
+
+    # Ideally we should be able to use command, which would set up the
+    # /bin/sh -c prefix for us.
+    # TODO(b/77637734): Change this to use command instead.
+    apple_action(
+        ctx,
+        inputs=[input_file],
+        outputs=[out_file],
+        executable="/bin/sh",
+        arguments=[
+            "-c",
+            complete_command,
+        ],
+        mnemonic=mnemonic,
+    )
   else:
-    mnemonic = "CompilePlist"
-
-  # This command will check whether the input file is non-empty, and then
-  # execute the version of plutil that takes the file directly. If the file is
-  # empty, it will echo an new line and then pipe it into plutil. We do this to
-  # handle empty files as plutil doesn't handle them very well.
-  plutil_command = "plutil -convert binary1 -o %s --" % out_file.path
-  complete_command = ("([[ -s {in_file} ]] && {plutil_command} {in_file} ) " +
-                      "|| ( echo | {plutil_command} -)").format(
-      in_file=input_file.path,
-      plutil_command=plutil_command,
-  )
-
-  # Ideally we should be able to use command, which would set up the /bin/sh -c
-  # prefix for us.
-  # TODO(b/77637734): Change this to use command instead.
-  apple_action(
-      ctx,
-      inputs=[input_file],
-      outputs=[out_file],
-      executable="/bin/sh",
-      arguments=[
-          "-c",
-          complete_command,
-      ],
-      mnemonic=mnemonic,
-  )
+    out_file = input_file
 
   full_bundle_path = optionally_prefixed_path(path, bundle_dir)
   return struct(
