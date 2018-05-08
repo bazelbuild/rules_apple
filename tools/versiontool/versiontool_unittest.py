@@ -18,7 +18,7 @@ import json
 import StringIO
 import unittest
 
-import versiontool
+from tools.versiontool import versiontool
 
 
 class VersionToolTest(unittest.TestCase):

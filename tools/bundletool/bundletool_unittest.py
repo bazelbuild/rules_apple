@@ -23,7 +23,7 @@ import tempfile
 import unittest
 import zipfile
 
-import bundletool
+from tools.bundletool import bundletool
 
 
 def _run_bundler(control):
