@@ -495,9 +495,10 @@ def _process_and_sign_archive(ctx,
 
   signing_command_lines = ""
   if not ctx.attr._skip_signing:
+    frameworks_glob = bundling_support.path_in_contents_dir(ctx, "Frameworks/*")
     paths_to_sign = [
         codesigning_support.path_to_sign(
-            "$WORK_DIR/" + bundle_path_in_archive + "/Frameworks/*",
+            "$WORK_DIR/" + bundle_path_in_archive + "/" + frameworks_glob,
             optional=True),
     ]
     is_device = platform_support.is_device_build(ctx)
