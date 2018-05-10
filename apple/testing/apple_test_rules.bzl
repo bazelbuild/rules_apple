@@ -375,9 +375,10 @@ def _apple_test_impl(ctx, test_type):
                        ctx.attr.test_bundle[AppleBundleInfo].archive,
                        ctx.outputs.test_bundle)
 
+  executable = ctx.actions.declare_file("%s" % ctx.label.name)
   ctx.actions.expand_template(
       template = runner.test_runner_template,
-      output = ctx.outputs.executable,
+      output = executable,
       substitutions = _get_template_substitutions(ctx, test_type),
   )
 
@@ -390,7 +391,7 @@ def _apple_test_impl(ctx, test_type):
   # to fulfill Tulsi's expectation that the first artifact in `target.files` is
   # the archived xctest bundle. This hack will go away when AppleBundleInfo is
   # used to get the outputs of this rule instead.
-  outputs = depset([ctx.outputs.test_bundle, ctx.outputs.executable],
+  outputs = depset([ctx.outputs.test_bundle, executable],
                    order="preorder")
 
   extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
@@ -398,20 +399,22 @@ def _apple_test_impl(ctx, test_type):
     outputs += extra_outputs_provider.files
 
   return struct(
-      apple_bundle=ctx.attr.test_bundle[AppleBundleInfo],
-      executable=ctx.outputs.executable,
-      files=outputs,
+      # TODO(b/79527231): Migrate to new style providers.
       instrumented_files=struct(dependency_attributes=["test_bundle"]),
       providers=[
-          testing.ExecutionInfo(execution_requirements),
-          testing.TestEnvironment(test_environment),
           ctx.attr.test_bundle[AppleBundleInfo],
           ctx.attr.test_bundle[AppleTestInfo],
+          testing.ExecutionInfo(execution_requirements),
+          testing.TestEnvironment(test_environment),
+          DefaultInfo(
+              executable=executable,
+              files=outputs,
+              runfiles=ctx.runfiles(
+                  files=test_runfiles,
+                  transitive_files=ctx.attr.runner.data_runfiles.files
+              ),
+          ),
       ],
-      runfiles=ctx.runfiles(
-          files=test_runfiles,
-          transitive_files=ctx.attr.runner.data_runfiles.files
-      ),
   )
 
 
