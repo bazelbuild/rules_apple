@@ -387,12 +387,7 @@ def _apple_test_impl(ctx, test_type):
   for data_dep in ctx.attr.data:
     test_runfiles.extend(data_dep.files.to_list())
 
-  # TODO(b/68206519): The order of this depset has to be specified as preorder
-  # to fulfill Tulsi's expectation that the first artifact in `target.files` is
-  # the archived xctest bundle. This hack will go away when AppleBundleInfo is
-  # used to get the outputs of this rule instead.
-  outputs = depset([ctx.outputs.test_bundle, executable],
-                   order="preorder")
+  outputs = depset([ctx.outputs.test_bundle, executable])
 
   extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
   if extra_outputs_provider:
