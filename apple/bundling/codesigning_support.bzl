@@ -162,8 +162,15 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
   Returns:
     The codesign command invocation for the given directory.
   """
-  path = path_to_sign.path
+  # Because the path will include environment # variables which need to be
+  # expanded, path has to be quoted using double quote, this means that path
+  # can't be quoted using shell.quote.
+  path = "\"" + path_to_sign.path.replace("\"", "\\\"") + "\""
+  if path_to_sign.glob:
+    # The glob must be appended outside of the quotes in order to be expanded.
+    path += path_to_sign.glob
   cmd_prefix = ""
+
   if path_to_sign.optional:
     cmd_prefix += "ls %s >& /dev/null && " % path
 
@@ -185,7 +192,7 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
              "--timestamp=none --sign \"-\" %s") % path)
 
 
-def _path_to_sign(path, optional=False):
+def _path_to_sign(path, optional=False, glob=None):
   """Returns a "path to sign" value to be passed to `signing_command_lines`.
 
   Args:
@@ -197,11 +204,13 @@ def _path_to_sign(path, optional=False):
     optional: If `True`, the path is an optional path that is ignored if it does
         not exist. This is used to handle Frameworks directories cleanly since
         they may or may not be present in the bundle.
+    glob: If provided, this is a glob string to append to the path when calling
+        the signing tool.
 
   Returns:
     A `struct` that can be passed to `signing_command_lines`.
   """
-  return struct(path=path, optional=optional)
+  return struct(path=path, optional=optional, glob=glob)
 
 
 def _signing_command_lines(ctx,
