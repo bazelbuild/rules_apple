@@ -353,4 +353,24 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" "app.xpc/"
 }
 
+function test_space_in_bundle_name() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+macos_application(
+    name = "app",
+    bundle_name = "app with space",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.11",
+    deps = [":lib"],
+)
+EOF
+
+  do_build macos //app:app || fail "Should build"
+
+  assert_zip_not_contains "test-bin/app/app.zip" "app.app"
+  assert_zip_contains "test-bin/app/app.zip" "app with space.app/"
+}
+
 run_suite "macos_application bundling tests"
