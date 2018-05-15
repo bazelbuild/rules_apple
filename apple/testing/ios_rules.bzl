@@ -43,8 +43,7 @@ def _ios_test_bundle_impl(ctx):
 _ios_test_bundle = rule_factory.make_bundling_rule(
     _ios_test_bundle_impl,
     additional_attrs={
-        # TODO(b/79348248): Flip this to True.
-        "dedupe_unbundled_resources": attr.bool(default=False),
+        "dedupe_unbundled_resources": attr.bool(default=True),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(mandatory=False, providers=[AppleBundleInfo]),
     },
