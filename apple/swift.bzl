@@ -124,6 +124,7 @@ def _swift_sanitizer_flags(features):
   """Returns sanitizer flags."""
   sanitizer_features_to_flags = {
       "asan": ["-sanitize=address"],
+      "tsan": ["-sanitize=thread"],
   }
 
   sanitizer_flags = []
