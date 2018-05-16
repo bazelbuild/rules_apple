@@ -138,8 +138,8 @@ EOF
   assert_ipa_contains_swift_dylibs
 }
 
-# Tests that swift_library build with sanitizer enabled.
-# TODO(b/38455074): Also test that the asan dylib is packaged with the app.
+# Tests that swift_library build with ASAN enabled and that the ASAN
+# library is packaged into the IPA when enabled.
 function disabled_test_swift_builds_with_asan() {  # Blocked on b/73547309
   create_minimal_ios_application
 
@@ -151,6 +151,37 @@ swift_library(
 EOF
 
   do_build ios //app:app --features=asan || fail "Should build"
+
+  if is_device_build ios ; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.asan_ios_dynamic.dylib"
+  else
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.asan_iossim_dynamic.dylib"
+  fi
+}
+
+# Tests that swift_library build with TSAN enabled and that the TSAN
+# library is packaged into the IPA when enabled.
+function disabled_test_swift_builds_with_tsan() {  # Blocked on b/73547309
+  # Skip the device version as tsan is not supported on devices.
+  if ! is_device_build ios ; then
+    create_minimal_ios_application
+
+    cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+    # Override --ios_multi_cpus to only contain the 64 bit simulator, as 32 bit
+    # is not supported.
+    do_build ios //app:app --features=tsan --ios_multi_cpus=x86_64\
+        || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
+  fi
 }
 
 run_suite "ios_application with Swift bundling tests"
