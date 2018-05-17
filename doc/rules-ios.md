@@ -857,6 +857,118 @@ of the attributes inherited by all test rules, please check the
   </tbody>
 </table>
 
+<a name="ios_ui_test_suite"></a>
+## ios_ui_test_suite
+
+```python
+ios_ui_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
+test_host, deps, [test specific attributes])
+```
+
+Builds an XCUITest test suite with the given runners.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the test bundle. If not
+        specified, a default one will be provided that only contains the
+        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
+        placeholders that will be replaced when bundling.  Please see
+        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum iOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>runners</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
+        <p>The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an
+        <code>AppleTestRunner</code> provider. This attribute is required and
+        must contain at least 2 runners.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_host</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>An <code>ios_application</code> target that represents the app that
+        will be tested using XCUITests. This is required as passing a default
+        has no meaning in UI tests.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the `*.runfiles`
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 <a name="ios_unit_test"></a>
 ## ios_unit_test
 
