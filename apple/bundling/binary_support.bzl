@@ -291,11 +291,7 @@ def _create_linked_binary_target(
       minimum_os_version = minimum_os_version,
       platform_type = platform_type,
       sdk_frameworks = sdk_frameworks,
-      deps = deps,
-      # TODO(b/64611007): We use non-propagated deps as a workaround for now to
-      # ensure that the linkopts and link_inputs for the entitlements don't get
-      # propagated to dependent binaries, like test bundles.
-      non_propagated_deps = entitlements_deps,
+      deps = deps + entitlements_deps,
       tags = ["manual"] + kwargs.get("tags", []),
       testonly = kwargs.get("testonly"),
       visibility = kwargs.get("visibility"),
