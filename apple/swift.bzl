@@ -722,7 +722,7 @@ def register_swift_compile_actions(ctx, reqs):
   # Without dSYM, LLDB will follow the AST references, however there is a bug
   # where it follows only the first one https://bugs.swift.org/browse/SR-2637
   # This means that dSYM is required for debugging until that is resolved.
-  extra_linker_args = ["-Xlinker -add_ast_path -Xlinker " + output_module.path]
+  extra_linker_args = ["-Wl,-add_ast_path,%s" % output_module.path]
 
   # The full transitive set of libraries and modules used by this target.
   transitive_libs = depset([output_lib]) + dep_libs
@@ -757,9 +757,12 @@ def register_swift_compile_actions(ctx, reqs):
   # library instead. Clean this up once the native bundling rules are deleted.
   platform_type = ctx.fragments.apple.single_arch_platform.platform_type
   if platform_type != apple_common.platform_type.macos:
-    objc_provider_args["linkopt"] = depset(
-        swift_linkopts(reqs.apple_fragment, reqs.config_vars) +
-        extra_linker_args, order="topological")
+    extra_linker_args.extend(
+        swift_linkopts(reqs.apple_fragment, reqs.config_vars))
+
+  objc_provider_args["linkopt"] = depset(
+      direct=extra_linker_args,
+      order="topological")
 
   objc_provider = apple_common.new_objc_provider(**objc_provider_args)
 
