@@ -372,7 +372,44 @@ int main(int argc, char *argv[]) {
 }
 EOF
 
+  # Create a "simple" rule that grabs an arbitrary dSYM binary created by an
+  # apple_binary so that we can run otool on it. We have to use a custom rule
+  # for this because the debug outputs aren't normally default outputs unless
+  # we're building a full application target.
+  cat >ios/debug_symbols.bzl <<EOF
+def _debug_symbols_impl(ctx):
+  dsym_binary = None
+
+  # Just take the first one we see.
+  debug_outputs = ctx.attr.binary[apple_common.AppleDebugOutputs]
+  for arch in debug_outputs.outputs_map:
+    arch_outputs = debug_outputs.outputs_map[arch]
+    dsym_binary = arch_outputs["dsym_binary"]
+    break
+
+  if dsym_binary:
+    file = ctx.actions.declare_file(ctx.label.name + ".dsym_binary")
+    args = ctx.actions.args()
+    args.add(dsym_binary)
+    args.add(file)
+    ctx.actions.run(
+        arguments=[args],
+        executable="/bin/cp",
+        inputs=[dsym_binary],
+        outputs=[file],
+    )
+    return [DefaultInfo(files=depset(direct=[file]))]
+  else:
+    return []
+
+debug_symbols = rule(
+    attrs={"binary": attr.label()},
+    implementation=_debug_symbols_impl,
+)
+EOF
+
   cat >ios/BUILD <<EOF
+load(":debug_symbols.bzl", "debug_symbols")
 load("@build_bazel_rules_apple//apple:swift.bzl",
      "swift_library")
 
@@ -390,11 +427,17 @@ apple_binary(name = "bin",
              minimum_os_version = "8.0",
              platform_type = "ios",
              deps = [":main", ":swift_lib"])
+
+debug_symbols(name = "bin_symbols",
+              binary = ":bin")
 EOF
 
-  do_build ios --subcommands //ios:bin || fail "should build"
-  expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/dep/_objs/ios_dep\.swiftmodule"
-  expect_log "-Xlinker -add_ast_path -Xlinker [^/]*-out/[^/]*/genfiles/ios/swift_lib/_objs/ios_swift_lib\.swiftmodule"
+  do_build ios --apple_generate_dsym //ios:bin_symbols || fail "should build"
+
+  # Verify that the __swift_ast section is actually present in the dSYM binary.
+  otool -l "test-bin/ios/bin_symbols.dsym_binary" \
+      | grep -sq "sectname __swift_ast" \
+      || fail "expected binary to have a __swift_ast section"
 }
 
 function test_swiftc_script_mode() {
