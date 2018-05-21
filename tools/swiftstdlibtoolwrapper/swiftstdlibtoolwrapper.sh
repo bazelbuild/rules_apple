@@ -19,7 +19,6 @@
 #
 # --output_zip_path - the path to place the output zip file.
 # --bundle_path - the path inside of the archive to where libs will be copied.
-# --toolchain - toolchain identifier to use with xcrun.
 
 set -eu
 
@@ -43,11 +42,6 @@ while [[ "$#" -gt 0 ]]; do
       shift
       PATH_INSIDE_ZIP="$ARG"
       ;;
-    --toolchain)
-      ARG="$1"
-      shift
-      TOOLCHAIN="$ARG"
-      ;;
     # Remaining args are swift-stdlib-tool args
     *)
       TOOL_ARGS+=("$ARG")
@@ -59,9 +53,6 @@ TEMPDIR="$(create_temp_dir swiftstdlibtoolZippingOutput.XXXXXX)"
 FULLPATH="$TEMPDIR/$PATH_INSIDE_ZIP"
 
 XCRUN_ARGS=(swift-stdlib-tool --copy)
-if [[ -n "${TOOLCHAIN:-}" ]]; then
-  XCRUN_ARGS+=(--toolchain "$TOOLCHAIN")
-fi
 XCRUN_ARGS+=(--destination "$FULLPATH")
 XCRUN_ARGS+=("${TOOL_ARGS[@]}")
 
