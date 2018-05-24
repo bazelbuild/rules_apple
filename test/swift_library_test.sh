@@ -353,7 +353,7 @@ EOF
   expect_log "Error in target '//ios:bad-dep'"
 }
 
-function test_swift_ast_is_recorded() {
+function disabled_test_swift_ast_is_recorded() {  # Blocked on b/80087240
   touch ios/main.swift
   cat >ios/dep.swift <<EOF
 import UIKit
