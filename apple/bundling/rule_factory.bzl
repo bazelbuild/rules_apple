@@ -239,7 +239,8 @@ def _attr_name(name, private=False):
 
 def _code_signing(provision_profile_extension=None,
                   requires_signing_for_device=True,
-                  skip_signing=False):
+                  skip_signing=False,
+                  skip_simulator_signing_allowed=True):
   """Returns code signing information for `make_bundling_rule`.
 
   Args:
@@ -248,6 +249,8 @@ def _code_signing(provision_profile_extension=None,
     requires_signing_for_device: True if the bundle must be signed to be
         deployed on a device, or false if it does not need to be signed.
     skip_signing: True if signing should be skipped entirely for the bundle.
+    skip_simulator_signing_allowed: True is the rule should support the
+        option to skip signing simulator builds.
 
   Returns:
       A struct that can be passed as the `code_signing` argument to
@@ -256,7 +259,8 @@ def _code_signing(provision_profile_extension=None,
   return struct(
       provision_profile_extension=provision_profile_extension,
       requires_signing_for_device=requires_signing_for_device,
-      skip_signing=skip_signing)
+      skip_signing=skip_signing,
+      skip_simulator_signing_allowed=skip_simulator_signing_allowed)
 
 
 def _device_families(allowed, mandatory=True):
@@ -315,6 +319,9 @@ def _code_signing_attributes(code_signing):
           default=code_signing.requires_signing_for_device
       ),
       "_skip_signing": attr.bool(default=code_signing.skip_signing),
+      "_skip_simulator_signing_allowed": attr.bool(
+          default=code_signing.skip_simulator_signing_allowed
+      ),
   }
   if not code_signing.skip_signing:
     code_signing_attrs["entitlements"] = attr.label(

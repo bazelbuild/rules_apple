@@ -288,6 +288,9 @@ def _should_sign_simulator_bundles(ctx):
     True/False for if the bundle should be signed.
 
   """
+  if not ctx.attr._skip_simulator_signing_allowed:
+    return True
+
   # Default is to sign.
   return define_utils.bool_value(
     ctx, "apple.codesign_simulator_bundles", True)

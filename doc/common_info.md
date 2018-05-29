@@ -153,6 +153,10 @@ Disable the signing of simulator bundles:
 bazel build --define=apple.codesign_simulator_bundles=no //your/target
 ```
 
+One exception is XCTest bundles, those do need to be signed for the
+simulators to load them. The above `--define` does not change the
+behavior around signing of these bundles as a result.
+
 <!--
  Define not currently documented:
 
