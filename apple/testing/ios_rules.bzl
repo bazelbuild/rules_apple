@@ -63,7 +63,8 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
         # Disable signing for devices, as this rule will most likely be used
         # by Xcode/Tulsi in some capacity, which will usually resign it anyways,
         # which means we can save some time off when building.
-        requires_signing_for_device=False
+        requires_signing_for_device=False,
+        skip_simulator_signing_allowed=False
     ),
     device_families=rule_factory.device_families(
         allowed=["iphone", "ipad"],
