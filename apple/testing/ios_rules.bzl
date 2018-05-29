@@ -60,6 +60,9 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     bundles_frameworks=True,
     code_signing=rule_factory.code_signing(
         ".mobileprovision",
+        # Disable signing for devices, as this rule will most likely be used
+        # by Xcode/Tulsi in some capacity, which will usually resign it anyways,
+        # which means we can save some time off when building.
         requires_signing_for_device=False
     ),
     device_families=rule_factory.device_families(
