@@ -259,6 +259,18 @@ def _signing_command_lines(ctx,
   if not identity:
     identity = "-"
 
+  # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
+  # version. DEVELOPER_DIR will already be set on the action that invokes
+  # the script. Without this, codesign should already be using DEVELOPER_DIR
+  # to find things, but this should get the rules slightly closer on behaviors.
+  # apple_common.apple_toolchain().developer_dir() won't work here because
+  # usage relies on the expansion done in the xcrunwrapper, and the individual
+  # signing commands don't bounce through xcrun (and don't need to).
+  commands.append(
+      ("export CODESIGN_ALLOCATE=${DEVELOPER_DIR}/" +
+       "Toolchains/XcodeDefault.xctoolchain/usr/bin/codesign_allocate")
+  )
+
   # If we're ad hoc signing or signing is mocked for tests, don't bother
   # verifying the identity in the keychain. Otherwise, verify that the identity
   # matches valid, unexpired entitlements in the keychain and return the first
