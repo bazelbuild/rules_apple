@@ -194,10 +194,7 @@ EOF
   # TODO: nibs from xibs.
 }
 
-# Tests that generic flattened but unprocessed resources are bundled correctly
-# (preserving their .lproj directory). Structured resources do not apply here,
-# because they are never treated as localizable.
-function test_localized_unprocessed_resources() {
+function create_with_localized_unprocessed_resources() {
   create_common_files
 
   cat >> app/BUILD <<EOF
@@ -217,54 +214,41 @@ macos_application(
     deps = [":lib", ":resources"],
 )
 EOF
+}
 
-  # do_build default is "-c opt"
-  do_build macos //app:app -c opt || fail "Should build"
+# Tests that generic flattened but unprocessed resources are bundled correctly
+# (preserving their .lproj directory). Structured resources do not apply here,
+# because they are never treated as localizable.
+
+function test_localized_unprocessed_resources() {
+  create_with_localized_unprocessed_resources
+
+  do_build macos //app:app || fail "Should build"
+  expect_not_log "Please verify apple.locales_to_include is defined properly"
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
+}
 
-  do_build macos //app:app -c dbg || fail "Should build"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
+# These next two should pass, but generate warnings about fr
 
-  do_build macos //app:app -c fastbuild || fail "Should build"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
+function test_localized_unprocessed_resources_filter_all() {
+  create_with_localized_unprocessed_resources
 
-  # These next six should pass, but generate warnings about fr
-  do_build macos //app:app -c opt --define "apple.locales_to_include=fr" \
+  do_build macos //app:app --define "apple.locales_to_include=fr" \
       || fail "Should build"
-  expect_log "[\"fr\"]"
+  expect_log_once "Please verify apple.locales_to_include is defined properly"
+  expect_log_once "\[\"fr\"\]"
   assert_zip_not_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
+}
 
-  do_build macos //app:app -c dbg --define "apple.locales_to_include=fr" \
+function test_localized_unprocessed_resources_filter_mixed() {
+  create_with_localized_unprocessed_resources
+
+  do_build macos //app:app --define "apple.locales_to_include=fr,it" \
       || fail "Should build"
-  expect_log "[\"fr\"]"
-  assert_zip_not_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
-
-  do_build macos //app:app -c fastbuild --define "apple.locales_to_include=fr" \
-      || fail "Should build"
-  expect_log "[\"fr\"]"
-  assert_zip_not_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
-
-  do_build macos //app:app -c opt --define "apple.locales_to_include=fr,it" \
-      || fail "Should build"
-  expect_log "[\"fr\"]"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
-
-  do_build macos //app:app -c dbg --define "apple.locales_to_include=fr,it" \
-      || fail "Should build"
-  expect_log "[\"fr\"]"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/it.lproj/localized.txt"
-
-  do_build macos //app:app -c fastbuild \
-      --define "apple.locales_to_include=fr,it" || fail "Should build"
-  expect_log "[\"fr\"]"
+  expect_log_once "Please verify apple.locales_to_include is defined properly"
+  expect_log_once "\[\"fr\"\]"
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
