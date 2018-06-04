@@ -4,13 +4,18 @@ licenses(["notice"])
 
 py_binary(
     name = "plisttool",
-    srcs = ["plisttool.py"],
+    srcs = [
+        "plisttool.py",
+    ],
 )
 
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
-    deps = [":plisttool"],
+    deps = [
+        ":plisttool",
+        "//:py_init_shim",
+    ],
 )
 
 # Consumed by bazel tests.

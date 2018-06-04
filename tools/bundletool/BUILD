@@ -15,7 +15,10 @@ py_binary(
 py_test(
     name = "bundletool_unittest",
     srcs = ["bundletool_unittest.py"],
-    deps = [":bundletool"],
+    deps = [
+        ":bundletool",
+        "//:py_init_shim",
+    ],
 )
 
 filegroup(

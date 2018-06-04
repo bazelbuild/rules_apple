@@ -18,7 +18,7 @@ import json
 import StringIO
 import unittest
 
-from tools.versiontool import versiontool
+from build_bazel_rules_apple.tools.versiontool import versiontool
 
 
 class VersionToolTest(unittest.TestCase):
