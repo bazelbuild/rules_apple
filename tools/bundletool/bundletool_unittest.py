@@ -23,7 +23,7 @@ import tempfile
 import unittest
 import zipfile
 
-from tools.bundletool import bundletool
+from build_bazel_rules_apple.tools.bundletool import bundletool
 
 
 def _run_bundler(control):

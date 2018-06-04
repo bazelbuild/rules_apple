@@ -10,7 +10,10 @@ py_binary(
 py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
-    deps = [":versiontool"],
+    deps = [
+        ":versiontool",
+        "//:py_init_shim",
+    ],
 )
 
 # Consumed by bazel tests.
