@@ -1071,21 +1071,22 @@ def _locales_to_include(ctx):
   Args:
     ctx: The rule context.
   Returns:
-    A list of locales to include.
+    A set of locales to include or None if all should be included.
   """
   user_locales = ctx.var.get("apple.locales_to_include")
   if user_locales != None:
-    return ["Base"] + [l.strip() for l in user_locales.split(",")]
+    return sets.make(["Base"] + [l.strip() for l in user_locales.split(",")])
   else:
-    return []
+    return None
 
 
-def _locale_filter(locales_to_include, locales_included, f):
+def _locale_filter(locales_to_include, locales_included, locales_dropped, f):
   """Filters out any *.lproj folders that are not in `locales_to_include`.
 
   Args:
-    locales_to_include: list of locales to not filter out.
+    locales_to_include: set of locales to not filter out.
     locales_included: set of locales that have been included.
+    locales_dropped: set of locales that have been dropped.
     f: The file to potentially filter.
   Returns:
     True if the file should be used.
@@ -1094,21 +1095,22 @@ def _locale_filter(locales_to_include, locales_included, f):
   loc = dirname.find(".lproj")
   if loc == -1:
     return True
-  for locale in locales_to_include:
-    locale_len = len(locale)
-    locale_start = loc - locale_len
-    if locale_start < 0:
-      # String is shorter than the locale we are checking.
-      continue
-    dirlocale = dirname[locale_start:loc]
-    # Check to see if locale.lproj exists, and is at the end of the string or
-    # at the beginning of a string or is surrounded by /.
-    # 6 is the len(".lproj")
-    if ((dirlocale == locale) and
-        ((loc + 6) == len(dirname) or dirname[loc + 6] == "/") and
-        ((locale_start == 0) or dirname[locale_start - 1] == "/")):
-      sets.insert(locales_included, locale)
-      return True
+  # If there was more after '.lproj', then it has to be a directory, otherwise
+  # it was part of some other extension.
+  if (loc + 6) > len(dirname) and dirname[loc + 6] != "/":
+    return True
+  # Extract the locale directory.
+  dirlocale_start = dirname.rfind("/", end=loc)
+  if dirlocale_start < 0:
+    dirlocale = dirname[0:loc]
+  else:
+    dirlocale = dirname[dirlocale_start + 1:loc]
+
+  if sets.contains(locales_to_include, dirlocale):
+    sets.insert(locales_included, dirlocale)
+    return True
+
+  sets.insert(locales_dropped, dirlocale)
   return False
 
 def _process_resource_sets(ctx, bundle_id, resource_sets):
@@ -1136,11 +1138,12 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
   bundle_infoplists = {}
   bundle_to_tgt_datas = {}
   locales_included = sets.make(["Base"])
+  locales_dropped = sets.make()
 
   locales_to_include = _locales_to_include(ctx)
   if locales_to_include:
     file_filter_partial = partial.make(_locale_filter, locales_to_include,
-                                       locales_included)
+                                       locales_included, locales_dropped)
   else:
     file_filter_partial = None
 
@@ -1207,13 +1210,15 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
       else:
         bundle_to_tgt_datas[r.bundle_dir] = r.resource_bundle_target_data
 
-  if file_filter_partial:
-    # Warn the user if they have passed us locales that we don't filter.
-    # This is often just a typo in the command line which could be
-    # really frustrating to find without a warning.
-    locales_to_include_set = sets.make(locales_to_include)
-    if not sets.is_equal(locales_to_include_set, locales_included):
-      unused_locales = sets.difference(locales_to_include_set, locales_included)
+  if file_filter_partial and sets.length(locales_dropped):
+    # If something was filtered away, then warn the user if there was they
+    # wanted to keep but it wasn't found. It could be just a typo on the
+    # filter so the message makes it easier to notice. The down side is it
+    # could be chatty if there is a bundle that legitimately doesn't
+    # support the locale; this is attempted to be mitigated by ensuring
+    # something was dropped before producing this message.
+    if not sets.is_equal(locales_to_include, locales_included):
+      unused_locales = sets.difference(locales_to_include, locales_included)
       print(("Warning: Bundle '" + bundle_id + "' did not have resources that "
              + "matched " + sets.str(unused_locales) + " in locale filter. "
              + "Please verify apple.locales_to_include is defined properly."))
