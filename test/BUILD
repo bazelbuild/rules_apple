@@ -95,7 +95,7 @@ apple_multi_shell_test(
 
 apple_multi_shell_test(
     name = "ios_application_resources_test",
-    size = "medium",
+    size = "large",
     src = "ios_application_resources_test.sh",
     configurations = IOS_CONFIGURATIONS,
     data = [
@@ -103,7 +103,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
     flaky = 1,
-    shard_count = 7,
+    shard_count = 8,
 )
 
 apple_multi_shell_test(
