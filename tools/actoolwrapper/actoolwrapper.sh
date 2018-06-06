@@ -26,10 +26,6 @@ set -eu
 source "$0.runfiles/build_bazel_rules_apple/tools/wrapper_common/wrapper_common.sh"
 setup_common_tools
 
-if [[ -n "${SHOULD_RESET_SIMULATORS:-}" ]]; then
-  reset_simulator_service
-fi
-
 OUTDIR="$1"
 mkdir -p "$OUTDIR"
 shift 1
