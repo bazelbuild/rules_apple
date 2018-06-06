@@ -55,33 +55,6 @@ function finalize_output_as_zip() {
   rm -rf "$dir_to_zip"
 }
 
-# Usage: kill_process_mercilessly <regex>
-#
-# Tries to kill a process whose name ends with a string matching the given
-# regex and does so repeatedly if it shows any signs of restarting itself.
-function kill_process_mercilessly() {
-  local -r regex="$1"
-  local -r max_wait_secs=10
-
-  while : ; do
-    processname=$(ps -xc -o command | grep -E "${regex}$" | head -1)
-    if [[ -z "$processname" ]]; then
-      break
-    fi
-    killed=0
-    killtime="$(date +%s)"
-    waittime="$killtime"
-    set +e
-    until [[ "$killed" -ne 0 || \
-        "$(("$waittime" - "$killtime"))" -ge "$max_wait_secs" ]]; do
-      /usr/bin/killall -9 "$processname" >/dev/null 2>&1
-      killed="$?"
-      waittime="$(date +%s)"
-    done
-    set -e
-  done
-}
-
 # Usage: realpath <arguments...>
 #
 # Executes "realpath", passing it the given arguments.
@@ -91,18 +64,6 @@ function realpath() {
     exit 1
   fi
   "$REALPATH" "$@"
-}
-
-# Usage: reset_simulator_service
-#
-# If you have a CI service that switches between multiple Xcode versions,
-# sometimes simulators used by the actool/ibtool daemon associated with the
-# previous version will not properly shut down after a switch. If the variable
-# SHOULD_RESET_SIMULATORS is set in your environment, then this function is
-# called at the beginning of actoolwrapper and ibtoolwrapper to force the
-# simulator process to be killed.
-function reset_simulator_service() {
-  kill_process_mercilessly "com\.apple\.CoreSimulatorService"
 }
 
 # Usage: setup_common_tools
