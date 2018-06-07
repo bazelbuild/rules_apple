@@ -50,18 +50,18 @@ def _ios_test_runner_impl(ctx):
       output = ctx.outputs.test_runner_template,
       substitutions = _get_template_substitutions(ctx)
   )
-  return struct(
-      providers = [
-          AppleTestRunner(
-              test_runner_template = ctx.outputs.test_runner_template,
-              execution_requirements = ctx.attr.execution_requirements,
-              test_environment = _get_test_environment(ctx),
-          ),
-      ],
-      runfiles = ctx.runfiles(
-          files = [ctx.file._testrunner]
+  return [
+      AppleTestRunner(
+          test_runner_template = ctx.outputs.test_runner_template,
+          execution_requirements = ctx.attr.execution_requirements,
+          test_environment = _get_test_environment(ctx),
       ),
-  )
+      DefaultInfo(
+          runfiles = ctx.runfiles(
+              files = [ctx.file._testrunner]
+          ),
+      ),
+  ]
 
 
 ios_test_runner = rule(
@@ -84,6 +84,11 @@ dependency is the test runner binary.
                 default=Label(
                     "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh"),
                 allow_single_file=True,
+            ),
+        "_xcode_config":
+            attr.label(
+                default=configuration_field(
+                    fragment="apple", name="xcode_config_label"),
             ),
         "device_type":
             attr.string(
@@ -111,11 +116,6 @@ The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
 """
-            ),
-        "_xcode_config":
-            attr.label(
-                default=configuration_field(
-                    fragment="apple", name="xcode_config_label"),
             ),
     },
     outputs={
