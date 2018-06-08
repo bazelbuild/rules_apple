@@ -76,10 +76,10 @@ def _tvos_application_impl(ctx):
       for extension in ctx.attr.extensions
   ]
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS application",
@@ -94,6 +94,7 @@ def _tvos_application_impl(ctx):
   return struct(
       providers=[
           TvosApplicationBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -127,10 +128,10 @@ tvos_application = rule_factory.make_bundling_rule(
 
 def _tvos_extension_impl(ctx):
   """Implementation of the `tvos_extension` Skylark rule."""
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "TvosExtensionArchive", "tvOS extension",
@@ -142,6 +143,7 @@ def _tvos_extension_impl(ctx):
   return struct(
       providers=[
           TvosExtensionBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
