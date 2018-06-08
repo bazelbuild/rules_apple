@@ -793,4 +793,99 @@ EOF
       "Payload/app.app/nonlocalized.plist"
 }
 
+function test_different_resource_with_same_target_path_is_not_deduped() {
+  # This tests that 2 files which have the same target path into nested bundles
+  # do not get deduplicated from the top-level bundle, as long as they are
+  # different files.
+  create_common_files
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_framework")
+objc_library(
+    name = "framework_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+      "framework_res/foo.txt",
+    ],
+)
+objc_library(
+    name = "app_lib",
+    resources = [
+      "app_res/foo.txt",
+    ],
+    deps = [":lib", ":framework_lib"],
+)
+ios_framework(
+    name = "framework",
+    bundle_id = "my.bundle.id.framework",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":framework_lib"],
+)
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    frameworks = [":framework"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":app_lib"],
+)
+EOF
+
+  mkdir -p app/app_res
+  mkdir -p app/framework_res
+  echo app_res > app/app_res/foo.txt
+  echo framework_res > app/framework_res/foo.txt
+
+  do_build ios //app:app || fail "Should build"
+
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/foo.txt" | \
+      grep "app_res" > /dev/null || \
+      fail "Did not find app_res in app.app/foo.txt"
+  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Frameworks/framework.framework/foo.txt" | \
+      grep "framework_res" > /dev/null || \
+      fail "Did not find framework_res in app.app/Frameworks/framework.framework/foo.txt"
+}
+
+function test_different_files_mapped_to_the_same_target_path_fails() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "shared_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    resources = [
+      "shared_res/foo.txt",
+    ],
+)
+objc_library(
+    name = "app_lib",
+    resources = [
+      "app_res/foo.txt",
+    ],
+    deps = [":lib", ":shared_lib"],
+)
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":app_lib"],
+)
+EOF
+
+  mkdir -p app/app_res
+  mkdir -p app/shared_res
+  echo app_res > app/app_res/foo.txt
+  echo shared_res > app/shared_res/foo.txt
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "Multiple files would be placed at \"foo.txt\" in the bundle, which is not allowed"
+
+}
+
 run_suite "ios_application bundling with resources tests"
