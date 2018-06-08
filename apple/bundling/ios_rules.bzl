@@ -123,10 +123,10 @@ def _ios_application_impl(ctx):
         "Watch", watch_app, verify_has_child_plist=True,
         parent_bundle_id_reference=["WKCompanionAppBundleIdentifier"]))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosApplicationArchive", "iOS application",
@@ -142,6 +142,7 @@ def _ios_application_impl(ctx):
       instrumented_files=struct(dependency_attributes=["binary"]),
       providers=[
           IosApplicationBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -227,10 +228,10 @@ def _ios_extension_impl(ctx):
         resources=additional_resources,
     ))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosExtensionArchive", "iOS extension",
@@ -243,6 +244,7 @@ def _ios_extension_impl(ctx):
   return struct(
       providers=[
           IosExtensionBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -277,8 +279,9 @@ ios_extension = rule_factory.make_bundling_rule(
 
 def _ios_framework_impl(ctx):
   """Implementation of the ios_framework Skylark rule."""
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleDylibBinary).binary
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleDylibBinary)
+  binary_artifact = binary_provider.binary
   bundlable_binary = bundling_support.bundlable_file(
       binary_artifact, bundling_support.bundle_name(ctx))
   prefixed_hdr_files = []
@@ -286,10 +289,7 @@ def _ios_framework_impl(ctx):
     for hdr_file in hdr_provider.files:
       prefixed_hdr_files.append(bundling_support.header_prefix(hdr_file))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleDylibBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleDylibBinary).objc
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosFrameworkArchive", "iOS framework",
@@ -305,6 +305,7 @@ def _ios_framework_impl(ctx):
   return struct(
       providers=[
           IosFrameworkBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -367,10 +368,10 @@ def _ios_static_framework_impl(ctx):
     framework_files.append(bundling_support.contents_file(
         ctx, modulemap_file, "Modules/module.modulemap"))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleStaticLibrary).archive
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleStaticLibrary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleStaticLibrary)
+  binary_artifact = binary_provider.archive
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "IosStaticFrameworkArchive", "iOS static framework",
@@ -386,6 +387,7 @@ def _ios_static_framework_impl(ctx):
   return struct(
       providers=[
           IosStaticFrameworkBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )

@@ -131,10 +131,10 @@ def _macos_application_impl(ctx):
       for extension in ctx.attr.extensions
   ]
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosApplicationArchive", "macOS application",
@@ -151,6 +151,7 @@ def _macos_application_impl(ctx):
   return struct(
       providers=[
           MacosApplicationBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -205,8 +206,9 @@ def _macos_bundle_impl(ctx):
 
   # TODO(b/36557429): Add support for macOS frameworks.
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleLoadableBundleBinary).binary
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleLoadableBundleBinary)
+  binary_artifact = binary_provider.binary
   deps_objc_providers = providers.find_all(ctx.attr.deps, apple_common.Objc)
   additional_providers, legacy_providers = bundler.run(
       ctx,
@@ -223,6 +225,7 @@ def _macos_bundle_impl(ctx):
   return struct(
       providers=[
           MacosBundleBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
@@ -360,10 +363,10 @@ def _macos_extension_impl(ctx):
         resources=additional_resources,
     ))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "MacosExtensionArchive", "macOS extension",
@@ -378,6 +381,7 @@ def _macos_extension_impl(ctx):
   return struct(
       providers=[
           MacosExtensionBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )

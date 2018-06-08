@@ -127,10 +127,10 @@ def _watchos_extension_impl(ctx):
         resources=additional_resources,
     ))
 
-  binary_artifact = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).binary
-  deps_objc_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary).objc
+  binary_provider = binary_support.get_binary_provider(
+      ctx.attr.deps, apple_common.AppleExecutableBinary)
+  binary_artifact = binary_provider.binary
+  deps_objc_provider = binary_provider.objc
   additional_providers, legacy_providers = bundler.run(
       ctx,
       "WatchosExtensionArchive", "watchOS extension",
@@ -143,6 +143,7 @@ def _watchos_extension_impl(ctx):
   return struct(
       providers=[
           WatchosExtensionBundleInfo(),
+          binary_provider,
       ] + additional_providers,
       **legacy_providers
   )
