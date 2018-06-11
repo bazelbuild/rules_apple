@@ -166,6 +166,14 @@ def _xcode_env_action(ctx, **kwargs):
 
   Rules using this action must require the "apple" configuration fragment.
 
+  Note: The env here is different than apple/utils.bzl's xcrun_env() in that
+  that uses ctx.fragments.apple.single_arch_platform, where here we look up the
+  platform off some locally define attributes. The difference being
+  xcrun_env()/xcrun_action() are used in context where all transitions have
+  already happened; but this is meant to be used in bundling, where we are
+  before any of those transitions, and so the rule must ensure the right
+  platform/arches are being used itself.
+
   Args:
     ctx: The Skylark context.
     **kwargs: Arguments to be passed into apple_action.
