@@ -46,8 +46,7 @@ fi
 # Asked to do a buildifier run.
 if [[ -n "${BUILDIFER:-}" ]]; then
   # bazelbuild/buildtools/issues/220 - diff doesn't include the file that needs updating
-  # bazelbuild/buildtools/issues/221 - the exist status is always zero.
-  if [[ -n "$(find . -name BUILD -print | xargs buildifier -v -d)" ]]; then
+  if ! find . -name BUILD -print | xargs buildifier -d > /dev/null 2>&1 ; then
     echo "ERROR: BUILD file formatting issue(s)"
     find . -name BUILD -print -exec buildifier -v -d {} \;
     exit 1
