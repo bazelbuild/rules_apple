@@ -135,6 +135,12 @@ extensions, etc.). As of Xcode 9.3.x on macOS High Sierra, the Simulator will
 run any bundle just fine as long as its Frameworks are signed (if it has any),
 the main bundle does *not* appear to need to be signed.
 
+However, if the binary makes use of entitlement-protected APIs, they may not
+work. The entitlements for a simulator build are added as a Mach-O segment, so
+they are still provided; but for some entitlements (at a minimum, Shared App
+Groups), the simulator appears to also require the bundle be signed for the
+APIs to work.
+
 By default, the rules will do what Xcode would otherwise do and *will* sign
 the main bundle (with an adhoc signature) when targeting the Simulator.
 However, this `--define` can be used to opt out of this if you are more
