@@ -184,8 +184,14 @@ Note that `Base.lproj` is always included if it exists.
 
 Without this flag, all locales are copied.
 
-This can be used to improve compile/debug/test cycles because most developers
-only work/test in one language.
+This can be used in a few interesting ways:
+
+- It can be used to improve compile/debug/test cycles because most developers
+  only work/test in one language.
+- If a product is pulling in some other component(s) that support more
+  localizations that the product does, it can be used to strip away those
+  extra localizations there by shrinking the find product send to the
+  end users.
 
 ## Info.plist Handling
 
