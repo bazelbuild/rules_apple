@@ -96,5 +96,6 @@ def _owner_relative_path(f):
 # Define the loadable module that lists the exported symbols in this file.
 path_utils = struct(
     bundle_relative_path=_bundle_relative_path,
+    farthest_directory_matching=_farthest_directory_matching,
     owner_relative_path=_owner_relative_path,
 )
