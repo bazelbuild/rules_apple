@@ -96,6 +96,11 @@ local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',
 )
+
+local_repository(
+    name = 'build_bazel_rules_swift',
+    path = '$(rlocation build_bazel_rules_swift)',
+)
 EOF
 }
 

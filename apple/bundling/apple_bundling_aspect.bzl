@@ -26,11 +26,6 @@ load(
     "AppleResourceSet",
     "apple_resource_set_utils",
 )
-# Do not combine this with the load above.
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "SwiftInfo",
-)
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
@@ -42,6 +37,10 @@ load(
 load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
 )
 
 
