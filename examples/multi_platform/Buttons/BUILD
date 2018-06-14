@@ -25,7 +25,8 @@ load(
 load(
     "//apple:macos.bzl",
     "macos_application",
-    "macos_ui_test",
+    # Enable when macos_test_runner supports macOS UI Tests.
+    # "macos_ui_test",
     "macos_unit_test",
 )
 load(

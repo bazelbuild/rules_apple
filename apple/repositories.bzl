@@ -35,10 +35,13 @@ def _warn(msg):
 
 def _maybe(repo_rule, name, ignore_version_differences, **kwargs):
   """Executes the given repository rule if it hasn't been executed already.
+
   Args:
     repo_rule: The repository rule to be executed (e.g.,
         `native.git_repository`.)
     name: The name of the repository to be defined by the rule.
+    ignore_version_differences: If `True`, warnings about potentially
+        incompatible versions of depended-upon repositories will be silenced.
     **kwargs: Additional arguments passed directly to the repository rule.
   """
   if name in native.existing_rules():
@@ -76,6 +79,7 @@ run into compatibility issues. To silence this warning, pass \
 
 def apple_rules_dependencies(ignore_version_differences=False):
   """Fetches repositories that are dependencies of the `rules_apple` workspace.
+
   Users should call this macro in their `WORKSPACE` to ensure that all of the
   dependencies of the Swift rules are downloaded and that they are isolated from
   changes to those dependencies.
