@@ -9,8 +9,8 @@ load(
     "ios_application",
     "ios_extension",
     "ios_static_framework",
-    "ios_unit_test",
     "ios_ui_test",
+    "ios_unit_test",
 )
 load(
     "//apple:watchos.bzl",
@@ -25,8 +25,8 @@ load(
 load(
     "//apple:macos.bzl",
     "macos_application",
-    "macos_unit_test",
     "macos_ui_test",
+    "macos_unit_test",
 )
 load(
     "//apple:swift.bzl",
