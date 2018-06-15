@@ -8,6 +8,12 @@ sh_binary(
     deps = ["//tools/wrapper_common"],
 )
 
+py_binary(
+    name = "ibtoolwrapper_experimental",
+    srcs = ["ibtoolwrapper.py"],
+    main = "ibtoolwrapper.py",
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
