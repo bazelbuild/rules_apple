@@ -47,6 +47,15 @@ This file provides methods to easily:
   - minimize the resulting tuples in order to minimize memory usage
 """
 
+load(
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+
 NewAppleResourceInfo = provider(
     doc = """
 Provider that propagates buckets of resources that are differentiated by
@@ -111,6 +120,16 @@ def _bucketize(resources, swift_module=None, parent_dir_param=None):
     # For each type of resource, place in appropriate bucket.
     # TODO(kaipi): Missing many types of resources, this is just a starting
     # point.
+
+    # Special case for localized. If .lproj/ is in the path of the resource
+    # (and the parent doesn't already have it) append the lproj component to
+    # the current parent.
+    if ".lproj/" in resource.short_path and (not parent or ".lproj" not in parent):
+      lproj_path = path_utils.farthest_directory_matching(
+          resource.short_path, "lproj"
+      )
+      parent = paths.join(parent or "", paths.basename(lproj_path))
+
     if resource.short_path.endswith(".strings"):
       buckets.setdefault(
           "strings", default=[]
