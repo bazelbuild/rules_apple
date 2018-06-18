@@ -393,6 +393,15 @@ def _apple_test_impl(ctx, test_type):
   if extra_outputs_provider:
     outputs += extra_outputs_provider.files
 
+  extra_providers = []
+  # TODO(b/110264170): Repropagate the provider that makes the dSYM bundle
+  # available as opposed to AppleDebugOutputs which propagates the standalone
+  # binaries.
+  if apple_common.AppleDebugOutputs in ctx.attr.test_bundle:
+    extra_providers.append(
+        ctx.attr.test_bundle[apple_common.AppleDebugOutputs]
+    )
+
   return struct(
       # TODO(b/79527231): Migrate to new style providers.
       instrumented_files=struct(dependency_attributes=["test_bundle"]),
@@ -409,7 +418,7 @@ def _apple_test_impl(ctx, test_type):
                   transitive_files=ctx.attr.runner.data_runfiles.files
               ),
           ),
-      ],
+      ] + extra_providers,
   )
 
 
