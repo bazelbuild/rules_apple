@@ -1051,6 +1051,9 @@ def _run(
   debug_outputs = binary_support.get_binary_provider(ctx.attr.deps,
       apple_common.AppleDebugOutputs)
   if has_built_binary and debug_outputs:
+    # TODO(b/110264170): Propagate the provider that makes the dSYM bundle
+    # available as opposed to AppleDebugOutputs which propagates the standalone
+    # binaries.
     additional_providers.append(debug_outputs)
     # Create a .dSYM bundle with the expected name next to the archive in the
     # output directory.
