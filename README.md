@@ -33,7 +33,7 @@ rules you wish to depend on:
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.5.0",
+    tag = "0.6.0",
 )
 
 load(
