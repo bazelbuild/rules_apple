@@ -8,6 +8,12 @@ sh_binary(
     deps = ["//tools/wrapper_common"],
 )
 
+py_binary(
+    name = "actoolwrapper_experimental",
+    srcs = ["actoolwrapper.py"],
+    main = "actoolwrapper.py",
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
