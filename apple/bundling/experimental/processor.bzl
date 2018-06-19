@@ -44,11 +44,22 @@ The processor will output a single file, which is the final compressed bundle,
 and a list of providers that need to be propagated from the rule.
 """
 
-load("@bazel_skylib//lib:partial.bzl", "partial")
-load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@build_bazel_rules_apple//apple/bundling:file_actions.bzl", "file_actions")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl", "bundling_support")
-load("@build_bazel_rules_apple//apple:utils.bzl", "join_commands")
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:intermediates.bzl",
+    "intermediates",
+)
 
 # Location enum that can be used to tag files into their appropriate location
 # in the final bundle.
@@ -58,6 +69,69 @@ _LOCATION_ENUM = struct(
     archive="archive",
     binary="binary",
 )
+
+def _bundle_locations(ctx):
+  """Returns the map of location type to final bundle path."""
+  # TODO(kaipi): Handle parameterized paths for macOS.
+  contents_path = paths.join(
+      "Payload", bundling_support.bundle_name(ctx) + ".app",
+  )
+
+  # Map of location types to relative paths in the archive.
+  # TODO(kaipi): Handle parameterized paths for macOS.
+  return {
+      _LOCATION_ENUM.archive: "",
+      _LOCATION_ENUM.binary: contents_path,
+      _LOCATION_ENUM.content: contents_path,
+      _LOCATION_ENUM.resource: contents_path,
+  }
+
+def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
+  """Invokes bundletool to bundle the files specified by the partial outputs.
+
+  Args:
+    ctx: The target's rule context.
+    partial_outputs: List of partial outputs from which to collect the files
+      that will be bundled inside the final archive.
+    output_file: The file where the final zipped bundle should be created.
+  """
+  control_files = []
+  input_files = []
+
+  location_to_paths = _bundle_locations(ctx)
+
+  for partial_output in partial_outputs:
+    for location, parent_dir, files in partial_output.files:
+      sources = files.to_list()
+      input_files.extend(sources)
+
+      for source in sources:
+        target_path = paths.join(location_to_paths[location], parent_dir or "")
+        if not source.is_directory:
+          target_path = paths.join(target_path, source.basename)
+        control_files.append(struct(src=source.path, dest=target_path))
+
+  control = struct(
+      bundle_merge_files = control_files,
+      output = output_file.path,
+  )
+
+  control_file = intermediates.file(
+      ctx.actions, ctx.label.name, "bundletool_control.json",
+  )
+  ctx.actions.write(
+      output=control_file,
+      content=control.to_json()
+  )
+
+  ctx.actions.run(
+      inputs=input_files + [control_file],
+      outputs=[output_file],
+      executable=ctx.executable._bundletool,
+      arguments=[control_file.path],
+      mnemonic="BundleApp",
+      progress_message="Bundling %s" % ctx.label.name,
+  )
 
 def _process(ctx, partials):
   """Processes a list of partials that provide the files to be bundled.
@@ -70,58 +144,19 @@ def _process(ctx, partials):
     The final compressed bundle and a list of providers to be propagated from
     the target.
   """
-  # Staging path for the bundle.
-  archive_root = "%s-archiveroot" % ctx.label.name
-
-  # TODO(kaipi): Handle parameterized paths for macOS.
-  contents_path = paths.join(
-      archive_root,
-      paths.join("Payload", bundling_support.bundle_name(ctx) + ".app")
-  )
-
-  # Map of location types to relative paths in the archive.
-  # TODO(kaipi): Handle parameterized paths for macOS.
-  location_to_paths = {
-      _LOCATION_ENUM.archive: archive_root,
-      _LOCATION_ENUM.binary: contents_path,
-      _LOCATION_ENUM.content: contents_path,
-      _LOCATION_ENUM.resource: contents_path,
-  }
-
-  structs = [partial.call(p, ctx) for p in partials]
+  partial_outputs = [partial.call(p, ctx) for p in partials]
   providers = []
-  target_files = []
-  for s in structs:
-    providers.extend(s.providers)
 
-    for location, parent_dir, files in s.files:
-      for source in files.to_list():
-        # For each file, symlink it into the expected location in the bundle.
-        target = ctx.actions.declare_file(
-            paths.join(location_to_paths[location], parent_dir or "", source.basename)
-        )
-        target_files.append(target)
-        file_actions.symlink(ctx, source, target)
+  for partial_output in partial_outputs:
+    providers.extend(partial_output.providers)
 
-  # Compress the staging directory into a zip file.
-  # TODO(kaipi): Handle signing. Look into integrating with bundletool or
-  # repurposing it. Also handle zip files that need to be uncompressed into
-  # expected locations in the bundle.
-  archive_path = paths.join(ctx.bin_dir.path, ctx.label.package, archive_root)
-  output = ctx.actions.declare_file(archive_root + ".zip")
-  ctx.actions.run(
-      executable="/bin/sh",
-      arguments = ["-c", join_commands([
-          "export OUTPUT_PATH=\"$PWD/%s\"" % output.path,
-          "pushd %s > /dev/null" % archive_path,
-          "zip -r \"$OUTPUT_PATH\" * > /dev/null",
-          "popd > /dev/null",
-      ])],
-      inputs = target_files,
-      outputs = [output],
+  output_file = intermediates.file(
+      ctx.actions, ctx.label.name, "unprocessed_archive.zip",
   )
 
-  return output, providers
+  _bundle_partial_outputs_files(ctx, partial_outputs, output_file)
+
+  return output_file, providers
 
 processor = struct(
     process=_process,
