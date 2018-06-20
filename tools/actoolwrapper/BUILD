@@ -12,6 +12,7 @@ py_binary(
     name = "actoolwrapper_experimental",
     srcs = ["actoolwrapper.py"],
     main = "actoolwrapper.py",
+    deps = ["//tools/wrapper_common:execute"],
 )
 
 # Consumed by bazel tests.
