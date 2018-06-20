@@ -12,6 +12,7 @@ py_binary(
     name = "ibtoolwrapper_experimental",
     srcs = ["ibtoolwrapper.py"],
     main = "ibtoolwrapper.py",
+    deps = ["//tools/wrapper_common:execute"],
 )
 
 # Consumed by bazel tests.
