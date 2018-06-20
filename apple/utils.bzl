@@ -22,8 +22,9 @@ DARWIN_EXECUTION_REQUIREMENTS = {"requires-darwin": ""}
 
 _EXECUTION_REQUIREMENTS = {
     "no_cache": "no-cache",
+    "no_sandbox": "no-sandbox",
+    "no_remote": "no-remote",
 }
-
 
 def _add_execution_requirements(kw):
     """Adds and returns the execution requirements for an action."""
