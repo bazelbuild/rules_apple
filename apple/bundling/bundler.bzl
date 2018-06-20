@@ -579,6 +579,8 @@ def _process_and_sign_archive(
             progress_description,
             bundle_name,
         ),
+        no_sandbox=True,
+        no_cache=True,
         tools = [
             ctx.executable._codesigningtool,
         ]
