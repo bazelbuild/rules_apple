@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wrapper for "xcrun actool"
+"""Wrapper for "xcrun actool".
 
 "actoolwrapper" runs "xcrun actool", working around issues with relative paths
 and managing creation of the output directory. This script only runs on Darwin
@@ -26,11 +26,12 @@ and you must have Xcode installed.
 """
 
 import os
-import subprocess
 import sys
+from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
 def _main(outdir, args):
+  """Assemble the call to "xcrun actool"."""
 
   if not os.path.isdir(outdir):
     os.makedirs(outdir)
@@ -48,7 +49,7 @@ def _main(outdir, args):
       # The argument for "--output-partial-info-plist" doesn't actually exist at
       # the time of flag parsing, so we create it so that we can call "realpath"
       # on it to make the path absolute.
-      open(arg, 'a').close() # "touch" the file
+      open(arg, "a").close()  # "touch" the file
     if os.path.isfile(arg):
       toolargs.append(os.path.realpath(arg))
     else:
@@ -78,21 +79,15 @@ def _main(outdir, args):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  # TODO(dabelknap): Apply message filtering
-  try:
-    stdout = subprocess.check_output(xcrunargs)
-  except subprocess.CalledProcessError as e:
-    sys.stderr.write("ERROR: %s" % e.output)
-    raise
-  print(stdout)
+  execute.execute_and_filter_output(xcrunargs)
 
 
-def ValidateArgs(args):
+def validate_args(args):
   if len(args) < 2:
     sys.stderr.write("ERROR: Output directory path required.")
     sys.exit(1)
 
 
 if __name__ == "__main__":
-  ValidateArgs(sys.argv)
+  validate_args(sys.argv)
   _main(sys.argv[1], sys.argv[2:])

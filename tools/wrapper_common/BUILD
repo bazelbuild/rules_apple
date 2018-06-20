@@ -11,6 +11,11 @@ sh_library(
     ],
 )
 
+py_library(
+    name = "execute",
+    srcs = ["execute.py"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

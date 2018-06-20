@@ -30,11 +30,12 @@ installed.
 """
 
 import os
-import subprocess
 import sys
+from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
 def _main(action, output, args):
+  """Assemble the call to "xcrun ibtool"."""
 
   if action in ["--compilation-directory", "--link"]:
     # When compiling storyboards, "output" is the directory where the
@@ -90,16 +91,10 @@ def _main(action, output, args):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  # TODO(dabelknap): Apply message filtering
-  try:
-    stdout = subprocess.check_output(xcrunargs)
-  except subprocess.CalledProcessError as e:
-    sys.stderr.write("ERROR: %s" % e.output)
-    raise
-  print(stdout)
+  execute.execute_and_filter_output(xcrunargs)
 
 
-def ValidateArgs(args):
+def validate_args(args):
   if len(args) < 3:
     sys.stderr.write("ERROR: Action flag and output path required")
     sys.exit(1)
@@ -110,5 +105,5 @@ def ValidateArgs(args):
 
 
 if __name__ == "__main__":
-  ValidateArgs(sys.argv)
+  validate_args(sys.argv)
   _main(sys.argv[1], sys.argv[2], sys.argv[3:])
