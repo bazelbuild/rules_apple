@@ -258,7 +258,7 @@ def ios_framework(name, **kwargs):
           final framework.
     """
     linkopts = kwargs.pop("linkopts", [])
-	bundle_name = kwargs.get("bundle_name", name)
+    bundle_name = kwargs.get("bundle_name", name)
     linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
 
     # Link the executable from any library deps and sources provided.
