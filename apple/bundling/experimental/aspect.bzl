@@ -99,16 +99,29 @@ def _apple_resource_aspect_impl(target, ctx):
   if NewAppleResourceInfo in target:
     return []
 
+  providers = []
+
   bucketize_args = {}
   collect_args = {}
-
   if ctx.rule.kind == "objc_bundle":
     bucketize_args["parent_dir_param"] = _objc_bundle_parent_dir
     collect_args["res_attrs"] = ["bundle_imports"]
 
   elif ctx.rule.kind == "objc_bundle_library":
-    bucketize_args["parent_dir_param"] = "%s.bundle" % ctx.label.name
+    parent_dir_param = "%s.bundle" % ctx.label.name
+    bucketize_args["parent_dir_param"] = parent_dir_param
     collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
+
+    # Collect the specified infoplists that should be merged together.
+    # The replacement for objc_bundle_library should handle it within its
+    # implementation.
+    plist_provider = resources.bucketize_typed(
+        ctx.rule.attr,
+        bucket_type="plists",
+        res_attrs=["infoplist", "infoplists"],
+        parent_dir_param=parent_dir_param,
+    )
+    providers.append(plist_provider)
 
   elif ctx.rule.kind == "objc_library":
     collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
@@ -118,8 +131,6 @@ def _apple_resource_aspect_impl(target, ctx):
     # placeholder that won't work in all cases.
     bucketize_args["swift_module"] = ctx.rule.attr.module_name
     collect_args["res_attrs"] = ["resources"]
-
-  providers = []
 
   # Collect all resource files related to this target.
   files = resources.collect(ctx.rule.attr, **collect_args)
