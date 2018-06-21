@@ -41,6 +41,7 @@ def ios_application_impl(ctx):
   output, providers = processor.process(ctx, [
       partials.binary_partial(provider_key=apple_common.AppleExecutableBinary),
       partials.resources_partial(
+          plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
           top_level_attrs=top_level_attrs,
       ),
