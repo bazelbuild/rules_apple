@@ -62,8 +62,10 @@ Provider that propagates buckets of resources that are differentiated by
 resource type.
 """,
     fields = {
-        "generic": "Generic resources not mapped to the other types.",
-        "png": "PNG images which are not bundled in an .xcassets folder.",
+        "generics": "Generic resources not mapped to the other types.",
+        "plists": """Plist files to be merged and processed. Plist files that
+should not be processed should be propagated in `generics`.""",
+        "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "xcassets": "Resources that need to be embedded into Assets.car.",
@@ -148,15 +150,48 @@ def _bucketize(resources, swift_module=None, parent_dir_param=None):
       ).append((parent, None, depset([resource])))
     elif resource.short_path.endswith(".png"):
       buckets.setdefault(
-          "png", default=[]
+          "pngs", default=[]
       ).append((parent, None, depset([resource])))
     else:
       buckets.setdefault(
-          "generic", default=[]
+          "generics", default=[]
       ).append((parent, None, depset([resource])))
 
   return NewAppleResourceInfo(
       **dict([(k, _minimize(b)) for k, b in buckets.items()])
+  )
+
+def _bucketize_typed(attr, bucket_type, res_attrs=[], parent_dir_param=None):
+  """Collects and bucketizes a specific type of resource.
+
+  Finds all the resources present in the attributes listed in res_attrs, and
+  adds them directly into a NewAppleResourceInfo provider under the field named
+  in bucket_type. This avoids the sorting mechanism that `bucketize` does,
+  while grouping resources together using parent_dir_param.
+
+  Args:
+    attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
+      the case of aspects.
+    bucket_type: The NewAppleResourceInfo field under which to collect the
+      resources.
+    res_attrs: The attributes under which to collect the resources.
+    parent_dir_param: Either a string or a function used to calculate the value
+      of parent_dir for each resource.
+
+  Returns:
+    A NewAppleResourceInfo provider with resources in the given bucket.
+  """
+  resources = _collect(attr, res_attrs)
+  typed_bucket = []
+  for resource in resources:
+    if str(type(parent_dir_param)) == "function":
+      parent = parent_dir_param(resource)
+    else:
+      parent = parent_dir_param
+
+    typed_bucket.append((parent, None, depset([resource])))
+  return NewAppleResourceInfo(
+      **{bucket_type: _minimize(typed_bucket)}
   )
 
 def _collect(attr, res_attrs=[]):
@@ -265,6 +300,7 @@ def _minimize(bucket):
 
 resources = struct(
     bucketize=_bucketize,
+    bucketize_typed=_bucketize_typed,
     collect=_collect,
     merge_providers=_merge_providers,
     minimize=_minimize,
