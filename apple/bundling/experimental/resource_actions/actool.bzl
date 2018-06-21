@@ -147,7 +147,7 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
         app icons and launch images.
     output_dir: The directory where the compiled outputs should be placed.
     output_plist: The file reference for the output plist that should be merged
-      into Info.plist.
+      into Info.plist. May be None if the output plist is not desired.
   """
   platform = platform_support.platform(ctx)
   min_os = platform_support.minimum_os(ctx)
@@ -156,7 +156,6 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
   args = [
       output_dir.path,
       "--platform", actool_platform,
-      "--output-partial-info-plist", output_plist.path,
       "--minimum-deployment-target", min_os,
       "--compress-pngs",
   ]
@@ -172,6 +171,11 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
   args.extend(collections.before_each(
       "--target-device", platform_support.families(ctx)))
 
+  outputs = [output_dir]
+  if output_plist:
+    outputs.append(output_plist)
+    args.extend(["--output-partial-info-plist", output_plist.path])
+
   xcassets = group_files_by_directory(
       asset_files, ["xcassets", "xcstickers"], attr="asset_catalogs",
   ).keys()
@@ -181,7 +185,7 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
   platform_support.xcode_env_action(
       ctx,
       inputs=asset_files,
-      outputs=[output_dir, output_plist],
+      outputs=outputs,
       executable=ctx.executable._actoolwrapper,
       arguments=args,
       mnemonic="AssetCatalogCompile",
