@@ -1,10 +1,10 @@
-# Experimental resource propagation logic.
+# Resource actions.
 
-# This file exists to create a package under which to load the experimental
-# resource propagation logic bzl files.
+# This file exists to create a package under which to load the resource actions
+# bzl files.
 
 package(default_visibility = [
-    "//apple:__subpackages__",
+    "//apple/bundling/experimental:__pkg__",
 ])
 
 licenses(["notice"])
