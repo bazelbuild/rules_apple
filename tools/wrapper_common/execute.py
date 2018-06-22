@@ -19,12 +19,16 @@ import subprocess
 import sys
 
 
-def execute_and_filter_output(xcrunargs):
+def execute_and_filter_output(xcrunargs, filtering=None):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
     xcrunargs: A list of strings beginning with the command to execute followed
         by its arguments.
+    filtering: Optionally specify a filter for stdout. It must be callable and
+        have the following signature:
+
+          myFilter(input_string) -> output_string
   """
   try:
     p = subprocess.Popen(xcrunargs,
@@ -34,5 +38,13 @@ def execute_and_filter_output(xcrunargs):
   except subprocess.CalledProcessError as e:
     sys.stderr.write("ERROR: %s" % e.output)
     raise
+
+  if not stdout:
+    return
+
+  if filtering:
+    if not callable(filtering):
+      raise TypeError("'filtering' must be callable.")
+    stdout = filtering(stdout)
 
   sys.stdout.write("%s\n" % stdout)
