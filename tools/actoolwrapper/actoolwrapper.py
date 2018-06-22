@@ -26,8 +26,60 @@ and you must have Xcode installed.
 """
 
 import os
+import re
 import sys
 from build_bazel_rules_apple.tools.wrapper_common import execute
+
+
+def _output_filtering(raw_stdout):
+  """Filter the stdout messages from "actool".
+
+  Args:
+    raw_stdout: This is the unmodified stdout captured from "xcrun actool".
+
+  Returns:
+    The filtered output string.
+  """
+  section_header = re.compile("^/\\* ([^ ]*) \\*/$")
+
+  excluded_sections = ["com.apple.actool.compilation-results"]
+
+  spurious_patterns = map(re.compile, [
+      r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
+      r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app icons"
+      " only apply to iPad apps targeting releases of iOS prior to 10.0.",
+  ])
+
+  def is_spurious_message(line):
+    for pattern in spurious_patterns:
+      match = pattern.search(line)
+      if match is not None:
+        return True
+    return False
+
+  output = []
+  current_section = None
+  data_in_section = False
+
+  for line in raw_stdout.splitlines():
+    header_match = section_header.search(line)
+
+    if header_match:
+      data_in_section = False
+      current_section = header_match.group(1)
+      continue
+
+    if current_section and current_section not in excluded_sections:
+      if is_spurious_message(line):
+        continue
+
+      if not data_in_section:
+        data_in_section = True
+        output.append("/* %s */\n" % current_section)
+
+      output.append(line + "\n")
+
+  return "".join(output)
 
 
 def _main(outdir, args):
@@ -79,7 +131,7 @@ def _main(outdir, args):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  execute.execute_and_filter_output(xcrunargs)
+  execute.execute_and_filter_output(xcrunargs, filtering=_output_filtering)
 
 
 def validate_args(args):
