@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementations for resource processing."""
+"""Partial implementations for resource processing.
+
+Resources are procesed according to type, by a series of methods that deal with
+the specifics for each resource type. Each of this methods returns a struct,
+which always have a `files` field containing resource tuples as described in
+processor.bzl. Optionally, the structs can also have an `infoplists` field
+containing a list of plists that should be merged into the root Info.plist.
+"""
 
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -41,7 +48,25 @@ load(
 )
 
 def _plists(ctx, parent_dir, files):
-  """Processes the grouped resource plists by merging them into one."""
+  """Processes plists.
+
+  If parent_dir is not empty, the files will be treated as resource bundle
+  infoplists and are merged into one. If parent_dir is empty (or None), the
+  files are be treated as root level infoplist and returned to be processed
+  along with other root plists (e.g. xcassets returns a plist that needs to be
+  merged into the root.).
+
+  Args:
+    ctx: The target's context.
+    parent_dir: The path under which the merged Info.plist should be placed for
+      resource bundles.
+    files: The infoplist files to process.
+
+  Returns:
+    A struct containing a `files` field with tuples as described in
+    processor.bzl, and an `infoplists` field with the plists that need to be
+    merged for the root Info.plist
+  """
   if parent_dir:
     out_plist = intermediates.file(
         ctx.actions, ctx.label.name, paths.join(parent_dir, "Info.plist"),
@@ -49,11 +74,11 @@ def _plists(ctx, parent_dir, files):
     resource_actions.merge_resource_infoplists(
         ctx, paths.basename(parent_dir), files.to_list(), out_plist,
     )
-    return [(processor.location.resource, parent_dir, depset([out_plist]))]
+    return struct(
+        files=[(processor.location.resource, parent_dir, depset([out_plist]))],
+    )
   else:
-    # TODO(kaipi): Process root Info.plist differently, as it needs to be
-    # merged with other plists (e.g. actool plist).
-    return []
+    return struct(files=[], infoplists=files.to_list())
 
 def _pngs(ctx, parent_dir, files):
   """Register PNG processing actions.
@@ -68,7 +93,8 @@ def _pngs(ctx, parent_dir, files):
     files: The PNG files to process.
 
   Returns:
-    An array of tuples as described in processor.bzl.
+    A struct containing a `files` field with tuples as described in
+    processor.bzl.
   """
   # If this is not an optimized build, then just copy the files
   if ctx.var["COMPILATION_MODE"] != "opt":
@@ -81,7 +107,9 @@ def _pngs(ctx, parent_dir, files):
     resource_actions.png_copy(ctx, file, png_file)
     png_files.append(png_file)
 
-  return [(processor.location.resource, parent_dir, depset(png_files))]
+  return struct(
+      files=[(processor.location.resource, parent_dir, depset(png_files))],
+  )
 
 def _storyboards(ctx, parent_dir, files, swift_module):
   """Processes storyboard files."""
@@ -110,9 +138,11 @@ def _storyboards(ctx, parent_dir, files, swift_module):
   resource_actions.link_storyboards(
       ctx, compiled_storyboardcs, linked_storyboard_dir,
   )
-  return [(
-      processor.location.resource, parent_dir, depset([linked_storyboard_dir])
-  )]
+  return struct(
+      files=[(
+          processor.location.resource, parent_dir, depset([linked_storyboard_dir])
+      )],
+  )
 
 def _strings(ctx, parent_dir, files):
   """Processes strings files.
@@ -127,7 +157,8 @@ def _strings(ctx, parent_dir, files):
     files: The string files to process.
 
   Returns:
-    An array of tuples as described in processor.bzl.
+    A struct containing a `files` field with tuples as described in
+    processor.bzl.
   """
   # If this is not an optimized build, then just copy the files
   if ctx.var["COMPILATION_MODE"] != "opt":
@@ -141,19 +172,23 @@ def _strings(ctx, parent_dir, files):
     resource_actions.compile_plist(ctx, file, string_file)
     string_files.append(string_file)
 
-  return [(processor.location.resource, parent_dir, depset(string_files))]
+  return struct(
+      files=[(processor.location.resource, parent_dir, depset(string_files))],
+  )
 
 def _xcassets(ctx, parent_dir, files):
   """Processes xcasset files."""
   # Only merge the resulting plist for the top level bundle. For resource
   # bundles, skip generating the plist.
   assets_plist = None
+  infoplists = []
   if not parent_dir:
     # TODO(kaipi): Merge this into the top level Info.plist.
     assets_plist_path = paths.join(parent_dir or "", "xcassets-info.plist")
     assets_plist = intermediates.file(
         ctx.actions, ctx.label.name, assets_plist_path,
     )
+    infoplists.append(assets_plist)
 
   assets_dir = intermediates.directory(
       ctx.actions, ctx.label.name, paths.join(parent_dir or "", "xcassets"),
@@ -163,12 +198,40 @@ def _xcassets(ctx, parent_dir, files):
       ctx, files.to_list(), assets_dir, assets_plist,
   )
 
-  return [(processor.location.resource, parent_dir, depset([assets_dir]))]
+  return struct(
+      files=[(processor.location.resource, parent_dir, depset([assets_dir]))],
+      infoplists=infoplists,
+  )
 
 def _noop(ctx, parent_dir, files):
   """Registers files to be bundled as is."""
   _ignore = [ctx]
-  return [(processor.location.resource, parent_dir, files)]
+  return struct(files=[(processor.location.resource, parent_dir, files)])
+
+def _merge_root_infoplists(ctx, infoplists):
+  """Registers the root Info.plist generation action.
+
+  Args:
+    ctx: The target's rule context.
+    infoplists: List of plists that should be merged into the root Info.plist.
+
+  Returns:
+    A list of tuples as described in processor.bzl with the Info.plist file
+    reference and the PkgInfo file if required.
+  """
+  out_infoplist = intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
+  files = [out_infoplist]
+
+  out_pkginfo = None
+  if ctx.attr._needs_pkginfo:
+    out_pkginfo = ctx.actions.declare_file("PkgInfo", sibling=out_infoplist)
+    files.append(out_pkginfo)
+
+  resource_actions.merge_root_infoplists(
+      ctx, infoplists, out_infoplist, out_pkginfo, bundle_id=ctx.attr.bundle_id,
+  )
+
+  return [(processor.location.content, None, depset(files))]
 
 def _resources_partial_impl(
     ctx, plist_attrs=[], targets_to_avoid=[], top_level_attrs=[]):
@@ -211,6 +274,8 @@ def _resources_partial_impl(
   processor_files = []
 
   fields = [f for f in dir(final_provider) if f not in ["to_json", "to_proto"]]
+
+  infoplists = []
   for field in fields:
     processing_func, requires_swift_module = (
         # If the field type doesn't have a corresponding method, by default the
@@ -223,9 +288,12 @@ def _resources_partial_impl(
       # requires it.
       if requires_swift_module:
         extra_args["swift_module"] = swift_module
-      processor_files.extend(
-          processing_func(ctx, parent, files, **extra_args)
-      )
+      result = processing_func(ctx, parent, files, **extra_args)
+      processor_files.extend(result.files)
+      if hasattr(result, "infoplists"):
+        infoplists.extend(result.infoplists)
+
+  processor_files.extend(_merge_root_infoplists(ctx, infoplists))
 
   return struct(
       files=processor_files,

@@ -27,6 +27,7 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:plist.bzl",
     _compile_plist="compile_plist",
     _merge_resource_infoplists="merge_resource_infoplists",
+    _merge_root_infoplists="merge_root_infoplists",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:png.bzl",
@@ -40,4 +41,5 @@ resource_actions = struct(
     copy_png=_copy_png,
     link_storyboards=_link_storyboards,
     merge_resource_infoplists=_merge_resource_infoplists,
+    merge_root_infoplists=_merge_root_infoplists,
 )
