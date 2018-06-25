@@ -76,7 +76,7 @@ def _post_process_and_sign_archive_action(
   if not ctx.attr._skip_signing:
     paths_to_sign = [
         codesigning_support.path_to_sign(
-            paths.join("$WORK_DIR", frameworks_path),
+            paths.join("$WORK_DIR", frameworks_path) + "/",
             optional=True, glob="*",
         ),
     ]
