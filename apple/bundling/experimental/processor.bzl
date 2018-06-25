@@ -40,8 +40,9 @@ All the files given will be symlinked into their expected location in the
 bundle, and once complete, the processor will codesign and compress the bundle
 into a zip file.
 
-The processor will output a single file, which is the final compressed bundle,
-and a list of providers that need to be propagated from the rule.
+The processor will output a single file, which is the final compressed and
+code-signed bundle, and a list of providers that need to be propagated from the
+rule.
 """
 
 load(
@@ -57,24 +58,34 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:codesigning_actions.bzl",
+    "codesigning_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:intermediates.bzl",
     "intermediates",
 )
 
 # Location enum that can be used to tag files into their appropriate location
-# in the final bundle.
+# in the final archive.
 _LOCATION_ENUM = struct(
-    resource="resource",
-    content="content",
     archive="archive",
     binary="binary",
+    bundle="bundle",
+    content="content",
+    framework="framework",
+    resource="resource",
 )
 
-def _bundle_locations(ctx):
-  """Returns the map of location type to final bundle path."""
+def _archive_paths(ctx):
+  """Returns the map of location type to final archive path."""
   # TODO(kaipi): Handle parameterized paths for macOS.
   contents_path = paths.join(
       "Payload", bundling_support.bundle_name(ctx) + ".app",
+  )
+
+  frameworks_path = paths.join(
+      contents_path, "Frameworks",
   )
 
   # Map of location types to relative paths in the archive.
@@ -82,7 +93,9 @@ def _bundle_locations(ctx):
   return {
       _LOCATION_ENUM.archive: "",
       _LOCATION_ENUM.binary: contents_path,
+      _LOCATION_ENUM.bundle: contents_path,
       _LOCATION_ENUM.content: contents_path,
+      _LOCATION_ENUM.framework: frameworks_path,
       _LOCATION_ENUM.resource: contents_path,
   }
 
@@ -98,7 +111,7 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
   control_files = []
   input_files = []
 
-  location_to_paths = _bundle_locations(ctx)
+  location_to_paths = _archive_paths(ctx)
 
   for partial_output in partial_outputs:
     for location, parent_dir, files in partial_output.files:
@@ -145,18 +158,31 @@ def _process(ctx, partials):
     the target.
   """
   partial_outputs = [partial.call(p, ctx) for p in partials]
-  providers = []
 
+  unprocessed_archive = intermediates.file(
+      ctx.actions, ctx.label.name, "unprocessed_archive.zip",
+  )
+  _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+
+  archive_paths = _archive_paths(ctx)
+  archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
+  frameworks_path = archive_paths[_LOCATION_ENUM.framework]
+  output_archive = intermediates.file(
+      ctx.actions, ctx.label.name, "processed_archive.zip",
+  )
+  codesigning_actions.post_process_and_sign_archive_action(
+      ctx,
+      archive_codesigning_path,
+      frameworks_path,
+      unprocessed_archive,
+      output_archive,
+  )
+
+  providers = []
   for partial_output in partial_outputs:
     providers.extend(partial_output.providers)
 
-  output_file = intermediates.file(
-      ctx.actions, ctx.label.name, "unprocessed_archive.zip",
-  )
-
-  _bundle_partial_outputs_files(ctx, partial_outputs, output_file)
-
-  return output_file, providers
+  return output_archive, providers
 
 processor = struct(
     process=_process,
