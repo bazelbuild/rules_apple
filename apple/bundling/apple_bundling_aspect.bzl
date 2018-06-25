@@ -293,13 +293,27 @@ def _transitive_apple_bundling_swift_info(target, ctx):
     An `AppleBundlingSwiftInfo` provider, or `None` if nothing should be
     propagated for this target.
   """
-  uses_swift = hasattr(target, "swift") or SwiftInfo in target
+  if hasattr(target, "swift"):
+    # This string will still evaluate truthily in a Boolean context, so any
+    # bundling logic that asks `if p.uses_swift` will continue to work. This
+    # however lets the logic that computes binary linker options distinguish
+    # between the legacy Swift rules and the new Swift rules.
+    # TODO(b/69419493): Once the legacy rule is deleted, the
+    # `AppleBundlingSwiftInfo` provider can go away entirely; the bundler can
+    # use `swift_usage_aspect` and its provider alone to determine whether to
+    # bundle Swift libraries.
+    uses_swift = "legacy"
+  else:
+    uses_swift = SwiftInfo in target
 
   # If the target itself doesn't use Swift, check its deps.
   if not uses_swift:
     deps = getattr(ctx.rule.attr, "deps", [])
     swift_info_providers = providers.find_all(deps, AppleBundlingSwiftInfo)
-    uses_swift = any([p.uses_swift for p in swift_info_providers])
+    for p in swift_info_providers:
+      if p.uses_swift:
+        uses_swift = p.uses_swift
+        break
 
   return AppleBundlingSwiftInfo(uses_swift=uses_swift)
 
