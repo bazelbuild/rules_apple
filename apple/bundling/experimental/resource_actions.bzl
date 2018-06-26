@@ -19,6 +19,10 @@ load(
     _compile_asset_catalog="compile_asset_catalog",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:datamodel.bzl",
+    _compile_datamodels="compile_datamodels",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:ibtool.bzl",
     _compile_storyboard="compile_storyboard",
     _link_storyboards="link_storyboards",
@@ -36,6 +40,7 @@ load(
 
 resource_actions = struct(
     compile_asset_catalog=_compile_asset_catalog,
+    compile_datamodels=_compile_datamodels,
     compile_plist=_compile_plist,
     compile_storyboard=_compile_storyboard,
     copy_png=_copy_png,
