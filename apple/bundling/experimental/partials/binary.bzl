@@ -68,7 +68,7 @@ def _swift_dylib_action(ctx, platform_name, binary_file, output_dir):
       no_sandbox=True,
   )
 
-def _binary_partial_impl(ctx, provider_key):
+def _binary_partial_impl(ctx, package_swift, provider_key):
   """Implementation for the binary processing partial."""
   provider = ctx.attr.deps[0][provider_key]
   binary_file = provider.binary
@@ -84,29 +84,30 @@ def _binary_partial_impl(ctx, provider_key):
   ]
 
   if swift_support.uses_swift(ctx.attr.deps):
-    # TODO(kaipi): Propagate Swift dylib output information from dependencies
-    # to be merged at the top level.
     platform_name = platform_support.platform(ctx).name_in_plist.lower()
     output_dir = intermediates.directory(ctx.actions, ctx.label.name, "swiftlibs")
     _swift_dylib_action(ctx, platform_name, binary_file, output_dir)
 
-    processor_files.append(
-        (processor.location.content, "Frameworks", depset([output_dir])),
-    )
+    # TODO(kaipi): Propagate Swift dylib output information from dependencies
+    # to be merged at the top level.
+    if package_swift:
+      processor_files.append(
+          (processor.location.content, "Frameworks", depset([output_dir])),
+      )
 
-    # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
-    # builds.
-    swift_support_path = paths.join("SwiftSupport", platform_name)
-    processor_files.append(
-        (processor.location.archive, swift_support_path, depset([output_dir])),
-    )
+      # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
+      # builds.
+      swift_support_path = paths.join("SwiftSupport", platform_name)
+      processor_files.append(
+          (processor.location.archive, swift_support_path, depset([output_dir])),
+      )
 
   return struct(
       files=processor_files,
       providers=[provider],
   )
 
-def binary_partial(provider_key):
+def binary_partial(provider_key, package_swift=False):
   """Constructor for the binary processing partial.
 
   This partial propagates the binary file to be bundled, as well as the binary
@@ -115,15 +116,22 @@ def binary_partial(provider_key):
   this partial requires the provider key under which to find the provider to
   propagate as well as the binary artifact to bundle.
 
+  This partial also handles the Swift dylibs that may need to be packaged or
+  propagated.
+
   Args:
     provider_key: The provider key under which to find the binary provider
       containing the binary artifact.
+    package_swift: Whether the partial should return the Swift files to be
+      packaged inside the target's bundle. If not, they will be propagated to
+      be merged by an upstream dependent.
 
   Returns:
-    A partial that returns the bundle location of the binary and the binary
-    provider.
+    A partial that returns the bundle location of the binary and potentially
+    the Swift dylibs, and the binary provider.
   """
   return partial.make(
       _binary_partial_impl,
+      package_swift=package_swift,
       provider_key=provider_key,
   )

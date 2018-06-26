@@ -80,8 +80,8 @@ _LOCATION_ENUM = struct(
 def _archive_paths(ctx):
   """Returns the map of location type to final archive path."""
   # TODO(kaipi): Handle parameterized paths for macOS.
-  contents_path = paths.join(
-      "Payload", bundling_support.bundle_name(ctx) + ".app",
+  contents_path = ctx.attr._path_in_archive_format % (
+      bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
   )
 
   frameworks_path = paths.join(
@@ -167,9 +167,10 @@ def _process(ctx, partials):
   archive_paths = _archive_paths(ctx)
   archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
   frameworks_path = archive_paths[_LOCATION_ENUM.framework]
-  output_archive = intermediates.file(
-      ctx.actions, ctx.label.name, "processed_archive.zip",
-  )
+
+  # TODO(kaipi): Replace this with a declared file. The archive extension is
+  # not yet available in the attributes (or product descriptor).
+  output_archive = ctx.outputs.archive
   codesigning_actions.post_process_and_sign_archive_action(
       ctx,
       archive_codesigning_path,
