@@ -8,6 +8,15 @@ sh_binary(
     deps = ["//tools/wrapper_common"],
 )
 
+py_binary(
+    name = "swiftstdlibtoolwrapper_experimental",
+    srcs = ["swiftstdlibtoolwrapper.py"],
+    main = "swiftstdlibtoolwrapper.py",
+    deps = [
+        "//tools/wrapper_common:execute",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

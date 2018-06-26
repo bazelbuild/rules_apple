@@ -47,4 +47,5 @@ def execute_and_filter_output(xcrunargs, filtering=None):
       raise TypeError("'filtering' must be callable.")
     stdout = filtering(stdout)
 
-  sys.stdout.write("%s\n" % stdout)
+  if stdout:
+    sys.stdout.write("%s\n" % stdout)
