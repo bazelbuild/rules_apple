@@ -30,6 +30,10 @@ load(
     "paths",
 )
 load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:intermediates.bzl",
     "intermediates",
 )
@@ -46,6 +50,57 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental:resource_actions.bzl",
     "resource_actions",
 )
+
+def _datamodels(ctx, parent_dir, files, swift_module):
+  datamodel_files = files.to_list()
+
+  standalone_models = []
+  grouped_models = []
+  # Split the datamodels into whether they are inside an xcdatamodeld bundle or
+  # not.
+  for datamodel in datamodel_files:
+    if ".xcdatamodeld/" in datamodel.short_path:
+      grouped_models.append(datamodel)
+    else:
+      standalone_models.append(datamodel)
+
+  # Create a map of highest-level datamodel bundle to the files it contains.
+  # Datamodels can be present within standalone .xcdatamodel/ folders or in a
+  # versioned bundle, in which many .xcdatamodel/ are contained inside an
+  # .xcdatamodeld/ bundle. .xcdatamodeld/ bundles are processed altogether,
+  # while .xcdatamodel/ bundles are processed by themselves.
+  datamodel_groups = group_files_by_directory(
+      grouped_models, ["xcdatamodeld"],
+  )
+  datamodel_groups.update(group_files_by_directory(
+      standalone_models, ["xcdatamodel"],
+  ))
+
+  output_files = []
+  module_name = swift_module or ctx.label.name
+  for datamodel_path, files in datamodel_groups.items():
+    datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
+
+    datamodel_parent = parent_dir
+    if datamodel_path.endswith(".xcdatamodeld"):
+      basename = datamodel_name + ".momd"
+      output_file = intermediates.directory(
+          ctx.actions, ctx.label.name, basename,
+      )
+      datamodel_parent = paths.join(datamodel_parent or "", basename)
+    else:
+      output_file = intermediates.file(
+          ctx.actions, ctx.label.name, datamodel_name + ".mom",
+      )
+
+    resource_actions.compile_datamodels(
+        ctx, datamodel_path, module_name, files.to_list(), output_file,
+    )
+    output_files.append(
+        (processor.location.resource, datamodel_parent, depset([output_file]))
+    )
+
+  return struct(files=output_files)
 
 def _plists(ctx, parent_dir, files):
   """Processes plists.
@@ -262,6 +317,7 @@ def _resources_partial_impl(
   # to process those resources and a boolean indicating whether the Swift
   # module is required for that processing.
   provider_field_to_action = {
+      "datamodels": (_datamodels, True),
       "plists": (_plists, False),
       "pngs": (_pngs, False),
       "storyboards": (_storyboards, True),
