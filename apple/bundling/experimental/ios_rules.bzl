@@ -38,8 +38,11 @@ def ios_application_impl(ctx):
       "settings_bundle",
       "strings",
   ]
-  output, providers = processor.process(ctx, [
-      partials.binary_partial(provider_key=apple_common.AppleExecutableBinary),
+  output_archive, providers = processor.process(ctx, [
+      partials.binary_partial(
+          package_swift=True,
+          provider_key=apple_common.AppleExecutableBinary,
+      ),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
@@ -47,10 +50,27 @@ def ios_application_impl(ctx):
       ),
   ])
 
-  ipa = ctx.actions.declare_file(ctx.label.name + ".ipa")
-  file_actions.symlink(ctx, output, ipa)
   return [
       DefaultInfo(
-          executable=ipa,
+          executable=output_archive,
+      ),
+  ] + providers
+
+def ios_framework_impl(ctx):
+  """Experimental implementation of ios_framework."""
+  # TODO(kaipi): Add support for packaging headers.
+  output_archive, providers = processor.process(ctx, [
+      partials.binary_partial(
+          provider_key=apple_common.AppleDylibBinary,
+      ),
+      partials.resources_partial(
+          plist_attrs=["infoplists"],
+          targets_to_avoid=ctx.attr.frameworks,
+      ),
+  ])
+
+  return [
+      DefaultInfo(
+          executable=output_archive,
       ),
   ] + providers
