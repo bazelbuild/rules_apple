@@ -63,6 +63,7 @@ resource type.
 """,
     fields = {
         "generics": "Generic resources not mapped to the other types.",
+        "datamodels": "Datamodel files.",
         "plists": """Plist files to be merged and processed. Plist files that
 should not be processed should be propagated in `generics`.""",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
@@ -147,6 +148,10 @@ def _bucketize(resources, swift_module=None, parent_dir_param=None):
     elif ".xcassets/" in resource.short_path:
       buckets.setdefault(
           "xcassets", default=[]
+      ).append((parent, None, depset([resource])))
+    elif ".xcdatamodel" in resource.short_path:
+      buckets.setdefault(
+          "datamodels", default=[]
       ).append((parent, None, depset([resource])))
     elif resource.short_path.endswith(".png"):
       buckets.setdefault(
