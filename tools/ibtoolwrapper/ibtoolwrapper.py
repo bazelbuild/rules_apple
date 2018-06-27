@@ -91,7 +91,7 @@ def _main(action, output, args):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  execute.execute_and_filter_output(xcrunargs)
+  execute.execute_and_filter_output(xcrunargs, trim_paths=True)
 
 
 def validate_args(args):

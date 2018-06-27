@@ -102,7 +102,7 @@ def _main(outdir, args):
       # the time of flag parsing, so we create it so that we can call "realpath"
       # on it to make the path absolute.
       open(arg, "a").close()  # "touch" the file
-    if os.path.isfile(arg):
+    if os.path.exists(arg):
       toolargs.append(os.path.realpath(arg))
     else:
       toolargs.append(arg)
@@ -131,7 +131,9 @@ def _main(outdir, args):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  execute.execute_and_filter_output(xcrunargs, filtering=_output_filtering)
+  execute.execute_and_filter_output(xcrunargs,
+                                    filtering=_output_filtering,
+                                    trim_paths=True)
 
 
 def validate_args(args):
