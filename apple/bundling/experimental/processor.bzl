@@ -74,6 +74,7 @@ _LOCATION_ENUM = struct(
     bundle="bundle",
     content="content",
     framework="framework",
+    plugin="plugin",
     resource="resource",
 )
 
@@ -84,10 +85,6 @@ def _archive_paths(ctx):
       bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
   )
 
-  frameworks_path = paths.join(
-      contents_path, "Frameworks",
-  )
-
   # Map of location types to relative paths in the archive.
   # TODO(kaipi): Handle parameterized paths for macOS.
   return {
@@ -95,7 +92,8 @@ def _archive_paths(ctx):
       _LOCATION_ENUM.binary: contents_path,
       _LOCATION_ENUM.bundle: contents_path,
       _LOCATION_ENUM.content: contents_path,
-      _LOCATION_ENUM.framework: frameworks_path,
+      _LOCATION_ENUM.framework: paths.join(contents_path, "Frameworks"),
+      _LOCATION_ENUM.plugin: paths.join(contents_path, "PlugIns"),
       _LOCATION_ENUM.resource: contents_path,
   }
 
@@ -109,6 +107,7 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
     output_file: The file where the final zipped bundle should be created.
   """
   control_files = []
+  control_zips = []
   input_files = []
 
   location_to_paths = _archive_paths(ctx)
@@ -120,12 +119,25 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
 
       for source in sources:
         target_path = paths.join(location_to_paths[location], parent_dir or "")
-        if not source.is_directory:
-          target_path = paths.join(target_path, source.basename)
-        control_files.append(struct(src=source.path, dest=target_path))
+
+        # When bundling framework and plugin files, if we get a zip file
+        # decompress it in that location. The files placed within these
+        # locations should never be zip resources that would be placed without
+        # expanding. If we get zip resources, they would be packaged normally
+        # as part of the else statement below.
+        if location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin]:
+          if source.short_path.endswith(".zip"):
+            control_zips.append(struct(src=source.path, dest=target_path))
+          else:
+            control_files.append(struct(src=source.path, dest=target_path))
+        else:
+          if not source.is_directory:
+            target_path = paths.join(target_path, source.basename)
+          control_files.append(struct(src=source.path, dest=target_path))
 
   control = struct(
       bundle_merge_files = control_files,
+      bundle_merge_zips = control_zips,
       output = output_file.path,
   )
 
