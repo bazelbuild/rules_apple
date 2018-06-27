@@ -216,10 +216,11 @@ def _test_info_aspect_impl(target, ctx):
     non_arc_sources = _collect_files(rule_attr, "non_arc_srcs")
 
     if apple_common.Objc in target:
-      includes = _merge_depsets(target[apple_common.Objc].include, includes)
+      objc_provider = target[apple_common.Objc]
+      includes = _merge_depsets(objc_provider.include, includes)
       # Module maps should only be used by Swift targets.
       if SwiftInfo in target or LegacySwiftInfo in target:
-        module_maps = _merge_depsets(target.objc.module_map, module_maps)
+        module_maps = _merge_depsets(objc_provider.module_map, module_maps)
 
     if (SwiftInfo in target and
         hasattr(target[SwiftInfo], "transitive_swiftmodules")):
