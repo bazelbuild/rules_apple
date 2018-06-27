@@ -70,8 +70,8 @@ def _swift_dylib_action(ctx, platform_name, binary_file, output_dir):
 
 def _binary_partial_impl(ctx, package_swift, provider_key):
   """Implementation for the binary processing partial."""
-  provider = ctx.attr.deps[0][provider_key]
-  binary_file = provider.binary
+  binary_provider = ctx.attr.deps[0][provider_key]
+  binary_file = binary_provider.binary
 
   # Create intermediate file with proper name for the binary.
   intermediate_file = intermediates.file(
@@ -92,7 +92,7 @@ def _binary_partial_impl(ctx, package_swift, provider_key):
     # to be merged at the top level.
     if package_swift:
       processor_files.append(
-          (processor.location.content, "Frameworks", depset([output_dir])),
+          (processor.location.framework, None, depset([output_dir])),
       )
 
       # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
@@ -104,7 +104,7 @@ def _binary_partial_impl(ctx, package_swift, provider_key):
 
   return struct(
       files=processor_files,
-      providers=[provider],
+      providers=[binary_provider],
   )
 
 def binary_partial(provider_key, package_swift=False):
