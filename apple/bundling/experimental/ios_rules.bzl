@@ -26,6 +26,11 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental:processor.bzl",
     "processor",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:embedded_bundles.bzl",
+    "collect_embedded_bundle_provider",
+)
+
 
 def ios_application_impl(ctx):
   """Experimental implementation of ios_application."""
@@ -48,6 +53,10 @@ def ios_application_impl(ctx):
           targets_to_avoid=ctx.attr.frameworks,
           top_level_attrs=top_level_attrs,
       ),
+      partials.embedded_bundles_partial(
+          # TODO(kaipi): Handle watchOS apps as well.
+          targets=ctx.attr.frameworks + ctx.attr.extensions,
+      ),
   ])
 
   return [
@@ -69,8 +78,41 @@ def ios_framework_impl(ctx):
       ),
   ])
 
+  # This can't be made into a partial as it needs the output archive
+  # reference.
+  embedded_bundles_provider = collect_embedded_bundle_provider(
+      frameworks=[output_archive], targets=ctx.attr.frameworks,
+  )
+
   return [
       DefaultInfo(
           executable=output_archive,
       ),
+      embedded_bundles_provider,
+  ] + providers
+
+
+def ios_extension_impl(ctx):
+  """Experimental implementation of ios_extension."""
+  output_archive, providers = processor.process(ctx, [
+      partials.binary_partial(
+          provider_key=apple_common.AppleExecutableBinary,
+      ),
+      partials.resources_partial(
+          plist_attrs=["infoplists"],
+          targets_to_avoid=ctx.attr.frameworks,
+      ),
+  ])
+
+  # This can't be made into a partial as it needs the output archive
+  # reference.
+  embedded_bundles_provider = collect_embedded_bundle_provider(
+      plugins=[output_archive], targets=ctx.attr.frameworks,
+  )
+
+  return [
+      DefaultInfo(
+          executable=output_archive,
+      ),
+      embedded_bundles_provider,
   ] + providers
