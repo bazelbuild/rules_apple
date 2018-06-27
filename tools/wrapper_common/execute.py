@@ -15,11 +15,13 @@
 """Common functionality for tool wrappers to execute jobs.
 """
 
+import os
+import re
 import subprocess
 import sys
 
 
-def execute_and_filter_output(xcrunargs, filtering=None):
+def execute_and_filter_output(xcrunargs, filtering=None, trim_paths=False):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
@@ -29,6 +31,9 @@ def execute_and_filter_output(xcrunargs, filtering=None):
         have the following signature:
 
           myFilter(input_string) -> output_string
+
+    trim_paths: Optionally specify whether or not to trim the current working
+        directory from any paths in the output.
   """
   try:
     p = subprocess.Popen(xcrunargs,
@@ -48,4 +53,23 @@ def execute_and_filter_output(xcrunargs, filtering=None):
     stdout = filtering(stdout)
 
   if stdout:
+    if trim_paths:
+      stdout = _trim_paths(stdout)
     sys.stdout.write("%s\n" % stdout)
+
+
+def _trim_paths(stdout):
+  """Trim CWD from any paths in "stdout"."""
+
+  def replace_path(m):
+    path = m.group(0)
+    # Some paths present in stdout may contain symlinks, which must be resolved
+    # before we can reliably compare to CWD.
+    fullpath = os.path.realpath(path)
+    if fullpath.find(os.getcwd()) >= 0:
+      return fullpath.replace(os.getcwd(), "")
+    else:
+      return path
+
+  pattern = r"(/\w+)+/?"
+  return re.sub(pattern, replace_path, stdout)
