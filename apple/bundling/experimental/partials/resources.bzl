@@ -70,10 +70,10 @@ def _datamodels(ctx, parent_dir, files, swift_module):
   # .xcdatamodeld/ bundle. .xcdatamodeld/ bundles are processed altogether,
   # while .xcdatamodel/ bundles are processed by themselves.
   datamodel_groups = group_files_by_directory(
-      grouped_models, ["xcdatamodeld"],
+      grouped_models, ["xcdatamodeld"], attr="datamodels",
   )
   datamodel_groups.update(group_files_by_directory(
-      standalone_models, ["xcdatamodel"],
+      standalone_models, ["xcdatamodel"], attr="datamodels",
   ))
 
   output_files = []
