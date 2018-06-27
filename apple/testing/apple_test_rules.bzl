@@ -34,6 +34,11 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
+    LegacySwiftInfo = "SwiftInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
 )
 
 
@@ -213,11 +218,16 @@ def _test_info_aspect_impl(target, ctx):
     if apple_common.Objc in target:
       includes = _merge_depsets(target[apple_common.Objc].include, includes)
       # Module maps should only be used by Swift targets.
-      if hasattr(target, "swift"):
+      if SwiftInfo in target or LegacySwiftInfo in target:
         module_maps = _merge_depsets(target.objc.module_map, module_maps)
 
-    if hasattr(target, "swift") and hasattr(target.swift, "transitive_modules"):
-      swift_modules = _merge_depsets(target.swift.transitive_modules,
+    if (SwiftInfo in target and
+        hasattr(target[SwiftInfo], "transitive_swiftmodules")):
+      swift_modules = _merge_depsets(target[SwiftInfo].transitive_swiftmodules,
+                                     swift_modules)
+    if (LegacySwiftInfo in target and
+        hasattr(target[LegacySwiftInfo], "transitive_modules")):
+      swift_modules = _merge_depsets(target[LegacySwiftInfo].transitive_modules,
                                      swift_modules)
 
   return [AppleTestInfo(
