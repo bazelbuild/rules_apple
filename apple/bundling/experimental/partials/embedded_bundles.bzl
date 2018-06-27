@@ -61,7 +61,7 @@ def _embedded_bundles_partial_impl(ctx, targets=[]):
   """Implementation for the embedded bundles processing partial."""
   _ignore = [ctx]
 
-  embeddable_provider = collect_embedded_bundle_provider(targets)
+  embeddable_provider = collect_embedded_bundle_provider(targets=targets)
 
   processor_files = [
       (processor.location.framework, None, embeddable_provider.frameworks),
