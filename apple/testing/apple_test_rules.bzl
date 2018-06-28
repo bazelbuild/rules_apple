@@ -258,7 +258,6 @@ def _apple_test_common_attributes():
   return {
       "data": attr.label_list(
           allow_files=True,
-          cfg="data",
           default=[],
           doc="Files to be made available to the test during its execution.",
       ),
