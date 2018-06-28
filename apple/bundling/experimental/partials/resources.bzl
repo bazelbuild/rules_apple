@@ -102,6 +102,30 @@ def _datamodels(ctx, parent_dir, files, swift_module):
 
   return struct(files=output_files)
 
+def _frameworks(ctx, parent_dir, files):
+  """Processes files that need to be packaged as frameworks."""
+  _ignore = [ctx]
+  # Filter framework files to remove any header related files from being
+  # packaged into the final bundle.
+  framework_files = []
+  for file in files.to_list():
+    file_short_path = file.short_path
+    if "Headers/" in file_short_path:
+      continue
+    if "Modules/" in file_short_path:
+      continue
+    if file_short_path.endswith(".h"):
+      continue
+    if file_short_path.endswith(".modulemap"):
+      continue
+    framework_files.append(file)
+
+  return struct(
+      files=[
+          (processor.location.framework, parent_dir, depset(framework_files)),
+      ],
+  )
+
 def _plists(ctx, parent_dir, files):
   """Processes plists.
 
@@ -318,6 +342,7 @@ def _resources_partial_impl(
   # module is required for that processing.
   provider_field_to_action = {
       "datamodels": (_datamodels, True),
+      "frameworks": (_frameworks, False),
       "plists": (_plists, False),
       "pngs": (_pngs, False),
       "storyboards": (_storyboards, True),
