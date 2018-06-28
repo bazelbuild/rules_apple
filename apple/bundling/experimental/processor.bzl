@@ -125,11 +125,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
         # locations should never be zip resources that would be placed without
         # expanding. If we get zip resources, they would be packaged normally
         # as part of the else statement below.
-        if location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin]:
-          if source.short_path.endswith(".zip"):
-            control_zips.append(struct(src=source.path, dest=target_path))
-          else:
-            control_files.append(struct(src=source.path, dest=target_path))
+        if (location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin] and
+            source.short_path.endswith(".zip")):
+          control_zips.append(struct(src=source.path, dest=target_path))
         else:
           if not source.is_directory:
             target_path = paths.join(target_path, source.basename)
