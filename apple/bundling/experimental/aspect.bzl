@@ -62,21 +62,23 @@ def _structured_resources_parent_dir(resource):
   return path or None
 
 
-def _objc_bundle_parent_dir(resource):
-  """Returns the bundle relative path to the resource, rooted at the bundle.
+def _bundle_relative_parent_dir(resource, extension):
+  """Returns the bundle relative path to the resource rooted at the bundle.
 
-  Looks for the first instance of a folder with the .bundle suffix, and then
-  returns the directory path to the file within the bundle. For example, for
-  a resource with path my/package/Contents.bundle/directory/foo.txt, it
-  would return Contents.bundle/directory.
+  Looks for the first instance of a folder with the suffix specified by
+  `extension`, and then returns the directory path to the file within the
+  bundle. For example, for a resource with path
+  my/package/Contents.bundle/directory/foo.txt and `extension` equal to
+  `"bundle"`, it would return Contents.bundle/directory.
 
   Args:
     resource: The resource for which to calculate the bundle relative path.
+    extension: The bundle extension to use when finding the relative path.
 
   Returns:
     The bundle relative path, rooted at the outermost bundle.
   """
-  bundle_path = path_utils.farthest_directory_matching(resource.short_path, "bundle")
+  bundle_path = path_utils.farthest_directory_matching(resource.short_path, extension)
   bundle_relative_path = paths.relativize(
       resource.short_path,
       bundle_path,
@@ -87,6 +89,12 @@ def _objc_bundle_parent_dir(resource):
   if bundle_relative_dir:
     parent_dir = paths.join(parent_dir, bundle_relative_dir)
   return parent_dir
+
+def _objc_bundle_parent_dir(resource):
+  return _bundle_relative_parent_dir(resource, "bundle")
+
+def _objc_framework_parent_dir(resource):
+  return _bundle_relative_parent_dir(resource, "framework")
 
 def _apple_resource_aspect_impl(target, ctx):
   """Implementation of the resource propation aspect."""
@@ -131,6 +139,19 @@ def _apple_resource_aspect_impl(target, ctx):
     # placeholder that won't work in all cases.
     bucketize_args["swift_module"] = ctx.rule.attr.module_name
     collect_args["res_attrs"] = ["resources"]
+
+  elif ctx.rule.kind == "objc_framework" and ctx.rule.attr.is_dynamic:
+    # Treat dynamic objc_framework files as resources that need to be packaged
+    # into the Frameworks section of the bundle.
+    # TODO(kaipi): Only collect bundleable files (i.e. filter headers and module
+    # maps) so we don't propagate them as they're unneeded for bundling.
+    frameworks_provider = resources.bucketize_typed(
+        ctx.rule.attr,
+        bucket_type="frameworks",
+        res_attrs=["framework_imports"],
+        parent_dir_param=_objc_framework_parent_dir,
+    )
+    providers.append(frameworks_provider)
 
   # Collect all resource files related to this target.
   files = resources.collect(ctx.rule.attr, **collect_args)
