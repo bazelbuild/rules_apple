@@ -30,10 +30,15 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:resources.bzl",
     _resources_partial="resources_partial",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:swift_dylibs.bzl",
+    _swift_dylibs_partial="swift_dylibs_partial",
+)
 
 partials = struct(
     binary_partial = _binary_partial,
     embedded_bundles_partial=_embedded_bundles_partial,
     framework_provider_partial=_framework_provider_partial,
     resources_partial = _resources_partial,
+    swift_dylibs_partial=_swift_dylibs_partial,
 )
