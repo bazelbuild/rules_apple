@@ -23,10 +23,10 @@ load(
     "processor",
 )
 
-AppleEmbeddableInfo = provider(
+_AppleEmbeddableInfo = provider(
     doc="""
-Used to propagate the different embeddable bundles that a top-level bundling rule
-will need to package.""",
+Private provider used to propagate the different embeddable bundles that a
+top-level bundling rule will need to package.""",
     fields={
         "frameworks": """
 A depset with the zipped archives of bundles that need to be expanded into the
@@ -34,14 +34,14 @@ Frameworks section of the packaging bundle.""",
         "plugins": """
 A depset with the zipped archives of bundles that need to be expanded into the
 PlugIns section of the packaging bundle.""",
-    }
+    },
 )
 
 def collect_embedded_bundle_provider(frameworks=[], plugins=[], targets=[]):
   """Collects embeddable bundles into a single AppleEmbeddableInfo provider."""
   embeddable_providers = [
-      x[AppleEmbeddableInfo] for x in targets
-      if AppleEmbeddableInfo in x
+      x[_AppleEmbeddableInfo] for x in targets
+      if _AppleEmbeddableInfo in x
   ]
 
   framework_bundles = depset(frameworks)
@@ -52,7 +52,7 @@ def collect_embedded_bundle_provider(frameworks=[], plugins=[], targets=[]):
     )
     plugin_bundles = depset(transitive=[plugin_bundles, provider.plugins])
 
-  return AppleEmbeddableInfo(
+  return _AppleEmbeddableInfo(
       frameworks=framework_bundles,
       plugins=plugin_bundles,
   )
