@@ -34,41 +34,8 @@ import sys
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
-def _main(action, output, args):
+def _main(action, output, toolargs):
   """Assemble the call to "xcrun ibtool"."""
-
-  if action in ["--compilation-directory", "--link"]:
-    # When compiling storyboards, "output" is the directory where the
-    # .storyboardc directory will be written. When linking storyboards, "output"
-    # is the directory where all of the .storyboardc directories will be copied.
-    # In either case, we ensure that that directory is created.
-
-    if not os.path.isdir(output):
-      os.makedirs(output)
-
-  elif action == "--compile":
-    # When compiling XIBs, we know the name that we pass to the "--compile"
-    # option but it could be mangled by "ibtool", depending on the minimum OS
-    # version (for example, iOS < 8.0 will produce separate FOO~iphone.nib/ and
-    # FOO~ipad.nib/ folders given the flag --compile FOO.nib. So all we do is
-    # ensure that the _parent_ directory is created and let "ibtool" create the
-    # files in it.
-
-    dirname = os.path.dirname(output)
-    if not os.path.isdir(dirname):
-      os.makedirs(dirname)
-
-  fullpath = os.path.realpath(output)
-
-  # "ibtool" needs to have absolute paths sent to it, so we call "realpath" on
-  # all arguments seeing if we can expand them. Radar 21045660 "ibtool" has
-  # difficulty dealing with relative paths.
-  toolargs = []
-  for arg in args:
-    if os.path.isfile(arg):
-      toolargs.append(os.path.realpath(arg))
-    else:
-      toolargs.append(arg)
 
   xcrunargs = ["xcrun",
                "ibtool",
@@ -79,7 +46,7 @@ def _main(action, output, args):
                "--output-format",
                "human-readable-text",
                action,
-               fullpath]
+               output]
 
   xcrunargs += toolargs
 
