@@ -30,6 +30,13 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:embedded_bundles.bzl",
     "collect_embedded_bundle_provider",
 )
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "IosApplicationBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosExtensionBundleInfo",
+)
 
 
 def ios_application_impl(ctx):
@@ -60,9 +67,12 @@ def ios_application_impl(ctx):
   ])
 
   return [
+      # TODO(kaipi): Fill in the fields of AppleBundleInfo.
+      AppleBundleInfo(),
       DefaultInfo(
           executable=output_archive,
       ),
+      IosApplicationBundleInfo(),
   ] + providers
 
 def ios_framework_impl(ctx):
@@ -76,6 +86,7 @@ def ios_framework_impl(ctx):
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
       ),
+      partials.framework_provider_partial(),
   ])
 
   # This can't be made into a partial as it needs the output archive
@@ -85,15 +96,22 @@ def ios_framework_impl(ctx):
   )
 
   return [
+      # TODO(kaipi): Fill in the fields of AppleBundleInfo.
+      AppleBundleInfo(),
       DefaultInfo(
           executable=output_archive,
       ),
       embedded_bundles_provider,
+      IosFrameworkBundleInfo(),
   ] + providers
 
 
 def ios_extension_impl(ctx):
   """Experimental implementation of ios_extension."""
+  top_level_attrs = [
+      "app_icons",
+      "strings",
+  ]
   output_archive, providers = processor.process(ctx, [
       partials.binary_partial(
           provider_key=apple_common.AppleExecutableBinary,
@@ -101,6 +119,7 @@ def ios_extension_impl(ctx):
       partials.resources_partial(
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
+          top_level_attrs=top_level_attrs,
       ),
   ])
 
@@ -111,8 +130,11 @@ def ios_extension_impl(ctx):
   )
 
   return [
+      # TODO(kaipi): Fill in the fields of AppleBundleInfo.
+      AppleBundleInfo(),
       DefaultInfo(
           executable=output_archive,
       ),
       embedded_bundles_provider,
+      IosExtensionBundleInfo()
   ] + providers
