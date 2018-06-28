@@ -82,31 +82,8 @@ def _output_filtering(raw_stdout):
   return "".join(output)
 
 
-def _main(outdir, args):
+def _main(outdir, toolargs):
   """Assemble the call to "xcrun actool"."""
-
-  if not os.path.isdir(outdir):
-    os.makedirs(outdir)
-
-  fullpath = os.path.realpath(outdir)
-
-  # "actool" needs to have absolute paths sent to it, so we call "realpath" on
-  # all arguments seeing if we can expand them. "actool" and "ibtool" appear to
-  # depend on the same codebase. Radar 21045660 "ibtool" has difficulty dealing
-  # with relative paths.
-  toolargs = []
-  lastarg = ""
-  for arg in args:
-    if lastarg == "--output-partial-info-plist":
-      # The argument for "--output-partial-info-plist" doesn't actually exist at
-      # the time of flag parsing, so we create it so that we can call "realpath"
-      # on it to make the path absolute.
-      open(arg, "a").close()  # "touch" the file
-    if os.path.exists(arg):
-      toolargs.append(os.path.realpath(arg))
-    else:
-      toolargs.append(arg)
-    lastarg = arg
 
   xcrunargs = ["xcrun",
                "actool",
@@ -117,7 +94,7 @@ def _main(outdir, args):
                "--output-format",
                "human-readable-text",
                "--compile",
-               fullpath]
+               outdir]
 
   xcrunargs += toolargs
 
