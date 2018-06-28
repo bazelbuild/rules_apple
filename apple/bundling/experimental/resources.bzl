@@ -64,6 +64,10 @@ resource type.
     fields = {
         "generics": "Generic resources not mapped to the other types.",
         "datamodels": "Datamodel files.",
+        "frameworks": """Files to be bundled as part of a framework. This is
+explicitly used for objc_framework, since we treat the files references as
+resources that need to be packaged into the Frameworks section of the
+bundle.""",
         "plists": """Plist files to be merged and processed. Plist files that
 should not be processed should be propagated in `generics`.""",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
