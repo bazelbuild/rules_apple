@@ -52,18 +52,22 @@ def ios_application_impl(ctx):
   ]
   output_archive, providers = processor.process(ctx, [
       partials.binary_partial(
-          package_swift=True,
           provider_key=apple_common.AppleExecutableBinary,
+      ),
+      partials.embedded_bundles_partial(
+          # TODO(kaipi): Handle watchOS apps as well.
+          targets=ctx.attr.frameworks + ctx.attr.extensions,
       ),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
           top_level_attrs=top_level_attrs,
       ),
-      partials.embedded_bundles_partial(
-          # TODO(kaipi): Handle watchOS apps as well.
-          targets=ctx.attr.frameworks + ctx.attr.extensions,
-      ),
+      partials.swift_dylibs_partial(
+          dependency_targets=ctx.attr.frameworks + ctx.attr.extensions,
+          package_dylibs=True,
+          provider_key=apple_common.AppleExecutableBinary,
+      )
   ])
 
   return [
@@ -82,11 +86,15 @@ def ios_framework_impl(ctx):
       partials.binary_partial(
           provider_key=apple_common.AppleDylibBinary,
       ),
+      partials.framework_provider_partial(),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
       ),
-      partials.framework_provider_partial(),
+      partials.swift_dylibs_partial(
+          dependency_targets=ctx.attr.frameworks,
+          provider_key=apple_common.AppleDylibBinary,
+      )
   ])
 
   # This can't be made into a partial as it needs the output archive
@@ -121,6 +129,10 @@ def ios_extension_impl(ctx):
           targets_to_avoid=ctx.attr.frameworks,
           top_level_attrs=top_level_attrs,
       ),
+      partials.swift_dylibs_partial(
+          dependency_targets=ctx.attr.frameworks,
+          provider_key=apple_common.AppleExecutableBinary,
+      )
   ])
 
   # This can't be made into a partial as it needs the output archive
