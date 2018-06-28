@@ -312,11 +312,57 @@ def _merge_root_infoplists(ctx, infoplists):
 
   return [(processor.location.content, None, depset(files))]
 
+def _deduplicate(resources_provider, avoid_provider, field):
+  """Deduplicates and returns resources between 2 providers for a given field.
+
+  Deduplication happens by comparing the target path of a file and the files
+  themselves. If there are 2 resources with the same target path but different
+  contents, the files will not be deduplicated.
+
+  This approach is naïve in the sense that it deduplicates resources too
+  aggressively. We also need to compare the target that references the
+  resources so that they are not deduplicated if they are referenced within
+  multiple binary-containing bundles.
+
+  Args:
+    resources_provider: The provider with the resources to be bundled.
+    avoid_provider: The provider with the resources to avoid bundling.
+    field: The field to deduplicate resources on.
+
+  Returns:
+    A list of tuples with the resources present in avoid_providers removed from
+    resources_providers.
+  """
+  # TODO(kaipi): Revisit the deduplication logic to account for multiple
+  # references in different targets.
+  if not avoid_provider or not hasattr(avoid_provider, field):
+    return getattr(resources_provider, field)
+
+  # Build a dictionary with the files under each key for the avoided resources.
+  avoid_dict = {}
+  for parent_dir, swift_module, files in getattr(avoid_provider, field):
+    key = "%s_%s" % (parent_dir or "root", swift_module or "root")
+    avoid_dict[key] = files.to_list()
+
+  # Get the resources to keep, compare them to the avoid_dict under the same
+  # key, and remove the duplicated file references. Then recreate the original
+  # tuple with only the remaining files, if any.
+  deduped_tuples = []
+  for parent_dir, swift_module, files in getattr(resources_provider, field):
+    key = "%s_%s" % (parent_dir or "root", swift_module or "root")
+    deduped_files = [
+        x for x in files.to_list()
+        if x not in avoid_dict.get(key, [])
+    ]
+    if deduped_files:
+      deduped_tuples.append((parent_dir, swift_module, depset(deduped_files)))
+
+  return deduped_tuples
+
+
 def _resources_partial_impl(
     ctx, plist_attrs=[], targets_to_avoid=[], top_level_attrs=[]):
   """Implementation for the resource processing partial."""
-  # TODO(kaipi): Implement resource deduplication.
-  _ = targets_to_avoid
   providers = [
       x[NewAppleResourceInfo]
       for x in ctx.attr.deps
@@ -334,6 +380,15 @@ def _resources_partial_impl(
         ctx.attr, bucket_type="plists", res_attrs=plist_attrs
     )
     providers.append(plist_provider)
+
+  avoid_providers = [
+      x[NewAppleResourceInfo] for x in targets_to_avoid
+      if NewAppleResourceInfo in x
+  ]
+
+  avoid_provider = None
+  if avoid_providers:
+    avoid_provider = resources.merge_providers(avoid_providers)
 
   final_provider = resources.merge_providers(providers)
 
@@ -363,7 +418,9 @@ def _resources_partial_impl(
         # files will be copied as is with no processing.
         provider_field_to_action.get(field, (_noop, False))
     )
-    for parent, swift_module, files in getattr(final_provider, field):
+
+    deduplicated = _deduplicate(final_provider, avoid_provider, field)
+    for parent, swift_module, files in deduplicated:
       extra_args = {}
       # Only pass the Swift module name if the type of resource to process
       # requires it.
