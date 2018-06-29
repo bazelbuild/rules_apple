@@ -58,6 +58,9 @@ def ios_application_impl(ctx):
       partials.clang_rt_dylibs_partial(
           provider_key=binary_provider_key,
       ),
+      partials.debug_symbols_partial(
+          debug_dependencies=ctx.attr.frameworks + ctx.attr.extensions,
+      ),
       partials.embedded_bundles_partial(
           # TODO(kaipi): Handle watchOS apps as well.
           targets=ctx.attr.frameworks + ctx.attr.extensions,
@@ -105,6 +108,7 @@ def ios_framework_impl(ctx):
       partials.clang_rt_dylibs_partial(
           provider_key=binary_provider_key,
       ),
+      partials.debug_symbols_partial(debug_dependencies=ctx.attr.frameworks),
       partials.framework_provider_partial(),
       partials.resources_partial(
           plist_attrs=["infoplists"],
@@ -148,6 +152,7 @@ def ios_extension_impl(ctx):
       partials.clang_rt_dylibs_partial(
           provider_key=binary_provider_key,
       ),
+      partials.debug_symbols_partial(debug_dependencies=ctx.attr.frameworks),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           targets_to_avoid=ctx.attr.frameworks,
