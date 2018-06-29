@@ -25,6 +25,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:ibtool.bzl",
     _compile_storyboard="compile_storyboard",
+    _compile_xib="compile_xib",
     _link_storyboards="link_storyboards",
 )
 load(
@@ -43,6 +44,7 @@ resource_actions = struct(
     compile_datamodels=_compile_datamodels,
     compile_plist=_compile_plist,
     compile_storyboard=_compile_storyboard,
+    compile_xib=_compile_xib,
     copy_png=_copy_png,
     link_storyboards=_link_storyboards,
     merge_resource_infoplists=_merge_resource_infoplists,

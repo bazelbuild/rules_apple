@@ -282,6 +282,21 @@ def _xcassets(ctx, parent_dir, files):
       infoplists=infoplists,
   )
 
+def _xibs(ctx, parent_dir, files, swift_module):
+  """Processes Xib files."""
+  swift_module = swift_module or ctx.label.name
+  nib_files = []
+  for file in files.to_list():
+    nib_name = paths.replace_extension(file.basename, ".nib")
+    nib_path = paths.join(parent_dir or "", nib_name)
+    nib_file = intermediates.file(ctx.actions, ctx.label.name, nib_path)
+    resource_actions.compile_xib(ctx, swift_module, file, nib_file)
+    nib_files.append(nib_file)
+
+  return struct(
+      files=[(processor.location.resource, parent_dir, depset(nib_files))],
+  )
+
 def _noop(ctx, parent_dir, files):
   """Registers files to be bundled as is."""
   _ignore = [ctx]
@@ -359,7 +374,6 @@ def _deduplicate(resources_provider, avoid_provider, field):
 
   return deduped_tuples
 
-
 def _resources_partial_impl(
     ctx, plist_attrs=[], targets_to_avoid=[], top_level_attrs=[]):
   """Implementation for the resource processing partial."""
@@ -403,6 +417,7 @@ def _resources_partial_impl(
       "storyboards": (_storyboards, True),
       "strings": (_strings, False),
       "xcassets": (_xcassets, False),
+      "xibs": (_xibs, True),
   }
 
   # List containing all the files that the processor will bundle in their
