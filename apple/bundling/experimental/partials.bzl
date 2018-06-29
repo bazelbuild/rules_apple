@@ -23,6 +23,10 @@ load(
     _clang_rt_dylibs_partial="clang_rt_dylibs_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:debug_symbols.bzl",
+    _debug_symbols_partial="debug_symbols_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:embedded_bundles.bzl",
     _embedded_bundles_partial="embedded_bundles_partial",
 )
@@ -42,6 +46,7 @@ load(
 partials = struct(
     binary_partial = _binary_partial,
     clang_rt_dylibs_partial=_clang_rt_dylibs_partial,
+    debug_symbols_partial=_debug_symbols_partial,
     embedded_bundles_partial=_embedded_bundles_partial,
     framework_provider_partial=_framework_provider_partial,
     resources_partial = _resources_partial,
