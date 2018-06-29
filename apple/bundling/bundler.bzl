@@ -946,8 +946,10 @@ def _run(
 
   # Add Clang runtime inputs when needed.
   if has_built_binary and clang_support.should_package_clang_runtime(ctx):
-    clang_rt_zip = clang_support.register_runtime_lib_actions(ctx,
-                                                              binary_artifact)
+    clang_rt_zip = file_support.intermediate(ctx, "%{name}.clang_rt_libs.zip")
+    clang_support.register_runtime_lib_actions(ctx,
+                                               binary_artifact,
+                                               clang_rt_zip)
     bundle_merge_zips.append(
         bundling_support.contents_file(ctx, clang_rt_zip, "Frameworks"))
 
