@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for binary processing for bundles."""
+"""Partial implementation for Swift dylib processing for bundles."""
 
 load(
     "@bazel_skylib//lib:collections.bzl",
@@ -127,7 +127,7 @@ def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider
 def swift_dylibs_partial(dependency_targets, provider_key, package_dylibs=False):
   """Constructor for the Swift dylibs processing partial.
 
-  This partial also handles the Swift dylibs that may need to be packaged or
+  This partial handles the Swift dylibs that may need to be packaged or
   propagated.
 
   Args:
