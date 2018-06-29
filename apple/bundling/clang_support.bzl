@@ -14,8 +14,6 @@
 
 """Supporting functions for Clang libraries."""
 
-load("@build_bazel_rules_apple//apple/bundling:file_support.bzl",
-    "file_support")
 load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support")
 
@@ -36,32 +34,29 @@ def _should_package_clang_runtime(ctx):
   return False
 
 
-def _register_runtime_lib_actions(ctx, binary_artifact):
+def _register_runtime_lib_actions(ctx, binary_artifact, output_zip):
   """Creates an archive with Clang runtime libraries.
 
   Args:
     ctx: The Skylark context.
     binary_artifact: The bundle binary to be processed with clang's runtime
         tool.
-
-  Returns:
-    A `File` object representing the ZIP file containing runtime libraries.
+    output_zip: A `File` object representing the ZIP output file where to
+        package the runtime libraries.
   """
-  zip_file = file_support.intermediate(ctx, "%{name}.clang_rt_libs.zip")
   platform_support.xcode_env_action(
       ctx,
       inputs=[binary_artifact],
-      outputs=[zip_file],
+      outputs=[output_zip],
       executable=ctx.executable._clangrttool,
       arguments=[
         binary_artifact.path,
-        zip_file.path,
+        output_zip.path,
       ],
       mnemonic="ClangRuntimeLibsCopy",
       # This action needs to read the contents of the Xcode bundle.
       no_sandbox=True,
   )
-  return zip_file
 
 
 clang_support = struct(
