@@ -50,9 +50,13 @@ def ios_application_impl(ctx):
       "settings_bundle",
       "strings",
   ]
+  binary_provider_key = apple_common.AppleExecutableBinary
   output_archive, providers = processor.process(ctx, [
       partials.binary_partial(
-          provider_key=apple_common.AppleExecutableBinary,
+          provider_key=binary_provider_key,
+      ),
+      partials.clang_rt_dylibs_partial(
+          provider_key=binary_provider_key,
       ),
       partials.embedded_bundles_partial(
           # TODO(kaipi): Handle watchOS apps as well.
@@ -66,7 +70,7 @@ def ios_application_impl(ctx):
       partials.swift_dylibs_partial(
           dependency_targets=ctx.attr.frameworks + ctx.attr.extensions,
           package_dylibs=True,
-          provider_key=apple_common.AppleExecutableBinary,
+          provider_key=binary_provider_key,
       )
   ])
 
@@ -82,9 +86,15 @@ def ios_application_impl(ctx):
 def ios_framework_impl(ctx):
   """Experimental implementation of ios_framework."""
   # TODO(kaipi): Add support for packaging headers.
+  binary_provider_key = apple_common.AppleDylibBinary
   output_archive, providers = processor.process(ctx, [
       partials.binary_partial(
-          provider_key=apple_common.AppleDylibBinary,
+          provider_key=binary_provider_key,
+      ),
+      # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
+      # the can be skipped.
+      partials.clang_rt_dylibs_partial(
+          provider_key=binary_provider_key,
       ),
       partials.framework_provider_partial(),
       partials.resources_partial(
@@ -93,7 +103,7 @@ def ios_framework_impl(ctx):
       ),
       partials.swift_dylibs_partial(
           dependency_targets=ctx.attr.frameworks,
-          provider_key=apple_common.AppleDylibBinary,
+          provider_key=binary_provider_key,
       )
   ])
 
@@ -120,9 +130,13 @@ def ios_extension_impl(ctx):
       "app_icons",
       "strings",
   ]
+  binary_provider_key = apple_common.AppleExecutableBinary
   output_archive, providers = processor.process(ctx, [
       partials.binary_partial(
-          provider_key=apple_common.AppleExecutableBinary,
+          provider_key=binary_provider_key,
+      ),
+      partials.clang_rt_dylibs_partial(
+          provider_key=binary_provider_key,
       ),
       partials.resources_partial(
           plist_attrs=["infoplists"],
@@ -131,7 +145,7 @@ def ios_extension_impl(ctx):
       ),
       partials.swift_dylibs_partial(
           dependency_targets=ctx.attr.frameworks,
-          provider_key=apple_common.AppleExecutableBinary,
+          provider_key=binary_provider_key,
       )
   ])
 
