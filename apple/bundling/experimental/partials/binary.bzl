@@ -47,7 +47,9 @@ def _binary_partial_impl(ctx, provider_key):
   file_actions.symlink(ctx, binary_file, intermediate_file)
 
   return struct(
-      files=[(processor.location.binary, None, depset([intermediate_file]))],
+      bundle_files=[
+          (processor.location.binary, None, depset([intermediate_file])),
+      ],
       providers=[binary_provider],
   )
 

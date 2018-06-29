@@ -422,7 +422,7 @@ def _resources_partial_impl(
 
   # List containing all the files that the processor will bundle in their
   # configured location.
-  processor_files = []
+  bundle_files = []
 
   fields = [f for f in dir(final_provider) if f not in ["to_json", "to_proto"]]
 
@@ -442,14 +442,14 @@ def _resources_partial_impl(
       if requires_swift_module:
         extra_args["swift_module"] = swift_module
       result = processing_func(ctx, parent, files, **extra_args)
-      processor_files.extend(result.files)
+      bundle_files.extend(result.files)
       if hasattr(result, "infoplists"):
         infoplists.extend(result.infoplists)
 
-  processor_files.extend(_merge_root_infoplists(ctx, infoplists))
+  bundle_files.extend(_merge_root_infoplists(ctx, infoplists))
 
   return struct(
-      files=processor_files,
+      bundle_files=bundle_files,
       providers=[final_provider],
   )
 
