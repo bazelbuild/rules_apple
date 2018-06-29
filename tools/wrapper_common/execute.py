@@ -35,14 +35,10 @@ def execute_and_filter_output(xcrunargs, filtering=None, trim_paths=False):
     trim_paths: Optionally specify whether or not to trim the current working
         directory from any paths in the output.
   """
-  try:
-    p = subprocess.Popen(xcrunargs,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, _ = p.communicate()
-  except subprocess.CalledProcessError as e:
-    sys.stderr.write("ERROR: %s" % e.output)
-    raise
+  p = subprocess.Popen(xcrunargs,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+  stdout, _ = p.communicate()
 
   if not stdout:
     return

@@ -29,48 +29,14 @@ installed.
   <args>: Additional arguments to pass to "ibtool".
 """
 
-import os
 import sys
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from build_bazel_rules_apple.tools.xctoolrunner import xctoolrunner
 
 
-def _main(action, output, toolargs):
-  """Assemble the call to "xcrun ibtool"."""
-
-  xcrunargs = ["xcrun",
-               "ibtool",
-               "--errors",
-               "--warnings",
-               "--notices",
-               "--auto-activate-custom-fonts",
-               "--output-format",
-               "human-readable-text",
-               action,
-               output]
-
-  xcrunargs += toolargs
-
-  # If we are running into problems figuring out "ibtool" issues, there are a
-  # couple of environment variables that may help. Both of the following must be
-  # set to work.
-  #   IBToolDebugLogFile=<OUTPUT FILE PATH>
-  #   IBToolDebugLogLevel=4
-  # You may also see if
-  #   IBToolNeverDeque=1
-  # helps.
-  execute.execute_and_filter_output(xcrunargs, trim_paths=True)
-
-
-def validate_args(args):
-  if len(args) < 3:
-    sys.stderr.write("ERROR: Action flag and output path required")
-    sys.exit(1)
-
-  if args[1] not in ["--compilation-directory", "--compile", "--link"]:
-    sys.stderr.write("ERROR: Invalid flag provided as first argument")
-    sys.exit(1)
+def _main():
+  # TODO(dabelknap) Update the Bazel rules to call xctoolrunner directly.
+  xctoolrunner.main(["ibtool"] + sys.argv[1:])
 
 
 if __name__ == "__main__":
-  validate_args(sys.argv)
-  _main(sys.argv[1], sys.argv[2], sys.argv[3:])
+  _main()
