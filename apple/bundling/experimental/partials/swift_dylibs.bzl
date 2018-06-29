@@ -96,7 +96,7 @@ def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider
         [binary_file], transitive=[transitive_binaries],
     )
 
-  processor_files = []
+  bundle_files = []
   if package_dylibs:
     # TODO(kaipi): Handle multiple platforms in the same build (i.e.
     # watchos_application targets)
@@ -108,19 +108,19 @@ def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider
         ctx, platform_name, transitive_binaries.to_list(), output_dir
     )
 
-    processor_files.append(
+    bundle_files.append(
         (processor.location.framework, None, depset([output_dir])),
     )
 
     # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
     # builds, or at least only for device builds.
     swift_support_path = paths.join("SwiftSupport", platform_name)
-    processor_files.append(
+    bundle_files.append(
         (processor.location.archive, swift_support_path, depset([output_dir])),
     )
 
   return struct(
-      files=processor_files,
+      bundle_files=bundle_files,
       providers=[_AppleSwiftDylibsInfo(binary=transitive_binaries)],
   )
 

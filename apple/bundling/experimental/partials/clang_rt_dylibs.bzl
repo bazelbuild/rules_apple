@@ -33,7 +33,7 @@ load(
 
 def _clang_rt_dylibs_partial_impl(ctx, provider_key):
   """Implementation for the Clang runtime dylibs processing partial."""
-  processor_files = []
+  bundle_files = []
   if clang_support.should_package_clang_runtime(ctx):
     # TODO(kaipi): Don't find the binary through the provider, but through a
     # direct File reference.
@@ -47,13 +47,12 @@ def _clang_rt_dylibs_partial_impl(ctx, provider_key):
         ctx, binary_file, clang_rt_zip
     )
 
-    processor_files.append(
+    bundle_files.append(
         (processor.location.framework, None, depset([clang_rt_zip])),
     )
 
   return struct(
-      files=processor_files,
-      providers=[],
+      bundle_files=bundle_files,
   )
 
 def clang_rt_dylibs_partial(provider_key):
