@@ -2,17 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-sh_binary(
-    name = "actoolwrapper",
-    srcs = ["actoolwrapper.sh"],
-    deps = ["//tools/wrapper_common"],
-)
-
 py_binary(
-    name = "actoolwrapper_experimental",
-    srcs = ["actoolwrapper.py"],
-    main = "actoolwrapper.py",
-    deps = ["//tools/xctoolrunner"],
+    name = "xctoolrunner",
+    srcs = ["xctoolrunner.py"],
+    deps = ["//tools/wrapper_common:execute"],
 )
 
 # Consumed by bazel tests.
