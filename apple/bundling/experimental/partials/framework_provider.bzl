@@ -68,7 +68,6 @@ def _framework_provider_partial_impl(ctx):
   )
 
   return struct(
-      files=[],
       providers=[framework_provider],
   )
 

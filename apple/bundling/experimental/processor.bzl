@@ -22,15 +22,22 @@ and will return information on how the bundles should be built.
 All partials handled by this processor must follow this API:
 
   - The only expected argument has to be ctx.
-  - The expected output is a struct with 2 fields:
-    * files: Contains a tuple of the format (location_type, parent_dir, files)
-      where location_type is a field of the location enum.
+  - The expected output is a struct with the following optional fields:
+    * bundle_files: Contains a tuple of the format
+      (location_type, parent_dir, files) where location_type is a field of the
+      location enum. These data is then used to construct the output bundle.
+    * output_files: Depset of `File`s that should be returned as outputs of the
+      target.
+    * providers: Providers that will be collected and returned by the rule.
 
-Location types can be 4:
+Location types can be 7:
   - archive: Files are to be placed relative to the archive of the bundle
     (i.e. the root of the zip/IPA file to generate).
   - binary: Files are to be placed in the binary section of the bundle.
+  - bundle: Files are to be placed at the root of the bundle.
   - content: Files are to be placed in the contents section of the bundle.
+  - framework: Files are to be placed in the Frameworks section of the bundle.
+  - plugin: Files are to be placed in the PlugIns section of the bundle.
   - resources: Files are to be placed in the resources section of the bundle.
 
 For iOS, tvOS and watchOS, binary, content and resources all refer to the same
@@ -113,7 +120,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
   location_to_paths = _archive_paths(ctx)
 
   for partial_output in partial_outputs:
-    for location, parent_dir, files in partial_output.files:
+    if not hasattr(partial_output, "bundle_files"):
+      continue
+    for location, parent_dir, files in partial_output.bundle_files:
       sources = files.to_list()
       input_files.extend(sources)
 
@@ -164,8 +173,9 @@ def _process(ctx, partials):
     partials: The list of partials to process to construct the complete bundle.
 
   Returns:
-    The final compressed bundle and a list of providers to be propagated from
-    the target.
+    A struct with the results of the processing. The files to make outputs of
+    the rule are contained under the `output_files` field, and the providers to
+    return are contained under the `providers` field.
   """
   partial_outputs = [partial.call(p, ctx) for p in partials]
 
@@ -190,10 +200,19 @@ def _process(ctx, partials):
   )
 
   providers = []
+  output_files = depset([output_archive])
   for partial_output in partial_outputs:
-    providers.extend(partial_output.providers)
+    if hasattr(partial_output, "providers"):
+      providers.extend(partial_output.providers)
+    if hasattr(partial_output, "output_files"):
+      output_files = depset(
+          transitive=[output_files, partial_output.output_files],
+      )
 
-  return output_archive, providers
+  return struct(
+      output_files=output_files,
+      providers=providers,
+  )
 
 processor = struct(
     process=_process,

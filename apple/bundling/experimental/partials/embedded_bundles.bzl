@@ -63,13 +63,13 @@ def _embedded_bundles_partial_impl(ctx, targets=[]):
 
   embeddable_provider = collect_embedded_bundle_provider(targets=targets)
 
-  processor_files = [
+  bundle_files = [
       (processor.location.framework, None, embeddable_provider.frameworks),
       (processor.location.plugin, None, embeddable_provider.plugins),
   ]
 
   return struct(
-      files=processor_files,
+      bundle_files=bundle_files,
       providers=[embeddable_provider],
   )
 

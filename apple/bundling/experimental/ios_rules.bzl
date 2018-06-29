@@ -51,7 +51,7 @@ def ios_application_impl(ctx):
       "strings",
   ]
   binary_provider_key = apple_common.AppleExecutableBinary
-  output_archive, providers = processor.process(ctx, [
+  processor_result = processor.process(ctx, [
       partials.binary_partial(
           provider_key=binary_provider_key,
       ),
@@ -74,20 +74,29 @@ def ios_application_impl(ctx):
       )
   ])
 
+  # TODO(kaipi): Add support for `bazel run` for ios_application.
+  executable = ctx.actions.declare_file(ctx.label.name)
+  ctx.actions.write(
+      executable,
+      "#!/bin/bash\necho Unimplemented",
+      is_executable=True,
+  )
+
   return [
       # TODO(kaipi): Fill in the fields of AppleBundleInfo.
       AppleBundleInfo(),
       DefaultInfo(
-          executable=output_archive,
+          executable=executable,
+          files=processor_result.output_files,
       ),
       IosApplicationBundleInfo(),
-  ] + providers
+  ] + processor_result.providers
 
 def ios_framework_impl(ctx):
   """Experimental implementation of ios_framework."""
   # TODO(kaipi): Add support for packaging headers.
   binary_provider_key = apple_common.AppleDylibBinary
-  output_archive, providers = processor.process(ctx, [
+  processor_result = processor.process(ctx, [
       partials.binary_partial(
           provider_key=binary_provider_key,
       ),
@@ -109,19 +118,20 @@ def ios_framework_impl(ctx):
 
   # This can't be made into a partial as it needs the output archive
   # reference.
+  # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
   embedded_bundles_provider = collect_embedded_bundle_provider(
-      frameworks=[output_archive], targets=ctx.attr.frameworks,
+      frameworks=[ctx.outputs.archive], targets=ctx.attr.frameworks,
   )
 
   return [
       # TODO(kaipi): Fill in the fields of AppleBundleInfo.
       AppleBundleInfo(),
       DefaultInfo(
-          executable=output_archive,
+          files=processor_result.output_files,
       ),
       embedded_bundles_provider,
       IosFrameworkBundleInfo(),
-  ] + providers
+  ] + processor_result.providers
 
 
 def ios_extension_impl(ctx):
@@ -131,7 +141,7 @@ def ios_extension_impl(ctx):
       "strings",
   ]
   binary_provider_key = apple_common.AppleExecutableBinary
-  output_archive, providers = processor.process(ctx, [
+  processor_result = processor.process(ctx, [
       partials.binary_partial(
           provider_key=binary_provider_key,
       ),
@@ -151,16 +161,17 @@ def ios_extension_impl(ctx):
 
   # This can't be made into a partial as it needs the output archive
   # reference.
+  # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
   embedded_bundles_provider = collect_embedded_bundle_provider(
-      plugins=[output_archive], targets=ctx.attr.frameworks,
+      plugins=[ctx.outputs.archive], targets=ctx.attr.frameworks,
   )
 
   return [
       # TODO(kaipi): Fill in the fields of AppleBundleInfo.
       AppleBundleInfo(),
       DefaultInfo(
-          executable=output_archive,
+          files=processor_result.output_files,
       ),
       embedded_bundles_provider,
       IosExtensionBundleInfo()
-  ] + providers
+  ] + processor_result.providers
