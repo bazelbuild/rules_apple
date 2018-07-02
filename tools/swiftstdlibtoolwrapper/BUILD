@@ -13,7 +13,7 @@ py_binary(
     srcs = ["swiftstdlibtoolwrapper.py"],
     main = "swiftstdlibtoolwrapper.py",
     deps = [
-        "//tools/wrapper_common:execute",
+        "//tools/xctoolrunner",
     ],
 )
 
