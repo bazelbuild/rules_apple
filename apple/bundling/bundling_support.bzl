@@ -292,7 +292,8 @@ def _validate_bundle_id(bundle_id):
     if not part.isalnum():
       # Only non alpha numerics that are allowed are '.' and '-'. '.' was
       # handled by the split(), so just have to check for '-'.
-      for ch in part:
+      for i in range(len(part)):
+        ch = part[i]
         if ch != "-" and not ch.isalnum():
           fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
 
