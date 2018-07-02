@@ -23,6 +23,8 @@ Usage:
 Subcommands:
   actool [<args>...]
   ibtool [<args>...]
+  momc [OUTPUT] [<args>...]
+      OUTPUT: The output file (.mom) or directory (.momd).
   swift-stdlib-tool [OUTPUT] [BUNDLE] [<args>...]
       OUTPUT: The path to place the output zip file.
       BUNDLE: The path inside of the archive to where the libs will be copied.
@@ -176,6 +178,15 @@ def swift_stdlib_tool(args, toolargs):
   shutil.rmtree(tmpdir)
 
 
+def momc(args, toolargs):
+  """Assemble the call to "xcrun momc"."""
+  xcrunargs = ["xcrun", "momc"]
+  xcrunargs += toolargs
+  xcrunargs.append(os.path.realpath(args.output))
+
+  execute.execute_and_filter_output(xcrunargs)
+
+
 def main(argv):
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers()
@@ -195,6 +206,14 @@ def main(argv):
       "bundle",
       help="The path inside of the archive to where the libs are copied.")
   swiftlib_parser.set_defaults(func=swift_stdlib_tool)
+
+  # MOMC Argument Parser
+  momc_parser = subparsers.add_parser("momc")
+  momc_parser.add_argument(
+      "output",
+      help=("The path to the desired output file (.mom) or directory (.momd), "
+            "depending on whether or not the input is a versioned data model."))
+  momc_parser.set_defaults(func=momc)
 
   # Parse the command line and execute subcommand
   args, toolargs = parser.parse_known_args(argv)
