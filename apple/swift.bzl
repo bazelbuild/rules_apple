@@ -203,7 +203,8 @@ def _is_valid_swift_module_name(string):
   if not string:
     return False
 
-  for char in string:
+  for i in range(len(string)):
+    char = string[i]
     # Check that the character is in [a-zA-Z0-9_]
     if not (char.isalnum() or char == "_"):
       return False
