@@ -29,50 +29,7 @@ This script only runs on Darwin and you must have Xcode installed.
 """
 
 import argparse
-import os
-import shutil
-import tempfile
-import time
-from build_bazel_rules_apple.tools.wrapper_common import execute
-
-
-_ZIP_EPOCH_TIMESTAMP = 315532800  # 1980-01-01 00:00
-
-
-def _main(args, toolargs):
-  """Assemble the call to "xcrun swift-stdlib-tool"."""
-  output_zip_path = args.output_zip_path[0]
-  bundle_path = args.bundle_path[0]
-
-  output_zip_path = os.path.realpath(output_zip_path)
-
-  tmpdir = tempfile.mkdtemp(prefix="swiftstdlibtoolZippingOutput.")
-
-  fullpath = os.path.join(tmpdir, bundle_path)
-
-  xcrunargs = ["xcrun",
-               "swift-stdlib-tool",
-               "--copy",
-               "--destination",
-               fullpath]
-
-  xcrunargs += toolargs
-
-  execute.execute_and_filter_output(xcrunargs)
-
-  # Set the timestamp of all files within "tmpdir" to the Zip Epoch:
-  # 1980-01-01 00:00. They are adjusted for timezone since Python "zipfile"
-  # checks the local timestamps of the files.
-  for root, _, files in os.walk(tmpdir):
-    for f in files:
-      filepath = os.path.join(root, f)
-      timestamp = _ZIP_EPOCH_TIMESTAMP + time.timezone
-      os.utime(filepath, (timestamp, timestamp))
-
-  shutil.make_archive(os.path.splitext(output_zip_path)[0], "zip", tmpdir, ".")
-
-  # Clean up the temporary directory and its contents.
-  shutil.rmtree(tmpdir)
+from build_bazel_rules_apple.tools.xctoolrunner import xctoolrunner
 
 
 def _parse_args():
@@ -89,10 +46,15 @@ def _parse_args():
                                  [TOOLARG [TOOLARG ...]]
       """,
       add_help=False)
-  # TODO(dabelknap): Change these to basic positional arguments.
-  parser.add_argument("--output_zip_path", type=str, nargs=1, required=True)
-  parser.add_argument("--bundle_path", type=str, nargs=1, required=True)
+  parser.add_argument("--output_zip_path", type=str, required=True)
+  parser.add_argument("--bundle_path", type=str, required=True)
   return parser.parse_known_args()
+
+
+def _main(args, toolargs):
+  # TODO(dabelknap): Update the Bazel rules to call xctoolrunner directly.
+  xctoolrunner.main(
+      ["swift-stdlib-tool", args.output_zip_path, args.bundle_path] + toolargs)
 
 
 if __name__ == "__main__":
