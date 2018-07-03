@@ -3,13 +3,13 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 sh_binary(
-    name = "ibtoolwrapper",
+    name = "ibtoolwrapper_shell",
     srcs = ["ibtoolwrapper.sh"],
     deps = ["//tools/wrapper_common"],
 )
 
 py_binary(
-    name = "ibtoolwrapper_experimental",
+    name = "ibtoolwrapper",
     srcs = ["ibtoolwrapper.py"],
     main = "ibtoolwrapper.py",
     deps = ["//tools/xctoolrunner"],

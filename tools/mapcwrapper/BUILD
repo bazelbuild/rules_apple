@@ -3,13 +3,13 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 sh_binary(
-    name = "mapcwrapper",
+    name = "mapcwrapper_shell",
     srcs = ["mapcwrapper.sh"],
     deps = ["//tools/wrapper_common"],
 )
 
 py_binary(
-    name = "mapcwrapper_experimental",
+    name = "mapcwrapper",
     srcs = ["mapcwrapper.py"],
     main = "mapcwrapper.py",
     deps = ["//tools/xctoolrunner"],

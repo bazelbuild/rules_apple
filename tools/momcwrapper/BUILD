@@ -3,13 +3,13 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 sh_binary(
-    name = "momcwrapper",
+    name = "momcwrapper_shell",
     srcs = ["momcwrapper.sh"],
     deps = ["//tools/wrapper_common"],
 )
 
 py_binary(
-    name = "momcwrapper_experimental",
+    name = "momcwrapper",
     srcs = ["momcwrapper.py"],
     main = "momcwrapper.py",
     deps = ["//tools/xctoolrunner"],
