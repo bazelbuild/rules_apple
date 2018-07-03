@@ -22,9 +22,16 @@ Usage:
 
 Subcommands:
   actool [<args>...]
+
   ibtool [<args>...]
+
+  mapc [SOURCE] [DESTINATION] [<args>...]
+      SOURCE: The path to the .xcmappingmodel directory.
+      DESTINATION: The path to the output .cdm file.
+
   momc [OUTPUT] [<args>...]
       OUTPUT: The output file (.mom) or directory (.momd).
+
   swift-stdlib-tool [OUTPUT] [BUNDLE] [<args>...]
       OUTPUT: The path to place the output zip file.
       BUNDLE: The path inside of the archive to where the libs will be copied.
@@ -187,6 +194,17 @@ def momc(args, toolargs):
   execute.execute_and_filter_output(xcrunargs)
 
 
+def mapc(args, toolargs):
+  """Assemble the call to "xcrun mapc"."""
+  xcrunargs = ["xcrun",
+               "mapc",
+               os.path.realpath(args.source),
+               os.path.realpath(args.destination)]
+  xcrunargs += toolargs
+
+  execute.execute_and_filter_output(xcrunargs)
+
+
 def main(argv):
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers()
@@ -214,6 +232,16 @@ def main(argv):
       help=("The path to the desired output file (.mom) or directory (.momd), "
             "depending on whether or not the input is a versioned data model."))
   momc_parser.set_defaults(func=momc)
+
+  # MAPC Argument Parser
+  mapc_parser = subparsers.add_parser("mapc")
+  mapc_parser.add_argument(
+      "source",
+      help="The path to the .xcmappingmodel directory.")
+  mapc_parser.add_argument(
+      "destination",
+      help="The path to the output .cdm file.")
+  mapc_parser.set_defaults(func=mapc)
 
   # Parse the command line and execute subcommand
   args, toolargs = parser.parse_known_args(argv)

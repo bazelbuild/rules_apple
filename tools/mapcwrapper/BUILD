@@ -8,6 +8,13 @@ sh_binary(
     deps = ["//tools/wrapper_common"],
 )
 
+py_binary(
+    name = "mapcwrapper_experimental",
+    srcs = ["mapcwrapper.py"],
+    main = "mapcwrapper.py",
+    deps = ["//tools/xctoolrunner"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
