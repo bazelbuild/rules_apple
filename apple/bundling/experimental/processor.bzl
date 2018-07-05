@@ -76,145 +76,150 @@ load(
 # Location enum that can be used to tag files into their appropriate location
 # in the final archive.
 _LOCATION_ENUM = struct(
-    archive="archive",
-    binary="binary",
-    bundle="bundle",
-    content="content",
-    framework="framework",
-    plugin="plugin",
-    resource="resource",
+    archive = "archive",
+    binary = "binary",
+    bundle = "bundle",
+    content = "content",
+    framework = "framework",
+    plugin = "plugin",
+    resource = "resource",
 )
 
 def _archive_paths(ctx):
-  """Returns the map of location type to final archive path."""
-  # TODO(kaipi): Handle parameterized paths for macOS.
-  contents_path = ctx.attr._path_in_archive_format % (
-      bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
-  )
+    """Returns the map of location type to final archive path."""
 
-  # Map of location types to relative paths in the archive.
-  # TODO(kaipi): Handle parameterized paths for macOS.
-  return {
-      _LOCATION_ENUM.archive: "",
-      _LOCATION_ENUM.binary: contents_path,
-      _LOCATION_ENUM.bundle: contents_path,
-      _LOCATION_ENUM.content: contents_path,
-      _LOCATION_ENUM.framework: paths.join(contents_path, "Frameworks"),
-      _LOCATION_ENUM.plugin: paths.join(contents_path, "PlugIns"),
-      _LOCATION_ENUM.resource: contents_path,
-  }
+    # TODO(kaipi): Handle parameterized paths for macOS.
+    contents_path = ctx.attr._path_in_archive_format % (
+        bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
+    )
+
+    # Map of location types to relative paths in the archive.
+    # TODO(kaipi): Handle parameterized paths for macOS.
+    return {
+        _LOCATION_ENUM.archive: "",
+        _LOCATION_ENUM.binary: contents_path,
+        _LOCATION_ENUM.bundle: contents_path,
+        _LOCATION_ENUM.content: contents_path,
+        _LOCATION_ENUM.framework: paths.join(contents_path, "Frameworks"),
+        _LOCATION_ENUM.plugin: paths.join(contents_path, "PlugIns"),
+        _LOCATION_ENUM.resource: contents_path,
+    }
 
 def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
-  """Invokes bundletool to bundle the files specified by the partial outputs.
+    """Invokes bundletool to bundle the files specified by the partial outputs.
 
-  Args:
-    ctx: The target's rule context.
-    partial_outputs: List of partial outputs from which to collect the files
-      that will be bundled inside the final archive.
-    output_file: The file where the final zipped bundle should be created.
-  """
-  control_files = []
-  control_zips = []
-  input_files = []
+    Args:
+      ctx: The target's rule context.
+      partial_outputs: List of partial outputs from which to collect the files
+        that will be bundled inside the final archive.
+      output_file: The file where the final zipped bundle should be created.
+    """
+    control_files = []
+    control_zips = []
+    input_files = []
 
-  location_to_paths = _archive_paths(ctx)
+    location_to_paths = _archive_paths(ctx)
 
-  for partial_output in partial_outputs:
-    if not hasattr(partial_output, "bundle_files"):
-      continue
-    for location, parent_dir, files in partial_output.bundle_files:
-      sources = files.to_list()
-      input_files.extend(sources)
+    for partial_output in partial_outputs:
+        if not hasattr(partial_output, "bundle_files"):
+            continue
+        for location, parent_dir, files in partial_output.bundle_files:
+            sources = files.to_list()
+            input_files.extend(sources)
 
-      for source in sources:
-        target_path = paths.join(location_to_paths[location], parent_dir or "")
+            for source in sources:
+                target_path = paths.join(location_to_paths[location], parent_dir or "")
 
-        # When bundling framework and plugin files, if we get a zip file
-        # decompress it in that location. The files placed within these
-        # locations should never be zip resources that would be placed without
-        # expanding. If we get zip resources, they would be packaged normally
-        # as part of the else statement below.
-        if (location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin] and
-            source.short_path.endswith(".zip")):
-          control_zips.append(struct(src=source.path, dest=target_path))
-        else:
-          if not source.is_directory:
-            target_path = paths.join(target_path, source.basename)
-          control_files.append(struct(src=source.path, dest=target_path))
+                # When bundling framework and plugin files, if we get a zip file
+                # decompress it in that location. The files placed within these
+                # locations should never be zip resources that would be placed without
+                # expanding. If we get zip resources, they would be packaged normally
+                # as part of the else statement below.
+                if (location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin] and
+                    source.short_path.endswith(".zip")):
+                    control_zips.append(struct(src = source.path, dest = target_path))
+                else:
+                    if not source.is_directory:
+                        target_path = paths.join(target_path, source.basename)
+                    control_files.append(struct(src = source.path, dest = target_path))
 
-  control = struct(
-      bundle_merge_files = control_files,
-      bundle_merge_zips = control_zips,
-      output = output_file.path,
-  )
+    control = struct(
+        bundle_merge_files = control_files,
+        bundle_merge_zips = control_zips,
+        output = output_file.path,
+    )
 
-  control_file = intermediates.file(
-      ctx.actions, ctx.label.name, "bundletool_control.json",
-  )
-  ctx.actions.write(
-      output=control_file,
-      content=control.to_json()
-  )
+    control_file = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        "bundletool_control.json",
+    )
+    ctx.actions.write(
+        output = control_file,
+        content = control.to_json(),
+    )
 
-  ctx.actions.run(
-      inputs=input_files + [control_file],
-      outputs=[output_file],
-      executable=ctx.executable._bundletool,
-      arguments=[control_file.path],
-      mnemonic="BundleApp",
-      progress_message="Bundling %s" % ctx.label.name,
-  )
+    ctx.actions.run(
+        inputs = input_files + [control_file],
+        outputs = [output_file],
+        executable = ctx.executable._bundletool,
+        arguments = [control_file.path],
+        mnemonic = "BundleApp",
+        progress_message = "Bundling %s" % ctx.label.name,
+    )
 
 def _process(ctx, partials):
-  """Processes a list of partials that provide the files to be bundled.
+    """Processes a list of partials that provide the files to be bundled.
 
-  Args:
-    ctx: The ctx object for the target being processed.
-    partials: The list of partials to process to construct the complete bundle.
+    Args:
+      ctx: The ctx object for the target being processed.
+      partials: The list of partials to process to construct the complete bundle.
 
-  Returns:
-    A struct with the results of the processing. The files to make outputs of
-    the rule are contained under the `output_files` field, and the providers to
-    return are contained under the `providers` field.
-  """
-  partial_outputs = [partial.call(p, ctx) for p in partials]
+    Returns:
+      A struct with the results of the processing. The files to make outputs of
+      the rule are contained under the `output_files` field, and the providers to
+      return are contained under the `providers` field.
+    """
+    partial_outputs = [partial.call(p, ctx) for p in partials]
 
-  unprocessed_archive = intermediates.file(
-      ctx.actions, ctx.label.name, "unprocessed_archive.zip",
-  )
-  _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+    unprocessed_archive = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        "unprocessed_archive.zip",
+    )
+    _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
 
-  archive_paths = _archive_paths(ctx)
-  archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
-  frameworks_path = archive_paths[_LOCATION_ENUM.framework]
+    archive_paths = _archive_paths(ctx)
+    archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
+    frameworks_path = archive_paths[_LOCATION_ENUM.framework]
 
-  # TODO(kaipi): Replace this with a declared file. The archive extension is
-  # not yet available in the attributes (or product descriptor).
-  output_archive = ctx.outputs.archive
-  codesigning_actions.post_process_and_sign_archive_action(
-      ctx,
-      archive_codesigning_path,
-      frameworks_path,
-      unprocessed_archive,
-      output_archive,
-  )
+    # TODO(kaipi): Replace this with a declared file. The archive extension is
+    # not yet available in the attributes (or product descriptor).
+    output_archive = ctx.outputs.archive
+    codesigning_actions.post_process_and_sign_archive_action(
+        ctx,
+        archive_codesigning_path,
+        frameworks_path,
+        unprocessed_archive,
+        output_archive,
+    )
 
-  providers = []
-  output_files = depset([output_archive])
-  for partial_output in partial_outputs:
-    if hasattr(partial_output, "providers"):
-      providers.extend(partial_output.providers)
-    if hasattr(partial_output, "output_files"):
-      output_files = depset(
-          transitive=[output_files, partial_output.output_files],
-      )
+    providers = []
+    output_files = depset([output_archive])
+    for partial_output in partial_outputs:
+        if hasattr(partial_output, "providers"):
+            providers.extend(partial_output.providers)
+        if hasattr(partial_output, "output_files"):
+            output_files = depset(
+                transitive = [output_files, partial_output.output_files],
+            )
 
-  return struct(
-      output_files=output_files,
-      providers=providers,
-  )
+    return struct(
+        output_files = output_files,
+        providers = providers,
+    )
 
 processor = struct(
-    process=_process,
-    location=_LOCATION_ENUM,
+    process = _process,
+    location = _LOCATION_ENUM,
 )

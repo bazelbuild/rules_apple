@@ -32,15 +32,15 @@ load(
 # original name in queries and logs since they collide with the wrapper macros.
 load(
     "@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
-    _macos_application="macos_application",
-    _macos_bundle="macos_bundle",
-    _macos_command_line_application="macos_command_line_application",
-    _macos_extension="macos_extension",
+    _macos_application = "macos_application",
+    _macos_bundle = "macos_bundle",
+    _macos_command_line_application = "macos_command_line_application",
+    _macos_extension = "macos_extension",
 )
 load(
     "@build_bazel_rules_apple//apple/testing:macos_rules.bzl",
-    _macos_ui_test="macos_ui_test",
-    _macos_unit_test="macos_unit_test",
+    _macos_ui_test = "macos_ui_test",
+    _macos_unit_test = "macos_unit_test",
 )
 
 # Explicitly export this because we want it visible to users loading this file.
@@ -49,456 +49,488 @@ load(
     "apple_product_type",
 )
 
+def _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        is_static,
+        testonly = None):
+    """Creates a build target to propagate Swift runtime linker flags.
 
-def _create_swift_runtime_linkopts_target(name,
-                                          deps,
-                                          is_static,
-                                          testonly=None):
-  """Creates a build target to propagate Swift runtime linker flags.
-
-  Args:
-    name: The name of the base target.
-    deps: The list of dependencies of the base target.
-    is_static: True to use the static Swift runtime, or False to use the
-        dynamic Swift runtime.
-    testonly: Whether the target should be testonly.
-  Returns:
-    A build label that can be added to the deps of the binary target.
-  """
-  swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
-  swift_runtime_linkopts(
-      name = swift_runtime_linkopts_name,
-      is_static = is_static,
-      testonly = testonly,
-      deps = deps,
-  )
-  return ":" + swift_runtime_linkopts_name
-
+    Args:
+      name: The name of the base target.
+      deps: The list of dependencies of the base target.
+      is_static: True to use the static Swift runtime, or False to use the
+          dynamic Swift runtime.
+      testonly: Whether the target should be testonly.
+    Returns:
+      A build label that can be added to the deps of the binary target.
+    """
+    swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
+    swift_runtime_linkopts(
+        name = swift_runtime_linkopts_name,
+        is_static = is_static,
+        testonly = testonly,
+        deps = deps,
+    )
+    return ":" + swift_runtime_linkopts_name
 
 def macos_application(name, **kwargs):
-  """Packages a macOS application.
+    """Packages a macOS application.
 
-  The named target produced by this macro is a ZIP file. This macro also creates
-  a target named "{name}.apple_binary" that represents the linked binary
-  executable inside the application bundle.
+    The named target produced by this macro is a ZIP file. This macro also creates
+    a target named "{name}.apple_binary" that represents the linked binary
+    executable inside the application bundle.
 
-  Args:
-    name: The name of the target.
-    app_icons: Files that comprise the app icons for the application. Each file
-        must have a containing directory named "*.xcassets/*.appiconset" and
-        there may be only one such .appiconset directory in the list.
-    bundle_extension: The extension, without a leading dot, that will be used to
-        name the application bundle. If this attribute is not set, then the
-        default extension is determined by the application's `product_type`. For
-        example, `apple_product_type.application` uses the extension `app`,
-        while `apple_product_type.xpc_service` uses the extension `xpc`.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        application. Required.
-    entitlements: The entitlements file required for this application. If
-        absent, the default entitlements from the provisioning profile will be
-        used. The following variables are substituted: $(CFBundleIdentifier)
-        with the bundle ID and $(AppIdentifierPrefix) with the value of the
-        ApplicationIdentifierPrefix key from this target's provisioning
-        profile (or the default provisioning profile, if none is specified).
-    extensions: A list of extensions to include in the final application.
-    infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the application. The merge is only at the
-        top level of the plist; so sub-dictionaries are not merged.
-    ipa_post_processor: A tool that edits this target's archive output
-        after it is assembled but before it is (optionally) signed. The tool is
-        invoked with a single positional argument that represents the path to a
-        directory containing the unzipped contents of the archive. The only
-        entry in this directory will be the Payload root directory of the
-        archive. Any changes made by the tool must be made in this directory,
-        and the tool's execution must be hermetic given these inputs to ensure
-        that the result can be safely cached.
-    linkopts: A list of strings representing extra flags that the underlying
-        apple_binary target should pass to the linker.
-    provisioning_profile: The provisioning profile (.provisionprofile file) to
-        use when bundling the application.
-    strings: A list of files that are plists of strings, often localizable.
-        These files are converted to binary plists (if they are not already)
-        and placed in the bundle root of the final package. If this file's
-        immediate containing directory is named *.lproj, it will be placed
-        under a directory of that name in the final bundle. This allows for
-        localizable strings.
-    deps: A list of dependencies, such as libraries, that are passed into the
-        apple_binary rule. Any resources, such as asset catalogs, that are
-        defined by these targets will also be transitively included in the
-        final application.
-  """
-  binary_args = dict(kwargs)
+    Args:
+      name: The name of the target.
+      app_icons: Files that comprise the app icons for the application. Each file
+          must have a containing directory named "*.xcassets/*.appiconset" and
+          there may be only one such .appiconset directory in the list.
+      bundle_extension: The extension, without a leading dot, that will be used to
+          name the application bundle. If this attribute is not set, then the
+          default extension is determined by the application's `product_type`. For
+          example, `apple_product_type.application` uses the extension `app`,
+          while `apple_product_type.xpc_service` uses the extension `xpc`.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          application. Required.
+      entitlements: The entitlements file required for this application. If
+          absent, the default entitlements from the provisioning profile will be
+          used. The following variables are substituted: $(CFBundleIdentifier)
+          with the bundle ID and $(AppIdentifierPrefix) with the value of the
+          ApplicationIdentifierPrefix key from this target's provisioning
+          profile (or the default provisioning profile, if none is specified).
+      extensions: A list of extensions to include in the final application.
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the application. The merge is only at the
+          top level of the plist; so sub-dictionaries are not merged.
+      ipa_post_processor: A tool that edits this target's archive output
+          after it is assembled but before it is (optionally) signed. The tool is
+          invoked with a single positional argument that represents the path to a
+          directory containing the unzipped contents of the archive. The only
+          entry in this directory will be the Payload root directory of the
+          archive. Any changes made by the tool must be made in this directory,
+          and the tool's execution must be hermetic given these inputs to ensure
+          that the result can be safely cached.
+      linkopts: A list of strings representing extra flags that the underlying
+          apple_binary target should pass to the linker.
+      provisioning_profile: The provisioning profile (.provisionprofile file) to
+          use when bundling the application.
+      strings: A list of files that are plists of strings, often localizable.
+          These files are converted to binary plists (if they are not already)
+          and placed in the bundle root of the final package. If this file's
+          immediate containing directory is named *.lproj, it will be placed
+          under a directory of that name in the final bundle. This allows for
+          localizable strings.
+      deps: A list of dependencies, such as libraries, that are passed into the
+          apple_binary rule. Any resources, such as asset catalogs, that are
+          defined by these targets will also be transitively included in the
+          final application.
+    """
+    binary_args = dict(kwargs)
 
-  # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-  linkopts = binary_args.get("linkopts", [])
-  linkopts += ["-rpath", "@executable_path/../Frameworks"]
-  binary_args["linkopts"] = linkopts
+    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    linkopts = binary_args.get("linkopts", [])
+    linkopts += ["-rpath", "@executable_path/../Frameworks"]
+    binary_args["linkopts"] = linkopts
 
-  original_deps = binary_args.pop("deps")
-  binary_deps = list(original_deps)
-  testonly = binary_args.get("testonly", default=None)
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
 
-  # Propagate the linker flags that dynamically link the Swift runtime.
-  # TODO(b/64036784): Handle the testonly attribute.
-  binary_deps.append(
-      _create_swift_runtime_linkopts_target(
-          name, original_deps, False, testonly=testonly))
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    # TODO(b/64036784): Handle the testonly attribute.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
 
-  bundling_args = binary_support.create_binary(
-      name,
-      str(apple_common.platform_type.macos),
-      deps=binary_deps,
-      features=["link_cocoa"],
-      **binary_args)
+    bundling_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.macos),
+        deps = binary_deps,
+        features = ["link_cocoa"],
+        **binary_args
+    )
 
-  _macos_application(
-      name = name,
-      **bundling_args
-  )
-
+    _macos_application(
+        name = name,
+        **bundling_args
+    )
 
 def macos_bundle(name, **kwargs):
-  """Packages a macOS loadable bundle.
+    """Packages a macOS loadable bundle.
 
-  The named target produced by this macro is a ZIP file. This macro also creates
-  a target named "{name}.apple_binary" that represents the linked binary
-  executable inside the application bundle.
+    The named target produced by this macro is a ZIP file. This macro also creates
+    a target named "{name}.apple_binary" that represents the linked binary
+    executable inside the application bundle.
 
-  Args:
-    name: The name of the target.
-    app_icons: Files that comprise the app icons for the bundle. Each file
-        must have a containing directory named "*.xcassets/*.appiconset" and
-        there may be only one such .appiconset directory in the list.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        bundle. Required.
-    bundle_extension: The extension, without a leading dot, that will be used to
-        name the bundle. If this attribute is not set, then the default
-        extension is determined by the application's `product_type`. For
-        example, `apple_product_type.bundle` uses the extension `bundle`, while
-        `apple_product_type.spotlight_importer` uses the extension `mdimporter`.
-    bundle_loader: A label to a macOS executable target (i.e
-        macos_command_line_application, macos_application or macos_extension).
-        The macOS bundle binary generated by this rule will then assume that it
-        will be loaded by that targets's binary at runtime. If this attribute is
-        set, this macos_bundle target _cannot_ be a dependency for that target.
-    entitlements: The entitlements file required for this bundle. If
-        absent, the default entitlements from the provisioning profile will be
-        used. The following variables are substituted: $(CFBundleIdentifier)
-        with the bundle ID and $(AppIdentifierPrefix) with the value of the
-        ApplicationIdentifierPrefix key from this target's provisioning
-        profile (or the default provisioning profile, if none is specified).
-    infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the bundle. The merge is only at the top
-        level of the plist; so sub-dictionaries are not merged.
-    ipa_post_processor: A tool that edits this target's archive output
-        after it is assembled but before it is (optionally) signed. The tool is
-        invoked with a single positional argument that represents the path to a
-        directory containing the unzipped contents of the archive. The only
-        entry in this directory will be the Payload root directory of the
-        archive. Any changes made by the tool must be made in this directory,
-        and the tool's execution must be hermetic given these inputs to ensure
-        that the result can be safely cached.
-    linkopts: A list of strings representing extra flags that the underlying
-        apple_binary target should pass to the linker.
-    provisioning_profile: The provisioning profile (.provisionprofile file) to
-        use when bundling the bundle.
-    strings: A list of files that are plists of strings, often localizable.
-        These files are converted to binary plists (if they are not already)
-        and placed in the bundle root of the final package. If this file's
-        immediate containing directory is named *.lproj, it will be placed
-        under a directory of that name in the final bundle. This allows for
-        localizable strings.
-    deps: A list of dependencies, such as libraries, that are passed into the
-        apple_binary rule. Any resources, such as asset catalogs, that are
-        defined by these targets will also be transitively included in the
-        final bundle.
-  """
-  binary_args = dict(kwargs)
+    Args:
+      name: The name of the target.
+      app_icons: Files that comprise the app icons for the bundle. Each file
+          must have a containing directory named "*.xcassets/*.appiconset" and
+          there may be only one such .appiconset directory in the list.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          bundle. Required.
+      bundle_extension: The extension, without a leading dot, that will be used to
+          name the bundle. If this attribute is not set, then the default
+          extension is determined by the application's `product_type`. For
+          example, `apple_product_type.bundle` uses the extension `bundle`, while
+          `apple_product_type.spotlight_importer` uses the extension `mdimporter`.
+      bundle_loader: A label to a macOS executable target (i.e
+          macos_command_line_application, macos_application or macos_extension).
+          The macOS bundle binary generated by this rule will then assume that it
+          will be loaded by that targets's binary at runtime. If this attribute is
+          set, this macos_bundle target _cannot_ be a dependency for that target.
+      entitlements: The entitlements file required for this bundle. If
+          absent, the default entitlements from the provisioning profile will be
+          used. The following variables are substituted: $(CFBundleIdentifier)
+          with the bundle ID and $(AppIdentifierPrefix) with the value of the
+          ApplicationIdentifierPrefix key from this target's provisioning
+          profile (or the default provisioning profile, if none is specified).
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the bundle. The merge is only at the top
+          level of the plist; so sub-dictionaries are not merged.
+      ipa_post_processor: A tool that edits this target's archive output
+          after it is assembled but before it is (optionally) signed. The tool is
+          invoked with a single positional argument that represents the path to a
+          directory containing the unzipped contents of the archive. The only
+          entry in this directory will be the Payload root directory of the
+          archive. Any changes made by the tool must be made in this directory,
+          and the tool's execution must be hermetic given these inputs to ensure
+          that the result can be safely cached.
+      linkopts: A list of strings representing extra flags that the underlying
+          apple_binary target should pass to the linker.
+      provisioning_profile: The provisioning profile (.provisionprofile file) to
+          use when bundling the bundle.
+      strings: A list of files that are plists of strings, often localizable.
+          These files are converted to binary plists (if they are not already)
+          and placed in the bundle root of the final package. If this file's
+          immediate containing directory is named *.lproj, it will be placed
+          under a directory of that name in the final bundle. This allows for
+          localizable strings.
+      deps: A list of dependencies, such as libraries, that are passed into the
+          apple_binary rule. Any resources, such as asset catalogs, that are
+          defined by these targets will also be transitively included in the
+          final bundle.
+    """
+    binary_args = dict(kwargs)
 
-  # If a bundle loader was passed, re-write it to use the underlying
-  # apple_binary target instead. When migrating to rules, we should validate
-  # the attribute with providers.
-  bundle_loader = binary_args.pop("bundle_loader", None)
-  if bundle_loader:
-    bundle_loader = "%s.apple_binary" % bundle_loader
-    binary_args["bundle_loader"] = bundle_loader
+    # If a bundle loader was passed, re-write it to use the underlying
+    # apple_binary target instead. When migrating to rules, we should validate
+    # the attribute with providers.
+    bundle_loader = binary_args.pop("bundle_loader", None)
+    if bundle_loader:
+        bundle_loader = "%s.apple_binary" % bundle_loader
+        binary_args["bundle_loader"] = bundle_loader
 
-  # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-  linkopts = binary_args.get("linkopts", [])
-  linkopts += ["-rpath", "@executable_path/../Frameworks"]
-  binary_args["linkopts"] = linkopts
+    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    linkopts = binary_args.get("linkopts", [])
+    linkopts += ["-rpath", "@executable_path/../Frameworks"]
+    binary_args["linkopts"] = linkopts
 
-  original_deps = binary_args.pop("deps")
-  binary_deps = list(original_deps)
-  testonly = binary_args.get("testonly", default=None)
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
 
-  # Propagate the linker flags that dynamically link the Swift runtime.
-  binary_deps.append(
-      _create_swift_runtime_linkopts_target(
-          name, original_deps, False, testonly=testonly))
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
 
-  bundling_args = binary_support.create_binary(
-      name,
-      str(apple_common.platform_type.macos),
-      binary_type="loadable_bundle",
-      deps=binary_deps,
-      features=["link_cocoa"],
-      **binary_args)
+    bundling_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.macos),
+        binary_type = "loadable_bundle",
+        deps = binary_deps,
+        features = ["link_cocoa"],
+        **binary_args
+    )
 
-  _macos_bundle(
-      name = name,
-      **bundling_args
-  )
-
+    _macos_bundle(
+        name = name,
+        **bundling_args
+    )
 
 def macos_command_line_application(name, **kwargs):
-  """Builds a macOS command line application.
+    """Builds a macOS command line application.
 
-  A command line application is a standalone binary file, rather than a `.app`
-  bundle like those produced by `macos_application`. Unlike a plain
-  `apple_binary` target, however, this rule supports versioning and embedding an
-  `Info.plist` into the binary and allows the binary to be code-signed.
+    A command line application is a standalone binary file, rather than a `.app`
+    bundle like those produced by `macos_application`. Unlike a plain
+    `apple_binary` target, however, this rule supports versioning and embedding an
+    `Info.plist` into the binary and allows the binary to be code-signed.
 
-  Args:
-    name: The name of the target.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        extension. Optional.
-    infoplists: A list of plist files that will be merged and embedded in the
-        binary. The merge is only at the top level of the plist; so
-        sub-dictionaries are not merged.
-    launchdplists: A list of plist files that will be merged and embedded.
-    linkopts: A list of strings representing extra flags that should be passed
-        to the linker.
-    minimum_os_version: An optional string indicating the minimum macOS version
-        supported by the target, represented as a dotted version number (for
-        example, `"10.11"`). If this attribute is omitted, then the value
-        specified by the flag `--macos_minimum_os` will be used instead.
-    deps: A list of dependencies, such as libraries, that are linked into the
-        final binary. Any resources found in those dependencies are
-        ignored.
-  """
-  # Xcode will happily apply entitlements during code signing for a command line
-  # tool even though it doesn't have a Capabilities tab in the project settings.
-  # Until there's official support for it, we'll fail if we see those attributes
-  # (which are added to the rule because of the code_signing_attributes usage in
-  # the rule definition).
-  if "entitlements" in kwargs or "provisioning_profile" in kwargs:
-    fail("macos_command_line_application does not support entitlements or " +
-         "provisioning profiles at this time")
+    Args:
+      name: The name of the target.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          extension. Optional.
+      infoplists: A list of plist files that will be merged and embedded in the
+          binary. The merge is only at the top level of the plist; so
+          sub-dictionaries are not merged.
+      launchdplists: A list of plist files that will be merged and embedded.
+      linkopts: A list of strings representing extra flags that should be passed
+          to the linker.
+      minimum_os_version: An optional string indicating the minimum macOS version
+          supported by the target, represented as a dotted version number (for
+          example, `"10.11"`). If this attribute is omitted, then the value
+          specified by the flag `--macos_minimum_os` will be used instead.
+      deps: A list of dependencies, such as libraries, that are linked into the
+          final binary. Any resources found in those dependencies are
+          ignored.
+    """
 
-  binary_args = dict(kwargs)
+    # Xcode will happily apply entitlements during code signing for a command line
+    # tool even though it doesn't have a Capabilities tab in the project settings.
+    # Until there's official support for it, we'll fail if we see those attributes
+    # (which are added to the rule because of the code_signing_attributes usage in
+    # the rule definition).
+    if "entitlements" in kwargs or "provisioning_profile" in kwargs:
+        fail("macos_command_line_application does not support entitlements or " +
+             "provisioning profiles at this time")
 
-  original_deps = binary_args.pop("deps")
-  binary_deps = list(original_deps)
+    binary_args = dict(kwargs)
 
-  # If any of the Info.plist-affecting attributes is provided, create a merged
-  # Info.plist target. This target also propagates an objc provider that
-  # contains the linkopts necessary to add the Info.plist to the binary, so it
-  # must become a dependency of the binary as well.
-  bundle_id = binary_args.get("bundle_id")
-  infoplists = binary_args.get("infoplists")
-  launchdplists = binary_args.get("launchdplists")
-  version = binary_args.get("version")
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
 
-  if bundle_id or infoplists or version:
-    merged_infoplist_name = name + ".merged_infoplist"
+    # If any of the Info.plist-affecting attributes is provided, create a merged
+    # Info.plist target. This target also propagates an objc provider that
+    # contains the linkopts necessary to add the Info.plist to the binary, so it
+    # must become a dependency of the binary as well.
+    bundle_id = binary_args.get("bundle_id")
+    infoplists = binary_args.get("infoplists")
+    launchdplists = binary_args.get("launchdplists")
+    version = binary_args.get("version")
 
-    macos_command_line_infoplist(
-        name = merged_infoplist_name,
-        bundle_id = bundle_id,
-        infoplists = infoplists,
-        minimum_os_version = binary_args.get("minimum_os_version"),
-        version = version,
+    if bundle_id or infoplists or version:
+        merged_infoplist_name = name + ".merged_infoplist"
+
+        macos_command_line_infoplist(
+            name = merged_infoplist_name,
+            bundle_id = bundle_id,
+            infoplists = infoplists,
+            minimum_os_version = binary_args.get("minimum_os_version"),
+            version = version,
+        )
+        binary_deps.extend([":" + merged_infoplist_name])
+
+    if launchdplists:
+        merged_launchdplists_name = name + ".merged_launchdplists"
+
+        macos_command_line_launchdplist(
+            name = merged_launchdplists_name,
+            launchdplists = launchdplists,
+        )
+        binary_deps.extend([":" + merged_launchdplists_name])
+
+    testonly = binary_args.get("testonly", None)
+
+    # Propagate the linker flags that statically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            True,
+            testonly = testonly,
+        ),
     )
-    binary_deps.extend([":" + merged_infoplist_name])
 
-  if launchdplists:
-    merged_launchdplists_name = name + ".merged_launchdplists"
-
-    macos_command_line_launchdplist(
-        name = merged_launchdplists_name,
-        launchdplists = launchdplists,
+    # Create the unsigned binary, then run the command line application rule that
+    # signs it.
+    cmd_line_app_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.macos),
+        deps = binary_deps,
+        suppress_entitlements = True,
+        **binary_args
     )
-    binary_deps.extend([":" + merged_launchdplists_name])
+    cmd_line_app_args.pop("deps")
 
-  testonly = binary_args.get("testonly", None)
-
-  # Propagate the linker flags that statically link the Swift runtime.
-  binary_deps.append(
-      _create_swift_runtime_linkopts_target(
-          name, original_deps, True, testonly=testonly))
-
-  # Create the unsigned binary, then run the command line application rule that
-  # signs it.
-  cmd_line_app_args = binary_support.create_binary(
-      name,
-      str(apple_common.platform_type.macos),
-      deps=binary_deps,
-      suppress_entitlements=True,
-      **binary_args)
-  cmd_line_app_args.pop("deps")
-
-  _macos_command_line_application(
-      name = name,
-      **cmd_line_app_args
-  )
-
+    _macos_command_line_application(
+        name = name,
+        **cmd_line_app_args
+    )
 
 def macos_extension(name, **kwargs):
-  """Packages a macOS extension.
+    """Packages a macOS extension.
 
-  The named target produced by this macro is a ZIP file. This macro also
-  creates a target named "{name}.apple_binary" that represents the linked
-  binary executable inside the extension bundle.
+    The named target produced by this macro is a ZIP file. This macro also
+    creates a target named "{name}.apple_binary" that represents the linked
+    binary executable inside the extension bundle.
 
-  Args:
-    name: The name of the target.
-    app_icons: Files that comprise the app icons for the extension. Each file
-        must have a containing directory named "*.xcassets/*.appiconset" and
-        there may be only one such .appiconset directory in the list.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        extension. Required.
-    entitlements: The entitlements file required for this application. If
-        absent, the default entitlements from the provisioning profile will be
-        used. The following variables are substituted: $(CFBundleIdentifier)
-        with the bundle ID and $(AppIdentifierPrefix) with the value of the
-        ApplicationIdentifierPrefix key from this target's provisioning
-        profile (or the default provisioning profile, if none is specified).
-    infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the extension.
-    ipa_post_processor: A tool that edits this target's archive output
-        after it is assembled but before it is (optionally) signed. The tool is
-        invoked with a single positional argument that represents the path to a
-        directory containing the unzipped contents of the archive. The only
-        entry in this directory will be the .appex directory for the extension.
-        Any changes made by the tool must be made in this directory, and the
-        tool's execution must be hermetic given these inputs to ensure that the
-        result can be safely cached.
-    linkopts: A list of strings representing extra flags that the underlying
-        apple_binary target should pass to the linker.
-    provisioning_profile: The provisioning profile (.provisionprofile file) to
-        use when bundling the application.
-    strings: A list of files that are plists of strings, often localizable.
-        These files are converted to binary plists (if they are not already)
-        and placed in the bundle root of the final package. If this file's
-        immediate containing directory is named *.lproj, it will be placed
-        under a directory of that name in the final bundle. This allows for
-        localizable strings.
-    deps: A list of dependencies, such as libraries, that are passed into the
-        apple_binary rule. Any resources, such as asset catalogs, that are
-        defined by these targets will also be transitively included in the
-        final extension.
-  """
-  binary_args = dict(kwargs)
+    Args:
+      name: The name of the target.
+      app_icons: Files that comprise the app icons for the extension. Each file
+          must have a containing directory named "*.xcassets/*.appiconset" and
+          there may be only one such .appiconset directory in the list.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          extension. Required.
+      entitlements: The entitlements file required for this application. If
+          absent, the default entitlements from the provisioning profile will be
+          used. The following variables are substituted: $(CFBundleIdentifier)
+          with the bundle ID and $(AppIdentifierPrefix) with the value of the
+          ApplicationIdentifierPrefix key from this target's provisioning
+          profile (or the default provisioning profile, if none is specified).
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the extension.
+      ipa_post_processor: A tool that edits this target's archive output
+          after it is assembled but before it is (optionally) signed. The tool is
+          invoked with a single positional argument that represents the path to a
+          directory containing the unzipped contents of the archive. The only
+          entry in this directory will be the .appex directory for the extension.
+          Any changes made by the tool must be made in this directory, and the
+          tool's execution must be hermetic given these inputs to ensure that the
+          result can be safely cached.
+      linkopts: A list of strings representing extra flags that the underlying
+          apple_binary target should pass to the linker.
+      provisioning_profile: The provisioning profile (.provisionprofile file) to
+          use when bundling the application.
+      strings: A list of files that are plists of strings, often localizable.
+          These files are converted to binary plists (if they are not already)
+          and placed in the bundle root of the final package. If this file's
+          immediate containing directory is named *.lproj, it will be placed
+          under a directory of that name in the final bundle. This allows for
+          localizable strings.
+      deps: A list of dependencies, such as libraries, that are passed into the
+          apple_binary rule. Any resources, such as asset catalogs, that are
+          defined by these targets will also be transitively included in the
+          final extension.
+    """
+    binary_args = dict(kwargs)
 
-  # Add extension-specific linker options.
-  # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-  linkopts = binary_args.get("linkopts", [])
-  linkopts += [
-      "-e", "_NSExtensionMain",
-      "-rpath", "@executable_path/../Frameworks",
-      "-rpath", "@executable_path/../../../../Frameworks",
-  ]
-  binary_args["linkopts"] = linkopts
+    # Add extension-specific linker options.
+    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    linkopts = binary_args.get("linkopts", [])
+    linkopts += [
+        "-e",
+        "_NSExtensionMain",
+        "-rpath",
+        "@executable_path/../Frameworks",
+        "-rpath",
+        "@executable_path/../../../../Frameworks",
+    ]
+    binary_args["linkopts"] = linkopts
 
-  original_deps = binary_args.pop("deps")
-  binary_deps = list(original_deps)
-  testonly = binary_args.get("testonly", default=None)
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
 
-  # Propagate the linker flags that dynamically link the Swift runtime.
-  binary_deps.append(
-      _create_swift_runtime_linkopts_target(
-          name, original_deps, False, testonly=testonly))
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
 
-  bundling_args = binary_support.create_binary(
-      name,
-      str(apple_common.platform_type.macos),
-      deps=binary_deps,
-      extension_safe=True,
-      features=["link_cocoa"],
-      **binary_args)
+    bundling_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.macos),
+        deps = binary_deps,
+        extension_safe = True,
+        features = ["link_cocoa"],
+        **binary_args
+    )
 
-  _macos_extension(
-      name = name,
-      **bundling_args
-  )
-
+    _macos_extension(
+        name = name,
+        **bundling_args
+    )
 
 def macos_ui_test(
-    name,
-    runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-    **kwargs):
-  """Builds an XCUITest test bundle and tests it using the provided runner.
+        name,
+        runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
+        **kwargs):
+    """Builds an XCUITest test bundle and tests it using the provided runner.
 
-  The named target produced by this macro is an test target that can be executed
-  with the `bazel test` command.
+    The named target produced by this macro is an test target that can be executed
+    with the `bazel test` command.
 
-  Args:
-    name: The name of the target.
-    test_host: The macos_application target that contains the code to be
-        tested. Required.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. Optional. Defaults to the test_host's postfixed with
-        "Tests".
-    infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the test bundle.
-    minimum_os_version: The minimum OS version that this target and its
-        dependencies should be built for. Optional.
-    runner: The runner target that contains the logic of how the tests should
-        be executed. This target needs to provide an AppleTestRunner provider.
-        Optional.
-    deps: A list of dependencies that contain the test code and resources
-        needed to run the tests.
-  """
-  args = dict(kwargs)
-  deps = args.pop("deps", [])
-  # Propagate the linker flags that dynamically link the Swift runtime.
-  linkopts_dep = _create_swift_runtime_linkopts_target(
-      name, deps, False, testonly=True)
+    Args:
+      name: The name of the target.
+      test_host: The macos_application target that contains the code to be
+          tested. Required.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          test bundle. Optional. Defaults to the test_host's postfixed with
+          "Tests".
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the test bundle.
+      minimum_os_version: The minimum OS version that this target and its
+          dependencies should be built for. Optional.
+      runner: The runner target that contains the logic of how the tests should
+          be executed. This target needs to provide an AppleTestRunner provider.
+          Optional.
+      deps: A list of dependencies that contain the test code and resources
+          needed to run the tests.
+    """
+    args = dict(kwargs)
+    deps = args.pop("deps", [])
 
-  _macos_ui_test(
-      name = name,
-      deps = deps + [linkopts_dep],
-      runner = runner,
-      **args
-  )
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    linkopts_dep = _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        False,
+        testonly = True,
+    )
 
+    _macos_ui_test(
+        name = name,
+        deps = deps + [linkopts_dep],
+        runner = runner,
+        **args
+    )
 
 def macos_unit_test(
-    name,
-    runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-    **kwargs):
-  """Builds an XCTest unit test bundle and tests it using the provided runner.
+        name,
+        runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
+        **kwargs):
+    """Builds an XCTest unit test bundle and tests it using the provided runner.
 
-  The named target produced by this macro is a test target that can be executed
-  with the `bazel test` command.
+    The named target produced by this macro is a test target that can be executed
+    with the `bazel test` command.
 
-  Args:
-    name: The name of the target.
-    test_host: The macos_application target that contains the code to be
-        tested. Optional.
-    bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
-        test bundle. Optional. Defaults to the test_host's postfixed with
-        "Tests".
-    infoplists: A list of plist files that will be merged to form the
-        Info.plist that represents the test bundle.
-    minimum_os_version: The minimum OS version that this target and its
-        dependencies should be built for. Optional.
-    runner: The runner target that contains the logic of how the tests should
-        be executed. This target needs to provide an AppleTestRunner provider.
-        Optional.
-    deps: A list of dependencies that contain the test code and resources
-        needed to run the tests.
-  """
-  args = dict(kwargs)
-  deps = args.pop("deps", [])
-  # Propagate the linker flags that dynamically link the Swift runtime.
-  linkopts_dep = _create_swift_runtime_linkopts_target(
-      name, deps, False, testonly=True)
+    Args:
+      name: The name of the target.
+      test_host: The macos_application target that contains the code to be
+          tested. Optional.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          test bundle. Optional. Defaults to the test_host's postfixed with
+          "Tests".
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the test bundle.
+      minimum_os_version: The minimum OS version that this target and its
+          dependencies should be built for. Optional.
+      runner: The runner target that contains the logic of how the tests should
+          be executed. This target needs to provide an AppleTestRunner provider.
+          Optional.
+      deps: A list of dependencies that contain the test code and resources
+          needed to run the tests.
+    """
+    args = dict(kwargs)
+    deps = args.pop("deps", [])
 
-  _macos_unit_test(
-      name = name,
-      deps = deps + [linkopts_dep],
-      runner = runner,
-      **args
-  )
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    linkopts_dep = _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        False,
+        testonly = True,
+    )
+
+    _macos_unit_test(
+        name = name,
+        deps = deps + [linkopts_dep],
+        runner = runner,
+        **args
+    )

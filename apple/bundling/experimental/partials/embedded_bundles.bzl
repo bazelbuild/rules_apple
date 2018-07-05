@@ -24,10 +24,10 @@ load(
 )
 
 _AppleEmbeddableInfo = provider(
-    doc="""
+    doc = """
 Private provider used to propagate the different embeddable bundles that a
 top-level bundling rule will need to package.""",
-    fields={
+    fields = {
         "frameworks": """
 A depset with the zipped archives of bundles that need to be expanded into the
 Frameworks section of the packaging bundle.""",
@@ -37,60 +37,61 @@ PlugIns section of the packaging bundle.""",
     },
 )
 
-def collect_embedded_bundle_provider(frameworks=[], plugins=[], targets=[]):
-  """Collects embeddable bundles into a single AppleEmbeddableInfo provider."""
-  embeddable_providers = [
-      x[_AppleEmbeddableInfo] for x in targets
-      if _AppleEmbeddableInfo in x
-  ]
+def collect_embedded_bundle_provider(frameworks = [], plugins = [], targets = []):
+    """Collects embeddable bundles into a single AppleEmbeddableInfo provider."""
+    embeddable_providers = [
+        x[_AppleEmbeddableInfo]
+        for x in targets
+        if _AppleEmbeddableInfo in x
+    ]
 
-  framework_bundles = depset(frameworks)
-  plugin_bundles = depset(plugins)
-  for provider in embeddable_providers:
-    framework_bundles = depset(
-        transitive=[framework_bundles, provider.frameworks],
+    framework_bundles = depset(frameworks)
+    plugin_bundles = depset(plugins)
+    for provider in embeddable_providers:
+        framework_bundles = depset(
+            transitive = [framework_bundles, provider.frameworks],
+        )
+        plugin_bundles = depset(transitive = [plugin_bundles, provider.plugins])
+
+    return _AppleEmbeddableInfo(
+        frameworks = framework_bundles,
+        plugins = plugin_bundles,
     )
-    plugin_bundles = depset(transitive=[plugin_bundles, provider.plugins])
 
-  return _AppleEmbeddableInfo(
-      frameworks=framework_bundles,
-      plugins=plugin_bundles,
-  )
+def _embedded_bundles_partial_impl(ctx, targets = []):
+    """Implementation for the embedded bundles processing partial."""
+    _ignore = [ctx]
 
-def _embedded_bundles_partial_impl(ctx, targets=[]):
-  """Implementation for the embedded bundles processing partial."""
-  _ignore = [ctx]
+    embeddable_provider = collect_embedded_bundle_provider(targets = targets)
 
-  embeddable_provider = collect_embedded_bundle_provider(targets=targets)
+    bundle_files = [
+        (processor.location.framework, None, embeddable_provider.frameworks),
+        (processor.location.plugin, None, embeddable_provider.plugins),
+    ]
 
-  bundle_files = [
-      (processor.location.framework, None, embeddable_provider.frameworks),
-      (processor.location.plugin, None, embeddable_provider.plugins),
-  ]
-
-  return struct(
-      bundle_files=bundle_files,
-      providers=[embeddable_provider],
-  )
+    return struct(
+        bundle_files = bundle_files,
+        providers = [embeddable_provider],
+    )
 
 def embedded_bundles_partial(targets):
-  """Constructor for the embedded bundles processing partial.
+    """Constructor for the embedded bundles processing partial.
 
-  This partial collects AppleEmbeddableInfo from the given targets and packages
-  them into their respective locations. Embeddable bundles are considered to be
-  frameworks, plugins (i.e. extensions) and watchOS applications in the case of
-  ios_application.
+    This partial collects AppleEmbeddableInfo from the given targets and packages
+    them into their respective locations. Embeddable bundles are considered to be
+    frameworks, plugins (i.e. extensions) and watchOS applications in the case of
+    ios_application.
 
-  Args:
-    targets: The list of targets containing transitive embeddable bundles that
-      need to be packaged into the target using this partial.
+    Args:
+      targets: The list of targets containing transitive embeddable bundles that
+        need to be packaged into the target using this partial.
 
-  Returns:
-    A partial that returns the bundle location of the embeddable bundles and
-    the AppleEmbeddableInfo provider containing the bundles embedded by this
-    target.
-  """
-  return partial.make(
-      _embedded_bundles_partial_impl,
-      targets=targets
-  )
+    Returns:
+      A partial that returns the bundle location of the embeddable bundles and
+      the AppleEmbeddableInfo provider containing the bundles embedded by this
+      target.
+    """
+    return partial.make(
+        _embedded_bundles_partial_impl,
+        targets = targets,
+    )

@@ -24,139 +24,161 @@ wrapping macro because rules cannot invoke other rules.
 
 load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
 load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
-load("@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-     "bundling_support")
-load("@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-     "apple_product_type")
-load("@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
-     "rule_factory")
+load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
+    "rule_factory",
+)
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
-load("@build_bazel_rules_apple//apple:providers.bzl",
-     "AppleBundleInfo",
-     "AppleResourceSet",
-     "TvosApplicationBundleInfo",
-     "TvosExtensionBundleInfo")
-
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceSet",
+    "TvosApplicationBundleInfo",
+    "TvosExtensionBundleInfo",
+)
 
 def _tvos_application_impl(ctx):
-  """Implementation of the `tvos_application` Skylark rule."""
+    """Implementation of the `tvos_application` Skylark rule."""
 
-  app_icons = ctx.files.app_icons
-  if app_icons:
-    bundling_support.ensure_single_xcassets_type(
-        "app_icons", app_icons, "brandassets")
-  launch_images = ctx.files.launch_images
-  if launch_images:
-    bundling_support.ensure_single_xcassets_type(
-        "launch_images", launch_images, "launchimage")
+    app_icons = ctx.files.app_icons
+    if app_icons:
+        bundling_support.ensure_single_xcassets_type(
+            "app_icons",
+            app_icons,
+            "brandassets",
+        )
+    launch_images = ctx.files.launch_images
+    if launch_images:
+        bundling_support.ensure_single_xcassets_type(
+            "launch_images",
+            launch_images,
+            "launchimage",
+        )
 
-  # Collect asset catalogs and launch images, if any are present.
-  additional_resource_sets = []
-  additional_resources = depset(app_icons + launch_images)
-  if additional_resources:
-    additional_resource_sets.append(AppleResourceSet(
-        resources=additional_resources,
-    ))
+    # Collect asset catalogs and launch images, if any are present.
+    additional_resource_sets = []
+    additional_resources = depset(app_icons + launch_images)
+    if additional_resources:
+        additional_resource_sets.append(AppleResourceSet(
+            resources = additional_resources,
+        ))
 
-  # If a settings bundle was provided, pass in its files as if they were
-  # objc_bundle imports, but forcing the "Settings.bundle" name.
-  settings_bundle = ctx.attr.settings_bundle
-  if settings_bundle:
-    additional_resource_sets.append(AppleResourceSet(
-        bundle_dir="Settings.bundle",
-        objc_bundle_imports=[
-            bf.file for bf in settings_bundle.objc.bundle_file
-        ]
-    ))
+    # If a settings bundle was provided, pass in its files as if they were
+    # objc_bundle imports, but forcing the "Settings.bundle" name.
+    settings_bundle = ctx.attr.settings_bundle
+    if settings_bundle:
+        additional_resource_sets.append(AppleResourceSet(
+            bundle_dir = "Settings.bundle",
+            objc_bundle_imports = [
+                bf.file
+                for bf in settings_bundle.objc.bundle_file
+            ],
+        ))
 
-  # TODO(b/32910122): Obtain framework information from extensions.
-  embedded_bundles = [
-      bundling_support.embedded_bundle(
-          "PlugIns", extension, verify_has_child_plist=True)
-      for extension in ctx.attr.extensions
-  ]
+    # TODO(b/32910122): Obtain framework information from extensions.
+    embedded_bundles = [
+        bundling_support.embedded_bundle(
+            "PlugIns",
+            extension,
+            verify_has_child_plist = True,
+        )
+        for extension in ctx.attr.extensions
+    ]
 
-  binary_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary)
-  binary_artifact = binary_provider.binary
-  deps_objc_provider = binary_provider.objc
-  additional_providers, legacy_providers = bundler.run(
-      ctx,
-      "TvosExtensionArchive", "tvOS application",
-      ctx.attr.bundle_id,
-      binary_artifact=binary_artifact,
-      additional_resource_sets=additional_resource_sets,
-      embedded_bundles=embedded_bundles,
-      deps_objc_providers=[deps_objc_provider],
-      extra_runfiles=run_actions.start_simulator(ctx),
-  )
+    binary_provider = binary_support.get_binary_provider(
+        ctx.attr.deps,
+        apple_common.AppleExecutableBinary,
+    )
+    binary_artifact = binary_provider.binary
+    deps_objc_provider = binary_provider.objc
+    additional_providers, legacy_providers = bundler.run(
+        ctx,
+        "TvosExtensionArchive",
+        "tvOS application",
+        ctx.attr.bundle_id,
+        binary_artifact = binary_artifact,
+        additional_resource_sets = additional_resource_sets,
+        embedded_bundles = embedded_bundles,
+        deps_objc_providers = [deps_objc_provider],
+        extra_runfiles = run_actions.start_simulator(ctx),
+    )
 
-  return struct(
-      providers=[
-          TvosApplicationBundleInfo(),
-          binary_provider,
-      ] + additional_providers,
-      **legacy_providers
-  )
-
+    return struct(
+        providers = [
+            TvosApplicationBundleInfo(),
+            binary_provider,
+        ] + additional_providers,
+        **legacy_providers
+    )
 
 tvos_application = rule_factory.make_bundling_rule(
     _tvos_application_impl,
-    additional_attrs={
-        "app_icons": attr.label_list(allow_files=True),
+    additional_attrs = {
+        "app_icons": attr.label_list(allow_files = True),
         "extensions": attr.label_list(
-            providers=[[AppleBundleInfo, TvosExtensionBundleInfo]],
+            providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
         ),
-        "launch_images": attr.label_list(allow_files=True),
-        "settings_bundle": attr.label(providers=[["objc"]]),
+        "launch_images": attr.label_list(allow_files = True),
+        "settings_bundle": attr.label(providers = [["objc"]]),
     },
-    archive_extension=".ipa",
-    bundles_frameworks=True,
-    code_signing=rule_factory.code_signing(".mobileprovision"),
-    device_families=rule_factory.device_families(allowed=["tv"]),
-    needs_pkginfo=True,
-    executable=True,
-    path_formats=rule_factory.simple_path_formats(
-        path_in_archive_format="Payload/%s"
+    archive_extension = ".ipa",
+    bundles_frameworks = True,
+    code_signing = rule_factory.code_signing(".mobileprovision"),
+    device_families = rule_factory.device_families(allowed = ["tv"]),
+    needs_pkginfo = True,
+    executable = True,
+    path_formats = rule_factory.simple_path_formats(
+        path_in_archive_format = "Payload/%s",
     ),
-    platform_type=apple_common.platform_type.tvos,
-    product_type=rule_factory.product_type(
-        apple_product_type.application, private=True,
+    platform_type = apple_common.platform_type.tvos,
+    product_type = rule_factory.product_type(
+        apple_product_type.application,
+        private = True,
     ),
 )
 
-
 def _tvos_extension_impl(ctx):
-  """Implementation of the `tvos_extension` Skylark rule."""
-  binary_provider = binary_support.get_binary_provider(
-      ctx.attr.deps, apple_common.AppleExecutableBinary)
-  binary_artifact = binary_provider.binary
-  deps_objc_provider = binary_provider.objc
-  additional_providers, legacy_providers = bundler.run(
-      ctx,
-      "TvosExtensionArchive", "tvOS extension",
-      ctx.attr.bundle_id,
-      binary_artifact=binary_artifact,
-      deps_objc_providers=[deps_objc_provider],
-  )
+    """Implementation of the `tvos_extension` Skylark rule."""
+    binary_provider = binary_support.get_binary_provider(
+        ctx.attr.deps,
+        apple_common.AppleExecutableBinary,
+    )
+    binary_artifact = binary_provider.binary
+    deps_objc_provider = binary_provider.objc
+    additional_providers, legacy_providers = bundler.run(
+        ctx,
+        "TvosExtensionArchive",
+        "tvOS extension",
+        ctx.attr.bundle_id,
+        binary_artifact = binary_artifact,
+        deps_objc_providers = [deps_objc_provider],
+    )
 
-  return struct(
-      providers=[
-          TvosExtensionBundleInfo(),
-          binary_provider,
-      ] + additional_providers,
-      **legacy_providers
-  )
-
+    return struct(
+        providers = [
+            TvosExtensionBundleInfo(),
+            binary_provider,
+        ] + additional_providers,
+        **legacy_providers
+    )
 
 tvos_extension = rule_factory.make_bundling_rule(
     _tvos_extension_impl,
-    archive_extension=".zip",
-    code_signing=rule_factory.code_signing(".mobileprovision"),
-    device_families=rule_factory.device_families(allowed=["tv"]),
-    path_formats=rule_factory.simple_path_formats(path_in_archive_format="%s"),
-    platform_type=apple_common.platform_type.tvos,
-    product_type=rule_factory.product_type(
-        apple_product_type.app_extension, private=True,
+    archive_extension = ".zip",
+    code_signing = rule_factory.code_signing(".mobileprovision"),
+    device_families = rule_factory.device_families(allowed = ["tv"]),
+    path_formats = rule_factory.simple_path_formats(path_in_archive_format = "%s"),
+    platform_type = apple_common.platform_type.tvos,
+    product_type = rule_factory.product_type(
+        apple_product_type.app_extension,
+        private = True,
     ),
 )
