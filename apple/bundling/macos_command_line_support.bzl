@@ -16,7 +16,7 @@
 
 load(
     "@bazel_skylib//lib:dicts.bzl",
-    "dicts"
+    "dicts",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:linker_support.bzl",
@@ -39,101 +39,107 @@ load(
     "AppleBundleVersionInfo",
 )
 
-
 def _macos_command_line_infoplist_impl(ctx):
-  """Implementation of the internal `macos_command_line_infoplist` rule.
+    """Implementation of the internal `macos_command_line_infoplist` rule.
 
-  This rule is an internal implementation detail of
-  `macos_command_line_application` and should not be used directly by clients.
-  It merges Info.plists as would occur for a bundle but then propagates an
-  `objc` provider with the necessary linkopts to embed the plist in a binary.
+    This rule is an internal implementation detail of
+    `macos_command_line_application` and should not be used directly by clients.
+    It merges Info.plists as would occur for a bundle but then propagates an
+    `objc` provider with the necessary linkopts to embed the plist in a binary.
 
-  Args:
-    ctx: The rule context.
+    Args:
+      ctx: The rule context.
 
-  Returns:
-    A `struct` containing the `objc` provider that should be propagated to a
-    binary that should have this plist embedded.
-  """
-  bundle_id = ctx.attr.bundle_id
-  infoplists = ctx.files.infoplists
-  if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
-    version = ctx.attr.version[AppleBundleVersionInfo]
-  else:
-    version = None
+    Returns:
+      A `struct` containing the `objc` provider that should be propagated to a
+      binary that should have this plist embedded.
+    """
+    bundle_id = ctx.attr.bundle_id
+    infoplists = ctx.files.infoplists
+    if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
+        version = ctx.attr.version[AppleBundleVersionInfo]
+    else:
+        version = None
 
-  if not bundle_id and not infoplists and not version:
-    fail("Internal error: at least one of bundle_id, infoplists, or version " +
-         "should have been provided")
+    if not bundle_id and not infoplists and not version:
+        fail("Internal error: at least one of bundle_id, infoplists, or version " +
+             "should have been provided")
 
-  plist_results = plist_actions.merge_infoplists(
-      ctx,
-      None,
-      infoplists,
-      bundle_id=bundle_id,
-      exclude_executable_name=True,
-      extract_from_ctxt=True,
-      include_xcode_env=True)
-  merged_infoplist = plist_results.output_plist
+    plist_results = plist_actions.merge_infoplists(
+        ctx,
+        None,
+        infoplists,
+        bundle_id = bundle_id,
+        exclude_executable_name = True,
+        extract_from_ctxt = True,
+        include_xcode_env = True,
+    )
+    merged_infoplist = plist_results.output_plist
 
-  return [
-      linker_support.sectcreate_objc_provider(
-          "__TEXT", "__info_plist", merged_infoplist,
-      ),
-  ]
-
+    return [
+        linker_support.sectcreate_objc_provider(
+            "__TEXT",
+            "__info_plist",
+            merged_infoplist,
+        ),
+    ]
 
 macos_command_line_infoplist = rule(
     _macos_command_line_infoplist_impl,
-    attrs=dicts.add(
+    attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
-            "bundle_id": attr.string(mandatory=False),
+            "bundle_id": attr.string(mandatory = False),
             "infoplists": attr.label_list(
-                allow_files=[".plist"],
-                mandatory=False,
-                non_empty=False,
+                allow_files = [".plist"],
+                mandatory = False,
+                non_empty = False,
             ),
-            "minimum_os_version": attr.string(mandatory=False),
-            "version": attr.label(providers=[[AppleBundleVersionInfo]]),
-            "_allowed_families": attr.string_list(default=["mac"]),
-            "_needs_pkginfo": attr.bool(default=False),
+            "minimum_os_version": attr.string(mandatory = False),
+            "version": attr.label(providers = [[AppleBundleVersionInfo]]),
+            "_allowed_families": attr.string_list(default = ["mac"]),
+            "_needs_pkginfo": attr.bool(default = False),
             "_platform_type": attr.string(
-                default=str(apple_common.platform_type.macos),
+                default = str(apple_common.platform_type.macos),
             ),
-            "_product_type": attr.string(default=apple_product_type.tool),
-        }),
-    fragments=["apple", "objc"],
+            "_product_type": attr.string(default = apple_product_type.tool),
+        },
+    ),
+    fragments = ["apple", "objc"],
 )
 
 def _macos_command_line_launchdplist_impl(ctx):
-  launchdplists = ctx.files.launchdplists
+    launchdplists = ctx.files.launchdplists
 
-  if not launchdplists:
-    fail("Internal error: launchdplists should have been provided")
+    if not launchdplists:
+        fail("Internal error: launchdplists should have been provided")
 
-  plist_results = plist_actions.merge_infoplists(
-      ctx,
-      None,
-      launchdplists)
-  merged_launchdplist = plist_results.output_plist
+    plist_results = plist_actions.merge_infoplists(
+        ctx,
+        None,
+        launchdplists,
+    )
+    merged_launchdplist = plist_results.output_plist
 
-  return [
-      linker_support.sectcreate_objc_provider(
-          "__TEXT", "__launchd_plist", merged_launchdplist
-      ),
-  ]
+    return [
+        linker_support.sectcreate_objc_provider(
+            "__TEXT",
+            "__launchd_plist",
+            merged_launchdplist,
+        ),
+    ]
 
 macos_command_line_launchdplist = rule(
     _macos_command_line_launchdplist_impl,
-    attrs=dicts.add(
+    attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
             "launchdplists": attr.label_list(
-                allow_files=[".plist"],
-                mandatory=False,
-                non_empty=False,
+                allow_files = [".plist"],
+                mandatory = False,
+                non_empty = False,
             ),
-        }),
-    fragments=["apple", "objc"],
+        },
+    ),
+    fragments = ["apple", "objc"],
 )

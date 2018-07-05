@@ -24,112 +24,119 @@ load(
 )
 
 def _ibtool_arguments(min_os, families):
-  """Returns common `ibtool` command line arguments.
+    """Returns common `ibtool` command line arguments.
 
-  This function returns the common arguments used by both xib and storyboard
-  compilation, as well as storyboard linking. Callers should add their own
-  arguments to the returned array for their specific purposes.
+    This function returns the common arguments used by both xib and storyboard
+    compilation, as well as storyboard linking. Callers should add their own
+    arguments to the returned array for their specific purposes.
 
-  Args:
-    min_os: The minimum OS version to use when compiling interface files.
-    families: The families that should be supported by the compiled interfaces.
-  Returns:
-    An array of command-line arguments to pass to ibtool.
-  """
-  return [
-      "--minimum-deployment-target", min_os,
-  ] + collections.before_each(
-      "--target-device", families)
+    Args:
+      min_os: The minimum OS version to use when compiling interface files.
+      families: The families that should be supported by the compiled interfaces.
+    Returns:
+      An array of command-line arguments to pass to ibtool.
+    """
+    return [
+        "--minimum-deployment-target",
+        min_os,
+    ] + collections.before_each(
+        "--target-device",
+        families,
+    )
 
 def compile_storyboard(ctx, swift_module, input_file, output_dir):
-  """Creates an action that compiles a storyboard.
+    """Creates an action that compiles a storyboard.
 
-  Args:
-    ctx: The target's rule context.
-    swift_module: The name of the Swift module to use when compiling the
-      storyboard.
-    input_file: The storyboard to compile.
-    output_dir: The directory where the compiled outputs should be placed.
-  """
-  # The first two arguments are those required by ibtoolwrapper; the remaining
-  # ones are passed to ibtool verbatim.
-  args = ["--compilation-directory", output_dir.dirname]
+    Args:
+      ctx: The target's rule context.
+      swift_module: The name of the Swift module to use when compiling the
+        storyboard.
+      input_file: The storyboard to compile.
+      output_dir: The directory where the compiled outputs should be placed.
+    """
 
-  min_os = platform_support.minimum_os(ctx)
-  families = platform_support.families(ctx)
-  args.extend(_ibtool_arguments(min_os, families))
-  args.extend(["--module", swift_module, input_file.path])
+    # The first two arguments are those required by ibtoolwrapper; the remaining
+    # ones are passed to ibtool verbatim.
+    args = ["--compilation-directory", output_dir.dirname]
 
-  platform_support.xcode_env_action(
-      ctx,
-      inputs=[input_file],
-      outputs=[output_dir],
-      executable=ctx.executable._ibtoolwrapper,
-      arguments=args,
-      mnemonic="StoryboardCompile",
-      no_sandbox=True,
-  )
+    min_os = platform_support.minimum_os(ctx)
+    families = platform_support.families(ctx)
+    args.extend(_ibtool_arguments(min_os, families))
+    args.extend(["--module", swift_module, input_file.path])
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = [input_file],
+        outputs = [output_dir],
+        executable = ctx.executable._ibtoolwrapper,
+        arguments = args,
+        mnemonic = "StoryboardCompile",
+        no_sandbox = True,
+    )
 
 def link_storyboards(ctx, storyboardc_dirs, output_dir):
-  """Creates an action that links multiple compiled storyboards.
+    """Creates an action that links multiple compiled storyboards.
 
-  Storyboards that reference each other must be linked, and this operation also
-  copies them into a directory structure matching that which should appear in
-  the final bundle.
+    Storyboards that reference each other must be linked, and this operation also
+    copies them into a directory structure matching that which should appear in
+    the final bundle.
 
-  Args:
-    ctx: The target's rule context.
-    storyboardc_dirs: A list of `File`s that represent directories containing
-      the compiled storyboards.
-    output_dir: The directory where the linked outputs should be placed.
-  """
-  # The first two arguments are those required by ibtoolwrapper; the remaining
-  # ones are passed to ibtool verbatim.
-  min_os = platform_support.minimum_os(ctx)
-  families = platform_support.families(ctx)
+    Args:
+      ctx: The target's rule context.
+      storyboardc_dirs: A list of `File`s that represent directories containing
+        the compiled storyboards.
+      output_dir: The directory where the linked outputs should be placed.
+    """
 
-  args = ["--link", output_dir.path]
-  args.extend(_ibtool_arguments(min_os, families))
-  args.extend([f.path for f in storyboardc_dirs])
+    # The first two arguments are those required by ibtoolwrapper; the remaining
+    # ones are passed to ibtool verbatim.
+    min_os = platform_support.minimum_os(ctx)
+    families = platform_support.families(ctx)
 
-  platform_support.xcode_env_action(
-      ctx,
-      inputs=storyboardc_dirs,
-      outputs=[output_dir],
-      executable=ctx.executable._ibtoolwrapper,
-      arguments=args,
-      mnemonic="StoryboardLink",
-      no_sandbox=True,
-  )
+    args = ["--link", output_dir.path]
+    args.extend(_ibtool_arguments(min_os, families))
+    args.extend([f.path for f in storyboardc_dirs])
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = storyboardc_dirs,
+        outputs = [output_dir],
+        executable = ctx.executable._ibtoolwrapper,
+        arguments = args,
+        mnemonic = "StoryboardLink",
+        no_sandbox = True,
+    )
 
 def compile_xib(ctx, swift_module, input_file, output_file):
-  """Creates an action that compiles a Xib file.
+    """Creates an action that compiles a Xib file.
 
-  Args:
-    ctx: The target's rule context.
-    swift_module: The name of the Swift module to use when compiling the
-      Xib file.
-    input_file: The Xib file to compile.
-    output_file: The file reference for the output nib.
-  """
-  # The first two arguments are those required by ibtoolwrapper; the remaining
-  # ones are passed to ibtool verbatim.
-  min_os = platform_support.minimum_os(ctx)
-  families = platform_support.families(ctx)
+    Args:
+      ctx: The target's rule context.
+      swift_module: The name of the Swift module to use when compiling the
+        Xib file.
+      input_file: The Xib file to compile.
+      output_file: The file reference for the output nib.
+    """
 
-  args = ["--compile", output_file.path]
-  args.extend(_ibtool_arguments(min_os, families))
-  args.extend([
-      "--module", swift_module,
-      input_file.path,
-  ])
+    # The first two arguments are those required by ibtoolwrapper; the remaining
+    # ones are passed to ibtool verbatim.
+    min_os = platform_support.minimum_os(ctx)
+    families = platform_support.families(ctx)
 
-  platform_support.xcode_env_action(
-      ctx,
-      inputs=[input_file],
-      outputs=[output_file],
-      executable=ctx.executable._ibtoolwrapper,
-      arguments=args,
-      mnemonic="XibCompile",
-      no_sandbox=True,
-  )
+    args = ["--compile", output_file.path]
+    args.extend(_ibtool_arguments(min_os, families))
+    args.extend([
+        "--module",
+        swift_module,
+        input_file.path,
+    ])
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = [input_file],
+        outputs = [output_file],
+        executable = ctx.executable._ibtoolwrapper,
+        arguments = args,
+        mnemonic = "XibCompile",
+        no_sandbox = True,
+    )

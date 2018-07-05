@@ -14,15 +14,14 @@
 
 """Rules related to Apple resources and resource bundles."""
 
-
 def objc_bundle_library(**kwargs):
-  """Creates an `objc_bundle_library` target.
+    """Creates an `objc_bundle_library` target.
 
-  This rule is a placeholder that will be updated after everyone has migrated
-  to the Skylark rules and the native rule has been deleted.
+    This rule is a placeholder that will be updated after everyone has migrated
+    to the Skylark rules and the native rule has been deleted.
 
-  Args:
-    **kwargs: Arguments that will be passed directly into the native
-        `objc_bundle_library` rule.
-  """
-  native.objc_bundle_library(**kwargs)
+    Args:
+      **kwargs: Arguments that will be passed directly into the native
+          `objc_bundle_library` rule.
+    """
+    native.objc_bundle_library(**kwargs)

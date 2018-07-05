@@ -32,57 +32,59 @@ load(
 )
 
 def _framework_provider_partial_impl(ctx):
-  """Implementation for the framework provider partial."""
-  binary_provider = ctx.attr.deps[0][apple_common.AppleDylibBinary]
-  binary_file = binary_provider.binary
+    """Implementation for the framework provider partial."""
+    binary_provider = ctx.attr.deps[0][apple_common.AppleDylibBinary]
+    binary_file = binary_provider.binary
 
-  bundle_name = bundling_support.bundle_name(ctx)
+    bundle_name = bundling_support.bundle_name(ctx)
 
-  # Create a directory structure that the linker can use to reference this
-  # framework. It follows the pattern of
-  # any_path/MyFramework.framework/MyFramework. The absolute path and files are
-  # propagated using the AppleDynamicFrameworkInfo provider.
-  framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
-  framework_file = ctx.actions.declare_file(
-      paths.join(framework_dir, bundle_name),
-  )
-  file_actions.symlink(ctx, binary_file, framework_file)
+    # Create a directory structure that the linker can use to reference this
+    # framework. It follows the pattern of
+    # any_path/MyFramework.framework/MyFramework. The absolute path and files are
+    # propagated using the AppleDynamicFrameworkInfo provider.
+    framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
+    framework_file = ctx.actions.declare_file(
+        paths.join(framework_dir, bundle_name),
+    )
+    file_actions.symlink(ctx, binary_file, framework_file)
 
-  absolute_framework_dir = paths.join(
-      ctx.bin_dir.path, ctx.label.package, framework_dir,
-  )
+    absolute_framework_dir = paths.join(
+        ctx.bin_dir.path,
+        ctx.label.package,
+        framework_dir,
+    )
 
-  # TODO(cparsons): These will no longer be necessary once apple_binary
-  # uses the values in the dynamic framework provider.
-  legacy_objc_provider = apple_common.new_objc_provider(
-      dynamic_framework_dir=depset([absolute_framework_dir]),
-      dynamic_framework_file=depset([framework_file]),
-      providers=[binary_provider.objc],
-  )
+    # TODO(cparsons): These will no longer be necessary once apple_binary
+    # uses the values in the dynamic framework provider.
+    legacy_objc_provider = apple_common.new_objc_provider(
+        dynamic_framework_dir = depset([absolute_framework_dir]),
+        dynamic_framework_file = depset([framework_file]),
+        providers = [binary_provider.objc],
+    )
 
-  framework_provider = apple_common.new_dynamic_framework_provider(
-      binary=binary_file,
-      framework_dirs=depset([absolute_framework_dir]),
-      framework_files=depset([framework_file]),
-      objc=legacy_objc_provider,
-  )
+    framework_provider = apple_common.new_dynamic_framework_provider(
+        binary = binary_file,
+        framework_dirs = depset([absolute_framework_dir]),
+        framework_files = depset([framework_file]),
+        objc = legacy_objc_provider,
+    )
 
-  return struct(
-      providers=[framework_provider],
-  )
+    return struct(
+        providers = [framework_provider],
+    )
 
 def framework_provider_partial():
-  """Constructor for the framework provider partial.
+    """Constructor for the framework provider partial.
 
-  This partial propagates the AppleDynamicFrameworkInfo provider required by
-  the linking step. It contains the necessary files and configuration so that
-  the framework can be linked against. This is only required for dynamic
-  framework bundles.
+    This partial propagates the AppleDynamicFrameworkInfo provider required by
+    the linking step. It contains the necessary files and configuration so that
+    the framework can be linked against. This is only required for dynamic
+    framework bundles.
 
-  Returns:
-    A partial that returns the AppleDynamicFrameworkInfo provider used to link
-    this framework into the final binary.
-  """
-  return partial.make(
-      _framework_provider_partial_impl,
-  )
+    Returns:
+      A partial that returns the AppleDynamicFrameworkInfo provider used to link
+      this framework into the final binary.
+    """
+    return partial.make(
+        _framework_provider_partial_impl,
+    )

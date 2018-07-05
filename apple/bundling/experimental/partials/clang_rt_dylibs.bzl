@@ -32,41 +32,45 @@ load(
 )
 
 def _clang_rt_dylibs_partial_impl(ctx, provider_key):
-  """Implementation for the Clang runtime dylibs processing partial."""
-  bundle_files = []
-  if clang_support.should_package_clang_runtime(ctx):
-    # TODO(kaipi): Don't find the binary through the provider, but through a
-    # direct File reference.
-    binary_provider = ctx.attr.deps[0][provider_key]
-    binary_file = binary_provider.binary
+    """Implementation for the Clang runtime dylibs processing partial."""
+    bundle_files = []
+    if clang_support.should_package_clang_runtime(ctx):
+        # TODO(kaipi): Don't find the binary through the provider, but through a
+        # direct File reference.
+        binary_provider = ctx.attr.deps[0][provider_key]
+        binary_file = binary_provider.binary
 
-    clang_rt_zip = intermediates.file(
-        ctx.actions, ctx.label.name, "clang_rt.zip",
-    )
-    clang_support.register_runtime_lib_actions(
-        ctx, binary_file, clang_rt_zip
-    )
+        clang_rt_zip = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            "clang_rt.zip",
+        )
+        clang_support.register_runtime_lib_actions(
+            ctx,
+            binary_file,
+            clang_rt_zip,
+        )
 
-    bundle_files.append(
-        (processor.location.framework, None, depset([clang_rt_zip])),
-    )
+        bundle_files.append(
+            (processor.location.framework, None, depset([clang_rt_zip])),
+        )
 
-  return struct(
-      bundle_files=bundle_files,
-  )
+    return struct(
+        bundle_files = bundle_files,
+    )
 
 def clang_rt_dylibs_partial(provider_key):
-  """Constructor for the Clang runtime dylibs processing partial.
+    """Constructor for the Clang runtime dylibs processing partial.
 
-  Args:
-    provider_key: The provider key under which to find the binary provider
-      containing the binary artifact.
+    Args:
+      provider_key: The provider key under which to find the binary provider
+        containing the binary artifact.
 
-  Returns:
-    A partial that returns the bundle location of the Clang runtime dylibs, if
-    there were any to bundle.
-  """
-  return partial.make(
-      _clang_rt_dylibs_partial_impl,
-      provider_key=provider_key,
-  )
+    Returns:
+      A partial that returns the bundle location of the Clang runtime dylibs, if
+      there were any to bundle.
+    """
+    return partial.make(
+        _clang_rt_dylibs_partial_impl,
+        provider_key = provider_key,
+    )

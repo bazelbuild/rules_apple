@@ -79,238 +79,251 @@ should not be processed should be propagated in `generics`.""",
 )
 
 def _get_attr_as_list(attr, attribute):
-  """Helper method to always get an attribute as a list."""
-  value = getattr(attr, attribute)
-  if not value:
-    return []
-  if type(value) == type([]):
-    return value
-  return [value]
+    """Helper method to always get an attribute as a list."""
+    value = getattr(attr, attribute)
+    if not value:
+        return []
+    if type(value) == type([]):
+        return value
+    return [value]
 
-def _bucketize(resources, swift_module=None, parent_dir_param=None):
-  """Separates the given resources into resource bucket types.
+def _bucketize(resources, swift_module = None, parent_dir_param = None):
+    """Separates the given resources into resource bucket types.
 
-  This method takes a list of resources and constructs a tuple object for
-  each, placing it inside the correct bucket.
+    This method takes a list of resources and constructs a tuple object for
+    each, placing it inside the correct bucket.
 
-  The parent_dir is calculated from the parent_dir_param object. This object
-  can either be None (the default), a string object, or a function object. If a
-  function is provided, it should accept only 1 parameter, which will be the
-  File object representing the resource to bucket. This mechanism gives us a
-  simpler way to manage multiple use cases. For example, when used to bucketize
-  structured resources, the parent_dir_param can be a function that returns the
-  relative path to the owning package; or in an objc_library it can be None,
-  signaling that these resources should be placed in the root level.
+    The parent_dir is calculated from the parent_dir_param object. This object
+    can either be None (the default), a string object, or a function object. If a
+    function is provided, it should accept only 1 parameter, which will be the
+    File object representing the resource to bucket. This mechanism gives us a
+    simpler way to manage multiple use cases. For example, when used to bucketize
+    structured resources, the parent_dir_param can be a function that returns the
+    relative path to the owning package; or in an objc_library it can be None,
+    signaling that these resources should be placed in the root level.
 
-  Once all resources have been placed in buckets, each of the lists will be
-  minimized.
+    Once all resources have been placed in buckets, each of the lists will be
+    minimized.
 
-  Finally, it will return a NewAppleResourceInfo provider with the resources
-  bucketed per type.
+    Finally, it will return a NewAppleResourceInfo provider with the resources
+    bucketed per type.
 
-  Args:
-    resources: List of resources to bucketize.
-    swift_module: The Swift module name to associate to these resources.
-    parent_dir_param: Either a string or a function used to calculate the value
-      of parent_dir for each resource.
+    Args:
+      resources: List of resources to bucketize.
+      swift_module: The Swift module name to associate to these resources.
+      parent_dir_param: Either a string or a function used to calculate the value
+        of parent_dir for each resource.
 
-  Returns:
-    A NewAppleResourceInfo provider with resources bucketized according to type.
-  """
-  buckets = {}
-  for resource in resources:
-    if str(type(parent_dir_param)) == "function":
-      parent = parent_dir_param(resource)
-    else:
-      parent = parent_dir_param
+    Returns:
+      A NewAppleResourceInfo provider with resources bucketized according to type.
+    """
+    buckets = {}
+    for resource in resources:
+        if str(type(parent_dir_param)) == "function":
+            parent = parent_dir_param(resource)
+        else:
+            parent = parent_dir_param
 
-    # For each type of resource, place in appropriate bucket.
-    # TODO(kaipi): Missing many types of resources, this is just a starting
-    # point.
+        # For each type of resource, place in appropriate bucket.
+        # TODO(kaipi): Missing many types of resources, this is just a starting
+        # point.
 
-    # Special case for localized. If .lproj/ is in the path of the resource
-    # (and the parent doesn't already have it) append the lproj component to
-    # the current parent.
-    if ".lproj/" in resource.short_path and (not parent or ".lproj" not in parent):
-      lproj_path = path_utils.farthest_directory_matching(
-          resource.short_path, "lproj"
-      )
-      parent = paths.join(parent or "", paths.basename(lproj_path))
+        # Special case for localized. If .lproj/ is in the path of the resource
+        # (and the parent doesn't already have it) append the lproj component to
+        # the current parent.
+        if ".lproj/" in resource.short_path and (not parent or ".lproj" not in parent):
+            lproj_path = path_utils.farthest_directory_matching(
+                resource.short_path,
+                "lproj",
+            )
+            parent = paths.join(parent or "", paths.basename(lproj_path))
 
-    if resource.short_path.endswith(".strings"):
-      buckets.setdefault(
-          "strings", default=[]
-      ).append((parent, None, depset([resource])))
-    elif resource.short_path.endswith(".storyboard"):
-      buckets.setdefault(
-          "storyboards", default=[]
-      ).append((parent, swift_module, depset([resource])))
-    elif resource.short_path.endswith(".xib"):
-      buckets.setdefault(
-          "xibs", default=[]
-      ).append((parent, swift_module, depset([resource])))
-    elif ".xcassets/" in resource.short_path:
-      buckets.setdefault(
-          "xcassets", default=[]
-      ).append((parent, None, depset([resource])))
-    elif ".xcdatamodel" in resource.short_path:
-      buckets.setdefault(
-          "datamodels", default=[]
-      ).append((parent, None, depset([resource])))
-    elif resource.short_path.endswith(".png"):
-      buckets.setdefault(
-          "pngs", default=[]
-      ).append((parent, None, depset([resource])))
-    else:
-      buckets.setdefault(
-          "generics", default=[]
-      ).append((parent, None, depset([resource])))
+        if resource.short_path.endswith(".strings"):
+            buckets.setdefault(
+                "strings",
+                default = [],
+            ).append((parent, None, depset([resource])))
+        elif resource.short_path.endswith(".storyboard"):
+            buckets.setdefault(
+                "storyboards",
+                default = [],
+            ).append((parent, swift_module, depset([resource])))
+        elif resource.short_path.endswith(".xib"):
+            buckets.setdefault(
+                "xibs",
+                default = [],
+            ).append((parent, swift_module, depset([resource])))
+        elif ".xcassets/" in resource.short_path:
+            buckets.setdefault(
+                "xcassets",
+                default = [],
+            ).append((parent, None, depset([resource])))
+        elif ".xcdatamodel" in resource.short_path:
+            buckets.setdefault(
+                "datamodels",
+                default = [],
+            ).append((parent, None, depset([resource])))
+        elif resource.short_path.endswith(".png"):
+            buckets.setdefault(
+                "pngs",
+                default = [],
+            ).append((parent, None, depset([resource])))
+        else:
+            buckets.setdefault(
+                "generics",
+                default = [],
+            ).append((parent, None, depset([resource])))
 
-  return NewAppleResourceInfo(
-      **dict([(k, _minimize(b)) for k, b in buckets.items()])
-  )
+    return NewAppleResourceInfo(
+        **dict([(k, _minimize(b)) for k, b in buckets.items()])
+    )
 
-def _bucketize_typed(attr, bucket_type, res_attrs=[], parent_dir_param=None):
-  """Collects and bucketizes a specific type of resource.
+def _bucketize_typed(attr, bucket_type, res_attrs = [], parent_dir_param = None):
+    """Collects and bucketizes a specific type of resource.
 
-  Finds all the resources present in the attributes listed in res_attrs, and
-  adds them directly into a NewAppleResourceInfo provider under the field named
-  in bucket_type. This avoids the sorting mechanism that `bucketize` does,
-  while grouping resources together using parent_dir_param.
+    Finds all the resources present in the attributes listed in res_attrs, and
+    adds them directly into a NewAppleResourceInfo provider under the field named
+    in bucket_type. This avoids the sorting mechanism that `bucketize` does,
+    while grouping resources together using parent_dir_param.
 
-  Args:
-    attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
-      the case of aspects.
-    bucket_type: The NewAppleResourceInfo field under which to collect the
-      resources.
-    res_attrs: The attributes under which to collect the resources.
-    parent_dir_param: Either a string or a function used to calculate the value
-      of parent_dir for each resource.
+    Args:
+      attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
+        the case of aspects.
+      bucket_type: The NewAppleResourceInfo field under which to collect the
+        resources.
+      res_attrs: The attributes under which to collect the resources.
+      parent_dir_param: Either a string or a function used to calculate the value
+        of parent_dir for each resource.
 
-  Returns:
-    A NewAppleResourceInfo provider with resources in the given bucket.
-  """
-  resources = _collect(attr, res_attrs)
-  typed_bucket = []
-  for resource in resources:
-    if str(type(parent_dir_param)) == "function":
-      parent = parent_dir_param(resource)
-    else:
-      parent = parent_dir_param
+    Returns:
+      A NewAppleResourceInfo provider with resources in the given bucket.
+    """
+    resources = _collect(attr, res_attrs)
+    typed_bucket = []
+    for resource in resources:
+        if str(type(parent_dir_param)) == "function":
+            parent = parent_dir_param(resource)
+        else:
+            parent = parent_dir_param
 
-    typed_bucket.append((parent, None, depset([resource])))
-  return NewAppleResourceInfo(
-      **{bucket_type: _minimize(typed_bucket)}
-  )
+        typed_bucket.append((parent, None, depset([resource])))
+    return NewAppleResourceInfo(
+        **{bucket_type: _minimize(typed_bucket)}
+    )
 
-def _collect(attr, res_attrs=[]):
-  """Collects all resource attributes present in the given attributes.
+def _collect(attr, res_attrs = []):
+    """Collects all resource attributes present in the given attributes.
 
-  Iterates over the given res_attrs attributes collecting files to be processed
-  as resources. These are all placed into a list, and then returned.
+    Iterates over the given res_attrs attributes collecting files to be processed
+    as resources. These are all placed into a list, and then returned.
 
-  Args:
-    attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
-      the case of aspects.
-    res_attrs: List of attributes to iterate over collecting resources.
+    Args:
+      attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
+        the case of aspects.
+      res_attrs: List of attributes to iterate over collecting resources.
 
-  Returns:
-    A list with all the collected resources for the target represented by attr.
-  """
-  if not res_attrs:
-    return []
+    Returns:
+      A list with all the collected resources for the target represented by attr.
+    """
+    if not res_attrs:
+        return []
 
-  files = []
-  for res_attr in res_attrs:
-    if hasattr(attr, res_attr):
-      file_groups = [
-          x.files.to_list()
-          for x in _get_attr_as_list(attr, res_attr)
-          if x.files
-      ]
-      for file_group in file_groups:
-        files.extend(file_group)
-  return files
+    files = []
+    for res_attr in res_attrs:
+        if hasattr(attr, res_attr):
+            file_groups = [
+                x.files.to_list()
+                for x in _get_attr_as_list(attr, res_attr)
+                if x.files
+            ]
+            for file_group in file_groups:
+                files.extend(file_group)
+    return files
 
 def _merge_providers(providers):
-  """Merges multiple NewAppleResourceInfo providers into one.
+    """Merges multiple NewAppleResourceInfo providers into one.
 
-  Args:
-    providers: The list of providers to merge. This method will fail unless
-      there is at least 1 provider in the list.
+    Args:
+      providers: The list of providers to merge. This method will fail unless
+        there is at least 1 provider in the list.
 
-  Returns:
-    A NewAppleResourceInfo provider with the results of the merge of the given
-    providers.
-  """
-  if not providers:
-    fail("merge should be called with a non-empty list of providers. This " +
-         "is most likely a bug in rules_apple, please file a bug with " +
-         "reproduction steps.")
+    Returns:
+      A NewAppleResourceInfo provider with the results of the merge of the given
+      providers.
+    """
+    if not providers:
+        fail("merge should be called with a non-empty list of providers. This " +
+             "is most likely a bug in rules_apple, please file a bug with " +
+             "reproduction steps.")
 
-  if len(providers) == 1:
-    return providers[0]
+    if len(providers) == 1:
+        return providers[0]
 
-  buckets = {}
-  for provider in providers:
-    # Get the initialized fields in the provider, with the exception of
-    # to_json and to_proto, which are not desireable for our use case.
-    # TODO(b/36412967): Remove this filtering and just use dir().
-    fields = [
-        f for f in dir(provider)
-        if f not in ["to_json", "to_proto"]
-    ]
-    for field in fields:
-      buckets.setdefault(
-          field, default=[]
-      ).extend(getattr(provider, field))
+    buckets = {}
+    for provider in providers:
+        # Get the initialized fields in the provider, with the exception of
+        # to_json and to_proto, which are not desireable for our use case.
+        # TODO(b/36412967): Remove this filtering and just use dir().
+        fields = [
+            f
+            for f in dir(provider)
+            if f not in ["to_json", "to_proto"]
+        ]
+        for field in fields:
+            buckets.setdefault(
+                field,
+                default = [],
+            ).extend(getattr(provider, field))
 
-  minimized = dict([(k, _minimize(v)) for (k, v) in buckets.items()])
-  return NewAppleResourceInfo(**minimized)
+    minimized = dict([(k, _minimize(v)) for (k, v) in buckets.items()])
+    return NewAppleResourceInfo(**minimized)
 
 def _minimize(bucket):
-  """Minimizes the given list of tuples into the smallest subset possible.
+    """Minimizes the given list of tuples into the smallest subset possible.
 
-  Takes the list of tuples that represent one resource bucket, and minimizes it
-  so that 2 tuples with resources that should be placed under the same location
-  are merged into 1 tuple.
+    Takes the list of tuples that represent one resource bucket, and minimizes it
+    so that 2 tuples with resources that should be placed under the same location
+    are merged into 1 tuple.
 
-  For tuples to be merged, they need to have the same parent_dir and swift_module.
+    For tuples to be merged, they need to have the same parent_dir and swift_module.
 
-  Args:
-    bucket: List of tuples to be minimized.
+    Args:
+      bucket: List of tuples to be minimized.
 
-  Returns:
-    A list of minimized tuples.
-  """
-  resources_by_key = {}
+    Returns:
+      A list of minimized tuples.
+    """
+    resources_by_key = {}
 
-  # Use these maps to keep track of the parent_dir and swift_module values.
-  parent_dir_by_key = {}
-  swift_module_by_key = {}
+    # Use these maps to keep track of the parent_dir and swift_module values.
+    parent_dir_by_key = {}
+    swift_module_by_key = {}
 
-  for parent_dir, swift_module, resources in bucket:
-    key = "_".join([parent_dir or "@root", swift_module or "@root"])
-    if parent_dir:
-      parent_dir_by_key[key] = parent_dir
-    if swift_module:
-      swift_module_by_key[key] = swift_module
+    for parent_dir, swift_module, resources in bucket:
+        key = "_".join([parent_dir or "@root", swift_module or "@root"])
+        if parent_dir:
+            parent_dir_by_key[key] = parent_dir
+        if swift_module:
+            swift_module_by_key[key] = swift_module
 
-    resources_by_key.setdefault(
-        key, default=[]
-    ).append(resources)
+        resources_by_key.setdefault(
+            key,
+            default = [],
+        ).append(resources)
 
-  return [
-      (parent_dir_by_key.get(k, None),
-       swift_module_by_key.get(k, None),
-       depset(transitive=r))
-      for k, r in resources_by_key.items()
-  ]
+    return [
+        (
+            parent_dir_by_key.get(k, None),
+            swift_module_by_key.get(k, None),
+            depset(transitive = r),
+        )
+        for k, r in resources_by_key.items()
+    ]
 
 resources = struct(
-    bucketize=_bucketize,
-    bucketize_typed=_bucketize_typed,
-    collect=_collect,
-    merge_providers=_merge_providers,
-    minimize=_minimize,
+    bucketize = _bucketize,
+    bucketize_typed = _bucketize_typed,
+    collect = _collect,
+    merge_providers = _merge_providers,
+    minimize = _minimize,
 )

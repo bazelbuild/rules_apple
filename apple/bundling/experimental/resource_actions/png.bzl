@@ -20,23 +20,23 @@ load(
 )
 
 def copy_png(ctx, input_file, output_file):
-  """Creates an action that copies and compresses a png using copypng.
+    """Creates an action that copies and compresses a png using copypng.
 
-  Args:
-    ctx: The target's rule context.
-    input_file: The png file to be copied.
-    output_file: The file reference for the output plist.
-  """
-  xcrun_action(
-      ctx,
-      inputs=[input_file],
-      outputs=[output_file],
-      arguments=[
-          "copypng",
-          "-strip-PNG-text",
-          "-compress",
-          input_file.path,
-          output_file.path,
-      ],
-      mnemonic="CopyPng",
-  )
+    Args:
+      ctx: The target's rule context.
+      input_file: The png file to be copied.
+      output_file: The file reference for the output plist.
+    """
+    xcrun_action(
+        ctx,
+        inputs = [input_file],
+        outputs = [output_file],
+        arguments = [
+            "copypng",
+            "-strip-PNG-text",
+            "-compress",
+            input_file.path,
+            output_file.path,
+        ],
+        mnemonic = "CopyPng",
+    )

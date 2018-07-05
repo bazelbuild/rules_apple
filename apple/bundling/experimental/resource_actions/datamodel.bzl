@@ -20,32 +20,34 @@ load(
 )
 
 def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_file):
-  """Creates an action that compiles datamodels.
+    """Creates an action that compiles datamodels.
 
-  Args:
-    ctx: The target's rule context.
-    datamodel_path: The path to the directory containing the datamodels.
-    module_name: The module name to use when compiling the datamodels.
-    input_files: The list of files to process for the given datamodel.
-    output_file: The file reference to the compiled datamodel.
-  """
-  platform = platform_support.platform(ctx)
-  platform_name = platform.name_in_plist.lower()
-  deployment_target_option = "--%s-deployment-target" % platform_name
-  min_os = platform_support.minimum_os(ctx)
+    Args:
+      ctx: The target's rule context.
+      datamodel_path: The path to the directory containing the datamodels.
+      module_name: The module name to use when compiling the datamodels.
+      input_files: The list of files to process for the given datamodel.
+      output_file: The file reference to the compiled datamodel.
+    """
+    platform = platform_support.platform(ctx)
+    platform_name = platform.name_in_plist.lower()
+    deployment_target_option = "--%s-deployment-target" % platform_name
+    min_os = platform_support.minimum_os(ctx)
 
-  args = [
-      output_file.path,
-      deployment_target_option, min_os,
-      "--module", module_name,
-      datamodel_path,
-  ]
+    args = [
+        output_file.path,
+        deployment_target_option,
+        min_os,
+        "--module",
+        module_name,
+        datamodel_path,
+    ]
 
-  platform_support.xcode_env_action(
+    platform_support.xcode_env_action(
         ctx,
-        inputs=input_files,
-        outputs=[output_file],
-        executable=ctx.executable._momcwrapper,
-        arguments=args,
-        mnemonic="MomCompile",
+        inputs = input_files,
+        outputs = [output_file],
+        executable = ctx.executable._momcwrapper,
+        arguments = args,
+        mnemonic = "MomCompile",
     )

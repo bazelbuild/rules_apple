@@ -34,10 +34,10 @@ load(
 # TODO(b/110264170): Expose this provider so that IDEs can use it to reference
 # the dSYM bundles contained in the dsym_bundles field.
 _AppleDebugInfo = provider(
-    doc="""
+    doc = """
 Private provider to propagate transitive debug symbol information.
 """,
-    fields={
+    fields = {
         "dsym_bundles": """
 Paths to dSYM bundles that this target provides. This includes the paths to
 dSYM bundles generated for dependencies of this target (e.g. frameworks and
@@ -52,160 +52,172 @@ and linkmap files, if requested through --apple_generate_dsym and/or
 )
 
 def _collect_linkmaps(ctx, debug_provider, bundle_name):
-  """Collects the available linkmaps from the binary.
+    """Collects the available linkmaps from the binary.
 
-  Args:
-    ctx: The target's rule context.
-    debug_provider: The AppleDebugOutput provider for the binary target.
-    bundle_name: The name of the output bundle.
+    Args:
+      ctx: The target's rule context.
+      debug_provider: The AppleDebugOutput provider for the binary target.
+      bundle_name: The name of the output bundle.
 
-  Returns:
-    A list of linkmap files, one per linked architecture.
-  """
-  outputs = []
-  # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-  for arch in debug_provider.outputs_map:
-    arch_outputs = debug_provider.outputs_map[arch]
-    linkmap = arch_outputs["linkmap"]
-    output_linkmap = ctx.actions.declare_file(
-        "%s_%s.linkmap" % (bundle_name, arch),
-    )
-    outputs.append(output_linkmap)
-    file_actions.symlink(ctx, linkmap, output_linkmap)
+    Returns:
+      A list of linkmap files, one per linked architecture.
+    """
+    outputs = []
 
-  return outputs
+    # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
+    for arch in debug_provider.outputs_map:
+        arch_outputs = debug_provider.outputs_map[arch]
+        linkmap = arch_outputs["linkmap"]
+        output_linkmap = ctx.actions.declare_file(
+            "%s_%s.linkmap" % (bundle_name, arch),
+        )
+        outputs.append(output_linkmap)
+        file_actions.symlink(ctx, linkmap, output_linkmap)
+
+    return outputs
 
 # TODO(kaipi): Investigate moving this actions into a tool so that we can use
 # tree artifacts instead, which should simplify parts of this file.
-def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension=""):
-  """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
+def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
+    """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
 
-  The generated bundle will have the same name as the bundle being built
-  (including its extension), but with the ".dSYM" extension appended to it.
+    The generated bundle will have the same name as the bundle being built
+    (including its extension), but with the ".dSYM" extension appended to it.
 
-  If the target being built does not have a binary or if the build it not
-  generating debug symbols (`--apple_generate_dsym` is not provided), then this
-  function is a no-op that returns an empty list.
+    If the target being built does not have a binary or if the build it not
+    generating debug symbols (`--apple_generate_dsym` is not provided), then this
+    function is a no-op that returns an empty list.
 
-  Args:
-    ctx: The target's rule context.
-    debug_provider: The AppleDebugOutput provider for the binary target.
-    bundle_name: The name of the output bundle.
-    bundle_extension: The extension for the bundle.
+    Args:
+      ctx: The target's rule context.
+      debug_provider: The AppleDebugOutput provider for the binary target.
+      bundle_name: The name of the output bundle.
+      bundle_extension: The extension for the bundle.
 
-  Returns:
-    A list of files that comprise the .dSYM bundle, which should be returned as
-    additional outputs from the target.
-  """
-  bundle_name_with_extension = bundle_name + bundle_extension
-  dsym_bundle_name = bundle_name_with_extension + ".dSYM"
+    Returns:
+      A list of files that comprise the .dSYM bundle, which should be returned as
+      additional outputs from the target.
+    """
+    bundle_name_with_extension = bundle_name + bundle_extension
+    dsym_bundle_name = bundle_name_with_extension + ".dSYM"
 
-  outputs = []
-  # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-  for arch in debug_provider.outputs_map:
-    arch_outputs = debug_provider.outputs_map[arch]
-    dsym_binary = arch_outputs["dsym_binary"]
-    output_binary = ctx.actions.declare_file(
-        "%s/Contents/Resources/DWARF/%s_%s" % (
-            dsym_bundle_name, bundle_name, arch
+    outputs = []
+
+    # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
+    for arch in debug_provider.outputs_map:
+        arch_outputs = debug_provider.outputs_map[arch]
+        dsym_binary = arch_outputs["dsym_binary"]
+        output_binary = ctx.actions.declare_file(
+            "%s/Contents/Resources/DWARF/%s_%s" % (
+                dsym_bundle_name,
+                bundle_name,
+                arch,
+            ),
         )
+        outputs.append(output_binary)
+        file_actions.symlink(ctx, dsym_binary, output_binary)
+
+    # If we found any outputs, create the Info.plist for the bundle as well;
+    # otherwise, we just return the empty list. The plist generated by dsymutil
+    # only varies based on the bundle name, so we regenerate it here rather than
+    # propagate the other one from the apple_binary. (See
+    # https://github.com/llvm-mirror/llvm/blob/master/tools/dsymutil/dsymutil.cpp)
+    if outputs:
+        dsym_plist = ctx.actions.declare_file(
+            "%s/Contents/Info.plist" % dsym_bundle_name,
+        )
+        outputs.append(dsym_plist)
+        ctx.actions.expand_template(
+            output = dsym_plist,
+            template = ctx.file._dsym_info_plist_template,
+            substitutions = {
+                "%bundle_name_with_extension%": bundle_name_with_extension,
+            },
+        )
+
+    return outputs
+
+def _debug_symbols_partial_impl(ctx, debug_dependencies = []):
+    """Implementation for the debug symbols processing partial."""
+    binary_target = ctx.attr.deps[0]
+
+    # If there is no AppleDebugOutputs provider, return early.
+    if apple_common.AppleDebugOutputs not in binary_target:
+        return struct()
+
+    debug_provider = binary_target[apple_common.AppleDebugOutputs]
+    bundle_name = bundling_support.bundle_name(ctx)
+
+    deps_providers = [
+        x[_AppleDebugInfo]
+        for x in debug_dependencies
+        if _AppleDebugInfo in x
+    ]
+
+    dsym_bundles = depset(transitive = [x.dsym_bundles for x in deps_providers])
+    output_files = depset(transitive = [x.files for x in deps_providers])
+
+    if ctx.fragments.objc.generate_dsym:
+        bundle_extension = bundling_support.bundle_extension(ctx)
+        dsym_files = _bundle_dsym_files(
+            ctx,
+            debug_provider,
+            bundle_name,
+            bundle_extension,
+        )
+        output_files = depset(
+            dsym_files,
+            transitive = [output_files],
+        )
+
+        absolute_dsym_bundle_path = paths.join(
+            ctx.bin_dir.path,
+            ctx.label.package,
+            bundle_name + bundle_extension + ".dSYM",
+        )
+        dsym_bundles = depset(
+            [absolute_dsym_bundle_path],
+            transitive = [dsym_bundles],
+        )
+
+    if ctx.fragments.objc.generate_linkmap:
+        linkmaps = _collect_linkmaps(ctx, debug_provider, bundle_name)
+        output_files = depset(
+            linkmaps,
+            transitive = [output_files],
+        )
+
+    return struct(
+        output_files = output_files,
+        providers = [
+            _AppleDebugInfo(
+                dsym_bundles = dsym_bundles,
+                files = output_files,
+            ),
+        ],
     )
-    outputs.append(output_binary)
-    file_actions.symlink(ctx, dsym_binary, output_binary)
 
-  # If we found any outputs, create the Info.plist for the bundle as well;
-  # otherwise, we just return the empty list. The plist generated by dsymutil
-  # only varies based on the bundle name, so we regenerate it here rather than
-  # propagate the other one from the apple_binary. (See
-  # https://github.com/llvm-mirror/llvm/blob/master/tools/dsymutil/dsymutil.cpp)
-  if outputs:
-    dsym_plist = ctx.actions.declare_file(
-        "%s/Contents/Info.plist" % dsym_bundle_name,
+def debug_symbols_partial(debug_dependencies = []):
+    """Constructor for the debug symbols processing partial.
+
+    This partial collects all of the transitive debug files information. The
+    output of this partial are the debug output files for the target being
+    processed _plus_ all of the dependencies debug symbol files. This includes
+    dSYM bundles and linkmaps. With this, for example, by building an
+    ios_application target with --apple_generate_dsym, this partial will return
+    the dSYM bundle of the ios_application itself plus the dSYM bundles of any
+    ios_framework and ios_extension dependencies there may be, which will force
+    bazel to present these files in the output files section of a successful
+    build.
+
+    Args:
+      debug_dependencies: List of targets from which to collect the transitive
+        dependency debug information to propagate them upstream.
+
+    Returns:
+      A partial that returns the debug output files, if any were requested.
+    """
+    return partial.make(
+        _debug_symbols_partial_impl,
+        debug_dependencies = debug_dependencies,
     )
-    outputs.append(dsym_plist)
-    ctx.actions.expand_template(
-        output=dsym_plist,
-        template=ctx.file._dsym_info_plist_template,
-        substitutions={
-            "%bundle_name_with_extension%": bundle_name_with_extension,
-        },
-    )
-
-  return outputs
-
-def _debug_symbols_partial_impl(ctx, debug_dependencies=[]):
-  """Implementation for the debug symbols processing partial."""
-  binary_target = ctx.attr.deps[0]
-  # If there is no AppleDebugOutputs provider, return early.
-  if apple_common.AppleDebugOutputs not in binary_target:
-    return struct()
-
-  debug_provider = binary_target[apple_common.AppleDebugOutputs]
-  bundle_name = bundling_support.bundle_name(ctx)
-
-  deps_providers = [
-      x[_AppleDebugInfo] for x in debug_dependencies
-      if _AppleDebugInfo in x
-  ]
-
-  dsym_bundles = depset(transitive=[x.dsym_bundles for x in deps_providers])
-  output_files = depset(transitive=[x.files for x in deps_providers])
-
-  if ctx.fragments.objc.generate_dsym:
-    bundle_extension = bundling_support.bundle_extension(ctx)
-    dsym_files = _bundle_dsym_files(
-        ctx, debug_provider, bundle_name, bundle_extension,
-    )
-    output_files = depset(
-        dsym_files, transitive=[output_files]
-    )
-
-    absolute_dsym_bundle_path = paths.join(
-        ctx.bin_dir.path,
-        ctx.label.package,
-        bundle_name + bundle_extension + ".dSYM",
-    )
-    dsym_bundles = depset(
-        [absolute_dsym_bundle_path], transitive=[dsym_bundles],
-    )
-
-  if ctx.fragments.objc.generate_linkmap:
-    linkmaps = _collect_linkmaps(ctx, debug_provider, bundle_name)
-    output_files = depset(
-        linkmaps, transitive=[output_files]
-    )
-
-  return struct(
-      output_files=output_files,
-      providers=[
-          _AppleDebugInfo(
-              dsym_bundles=dsym_bundles,
-              files=output_files,
-          ),
-      ],
-  )
-
-def debug_symbols_partial(debug_dependencies=[]):
-  """Constructor for the debug symbols processing partial.
-
-  This partial collects all of the transitive debug files information. The
-  output of this partial are the debug output files for the target being
-  processed _plus_ all of the dependencies debug symbol files. This includes
-  dSYM bundles and linkmaps. With this, for example, by building an
-  ios_application target with --apple_generate_dsym, this partial will return
-  the dSYM bundle of the ios_application itself plus the dSYM bundles of any
-  ios_framework and ios_extension dependencies there may be, which will force
-  bazel to present these files in the output files section of a successful
-  build.
-
-  Args:
-    debug_dependencies: List of targets from which to collect the transitive
-      dependency debug information to propagate them upstream.
-
-  Returns:
-    A partial that returns the debug output files, if any were requested.
-  """
-  return partial.make(
-      _debug_symbols_partial_impl,
-      debug_dependencies=debug_dependencies,
-  )

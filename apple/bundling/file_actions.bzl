@@ -14,42 +14,40 @@
 
 """Actions for basic file system operations."""
 
-
 def _symlink(ctx, source, target):
-  """Creates a symlink.
+    """Creates a symlink.
 
-  This action will create the necessary directory structure for the target if
-  it is not present already.
+    This action will create the necessary directory structure for the target if
+    it is not present already.
 
-  Args:
-    ctx: The Skylark context.
-    source: The source `File` of the symlink.
-    target: A `File` representing the target of the symlink.
-  """
+    Args:
+      ctx: The Skylark context.
+      source: The source `File` of the symlink.
+      target: A `File` representing the target of the symlink.
+    """
 
-  # TODO(b/33386130): Create proper symlinks everywhere.
-  ctx.actions.run_shell(
-      inputs=[source, ctx.file._realpath],
-      outputs=[target],
-      mnemonic="Symlink",
-      arguments=[
-          target.dirname,
-          source.path,
-          target.path,
-          ctx.file._realpath.path
-      ],
-      command=('mkdir -p "$1"; ' +
-               'if [[ "$(uname)" == Darwin ]]; then ' +
-               '  ln -s "$("$4" "$2")" "$3"; ' +
-               "else " +
-               '  cp "$2" "$3"; ' +
-               "fi"),
-      progress_message="Symlinking %s to %s" % (source.path, target.path),
-      execution_requirements={"no-sandbox": "1"},
-  )
-
+    # TODO(b/33386130): Create proper symlinks everywhere.
+    ctx.actions.run_shell(
+        inputs = [source, ctx.file._realpath],
+        outputs = [target],
+        mnemonic = "Symlink",
+        arguments = [
+            target.dirname,
+            source.path,
+            target.path,
+            ctx.file._realpath.path,
+        ],
+        command = ('mkdir -p "$1"; ' +
+                   'if [[ "$(uname)" == Darwin ]]; then ' +
+                   '  ln -s "$("$4" "$2")" "$3"; ' +
+                   "else " +
+                   '  cp "$2" "$3"; ' +
+                   "fi"),
+        progress_message = "Symlinking %s to %s" % (source.path, target.path),
+        execution_requirements = {"no-sandbox": "1"},
+    )
 
 # Define the loadable module that lists the exported symbols in this file.
 file_actions = struct(
-    symlink=_symlink,
+    symlink = _symlink,
 )

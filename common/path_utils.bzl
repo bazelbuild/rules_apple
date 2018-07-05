@@ -14,88 +14,96 @@
 
 """Support functions common path operations."""
 
-load("@bazel_skylib//lib:paths.bzl",
-     "paths")
-
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 
 def _bundle_relative_path(f):
-  """Returns the portion of `f`'s path relative to its containing `.bundle`.
+    """Returns the portion of `f`'s path relative to its containing `.bundle`.
 
-  This function fails if `f` does not have an ancestor directory named with the
-  `.bundle` extension.
+    This function fails if `f` does not have an ancestor directory named with the
+    `.bundle` extension.
 
-  Args:
-    f: A file.
+    Args:
+      f: A file.
 
-  Returns:
-    The `.bundle`-relative path to the file.
-  """
-  return paths.relativize(
-      f.short_path, _farthest_directory_matching(f.short_path, "bundle"))
-
+    Returns:
+      The `.bundle`-relative path to the file.
+    """
+    return paths.relativize(
+        f.short_path,
+        _farthest_directory_matching(f.short_path, "bundle"),
+    )
 
 def _farthest_directory_matching(path, extension):
-  """Returns the part of a path with the given extension closest to the root.
+    """Returns the part of a path with the given extension closest to the root.
 
-  For example, if `path` is `"foo/bar.bundle/baz.bundle"`, passing `".bundle"`
-  as the extension will return `"foo/bar.bundle"`.
+    For example, if `path` is `"foo/bar.bundle/baz.bundle"`, passing `".bundle"`
+    as the extension will return `"foo/bar.bundle"`.
 
-  Args:
-    path: The path.
-    extension: The extension of the directory to find.
+    Args:
+      path: The path.
+      extension: The extension of the directory to find.
 
-  Returns:
-    The portion of the path that ends in the given extension that is closest
-    to the root of the path.
-  """
-  prefix, ext, _ = path.partition("." + extension)
-  if ext:
-    return prefix + ext
+    Returns:
+      The portion of the path that ends in the given extension that is closest
+      to the root of the path.
+    """
+    prefix, ext, _ = path.partition("." + extension)
+    if ext:
+        return prefix + ext
 
-  fail("Expected path %r to contain %r, but it did not" % (
-      path, "." + extension))
-
+    fail("Expected path %r to contain %r, but it did not" % (
+        path,
+        "." + extension,
+    ))
 
 def _owner_relative_path(f):
-  """Returns the portion of `f`'s path relative to its owner.
+    """Returns the portion of `f`'s path relative to its owner.
 
-  Args:
-    f: A file.
+    Args:
+      f: A file.
 
-  Returns:
-    The owner-relative path to the file.
-  """
-  if f.is_source:
-    # Even though the docs says a File's `short_path` doesn't include the
-    # root, Bazel special cases anything that is external and includes a
-    # relative path (../) to the file. On the File's `owner` we can get the
-    # `workspace_root` to try and line things up, but it is in the form of
-    # "external/[name]". However the File's `path` does include the root and
-    # leaves it in the "externa/" form.
-    return paths.relativize(f.path,
-                            paths.join(f.owner.workspace_root, f.owner.package))
-  elif f.owner.workspace_root:
-    # Just like the above comment but for generated files, the same mangling
-    # happen in `short_path`, but since it is generated, the `path` includes
-    # the extra output directories bazel makes. So pick off what bazel will do
-    # to the `short_path` ("../"), and turn it into an "external/" so a
-    # relative path from the owner can be calculated.
-    workspace_root = f.owner.workspace_root
-    short_path = f.short_path
-    if (not workspace_root.startswith("external/") or
-        not short_path.startswith("../")):
-      fail(("Generated file in a different workspace with unexpected " +
-            "short_path (%s) and owner.workspace_root (%r).") % (
-           short_path, workspace_root))
-    return paths.relativize("external" + short_path[2:],
-                            paths.join(f.owner.workspace_root, f.owner.package))
-  else:
-    return paths.relativize(f.short_path, f.owner.package)
-
+    Returns:
+      The owner-relative path to the file.
+    """
+    if f.is_source:
+        # Even though the docs says a File's `short_path` doesn't include the
+        # root, Bazel special cases anything that is external and includes a
+        # relative path (../) to the file. On the File's `owner` we can get the
+        # `workspace_root` to try and line things up, but it is in the form of
+        # "external/[name]". However the File's `path` does include the root and
+        # leaves it in the "externa/" form.
+        return paths.relativize(
+            f.path,
+            paths.join(f.owner.workspace_root, f.owner.package),
+        )
+    elif f.owner.workspace_root:
+        # Just like the above comment but for generated files, the same mangling
+        # happen in `short_path`, but since it is generated, the `path` includes
+        # the extra output directories bazel makes. So pick off what bazel will do
+        # to the `short_path` ("../"), and turn it into an "external/" so a
+        # relative path from the owner can be calculated.
+        workspace_root = f.owner.workspace_root
+        short_path = f.short_path
+        if (not workspace_root.startswith("external/") or
+            not short_path.startswith("../")):
+            fail(("Generated file in a different workspace with unexpected " +
+                  "short_path (%s) and owner.workspace_root (%r).") % (
+                short_path,
+                workspace_root,
+            ))
+        return paths.relativize(
+            "external" + short_path[2:],
+            paths.join(f.owner.workspace_root, f.owner.package),
+        )
+    else:
+        return paths.relativize(f.short_path, f.owner.package)
 
 # Define the loadable module that lists the exported symbols in this file.
 path_utils = struct(
-    bundle_relative_path=_bundle_relative_path,
-    farthest_directory_matching=_farthest_directory_matching,
-    owner_relative_path=_owner_relative_path,
+    bundle_relative_path = _bundle_relative_path,
+    farthest_directory_matching = _farthest_directory_matching,
+    owner_relative_path = _owner_relative_path,
 )

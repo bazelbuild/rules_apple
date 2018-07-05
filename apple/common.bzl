@@ -14,12 +14,11 @@
 
 """Support for things that are common to all Apple platforms."""
 
-
 entitlements_validation_mode = struct(
-    error="error",
-    warn="warn",
-    loose="loose",
-    skip="skip",
+    error = "error",
+    warn = "warn",
+    loose = "loose",
+    skip = "skip",
 )
 """
 The different modes for the validation of requested entitlements vs. those

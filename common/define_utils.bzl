@@ -14,31 +14,30 @@
 
 """Support functions for common define operations."""
 
-
 def _bool_value(ctx, define_name, default):
-  """Looks up a define on ctx for a boolean value.
+    """Looks up a define on ctx for a boolean value.
 
-  Will also report an error if the value is not a supported value.
+    Will also report an error if the value is not a supported value.
 
-  Args:
-    ctx: A skylark context.
-    define_name: The name of the define to look up.
-    default: The value to return if the define isn't found.
+    Args:
+      ctx: A skylark context.
+      define_name: The name of the define to look up.
+      default: The value to return if the define isn't found.
 
-  Returns:
-    True/False or the default value if the define wasn't found.
-  """
-  value = ctx.var.get(define_name, None)
-  if value != None:
-    if value.lower() in ("true", "yes", "1"):
-      return True
-    if value.lower() in ("false", "no", "0"):
-      return False
-    fail("Valid values for --define={} are: true|yes|1 or false|no|0.".format(
-        define_name))
-  return default
-
+    Returns:
+      True/False or the default value if the define wasn't found.
+    """
+    value = ctx.var.get(define_name, None)
+    if value != None:
+        if value.lower() in ("true", "yes", "1"):
+            return True
+        if value.lower() in ("false", "no", "0"):
+            return False
+        fail("Valid values for --define={} are: true|yes|1 or false|no|0.".format(
+            define_name,
+        ))
+    return default
 
 define_utils = struct(
-    bool_value=_bool_value,
+    bool_value = _bool_value,
 )
