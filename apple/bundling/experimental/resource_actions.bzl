@@ -16,37 +16,37 @@
 
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:actool.bzl",
-    _compile_asset_catalog="compile_asset_catalog",
+    _compile_asset_catalog = "compile_asset_catalog",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:datamodel.bzl",
-    _compile_datamodels="compile_datamodels",
+    _compile_datamodels = "compile_datamodels",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:ibtool.bzl",
-    _compile_storyboard="compile_storyboard",
-    _compile_xib="compile_xib",
-    _link_storyboards="link_storyboards",
+    _compile_storyboard = "compile_storyboard",
+    _compile_xib = "compile_xib",
+    _link_storyboards = "link_storyboards",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:plist.bzl",
-    _compile_plist="compile_plist",
-    _merge_resource_infoplists="merge_resource_infoplists",
-    _merge_root_infoplists="merge_root_infoplists",
+    _compile_plist = "compile_plist",
+    _merge_resource_infoplists = "merge_resource_infoplists",
+    _merge_root_infoplists = "merge_root_infoplists",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:png.bzl",
-    _copy_png="copy_png",
+    _copy_png = "copy_png",
 )
 
 resource_actions = struct(
-    compile_asset_catalog=_compile_asset_catalog,
-    compile_datamodels=_compile_datamodels,
-    compile_plist=_compile_plist,
-    compile_storyboard=_compile_storyboard,
-    compile_xib=_compile_xib,
-    copy_png=_copy_png,
-    link_storyboards=_link_storyboards,
-    merge_resource_infoplists=_merge_resource_infoplists,
-    merge_root_infoplists=_merge_root_infoplists,
+    compile_asset_catalog = _compile_asset_catalog,
+    compile_datamodels = _compile_datamodels,
+    compile_plist = _compile_plist,
+    compile_storyboard = _compile_storyboard,
+    compile_xib = _compile_xib,
+    copy_png = _copy_png,
+    link_storyboards = _link_storyboards,
+    merge_resource_infoplists = _merge_resource_infoplists,
+    merge_root_infoplists = _merge_root_infoplists,
 )

@@ -14,52 +14,52 @@
 
 """Supporting functions for Clang libraries."""
 
-load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support")
-
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
 
 def _should_package_clang_runtime(ctx):
-  """Returns whether the Clang runtime should be bundled."""
-  # List of crosstool sanitizer features that require packaging some clang
-  # runtime libraries.
-  features_requiring_clang_runtime = {
-      "asan": True,
-      "tsan": True,
-      "ubsan": True,
-  }
+    """Returns whether the Clang runtime should be bundled."""
 
-  for feature in ctx.features:
-    if feature in features_requiring_clang_runtime:
-      return True
-  return False
+    # List of crosstool sanitizer features that require packaging some clang
+    # runtime libraries.
+    features_requiring_clang_runtime = {
+        "asan": True,
+        "tsan": True,
+        "ubsan": True,
+    }
 
+    for feature in ctx.features:
+        if feature in features_requiring_clang_runtime:
+            return True
+    return False
 
 def _register_runtime_lib_actions(ctx, binary_artifact, output_zip):
-  """Creates an archive with Clang runtime libraries.
+    """Creates an archive with Clang runtime libraries.
 
-  Args:
-    ctx: The Skylark context.
-    binary_artifact: The bundle binary to be processed with clang's runtime
-        tool.
-    output_zip: A `File` object representing the ZIP output file where to
-        package the runtime libraries.
-  """
-  platform_support.xcode_env_action(
-      ctx,
-      inputs=[binary_artifact],
-      outputs=[output_zip],
-      executable=ctx.executable._clangrttool,
-      arguments=[
-        binary_artifact.path,
-        output_zip.path,
-      ],
-      mnemonic="ClangRuntimeLibsCopy",
-      # This action needs to read the contents of the Xcode bundle.
-      no_sandbox=True,
-  )
-
+    Args:
+      ctx: The Skylark context.
+      binary_artifact: The bundle binary to be processed with clang's runtime
+          tool.
+      output_zip: A `File` object representing the ZIP output file where to
+          package the runtime libraries.
+    """
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = [binary_artifact],
+        outputs = [output_zip],
+        executable = ctx.executable._clangrttool,
+        arguments = [
+            binary_artifact.path,
+            output_zip.path,
+        ],
+        mnemonic = "ClangRuntimeLibsCopy",
+        # This action needs to read the contents of the Xcode bundle.
+        no_sandbox = True,
+    )
 
 clang_support = struct(
-    register_runtime_lib_actions=_register_runtime_lib_actions,
-    should_package_clang_runtime=_should_package_clang_runtime
+    register_runtime_lib_actions = _register_runtime_lib_actions,
+    should_package_clang_runtime = _should_package_clang_runtime,
 )

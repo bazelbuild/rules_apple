@@ -16,109 +16,102 @@
 
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunner"
+    "AppleTestRunner",
 )
 
-
 def _get_template_substitutions(ctx):
-  """Returns the template substitutions for this runner."""
-  test_env = ctx.configuration.test_env
-  subs = {
-      "os_version": ctx.attr.os_version,
-      "test_env": ",".join([k + "=" + v for (k, v) in test_env.items()]),
-      "testrunner_binary": ctx.executable._testrunner.short_path,
-      "device_type": ctx.attr.device_type,
-  }
-  return {"%(" + k + ")s": subs[k] for k in subs}
-
+    """Returns the template substitutions for this runner."""
+    test_env = ctx.configuration.test_env
+    subs = {
+        "os_version": ctx.attr.os_version,
+        "test_env": ",".join([k + "=" + v for (k, v) in test_env.items()]),
+        "testrunner_binary": ctx.executable._testrunner.short_path,
+        "device_type": ctx.attr.device_type,
+    }
+    return {"%(" + k + ")s": subs[k] for k in subs}
 
 def _get_test_environment(ctx):
-  """Returns the test environment for this runner."""
-  test_environment = dict(ctx.configuration.test_env)
-  xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-                      .xcode_version())
-  if xcode_version:
-    test_environment["XCODE_VERSION"] = xcode_version
+    """Returns the test environment for this runner."""
+    test_environment = dict(ctx.configuration.test_env)
+    xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
+    if xcode_version:
+        test_environment["XCODE_VERSION"] = xcode_version
 
-  return test_environment
-
+    return test_environment
 
 def _ios_test_runner_impl(ctx):
-  """Implementation for the ios_test_runner rule."""
-  ctx.actions.expand_template(
-      template = ctx.file._test_template,
-      output = ctx.outputs.test_runner_template,
-      substitutions = _get_template_substitutions(ctx)
-  )
-  return [
-      AppleTestRunner(
-          test_runner_template = ctx.outputs.test_runner_template,
-          execution_requirements = ctx.attr.execution_requirements,
-          test_environment = _get_test_environment(ctx),
-      ),
-      DefaultInfo(
-          runfiles = ctx.runfiles(
-              files = [ctx.file._testrunner]
-          ),
-      ),
-  ]
-
+    """Implementation for the ios_test_runner rule."""
+    ctx.actions.expand_template(
+        template = ctx.file._test_template,
+        output = ctx.outputs.test_runner_template,
+        substitutions = _get_template_substitutions(ctx),
+    )
+    return [
+        AppleTestRunner(
+            test_runner_template = ctx.outputs.test_runner_template,
+            execution_requirements = ctx.attr.execution_requirements,
+            test_environment = _get_test_environment(ctx),
+        ),
+        DefaultInfo(
+            runfiles = ctx.runfiles(
+                files = [ctx.file._testrunner],
+            ),
+        ),
+    ]
 
 ios_test_runner = rule(
     _ios_test_runner_impl,
-    attrs={
-        "_testrunner":
-            attr.label(
-                default=Label(
-                    "@xctestrunner//file"),
-                allow_single_file=True,
-                executable=True,
-                cfg="host",
-                doc="""
+    attrs = {
+        "_testrunner": attr.label(
+            default = Label(
+                "@xctestrunner//file",
+            ),
+            allow_single_file = True,
+            executable = True,
+            cfg = "host",
+            doc = """
 It is the rule that needs to provide the AppleTestRunner provider. This
 dependency is the test runner binary.
-"""
+""",
+        ),
+        "_test_template": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
             ),
-        "_test_template":
-            attr.label(
-                default=Label(
-                    "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh"),
-                allow_single_file=True,
+            allow_single_file = True,
+        ),
+        "_xcode_config": attr.label(
+            default = configuration_field(
+                fragment = "apple",
+                name = "xcode_config_label",
             ),
-        "_xcode_config":
-            attr.label(
-                default=configuration_field(
-                    fragment="apple", name="xcode_config_label"),
-            ),
-        "device_type":
-            attr.string(
-                default="",
-                doc="""
+        ),
+        "device_type": attr.string(
+            default = "",
+            doc = """
 The device type of the iOS simulator to run test. The supported types correspond
 to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air.
 By default, it is the latest supported iPhone type.'
-"""
-            ),
-        "execution_requirements":
-            attr.string_dict(
-                allow_empty=False,
-                default={"requires-darwin": ""},
-                doc="""
+""",
+        ),
+        "execution_requirements": attr.string_dict(
+            allow_empty = False,
+            default = {"requires-darwin": ""},
+            doc = """
 Dictionary of strings to strings which specifies the execution requirements for
 the runner. In most common cases, this should not be used.
-"""
-            ),
-        "os_version":
-            attr.string(
-                default="",
-                doc="""
+""",
+        ),
+        "os_version": attr.string(
+            default = "",
+            doc = """
 The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
-"""
-            ),
+""",
+        ),
     },
-    outputs={
+    outputs = {
         "test_runner_template": "%{name}.sh",
     },
     fragments = ["apple", "objc"],

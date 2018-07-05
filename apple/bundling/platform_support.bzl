@@ -23,7 +23,6 @@ load(
     "attrs",
 )
 
-
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 _DEVICE_FAMILY_VALUES = {
@@ -37,166 +36,158 @@ _DEVICE_FAMILY_VALUES = {
     "mac": None,
 }
 
-
 def _families(ctx):
-  """Returns the device families that apply to the target being built.
+    """Returns the device families that apply to the target being built.
 
-  Some platforms, such as iOS, support multiple device families (iPhone and
-  iPad) and provide a `families` attribute that lets the user specify which
-  to use. Other platforms, like tvOS, only support one family, so they do not
-  provide the public attribute and instead we implicitly get the supported
-  families from the private attribute instead.
+    Some platforms, such as iOS, support multiple device families (iPhone and
+    iPad) and provide a `families` attribute that lets the user specify which
+    to use. Other platforms, like tvOS, only support one family, so they do not
+    provide the public attribute and instead we implicitly get the supported
+    families from the private attribute instead.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    The list of device families that apply to the target being built.
-  """
-  return attrs.get(ctx.attr, "families", ctx.attr._allowed_families)
-
+    Returns:
+      The list of device families that apply to the target being built.
+    """
+    return attrs.get(ctx.attr, "families", ctx.attr._allowed_families)
 
 def _ui_device_family_plist_value(ctx):
-  """Returns the value to use for `UIDeviceFamily` in an info.plist.
+    """Returns the value to use for `UIDeviceFamily` in an info.plist.
 
-  This function returns the array of value to use or None if there should be
-  no plist entry (currently, only macOS doesn't use UIDeviceFamily).
+    This function returns the array of value to use or None if there should be
+    no plist entry (currently, only macOS doesn't use UIDeviceFamily).
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    A list of integers to use for the `UIDeviceFamily` in an Info.plist
-    or None if the key should not be added to the Info.plist.
-  """
-  families = []
-  for f in _families(ctx):
-    number = _DEVICE_FAMILY_VALUES[f]
-    if number:
-      families.append(number)
-  if families:
-    return families
-  return None
-
+    Returns:
+      A list of integers to use for the `UIDeviceFamily` in an Info.plist
+      or None if the key should not be added to the Info.plist.
+    """
+    families = []
+    for f in _families(ctx):
+        number = _DEVICE_FAMILY_VALUES[f]
+        if number:
+            families.append(number)
+    if families:
+        return families
+    return None
 
 def _is_device_build(ctx):
-  """Returns True if the target is being built for a device.
+    """Returns True if the target is being built for a device.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    True if this is a device build, or False if it is a simulator build.
-  """
-  platform = _platform(ctx)
-  return platform.is_device
-
+    Returns:
+      True if this is a device build, or False if it is a simulator build.
+    """
+    platform = _platform(ctx)
+    return platform.is_device
 
 def _minimum_os(ctx):
-  """Returns the minimum OS version required for the current target.
+    """Returns the minimum OS version required for the current target.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    A string containing the dotted minimum OS version.
-  """
-  min_os = ctx.attr.minimum_os_version
-  if not min_os:
-    # TODO(b/38006810): Use the SDK version instead of the flag value as a soft
-    # default.
-    min_os = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-                 .minimum_os_for_platform_type(_platform_type(ctx)))
-  return min_os
-
+    Returns:
+      A string containing the dotted minimum OS version.
+    """
+    min_os = ctx.attr.minimum_os_version
+    if not min_os:
+        # TODO(b/38006810): Use the SDK version instead of the flag value as a soft
+        # default.
+        min_os = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].minimum_os_for_platform_type(_platform_type(ctx)))
+    return min_os
 
 def _platform_type(ctx):
-  """Returns the platform type for the current target.
+    """Returns the platform type for the current target.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    The `PlatformType` for the current target, after being converted from its
-    string attribute form.
-  """
-  platform_type_string = attrs.get(ctx.attr, "platform_type",
-                                   default=attrs.private_fallback)
-  return getattr(apple_common.platform_type, platform_type_string)
-
+    Returns:
+      The `PlatformType` for the current target, after being converted from its
+      string attribute form.
+    """
+    platform_type_string = attrs.get(
+        ctx.attr,
+        "platform_type",
+        default = attrs.private_fallback,
+    )
+    return getattr(apple_common.platform_type, platform_type_string)
 
 def _platform(ctx):
-  """Returns the platform for the current target.
+    """Returns the platform for the current target.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    The Platform object for the target.
-  """
-  apple = ctx.fragments.apple
-  platform = apple.multi_arch_platform(_platform_type(ctx))
-  return platform
-
+    Returns:
+      The Platform object for the target.
+    """
+    apple = ctx.fragments.apple
+    platform = apple.multi_arch_platform(_platform_type(ctx))
+    return platform
 
 def _platform_and_sdk_version(ctx):
-  """Returns the platform and SDK version for the current target.
+    """Returns the platform and SDK version for the current target.
 
-  Args:
-    ctx: The Skylark context.
+    Args:
+      ctx: The Skylark context.
 
-  Returns:
-    A tuple containing the Platform object for the target and the SDK version
-    to build against for that platform.
-  """
-  platform = _platform(ctx)
-  sdk_version = (ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-                 .sdk_version_for_platform(platform))
+    Returns:
+      A tuple containing the Platform object for the target and the SDK version
+      to build against for that platform.
+    """
+    platform = _platform(ctx)
+    sdk_version = (ctx.attr._xcode_config[apple_common.XcodeVersionConfig].sdk_version_for_platform(platform))
 
-  return platform, sdk_version
-
+    return platform, sdk_version
 
 def _xcode_env_action(ctx, **kwargs):
-  """Executes a Darwin-only action with the necessary platform environment.
+    """Executes a Darwin-only action with the necessary platform environment.
 
-  This rule is intended to be used by actions that invoke scripts like
-  actoolwrapper and ibtoolwrapper that need to pass the Xcode and target
-  platform versions into the environment but don't need to be wrapped by
-  xcrunwrapper because they already invoke it internally.
+    This rule is intended to be used by actions that invoke scripts like
+    actoolwrapper and ibtoolwrapper that need to pass the Xcode and target
+    platform versions into the environment but don't need to be wrapped by
+    xcrunwrapper because they already invoke it internally.
 
-  Rules using this action must require the "apple" configuration fragment.
+    Rules using this action must require the "apple" configuration fragment.
 
-  Note: The env here is different than apple/utils.bzl's xcrun_env() in that
-  that uses ctx.fragments.apple.single_arch_platform, where here we look up the
-  platform off some locally define attributes. The difference being
-  xcrun_env()/xcrun_action() are used in context where all transitions have
-  already happened; but this is meant to be used in bundling, where we are
-  before any of those transitions, and so the rule must ensure the right
-  platform/arches are being used itself.
+    Note: The env here is different than apple/utils.bzl's xcrun_env() in that
+    that uses ctx.fragments.apple.single_arch_platform, where here we look up the
+    platform off some locally define attributes. The difference being
+    xcrun_env()/xcrun_action() are used in context where all transitions have
+    already happened; but this is meant to be used in bundling, where we are
+    before any of those transitions, and so the rule must ensure the right
+    platform/arches are being used itself.
 
-  Args:
-    ctx: The Skylark context.
-    **kwargs: Arguments to be passed into apple_action.
-  """
-  platform = _platform(ctx)
-  xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-  action_env = dict(kwargs.get("env", {}))
-  action_env.update(apple_common.target_apple_env(xcode_config, platform))
-  action_env.update(apple_common.apple_host_system_env(xcode_config))
+    Args:
+      ctx: The Skylark context.
+      **kwargs: Arguments to be passed into apple_action.
+    """
+    platform = _platform(ctx)
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    action_env = dict(kwargs.get("env", {}))
+    action_env.update(apple_common.target_apple_env(xcode_config, platform))
+    action_env.update(apple_common.apple_host_system_env(xcode_config))
 
-  kwargs["env"] = action_env
+    kwargs["env"] = action_env
 
-  apple_action(ctx, **kwargs)
-
+    apple_action(ctx, **kwargs)
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
-    families=_families,
-    is_device_build=_is_device_build,
-    minimum_os=_minimum_os,
-    platform=_platform,
-    platform_and_sdk_version=_platform_and_sdk_version,
-    platform_type=_platform_type,
-    ui_device_family_plist_value=_ui_device_family_plist_value,
-    xcode_env_action=_xcode_env_action,
+    families = _families,
+    is_device_build = _is_device_build,
+    minimum_os = _minimum_os,
+    platform = _platform,
+    platform_and_sdk_version = _platform_and_sdk_version,
+    platform_type = _platform_type,
+    ui_device_family_plist_value = _ui_device_family_plist_value,
+    xcode_env_action = _xcode_env_action,
 )

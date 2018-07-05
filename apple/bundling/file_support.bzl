@@ -19,71 +19,69 @@ load(
     "optionally_prefixed_path",
 )
 
-
 def _intermediate_name(pattern, label, path, prefix):
-  """Returns the name for a new intermediate file or directory.
+    """Returns the name for a new intermediate file or directory.
 
-  Args:
-    pattern: A pattern used to derive the path and name of the file or
-        directory.
-    label: The label whose name should be substituted for `%{name}`.
-    path: The path to be substituted for `%{path}`.
-    prefix: An optional prefix that, if present, will be added just before
-        `%{path}`, separated by the rest of the path by a slash.
+    Args:
+      pattern: A pattern used to derive the path and name of the file or
+          directory.
+      label: The label whose name should be substituted for `%{name}`.
+      path: The path to be substituted for `%{path}`.
+      prefix: An optional prefix that, if present, will be added just before
+          `%{path}`, separated by the rest of the path by a slash.
 
-  Returns:
-    The name to use for an intermediate.
-  """
-  name = pattern.replace("%{name}", label.name)
-  if path:
-    name = name.replace("%{path}", optionally_prefixed_path(path, prefix))
-  else:
-    name = optionally_prefixed_path(name, prefix)
-  return name
+    Returns:
+      The name to use for an intermediate.
+    """
+    name = pattern.replace("%{name}", label.name)
+    if path:
+        name = name.replace("%{path}", optionally_prefixed_path(path, prefix))
+    else:
+        name = optionally_prefixed_path(name, prefix)
+    return name
 
+def _intermediate(ctx, pattern, path = None, prefix = None):
+    """Returns a new intermediate file.
 
-def _intermediate(ctx, pattern, path=None, prefix=None):
-  """Returns a new intermediate file.
+    Args:
+      ctx: The Skylark context.
+      pattern: A pattern used to derive the path and name of the file. If the
+          placeholder `%{name}` is in the string, it will be replaced with
+          `ctx.label.name` (that is, the name of the current building target).
+          Likewise, `%{path}` will be substituted with the `path` argument.
+      path: The path to be substituted for `%{path}`.
+      prefix: An optional prefix that, if present, will be added just before
+          `%{path}`, separated by the rest of the path by a slash.
 
-  Args:
-    ctx: The Skylark context.
-    pattern: A pattern used to derive the path and name of the file. If the
-        placeholder `%{name}` is in the string, it will be replaced with
-        `ctx.label.name` (that is, the name of the current building target).
-        Likewise, `%{path}` will be substituted with the `path` argument.
-    path: The path to be substituted for `%{path}`.
-    prefix: An optional prefix that, if present, will be added just before
-        `%{path}`, separated by the rest of the path by a slash.
+    Returns:
+      A new `File` object.
+    """
+    return ctx.actions.declare_file(
+        _intermediate_name(pattern, ctx.label, path, prefix),
+    )
 
-  Returns:
-    A new `File` object.
-  """
-  return ctx.actions.declare_file(
-      _intermediate_name(pattern, ctx.label, path, prefix))
+def _intermediate_dir(ctx, pattern, path = None, prefix = None):
+    """Returns a new intermediate directory.
 
+    Args:
+      ctx: The Skylark context.
+      pattern: A pattern used to derive the path and name of the directory. If the
+          placeholder `%{name}` is in the string, it will be replaced with
+          `ctx.label.name` (that is, the name of the current building target).
+          Likewise, `%{path}` will be substituted with the `path` argument.
+      path: The path to be substituted for `%{path}`.
+      prefix: An optional prefix that, if present, will be added just before
+          `%{path}`, separated by the rest of the path by a slash.
 
-def _intermediate_dir(ctx, pattern, path=None, prefix=None):
-  """Returns a new intermediate directory.
-
-  Args:
-    ctx: The Skylark context.
-    pattern: A pattern used to derive the path and name of the directory. If the
-        placeholder `%{name}` is in the string, it will be replaced with
-        `ctx.label.name` (that is, the name of the current building target).
-        Likewise, `%{path}` will be substituted with the `path` argument.
-    path: The path to be substituted for `%{path}`.
-    prefix: An optional prefix that, if present, will be added just before
-        `%{path}`, separated by the rest of the path by a slash.
-
-  Returns:
-    A new `File` object (which actually represents a directory).
-  """
-  return ctx.experimental_new_directory(
-      _intermediate_name(pattern, ctx.label, path, prefix))
-
+    Returns:
+      A new `File` object (which actually represents a directory).
+    """
+    return ctx.experimental_new_directory(
+        _intermediate_name(pattern, ctx.label, path, prefix),
+    )
 
 # Define the loadable module that lists the exported symbols in this file.
 file_support = struct(
-    intermediate=_intermediate,
-    intermediate_dir=_intermediate_dir,
+    intermediate = _intermediate,
+    intermediate_dir = _intermediate_dir,
 )

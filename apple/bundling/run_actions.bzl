@@ -16,42 +16,40 @@
 
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
-
 def _start_simulator(ctx):
-  """Registers an action that runs the bundled app in the iOS simulator.
+    """Registers an action that runs the bundled app in the iOS simulator.
 
-  This function requires that the calling rule include the `objc` configuration
-  fragment, outputs an `archive` with the IPA, and have the following tool
-  attributes:
+    This function requires that the calling rule include the `objc` configuration
+    fragment, outputs an `archive` with the IPA, and have the following tool
+    attributes:
 
-  - `_std_redirect_dylib`: The StdRedirect.dylib file used to make an app's
-    output visible during the run.
+    - `_std_redirect_dylib`: The StdRedirect.dylib file used to make an app's
+      output visible during the run.
 
-  Args:
-    ctx: The Skylark context.
-  Returns:
-    A list of files that should be added to the calling rule's runfiles.
-  """
-  ctx.actions.expand_template(
-      output=ctx.outputs.executable,
-      is_executable=True,
-      template=ctx.file._runner_template,
-      substitutions={
-          "%app_name%": ctx.label.name,
-          "%ipa_file%": ctx.outputs.archive.short_path,
-          "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
-          "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
-          "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
-      },
-  )
-  return [
-      ctx.outputs.executable,
-      ctx.outputs.archive,
-      ctx.file._std_redirect_dylib,
-  ]
-
+    Args:
+      ctx: The Skylark context.
+    Returns:
+      A list of files that should be added to the calling rule's runfiles.
+    """
+    ctx.actions.expand_template(
+        output = ctx.outputs.executable,
+        is_executable = True,
+        template = ctx.file._runner_template,
+        substitutions = {
+            "%app_name%": ctx.label.name,
+            "%ipa_file%": ctx.outputs.archive.short_path,
+            "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
+            "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
+            "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
+        },
+    )
+    return [
+        ctx.outputs.executable,
+        ctx.outputs.archive,
+        ctx.file._std_redirect_dylib,
+    ]
 
 # Define the loadable module that lists the exported symbols in this file.
 run_actions = struct(
-    start_simulator=_start_simulator,
+    start_simulator = _start_simulator,
 )
