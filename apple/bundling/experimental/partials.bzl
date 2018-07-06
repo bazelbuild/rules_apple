@@ -19,6 +19,10 @@ load(
     _binary_partial = "binary_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:bitcode_symbols.bzl",
+    _bitcode_symbols_partial = "bitcode_symbols_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:clang_rt_dylibs.bzl",
     _clang_rt_dylibs_partial = "clang_rt_dylibs_partial",
 )
@@ -45,6 +49,7 @@ load(
 
 partials = struct(
     binary_partial = _binary_partial,
+    bitcode_symbols_partial = _bitcode_symbols_partial,
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
