@@ -52,19 +52,14 @@ def ios_application_impl(ctx):
     ]
     binary_provider_key = apple_common.AppleExecutableBinary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(
-            provider_key = binary_provider_key,
-        ),
-        partials.clang_rt_dylibs_partial(
-            provider_key = binary_provider_key,
-        ),
+        partials.binary_partial(provider_key = binary_provider_key),
+        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
+        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
         ),
-        partials.embedded_bundles_partial(
-            # TODO(kaipi): Handle watchOS apps as well.
-            targets = ctx.attr.frameworks + ctx.attr.extensions,
-        ),
+        # TODO(kaipi): Handle watchOS apps as well.
+        partials.embedded_bundles_partial(targets = ctx.attr.frameworks + ctx.attr.extensions),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
@@ -101,14 +96,11 @@ def ios_framework_impl(ctx):
     # TODO(kaipi): Add support for packaging headers.
     binary_provider_key = apple_common.AppleDylibBinary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(
-            provider_key = binary_provider_key,
-        ),
+        partials.binary_partial(provider_key = binary_provider_key),
+        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
-        partials.clang_rt_dylibs_partial(
-            provider_key = binary_provider_key,
-        ),
+        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
         partials.debug_symbols_partial(debug_dependencies = ctx.attr.frameworks),
         partials.framework_provider_partial(),
         partials.resources_partial(
@@ -132,9 +124,7 @@ def ios_framework_impl(ctx):
     return [
         # TODO(kaipi): Fill in the fields of AppleBundleInfo.
         AppleBundleInfo(),
-        DefaultInfo(
-            files = processor_result.output_files,
-        ),
+        DefaultInfo(files = processor_result.output_files),
         embedded_bundles_provider,
         IosFrameworkBundleInfo(),
     ] + processor_result.providers
@@ -147,12 +137,9 @@ def ios_extension_impl(ctx):
     ]
     binary_provider_key = apple_common.AppleExecutableBinary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(
-            provider_key = binary_provider_key,
-        ),
-        partials.clang_rt_dylibs_partial(
-            provider_key = binary_provider_key,
-        ),
+        partials.binary_partial(provider_key = binary_provider_key),
+        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
+        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
         partials.debug_symbols_partial(debug_dependencies = ctx.attr.frameworks),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
