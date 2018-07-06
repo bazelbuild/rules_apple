@@ -50,13 +50,22 @@ def ios_application_impl(ctx):
         "settings_bundle",
         "strings",
     ]
-    binary_provider_key = apple_common.AppleExecutableBinary
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(provider_key = binary_provider_key),
-        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
-        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         # TODO(kaipi): Handle watchOS apps as well.
         partials.embedded_bundles_partial(targets = ctx.attr.frameworks + ctx.attr.extensions),
@@ -66,9 +75,9 @@ def ios_application_impl(ctx):
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks + ctx.attr.extensions,
             package_dylibs = True,
-            provider_key = binary_provider_key,
         ),
     ])
 
@@ -92,29 +101,39 @@ def ios_application_impl(ctx):
 
 def ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
-
     # TODO(kaipi): Add support for packaging headers.
-    binary_provider_key = apple_common.AppleDylibBinary
+
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(provider_key = binary_provider_key),
-        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
-        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
-        partials.debug_symbols_partial(debug_dependencies = ctx.attr.frameworks),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
         partials.framework_provider_partial(),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
         ),
         partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            provider_key = binary_provider_key,
         ),
     ])
 
-    # This can't be made into a partial as it needs the output archive
-    # reference.
+    # This can't be made into a partial as it needs the output archive reference.
     # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
     embedded_bundles_provider = collect_embedded_bundle_provider(
         frameworks = [ctx.outputs.archive],
@@ -135,20 +154,32 @@ def ios_extension_impl(ctx):
         "app_icons",
         "strings",
     ]
-    binary_provider_key = apple_common.AppleExecutableBinary
+
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
     processor_result = processor.process(ctx, [
-        partials.binary_partial(provider_key = binary_provider_key),
-        partials.bitcode_symbols_partial(provider_key = binary_provider_key),
-        partials.clang_rt_dylibs_partial(provider_key = binary_provider_key),
-        partials.debug_symbols_partial(debug_dependencies = ctx.attr.frameworks),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            provider_key = binary_provider_key,
         ),
     ])
 

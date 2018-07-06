@@ -35,16 +35,13 @@ load(
     "processor",
 )
 
-def _bitcode_symbols_partial_impl(ctx, provider_key):
+def _bitcode_symbols_partial_impl(ctx, binary_artifact, debug_outputs_provider=None):
     """Implementation for the bitcode symbols processing partial."""
-    binary_target = ctx.attr.deps[0]
-
     # If there is no AppleDebugOutputs provider, return early.
-    if apple_common.AppleDebugOutputs not in binary_target:
+    if not debug_outputs_provider:
         return struct()
 
-    debug_outputs_map = binary_target[apple_common.AppleDebugOutputs].outputs_map
-    binary_file = binary_target[provider_key].binary
+    debug_outputs_map = debug_outputs_provider.outputs_map
 
     bitcode_files = []
     copy_commands = []
@@ -61,7 +58,7 @@ def _bitcode_symbols_partial_impl(ctx, provider_key):
              "${{{{OUTPUT_DIR}}}}/$(dwarfdump -u -arch {arch} {binary} " +
              "| cut -d' ' -f2).bcsymbolmap").format(
                 arch = arch,
-                binary = binary_file.path,
+                binary = binary_artifact.path,
                 bitcode_file = bitcode_file.path,
             ),
         )
@@ -73,7 +70,7 @@ def _bitcode_symbols_partial_impl(ctx, provider_key):
 
     platform_support.xcode_env_action(
         ctx,
-        inputs = [binary_file] + bitcode_files,
+        inputs = [binary_artifact] + bitcode_files,
         outputs = [bitcode_dir],
         command = [
             "/bin/bash",
@@ -92,17 +89,19 @@ def _bitcode_symbols_partial_impl(ctx, provider_key):
 
     return struct(bundle_files = bundle_files)
 
-def bitcode_symbols_partial(provider_key):
+def bitcode_symbols_partial(binary_artifact, debug_outputs_provider):
     """Constructor for the bitcode symbols processing partial.
 
     Args:
-      provider_key: The provider key under which to find the binary provider containing the binary
-        artifact.
+      binary_artifact: The main binary artifact for this target.
+      debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
+        outputs of this target's binary.
 
     Returns:
       A partial that returns the bitcode files to bundle, if any were requested.
     """
     return partial.make(
         _bitcode_symbols_partial_impl,
-        provider_key = provider_key,
+        binary_artifact = binary_artifact,
+        debug_outputs_provider = debug_outputs_provider,
     )

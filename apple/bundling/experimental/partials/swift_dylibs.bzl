@@ -83,14 +83,8 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
         no_sandbox = True,
     )
 
-def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider_key):
+def _swift_dylibs_partial_impl(ctx, binary_artifact, dependency_targets, package_dylibs):
     """Implementation for the Swift dylibs processing partial."""
-
-    # TODO(kaipi): Don't find the binary through the provider, but through a
-    # direct File reference.
-    binary_provider = ctx.attr.deps[0][provider_key]
-    binary_file = binary_provider.binary
-
     transitive_binaries = depset(transitive = [
         x[_AppleSwiftDylibsInfo].binary
         for x in dependency_targets
@@ -98,7 +92,7 @@ def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider
 
     if swift_support.uses_swift(ctx.attr.deps):
         transitive_binaries = depset(
-            [binary_file],
+            [binary_artifact],
             transitive = [transitive_binaries],
         )
 
@@ -135,28 +129,24 @@ def _swift_dylibs_partial_impl(ctx, dependency_targets, package_dylibs, provider
         providers = [_AppleSwiftDylibsInfo(binary = transitive_binaries)],
     )
 
-def swift_dylibs_partial(dependency_targets, provider_key, package_dylibs = False):
+def swift_dylibs_partial(binary_artifact, dependency_targets = [], package_dylibs = False):
     """Constructor for the Swift dylibs processing partial.
 
-    This partial handles the Swift dylibs that may need to be packaged or
-    propagated.
+    This partial handles the Swift dylibs that may need to be packaged or propagated.
 
     Args:
-      dependency_targets: List of targets that should be checked for
-        binaries that might contain Swift, so that the Swift dylibs can be
-        collected.
-      provider_key: The provider key under which to find the binary provider
-        containing the binary artifact.
-      package_dylibs: Whether the partial should return the Swift files to be
-        packaged inside the target's bundle.
+      binary_artifact: The main binary artifact for this target.
+      dependency_targets: List of targets that should be checked for binaries that might contain
+        Swift, so that the Swift dylibs can be collected.
+      package_dylibs: Whether the partial should return the Swift files to be packaged inside the
+        target's bundle.
 
     Returns:
-      A partial that returns the bundle location of the Swift dylibs, if there
-      were any to bundle.
+      A partial that returns the bundle location of the Swift dylibs, if there were any to bundle.
     """
     return partial.make(
         _swift_dylibs_partial_impl,
+        binary_artifact = binary_artifact,
         dependency_targets = dependency_targets,
         package_dylibs = package_dylibs,
-        provider_key = provider_key,
     )
