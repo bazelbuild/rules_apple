@@ -35,44 +35,34 @@ load(
     "processor",
 )
 
-def _binary_partial_impl(ctx, provider_key):
+def _binary_partial_impl(ctx, binary_artifact):
     """Implementation for the binary processing partial."""
-    binary_provider = ctx.attr.deps[0][provider_key]
-    binary_file = binary_provider.binary
-
     # Create intermediate file with proper name for the binary.
     intermediate_file = intermediates.file(
         ctx.actions,
         ctx.label.name,
         bundling_support.bundle_name(ctx),
     )
-    file_actions.symlink(ctx, binary_file, intermediate_file)
+    file_actions.symlink(ctx, binary_artifact, intermediate_file)
 
     return struct(
         bundle_files = [
             (processor.location.binary, None, depset([intermediate_file])),
         ],
-        providers = [binary_provider],
     )
 
-def binary_partial(provider_key):
+def binary_partial(binary_artifact):
     """Constructor for the binary processing partial.
 
-    This partial propagates the binary file to be bundled, as well as the binary
-    provider coming from the underlying apple_binary target. Because apple_binary
-    provides a different provider depending on the type of binary being created,
-    this partial requires the provider key under which to find the provider to
-    propagate as well as the binary artifact to bundle.
+    This partial propagates the bundle location for the main binary artifact for the target.
 
     Args:
-      provider_key: The provider key under which to find the binary provider
-        containing the binary artifact.
+      binary_artifact: The main binary artifact for this target.
 
     Returns:
-      A partial that returns the bundle location of the binary and the binary
-      provider.
+      A partial that returns the bundle location of the binary artifact.
     """
     return partial.make(
         _binary_partial_impl,
-        provider_key = provider_key,
+        binary_artifact = binary_artifact,
     )
