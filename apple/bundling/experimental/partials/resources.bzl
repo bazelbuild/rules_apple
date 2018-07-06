@@ -124,13 +124,17 @@ def _frameworks(ctx, parent_dir, files):
     framework_files = []
     for file in files.to_list():
         file_short_path = file.short_path
-        if "Headers/" in file_short_path:
-            continue
-        if "Modules/" in file_short_path:
-            continue
+        # TODO(b/36435385): Use the new tuple argument format to check for both extensions in one
+        # call.
         if file_short_path.endswith(".h"):
             continue
         if file_short_path.endswith(".modulemap"):
+            continue
+        if "Headers/" in file_short_path:
+            continue
+        if "PrivateHeaders/" in file_short_path:
+            continue
+        if "Modules/" in file_short_path:
             continue
         framework_files.append(file)
 
