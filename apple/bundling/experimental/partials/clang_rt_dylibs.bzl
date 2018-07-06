@@ -31,15 +31,10 @@ load(
     "processor",
 )
 
-def _clang_rt_dylibs_partial_impl(ctx, provider_key):
+def _clang_rt_dylibs_partial_impl(ctx, binary_artifact):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_files = []
     if clang_support.should_package_clang_runtime(ctx):
-        # TODO(kaipi): Don't find the binary through the provider, but through a
-        # direct File reference.
-        binary_provider = ctx.attr.deps[0][provider_key]
-        binary_file = binary_provider.binary
-
         clang_rt_zip = intermediates.file(
             ctx.actions,
             ctx.label.name,
@@ -47,7 +42,7 @@ def _clang_rt_dylibs_partial_impl(ctx, provider_key):
         )
         clang_support.register_runtime_lib_actions(
             ctx,
-            binary_file,
+            binary_artifact,
             clang_rt_zip,
         )
 
@@ -59,18 +54,17 @@ def _clang_rt_dylibs_partial_impl(ctx, provider_key):
         bundle_files = bundle_files,
     )
 
-def clang_rt_dylibs_partial(provider_key):
+def clang_rt_dylibs_partial(binary_artifact):
     """Constructor for the Clang runtime dylibs processing partial.
 
     Args:
-      provider_key: The provider key under which to find the binary provider
-        containing the binary artifact.
+      binary_artifact: The main binary artifact for this target.
 
     Returns:
-      A partial that returns the bundle location of the Clang runtime dylibs, if
-      there were any to bundle.
+      A partial that returns the bundle location of the Clang runtime dylibs, if there were any to
+      bundle.
     """
     return partial.make(
         _clang_rt_dylibs_partial_impl,
-        provider_key = provider_key,
+        binary_artifact = binary_artifact,
     )
