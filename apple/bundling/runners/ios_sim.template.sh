@@ -40,10 +40,16 @@ if [[ "$(uname)" != Darwin ]]; then
   exit 1
 fi
 
+function MissingRuntimeError() {
+  # print a simple error message about runtimes.
+  printf "Currently installed runtimes:\n%s\n\nYou can install other runtimes via Xcode > Preferences > Components\n" \
+      "$(xcrun simctl list runtimes)"
+}
+
 # Note: the sim_device and sdk_version might contain spaces, but they are already
 # provided in quoted form in the template variables, so we should not quote them
 # again here.
-trap "printf \"Currently installed runtimes:\n%s\n\nYou can install other runtimes via Xcode > Preferences > Components\n\" \"$(xcrun simctl list runtimes)\"" ERR
+trap "MissingRuntimeError" ERR
 TEST_DEVICE_ID=$(xcrun simctl create TestDevice %sim_device% %sdk_version%)
 trap - ERR
 
