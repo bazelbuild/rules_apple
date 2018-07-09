@@ -39,6 +39,8 @@ Location types can be 7:
   - framework: Files are to be placed in the Frameworks section of the bundle.
   - plugin: Files are to be placed in the PlugIns section of the bundle.
   - resources: Files are to be placed in the resources section of the bundle.
+  - watch: Files are to be placed inside the Watch section of the bundle. Only applicable for iOS
+    apps.
 
 For iOS, tvOS and watchOS, binary, content and resources all refer to the same
 location. Only in macOS these paths differ.
@@ -83,6 +85,7 @@ _LOCATION_ENUM = struct(
     framework = "framework",
     plugin = "plugin",
     resource = "resource",
+    watch = "watch",
 )
 
 def _archive_paths(ctx):
@@ -103,6 +106,7 @@ def _archive_paths(ctx):
         _LOCATION_ENUM.framework: paths.join(contents_path, "Frameworks"),
         _LOCATION_ENUM.plugin: paths.join(contents_path, "PlugIns"),
         _LOCATION_ENUM.resource: contents_path,
+        _LOCATION_ENUM.watch: paths.join(contents_path, "Watch"),
     }
 
 def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
@@ -120,6 +124,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
 
     location_to_paths = _archive_paths(ctx)
 
+    # List of locations where zip files should be unzipped instead of placed as is.
+    unzip_locations = [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin, _LOCATION_ENUM.watch]
+
     for partial_output in partial_outputs:
         if not hasattr(partial_output, "bundle_files"):
             continue
@@ -135,8 +142,8 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
                 # locations should never be zip resources that would be placed without
                 # expanding. If we get zip resources, they would be packaged normally
                 # as part of the else statement below.
-                if (location in [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin] and
-                    source.short_path.endswith(".zip")):
+
+                if (location in unzip_locations and source.short_path.endswith(".zip")):
                     control_zips.append(struct(src = source.path, dest = target_path))
                 else:
                     if not source.is_directory:

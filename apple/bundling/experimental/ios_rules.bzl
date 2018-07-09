@@ -15,10 +15,6 @@
 """Experimental implementation of iOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling/experimental:partials.bzl",
     "partials",
 )
@@ -50,12 +46,16 @@ def ios_application_impl(ctx):
         "settings_bundle",
         "strings",
     ]
+
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
     # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
+    if ctx.attr.watch_application:
+        embeddable_targets.append(ctx.attr.watch_application)
     processor_result = processor.process(ctx, [
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
@@ -67,8 +67,7 @@ def ios_application_impl(ctx):
             debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
-        # TODO(kaipi): Handle watchOS apps as well.
-        partials.embedded_bundles_partial(targets = ctx.attr.frameworks + ctx.attr.extensions),
+        partials.embedded_bundles_partial(targets = embeddable_targets),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,

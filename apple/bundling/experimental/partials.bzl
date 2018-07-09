@@ -46,6 +46,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:swift_dylibs.bzl",
     _swift_dylibs_partial = "swift_dylibs_partial",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:watchos_stub.bzl",
+    _watchos_stub_partial = "watchos_stub_partial",
+)
 
 partials = struct(
     binary_partial = _binary_partial,
@@ -56,4 +60,5 @@ partials = struct(
     framework_provider_partial = _framework_provider_partial,
     resources_partial = _resources_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
+    watchos_stub_partial=_watchos_stub_partial,
 )

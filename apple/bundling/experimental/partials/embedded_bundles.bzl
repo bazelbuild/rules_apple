@@ -34,10 +34,13 @@ Frameworks section of the packaging bundle.""",
         "plugins": """
 A depset with the zipped archives of bundles that need to be expanded into the
 PlugIns section of the packaging bundle.""",
+        "watches":"""
+A depset with the zipped archives of bundles that need to be expanded into the Watch secttion of
+the packaging bundle. Only applicable for iOS applications.""",
     },
 )
 
-def collect_embedded_bundle_provider(frameworks = [], plugins = [], targets = []):
+def collect_embedded_bundle_provider(frameworks = [], plugins = [], watches = [], targets = []):
     """Collects embeddable bundles into a single AppleEmbeddableInfo provider."""
     embeddable_providers = [
         x[_AppleEmbeddableInfo]
@@ -47,15 +50,16 @@ def collect_embedded_bundle_provider(frameworks = [], plugins = [], targets = []
 
     framework_bundles = depset(frameworks)
     plugin_bundles = depset(plugins)
+    watch_bundles = depset(watches)
     for provider in embeddable_providers:
-        framework_bundles = depset(
-            transitive = [framework_bundles, provider.frameworks],
-        )
+        framework_bundles = depset(transitive = [framework_bundles, provider.frameworks])
         plugin_bundles = depset(transitive = [plugin_bundles, provider.plugins])
+        watch_bundles = depset(transitive = [watch_bundles, provider.watches])
 
     return _AppleEmbeddableInfo(
         frameworks = framework_bundles,
         plugins = plugin_bundles,
+        watches = watch_bundles,
     )
 
 def _embedded_bundles_partial_impl(ctx, targets = []):
@@ -67,11 +71,11 @@ def _embedded_bundles_partial_impl(ctx, targets = []):
     bundle_files = [
         (processor.location.framework, None, embeddable_provider.frameworks),
         (processor.location.plugin, None, embeddable_provider.plugins),
+        (processor.location.watch, None, embeddable_provider.watches),
     ]
 
     return struct(
         bundle_files = bundle_files,
-        providers = [embeddable_provider],
     )
 
 def embedded_bundles_partial(targets):
