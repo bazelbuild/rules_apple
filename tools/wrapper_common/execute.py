@@ -56,14 +56,15 @@ def execute_and_filter_output(xcrunargs, filtering=None, trim_paths=False):
 
 def _trim_paths(stdout):
   """Trim CWD from any paths in "stdout"."""
+  CWD = os.getcwd() + "/"
 
   def replace_path(m):
     path = m.group(0)
     # Some paths present in stdout may contain symlinks, which must be resolved
     # before we can reliably compare to CWD.
     fullpath = os.path.realpath(path)
-    if fullpath.find(os.getcwd()) >= 0:
-      return fullpath.replace(os.getcwd(), "")
+    if fullpath.find(CWD) >= 0:
+      return fullpath.replace(CWD, "")
     else:
       return path
 
