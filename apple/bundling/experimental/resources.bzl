@@ -14,37 +14,53 @@
 
 """Core resource propagation logic.
 
-Resource are propagated using NewAppleResourceInfo, in which each field
-(or bucket) contains data for resources that should be bundled inside
-top-level Apple bundles (e.g. ios_application).
+Resource are propagated using NewAppleResourceInfo, in which each field (or bucket) contains data
+for resources that should be bundled inside top-level Apple bundles (e.g. ios_application).
 
 Each bucket contains a list of tuples with the following schema:
 
-  (parent_dir, swift_module, resource_files)
+    (parent_dir, swift_module, resource_files)
 
-  - parent_dir: This is the target path relative to the root of the bundle
-    that will embed the resource_files. Each of the resource_files will
-    be copied into a directory structure that matches parent_dir. If
-    parent_dir is None, the resources will be placed in the root level.
-    For structured resources where the relative path to the target must be
-    preserved, parent_dir might look like "some/dir/path". For bundles,
-    parent_dir might look like "Resource.bundle".
-  - swift_module: This is the name of the Swift module, should the resources
-    had been added through a swift_library rule. This is needed as some
-    resource types require this value when being compiled (e.g. xibs).
-  - resource_files: This is a depset of all the files that should be placed
-    under parent_dir.
+    - parent_dir: This is the target path relative to the root of the bundle that will embed the
+        resource_files. Each of the resource_files will be copied into a directory structure that
+        matches parent_dir. If parent_dir is None, the resources will be placed in the root level.
+        For structured resources where the relative path to the target must be preserved,
+        parent_dir might look like "some/dir/path". For bundles, parent_dir might look like
+        "Resource.bundle".
+    - swift_module: This is the name of the Swift module, should the resources had been added
+        through a swift_library rule. This is needed as some resource types require this value when
+        being compiled (e.g. xibs).
+    - resource_files: This is a depset of all the files that should be placed under parent_dir.
 
-During propagation, each target will need to merge multiple NewAppleResourceInfo
-providers coming from dependencies. Merging will then aggressively minimize
-the tuples in order to only have one tuple per parent_dir per swift_module per
-bucket.
+During propagation, each target will need to merge multiple NewAppleResourceInfo providers coming
+from dependencies. Merging will then aggressively minimize the tuples in order to only have one
+tuple per parent_dir per swift_module per bucket.
+
+NewAppleResourceInfo also has a `owners` field which contains a map with the short paths of every
+resource in the buckets as keys, and a depset of the targets that declare usage as owner of that
+resource as values. This dictionary is meant to be used during the deduplication phase, to account
+for each usage of the resources in the dependency graph and avoid deduplication if the resource is
+used in code higher level bundles. With this, every target is certain that the resource they
+reference will be packaged in the same bundle as the code they implement, ensuring that
+`[NSBundle bundleForClass:[self class]]` will always return a bundle containing the requested
+resource.
+
+In some cases the value for certain keys in `owners` may be None. This value is used to signal that
+the target referencing the resource should not be considered the owner, and that the next target in
+the dependency chain that can own resources should set itself as the owner. A good example of this
+is is the objc_bundle rule. This rule doesn't contain any code, so the resources represented by
+these targets should not be bound to the objc_bundle target, as they should be marked as being owned
+by the objc_library or swift_library targets that reference them.
+
+The None values in the `owners` dictionary are then replaced with a default owner in the
+`merge_providers` method, which should be called to merge a list of providers into a single
+NewAppleResourceInfo provider to be returned as the provider of the target, and to bundle the
+resources contained within in the top-level bundling rules.
 
 This file provides methods to easily:
-  - collect all resource files from the different rules and their attributes
-  - bucketize each of the resources into specific buckets depending on their
-    path
-  - minimize the resulting tuples in order to minimize memory usage
+    - collect all resource files from the different rules and their attributes
+    - bucketize each of the resources into specific buckets depending on their path
+    - minimize the resulting tuples in order to minimize memory usage
 """
 
 load(
@@ -57,24 +73,22 @@ load(
 )
 
 NewAppleResourceInfo = provider(
-    doc = """
-Provider that propagates buckets of resources that are differentiated by
-resource type.
-""",
+    doc = "Provider that propagates buckets of resources that are differentiated by type.",
     fields = {
         "generics": "Generic resources not mapped to the other types.",
         "datamodels": "Datamodel files.",
-        "frameworks": """Files to be bundled as part of a framework. This is
-explicitly used for objc_framework, since we treat the files references as
-resources that need to be packaged into the Frameworks section of the
-bundle.""",
-        "plists": """Plist files to be merged and processed. Plist files that
-should not be processed should be propagated in `generics`.""",
+        "frameworks": """Files to be bundled as part of a framework. This is explicitly used for
+objc_framework, since we treat the files references as resources that need to be packaged into the
+Frameworks section of the bundle.""",
+        "plists": """Plist files to be merged and processed. Plist files that should not be
+processed should be propagated in `generics`.""",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "xcassets": "Resources that need to be embedded into Assets.car.",
         "xibs": "XIB Interface files.",
+        "owners": """Map of resource short paths to a depset of strings that represent targets that
+declare ownership of that resource.""",
     },
 )
 
@@ -87,143 +101,150 @@ def _get_attr_as_list(attr, attribute):
         return value
     return [value]
 
-def _bucketize(resources, swift_module = None, parent_dir_param = None):
+def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = None):
     """Separates the given resources into resource bucket types.
 
-    This method takes a list of resources and constructs a tuple object for
-    each, placing it inside the correct bucket.
+    This method takes a list of resources and constructs a tuple object for each, placing it inside
+    the correct bucket.
 
-    The parent_dir is calculated from the parent_dir_param object. This object
-    can either be None (the default), a string object, or a function object. If a
-    function is provided, it should accept only 1 parameter, which will be the
-    File object representing the resource to bucket. This mechanism gives us a
-    simpler way to manage multiple use cases. For example, when used to bucketize
-    structured resources, the parent_dir_param can be a function that returns the
-    relative path to the owning package; or in an objc_library it can be None,
-    signaling that these resources should be placed in the root level.
+    The parent_dir is calculated from the parent_dir_param object. This object can either be None
+    (the default), a string object, or a function object. If a function is provided, it should
+    accept only 1 parameter, which will be the File object representing the resource to bucket. This
+    mechanism gives us a simpler way to manage multiple use cases. For example, when used to
+    bucketize structured resources, the parent_dir_param can be a function that returns the relative
+    path to the owning package; or in an objc_library it can be None, signaling that these resources
+    should be placed in the root level.
 
-    Once all resources have been placed in buckets, each of the lists will be
-    minimized.
+    Once all resources have been placed in buckets, each of the lists will be minimized.
 
-    Finally, it will return a NewAppleResourceInfo provider with the resources
-    bucketed per type.
+    Finally, it will return a NewAppleResourceInfo provider with the resources bucketed per type.
 
     Args:
-      resources: List of resources to bucketize.
-      swift_module: The Swift module name to associate to these resources.
-      parent_dir_param: Either a string or a function used to calculate the value
-        of parent_dir for each resource.
+        resources: List of resources to bucketize.
+        swift_module: The Swift module name to associate to these resources.
+        owner: An optional string that has a unique identifier to the target that should own the
+            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
+        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
+            for each resource.
 
     Returns:
-      A NewAppleResourceInfo provider with resources bucketized according to type.
+        A NewAppleResourceInfo provider with resources bucketized according to type.
     """
     buckets = {}
+    owners = {}
+    owner_depset = None
+    if owner:
+        # By using one depset reference, we can save memory for the cases where multiple resources
+        # only have one owner.
+        owner_depset = depset(direct = [owner])
     for resource in resources:
+        owners[resource.short_path] = owner_depset
         if str(type(parent_dir_param)) == "function":
             parent = parent_dir_param(resource)
         else:
             parent = parent_dir_param
 
         # For each type of resource, place in appropriate bucket.
-        # TODO(kaipi): Missing many types of resources, this is just a starting
-        # point.
+        # TODO(kaipi): Missing many types of resources, this is just a starting point.
 
-        # Special case for localized. If .lproj/ is in the path of the resource
-        # (and the parent doesn't already have it) append the lproj component to
-        # the current parent.
+        # Special case for localized. If .lproj/ is in the path of the resource (and the parent
+        # doesn't already have it) append the lproj component to the current parent.
         if ".lproj/" in resource.short_path and (not parent or ".lproj" not in parent):
-            lproj_path = path_utils.farthest_directory_matching(
-                resource.short_path,
-                "lproj",
-            )
+            lproj_path = path_utils.farthest_directory_matching(resource.short_path,"lproj")
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
         if resource.short_path.endswith(".strings"):
             buckets.setdefault(
                 "strings",
                 default = [],
-            ).append((parent, None, depset([resource])))
+            ).append((parent, None, depset(direct = [resource])))
         elif resource.short_path.endswith(".storyboard"):
             buckets.setdefault(
                 "storyboards",
                 default = [],
-            ).append((parent, swift_module, depset([resource])))
+            ).append((parent, swift_module, depset(direct = [resource])))
         elif resource.short_path.endswith(".xib"):
             buckets.setdefault(
                 "xibs",
                 default = [],
-            ).append((parent, swift_module, depset([resource])))
+            ).append((parent, swift_module, depset(direct = [resource])))
         elif ".xcassets/" in resource.short_path:
             buckets.setdefault(
                 "xcassets",
                 default = [],
-            ).append((parent, None, depset([resource])))
+            ).append((parent, None, depset(direct = [resource])))
         elif ".xcdatamodel" in resource.short_path:
             buckets.setdefault(
                 "datamodels",
                 default = [],
-            ).append((parent, None, depset([resource])))
+            ).append((parent, None, depset(direct = [resource])))
         elif resource.short_path.endswith(".png"):
             buckets.setdefault(
                 "pngs",
                 default = [],
-            ).append((parent, None, depset([resource])))
+            ).append((parent, None, depset(direct = [resource])))
         else:
             buckets.setdefault(
                 "generics",
                 default = [],
-            ).append((parent, None, depset([resource])))
+            ).append((parent, None, depset(direct = [resource])))
 
     return NewAppleResourceInfo(
-        **dict([(k, _minimize(b)) for k, b in buckets.items()])
+        owners = owners, **dict([(k, _minimize(b)) for k, b in buckets.items()])
     )
 
-def _bucketize_typed(attr, bucket_type, res_attrs = [], parent_dir_param = None):
+def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir_param = None):
     """Collects and bucketizes a specific type of resource.
 
-    Finds all the resources present in the attributes listed in res_attrs, and
-    adds them directly into a NewAppleResourceInfo provider under the field named
-    in bucket_type. This avoids the sorting mechanism that `bucketize` does,
-    while grouping resources together using parent_dir_param.
+    Finds all the resources present in the attributes listed in res_attrs, and adds them directly
+    into a NewAppleResourceInfo provider under the field named in bucket_type. This avoids the
+    sorting mechanism that `bucketize` does, while grouping resources together using
+    parent_dir_param.
 
     Args:
-      attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
-        the case of aspects.
-      bucket_type: The NewAppleResourceInfo field under which to collect the
-        resources.
-      res_attrs: The attributes under which to collect the resources.
-      parent_dir_param: Either a string or a function used to calculate the value
-        of parent_dir for each resource.
+        attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in the case of
+            aspects.
+        bucket_type: The NewAppleResourceInfo field under which to collect the resources.
+        owner: An optional string that has a unique identifier to the target that should own the
+            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
+        res_attrs: The attributes under which to collect the resources.
+        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
+            for each resource.
 
     Returns:
-      A NewAppleResourceInfo provider with resources in the given bucket.
+        A NewAppleResourceInfo provider with resources in the given bucket.
     """
     resources = _collect(attr, res_attrs)
     typed_bucket = []
+    owners = {}
+    owner_depset = None
+    if owner:
+        # By using one depset reference, we can save memory for the cases where multiple resources
+        # only have one owner.
+        owner_depset = depset(direct = [owner])
     for resource in resources:
+        owners[resource.short_path] = owner_depset
         if str(type(parent_dir_param)) == "function":
             parent = parent_dir_param(resource)
         else:
             parent = parent_dir_param
 
-        typed_bucket.append((parent, None, depset([resource])))
-    return NewAppleResourceInfo(
-        **{bucket_type: _minimize(typed_bucket)}
-    )
+        typed_bucket.append((parent, None, depset(direct = [resource])))
+    return NewAppleResourceInfo(owners = owners, **{bucket_type: _minimize(typed_bucket)})
 
 def _collect(attr, res_attrs = []):
     """Collects all resource attributes present in the given attributes.
 
-    Iterates over the given res_attrs attributes collecting files to be processed
-    as resources. These are all placed into a list, and then returned.
+    Iterates over the given res_attrs attributes collecting files to be processed as resources.
+    These are all placed into a list, and then returned.
 
     Args:
-      attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in
-        the case of aspects.
-      res_attrs: List of attributes to iterate over collecting resources.
+        attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in the case of
+            aspects.
+        res_attrs: List of attributes to iterate over collecting resources.
 
     Returns:
-      A list with all the collected resources for the target represented by attr.
+        A list with all the collected resources for the target represented by attr.
     """
     if not res_attrs:
         return []
@@ -240,58 +261,93 @@ def _collect(attr, res_attrs = []):
                 files.extend(file_group)
     return files
 
-def _merge_providers(providers):
+def _merge_providers(providers, default_owner = None, validate_all_resources_owned = False):
     """Merges multiple NewAppleResourceInfo providers into one.
 
     Args:
-      providers: The list of providers to merge. This method will fail unless
-        there is at least 1 provider in the list.
+        providers: The list of providers to merge. This method will fail unless there is at least 1
+            provider in the list.
+        default_owner: The default owner to be used for resources which have a None value in the
+            `owners` dictionary. May be None, in which case no owner is marked.
+        validate_all_resources_owned: Whether to validate that all resources are owned. This is
+            useful for top-level rules to ensure that the resources in NewAppleResourceInfo that
+            they are propagating are fully owned. If default_owner is set, this attribute does
+            nothing, as by definition the resources will all have a default owner.
 
     Returns:
-      A NewAppleResourceInfo provider with the results of the merge of the given
-      providers.
+        A NewAppleResourceInfo provider with the results of the merge of the given providers.
     """
     if not providers:
-        fail("merge should be called with a non-empty list of providers. This " +
-             "is most likely a bug in rules_apple, please file a bug with " +
-             "reproduction steps.")
+        fail(
+            "merge_providers should be called with a non-empty list of providers. This is most " +
+            "likely a bug in rules_apple, please file a bug with reproduction steps."
+        )
 
     if len(providers) == 1:
         return providers[0]
 
     buckets = {}
+    owners = {}
+    default_owner_depset = None
+    if default_owner:
+        # By using one depset reference, we can save memory for the cases where multiple resources
+        # only have one owner.
+        default_owner_depset = depset(direct = [default_owner])
     for provider in providers:
-        # Get the initialized fields in the provider, with the exception of
-        # to_json and to_proto, which are not desireable for our use case.
-        # TODO(b/36412967): Remove this filtering and just use dir().
-        fields = [
-            f
-            for f in dir(provider)
-            if f not in ["to_json", "to_proto"]
-        ]
+        # Get the initialized fields in the provider, with the exception of to_json and to_proto,
+        # which are not desireable for our use case.
+        fields = _populated_resource_fields(provider)
         for field in fields:
             buckets.setdefault(
                 field,
                 default = [],
             ).extend(getattr(provider, field))
+        for resource_path, resource_owners in provider.owners.items():
+            collected_owners = owners.get(resource_path)
+            transitive = []
+            if collected_owners:
+                transitive.append(collected_owners)
+            # If there is no owner marked for this resource, use the default_owner as an owner, if
+            # it exists.
+            if resource_owners:
+                transitive.append(resource_owners)
+            elif default_owner_depset:
+                transitive.append(default_owner_depset)
+            elif validate_all_resources_owned:
+                fail(
+                    "The given providers have a resource that doesn't have an owner, and " +
+                    "validate_all_resources_owned was set. This is most likely a bug in " +
+                    "rules_apple, please file a bug with reproduction steps."
+                )
+            if transitive:
+                # If there is only one transitive depset, avoid creating a new depset, just
+                # propagate it.
+                if len(transitive) == 1:
+                  final_depset = transitive[0]
+                else:
+                    final_depset = depset(transitive = transitive)
+            else:
+                final_depset = None
+            owners[resource_path] = final_depset
 
-    minimized = dict([(k, _minimize(v)) for (k, v) in buckets.items()])
-    return NewAppleResourceInfo(**minimized)
+
+    return NewAppleResourceInfo(
+        owners = owners, **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
+    )
 
 def _minimize(bucket):
     """Minimizes the given list of tuples into the smallest subset possible.
 
-    Takes the list of tuples that represent one resource bucket, and minimizes it
-    so that 2 tuples with resources that should be placed under the same location
-    are merged into 1 tuple.
+    Takes the list of tuples that represent one resource bucket, and minimizes it so that 2 tuples
+    with resources that should be placed under the same location are merged into 1 tuple.
 
     For tuples to be merged, they need to have the same parent_dir and swift_module.
 
     Args:
-      bucket: List of tuples to be minimized.
+        bucket: List of tuples to be minimized.
 
     Returns:
-      A list of minimized tuples.
+        A list of minimized tuples.
     """
     resources_by_key = {}
 
@@ -312,13 +368,14 @@ def _minimize(bucket):
         ).append(resources)
 
     return [
-        (
-            parent_dir_by_key.get(k, None),
-            swift_module_by_key.get(k, None),
-            depset(transitive = r),
-        )
+        (parent_dir_by_key.get(k, None), swift_module_by_key.get(k, None), depset(transitive = r))
         for k, r in resources_by_key.items()
     ]
+
+def _populated_resource_fields(provider):
+    """Returns a list of field names of the provider's resource buckets that are non empty."""
+    # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
+    return [f for f in dir(provider) if f not in ["owners", "to_json", "to_proto"]]
 
 resources = struct(
     bucketize = _bucketize,
@@ -326,4 +383,5 @@ resources = struct(
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
+    populated_resource_fields = _populated_resource_fields,
 )

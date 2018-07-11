@@ -14,11 +14,10 @@
 
 """Partial implementations for resource processing.
 
-Resources are procesed according to type, by a series of methods that deal with
-the specifics for each resource type. Each of this methods returns a struct,
-which always have a `files` field containing resource tuples as described in
-processor.bzl. Optionally, the structs can also have an `infoplists` field
-containing a list of plists that should be merged into the root Info.plist.
+Resources are procesed according to type, by a series of methods that deal with the specifics for
+each resource type. Each of this methods returns a struct, which always have a `files` field
+containing resource tuples as described in processor.bzl. Optionally, the structs can also have an
+`infoplists` field containing a list of plists that should be merged into the root Info.plist.
 """
 
 load(
@@ -50,6 +49,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental:resource_actions.bzl",
     "resource_actions",
 )
+load(
+    "@build_bazel_rules_apple//common:define_utils.bzl",
+    "define_utils",
+)
 
 def _datamodels(ctx, parent_dir, files, swift_module):
     datamodel_files = files.to_list()
@@ -57,19 +60,17 @@ def _datamodels(ctx, parent_dir, files, swift_module):
     standalone_models = []
     grouped_models = []
 
-    # Split the datamodels into whether they are inside an xcdatamodeld bundle or
-    # not.
+    # Split the datamodels into whether they are inside an xcdatamodeld bundle or not.
     for datamodel in datamodel_files:
         if ".xcdatamodeld/" in datamodel.short_path:
             grouped_models.append(datamodel)
         else:
             standalone_models.append(datamodel)
 
-    # Create a map of highest-level datamodel bundle to the files it contains.
-    # Datamodels can be present within standalone .xcdatamodel/ folders or in a
-    # versioned bundle, in which many .xcdatamodel/ are contained inside an
-    # .xcdatamodeld/ bundle. .xcdatamodeld/ bundles are processed altogether,
-    # while .xcdatamodel/ bundles are processed by themselves.
+    # Create a map of highest-level datamodel bundle to the files it contains. Datamodels can be
+    # present within standalone .xcdatamodel/ folders or in a versioned bundle, in which many
+    # .xcdatamodel/ are contained inside an .xcdatamodeld/ bundle. .xcdatamodeld/ bundles are
+    # processed altogether, while .xcdatamodel/ bundles are processed by themselves.
     datamodel_groups = group_files_by_directory(
         grouped_models,
         ["xcdatamodeld"],
@@ -110,7 +111,7 @@ def _datamodels(ctx, parent_dir, files, swift_module):
             output_file,
         )
         output_files.append(
-            (processor.location.resource, datamodel_parent, depset([output_file])),
+            (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
         )
 
     return struct(files = output_files)
@@ -119,8 +120,8 @@ def _frameworks(ctx, parent_dir, files):
     """Processes files that need to be packaged as frameworks."""
     _ignore = [ctx]
 
-    # Filter framework files to remove any header related files from being
-    # packaged into the final bundle.
+    # Filter framework files to remove any header related files from being packaged into the final
+    # bundle.
     framework_files = []
     for file in files.to_list():
         file_short_path = file.short_path
@@ -140,29 +141,27 @@ def _frameworks(ctx, parent_dir, files):
 
     return struct(
         files = [
-            (processor.location.framework, parent_dir, depset(framework_files)),
+            (processor.location.framework, parent_dir, depset(direct = framework_files)),
         ],
     )
 
 def _plists(ctx, parent_dir, files):
     """Processes plists.
 
-    If parent_dir is not empty, the files will be treated as resource bundle
-    infoplists and are merged into one. If parent_dir is empty (or None), the
-    files are be treated as root level infoplist and returned to be processed
-    along with other root plists (e.g. xcassets returns a plist that needs to be
-    merged into the root.).
+    If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
+    merged into one. If parent_dir is empty (or None), the files are be treated as root level
+    infoplist and returned to be processed along with other root plists (e.g. xcassets returns a
+    plist that needs to be merged into the root.).
 
     Args:
-      ctx: The target's context.
-      parent_dir: The path under which the merged Info.plist should be placed for
-        resource bundles.
-      files: The infoplist files to process.
+        ctx: The target's context.
+        parent_dir: The path under which the merged Info.plist should be placed for resource
+            bundles.
+        files: The infoplist files to process.
 
     Returns:
-      A struct containing a `files` field with tuples as described in
-      processor.bzl, and an `infoplists` field with the plists that need to be
-      merged for the root Info.plist
+        A struct containing a `files` field with tuples as described in processor.bzl, and an
+        `infoplists` field with the plists that need to be merged for the root Info.plist
     """
     if parent_dir:
         out_plist = intermediates.file(
@@ -177,7 +176,9 @@ def _plists(ctx, parent_dir, files):
             out_plist,
         )
         return struct(
-            files = [(processor.location.resource, parent_dir, depset([out_plist]))],
+            files = [
+                (processor.location.resource, parent_dir, depset(direct = [out_plist])),
+            ],
         )
     else:
         return struct(files = [], infoplists = files.to_list())
@@ -185,18 +186,16 @@ def _plists(ctx, parent_dir, files):
 def _pngs(ctx, parent_dir, files):
     """Register PNG processing actions.
 
-    If compilation mode is `opt`, the PNG files will be copied using `pngcopy` to
-    make them smaller. Otherwise, they will be copied verbatim to avoid the extra
-    processing time.
+    If compilation mode is `opt`, the PNG files will be copied using `pngcopy` to make them smaller.
+    Otherwise, they will be copied verbatim to avoid the extra processing time.
 
     Args:
-      ctx: The target's context.
-      parent_dir: The path under which the images should be placed.
-      files: The PNG files to process.
+        ctx: The target's context.
+        parent_dir: The path under which the images should be placed.
+        files: The PNG files to process.
 
     Returns:
-      A struct containing a `files` field with tuples as described in
-      processor.bzl.
+        A struct containing a `files` field with tuples as described in processor.bzl.
     """
 
     # If this is not an optimized build, then just copy the files
@@ -210,9 +209,7 @@ def _pngs(ctx, parent_dir, files):
         resource_actions.png_copy(ctx, file, png_file)
         png_files.append(png_file)
 
-    return struct(
-        files = [(processor.location.resource, parent_dir, depset(png_files))],
-    )
+    return struct(files = [(processor.location.resource, parent_dir, depset(direct = png_files))])
 
 def _storyboards(ctx, parent_dir, files, swift_module):
     """Processes storyboard files."""
@@ -251,28 +248,24 @@ def _storyboards(ctx, parent_dir, files, swift_module):
         linked_storyboard_dir,
     )
     return struct(
-        files = [(
-            processor.location.resource,
-            parent_dir,
-            depset([linked_storyboard_dir]),
-        )],
+        files = [
+            (processor.location.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
+        ],
     )
 
 def _strings(ctx, parent_dir, files):
     """Processes strings files.
 
-    If compilation mode is `opt`, the string files will be compiled into binary
-    to make them smaller. Otherwise, they will be copied verbatim to avoid the
-    extra processing time.
+    If compilation mode is `opt`, the string files will be compiled into binary to make them
+    smaller. Otherwise, they will be copied verbatim to avoid the extra processing time.
 
     Args:
-      ctx: The target's context.
-      parent_dir: The path under which the strings should be placed.
-      files: The string files to process.
+        ctx: The target's context.
+        parent_dir: The path under which the strings should be placed.
+        files: The string files to process.
 
     Returns:
-      A struct containing a `files` field with tuples as described in
-      processor.bzl.
+        A struct containing a `files` field with tuples as described in processor.bzl.
     """
 
     # If this is not an optimized build, then just copy the files
@@ -290,7 +283,9 @@ def _strings(ctx, parent_dir, files):
         string_files.append(string_file)
 
     return struct(
-        files = [(processor.location.resource, parent_dir, depset(string_files))],
+        files = [
+            (processor.location.resource, parent_dir, depset(direct = string_files)),
+        ],
     )
 
 def _xcassets(ctx, parent_dir, files):
@@ -324,7 +319,7 @@ def _xcassets(ctx, parent_dir, files):
     )
 
     return struct(
-        files = [(processor.location.resource, parent_dir, depset([assets_dir]))],
+        files = [(processor.location.resource, parent_dir, depset(direct = [assets_dir]))],
         infoplists = infoplists,
     )
 
@@ -339,9 +334,7 @@ def _xibs(ctx, parent_dir, files, swift_module):
         resource_actions.compile_xib(ctx, swift_module, file, nib_file)
         nib_files.append(nib_file)
 
-    return struct(
-        files = [(processor.location.resource, parent_dir, depset(nib_files))],
-    )
+    return struct(files = [(processor.location.resource, parent_dir, depset(direct = nib_files))])
 
 def _noop(ctx, parent_dir, files):
     """Registers files to be bundled as is."""
@@ -375,9 +368,9 @@ def _merge_root_infoplists(ctx, infoplists):
         bundle_id = ctx.attr.bundle_id,
     )
 
-    return [(processor.location.content, None, depset(files))]
+    return [(processor.location.content, None, depset(direct = files))]
 
-def _deduplicate(resources_provider, avoid_provider, field):
+def _deduplicate(resources_provider, avoid_provider, field, smart_dedupe = False):
     """Deduplicates and returns resources between 2 providers for a given field.
 
     Deduplication happens by comparing the target path of a file and the files
@@ -398,9 +391,6 @@ def _deduplicate(resources_provider, avoid_provider, field):
       A list of tuples with the resources present in avoid_providers removed from
       resources_providers.
     """
-
-    # TODO(kaipi): Revisit the deduplication logic to account for multiple
-    # references in different targets.
     if not avoid_provider or not hasattr(avoid_provider, field):
         return getattr(resources_provider, field)
 
@@ -416,13 +406,38 @@ def _deduplicate(resources_provider, avoid_provider, field):
     deduped_tuples = []
     for parent_dir, swift_module, files in getattr(resources_provider, field):
         key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-        deduped_files = [
-            x
-            for x in files.to_list()
-            if x not in avoid_dict.get(key, [])
-        ]
+
+        deduped_files = depset([])
+        if key in avoid_dict:
+            for to_bundle_file in files.to_list():
+                if to_bundle_file in avoid_dict[key]:
+                    # TODO(kaipi): Make smart deduplication the default.
+                    if smart_dedupe:
+                        # If the resource file is present in the provider of resources to avoid, and
+                        # smart_dedupe is enabled, we compare the owners of the resource through the
+                        # owners dictionaries of the providers. If there are owners present in
+                        # resources_provider which are not present in avoid_provider, it means that
+                        # there is at least one target that declares usage of the resource which is not
+                        # accounted for in avoid_provider. If this is the case, we add the resource to
+                        # be bundled in the bundle represented by resource_provider.
+                        # TODO(kaipi): Write tests for the smart dedupe behavior.
+                        short_path = to_bundle_file.short_path
+                        deduped_owners = [
+                            o for o in resources_provider.owners[short_path]
+                            if o not in avoid_provider.owners[short_path]
+                        ]
+                        if deduped_owners:
+                            deduped_files = depset(
+                                direct = [to_bundle_file],
+                                transitive = [deduped_files],
+                            )
+                else:
+                    deduped_files = depset(direct = [to_bundle_file], transitive = [deduped_files])
+        else:
+            deduped_files = depset(transitive = [deduped_files, files])
+
         if deduped_files:
-            deduped_tuples.append((parent_dir, swift_module, depset(deduped_files)))
+            deduped_tuples.append((parent_dir, swift_module, deduped_files))
 
     return deduped_tuples
 
@@ -442,11 +457,12 @@ def _resources_partial_impl(
     # splitting.
     files = resources.collect(ctx.attr, res_attrs = top_level_attrs)
     if files:
-        providers.append(resources.bucketize(files))
+        providers.append(resources.bucketize(files, owner = str(ctx.label)))
 
     if plist_attrs:
         plist_provider = resources.bucketize_typed(
             ctx.attr,
+            owner = str(ctx.label),
             bucket_type = "plists",
             res_attrs = plist_attrs,
         )
@@ -460,16 +476,20 @@ def _resources_partial_impl(
 
     avoid_provider = None
     if avoid_providers:
-        avoid_provider = resources.merge_providers(avoid_providers)
+        # Call merge_providers with validate_all_resources_owned set, to ensure that all the
+        # resources from dependency bundles have an owner.
+        avoid_provider = resources.merge_providers(
+            avoid_providers, validate_all_resources_owned = True,
+        )
 
-    final_provider = resources.merge_providers(providers)
+    final_provider = resources.merge_providers(providers, default_owner = str(ctx.label))
 
-    # Map of resource provider fields to a tuple that contains the method to use
-    # to process those resources and a boolean indicating whether the Swift
-    # module is required for that processing.
+    # Map of resource provider fields to a tuple that contains the method to use to process those
+    # resources and a boolean indicating whether the Swift module is required for that processing.
     provider_field_to_action = {
         "datamodels": (_datamodels, True),
         "frameworks": (_frameworks, False),
+        "generics": (_noop, False),
         "plists": (_plists, False),
         "pngs": (_pngs, False),
         "storyboards": (_storyboards, True),
@@ -482,17 +502,15 @@ def _resources_partial_impl(
     # configured location.
     bundle_files = []
 
-    fields = [f for f in dir(final_provider) if f not in ["to_json", "to_proto"]]
+    fields = resources.populated_resource_fields(final_provider)
 
     infoplists = []
+    smart_dedupe = define_utils.bool_value(ctx, "apple.experimental.smart_dedupe", False)
     for field in fields:
-        processing_func, requires_swift_module = (
-            # If the field type doesn't have a corresponding method, by default the
-            # files will be copied as is with no processing.
-            provider_field_to_action.get(field, (_noop, False))
+        processing_func, requires_swift_module = provider_field_to_action[field]
+        deduplicated = _deduplicate(
+            final_provider, avoid_provider, field, smart_dedupe = smart_dedupe,
         )
-
-        deduplicated = _deduplicate(final_provider, avoid_provider, field)
         for parent, swift_module, files in deduplicated:
             extra_args = {}
 
@@ -507,28 +525,24 @@ def _resources_partial_impl(
 
     bundle_files.extend(_merge_root_infoplists(ctx, infoplists))
 
-    return struct(
-        bundle_files = bundle_files,
-        providers = [final_provider],
-    )
+    return struct(bundle_files = bundle_files, providers = [final_provider])
 
 def resources_partial(plist_attrs = [], targets_to_avoid = [], top_level_attrs = []):
     """Constructor for the resources processing partial.
 
-    This partial collects and propagates all resources that should be bundled in
-    the target being processed.
+    This partial collects and propagates all resources that should be bundled in the target being
+    processed.
 
     Args:
-      plist_attrs: List of attributes that should be processed as Info plists
-        that should be merged and processed.
-      targets_to_avoid: List of targets containing resources that should be
-        deduplicated from the target being processed.
-      top_level_attrs: List of attributes containing resources that need to
-        be processed from the target being processed.
+        plist_attrs: List of attributes that should be processed as Info plists that should be
+            merged and processed.
+        targets_to_avoid: List of targets containing resources that should be deduplicated from the
+            target being processed.
+        top_level_attrs: List of attributes containing resources that need to be processed from the
+            target being processed.
 
     Returns:
-      A partial that returns the bundle location of the resources and the
-        resources provider.
+        A partial that returns the bundle location of the resources and the resources provider.
     """
     return partial.make(
         _resources_partial_impl,
