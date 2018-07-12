@@ -1,7 +1,7 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
 [![Build Status](https://travis-ci.org/bazelbuild/rules_apple.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_apple)
-[![Build status](https://badge.buildkite.com/cecd8d6951d939c6814f043af2935158f0556cb6c5fef3cb75.svg)](https://buildkite.com/bazel/rules-apple-darwin)
+[![Build status](https://badge.buildkite.com/cecd8d6951d939c6814f043af2935158f0556cb6c5fef3cb75.svg?branch=master)](https://buildkite.com/bazel/rules-apple-darwin)
 
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms. They replace the bundling
