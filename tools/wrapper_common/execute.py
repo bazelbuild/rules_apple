@@ -34,14 +34,18 @@ def execute_and_filter_output(xcrunargs, filtering=None, trim_paths=False):
 
     trim_paths: Optionally specify whether or not to trim the current working
         directory from any paths in the output.
+
+  Returns:
+    The result of running the command.
   """
   p = subprocess.Popen(xcrunargs,
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE)
   stdout, _ = p.communicate()
+  cmd_result = p.returncode
 
   if not stdout:
-    return
+    return cmd_result
 
   if filtering:
     if not callable(filtering):
@@ -52,6 +56,8 @@ def execute_and_filter_output(xcrunargs, filtering=None, trim_paths=False):
     if trim_paths:
       stdout = _trim_paths(stdout)
     sys.stdout.write("%s\n" % stdout)
+
+  return cmd_result
 
 
 def _trim_paths(stdout):

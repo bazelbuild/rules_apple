@@ -68,7 +68,7 @@ def ibtool(_, toolargs):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  execute.execute_and_filter_output(xcrunargs, trim_paths=True)
+  return execute.execute_and_filter_output(xcrunargs, trim_paths=True)
 
 
 def actool_filtering(raw_stdout):
@@ -144,7 +144,7 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  execute.execute_and_filter_output(
+  return execute.execute_and_filter_output(
       xcrunargs,
       trim_paths=True,
       filtering=actool_filtering)
@@ -179,10 +179,12 @@ def swift_stdlib_tool(args, toolargs):
 
   xcrunargs += toolargs
 
-  execute.execute_and_filter_output(xcrunargs)
-  _zip_directory(tmpdir, os.path.splitext(args.output)[0])
+  result = execute.execute_and_filter_output(xcrunargs)
+  if not result:
+    _zip_directory(tmpdir, os.path.splitext(args.output)[0])
 
   shutil.rmtree(tmpdir)
+  return result
 
 
 def momc(args, toolargs):
@@ -191,7 +193,7 @@ def momc(args, toolargs):
   xcrunargs += toolargs
   xcrunargs.append(os.path.realpath(args.output))
 
-  execute.execute_and_filter_output(xcrunargs)
+  return execute.execute_and_filter_output(xcrunargs)
 
 
 def mapc(args, toolargs):
@@ -202,7 +204,7 @@ def mapc(args, toolargs):
                os.path.realpath(args.destination)]
   xcrunargs += toolargs
 
-  execute.execute_and_filter_output(xcrunargs)
+  return execute.execute_and_filter_output(xcrunargs)
 
 
 def main(argv):
@@ -245,7 +247,7 @@ def main(argv):
 
   # Parse the command line and execute subcommand
   args, toolargs = parser.parse_known_args(argv)
-  args.func(args, toolargs)
+  sys.exit(args.func(args, toolargs))
 
 
 if __name__ == "__main__":
