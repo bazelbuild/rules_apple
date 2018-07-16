@@ -80,8 +80,25 @@ def _intermediate_dir(ctx, pattern, path = None, prefix = None):
         _intermediate_name(pattern, ctx.label, path, prefix),
     )
 
+def _xctoolrunner_path(path):
+    """Prefix paths with a token.
+
+    We prefix paths with a token to indicate that certain arguments are paths,
+    so they can be processed accordingly. This prefix must match the prefix
+    used here: rules_apple/tools/xctoolrunner/xctoolrunner.py
+
+    Args:
+      path: A string of the path to be prefixed.
+
+    Returns:
+      A string of the path with the prefix added to the front.
+    """
+    prefix = "[ABSOLUTE]"
+    return prefix + path
+
 # Define the loadable module that lists the exported symbols in this file.
 file_support = struct(
     intermediate = _intermediate,
     intermediate_dir = _intermediate_dir,
+    xctoolrunner_path = _xctoolrunner_path,
 )
