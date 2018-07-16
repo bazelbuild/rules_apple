@@ -3,13 +3,13 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 sh_binary(
-    name = "actoolwrapper",
+    name = "actoolwrapper_shell",
     srcs = ["actoolwrapper.sh"],
     deps = ["//tools/wrapper_common"],
 )
 
 py_binary(
-    name = "actoolwrapper_experimental",
+    name = "actoolwrapper",
     srcs = ["actoolwrapper.py"],
     main = "actoolwrapper.py",
     deps = ["//tools/xctoolrunner"],

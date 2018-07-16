@@ -430,11 +430,11 @@ def _actool(ctx, asset_catalogs, resource_info):
     actool_platform = platform.name_in_plist.lower()
 
     args = [
-        out_dir.path,
+        file_support.xctoolrunner_path(out_dir.path),
         "--platform",
         actool_platform,
         "--output-partial-info-plist",
-        out_plist.path,
+        file_support.xctoolrunner_path(out_plist.path),
         "--minimum-deployment-target",
         min_os,
         "--compress-pngs",
@@ -463,7 +463,7 @@ def _actool(ctx, asset_catalogs, resource_info):
         ["xcassets", "xcstickers"],
         attr = "asset_catalogs",
     ).keys()
-    args.extend(xcassets)
+    args.extend([file_support.xctoolrunner_path(p) for p in xcassets])
 
     platform_support.xcode_env_action(
         ctx,
@@ -561,9 +561,13 @@ def _compile_xib(ctx, input_file, resource_info):
 
     # The first two arguments are those required by ibtoolwrapper; the remaining
     # ones are passed to ibtool verbatim.
-    args = ["--compile", out_dir.path + "/" + nib_name]
+    args = ["--compile", file_support.xctoolrunner_path(out_dir.path) + "/" + nib_name]
     args.extend(_ibtool_arguments(ctx))
-    args.extend(["--module", swift_module or ctx.label.name, input_file.path])
+    args.extend([
+        "--module",
+        swift_module or ctx.label.name,
+        file_support.xctoolrunner_path(input_file.path),
+    ])
 
     platform_support.xcode_env_action(
         ctx,
@@ -615,9 +619,13 @@ def _compile_storyboard(ctx, input_file, resource_info):
 
     # The first two arguments are those required by ibtoolwrapper; the remaining
     # ones are passed to ibtool verbatim.
-    args = ["--compilation-directory", out_dir.dirname]
+    args = ["--compilation-directory", file_support.xctoolrunner_path(out_dir.dirname)]
     args.extend(_ibtool_arguments(ctx))
-    args.extend(["--module", swift_module or ctx.label.name, input_file.path])
+    args.extend([
+        "--module",
+        swift_module or ctx.label.name,
+        file_support.xctoolrunner_path(input_file.path),
+    ])
 
     platform_support.xcode_env_action(
         ctx,
@@ -662,7 +670,7 @@ def _link_storyboards(ctx, storyboardc_dirs, resource_info):
 
     # The first two arguments are those required by ibtoolwrapper; the remaining
     # ones are passed to ibtool verbatim.
-    args = ["--link", out_dir.path]
+    args = ["--link", file_support.xctoolrunner_path(out_dir.path)]
     args.extend(_ibtool_arguments(ctx))
     args.extend([f.path for f in storyboardc_dirs])
 

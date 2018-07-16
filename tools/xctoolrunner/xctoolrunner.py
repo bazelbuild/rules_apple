@@ -48,6 +48,28 @@ import time
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
+# This prefix is set for the Bazel rules in:
+# rules_apple/apple/bundling/file_support.bzl:xctoolrunner_path
+_PATH_PREFIX = "[ABSOLUTE]"
+_PATH_PREFIX_LEN = len(_PATH_PREFIX)
+
+
+def _apply_realpath(argv):
+  """Run "realpath" on any path-related arguments.
+
+  Paths passed into the tool will be prefixed with the contents of _PATH_PREFIX.
+  If we find an argument with this prefix, we strip out the prefix and run
+  "realpath".
+
+  Args:
+    argv: A list of command line arguments.
+  """
+  for i, arg in enumerate(argv):
+    if arg.startswith(_PATH_PREFIX):
+      arg = arg[_PATH_PREFIX_LEN:]
+      argv[i] = os.path.realpath(arg)
+
+
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
   xcrunargs = ["xcrun",
@@ -58,6 +80,9 @@ def ibtool(_, toolargs):
                "--auto-activate-custom-fonts",
                "--output-format",
                "human-readable-text"]
+
+  _apply_realpath(toolargs)
+
   xcrunargs += toolargs
 
   # If we are running into problems figuring out "ibtool" issues, there are a
@@ -132,6 +157,9 @@ def actool(_, toolargs):
                "--compress-pngs",
                "--output-format",
                "human-readable-text"]
+
+  _apply_realpath(toolargs)
+
   xcrunargs += toolargs
 
   # If we are running into problems figuring out "actool" issues, there are a
