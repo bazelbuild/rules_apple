@@ -841,12 +841,12 @@ def _momc(ctx, input_files, resource_info):
         ))
 
         args = [
-            out_file.path,
             deployment_target_option,
             min_os,
             "--module",
             swift_module or ctx.label.name,
-            model,
+            file_support.xctoolrunner_path(model),
+            file_support.xctoolrunner_path(out_file.path),
         ]
 
         platform_support.xcode_env_action(

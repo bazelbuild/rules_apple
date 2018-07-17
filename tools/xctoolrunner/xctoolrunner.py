@@ -29,8 +29,7 @@ Subcommands:
       SOURCE: The path to the .xcmappingmodel directory.
       DESTINATION: The path to the output .cdm file.
 
-  momc [OUTPUT] [<args>...]
-      OUTPUT: The output file (.mom) or directory (.momd).
+  momc [<args>...]
 
   swift-stdlib-tool [OUTPUT] [BUNDLE] [<args>...]
       OUTPUT: The path to place the output zip file.
@@ -215,11 +214,11 @@ def swift_stdlib_tool(args, toolargs):
   return result
 
 
-def momc(args, toolargs):
+def momc(_, toolargs):
   """Assemble the call to "xcrun momc"."""
   xcrunargs = ["xcrun", "momc"]
+  _apply_realpath(toolargs)
   xcrunargs += toolargs
-  xcrunargs.append(os.path.realpath(args.output))
 
   return execute.execute_and_filter_output(xcrunargs)
 
@@ -257,10 +256,6 @@ def main(argv):
 
   # MOMC Argument Parser
   momc_parser = subparsers.add_parser("momc")
-  momc_parser.add_argument(
-      "output",
-      help=("The path to the desired output file (.mom) or directory (.momd), "
-            "depending on whether or not the input is a versioned data model."))
   momc_parser.set_defaults(func=momc)
 
   # MAPC Argument Parser
