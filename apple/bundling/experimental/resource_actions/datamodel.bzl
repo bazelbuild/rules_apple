@@ -15,6 +15,10 @@
 """Datamodel related actions."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -35,12 +39,12 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
     min_os = platform_support.minimum_os(ctx)
 
     args = [
-        output_file.path,
         deployment_target_option,
         min_os,
         "--module",
         module_name,
-        datamodel_path,
+        file_support.xctoolrunner_path(datamodel_path),
+        file_support.xctoolrunner_path(output_file.path),
     ]
 
     platform_support.xcode_env_action(
