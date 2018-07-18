@@ -47,6 +47,10 @@ load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
+    "smart_dedupe",
+)
 
 def _parent_dirs(dirs):
     """Returns a set of parent directories for each directory in dirs."""
@@ -879,7 +883,7 @@ def merge_swift_objc_providers(targets):
         objc_provider_args["link_inputs"] = link_inputs
     return apple_common.new_objc_provider(**objc_provider_args)
 
-def _collect_resource_sets(resources, structured_resources, deps, module_name):
+def _collect_resource_sets(resources, structured_resources, deps, module_name, owner):
     """Collects resource sets from the target and its dependencies.
 
     Args:
@@ -889,14 +893,24 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name):
       deps: The dependencies of the target being built.
       module_name: The name of the Swift module associated with the resources
           (either the user-provided name, or the auto-generated one).
+      owner: The owner that the resources should be associated with.
     Returns:
-      A list of structs representing the transitive resources to propagate to the
-      bundling rules.
+      A tuple with 2 elements: a list of structs representing the transitive resources to propagate
+      to the bundling rules; and an ownership mapping of the resources present in this target.
     """
     resource_sets = []
 
+    owner_mappings = []
     # Create a resource set from the resources attached directly to this target.
     if resources or structured_resources:
+        # TODO(kaipi): Remove ownership logic from swift_library once the new bundling
+        # logic is released. This should be taken care of by the apple_bundling_aspect,
+        # but swift_library already propagates an AppleResourceInfo provider.
+        owner_mappings.append(
+            smart_dedupe.create_owners_mapping(
+                resources + structured_resources, owner = owner,
+            )
+        )
         resource_sets.append(AppleResourceSet(
             resources = depset(resources),
             structured_resources = depset(structured_resources),
@@ -906,9 +920,12 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name):
     # Collect transitive resource sets from dependencies.
     for dep in deps:
         if AppleResourceInfo in dep:
+            owner_mappings.append(dep[AppleResourceInfo].owners)
             resource_sets.extend(dep[AppleResourceInfo].resource_sets)
 
-    return resource_sets
+    return resource_sets, smart_dedupe.merge_owners_mappings(
+        owner_mappings, default_owner = owner,
+    )
 
 def _swift_library_impl(ctx):
     """Implementation for swift_library Skylark rule."""
@@ -939,11 +956,12 @@ def _swift_library_impl(ctx):
         reqs,
     )
 
-    resource_sets = _collect_resource_sets(
+    resource_sets, owner_mapping = _collect_resource_sets(
         ctx.files.resources,
         ctx.files.structured_resources,
         ctx.attr.deps,
         resolved_module_name,
+        str(ctx.label),
     )
 
     return struct(
@@ -960,7 +978,7 @@ def _swift_library_impl(ctx):
         ),
         objc = objc_provider,
         providers = [
-            AppleResourceInfo(resource_sets = resource_sets),
+            AppleResourceInfo(resource_sets = resource_sets, owners = owner_mapping),
             swift_info,
         ],
     )

@@ -107,6 +107,10 @@ load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
+    "smart_dedupe",
+)
 
 # Directories inside .frameworks that should not be included in final
 # application/extension bundles.
@@ -815,6 +819,8 @@ def _run(
     resource_sets = list(additional_resource_sets)
 
     dep_bundle_resource_sets = []
+    owners_mappings = []
+    avoided_owners_mappings = []
 
     # Collect dependencies framework zips to be bundled and/or propagated.
     for framework in attrs.get(ctx.attr, "frameworks", []):
@@ -827,6 +833,7 @@ def _run(
         for dep_bundle_attribute in resource_dep_bundle_attributes:
             for dep_bundle in attrs.get_as_list(ctx.attr, dep_bundle_attribute, []):
                 if dep_bundle and _ResourceBundleInfo in dep_bundle:
+                    avoided_owners_mappings.append(dep_bundle[_ResourceBundleInfo].owners)
                     dep_bundle_resource_sets.extend(
                         dep_bundle[_ResourceBundleInfo].resource_sets,
                     )
@@ -835,6 +842,7 @@ def _run(
         # included by a framework dependency.
         p = binary_support.get_binary_provider(ctx.attr.deps, AppleResourceInfo)
         if p:
+            owners_mappings.append(p.owners)
             for rs in p.resource_sets:
                 resource_sets.append(rs)
 
@@ -846,6 +854,33 @@ def _run(
             resources = target_resources,
         ))
 
+    top_level_resources = []
+    for top_level_resource_set in additional_resource_sets:
+        for field in ["infoplists", "objc_bundle_imports", "resources", "structured_resources"]:
+            resources = getattr(top_level_resource_set, field)
+            if resources:
+                top_level_resources.extend(resources.to_list())
+
+    owners_mappings.append(smart_dedupe.create_owners_mapping(
+        top_level_resources, owner = str(ctx.label),
+    ))
+
+    owners_mapping = smart_dedupe.merge_owners_mappings(
+        owners_mappings, default_owner = str(ctx.label),
+    )
+    avoided_owners_mapping = smart_dedupe.merge_owners_mappings(
+        avoided_owners_mappings, validate_all_files_owned = True,
+    )
+
+    smart_dedupe_enabled = define_utils.bool_value(
+        ctx, "apple.experimental.smart_dedupe", False,
+    )
+    whitelisted_mapping = None
+    if smart_dedupe_enabled:
+        whitelisted_mapping = smart_dedupe.subtract_owners_mappings(
+            owners_mapping, avoided_owners_mapping,
+        )
+
     # Iterate over each set of resources and register the actions. This
     # ensures that each bundle among the dependencies has its resources
     # processed independently.
@@ -854,6 +889,7 @@ def _run(
         resource_sets,
         dep_bundle_resource_sets,
         dedupe_unbundled,
+        whitelisted_mapping = whitelisted_mapping,
     )
     process_results = resource_actions.process_resource_sets(
         ctx,
@@ -1266,7 +1302,9 @@ def _run(
         # Propagate the resource sets contained by this bundle along with the ones
         # contained in the frameworks dependencies, so that higher level bundles
         # can also skip the bundling of those resources.
-        _ResourceBundleInfo(resource_sets = resource_sets + dep_bundle_resource_sets),
+        _ResourceBundleInfo(
+            resource_sets = resource_sets + dep_bundle_resource_sets, owners = owners_mapping,
+        ),
     ])
 
     return (additional_providers, legacy_providers)
