@@ -724,7 +724,10 @@ def _mapc(ctx, input_files, resource_info):
         )
         out_files.append(out_file)
 
-        args = [model, out_file.path]
+        args = [
+            file_support.xctoolrunner_path(model),
+            file_support.xctoolrunner_path(out_file.path),
+        ]
 
         platform_support.xcode_env_action(
             ctx,

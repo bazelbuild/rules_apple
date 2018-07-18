@@ -25,9 +25,7 @@ Subcommands:
 
   ibtool [<args>...]
 
-  mapc [SOURCE] [DESTINATION] [<args>...]
-      SOURCE: The path to the .xcmappingmodel directory.
-      DESTINATION: The path to the output .cdm file.
+  mapc [<args>...]
 
   momc [<args>...]
 
@@ -223,12 +221,10 @@ def momc(_, toolargs):
   return execute.execute_and_filter_output(xcrunargs)
 
 
-def mapc(args, toolargs):
+def mapc(_, toolargs):
   """Assemble the call to "xcrun mapc"."""
-  xcrunargs = ["xcrun",
-               "mapc",
-               os.path.realpath(args.source),
-               os.path.realpath(args.destination)]
+  xcrunargs = ["xcrun", "mapc"]
+  _apply_realpath(toolargs)
   xcrunargs += toolargs
 
   return execute.execute_and_filter_output(xcrunargs)
@@ -260,12 +256,6 @@ def main(argv):
 
   # MAPC Argument Parser
   mapc_parser = subparsers.add_parser("mapc")
-  mapc_parser.add_argument(
-      "source",
-      help="The path to the .xcmappingmodel directory.")
-  mapc_parser.add_argument(
-      "destination",
-      help="The path to the output .cdm file.")
   mapc_parser.set_defaults(func=mapc)
 
   # Parse the command line and execute subcommand
