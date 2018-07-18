@@ -109,10 +109,10 @@ def _ios_application_impl(ctx):
     if settings_bundle:
         additional_resource_sets.append(AppleResourceSet(
             bundle_dir = "Settings.bundle",
-            objc_bundle_imports = [
+            objc_bundle_imports = depset([
                 bf.file
                 for bf in settings_bundle.objc.bundle_file
-            ],
+            ]),
         ))
 
     embedded_bundles = [
