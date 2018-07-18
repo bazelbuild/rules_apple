@@ -270,10 +270,11 @@ def ios_framework(name, **kwargs):
         deps = deps,
         dylibs = kwargs.get("frameworks"),
         extension_safe = kwargs.get("extension_safe"),
+        linkopts = linkopts,
         minimum_os_version = kwargs.get("minimum_os_version"),
         platform_type = str(apple_common.platform_type.ios),
+        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
-        linkopts = linkopts,
     )
 
     # Remove any kwargs that shouldn't be passed to the underlying rule.
