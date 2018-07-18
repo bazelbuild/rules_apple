@@ -42,6 +42,10 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
+    "smart_dedupe",
+)
 
 def _attr_files(ctx, name):
     """Returns the list of files for the current target's attribute.
@@ -66,13 +70,17 @@ def _handle_native_library_dependency(target, ctx):
       ctx: The Skylark context.
 
     Returns:
-      A list of `AppleResourceSet` values that should be included in the list
-      propagated by the `AppleResource` provider.
+      A tuple with 2 elements: a list of `AppleResourceSet` values that should be included in the
+      list propagated by the `AppleResource` provider; and an ownership mapping of the resources
+      present in this target.
     """
     resource_sets = []
     bundles = getattr(ctx.rule.attr, "bundles", [])
+    owner_mappings = []
 
+    owner = None
     if ctx.rule.kind == "objc_bundle_library":
+
         product_name = bundling_support.bundle_name(ctx)
 
         # Can't use bundling_support.bundle_name_with_extension() because
@@ -98,11 +106,13 @@ def _handle_native_library_dependency(target, ctx):
         # must prepend the current target's {name}.bundle to the path so that the
         # files end up in the correct place.
         for p in providers.find_all(bundles, AppleResourceInfo):
+            owner_mappings.append(p.owners)
             resource_sets.extend([
                 apple_resource_set_utils.prefix_bundle_dir(rs, bundle_dir)
                 for rs in p.resource_sets
             ])
     elif ctx.rule.kind == "objc_library":
+        owner = str(ctx.label)
         bundle_dir = None
         resource_bundle_target_data = None
         infoplists = []
@@ -110,32 +120,40 @@ def _handle_native_library_dependency(target, ctx):
         # The "bundles" attribute of an objc_library don't indicate a nesting
         # relationship, so simply bring them over as-is.
         for p in providers.find_all(bundles, AppleResourceInfo):
+            owner_mappings.append(p.owners)
             resource_sets.extend(p.resource_sets)
     else:
         fail(("Internal consistency error: expected rule to be objc_library " +
               "objc_bundle_library, but got %s") % ctx.rule.kind)
 
+    resources = (
+        ctx.rule.files.asset_catalogs +
+        ctx.rule.files.datamodels +
+        ctx.rule.files.resources +
+        ctx.rule.files.storyboards +
+        ctx.rule.files.strings +
+        ctx.rule.files.xibs
+    )
+    structured_resources = ctx.rule.files.structured_resources
+    owner_mappings.append(smart_dedupe.create_owners_mapping(
+        resources + structured_resources + infoplists, owner = owner,
+    ))
+
     # Then, build the bundled_resources struct for the resources directly in the
     # current target.
-    resources = depset(ctx.rule.files.asset_catalogs +
-                       ctx.rule.files.datamodels +
-                       ctx.rule.files.resources +
-                       ctx.rule.files.storyboards +
-                       ctx.rule.files.strings +
-                       ctx.rule.files.xibs)
-    structured_resources = depset(ctx.rule.files.structured_resources)
-
     # Only create the resource set if it's non-empty.
     if resources or infoplists or structured_resources:
         resource_sets.append(AppleResourceSet(
             bundle_dir = bundle_dir,
             infoplists = depset(infoplists),
             resource_bundle_target_data = resource_bundle_target_data,
-            resources = resources,
-            structured_resources = structured_resources,
+            resources = depset(resources),
+            structured_resources = depset(structured_resources),
         ))
 
-    return resource_sets
+    return resource_sets, smart_dedupe.merge_owners_mappings(
+        owner_mappings, default_owner = owner,
+    )
 
 def _handle_swift_library_dependency(target, ctx):
     """Handles resources from a `swift_library` that doesn't propagate resources.
@@ -145,21 +163,25 @@ def _handle_swift_library_dependency(target, ctx):
       ctx: The Skylark context.
 
     Returns:
-      A list of `AppleResourceSet` values that should be included in the list
-      propagated by the `AppleResource` provider.
+      A tuple with 2 elements: a list of `AppleResourceSet` values that should be included in the
+      list propagated by the `AppleResource` provider; and an ownership mapping of the resources
+      present in this target.
     """
     resources = depset(ctx.rule.files.resources)
     structured_resources = depset(ctx.rule.files.structured_resources)
 
     # Only create the resource set if it's non-empty.
     if resources or structured_resources:
+        owner_mapping = smart_dedupe.create_owners_mapping(
+            ctx.rule.files.resources + ctx.rule.files.structured_resources, str(ctx.label),
+        )
         return [AppleResourceSet(
             resources = resources,
             structured_resources = structured_resources,
             swift_module = target[SwiftInfo].module_name,
-        )]
+        )], owner_mapping
 
-    return []
+    return [], {}
 
 def _handle_native_bundle_imports(bundle_imports):
     """Handles resources from an `objc_bundle` target.
@@ -169,7 +191,8 @@ def _handle_native_bundle_imports(bundle_imports):
 
     Returns:
       A list of `AppleResourceSet` values that should be included in the list
-      propagated by the `AppleResource` provider.
+      propagated by the `AppleResource` provider, and an ownership mapping of
+      the resources present in this target.
     """
     grouped_bundle_imports = group_files_by_directory(
         bundle_imports,
@@ -196,8 +219,7 @@ def _handle_native_bundle_imports(bundle_imports):
             # but that would break the requirement for resource_bundle_target_data,
             # where a single target is responsible for the contents of the bundle.
         ))
-
-    return resource_sets
+    return resource_sets, smart_dedupe.create_owners_mapping(bundle_imports)
 
 def _handle_unknown_objc_provider(objc):
     """Handles resources from a target that propagates an `objc` provider.
@@ -262,16 +284,24 @@ def _transitive_apple_resource_info(target, ctx):
     # dependencies.
     deps = getattr(ctx.rule.attr, "deps", [])
     resource_providers = providers.find_all(deps, AppleResourceInfo)
+    owner_mappings = []
     for p in resource_providers:
         resource_sets.extend(p.resource_sets)
+        owner_mappings.append(p.owners)
 
     if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
-        resource_sets.extend(_handle_native_library_dependency(target, ctx))
+        resources, owner_mapping = _handle_native_library_dependency(target, ctx)
+        resource_sets.extend(resources)
+        owner_mappings.append(owner_mapping)
     elif ctx.rule.kind == "swift_library":
-        resource_sets.extend(_handle_swift_library_dependency(target, ctx))
+        resources, owner_mapping = _handle_swift_library_dependency(target, ctx)
+        resource_sets.extend(resources)
+        owner_mappings.append(owner_mapping)
     elif ctx.rule.kind == "objc_bundle":
         bundle_imports = ctx.rule.files.bundle_imports
-        resource_sets.extend(_handle_native_bundle_imports(bundle_imports))
+        resources, owner_mapping = _handle_native_bundle_imports(bundle_imports)
+        resource_sets.extend(resources)
+        owner_mappings.append(owner_mapping)
     elif not resource_providers:
         # Handle arbitrary objc providers, but only if we haven't gotten resource
         # sets for the target or its deps already. This lets us handle "resource
@@ -286,7 +316,10 @@ def _transitive_apple_resource_info(target, ctx):
                 resource_sets.append(resource_set)
 
     minimized = apple_resource_set_utils.minimize(resource_sets)
-    return AppleResourceInfo(resource_sets = minimized)
+    return AppleResourceInfo(
+        resource_sets = minimized,
+        owners = smart_dedupe.merge_owners_mappings(owner_mappings),
+    )
 
 def _transitive_apple_bundling_swift_info(target, ctx):
     """Builds the `AppleBundlingSwiftInfo` provider to be propagated.

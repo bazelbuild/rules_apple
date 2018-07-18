@@ -164,6 +164,11 @@ that allow users to associate resources with the code that uses them.
 `AppleResourceSet` and the full list describes the transitive resources
 propagated by this rule.
 """,
+        "owners": """
+`dict` of resource short paths to a `depset` of target labels in string form.
+Used to account for multiple resource references to decide whether or not to deduplicate resources
+between frameworks and application bundles.
+""",
     },
 )
 
@@ -437,7 +442,8 @@ def AppleResourceSet(
 def _apple_resource_set_utils_minimize(
         resource_sets,
         framework_resource_sets = [],
-        dedupe_unbundled = False):
+        dedupe_unbundled = False,
+        whitelisted_mapping = None):
     """Minimizes and reduces a list of resource sets.
 
     This both merges similar resource set elements and subtracts all resources
@@ -454,6 +460,15 @@ def _apple_resource_set_utils_minimize(
     resources to avoid propagating a large number of minimizable sets to their
     dependers.
 
+    In order to support smart deduplication, we also allow the whitelisted_mapping
+    argument, which accepts a dictionary of file paths of resources which should
+    not be deduplicated. If whitelisted_mapping is None, then the legacy
+    deduplication logic will be used, where the resources present in
+    framework_resource_sets will be deduplicated from the resource_sets. If
+    whitelisted_mapping is not None (e.g. could be an empty dictionary), then the
+    smart dedupe logic will apply, and framework_resource_sets will not be taken
+    into account.
+
     Args:
       resource_sets: The list of `AppleResourceSet` values that should be merged.
       framework_resource_sets: The list of "AppleResourceSet" values which contain
@@ -461,6 +476,8 @@ def _apple_resource_set_utils_minimize(
           in these sets will not be included in the returned list.
       dedupe_unbundled: If false, resources that have no bundle directory will
           not be subtracted. False by default.
+      whitelisted_mapping: A dictionary of file short paths where the keys are file
+          paths of resources that should not be deduplicated.
     Returns:
       The minimal possible list after merging `AppleResourceSet` values with
       the same `bundle_dir` and `swift_module`.
@@ -476,11 +493,12 @@ def _apple_resource_set_utils_minimize(
     minimized_dict = _apple_resource_set_dict(
         resource_sets,
         framework_minimized_dict,
+        whitelisted_mapping = whitelisted_mapping,
     )
 
     return [_dedupe_resource_set_files(rs) for rs in minimized_dict.values()]
 
-def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}):
+def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}, whitelisted_mapping = None):
     """Returns a minimal map of resource sets, omitting specified resources.
 
     Map keys are `(bundle_dir, swift_module)` of the resource set; multiple
@@ -493,7 +511,9 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}):
     Args:
       resource_sets: The list of `AppleResourceSet` values for the map.
       avoid_resource_dict: A map of `AppleResourceSet` values already keyed by
-          `(bundle_dir, swift_module)` that should be omitted from the output
+          `(bundle_dir, swift_module)` that should be omitted from the output.
+      whitelisted_mapping: A dictionary of file short paths where the keys are file
+          paths of resources that should not be deduplicated.
     Returns:
       A minimal map from `(bundle_dir, swift_module)` to `AppleResourceSet`
       containing the resources in `resource_sets` minus the resources in
@@ -554,19 +574,23 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}):
             objc_bundle_imports = _filter_files(
                 objc_bundle_imports,
                 avoid_objc_bundle_imports,
+                whitelisted_mapping = whitelisted_mapping,
             ),
             resource_bundle_target_data = resource_bundle_target_data,
             resources = _filter_files(
                 resources,
                 avoid_resources,
+                whitelisted_mapping = whitelisted_mapping,
             ),
             structured_resources = _filter_files(
                 structured_resources,
                 avoid_structured_resources,
+                whitelisted_mapping = whitelisted_mapping,
             ),
             structured_resource_zips = _filter_files(
                 structured_resource_zips,
                 avoid_structured_resource_zips,
+                whitelisted_mapping = whitelisted_mapping,
             ),
             swift_module = current_set.swift_module,
         )
@@ -585,10 +609,16 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}):
 
     return minimized_dict
 
-def _filter_files(files, avoid_files):
+def _filter_files(files, avoid_files, whitelisted_mapping = None):
     """Returns a depset containing files minus avoid_files."""
-    avoid_short_paths = {f.short_path: None for f in avoid_files.to_list()}
-    return depset([f for f in files if f.short_path not in avoid_short_paths])
+    # If whitelisted_mapping is None, use the legacy deduplication logic. We
+    # explicitly test for None as an empty dictionary is a valid
+    # whitelisted_mapping value.
+    if whitelisted_mapping == None:
+        avoid_short_paths = {f.short_path: None for f in avoid_files.to_list()}
+        return depset([f for f in files if f.short_path not in avoid_short_paths])
+
+    return depset([f for f in files if f.short_path in whitelisted_mapping])
 
 def _dedupe_files(files):
     """Deduplicates files based on their short paths.
