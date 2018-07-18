@@ -30,7 +30,11 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
     filtering: Optionally specify a filter for stdout. It must be callable and
         have the following signature:
 
-          myFilter(input_string) -> output_string
+          myFilter(tool_exit_status, stdout_string, stderr_string) ->
+             (stdout_string, stderr_string)
+
+        The filter can then use the tool's exit status to process the
+        output as they wish, returning what ever should be used.
 
     trim_paths: Optionally specify whether or not to trim the current working
         directory from any paths in the output.
@@ -44,21 +48,21 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
   stdout, stderr = p.communicate()
   cmd_result = p.returncode
 
-  if cmd_result:
-    sys.stdout.write("Command failed (%r): %r\n" % (cmd_result, cmd_args))
-    sys.stdout.write("---- stdout:\n%s\n" % stdout)
-    sys.stdout.write("---- stderr:\n%s\n" % stderr)
-    return cmd_result
-
   if stdout and filtering:
     if not callable(filtering):
       raise TypeError("'filtering' must be callable.")
-    stdout = filtering(stdout)
+    stdout, stderr = filtering(cmd_result, stdout, stderr)
+
+  if trim_paths:
+    if stdout:
+      stdout = _trim_paths(stdout)
+    if stderr:
+      stderr = _trim_paths(stderr)
 
   if stdout:
-    if trim_paths:
-      stdout = _trim_paths(stdout)
     sys.stdout.write("%s\n" % stdout)
+  if stderr:
+    sys.stderr.write("%s\n" % stderr)
 
   return cmd_result
 

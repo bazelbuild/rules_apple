@@ -93,14 +93,16 @@ def ibtool(_, toolargs):
   return execute.execute_and_filter_output(xcrunargs, trim_paths=True)
 
 
-def actool_filtering(raw_stdout):
+def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   """Filter the stdout messages from "actool".
 
   Args:
+    tool_exit_status: The exit status of "xcrun actool".
     raw_stdout: This is the unmodified stdout captured from "xcrun actool".
+    raw_stderr: This is the unmodified stderr captured from "xcrun actool".
 
   Returns:
-    The filtered output string.
+    A tuple of the filtered stdout and strerr.
   """
   section_header = re.compile("^/\\* ([^ ]*) \\*/$")
 
@@ -141,7 +143,15 @@ def actool_filtering(raw_stdout):
 
       output.append(line + "\n")
 
-  return "".join(output)
+  # Some of the time, in a successful run, actool reports on stderr some
+  # internal assertions and ask "Please file a bug report with Apple", but
+  # it isn't clear that there is really a problem. Since everything else
+  # (warnings about assets, etc.) is reported on stdout, just drop stderr
+  # on successful runs.
+  if tool_exit_status == 0:
+    raw_stderr = None
+
+  return ("".join(output), raw_stderr)
 
 
 def actool(_, toolargs):
