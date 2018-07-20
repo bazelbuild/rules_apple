@@ -95,11 +95,13 @@ def tvos_application(name, **kwargs):
           defined by these targets will also be transitively included in the
           final application.
     """
-    bundling_args = binary_support.create_binary(
+    bundling_args = binary_support.entitlement_args_for_stub(
         name,
-        str(apple_common.platform_type.tvos),
+        platform_type = str(apple_common.platform_type.tvos),
         **kwargs
     )
+
+    bundling_args["deps"] = bundling_args.get("deps", []) + [bundling_args["entitlements"]]
 
     _tvos_application(
         name = name,

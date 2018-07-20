@@ -19,10 +19,6 @@ load(
     "file_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -31,7 +27,7 @@ load(
     "join_commands",
 )
 
-def _zip_bitcode_symbols_maps(ctx, binary_artifact):
+def _zip_bitcode_symbols_maps(ctx, binary_artifact, debug_outputs):
     """Creates an archive with bitcode symbol maps.
 
     The archive contains bitcode symbol map files produced by the linker and is
@@ -49,15 +45,13 @@ def _zip_bitcode_symbols_maps(ctx, binary_artifact):
     Args:
       ctx: The Skylark context.
       binary_artifact: The binary artifact being generated for the current rule.
+      debug_outputs: dSYM bundle binary provider.
 
     Returns:
       A `File` object representing the ZIP file containing the bitcode symbol
       maps, or `None` if no bitcode symbols were found.
     """
-    outputs_map = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleDebugOutputs,
-    ).outputs_map
+    outputs_map = debug_outputs.outputs_map
 
     # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
     copy_commands = []
