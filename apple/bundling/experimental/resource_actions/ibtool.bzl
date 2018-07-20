@@ -55,9 +55,7 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
       output_dir: The directory where the compiled outputs should be placed.
     """
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
-    args = ["--compilation-directory", output_dir.dirname]
+    args = ["ibtool", "--compilation-directory", output_dir.dirname]
 
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
@@ -68,7 +66,7 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
         ctx,
         inputs = [input_file],
         outputs = [output_dir],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardCompile",
         no_sandbox = True,
@@ -88,12 +86,10 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
       output_dir: The directory where the linked outputs should be placed.
     """
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
 
-    args = ["--link", output_dir.path]
+    args = ["ibtool", "--link", output_dir.path]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([f.path for f in storyboardc_dirs])
 
@@ -101,7 +97,7 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
         ctx,
         inputs = storyboardc_dirs,
         outputs = [output_dir],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardLink",
         no_sandbox = True,
@@ -118,12 +114,10 @@ def compile_xib(ctx, swift_module, input_file, output_file):
       output_file: The file reference for the output nib.
     """
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
 
-    args = ["--compile", output_file.path]
+    args = ["ibtool", "--compile", output_file.path]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
         "--module",
@@ -135,7 +129,7 @@ def compile_xib(ctx, swift_module, input_file, output_file):
         ctx,
         inputs = [input_file],
         outputs = [output_file],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "XibCompile",
         no_sandbox = True,

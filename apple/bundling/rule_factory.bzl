@@ -188,11 +188,6 @@ _bundling_tool_attributes = {
         executable = True,
         default = Label("@build_bazel_rules_apple//tools/clangrttool"),
     ),
-    "_ibtoolwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/ibtoolwrapper"),
-    ),
     # TODO(b/74731511): Refactor this attribute into being specified for each
     # platform.
     "_runner_template": attr.label(
@@ -225,6 +220,11 @@ _bundling_tool_attributes = {
         cfg = "host",
         executable = True,
         default = Label("@build_bazel_rules_apple//tools/swiftstdlibtoolwrapper"),
+    ),
+    "_xctoolrunner": attr.label(
+        cfg = "host",
+        executable = True,
+        default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
     ),
 }
 

@@ -559,9 +559,11 @@ def _compile_xib(ctx, input_file, resource_info):
         prefix = bundle_dir,
     )
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
-    args = ["--compile", file_support.xctoolrunner_path(out_dir.path) + "/" + nib_name]
+    args = [
+        "ibtool",
+        "--compile",
+        file_support.xctoolrunner_path(out_dir.path) + "/" + nib_name,
+    ]
     args.extend(_ibtool_arguments(ctx))
     args.extend([
         "--module",
@@ -573,7 +575,7 @@ def _compile_xib(ctx, input_file, resource_info):
         ctx,
         inputs = [input_file],
         outputs = [out_dir],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "XibCompile",
         no_sandbox = True,
@@ -617,9 +619,11 @@ def _compile_storyboard(ctx, input_file, resource_info):
         prefix = bundle_dir,
     )
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
-    args = ["--compilation-directory", file_support.xctoolrunner_path(out_dir.dirname)]
+    args = [
+        "ibtool",
+        "--compilation-directory",
+        file_support.xctoolrunner_path(out_dir.dirname),
+    ]
     args.extend(_ibtool_arguments(ctx))
     args.extend([
         "--module",
@@ -631,7 +635,7 @@ def _compile_storyboard(ctx, input_file, resource_info):
         ctx,
         inputs = [input_file],
         outputs = [out_dir],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardCompile",
         no_sandbox = True,
@@ -668,9 +672,7 @@ def _link_storyboards(ctx, storyboardc_dirs, resource_info):
         prefix = bundle_dir,
     )
 
-    # The first two arguments are those required by ibtoolwrapper; the remaining
-    # ones are passed to ibtool verbatim.
-    args = ["--link", file_support.xctoolrunner_path(out_dir.path)]
+    args = ["ibtool", "--link", file_support.xctoolrunner_path(out_dir.path)]
     args.extend(_ibtool_arguments(ctx))
     args.extend([f.path for f in storyboardc_dirs])
 
@@ -678,7 +680,7 @@ def _link_storyboards(ctx, storyboardc_dirs, resource_info):
         ctx,
         inputs = storyboardc_dirs,
         outputs = [out_dir],
-        executable = ctx.executable._ibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardLink",
         no_sandbox = True,
