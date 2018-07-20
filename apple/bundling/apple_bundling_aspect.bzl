@@ -190,9 +190,9 @@ def _handle_native_bundle_imports(bundle_imports):
       bundle_imports: The list of `File`s in the bundle.
 
     Returns:
-      A list of `AppleResourceSet` values that should be included in the list
-      propagated by the `AppleResource` provider, and an ownership mapping of
-      the resources present in this target.
+      A tuple with 2 elements: a list of `AppleResourceSet` values that should be included in the
+      list propagated by the `AppleResource` provider; and an ownership mapping of the resources
+      present in this target.
     """
     grouped_bundle_imports = group_files_by_directory(
         bundle_imports,
@@ -232,8 +232,9 @@ def _handle_unknown_objc_provider(objc):
       objc: The `objc` provider.
 
     Returns:
-      An `AppleResourceSet` value that should be included in the list propagated
-      by the `AppleResource` provider.
+      A tuple with 2 elements: an `AppleResourceSet` value that should be included in the list
+      propagated by the `AppleResource` provider; and an ownership mapping of the resources present
+      in this target.
     """
     resources = (objc.asset_catalog +
                  objc.storyboard +
@@ -243,7 +244,7 @@ def _handle_unknown_objc_provider(objc):
 
     # Only create the resource set if it's non-empty.
     if not (resources or objc.bundle_file or objc.merge_zip):
-        return None
+        return None, None
 
     # Assume that any bundlable files whose bundle paths are just their basenames
     # had their paths flattened (if they were nested to begin with) and they can
@@ -266,6 +267,8 @@ def _handle_unknown_objc_provider(objc):
         resources = resources,
         structured_resources = structured_resources,
         structured_resource_zips = objc.merge_zip,
+    ), smart_dedupe.create_owners_mapping(
+        resources + structured_resources.to_list() + objc.merge_zip.to_list()
     )
 
 def _transitive_apple_resource_info(target, ctx):
@@ -311,9 +314,11 @@ def _transitive_apple_resource_info(target, ctx):
         # (because we'll have already gotten that information in the form we want
         # from the transitive AppleResource providers).
         if apple_common.Objc in target:
-            resource_set = _handle_unknown_objc_provider(target[apple_common.Objc])
-            if resource_set:
-                resource_sets.append(resource_set)
+            resources, owner_mapping = _handle_unknown_objc_provider(target[apple_common.Objc])
+            if resources:
+                resource_sets.append(resources)
+            if owner_mapping:
+                owner_mappings.append(owner_mapping)
 
     minimized = apple_resource_set_utils.minimize(resource_sets)
     return AppleResourceInfo(
