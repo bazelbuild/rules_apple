@@ -40,6 +40,7 @@ load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleResourceInfo",
     "AppleResourceSet",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
@@ -47,6 +48,12 @@ load(
 
 def _tvos_application_impl(ctx):
     """Implementation of the `tvos_application` Skylark rule."""
+
+    if ctx.attr.platform_type != "tvos":
+        fail("platform_type must be 'tvos'")
+
+    if ctx.attr.binary_type != "executable":
+        fail("binary_type must be 'executable'")
 
     app_icons = ctx.files.app_icons
     if app_icons:
@@ -93,10 +100,16 @@ def _tvos_application_impl(ctx):
         for extension in ctx.attr.extensions
     ]
 
-    binary_provider = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleExecutableBinary,
-    )
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+
+    resource_info_providers = [
+        dep[AppleResourceInfo]
+        for dep in ctx.attr.deps
+        if AppleResourceInfo in dep
+    ]
+
     binary_artifact = binary_provider.binary
     deps_objc_provider = binary_provider.objc
     additional_providers, legacy_providers = bundler.run(
@@ -109,6 +122,8 @@ def _tvos_application_impl(ctx):
         embedded_bundles = embedded_bundles,
         deps_objc_providers = [deps_objc_provider],
         extra_runfiles = run_actions.start_simulator(ctx),
+        debug_outputs = debug_outputs_provider,
+        resource_info_providers = resource_info_providers,
     )
 
     return struct(
@@ -124,10 +139,71 @@ tvos_application = rule_factory.make_bundling_rule(
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
         "extensions": attr.label_list(
-            providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
+            providers = [[
+                AppleBundleInfo,
+                TvosExtensionBundleInfo,
+            ]],
         ),
         "launch_images": attr.label_list(allow_files = True),
         "settings_bundle": attr.label(providers = [["objc"]]),
+        "platform_type": attr.string(
+            default = "tvos",
+            doc = """
+This attribute is public as an implementation detail while we migrate the
+architecture of the rules. Do not change its value.
+""",
+        ),
+        "_child_configuration_dummy": attr.label(
+            cfg = apple_common.multi_arch_split,
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
+        ),
+        "_cc_toolchain": attr.label(
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
+        ),
+        "_googlemac_proto_compiler": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
+        ),
+        "_googlemac_proto_compiler_support": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
+        ),
+        "_lib_protobuf": attr.label(
+            default = Label("@bazel_tools//tools/objc:protobuf_lib"),
+        ),
+        "_protobuf_well_known_types": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
+        ),
+        "binary_type": attr.string(
+            default = "executable",
+            doc = """
+This attribute is public as an implementation detail while we migrate the
+architecture of the rules. Do not change its value.
+""",
+        ),
+        # TODO(dabelknap): Move these attributes into rule_factory
+        "bundle_loader": attr.label(
+            aspects = [apple_common.objc_proto_aspect],
+            doc = """
+This attribute is public as an implementation detail while we migrate the
+architecture of the rules. Do not change its value.
+""",
+        ),
+        "dylibs": attr.label_list(
+            aspects = [apple_common.objc_proto_aspect],
+            doc = """
+This attribute is public as an implementation detail while we migrate the
+architecture of the rules. Do not change its value.
+""",
+        ),
+        "linkopts": attr.string_list(),
     },
     archive_extension = ".ipa",
     bundles_frameworks = True,
@@ -135,6 +211,7 @@ tvos_application = rule_factory.make_bundling_rule(
     device_families = rule_factory.device_families(allowed = ["tv"]),
     needs_pkginfo = True,
     executable = True,
+    deps_cfg = apple_common.multi_arch_split,
     path_formats = rule_factory.simple_path_formats(
         path_in_archive_format = "Payload/%s",
     ),

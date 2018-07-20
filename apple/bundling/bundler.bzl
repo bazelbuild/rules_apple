@@ -449,8 +449,7 @@ def _create_unprocessed_archive(
     bundler_inputs = (
         list(bundling_support.bundlable_file_sources(
             bundle_merge_files + bundle_merge_zips + root_merge_zips,
-        )) +
-        [control_file]
+        )) + [control_file]
     )
 
     ctx.actions.run(
@@ -615,8 +614,7 @@ def _experimental_create_and_sign_bundle(
     )
     bundler_inputs = (
         list(bundling_support.bundlable_file_sources(bundle_merge_files +
-                                                     bundle_merge_zips)) +
-        [control_file]
+                                                     bundle_merge_zips)) + [control_file]
     )
 
     entitlements = attrs.get(ctx.file, "entitlements")
@@ -686,7 +684,9 @@ def _run(
         suppress_bundle_infoplist = False,
         version_keys_required = True,
         extra_runfiles = [],
-        resource_dep_bundle_attributes = ["frameworks"]):
+        resource_dep_bundle_attributes = ["frameworks"],
+        debug_outputs = None,
+        resource_info_providers = []):
     """Implements the core bundling logic for an Apple bundle archive.
 
     Args:
@@ -733,6 +733,8 @@ def _run(
       resource_dep_bundle_attributes: List of attributes that reference bundles
           which contain resources that need to be deduplicated from the current
           bundle.
+      debug_outputs: dSYM bundle binary provider.
+      resource_info_providers: List of providers with transitive resource sets.
 
     Returns:
       A tuple containing two values:
@@ -838,12 +840,22 @@ def _run(
                         dep_bundle[_ResourceBundleInfo].resource_sets,
                     )
 
-        # Add the transitive resource sets, except for those that have already been
-        # included by a framework dependency.
-        p = binary_support.get_binary_provider(ctx.attr.deps, AppleResourceInfo)
-        if p:
-            owners_mappings.append(p.owners)
-            for rs in p.resource_sets:
+        # If no resource_info_providers were passed to _run, retrieve the
+        # resources from the binary target. Otherwise, assume there is no
+        # binary target.
+        if not resource_info_providers:
+            provider = binary_support.get_binary_provider(
+                ctx.attr.deps,
+                AppleResourceInfo,
+            )
+            if provider:
+                resource_info_providers = [provider]
+
+        # Add the transitive resource sets, except for those that have already
+        # been included by a framework dependency.
+        for provider in resource_info_providers:
+            owners_mappings.append(provider.owners)
+            for rs in provider.resource_sets:
                 resource_sets.append(rs)
 
         # Finally, add any extra resources specific to the target being built
@@ -862,23 +874,29 @@ def _run(
                 top_level_resources.extend(resources.to_list())
 
     owners_mappings.append(smart_dedupe.create_owners_mapping(
-        top_level_resources, owner = str(ctx.label),
+        top_level_resources,
+        owner = str(ctx.label),
     ))
 
     owners_mapping = smart_dedupe.merge_owners_mappings(
-        owners_mappings, default_owner = str(ctx.label),
+        owners_mappings,
+        default_owner = str(ctx.label),
     )
     avoided_owners_mapping = smart_dedupe.merge_owners_mappings(
-        avoided_owners_mappings, validate_all_files_owned = True,
+        avoided_owners_mappings,
+        validate_all_files_owned = True,
     )
 
     smart_dedupe_enabled = define_utils.bool_value(
-        ctx, "apple.experimental.smart_dedupe", False,
+        ctx,
+        "apple.experimental.smart_dedupe",
+        False,
     )
     whitelisted_mapping = None
     if smart_dedupe_enabled:
         whitelisted_mapping = smart_dedupe.subtract_owners_mappings(
-            owners_mapping, avoided_owners_mapping,
+            owners_mapping,
+            avoided_owners_mapping,
         )
 
     # Iterate over each set of resources and register the actions. This
@@ -1064,14 +1082,20 @@ def _run(
             bundling_support.contents_file(ctx, clang_rt_zip, "Frameworks"),
         )
 
+    # If debug_outputs is not provided to _run, get them from the binary
+    # target.
+    if not debug_outputs:
+        debug_outputs = binary_support.get_binary_provider(
+            ctx.attr.deps,
+            apple_common.AppleDebugOutputs,
+        )
+
     # Include bitcode symbol maps when needed.
-    if has_built_binary and binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleDebugOutputs,
-    ):
+    if has_built_binary and debug_outputs:
         bitcode_maps_zip = bitcode_actions.zip_bitcode_symbols_maps(
             ctx,
             binary_artifact,
+            debug_outputs,
         )
         if bitcode_maps_zip:
             root_merge_zips.append(bundling_support.bundlable_file(
@@ -1195,10 +1219,6 @@ def _run(
     additional_providers = []
     legacy_providers = {}
 
-    debug_outputs = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleDebugOutputs,
-    )
     if has_built_binary and debug_outputs:
         # TODO(b/110264170): Propagate the provider that makes the dSYM bundle
         # available as opposed to AppleDebugOutputs which propagates the standalone
@@ -1303,7 +1323,8 @@ def _run(
         # contained in the frameworks dependencies, so that higher level bundles
         # can also skip the bundling of those resources.
         _ResourceBundleInfo(
-            resource_sets = resource_sets + dep_bundle_resource_sets, owners = owners_mapping,
+            owners = owners_mapping,
+            resource_sets = resource_sets + dep_bundle_resource_sets,
         ),
     ])
 

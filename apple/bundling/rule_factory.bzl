@@ -364,6 +364,7 @@ def _make_bundling_rule(
         platform_type = None,
         product_type = None,
         use_binary_rule = True,
+        deps_cfg = "target",
         **kwargs):
     """Creates and returns an Apple bundling rule with the given properties.
 
@@ -394,6 +395,8 @@ def _make_bundling_rule(
           rule and whether or not the attribute is private.
       use_binary_rule: True if this depends on a full-fledged binary rule,
           such as apple_binary or apple_stub_binary.
+      deps_cfg: Specify the configuration of the dependencies. Defaults to
+          "target".
       **kwargs: Additional arguments that are passed directly to `rule()`.
 
     Returns:
@@ -452,7 +455,7 @@ def _make_bundling_rule(
     if use_binary_rule:
         binary_dep_attrs = {
             "binary": attr.label(
-                mandatory = True,
+                mandatory = False,
                 providers = binary_providers,
                 single_file = True,
             ),
@@ -468,7 +471,7 @@ def _make_bundling_rule(
             "deps": attr.label_list(
                 aspects = [apple_bundling_aspect, swift_usage_aspect],
                 mandatory = True,
-                providers = binary_providers,
+                cfg = deps_cfg,
             ),
         }
     else:
@@ -512,7 +515,7 @@ def _make_bundling_rule(
     archive_name = "%{name}" + archive_extension
     return rule(
         implementation,
-        fragments = ["apple", "objc"],
+        fragments = ["apple", "cpp", "objc"],
         outputs = {"archive": archive_name},
         **rule_args
     )
