@@ -14,54 +14,56 @@
 
 """Actions used to copy Swift libraries into the bundle."""
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-     "binary_support")
+load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
 load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
-load("@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-     "platform_support")
-
+load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
 
 def _zip_swift_dylibs(ctx, binary_file):
-  """Registers an action that creates a ZIP that contains Swift dylibs.
+    """Registers an action that creates a ZIP that contains Swift dylibs.
 
-  This action scans the binary associated with the target being built and
-  determines which Swift dynamic libraries need to be included in that
-  bundle. Some bundle types, like applications, will bundle them in their
-  Frameworks directory (as well as an archive-root SwiftSupport directory for
-  release builds); others, like extensions, will simply propagate them to the
-  host application.
+    This action scans the binary associated with the target being built and
+    determines which Swift dynamic libraries need to be included in that
+    bundle. Some bundle types, like applications, will bundle them in their
+    Frameworks directory (as well as an archive-root SwiftSupport directory for
+    release builds); others, like extensions, will simply propagate them to the
+    host application.
 
-  Args:
-    ctx: The Skylark context.
-    binary_file: The binary to scan for Swift dylibs.
-  Returns:
-    A `File` object representing the ZIP file containing the Swift dylibs.
-  """
-  platform = platform_support.platform(ctx)
+    Args:
+      ctx: The Skylark context.
+      binary_file: The binary to scan for Swift dylibs.
+    Returns:
+      A `File` object representing the ZIP file containing the Swift dylibs.
+    """
+    platform = platform_support.platform(ctx)
 
-  zip_file = file_support.intermediate(ctx, "%{name}.swiftlibs.zip")
-  platform_support.xcode_env_action(
-      ctx,
-      inputs=[binary_file],
-      outputs=[zip_file],
-      executable=ctx.executable._swiftstdlibtoolwrapper,
-      arguments=[
-          "--output_zip_path",
-          zip_file.path,
-          "--bundle_path",
-          ".",
-          "--platform",
-          platform.name_in_plist.lower(),
-          "--scan-executable",
-          binary_file.path,
-      ],
-      mnemonic="SwiftStdlibCopy",
-      no_sandbox=True,
-  )
-  return zip_file
-
+    zip_file = file_support.intermediate(ctx, "%{name}.swiftlibs.zip")
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = [binary_file],
+        outputs = [zip_file],
+        executable = ctx.executable._swiftstdlibtoolwrapper,
+        arguments = [
+            "--output_zip_path",
+            zip_file.path,
+            "--bundle_path",
+            ".",
+            "--platform",
+            platform.name_in_plist.lower(),
+            "--scan-executable",
+            binary_file.path,
+        ],
+        mnemonic = "SwiftStdlibCopy",
+        no_sandbox = True,
+    )
+    return zip_file
 
 # Define the loadable module that lists the exported symbols in this file.
 swift_actions = struct(
-    zip_swift_dylibs=_zip_swift_dylibs,
+    zip_swift_dylibs = _zip_swift_dylibs,
 )

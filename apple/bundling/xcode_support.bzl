@@ -14,28 +14,26 @@
 
 """Support functions for working with Xcode configurations."""
 
-
 def _is_xcode_at_least_version(xcode_config, version):
-  """Returns True if we are building with at least the given Xcode version.
+    """Returns True if we are building with at least the given Xcode version.
 
-  Args:
-    xcode_config: the XcodeVersionConfig provider
-    version: The minimum desired Xcode version, as a dotted version string.
-  Returns:
-    True if the current target is being built with a version of Xcode at least
-    as high as the given version.
-  """
-  current_version = xcode_config.xcode_version()
-  if not current_version:
-    fail("Could not determine Xcode version at all. This likely means Xcode " +
-         "isn't available; if you think this is a mistake, please file a " +
-         "bug.")
+    Args:
+      xcode_config: the XcodeVersionConfig provider
+      version: The minimum desired Xcode version, as a dotted version string.
+    Returns:
+      True if the current target is being built with a version of Xcode at least
+      as high as the given version.
+    """
+    current_version = xcode_config.xcode_version()
+    if not current_version:
+        fail("Could not determine Xcode version at all. This likely means Xcode " +
+             "isn't available; if you think this is a mistake, please file a " +
+             "bug.")
 
-  desired_version = apple_common.dotted_version(version)
-  return current_version >= desired_version
-
+    desired_version = apple_common.dotted_version(version)
+    return current_version >= desired_version
 
 # Define the loadable module that lists the exported symbols in this file.
 xcode_support = struct(
-    is_xcode_at_least_version=_is_xcode_at_least_version,
+    is_xcode_at_least_version = _is_xcode_at_least_version,
 )

@@ -3,9 +3,18 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 sh_binary(
-    name = "swiftstdlibtoolwrapper",
+    name = "swiftstdlibtoolwrapper_shell",
     srcs = ["swiftstdlibtoolwrapper.sh"],
     deps = ["//tools/wrapper_common"],
+)
+
+py_binary(
+    name = "swiftstdlibtoolwrapper",
+    srcs = ["swiftstdlibtoolwrapper.py"],
+    main = "swiftstdlibtoolwrapper.py",
+    deps = [
+        "//tools/xctoolrunner",
+    ],
 )
 
 # Consumed by bazel tests.

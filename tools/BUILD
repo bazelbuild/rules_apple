@@ -20,6 +20,7 @@ filegroup(
         "//tools/swiftstdlibtoolwrapper:for_bazel_tests",
         "//tools/versiontool:for_bazel_tests",
         "//tools/wrapper_common:for_bazel_tests",
+        "//tools/xctoolrunner:for_bazel_tests",
     ],
     visibility = [
         "//:__pkg__",

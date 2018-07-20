@@ -385,3 +385,13 @@ apple_shell_test(
     ],
     shard_count = 4,
 )
+
+apple_shell_test(
+    name = "smart_resource_deduplication_test",
+    size = "large",
+    src = "smart_resource_deduplication_test.sh",
+    data = [
+        "//test/testdata/resources:resource_data_deps_ios",
+        "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
+)

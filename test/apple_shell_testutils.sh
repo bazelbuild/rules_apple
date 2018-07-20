@@ -68,6 +68,23 @@ function assert_zip_not_contains() {
       || true
 }
 
+# Usage: assert_assets_contains <archive> <assets_path_in_archive> <image_name>
+#
+# Asserts that the Assets.car at `assets_path_in_archive` within the zip
+# `archive` contains a reference to the image with name `image_name`.
+function assert_assets_contains() {
+  archive="$1"
+  assets_path="$2"
+  image_name="$3"
+
+  mkdir -p tempdir
+  unzipped_assets="tempdir/Assets.car"
+
+  unzip_single_file "$archive" "$assets_path" > $unzipped_assets
+  strings "$unzipped_assets" | grep "$image_name" > /dev/null \
+      || fail "File $assets_path did not contain $image_name"
+  rm -rf tempdir
+}
 
 # Usage: build_path <target_label>
 #
