@@ -23,6 +23,11 @@ load(
     "macos_command_line_infoplist",
     "macos_command_line_launchdplist",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
+    "swift_runtime_linkopts",
+)
+
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
 load(
@@ -43,6 +48,31 @@ load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
+
+def _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        is_static,
+        testonly = None):
+    """Creates a build target to propagate Swift runtime linker flags.
+
+    Args:
+      name: The name of the base target.
+      deps: The list of dependencies of the base target.
+      is_static: True to use the static Swift runtime, or False to use the
+          dynamic Swift runtime.
+      testonly: Whether the target should be testonly.
+    Returns:
+      A build label that can be added to the deps of the binary target.
+    """
+    swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
+    swift_runtime_linkopts(
+        name = swift_runtime_linkopts_name,
+        is_static = is_static,
+        testonly = testonly,
+        deps = deps,
+    )
+    return ":" + swift_runtime_linkopts_name
 
 def macos_application(name, **kwargs):
     """Packages a macOS application.
@@ -103,9 +133,25 @@ def macos_application(name, **kwargs):
     linkopts += ["-rpath", "@executable_path/../Frameworks"]
     binary_args["linkopts"] = linkopts
 
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
+
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    # TODO(b/64036784): Handle the testonly attribute.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
+
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
+        deps = binary_deps,
         features = ["link_cocoa"],
         **binary_args
     )
@@ -186,10 +232,25 @@ def macos_bundle(name, **kwargs):
     linkopts += ["-rpath", "@executable_path/../Frameworks"]
     binary_args["linkopts"] = linkopts
 
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
+
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
+
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
         binary_type = "loadable_bundle",
+        deps = binary_deps,
         features = ["link_cocoa"],
         **binary_args
     )
@@ -270,13 +331,24 @@ def macos_command_line_application(name, **kwargs):
         )
         binary_deps.extend([":" + merged_launchdplists_name])
 
+    testonly = binary_args.get("testonly", None)
+
+    # Propagate the linker flags that statically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            True,
+            testonly = testonly,
+        ),
+    )
+
     # Create the unsigned binary, then run the command line application rule that
     # signs it.
     cmd_line_app_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
         deps = binary_deps,
-        link_swift_statically = True,
         suppress_entitlements = True,
         **binary_args
     )
@@ -349,6 +421,17 @@ def macos_extension(name, **kwargs):
 
     original_deps = binary_args.pop("deps")
     binary_deps = list(original_deps)
+    testonly = binary_args.get("testonly", default = None)
+
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    binary_deps.append(
+        _create_swift_runtime_linkopts_target(
+            name,
+            original_deps,
+            False,
+            testonly = testonly,
+        ),
+    )
 
     bundling_args = binary_support.create_binary(
         name,
@@ -390,10 +473,22 @@ def macos_ui_test(
       deps: A list of dependencies that contain the test code and resources
           needed to run the tests.
     """
+    args = dict(kwargs)
+    deps = args.pop("deps", [])
+
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    linkopts_dep = _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        False,
+        testonly = True,
+    )
+
     _macos_ui_test(
         name = name,
+        deps = deps + [linkopts_dep],
         runner = runner,
-        **kwargs
+        **args
     )
 
 def macos_unit_test(
@@ -422,8 +517,20 @@ def macos_unit_test(
       deps: A list of dependencies that contain the test code and resources
           needed to run the tests.
     """
+    args = dict(kwargs)
+    deps = args.pop("deps", [])
+
+    # Propagate the linker flags that dynamically link the Swift runtime.
+    linkopts_dep = _create_swift_runtime_linkopts_target(
+        name,
+        deps,
+        False,
+        testonly = True,
+    )
+
     _macos_unit_test(
         name = name,
+        deps = deps + [linkopts_dep],
         runner = runner,
-        **kwargs
+        **args
     )
