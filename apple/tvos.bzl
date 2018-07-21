@@ -36,7 +36,9 @@ load(
 def tvos_application(name, **kwargs):
     """Builds and bundles a tvOS application.
 
-    The named target produced by this macro is an IPA file.
+    The named target produced by this macro is an IPA file. This macro also
+    creates a target named `"{name}.apple_binary"` that represents the linked
+    binary executable inside the application bundle.
 
     Args:
       name: The name of the target.
@@ -93,11 +95,13 @@ def tvos_application(name, **kwargs):
           defined by these targets will also be transitively included in the
           final application.
     """
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.entitlement_args_for_stub(
         name,
         platform_type = str(apple_common.platform_type.tvos),
         **kwargs
     )
+
+    bundling_args["deps"] = bundling_args.get("deps", []) + [bundling_args["entitlements"]]
 
     _tvos_application(
         name = name,

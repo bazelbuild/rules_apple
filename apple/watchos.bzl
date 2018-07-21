@@ -89,10 +89,9 @@ def watchos_application(name, **kwargs):
           code of its own, any code in the dependent libraries will be ignored.)
     """
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.entitlement_args_for_stub(
         name,
         platform_type = str(apple_common.platform_type.watchos),
-        is_stub = True,
         **kwargs
     )
 

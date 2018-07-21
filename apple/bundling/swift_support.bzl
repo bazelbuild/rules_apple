@@ -19,6 +19,10 @@ load(
     "apple_bundling_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundlingSwiftInfo",
 )

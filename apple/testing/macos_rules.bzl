@@ -24,10 +24,6 @@ load(
     "full_label",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -98,7 +94,7 @@ def _macos_test(
         infoplists = [
             "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
         ],
-        linkopts = [],
+        linkopts = None,
         minimum_os_version = None,
         runner = None,
         test_host = None,
@@ -109,7 +105,7 @@ def _macos_test(
 
     This macro creates 3 targets:
 
-    * name + ".apple_binary": Represents the binary that contains the test code. It
+    * name + "_test_binary": Represents the binary that contains the test code. It
         captures the deps and test_host arguments.
     * name + "_test_bundle": Represents the xctest bundle that contains the binary
         along with the test resources. It captures the bundle_id and infoplists
@@ -121,6 +117,7 @@ def _macos_test(
         fail("platform_type is not allowed as an attribute to macos_unit_test " +
              "and macos_ui_test")
 
+    test_binary_name = name + "_test_binary"
     test_bundle_name = name + "_test_bundle"
 
     linkopts = [
@@ -129,24 +126,16 @@ def _macos_test(
         "@executable_path/../Frameworks",
         "-rpath",
         "@loader_path/../Frameworks",
-    ] + linkopts
+    ] + (linkopts or [])
 
-    # back door to support tags on the apple_binary for systems that
-    # collect binaries from a package as they see this (and tag
-    # can control that collection).
-    binary_tags = kwargs.pop("binary_tags", [])
-
-    bundling_args = binary_support.create_linked_binary_target(
-        name = name,
+    native.apple_binary(
+        name = test_binary_name,
         binary_type = "loadable_bundle",
         bundle_loader = bundle_loader,
         linkopts = linkopts,
         minimum_os_version = minimum_os_version,
         platform_type = "macos",
         sdk_frameworks = ["XCTest"],
-        suppress_entitlements = True,
-        target_name_template = "%s_test_binary",
-        tags = binary_tags,
         testonly = 1,
         visibility = ["//visibility:private"],
         deps = deps,
@@ -154,13 +143,17 @@ def _macos_test(
 
     _macos_test_bundle(
         name = test_bundle_name,
+        binary = ":" + test_binary_name,
         bundle_id = bundle_id,
         bundle_name = name,
         dedupe_unbundled_resources = dedupe_unbundled_resources,
         infoplists = infoplists,
+        minimum_os_version = minimum_os_version,
         product_type = product_type,
         test_host = test_host,
-        **bundling_args
+        testonly = 1,
+        visibility = ["//visibility:private"],
+        deps = [":" + test_binary_name],
     )
 
     test_rule(

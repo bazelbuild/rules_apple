@@ -59,10 +59,7 @@ objc_library(name = "app",
              srcs = ["app.m"],
              deps = [":SwiftFoo"])
 
-# We have to pass the Swift library location manually because this value is
-# normally added by the bundling rules.
 apple_binary(name = "bin",
-             linkopts = ["-L__BAZEL_XCODE_DEVELOPER_DIR__/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator"],
              minimum_os_version = "8.0",
              platform_type = "ios",
              deps = [":app"])
@@ -426,10 +423,7 @@ swift_library(name = "swift_lib",
 objc_library(name = "main",
              srcs = ["main.m"])
 
-# We have to pass the Swift library location manually because this value is
-# normally added by the bundling rules.
 apple_binary(name = "bin",
-             linkopts = ["-L__BAZEL_XCODE_DEVELOPER_DIR__/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator"],
              minimum_os_version = "8.0",
              platform_type = "ios",
              deps = [":main", ":swift_lib"])

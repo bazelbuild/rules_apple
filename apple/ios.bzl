@@ -257,26 +257,35 @@ def ios_framework(name, **kwargs):
           defined by these targets will also be transitively included in the
           final framework.
     """
+    deps = kwargs.pop("deps", [])
+    apple_dylib_name = "%s.apple_binary" % name
+
     linkopts = kwargs.pop("linkopts", [])
     linkopts += ["-install_name", "@rpath/%s.framework/%s" % (name, name)]
 
     # Link the executable from any library deps and sources provided.
-    bundling_args = binary_support.create_linked_binary_target(
-        name,
-        str(apple_common.platform_type.ios),
+    native.apple_binary(
+        name = apple_dylib_name,
         binary_type = "dylib",
+        deps = deps,
+        dylibs = kwargs.get("frameworks"),
+        extension_safe = kwargs.get("extension_safe"),
         linkopts = linkopts,
-        suppress_entitlements = True,
-        **kwargs
+        minimum_os_version = kwargs.get("minimum_os_version"),
+        platform_type = str(apple_common.platform_type.ios),
+        tags = kwargs.get("tags"),
+        testonly = kwargs.get("testonly"),
     )
 
     # Remove any kwargs that shouldn't be passed to the underlying rule.
-    bundling_args.pop("entitlements", None)
+    passthrough_args = kwargs
+    passthrough_args.pop("entitlements", None)
 
     _ios_framework(
         name = name,
-        extension_safe = kwargs.get("extension_safe"),
-        **bundling_args
+        binary = apple_dylib_name,
+        deps = [apple_dylib_name],
+        **passthrough_args
     )
 
 def ios_static_framework(name, **kwargs):
