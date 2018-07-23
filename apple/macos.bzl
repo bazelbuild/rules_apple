@@ -23,6 +23,7 @@ load(
     "macos_command_line_infoplist",
     "macos_command_line_launchdplist",
 )
+
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
 load(

@@ -891,6 +891,7 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name, o
     resource_sets = []
 
     owner_mappings = []
+
     # Create a resource set from the resources attached directly to this target.
     if resources or structured_resources:
         # TODO(kaipi): Remove ownership logic from swift_library once the new bundling
@@ -898,8 +899,9 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name, o
         # but swift_library already propagates an AppleResourceInfo provider.
         owner_mappings.append(
             smart_dedupe.create_owners_mapping(
-                resources + structured_resources, owner = owner,
-            )
+                resources + structured_resources,
+                owner = owner,
+            ),
         )
         resource_sets.append(AppleResourceSet(
             resources = depset(resources),
@@ -914,7 +916,8 @@ def _collect_resource_sets(resources, structured_resources, deps, module_name, o
             resource_sets.extend(dep[AppleResourceInfo].resource_sets)
 
     return resource_sets, smart_dedupe.merge_owners_mappings(
-        owner_mappings, default_owner = owner,
+        owner_mappings,
+        default_owner = owner,
     )
 
 def _swift_library_impl(ctx):
