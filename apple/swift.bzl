@@ -779,16 +779,6 @@ def register_swift_compile_actions(ctx, reqs):
         **transitive_objc_provider_args
     )
     objc_provider_args["module_map"] = transitive_objc.module_map
-
-    # TODO(b/63674406): For macOS, don't propagate the runtime linker path flags,
-    # because we need to be able to be able to choose the static version of the
-    # library instead. Clean this up once the native bundling rules are deleted.
-    platform_type = ctx.fragments.apple.single_arch_platform.platform_type
-    if platform_type != apple_common.platform_type.macos:
-        extra_linker_args.extend(
-            swift_linkopts(reqs.apple_fragment, reqs.config_vars),
-        )
-
     objc_provider_args["linkopt"] = depset(
         direct = extra_linker_args,
         order = "topological",

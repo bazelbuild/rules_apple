@@ -24,6 +24,10 @@ load(
     "full_label",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -101,7 +105,7 @@ def _ios_test(
         infoplists = [
             "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
         ],
-        linkopts = None,
+        linkopts = [],
         minimum_os_version = None,
         runner = None,
         test_rule = None,
@@ -112,7 +116,7 @@ def _ios_test(
 
     This macro creates 3 targets:
 
-    * name + "_test_binary": Represents the binary that contains the test code. It
+    * name + ".apple_binary": Represents the binary that contains the test code. It
         captures the deps and test_host arguments.
     * name + "_test_bundle": Represents the xctest bundle that contains the binary
         along with the test resources. It captures the bundle_id and infoplists
@@ -124,21 +128,20 @@ def _ios_test(
         fail("platform_type is not allowed as an attribute to ios_unit_test and " +
              "ios_ui_test")
 
-    test_binary_name = name + "_test_binary"
     test_bundle_name = name + "_test_bundle"
 
     # TODO(b/38350264): Remove these linkopts once bazel adds the
     # @loader_path/Frameworks rpath by default.
     if not bundle_loader:
-        linkopts = ["-rpath", "@loader_path/Frameworks"] + (linkopts or [])
+        linkopts = ["-rpath", "@loader_path/Frameworks"] + linkopts
 
     # back door to support tags on the apple_binary for systems that
     # collect binaries from a package as they see this (and tag
     # can control that collection).
     binary_tags = kwargs.pop("binary_tags", [])
 
-    native.apple_binary(
-        name = test_binary_name,
+    bundling_args = binary_support.create_linked_binary_target(
+        name = name,
         deps = deps,
         sdk_frameworks = ["XCTest"],
         binary_type = "loadable_bundle",
@@ -149,21 +152,19 @@ def _ios_test(
         linkopts = linkopts,
         testonly = 1,
         tags = binary_tags,
+        suppress_entitlements = True,
+        target_name_template = "%s_test_binary",
     )
 
     _ios_test_bundle(
         name = test_bundle_name,
-        binary = ":" + test_binary_name,
         bundle_name = name,
         bundle_id = bundle_id,
         dedupe_unbundled_resources = dedupe_unbundled_resources,
         infoplists = infoplists,
-        minimum_os_version = minimum_os_version,
         product_type = product_type,
         test_host = test_host,
-        testonly = 1,
-        visibility = ["//visibility:private"],
-        deps = [":" + test_binary_name],
+        **bundling_args
     )
 
     test_rule(
