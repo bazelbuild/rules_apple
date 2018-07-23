@@ -15,12 +15,15 @@
 
 """Tests for PlistTool."""
 
+from __future__ import absolute_import
 import datetime
 import json
+import os
 import plistlib
 import random
 import re
-import StringIO
+import tempfile
+import io
 import unittest
 
 from build_bazel_rules_apple.tools.plisttool import plisttool
@@ -49,7 +52,8 @@ def _xml_plist(content):
          content + '\n' +
          '</dict>\n'
          '</plist>\n')
-  return StringIO.StringIO(xml)
+  xml_bytes = xml.encode('utf8')
+  return io.BytesIO(xml_bytes)
 
 
 def _plisttool_result(control):
@@ -66,14 +70,42 @@ def _plisttool_result(control):
     The dictionary containing the result of the tool after parsing it from
     the in-memory string file.
   """
-  output = StringIO.StringIO()
+  output = io.BytesIO()
   control['output'] = output
   control['target'] = _testing_target
 
   tool = plisttool.PlistTool(control)
   tool.run()
 
-  return plistlib.readPlistFromString(output.getvalue())
+  return plisttool.plist_from_bytes(output.getvalue())
+
+
+class PlistToolMainTest(unittest.TestCase):
+  def test_main_invocation(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(plist_fp.name))
+    with plist_fp:
+      plist = _xml_plist('<key>Foo</key><string>abc</string>')
+      plist_fp.write(plist.getvalue())
+
+    json_fp = tempfile.NamedTemporaryFile(mode='wt', delete=False)
+    self.addCleanup(lambda: os.unlink(json_fp.name))
+    with json_fp:
+      outfile = tempfile.NamedTemporaryFile(delete=False)
+      self.addCleanup(lambda: os.unlink(outfile.name))
+      outfile.close()
+      control = {'plists': [plist_fp.name],
+                 'target': '//test:target',
+                 'output': outfile.name}
+      json.dump(control, json_fp)
+
+    # A None/zero return code means success.
+    self.assertFalse(plisttool._main(json_fp.name),
+                     'plisttool did not successfully run')
+
+    # TODO(b/111687215): Test that the written output is correct.
+    with open(outfile.name, 'rb') as fp:
+      self.assertIn(b'<?xml', fp.read())
 
 
 class PlistToolVariableReferenceTest(unittest.TestCase):
@@ -359,10 +391,10 @@ class PlistToolTest(unittest.TestCase):
       plist: The plist file from which to obtain the PkgInfo values.
       expected: The expected 8-byte string written to the PkgInfo file.
     """
-    pkginfo = StringIO.StringIO()
+    pkginfo = io.BytesIO()
     control = {
         'plists': [plist],
-        'output': StringIO.StringIO(),
+        'output': io.BytesIO(),
         'target': _testing_target,
         'info_plist_options': {'pkginfo': pkginfo},
     }
@@ -808,44 +840,44 @@ class PlistToolTest(unittest.TestCase):
     self._assert_pkginfo({
         'CFBundlePackageType': 'APPL',
         'CFBundleSignature': '1234',
-    }, 'APPL1234')
+    }, b'APPL1234')
 
   def test_pkginfo_with_missing_package_type(self):
     self._assert_pkginfo({
         'CFBundleSignature': '1234',
-    }, '????1234')
+    }, b'????1234')
 
   def test_pkginfo_with_missing_signature(self):
     self._assert_pkginfo({
         'CFBundlePackageType': 'APPL',
-    }, 'APPL????')
+    }, b'APPL????')
 
   def test_pkginfo_with_missing_package_type_and_signature(self):
-    self._assert_pkginfo({}, '????????')
+    self._assert_pkginfo({}, b'????????')
 
   def test_pkginfo_with_values_too_long(self):
     self._assert_pkginfo({
         'CFBundlePackageType': 'APPLE',
         'CFBundleSignature': '1234',
-    }, '????1234')
+    }, b'????1234')
 
   def test_pkginfo_with_valid_values_too_short(self):
     self._assert_pkginfo({
         'CFBundlePackageType': 'APPL',
         'CFBundleSignature': '123',
-    }, 'APPL????')
+    }, b'APPL????')
 
   def test_pkginfo_with_values_encodable_in_mac_roman(self):
     self._assert_pkginfo({
         'CFBundlePackageType': u'ÄPPL',
         'CFBundleSignature': '1234',
-    }, '\x80PPL1234')
+    }, b'\x80PPL1234')
 
   def test_pkginfo_with_values_not_encodable_in_mac_roman(self):
     self._assert_pkginfo({
         'CFBundlePackageType': u'😎',
         'CFBundleSignature': '1234',
-    }, '????1234')
+    }, b'????1234')
 
   def test_child_plist_that_matches_parent_does_not_raise(self):
     parent = _xml_plist(

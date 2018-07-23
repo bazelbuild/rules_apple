@@ -143,6 +143,8 @@ satisfied, an error will be raised:
 # feed a stable input, the output might not be deterministic when run on
 # different machines and/or different macOS versions.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import copy
 import datetime
 import json
@@ -150,6 +152,17 @@ import plistlib
 import re
 import subprocess
 import sys
+
+# Python 2/3 compatibility setup.
+# We don't want to depend on `six`, so we recreate the bits we need here.
+_PY3 = sys.version_info[0] == 3
+
+if _PY3:
+  _string_types = str
+  _integer_types = int
+else:
+  _string_types = basestring
+  _integer_types = int, long
 
 # Format strings for errors that are raised, exposed here to the tests
 # can validate against them.
@@ -360,6 +373,12 @@ CF_BUNDLE_SHORT_VERSION_RE = re.compile(
     r'^[0-9]+(\.[0-9]+){0,3}$'
 )
 
+def plist_from_bytes(byte_content):
+  if _PY3:
+    return plistlib.loads(byte_content)
+  else:
+    return plistlib.readPlistFromString(byte_content)
+
 
 def ExtractVariableFromMatch(re_match_obj):
   """Takes a match from VARIABLE_REFERENCE_RE and extracts the variable.
@@ -435,7 +454,7 @@ def GetWithKeyPath(a_dict, key_path):
   value = a_dict
   try:
     for key in key_path:
-      if isinstance(value, (basestring, int, long, float)):
+      if isinstance(value, (_string_types, _integer_types, float)):
         # There are leaf types, can't keep pathing down
         return None
       value = value[key]
@@ -468,7 +487,7 @@ def _load_json(string_or_file):
   Returns:
     The object graph loaded.
   """
-  if isinstance(string_or_file, basestring):
+  if isinstance(string_or_file, _string_types):
     with open(string_or_file) as f:
       return json.load(f)
   return json.load(string_or_file)
@@ -507,7 +526,7 @@ class SubstitutionEngine(object):
     self._substitutions_re = None
 
     subs = variable_substitutions or {}
-    for key, value in subs.iteritems():
+    for key, value in subs.items():
       m = VARIABLE_NAME_RE.match(key)
       if not m:
         raise PlistToolError(INVALID_SUBSTITUTION_VARIABLE_NAME % (
@@ -521,7 +540,7 @@ class SubstitutionEngine(object):
         self._substitutions[fmt % (key + ':rfc1034identifier')] = value_rfc
 
     raw_subs = raw_substitutions or {}
-    for key, value in raw_subs.iteritems():
+    for key, value in raw_subs.items():
       # Raw keys can't overlap any other key (var or raw).
       for existing_key in sorted(self._substitutions.keys()):
         if (key in existing_key) or (existing_key in key):
@@ -532,7 +551,7 @@ class SubstitutionEngine(object):
 
     # A raw key can't overlap any value.
     raw_keys = sorted(raw_subs.keys())
-    for k, v in sorted(self._substitutions.iteritems()):
+    for k, v in sorted(self._substitutions.items()):
       for raw_key in raw_keys:
         if raw_key in v:
           raise PlistToolError(
@@ -562,13 +581,13 @@ class SubstitutionEngine(object):
     return self._internal_apply_subs(value)
 
   def _internal_apply_subs(self, value):
-    if isinstance(value, basestring):
+    if isinstance(value, _string_types):
       def sub_helper(match_obj):
         return self._substitutions[match_obj.group(0)]
       return self._substitutions_re.sub(sub_helper, value)
 
     if isinstance(value, dict):
-      return {k: self._internal_apply_subs(v) for k, v in value.iteritems()}
+      return {k: self._internal_apply_subs(v) for k, v in value.items()}
 
     if isinstance(value, list):
       return [self._internal_apply_subs(v) for v in value]
@@ -590,12 +609,12 @@ class SubstitutionEngine(object):
     """
     additions = {}
     if msg_additions:
-      for k, v in msg_additions.iteritems():
+      for k, v in msg_additions.items():
         additions[k] = v
         additions[k + ':rfc1034identifier'] = v
 
     def _helper(key_name, value):
-      if isinstance(value, basestring):
+      if isinstance(value, _string_types):
         m = VARIABLE_REFERENCE_RE.search(value)
         if m:
           variable_name = ExtractVariableFromMatch(m)
@@ -613,7 +632,7 @@ class SubstitutionEngine(object):
 
       if isinstance(value, dict):
         key_prefix = key_name + ':' if key_name else ''
-        for k, v in value.iteritems():
+        for k, v in value.items():
           _helper(key_prefix + k, v)
           m = VARIABLE_REFERENCE_RE.search(k)
           if m:
@@ -656,8 +675,8 @@ class PlistIO(object):
     if isinstance(p, dict):
       return p
 
-    if isinstance(p, basestring):
-      with open(p) as plist_file:
+    if isinstance(p, _string_types):
+      with open(p, 'rb') as plist_file:
         return self._read_plist(plist_file, p, target)
 
     return self._read_plist(p, '<input>', target)
@@ -684,7 +703,7 @@ class PlistIO(object):
     # well-formed XML should *not* have any whitespace before the XML
     # declaration, so we can check that the plist is not XML and let plutil
     # handle them the same way.
-    if not plist_contents.startswith('<?xml'):
+    if not plist_contents.startswith(b'<?xml'):
       plutil_process = subprocess.Popen(
           ['plutil', '-convert', 'xml1', '-o', '-', '--', '-'],
           stdout=subprocess.PIPE,
@@ -695,7 +714,7 @@ class PlistIO(object):
         raise PlistToolError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
             target, plutil_process.returncode, name))
 
-    return plistlib.readPlistFromString(plist_contents)
+    return plist_from_bytes(plist_contents)
 
   @classmethod
   def write(self, plist, path_or_file, binary=False):
@@ -713,7 +732,7 @@ class PlistIO(object):
     """
     plistlib.writePlist(plist, path_or_file)
 
-    if binary and isinstance(path_or_file, basestring):
+    if binary and isinstance(path_or_file, _string_types):
       subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
 
 
@@ -829,8 +848,8 @@ class InfoPlistTask(PlistToolTask):
 
     pkginfo_file = self.options.get('pkginfo')
     if pkginfo_file:
-      if isinstance(pkginfo_file, basestring):
-        with open(pkginfo_file, 'w') as p:
+      if isinstance(pkginfo_file, _string_types):
+        with open(pkginfo_file, 'wb') as p:
           self._write_pkginfo(p, plist)
       else:
         self._write_pkginfo(pkginfo_file, plist)
@@ -862,7 +881,7 @@ class InfoPlistTask(PlistToolTask):
     version = plist.get('CFBundleVersion')
     short_version = plist.get('CFBundleShortVersionString')
 
-    for label, p in child_plists.iteritems():
+    for label, p in child_plists.items():
       child_plist = PlistIO.get_dict(p, target)
 
       child_id = child_plist['CFBundleIdentifier']
@@ -910,7 +929,7 @@ class InfoPlistTask(PlistToolTask):
 
     # Make sure there wasn't anything listed in required that wasn't listed
     # as a child.
-    for label in child_required_values.iterkeys():
+    for label in child_required_values.keys():
       if label not in child_plists:
         raise PlistToolError(REQUIRED_CHILD_MISSING_MSG % (target, label))
 
@@ -944,21 +963,21 @@ class InfoPlistTask(PlistToolTask):
       otherwise, '????' is returned instead.
     """
     try:
-      if not isinstance(value, basestring):
-        return '????'
+      if not isinstance(value, _string_types):
+        return b'????'
 
-      if isinstance(value, str):
+      if isinstance(value, bytes):
         value = value.decode('utf-8')
 
       # Based on some experimentation, Xcode appears to use MacRoman encoding
       # for the contents of PkgInfo files, so we do the same.
       value = value.encode('mac-roman')
 
-      return value if len(value) == 4 else '????'
+      return value if len(value) == 4 else b'????'
     except (UnicodeDecodeError, UnicodeEncodeError):
       # Return the default string if any character set encoding/decoding errors
       # occurred.
-      return '????'
+      return b'????'
 
 
 class EntitlementsTask(PlistToolTask):
@@ -1308,7 +1327,7 @@ class PlistTool(object):
               target, ', '.join(sorted(unknown_keys))))
 
     # Check for unknown keys in the control structure.
-    validate_keys(self._control.keys(), _CONTROL_KEYS)
+    validate_keys(list(self._control.keys()), _CONTROL_KEYS)
 
     tasks = []
     var_subs = self._control.get('variable_substitutions', {})
@@ -1323,7 +1342,7 @@ class PlistTool(object):
       options_name = task_type.control_structure_options_name()
       options = self._control.get(options_name)
       if options is not None:
-        validate_keys(options.keys(), task_type.options_keys(),
+        validate_keys(list(options.keys()), task_type.options_keys(),
                       options_name=options_name)
         task = task_type(target, options)
         var_subs.update(task.extra_variable_substitutions())
