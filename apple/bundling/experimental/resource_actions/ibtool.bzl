@@ -19,6 +19,10 @@ load(
     "collections",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -55,12 +59,20 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
       output_dir: The directory where the compiled outputs should be placed.
     """
 
-    args = ["ibtool", "--compilation-directory", output_dir.dirname]
+    args = [
+        "ibtool",
+        "--compilation-directory",
+        file_support.xctoolrunner_path(output_dir.dirname),
+    ]
 
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
     args.extend(_ibtool_arguments(min_os, families))
-    args.extend(["--module", swift_module, input_file.path])
+    args.extend([
+        "--module",
+        swift_module,
+        file_support.xctoolrunner_path(input_file.path),
+    ])
 
     platform_support.xcode_env_action(
         ctx,
@@ -89,7 +101,11 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
 
-    args = ["ibtool", "--link", output_dir.path]
+    args = [
+        "ibtool",
+        "--link",
+        file_support.xctoolrunner_path(output_dir.path),
+    ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([f.path for f in storyboardc_dirs])
 
@@ -117,12 +133,16 @@ def compile_xib(ctx, swift_module, input_file, output_file):
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
 
-    args = ["ibtool", "--compile", output_file.path]
+    args = [
+        "ibtool",
+        "--compile",
+        file_support.xctoolrunner_path(output_file.path),
+    ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
         "--module",
         swift_module,
-        input_file.path,
+        file_support.xctoolrunner_path(input_file.path),
     ])
 
     platform_support.xcode_env_action(
