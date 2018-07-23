@@ -30,6 +30,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
+    "swift_runtime_linkopts",
+)
 
 def _get_binary_provider(deps, provider_key):
     """Returns the provider from a rule's binary dependency.
@@ -170,28 +174,62 @@ def _create_stub_binary_target(
 
     return bundling_args
 
-def _entitlement_args_for_stub(
+def _create_swift_runtime_linkopts_target(
         name,
-        platform_type,
-        **kwargs):
-    """Creates an entitlements target for a bundle needing only an SDK stub.
-
-    Apple bundles not needing a binary target, for example, watchOS applications
-    and iMessage sticker packs, only contain stub binaries copied from the
-    platform SDK rather than binaries with user code. This function creates
-    only an entitlements target to ensure the stub binary gets appropriately
-    signed.
+        deps,
+        is_static,
+        testonly = None):
+    """Creates a build target to propagate Swift runtime linker flags.
 
     Args:
-      name: The name of the bundle target, from which the binary target's name
+      name: The name of the base target.
+      deps: The list of dependencies of the base target.
+      is_static: True to use the static Swift runtime, or False to use the
+          dynamic Swift runtime.
+      testonly: Whether the target should be testonly.
+
+    Returns:
+      A build label that can be added to the deps of the binary target.
+    """
+    swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
+    swift_runtime_linkopts(
+        name = swift_runtime_linkopts_name,
+        is_static = is_static,
+        testonly = testonly,
+        deps = deps,
+    )
+    return ":" + swift_runtime_linkopts_name
+
+def _add_entitlements_and_swift_linkopts(
+        name,
+        platform_type,
+        is_stub = False,
+        link_swift_statically = False,
+        **kwargs):
+    """Adds entitlements and Swift linkopts targets for a bundle target.
+
+    This function creates an entitlements target to ensure that a binary
+    created using the `link_multi_arch_binary` API or by copying a stub
+    executable gets signed appropriately.
+
+    Similarly, for bundles with user-provided binaries, this function also
+    adds any Swift linkopts that are necessary for it to link correctly.
+
+    Args:
+      name: The name of the bundle target, from which the targets' names
           will be derived.
-      platform_type: The platform type for which the binary should be copied.
+      platform_type: The platform type of the bundle.
+      is_stub: True/False, indicates whether the function is being called for a
+          bundle that uses a stub executable.
+      link_swift_statically: True/False, indicates whether the static versions of
+          the Swift standard libraries should be used during linking.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
       A modified copy of `**kwargs` that should be passed to the bundling rule.
     """
     bundling_args = dict(kwargs)
+    testonly = bundling_args.get("testonly", None)
 
     entitlements_value = kwargs.get("entitlements")
     provisioning_profile = kwargs.get("provisioning_profile")
@@ -202,13 +240,34 @@ def _entitlement_args_for_stub(
         entitlements = entitlements_value,
         platform_type = platform_type,
         provisioning_profile = provisioning_profile,
+        testonly = testonly,
         validation_mode = kwargs.get("entitlements_validation"),
     )
     bundling_args["entitlements"] = ":" + entitlements_name
 
+    entitlements_deps = [] if is_stub else [":" + entitlements_name]
+
     # This is required by the configuration transition on the 'deps' attribute
     # of the bundling rule.
     bundling_args["platform_type"] = platform_type
+
+    # Propagate the linker flags that dynamically link the Swift runtime, if
+    # Swift was used. If it wasn't, this target propagates no linkopts.
+    deps = bundling_args.get("deps", [])
+
+    if is_stub:
+        swift_linkopts_deps = []
+    else:
+        swift_linkopts_deps = [
+            _create_swift_runtime_linkopts_target(
+                name,
+                deps,
+                link_swift_statically,
+                testonly = testonly,
+            ),
+        ]
+
+    bundling_args["deps"] = deps + entitlements_deps + swift_linkopts_deps
 
     return bundling_args
 
@@ -220,7 +279,9 @@ def _create_linked_binary_target(
         sdk_frameworks = [],
         extension_safe = False,
         bundle_loader = None,
+        link_swift_statically = False,
         suppress_entitlements = False,
+        target_name_template = "%s.apple_binary",
         **kwargs):
     """Creates a binary target for a bundle by linking user code.
 
@@ -244,8 +305,13 @@ def _create_linked_binary_target(
       bundle_loader: Label to an apple_binary target that will act as the
           bundle_loader for this apple_binary. Can only be set if binary_type is
           "loadable_bundle".
+      link_swift_statically: True/False, indicates whether the static versions of
+          the Swift standard libraries should be used during linking.
       suppress_entitlements: True/False, indicates that the entitlements() should
           be suppressed.
+      target_name_template: A string that will be used to derive the name of the
+          `apple_binary` target. This string must contain a single `%s`, which
+          will be replaced by the name of the bundle target.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
@@ -255,6 +321,7 @@ def _create_linked_binary_target(
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")
+    testonly = bundling_args.get("testonly", None)
 
     if suppress_entitlements:
         entitlements_deps = []
@@ -267,6 +334,7 @@ def _create_linked_binary_target(
             entitlements = entitlements_value,
             platform_type = platform_type,
             provisioning_profile = provisioning_profile,
+            testonly = testonly,
             validation_mode = kwargs.get("entitlements_validation"),
         )
         bundling_args["entitlements"] = ":" + entitlements_name
@@ -276,10 +344,21 @@ def _create_linked_binary_target(
     # bundling rule.
     deps = bundling_args.pop("deps", [])
 
+    # Propagate the linker flags that dynamically link the Swift runtime, if
+    # Swift was used. If it wasn't, this target propagates no linkopts.
+    swift_linkopts_deps = [
+        _create_swift_runtime_linkopts_target(
+            name,
+            deps,
+            link_swift_statically,
+            testonly = testonly,
+        ),
+    ]
+
     # Link the executable from any library deps provided. Pass the entitlements
     # target as an extra dependency to the binary rule to pick up the extra
     # linkopts (if any) propagated by it.
-    apple_binary_name = "%s.apple_binary" % name
+    apple_binary_name = target_name_template % name
     native.apple_binary(
         name = apple_binary_name,
         binary_type = binary_type,
@@ -291,9 +370,9 @@ def _create_linked_binary_target(
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         sdk_frameworks = sdk_frameworks,
-        deps = deps + entitlements_deps,
+        deps = deps + entitlements_deps + swift_linkopts_deps,
         tags = ["manual"] + kwargs.get("tags", []),
-        testonly = kwargs.get("testonly"),
+        testonly = testonly,
         visibility = kwargs.get("visibility"),
     )
     bundling_args["binary"] = apple_binary_name
@@ -301,7 +380,12 @@ def _create_linked_binary_target(
 
     return bundling_args
 
-def _create_binary(name, platform_type, suppress_entitlements = False, **kwargs):
+def _create_binary(
+        name,
+        platform_type,
+        link_swift_statically = False,
+        suppress_entitlements = False,
+        **kwargs):
     """Creates a binary target for a bundle.
 
     This function checks the desired product type of the bundle and creates either
@@ -314,6 +398,8 @@ def _create_binary(name, platform_type, suppress_entitlements = False, **kwargs)
       name: The name of the bundle target, from which the binary target's name
           will be derived.
       platform_type: The platform type for which the binary should be built.
+      link_swift_statically: True/False, indicates whether the static versions of
+          the Swift standard libraries should be used during linking.
       suppress_entitlements: True/False, indicates that the entitlements() should
           be suppressed.
       **kwargs: The arguments that were passed into the top-level macro.
@@ -369,14 +455,16 @@ def _create_binary(name, platform_type, suppress_entitlements = False, **kwargs)
             sdk_frameworks,
             extension_safe,
             bundle_loader,
+            link_swift_statically = link_swift_statically,
             suppress_entitlements = suppress_entitlements,
             **args_copy
         )
 
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
+    add_entitlements_and_swift_linkopts = _add_entitlements_and_swift_linkopts,
     create_binary = _create_binary,
+    create_linked_binary_target = _create_linked_binary_target,
     create_stub_binary = _create_stub_binary,
-    entitlement_args_for_stub = _entitlement_args_for_stub,
     get_binary_provider = _get_binary_provider,
 )
