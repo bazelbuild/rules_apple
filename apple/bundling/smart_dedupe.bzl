@@ -62,7 +62,7 @@ def _merge_owners_mappings(owners_mappings, default_owner = None, validate_all_f
                 fail(
                     "The given mapping has a file that doesn't have an owner, and " +
                     "validate_all_resources_owned was set. This is most likely a bug in " +
-                    "rules_apple, please file a bug with reproduction steps."
+                    "rules_apple, please file a bug with reproduction steps.",
                 )
 
             if transitive:
@@ -82,7 +82,8 @@ def _subtract_owners_mappings(minuend, subtrahend):
     result = {}
     for file_path, owners in minuend.items():
         deduped_owners = [
-            o for o in owners
+            o
+            for o in owners
             if file_path not in subtrahend or o not in subtrahend[file_path]
         ]
         if deduped_owners:

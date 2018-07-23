@@ -611,6 +611,7 @@ def _apple_resource_set_dict(resource_sets, avoid_resource_dict = {}, whiteliste
 
 def _filter_files(files, avoid_files, whitelisted_mapping = None):
     """Returns a depset containing files minus avoid_files."""
+
     # If whitelisted_mapping is None, use the legacy deduplication logic. We
     # explicitly test for None as an empty dictionary is a valid
     # whitelisted_mapping value.

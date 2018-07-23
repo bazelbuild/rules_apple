@@ -80,7 +80,6 @@ def _handle_native_library_dependency(target, ctx):
 
     owner = None
     if ctx.rule.kind == "objc_bundle_library":
-
         product_name = bundling_support.bundle_name(ctx)
 
         # Can't use bundling_support.bundle_name_with_extension() because
@@ -136,7 +135,8 @@ def _handle_native_library_dependency(target, ctx):
     )
     structured_resources = ctx.rule.files.structured_resources
     owner_mappings.append(smart_dedupe.create_owners_mapping(
-        resources + structured_resources + infoplists, owner = owner,
+        resources + structured_resources + infoplists,
+        owner = owner,
     ))
 
     # Then, build the bundled_resources struct for the resources directly in the
@@ -152,7 +152,8 @@ def _handle_native_library_dependency(target, ctx):
         ))
 
     return resource_sets, smart_dedupe.merge_owners_mappings(
-        owner_mappings, default_owner = owner,
+        owner_mappings,
+        default_owner = owner,
     )
 
 def _handle_swift_library_dependency(target, ctx):
@@ -173,7 +174,8 @@ def _handle_swift_library_dependency(target, ctx):
     # Only create the resource set if it's non-empty.
     if resources or structured_resources:
         owner_mapping = smart_dedupe.create_owners_mapping(
-            ctx.rule.files.resources + ctx.rule.files.structured_resources, str(ctx.label),
+            ctx.rule.files.resources + ctx.rule.files.structured_resources,
+            str(ctx.label),
         )
         return [AppleResourceSet(
             resources = resources,
@@ -268,7 +270,7 @@ def _handle_unknown_objc_provider(objc):
         structured_resources = structured_resources,
         structured_resource_zips = objc.merge_zip,
     ), smart_dedupe.create_owners_mapping(
-        resources + structured_resources.to_list() + objc.merge_zip.to_list()
+        resources + structured_resources.to_list() + objc.merge_zip.to_list(),
     )
 
 def _transitive_apple_resource_info(target, ctx):
