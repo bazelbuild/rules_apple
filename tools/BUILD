@@ -10,7 +10,6 @@ filegroup(
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",
-        "//tools/ibtoolwrapper:for_bazel_tests",
         "//tools/mapcwrapper:for_bazel_tests",
         "//tools/momcwrapper:for_bazel_tests",
         "//tools/plisttool:for_bazel_tests",
