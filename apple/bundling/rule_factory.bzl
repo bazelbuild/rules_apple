@@ -191,11 +191,6 @@ _bundling_tool_attributes = {
         single_file = True,
         default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
     ),
-    "_mapcwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/mapcwrapper"),
-    ),
     "_momcwrapper": attr.label(
         cfg = "host",
         executable = True,

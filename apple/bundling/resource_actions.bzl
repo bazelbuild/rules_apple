@@ -729,6 +729,7 @@ def _mapc(ctx, input_files, resource_info):
         out_files.append(out_file)
 
         args = [
+            "mapc",
             file_support.xctoolrunner_path(model),
             file_support.xctoolrunner_path(out_file.path),
         ]
@@ -737,7 +738,7 @@ def _mapc(ctx, input_files, resource_info):
             ctx,
             inputs = list(children),
             outputs = [out_file],
-            executable = ctx.executable._mapcwrapper,
+            executable = ctx.executable._xctoolrunner,
             arguments = args,
             mnemonic = "MappingModelCompile",
         )
