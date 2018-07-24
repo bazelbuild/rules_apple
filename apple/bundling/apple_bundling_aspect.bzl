@@ -111,7 +111,10 @@ def _handle_native_library_dependency(target, ctx):
                 for rs in p.resource_sets
             ])
     elif ctx.rule.kind == "objc_library":
-        owner = str(ctx.label)
+        # Only mark objc_library as owner if it has sources. If not, treat it as a resource only
+        # target.
+        if ctx.rule.files.srcs:
+            owner = str(ctx.label)
         bundle_dir = None
         resource_bundle_target_data = None
         infoplists = []

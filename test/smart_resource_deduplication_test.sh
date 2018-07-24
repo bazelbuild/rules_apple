@@ -43,9 +43,23 @@ EOF
 }
 EOF
 
+  cat > app/app.strings <<EOF
+"my_string" = "I should be at the top level!";
+EOF
+
+  cat > app/resource_only_lib.txt <<EOF
+I am referenced by a resource only objc_library;
+EOF
+
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application", "ios_framework")
+
+objc_library(
+    name = "resource_only_lib",
+    resources = ["resource_only_lib.txt"]
+)
+
 objc_library(
     name = "shared_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
@@ -62,6 +76,7 @@ objc_library(
     strings = [
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
     ],
+    deps = [":resource_only_lib"],
 )
 
 objc_library(
@@ -76,7 +91,7 @@ objc_library(
     resources = [
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],
-    deps = [":shared_lib"],
+    deps = [":shared_lib", ":resource_only_lib"],
 )
 EOF
 }
@@ -105,7 +120,8 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app --define=apple.experimental.smart_dedupe=0 \
+      || fail "Should build"
 
   # This test makes sure that without smart deduplication, the naive duplication
   # method is preserved. When smart deduplication is enabled by default, this
@@ -122,6 +138,8 @@ EOF
       "framework.framework/sample.png"
   assert_zip_contains "test-bin/app/framework.zip" \
       "framework.framework/basic.bundle/basic_bundle.txt"
+  assert_zip_contains "test-bin/app/framework.zip" \
+      "framework.framework/resource_only_lib.txt"
 
   # These resources are referenced by app_lib, but naive deduplication removes
   # them from the app bundle.
@@ -135,6 +153,8 @@ EOF
       "Payload/app.app/nonlocalized.plist"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "framework.framework/resource_only_lib.txt"
 }
 
 function test_resources_in_app_and_framework() {
@@ -157,6 +177,7 @@ ios_application(
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
     minimum_os_version = "8",
+    strings = ["app.strings"],
     deps = [":app_lib"],
 )
 EOF
@@ -175,6 +196,8 @@ EOF
       "framework.framework/sample.png"
   assert_zip_contains "test-bin/app/framework.zip" \
       "framework.framework/basic.bundle/basic_bundle.txt"
+  assert_zip_contains "test-bin/app/framework.zip" \
+      "framework.framework/resource_only_lib.txt"
 
   # Because app_lib directly references these assets, smart dedupe ensures that
   # they are present in the same bundle as the binary that has app_lib, which
@@ -192,6 +215,20 @@ EOF
       "Payload/app.app/nonlocalized.plist"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
+
+  # This file is added by the top level bundling target, so it should be present
+  # at the top level bundle.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/app.strings"
+
+  # This resource is only depended on by the :resource_only_lib target, but that
+  # target doesn't have any sources, therefore shouldn't claim ownership of the
+  # resource. Without accounting for the lack of sources, this file would be
+  # deduplicated as the :resource_only_lib would be the only owner _and_ present
+  # in both the framework and the app. But when accounting for the lack of
+  # sources in :resource_only_lib, the resource is bundled in the app as well.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/resource_only_lib.txt"
 }
 
 run_suite "smart resource deduplication tests"
