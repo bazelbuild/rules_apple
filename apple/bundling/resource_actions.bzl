@@ -229,14 +229,14 @@ def _compile_plist(ctx, input_file, resource_info):
         # TODO(b/77637734): Change this to use command instead.
         apple_action(
             ctx,
-            inputs = [input_file],
-            outputs = [out_file],
-            executable = "/bin/sh",
             arguments = [
                 "-c",
                 complete_command,
             ],
+            executable = "/bin/sh",
+            inputs = [input_file],
             mnemonic = mnemonic,
+            outputs = [out_file],
         )
     else:
         out_file = input_file
@@ -272,8 +272,6 @@ def _png_copy(ctx, input_file, resource_info):
 
     xcrun_action(
         ctx,
-        inputs = [input_file],
-        outputs = [out_file],
         arguments = [
             "copypng",
             "-strip-PNG-text",
@@ -281,7 +279,9 @@ def _png_copy(ctx, input_file, resource_info):
             input_file.path,
             out_file.path,
         ],
+        inputs = [input_file],
         mnemonic = "CopyPng",
+        outputs = [out_file],
     )
 
     full_bundle_path = optionally_prefixed_path(path, bundle_dir)
@@ -430,6 +430,8 @@ def _actool(ctx, asset_catalogs, resource_info):
     actool_platform = platform.name_in_plist.lower()
 
     args = [
+        "actool",
+        "--compile",
         file_support.xctoolrunner_path(out_dir.path),
         "--platform",
         actool_platform,
@@ -469,7 +471,7 @@ def _actool(ctx, asset_catalogs, resource_info):
         ctx,
         inputs = list(asset_catalogs),
         outputs = [out_dir, out_plist],
-        executable = ctx.executable._actoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "AssetCatalogCompile",
         no_sandbox = True,
@@ -914,24 +916,69 @@ _arity = struct(
 
 _PLIST_AND_STRING_GROUPING_RULES = [
     # Property lists.
-    (("plist",), _arity.each, False, _compile_plist),
+    (
+        ("plist",),
+        _arity.each,
+        False,
+        _compile_plist,
+    ),
     # Localizable strings files.
-    (("strings",), _arity.each, False, _compile_plist),
+    (
+        ("strings",),
+        _arity.each,
+        False,
+        _compile_plist,
+    ),
 ]
 
 _ALL_GROUPING_RULES = [
     # Asset catalogs.
-    (("xcassets/", "xcstickers/"), _arity.all, False, _actool),
+    (
+        ("xcassets/", "xcstickers/"),
+        _arity.all,
+        False,
+        _actool,
+    ),
     # Core Data data models (versioned and unversioned).
-    (("xcdatamodeld/",), _arity.all, True, _momc),
-    (("xcdatamodel/",), _arity.all, True, _momc),
+    (
+        ("xcdatamodeld/",),
+        _arity.all,
+        True,
+        _momc,
+    ),
+    (
+        ("xcdatamodel/",),
+        _arity.all,
+        True,
+        _momc,
+    ),
     # Core Data mapping models.
-    (("xcmappingmodel/",), _arity.all, False, _mapc),
+    (
+        ("xcmappingmodel/",),
+        _arity.all,
+        False,
+        _mapc,
+    ),
     # Interface Builder files.
-    (("storyboard",), _arity.each, True, _compile_storyboard),
-    (("xib",), _arity.each, True, _compile_xib),
+    (
+        ("storyboard",),
+        _arity.each,
+        True,
+        _compile_storyboard,
+    ),
+    (
+        ("xib",),
+        _arity.each,
+        True,
+        _compile_xib,
+    ),
     # Other files.
-    (("png",), _arity.each, True, _png_copy),
+    (
+        ("png",),
+        _arity.each,
+        True,
+        _png_copy,
+    ),
 ] + _PLIST_AND_STRING_GROUPING_RULES
 
 def _process_single_resource_grouping(
@@ -1090,26 +1137,26 @@ def _create_resource_groupings(resource_sets, resource_set_key, grouping_rules):
                 # If the resource processing depends on the module, build a list of
                 # structs that separate the resources based on their module name.
                 current_list.append(struct(
-                    swift_module = r.swift_module,
                     files = files_in_group,
+                    swift_module = r.swift_module,
                 ))
             else:
                 # If the resource processing doesn't depend on the module, we can just
                 # group them into a single list with swift_module=None in the struct.
                 current_list = [struct(
-                    swift_module = None,
                     files = (
                         (current_list[0].files if current_list else []) +
                         files_in_group.to_list()
                     ),
+                    swift_module = None,
                 )]
 
             resource_map[extensions] = current_list
 
         if grouped_files[_UNGROUPED]:
             current_list = resource_map.get(_UNGROUPED, []) + [struct(
-                swift_module = None,
                 files = grouped_files[_UNGROUPED].to_list(),
+                swift_module = None,
             )]
             resource_map[_UNGROUPED] = current_list
 
@@ -1375,10 +1422,10 @@ def _process_resource_sets(ctx, bundle_id, resource_sets):
                    "matched " + sets.str(unused_locales) + " in locale filter. " +
                    "Please verify apple.locales_to_include is defined properly."))
     return struct(
+        bundle_dir_to_resource_bundle_target_datas = bundle_to_tgt_datas,
         bundle_infoplists = bundle_infoplists,
         bundle_merge_files = bundle_merge_files,
         bundle_merge_zips = bundle_merge_zips,
-        bundle_dir_to_resource_bundle_target_datas = bundle_to_tgt_datas,
     )
 
 # Define the loadable module that lists the exported symbols in this file.

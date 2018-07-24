@@ -152,9 +152,9 @@ def _xcode_env_action(ctx, **kwargs):
     """Executes a Darwin-only action with the necessary platform environment.
 
     This rule is intended to be used by actions that invoke scripts like
-    actoolwrapper and "xctoolrunner" that need to pass the Xcode and target
-    platform versions into the environment but don't need to be wrapped by
-    xcrunwrapper because they already invoke it internally.
+    "xctoolrunner" that need to pass the Xcode and target platform versions
+    into the environment but don't need to be wrapped by xcrunwrapper because
+    they already invoke it internally.
 
     Rules using this action must require the "apple" configuration fragment.
 
