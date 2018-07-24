@@ -763,7 +763,10 @@ function test_root_level_resource_deduping_off() {
 function test_root_level_resource_deduping_on() {
   create_app_and_framework_with_common_resources True
 
-  do_build ios //app:app || fail "Should build"
+  # Disable smart dedupe explicitly as this test only makes sense in that case.
+  # When it is enabled by default, we should delete this test.
+  do_build ios //app:app --define=apple.experimental.smart_dedupe=0 \
+      || fail "Should build"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Images/framework.png"
   assert_zip_not_contains "test-bin/app/app.ipa" \
