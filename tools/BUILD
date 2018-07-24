@@ -7,7 +7,6 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]) + [
-        "//tools/actoolwrapper:for_bazel_tests",
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",

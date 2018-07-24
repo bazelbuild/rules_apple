@@ -27,6 +27,10 @@ load(
     "group_files_by_directory",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
+    "file_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -163,7 +167,9 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
     actool_platform = platform.name_in_plist.lower()
 
     args = [
-        output_dir.path,
+        "actool",
+        "--compile",
+        file_support.xctoolrunner_path(output_dir.path),
         "--platform",
         actool_platform,
         "--minimum-deployment-target",
@@ -191,7 +197,10 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
     outputs = [output_dir]
     if output_plist:
         outputs.append(output_plist)
-        args.extend(["--output-partial-info-plist", output_plist.path])
+        args.extend([
+            "--output-partial-info-plist",
+            file_support.xctoolrunner_path(output_plist.path),
+        ])
 
     xcassets = group_files_by_directory(
         asset_files,
@@ -205,7 +214,7 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
         ctx,
         inputs = asset_files,
         outputs = outputs,
-        executable = ctx.executable._actoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "AssetCatalogCompile",
         no_sandbox = True,

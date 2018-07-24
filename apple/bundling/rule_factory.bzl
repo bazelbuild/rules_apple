@@ -116,9 +116,9 @@ load(
 # Serves as an enum to express if an attribute is unsupported, mandatory, or
 # optional.
 _attribute_modes = struct(
-    UNSUPPORTED = 1,
     MANDATORY = 2,
     OPTIONAL = 3,
+    UNSUPPORTED = 1,
 )
 
 def _is_valid_attribute_mode(mode):
@@ -159,8 +159,8 @@ _common_tool_attributes = {
     ),
     "_xcode_config": attr.label(
         default = configuration_field(
-            fragment = "apple",
             name = "xcode_config_label",
+            fragment = "apple",
         ),
     ),
 }
@@ -168,11 +168,6 @@ _common_tool_attributes = {
 # Private attributes on every rule that provide access to tools used by the
 # bundler.
 _bundling_tool_attributes = {
-    "_actoolwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/actoolwrapper"),
-    ),
     "_bundletool": attr.label(
         cfg = "host",
         executable = True,
@@ -541,7 +536,7 @@ def _product_type(default, private = False, values = None):
         values = [default]
     if values == None:
         fail("Internal Error: A list of possible values must be provided.")
-    return struct(default = default, values = values, private = private)
+    return struct(default = default, private = private, values = values)
 
 def _simple_path_formats(path_in_archive_format = ""):
     """Returns simple (mobile) bundle path format attributes.
