@@ -873,6 +873,9 @@ def _run(
             if resources:
                 top_level_resources.extend(resources.to_list())
 
+    for field in ["strings", "infoplists"]:
+        top_level_resources.extend(getattr(ctx.files, field, []))
+
     owners_mappings.append(smart_dedupe.create_owners_mapping(
         top_level_resources,
         owner = str(ctx.label),
