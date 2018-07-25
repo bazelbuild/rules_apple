@@ -206,11 +206,6 @@ _bundling_tool_attributes = {
         single_file = True,
         default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
     ),
-    "_swiftstdlibtoolwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/swiftstdlibtoolwrapper"),
-    ),
     "_xctoolrunner": attr.label(
         cfg = "host",
         executable = True,

@@ -14,7 +14,6 @@ filegroup(
         "//tools/plisttool:for_bazel_tests",
         "//tools/provisioning_profile_tool:for_bazel_tests",
         "//tools/realpath:for_bazel_tests",
-        "//tools/swiftstdlibtoolwrapper:for_bazel_tests",
         "//tools/versiontool:for_bazel_tests",
         "//tools/wrapper_common:for_bazel_tests",
         "//tools/xctoolrunner:for_bazel_tests",

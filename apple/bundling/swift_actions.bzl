@@ -47,11 +47,10 @@ def _zip_swift_dylibs(ctx, binary_file):
         ctx,
         inputs = [binary_file],
         outputs = [zip_file],
-        executable = ctx.executable._swiftstdlibtoolwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = [
-            "--output_zip_path",
+            "swift-stdlib-tool",
             zip_file.path,
-            "--bundle_path",
             ".",
             "--platform",
             platform.name_in_plist.lower(),
