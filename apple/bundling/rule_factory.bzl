@@ -191,11 +191,6 @@ _bundling_tool_attributes = {
         single_file = True,
         default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
     ),
-    "_momcwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/momcwrapper"),
-    ),
     "_process_and_sign_template": attr.label(
         single_file = True,
         default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
