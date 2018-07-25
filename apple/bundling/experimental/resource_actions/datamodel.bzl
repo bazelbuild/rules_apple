@@ -39,6 +39,7 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
     min_os = platform_support.minimum_os(ctx)
 
     args = [
+        "momc",
         deployment_target_option,
         min_os,
         "--module",
@@ -51,7 +52,7 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
         ctx,
         inputs = input_files,
         outputs = [output_file],
-        executable = ctx.executable._momcwrapper,
+        executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "MomCompile",
     )

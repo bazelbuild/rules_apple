@@ -849,6 +849,7 @@ def _momc(ctx, input_files, resource_info):
         ))
 
         args = [
+            "momc",
             deployment_target_option,
             min_os,
             "--module",
@@ -861,7 +862,7 @@ def _momc(ctx, input_files, resource_info):
             ctx,
             inputs = list(children),
             outputs = [out_file],
-            executable = ctx.executable._momcwrapper,
+            executable = ctx.executable._xctoolrunner,
             arguments = args,
             mnemonic = "MomCompile",
         )
