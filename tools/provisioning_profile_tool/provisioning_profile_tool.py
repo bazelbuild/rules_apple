@@ -39,7 +39,6 @@ import plistlib
 import subprocess
 import sys
 
-_PY3 = sys.version_info[0] == 3
 
 UNKNOWN_CONTROL_KEYS_MSG = (
     'Target "%s" used a control structure with unknown key(s): %s'
@@ -54,13 +53,6 @@ EXTRACT_FROM_PROFILE_FAILED = (
 _CONTROL_KEYS = frozenset([
     'entitlements', 'profile_metadata', 'provisioning_profile', 'target',
 ])
-
-
-def plist_from_bytes(byte_content):
-  if _PY3:
-    return plistlib.loads(byte_content)
-  else:
-    return plistlib.readPlistFromString(byte_content)
 
 
 class ProvisioningProfileToolError(RuntimeError):
@@ -127,7 +119,7 @@ class ProvisioningProfileTool(object):
       The plist as a dictionary.
     """
     as_str = self._extract_raw_plist(target, profile_path)
-    return plist_from_bytes(as_str)
+    return plistlib.readPlistFromString(as_str)
 
   @classmethod
   def _write_default_entitlements(self, output_path, provisioning_profile):
@@ -173,7 +165,7 @@ class ProvisioningProfileTool(object):
       The plist as a string.
     """
     content = open(profile_path, mode='rb').read()
-    if content.startswith(b'<?xml'):
+    if content.startswith('<?xml'):
       # Back door for testing.
       return content
 

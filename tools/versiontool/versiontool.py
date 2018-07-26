@@ -142,7 +142,7 @@ class VersionTool(object):
         # the components from the label and add them to the substitutions
         # dictionary.
         resolved_pattern = self._build_label_pattern
-        for name, pattern in self._capture_groups.items():
+        for name, pattern in self._capture_groups.iteritems():
           resolved_pattern = resolved_pattern.replace(
               "{%s}" % name, "(?P<%s>%s)" % (name, pattern))
         match = re.match(resolved_pattern, build_label)
