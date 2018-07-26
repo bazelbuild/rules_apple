@@ -14,12 +14,11 @@
 
 """Tests for Bundler."""
 
-import io
-import json
 import os
 import re
 import shutil
 import stat
+import StringIO
 import tempfile
 import unittest
 import zipfile
@@ -30,7 +29,7 @@ from build_bazel_rules_apple.tools.bundletool import bundletool
 def _run_bundler(control):
   """Helper function that runs Bundler with the given control struct.
 
-  This function inserts a BytesIO object as the control's "output" key and
+  This function inserts a StringIO object as the control's "output" key and
   returns it after bundling; this object will contain the binary data for the
   ZIP file that was created, which can then be reopened and tested.
 
@@ -38,9 +37,9 @@ def _run_bundler(control):
     control: The control struct to pass to Bundler. See the module doc for
         the bundletool module for a description of this format.
   Returns:
-    The BytesIO object containing the binary data for a bundled ZIP file.
+    The StringIO object containing the binary data for a bundled ZIP file.
   """
-  output = io.BytesIO()
+  output = StringIO.StringIO()
   control['output'] = output
 
   tool = bundletool.Bundler(control)
@@ -106,9 +105,9 @@ class BundlerTest(unittest.TestCase):
         zipinfo = zipfile.ZipInfo(entry_without_content.rpartition('*')[-1])
         zipinfo.compress_type = zipfile.ZIP_STORED
         # Unix rw-r--r-- permissions and S_IFREG (regular file).
-        zipinfo.external_attr = 0o100644 << 16
+        zipinfo.external_attr = 0100644 << 16L
         if executable:
-          zipinfo.external_attr = 0o111 << 16
+          zipinfo.external_attr = 0111 << 16L
         z.writestr(zipinfo, content)
     return path
 
@@ -127,11 +126,11 @@ class BundlerTest(unittest.TestCase):
       zipinfo = zip_file.getinfo(entry)
       if executable:
         self.assertEquals(
-            0o111, zipinfo.external_attr >> 16 & 0o111,
+            0111, zipinfo.external_attr >> 16L & 0111,
             'Expected %r to be executable, but it was not' % entry)
       else:
         self.assertEquals(
-            0, zipinfo.external_attr >> 16 & 0o111,
+            0, zipinfo.external_attr >> 16L & 0111,
             'Expected %r not to be executable, but it was' % entry)
     except KeyError:
       self.fail('Bundled ZIP should have contained %r, but it did not' % entry)
@@ -303,6 +302,7 @@ class BundlerTest(unittest.TestCase):
               {'src': two_zip, 'dest': '.'},
           ]
       })
+
 
 if __name__ == '__main__':
   unittest.main()
