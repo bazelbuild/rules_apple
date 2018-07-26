@@ -48,6 +48,13 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
   stdout, stderr = p.communicate()
   cmd_result = p.returncode
 
+  # The invoked tools don't specify what encoding they use, so for lack of a
+  # better option, just use utf8 with error replacement. This will replace
+  # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError from
+  # raising.
+  stdout = stdout.decode('utf8', 'replace')
+  stderr = stderr.decode('utf8', 'replace')
+
   if stdout and filtering:
     if not callable(filtering):
       raise TypeError("'filtering' must be callable.")
