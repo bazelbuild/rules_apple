@@ -206,7 +206,7 @@ def _pngs(ctx, parent_dir, files):
     for file in files.to_list():
         png_path = paths.join(parent_dir or "", file.basename)
         png_file = intermediates.file(ctx.actions, ctx.label.name, png_path)
-        resource_actions.png_copy(ctx, file, png_file)
+        resource_actions.copy_png(ctx, file, png_file)
         png_files.append(png_file)
 
     return struct(files = [(processor.location.resource, parent_dir, depset(direct = png_files))])
@@ -370,7 +370,7 @@ def _merge_root_infoplists(ctx, infoplists):
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _deduplicate(resources_provider, avoid_provider, field, smart_dedupe = False):
+def _deduplicate(resources_provider, avoid_provider, field):
     """Deduplicates and returns resources between 2 providers for a given field.
 
     Deduplication happens by comparing the target path of a file and the files
@@ -411,26 +411,23 @@ def _deduplicate(resources_provider, avoid_provider, field, smart_dedupe = False
         if key in avoid_dict:
             for to_bundle_file in files.to_list():
                 if to_bundle_file in avoid_dict[key]:
-                    # TODO(kaipi): Make smart deduplication the default.
-                    if smart_dedupe:
-                        # If the resource file is present in the provider of resources to avoid, and
-                        # smart_dedupe is enabled, we compare the owners of the resource through the
-                        # owners dictionaries of the providers. If there are owners present in
-                        # resources_provider which are not present in avoid_provider, it means that
-                        # there is at least one target that declares usage of the resource which is not
-                        # accounted for in avoid_provider. If this is the case, we add the resource to
-                        # be bundled in the bundle represented by resource_provider.
-                        # TODO(kaipi): Write tests for the smart dedupe behavior.
-                        short_path = to_bundle_file.short_path
-                        deduped_owners = [
-                            o for o in resources_provider.owners[short_path]
-                            if o not in avoid_provider.owners[short_path]
-                        ]
-                        if deduped_owners:
-                            deduped_files = depset(
-                                direct = [to_bundle_file],
-                                transitive = [deduped_files],
-                            )
+                    # If the resource file is present in the provider of resources to avoid, and
+                    # smart_dedupe is enabled, we compare the owners of the resource through the
+                    # owners dictionaries of the providers. If there are owners present in
+                    # resources_provider which are not present in avoid_provider, it means that
+                    # there is at least one target that declares usage of the resource which is not
+                    # accounted for in avoid_provider. If this is the case, we add the resource to
+                    # be bundled in the bundle represented by resource_provider.
+                    short_path = to_bundle_file.short_path
+                    deduped_owners = [
+                        o for o in resources_provider.owners[short_path]
+                        if o not in avoid_provider.owners[short_path]
+                    ]
+                    if deduped_owners:
+                        deduped_files = depset(
+                            direct = [to_bundle_file],
+                            transitive = [deduped_files],
+                        )
                 else:
                     deduped_files = depset(direct = [to_bundle_file], transitive = [deduped_files])
         else:
@@ -505,12 +502,9 @@ def _resources_partial_impl(
     fields = resources.populated_resource_fields(final_provider)
 
     infoplists = []
-    smart_dedupe = define_utils.bool_value(ctx, "apple.experimental.smart_dedupe", False)
     for field in fields:
         processing_func, requires_swift_module = provider_field_to_action[field]
-        deduplicated = _deduplicate(
-            final_provider, avoid_provider, field, smart_dedupe = smart_dedupe,
-        )
+        deduplicated = _deduplicate(final_provider, avoid_provider, field)
         for parent, swift_module, files in deduplicated:
             extra_args = {}
 
