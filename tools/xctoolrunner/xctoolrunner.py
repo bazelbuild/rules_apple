@@ -44,7 +44,6 @@ import time
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
-
 # This prefix is set for the Bazel rules in:
 # rules_apple/apple/bundling/file_support.bzl:xctoolrunner_path
 _PATH_PREFIX = "[ABSOLUTE]"
@@ -108,11 +107,11 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   excluded_sections = ["com.apple.actool.compilation-results"]
 
-  spurious_patterns = map(re.compile, [
+  spurious_patterns = list(map(re.compile, [
       r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
       r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app icons"
-      " only apply to iPad apps targeting releases of iOS prior to 10.0.",
-  ])
+      r" only apply to iPad apps targeting releases of iOS prior to 10.0.",
+  ]))
 
   def is_spurious_message(line):
     for pattern in spurious_patterns:
