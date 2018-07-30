@@ -15,6 +15,10 @@
 """Experimental implementation of iOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:partials.bzl",
     "partials",
 )
@@ -56,7 +60,8 @@ def ios_application_impl(ctx):
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
-    processor_result = processor.process(ctx, [
+
+    processor_partials = [
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -78,7 +83,14 @@ def ios_application_impl(ctx):
             dependency_targets = ctx.attr.frameworks + ctx.attr.extensions,
             package_dylibs = True,
         ),
-    ])
+    ]
+
+    if platform_support.is_device_build(ctx):
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
 
     # TODO(kaipi): Add support for `bazel run` for ios_application.
     executable = ctx.actions.declare_file(ctx.label.name)
@@ -108,7 +120,8 @@ def ios_framework_impl(ctx):
     # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
-    processor_result = processor.process(ctx, [
+
+    processor_partials = [
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -130,7 +143,9 @@ def ios_framework_impl(ctx):
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
         ),
-    ])
+    ]
+
+    processor_result = processor.process(ctx, processor_partials)
 
     # This can't be made into a partial as it needs the output archive reference.
     # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
@@ -160,7 +175,8 @@ def ios_extension_impl(ctx):
     # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
-    processor_result = processor.process(ctx, [
+
+    processor_partials = [
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -180,7 +196,14 @@ def ios_extension_impl(ctx):
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
         ),
-    ])
+    ]
+
+    if platform_support.is_device_build(ctx):
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
 
     # This can't be made into a partial as it needs the output archive
     # reference.

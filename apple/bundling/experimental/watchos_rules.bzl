@@ -19,6 +19,10 @@ load(
     "binary_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:partials.bzl",
     "partials",
 )
@@ -46,11 +50,13 @@ def watchos_application_impl(ctx):
       "strings",
   ]
   binary_artifact = binary_support.create_stub_binary(ctx)
-  processor_result = processor.process(ctx, [
+
+  processor_partials = [
       partials.binary_partial(binary_artifact=binary_artifact),
       partials.clang_rt_dylibs_partial(binary_artifact=binary_artifact),
       partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
       partials.embedded_bundles_partial(targets=[ctx.attr.extension]),
+      partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           top_level_attrs=top_level_attrs,
@@ -61,7 +67,14 @@ def watchos_application_impl(ctx):
           package_dylibs=True,
       ),
       partials.watchos_stub_partial(binary_artifact=binary_artifact),
-  ])
+  ]
+
+  if platform_support.is_device_build(ctx):
+      processor_partials.append(
+          partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+      )
+
+  processor_result = processor.process(ctx, processor_partials)
 
   embedded_bundles_provider = collect_embedded_bundle_provider(
       watches=[ctx.outputs.archive],
@@ -85,7 +98,8 @@ def watchos_extension_impl(ctx):
   ]
   binary_target = ctx.attr.deps[0]
   binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
-  processor_result = processor.process(ctx, [
+
+  processor_partials = [
       partials.binary_partial(binary_artifact=binary_artifact),
       partials.bitcode_symbols_partial(
           binary_artifact=binary_artifact,
@@ -95,12 +109,20 @@ def watchos_extension_impl(ctx):
       partials.debug_symbols_partial(
           debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
       ),
+      partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
       partials.resources_partial(
           plist_attrs=["infoplists"],
           top_level_attrs=top_level_attrs,
       ),
       partials.swift_dylibs_partial(binary_artifact=binary_artifact),
-  ])
+  ]
+
+  if platform_support.is_device_build(ctx):
+      processor_partials.append(
+          partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+      )
+
+  processor_result = processor.process(ctx, processor_partials)
 
   # This can't be made into a partial as it needs the output archive
   # reference.
