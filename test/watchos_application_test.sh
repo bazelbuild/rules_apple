@@ -1001,7 +1001,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:app\"; the Info.plist for child target \"//app:watch_app\" has the wrong value for \"WKCompanionAppBundleIdentifier\"; expected u'my.bundle.id', but found 'my.bundle2.id'."
+  expect_log "While processing target \"//app:app\"; the Info.plist for child target \"//app:watch_app\" has the wrong value for \"WKCompanionAppBundleIdentifier\"; expected u\?'my.bundle.id', but found 'my.bundle2.id'."
 }
 
 # Test that a watchOS extension with the wrong bundle_id for its
@@ -1049,7 +1049,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:watch_app\"; the Info.plist for child target \"//app:watch_ext\" has the wrong value for \"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; expected u'my.bundle.id.watch-app', but found 'my.bundle2.id.watch-app'."
+  expect_log "While processing target \"//app:watch_app\"; the Info.plist for child target \"//app:watch_ext\" has the wrong value for \"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; expected u\?'my.bundle.id.watch-app', but found 'my.bundle2.id.watch-app'."
 }
 
 run_suite "watchos_application bundling tests"
