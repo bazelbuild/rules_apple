@@ -53,7 +53,7 @@ following keys:
 """
 
 import json
-import md5
+import hashlib
 import os
 import sys
 import zipfile
@@ -145,11 +145,11 @@ class Bundler(object):
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
           fexec = executable or os.access(fsrc, os.X_OK)
-          with open(fsrc, 'r') as f:
+          with open(fsrc, 'rb') as f:
             self._write_entry(fdest, f.read(), fexec, out_zip)
     elif os.path.isfile(src):
       fexec = executable or os.access(src, os.X_OK)
-      with open(src, 'r') as f:
+      with open(src, 'rb') as f:
         self._write_entry(dest, f.read(), fexec, out_zip)
 
   def _add_zip_contents(self, src, dest, out_zip):
@@ -172,7 +172,7 @@ class Bundler(object):
           file_dest += '/'
 
         # Check for Unix --x--x--x permissions.
-        executable = src_zipinfo.external_attr >> 16L & 0111 != 0
+        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
         data = src_zip.read(src_zipinfo)
         self._write_entry(file_dest, data, executable, out_zip)
 
@@ -189,7 +189,7 @@ class Bundler(object):
       BundleToolError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
-    new_hash = md5.new(data).digest()
+    new_hash = hashlib.md5(data).digest()
     existing_hash = self._entry_hashes.get(dest)
     if existing_hash:
       if existing_hash == new_hash:
@@ -204,13 +204,13 @@ class Bundler(object):
     if dest.endswith('/'):
       # Unix rwxr-xr-x permissions and S_IFDIR (directory) on the left side of
       # the bitwise-OR; MS-DOS directory flag on the right.
-      zipinfo.external_attr = 0040755 << 16L | 0x10
+      zipinfo.external_attr = 0o040755 << 16 | 0x10
     else:
       # Unix rw-r--r-- permissions and S_IFREG (regular file).
-      zipinfo.external_attr = 0100644 << 16L
+      zipinfo.external_attr = 0o100644 << 16
       if executable:
         # Add Unix --x--x--x permissions.
-        zipinfo.external_attr |= 0111 << 16L
+        zipinfo.external_attr |= 0o111 << 16
 
     out_zip.writestr(zipinfo, data)
 

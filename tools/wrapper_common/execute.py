@@ -20,6 +20,8 @@ import re
 import subprocess
 import sys
 
+_PY3 = sys.version_info[0] == 3
+
 
 def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
   """Execute a command with arguments, and suppress STDERR output.
@@ -47,6 +49,17 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
                        stderr=subprocess.PIPE)
   stdout, stderr = p.communicate()
   cmd_result = p.returncode
+
+  # Only decode the output for Py3 so that the output type matches
+  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
+  # in Py2.
+  if _PY3:
+    # The invoked tools don't specify what encoding they use, so for lack of a
+    # better option, just use utf8 with error replacement. This will replace
+    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
+    # from raising.
+    stdout = stdout.decode('utf8', 'replace')
+    stderr = stderr.decode('utf8', 'replace')
 
   if stdout and filtering:
     if not callable(filtering):
