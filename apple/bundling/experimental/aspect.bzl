@@ -132,7 +132,10 @@ def _apple_resource_aspect_impl(target, ctx):
 
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
-        owner = str(ctx.label)
+        # Only set objc_library targets as owners if they have srcs. This treats objc_library
+        # targets without sources as resource aggregators.
+        if ctx.rule.attr.srcs:
+            owner = str(ctx.label)
 
     elif ctx.rule.kind == "swift_library":
         # TODO(kaipi): Properly handle swift modules, this is just a placeholder that won't work in
