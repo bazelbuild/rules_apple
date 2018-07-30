@@ -39,6 +39,10 @@ load(
     _framework_provider_partial = "framework_provider_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:provisioning_profile.bzl",
+    _provisioning_profile_partial = "provisioning_profile_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:resources.bzl",
     _resources_partial = "resources_partial",
 )
@@ -58,6 +62,7 @@ partials = struct(
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
     framework_provider_partial = _framework_provider_partial,
+    provisioning_profile_partial = _provisioning_profile_partial,
     resources_partial = _resources_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
     watchos_stub_partial=_watchos_stub_partial,
