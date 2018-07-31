@@ -186,10 +186,10 @@ def actool(_, toolargs):
 
 def _zip_directory(directory, output):
   """Zip the contents of the specified directory to the output file."""
-  zip_epoch_timestamp = 315532800  # 1980-01-01 00:00
+  zip_epoch_timestamp = 946684800  # 2000-01-01 00:00
 
   # Set the timestamp of all files within "tmpdir" to the Zip Epoch:
-  # 1980-01-01 00:00. They are adjusted for timezone since Python "zipfile"
+  # 2000-01-01 00:00. They are adjusted for timezone since Python "zipfile"
   # checks the local timestamps of the files.
   for root, _, files in os.walk(directory):
     for f in files:
