@@ -231,4 +231,47 @@ EOF
       "Payload/app.app/resource_only_lib.txt"
 }
 
+function test_resources_added_directly_into_apps() {
+  create_basic_project
+
+  cat >> app/BUILD <<EOF
+ios_framework(
+    name = "framework",
+    bundle_id = "com.framework",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "8",
+    deps = [":shared_lib"],
+)
+
+objc_library(
+    name = "only_main_lib",
+    srcs = ["main.m"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "com.app",
+    families = ["iphone"],
+    frameworks = [":framework"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "8",
+    deps = [":resource_only_lib", ":shared_lib", ":only_main_lib"],
+)
+EOF
+
+  do_build ios //app:app --define=apple.experimental.smart_dedupe=1 \
+      || fail "Should build"
+
+  # Verify that the resource is in the framework.
+  assert_zip_contains "test-bin/app/framework.zip" \
+      "framework.framework/resource_only_lib.txt"
+
+  # Even though there is no app specific library that declares ownership of
+  # this file (shared_lib is also present in the framework), this file should be
+  # present in the app as it is added as a direct dependency on the application.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/resource_only_lib.txt"
+}
+
 run_suite "smart resource deduplication tests"

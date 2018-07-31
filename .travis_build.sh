@@ -43,16 +43,12 @@ if [[ -n "${BAZEL:-}" ]]; then
 fi
 
 # -------------------------------------------------------------------------------------------------
+# Asked to do a buildifier run.
 if [[ -n "${BUILDIFER:-}" ]]; then
   # bazelbuild/buildtools/issues/220 - diff doesn't include the file that needs updating
-  if ! find . \( -name BUILD -o -name "*.bzl" \) -print | xargs buildifier -d > /dev/null 2>&1 ; then
-    echo "ERROR: BUILD/.bzl file formatting issue(s):"
-    echo ""
-    find . \( -name BUILD -o -name "*.bzl" \) -print -exec buildifier -v -d {} \;
-    echo ""
-    echo "Please download the latest buildifier"
-    echo "   https://github.com/bazelbuild/buildtools/releases"
-    echo "and run it over the changed BUILD/.bzl files."
+  if ! find . -name BUILD -print | xargs buildifier -d > /dev/null 2>&1 ; then
+    echo "ERROR: BUILD file formatting issue(s)"
+    find . -name BUILD -print -exec buildifier -v -d {} \;
     exit 1
   fi
 fi
