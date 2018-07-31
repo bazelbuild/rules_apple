@@ -104,6 +104,6 @@ def apple_rules_dependencies(ignore_version_differences = False):
         native.git_repository,
         name = "build_bazel_rules_swift",
         remote = "https://github.com/bazelbuild/rules_swift.git",
-        tag = "0.2.0",
+        tag = "0.3.0",
         ignore_version_differences = ignore_version_differences,
     )
