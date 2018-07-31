@@ -109,6 +109,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     bucketize_args = {}
     collect_args = {}
+
     # Owner to attach to the resources as they're being bucketed.
     owner = None
     if ctx.rule.kind == "objc_bundle":
@@ -132,6 +133,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
+
         # Only set objc_library targets as owners if they have srcs. This treats objc_library
         # targets without sources as resource aggregators.
         if ctx.rule.attr.srcs:
@@ -159,6 +161,13 @@ def _apple_resource_aspect_impl(target, ctx):
             parent_dir_param = _objc_framework_parent_dir,
         )
         providers.append(frameworks_provider)
+
+    elif ctx.rule.kind == "apple_binary" or ctx.rule.kind == "apple_stub_binary":
+        # Set the binary targets as the default_owner to avoid losing ownership information when
+        # aggregating dependencies resources that have an owners on one branch, and that don't have
+        # an owner on another branch. When rules_apple stops using apple_binary intermediaries this
+        # should be removed as there would not be an intermediate aggregator.
+        owner = str(ctx.label)
 
     # Collect all resource files related to this target.
     files = resources.collect(ctx.rule.attr, **collect_args)
