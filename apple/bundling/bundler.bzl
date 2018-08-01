@@ -902,6 +902,21 @@ def _run(
             avoided_owners_mapping,
         )
 
+    smart_dedupe_debug_enabled = define_utils.bool_value(
+        ctx,
+        "apple.experimental.smart_dedupe_debug",
+        False,
+    )
+    if smart_dedupe_debug_enabled:
+        debug_file = ctx.actions.declare_file("%s-smart_dedupe_debug.txt" % ctx.label.name)
+        extra_outputs.append(debug_file)
+        smart_dedupe.write_debug_file(
+            owners_mapping,
+            avoided_owners_mapping,
+            ctx.actions,
+            debug_file,
+        )
+
     # Iterate over each set of resources and register the actions. This
     # ensures that each bundle among the dependencies has its resources
     # processed independently.
