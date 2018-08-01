@@ -22,7 +22,6 @@ be merged into an IPA product.
 """
 
 import json
-import md5
 import os
 import sys
 import zipfile
