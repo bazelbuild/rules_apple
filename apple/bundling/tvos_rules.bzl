@@ -174,9 +174,6 @@ architecture of the rules. Do not change its value.
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
         ),
-        "_lib_protobuf": attr.label(
-            default = Label("@bazel_tools//tools/objc:protobuf_lib"),
-        ),
         "_protobuf_well_known_types": attr.label(
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
