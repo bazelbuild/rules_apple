@@ -294,9 +294,11 @@ def _transitive_apple_resource_info(target, ctx):
 
     default_owner = None
     if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
-        # Only mark objc_library as owner if it has sources. If not, treat it as a resource only
-        # target.
-        if ctx.rule.kind == "objc_library" and (ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs):
+        # Only mark objc_library as owner if it has sources or dependencies. If not, treat it as a
+        # resource only target.
+        if ctx.rule.kind == "objc_library" and (
+            ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps
+        ):
             default_owner = str(ctx.label)
         resources, owner_mapping = _handle_native_library_dependency(target, ctx)
         resource_sets.extend(resources)
