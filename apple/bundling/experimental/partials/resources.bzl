@@ -125,6 +125,7 @@ def _frameworks(ctx, parent_dir, files):
     framework_files = []
     for file in files.to_list():
         file_short_path = file.short_path
+
         # TODO(b/36435385): Use the new tuple argument format to check for both extensions in one
         # call.
         if file_short_path.endswith(".h"):
@@ -288,6 +289,39 @@ def _strings(ctx, parent_dir, files):
         ],
     )
 
+def _texture_atlases(ctx, parent_dir, files):
+    """Processes texture atlas files."""
+    atlases_groups = group_files_by_directory(
+        files.to_list(),
+        ["atlas"],
+        attr = "texture_atlas",
+    )
+
+    atlasc_files = []
+    for atlas_path, files in atlases_groups.items():
+        atlasc_path = paths.join(
+            parent_dir or "",
+            paths.replace_extension(paths.basename(atlas_path), ".atlasc"),
+        )
+        atlasc_dir = intermediates.directory(
+            ctx.actions,
+            ctx.label.name,
+            atlasc_path,
+        )
+        resource_actions.compile_texture_atlas(
+            ctx,
+            atlas_path,
+            files,
+            atlasc_dir,
+        )
+        atlasc_files.append(atlasc_dir)
+
+    return struct(
+        files = [
+            (processor.location.resource, parent_dir, depset(direct = atlasc_files)),
+        ],
+    )
+
 def _xcassets(ctx, parent_dir, files):
     """Processes xcasset files."""
 
@@ -420,7 +454,8 @@ def _deduplicate(resources_provider, avoid_provider, field):
                     # be bundled in the bundle represented by resource_provider.
                     short_path = to_bundle_file.short_path
                     deduped_owners = [
-                        o for o in resources_provider.owners[short_path]
+                        o
+                        for o in resources_provider.owners[short_path]
                         if o not in avoid_provider.owners[short_path]
                     ]
                     if deduped_owners:
@@ -476,7 +511,8 @@ def _resources_partial_impl(
         # Call merge_providers with validate_all_resources_owned set, to ensure that all the
         # resources from dependency bundles have an owner.
         avoid_provider = resources.merge_providers(
-            avoid_providers, validate_all_resources_owned = True,
+            avoid_providers,
+            validate_all_resources_owned = True,
         )
 
     final_provider = resources.merge_providers(providers, default_owner = str(ctx.label))
@@ -491,6 +527,7 @@ def _resources_partial_impl(
         "pngs": (_pngs, False),
         "storyboards": (_storyboards, True),
         "strings": (_strings, False),
+        "texture_atlases": (_texture_atlases, False),
         "xcassets": (_xcassets, False),
         "xibs": (_xibs, True),
     }
