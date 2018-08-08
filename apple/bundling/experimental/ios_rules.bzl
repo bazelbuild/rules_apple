@@ -58,8 +58,10 @@ def ios_application_impl(ctx):
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
+    swift_dylib_dependencies = ctx.attr.frameworks + ctx.attr.extensions
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
+        swift_dylib_dependencies.append(ctx.attr.watch_application)
 
     processor_partials = [
         partials.binary_partial(binary_artifact = binary_artifact),
@@ -80,14 +82,17 @@ def ios_application_impl(ctx):
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks + ctx.attr.extensions,
-            package_dylibs = True,
+            dependency_targets = swift_dylib_dependencies,
+            bundle_dylibs = True,
+            # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
+            # builds, or at least only for device builds.
+            package_swift_support = True,
         ),
     ]
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -200,7 +205,7 @@ def ios_extension_impl(ctx):
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile)
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
         )
 
     processor_result = processor.process(ctx, processor_partials)

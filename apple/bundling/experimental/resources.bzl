@@ -85,6 +85,7 @@ processed should be propagated in `generics`.""",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
+        "texture_atlases": "Texture atlas files.",
         "xcassets": "Resources that need to be embedded into Assets.car.",
         "xibs": "XIB Interface files.",
         "owners": """Map of resource short paths to a depset of strings that represent targets that
@@ -138,47 +139,56 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         # only have one owner.
         owner_depset = depset(direct = [owner])
     for resource in resources:
-        owners[resource.short_path] = owner_depset
+        # Local cache of the resource short path since it gets used quite a bit below.
+        resource_short_path = resource.short_path
+
+        owners[resource_short_path] = owner_depset
         if str(type(parent_dir_param)) == "function":
             parent = parent_dir_param(resource)
         else:
             parent = parent_dir_param
 
-        # For each type of resource, place in appropriate bucket.
-        # TODO(kaipi): Missing many types of resources, this is just a starting point.
-
         # Special case for localized. If .lproj/ is in the path of the resource (and the parent
         # doesn't already have it) append the lproj component to the current parent.
-        if ".lproj/" in resource.short_path and (not parent or ".lproj" not in parent):
-            lproj_path = path_utils.farthest_directory_matching(resource.short_path,"lproj")
+        if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
+            lproj_path = path_utils.farthest_directory_matching(resource_short_path, "lproj")
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
-        if resource.short_path.endswith(".strings"):
+        # For each type of resource, place in appropriate bucket.
+        if resource_short_path.endswith(".strings"):
             buckets.setdefault(
                 "strings",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
-        elif resource.short_path.endswith(".storyboard"):
+        elif resource_short_path.endswith(".storyboard"):
             buckets.setdefault(
                 "storyboards",
                 default = [],
             ).append((parent, swift_module, depset(direct = [resource])))
-        elif resource.short_path.endswith(".xib"):
+        elif resource_short_path.endswith(".xib"):
             buckets.setdefault(
                 "xibs",
                 default = [],
             ).append((parent, swift_module, depset(direct = [resource])))
-        elif ".xcassets/" in resource.short_path:
+        elif ".xcassets/" in resource_short_path:
             buckets.setdefault(
                 "xcassets",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
-        elif ".xcdatamodel" in resource.short_path:
+        elif ".xcdatamodel" in resource_short_path:
             buckets.setdefault(
                 "datamodels",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
-        elif resource.short_path.endswith(".png"):
+        elif ".atlas" in resource_short_path:
+            buckets.setdefault(
+                "texture_atlases",
+                default = [],
+            ).append((parent, None, depset(direct = [resource])))
+            # Process standalone pngs last so that special resource types that use png can be
+            # bucketed correctly.
+
+        elif resource_short_path.endswith(".png"):
             buckets.setdefault(
                 "pngs",
                 default = [],
@@ -190,7 +200,8 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
             ).append((parent, None, depset(direct = [resource])))
 
     return NewAppleResourceInfo(
-        owners = owners, **dict([(k, _minimize(b)) for k, b in buckets.items()])
+        owners = owners,
+        **dict([(k, _minimize(b)) for k, b in buckets.items()])
     )
 
 def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir_param = None):
@@ -280,7 +291,7 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
     if not providers:
         fail(
             "merge_providers should be called with a non-empty list of providers. This is most " +
-            "likely a bug in rules_apple, please file a bug with reproduction steps."
+            "likely a bug in rules_apple, please file a bug with reproduction steps.",
         )
 
     if len(providers) == 1:
@@ -307,6 +318,7 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
             transitive = []
             if collected_owners:
                 transitive.append(collected_owners)
+
             # If there is no owner marked for this resource, use the default_owner as an owner, if
             # it exists.
             if resource_owners:
@@ -317,22 +329,22 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
                 fail(
                     "The given providers have a resource that doesn't have an owner, and " +
                     "validate_all_resources_owned was set. This is most likely a bug in " +
-                    "rules_apple, please file a bug with reproduction steps."
+                    "rules_apple, please file a bug with reproduction steps.",
                 )
             if transitive:
                 # If there is only one transitive depset, avoid creating a new depset, just
                 # propagate it.
                 if len(transitive) == 1:
-                  final_depset = transitive[0]
+                    final_depset = transitive[0]
                 else:
                     final_depset = depset(transitive = transitive)
             else:
                 final_depset = None
             owners[resource_path] = final_depset
 
-
     return NewAppleResourceInfo(
-        owners = owners, **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
+        owners = owners,
+        **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
     )
 
 def _minimize(bucket):
@@ -374,6 +386,7 @@ def _minimize(bucket):
 
 def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
+
     # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
     return [f for f in dir(provider) if f not in ["owners", "to_json", "to_proto"]]
 

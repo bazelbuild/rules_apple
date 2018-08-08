@@ -134,9 +134,9 @@ def _apple_resource_aspect_impl(target, ctx):
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
 
-        # Only set objc_library targets as owners if they have srcs or non_arc_srcs. This treats
-        # objc_library targets without sources as resource aggregators.
-        if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs:
+        # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
+        # treats objc_library targets without sources as resource aggregators.
+        if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
 
     elif ctx.rule.kind == "swift_library":

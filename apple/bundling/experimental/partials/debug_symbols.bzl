@@ -136,6 +136,7 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
 
 def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_provider = None):
     """Implementation for the debug symbols processing partial."""
+
     # If there is no AppleDebugOutputs provider, return early.
     if not debug_outputs_provider:
         return struct()
@@ -188,6 +189,8 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
                 dsym_bundles = dsym_bundles,
                 files = output_files,
             ),
+            # Repropagate the AppleDebugOutputs provider.
+            debug_outputs_provider,
         ],
     )
 

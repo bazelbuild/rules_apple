@@ -111,10 +111,6 @@ def _handle_native_library_dependency(target, ctx):
                 for rs in p.resource_sets
             ])
     elif ctx.rule.kind == "objc_library":
-        # Only mark objc_library as owner if it has sources. If not, treat it as a resource only
-        # target.
-        if ctx.rule.files.srcs:
-            owner = str(ctx.label)
         bundle_dir = None
         resource_bundle_target_data = None
         infoplists = []
@@ -139,7 +135,6 @@ def _handle_native_library_dependency(target, ctx):
     structured_resources = ctx.rule.files.structured_resources
     owner_mappings.append(smart_dedupe.create_owners_mapping(
         resources + structured_resources + infoplists,
-        owner = owner,
     ))
 
     # Then, build the bundled_resources struct for the resources directly in the
@@ -297,11 +292,19 @@ def _transitive_apple_resource_info(target, ctx):
         resource_sets.extend(p.resource_sets)
         owner_mappings.append(p.owners)
 
+    default_owner = None
     if ctx.rule.kind in ("objc_library", "objc_bundle_library"):
+        # Only mark objc_library as owner if it has sources or dependencies. If not, treat it as a
+        # resource only target.
+        if ctx.rule.kind == "objc_library" and (
+            ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps
+        ):
+            default_owner = str(ctx.label)
         resources, owner_mapping = _handle_native_library_dependency(target, ctx)
         resource_sets.extend(resources)
         owner_mappings.append(owner_mapping)
     elif ctx.rule.kind == "swift_library":
+        default_owner = str(ctx.label)
         resources, owner_mapping = _handle_swift_library_dependency(target, ctx)
         resource_sets.extend(resources)
         owner_mappings.append(owner_mapping)
@@ -310,6 +313,12 @@ def _transitive_apple_resource_info(target, ctx):
         resources, owner_mapping = _handle_native_bundle_imports(bundle_imports)
         resource_sets.extend(resources)
         owner_mappings.append(owner_mapping)
+    elif ctx.rule.kind == "apple_binary" or ctx.rule.kind == "apple_stub_binary":
+        # Set the binary targets as the default_owner to avoid losing ownership information when
+        # aggregating dependencies resources that have an owners on one branch, and that don't have
+        # an owner on another branch. When rules_apple stops using apple_binary intermediaries this
+        # should be removed as there would not be an intermediate aggregator.
+        default_owner = str(ctx.label)
     elif not resource_providers:
         # Handle arbitrary objc providers, but only if we haven't gotten resource
         # sets for the target or its deps already. This lets us handle "resource
@@ -328,7 +337,7 @@ def _transitive_apple_resource_info(target, ctx):
     minimized = apple_resource_set_utils.minimize(resource_sets)
     return AppleResourceInfo(
         resource_sets = minimized,
-        owners = smart_dedupe.merge_owners_mappings(owner_mappings),
+        owners = smart_dedupe.merge_owners_mappings(owner_mappings, default_owner = default_owner),
     )
 
 def _transitive_apple_bundling_swift_info(target, ctx):

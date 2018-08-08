@@ -90,8 +90,47 @@ def _subtract_owners_mappings(minuend, subtrahend):
             result[file_path] = depset(deduped_owners)
     return result
 
+def _write_debug_file(owners_mapping, avoided_owners_mapping, actions, output_file):
+    """Writes a debug file describing the changes that smart deduplication performed.
+
+    This method writes a file describing which files were removed from or added to the bundle
+    because of smart deduplication. This file can be used in aiding debugging when the bundling
+    result is not expected.
+
+    The files listed in the debug file are the raw resources that will be processed, not the files
+    that will be bundled inside the application. This makes it more apparent which xcassets will be
+    bundled inside the Assets.car file.
+
+    Args:
+      owners_mapping: The owners mapping of a target's bundle.
+      avoided_owners_mapping: The owners mapping describing dependency bundles.
+      actions: The actions object as returned by ctx.actions.
+      output_file: The File reference on where to write the file.
+    """
+    legacy_deduped = [x for x in owners_mapping.keys() if x not in avoided_owners_mapping.keys()]
+    smart_deduped = _subtract_owners_mappings(owners_mapping, avoided_owners_mapping).keys()
+
+    removed_by_smart_dedupe = sorted([x for x in legacy_deduped if x not in smart_deduped])
+    added_by_smart_dedupe = sorted([x for x in smart_deduped if x not in legacy_deduped])
+
+    contents = []
+    if removed_by_smart_dedupe:
+        contents.extend(["REMOVED", ""])
+        contents.extend(removed_by_smart_dedupe)
+        contents.append("")
+    if added_by_smart_dedupe:
+        contents.extend(["ADDED", ""])
+        contents.extend(added_by_smart_dedupe)
+        contents.append("")
+
+    if not contents:
+        contents.append("NO CHANGES")
+
+    actions.write(output_file, "\n".join(contents))
+
 smart_dedupe = struct(
     create_owners_mapping = _create_owners_mapping,
     merge_owners_mappings = _merge_owners_mappings,
     subtract_owners_mappings = _subtract_owners_mappings,
+    write_debug_file = _write_debug_file,
 )

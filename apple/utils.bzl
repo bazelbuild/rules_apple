@@ -60,7 +60,7 @@ def apple_actions_runshell(ctx_actions, **kw):
     """Creates an actions.run_shell() that only runs on MacOS/Darwin.
 
     Call it similar to how you would call ctx.actions.run_shell:
-      apple_actions_runshell(ctx, outputs=[...], inputs=[...],...)
+      apple_actions_runshell(ctx.actions, outputs=[...], inputs=[...],...)
 
     Args:
       ctx_actions: The ctx.actions object to use.
