@@ -15,6 +15,10 @@
 """Proxy file for referencing processor partials."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:apple_bundle_info.bzl",
+    _apple_bundle_info_partial = "apple_bundle_info_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:binary.bzl",
     _binary_partial = "binary_partial",
 )
@@ -56,6 +60,7 @@ load(
 )
 
 partials = struct(
+    apple_bundle_info_partial = _apple_bundle_info_partial,
     binary_partial = _binary_partial,
     bitcode_symbols_partial = _bitcode_symbols_partial,
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
@@ -65,5 +70,5 @@ partials = struct(
     provisioning_profile_partial = _provisioning_profile_partial,
     resources_partial = _resources_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
-    watchos_stub_partial=_watchos_stub_partial,
+    watchos_stub_partial = _watchos_stub_partial,
 )
