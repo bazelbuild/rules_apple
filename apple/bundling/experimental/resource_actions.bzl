@@ -38,12 +38,17 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:png.bzl",
     _copy_png = "copy_png",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:texture_atlas.bzl",
+    _compile_texture_atlas = "compile_texture_atlas",
+)
 
 resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
     compile_datamodels = _compile_datamodels,
     compile_plist = _compile_plist,
     compile_storyboard = _compile_storyboard,
+    compile_texture_atlas = _compile_texture_atlas,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
     link_storyboards = _link_storyboards,
