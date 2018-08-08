@@ -33,6 +33,7 @@ load(
 
 def _watchos_stub_partial_impl(ctx, binary_artifact):
     """Implementation for the watchOS stub processing partial."""
+
     # Create intermediate file with proper name for the binary.
     intermediate_file = intermediates.file(
         ctx.actions,

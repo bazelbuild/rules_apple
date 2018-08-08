@@ -33,6 +33,7 @@ load(
 
 def _provisioning_profile_partial_impl(ctx, profile_artifact, extension):
     """Implementation for the provisioning profile partial."""
+
     # Create intermediate file with proper name for the binary.
     intermediate_file = intermediates.file(
         ctx.actions,
