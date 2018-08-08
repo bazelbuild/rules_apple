@@ -37,6 +37,7 @@ load(
 
 def _binary_partial_impl(ctx, binary_artifact):
     """Implementation for the binary processing partial."""
+
     # Create intermediate file with proper name for the binary.
     intermediate_file = intermediates.file(
         ctx.actions,
