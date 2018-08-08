@@ -200,7 +200,7 @@ ios_application(
 EOF
 
   do_build ios //app:app && fail "Should fail"
-  expect_log "For ios bundles, the following top level directories are invalid: Resources."
+  expect_log "For ios bundles, the following top level directories are invalid: Resources"
 }
 
 # Tests that various localized resource types are bundled correctly with the
