@@ -32,7 +32,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
@@ -64,6 +63,7 @@ def ios_application_impl(ctx):
         swift_dylib_dependencies.append(ctx.attr.watch_application)
 
     processor_partials = [
+        partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -106,8 +106,6 @@ def ios_application_impl(ctx):
     )
 
     return [
-        # TODO(kaipi): Fill in the fields of AppleBundleInfo.
-        AppleBundleInfo(),
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
@@ -127,6 +125,7 @@ def ios_framework_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
 
     processor_partials = [
+        partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -160,8 +159,6 @@ def ios_framework_impl(ctx):
     )
 
     return [
-        # TODO(kaipi): Fill in the fields of AppleBundleInfo.
-        AppleBundleInfo(),
         DefaultInfo(files = processor_result.output_files),
         embedded_bundles_provider,
         IosFrameworkBundleInfo(),
@@ -182,6 +179,7 @@ def ios_extension_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
     processor_partials = [
+        partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -219,8 +217,6 @@ def ios_extension_impl(ctx):
     )
 
     return [
-        # TODO(kaipi): Fill in the fields of AppleBundleInfo.
-        AppleBundleInfo(),
         DefaultInfo(
             files = processor_result.output_files,
         ),
