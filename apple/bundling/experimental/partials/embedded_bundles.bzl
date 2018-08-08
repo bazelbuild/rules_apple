@@ -34,7 +34,7 @@ Frameworks section of the packaging bundle.""",
         "plugins": """
 A depset with the zipped archives of bundles that need to be expanded into the
 PlugIns section of the packaging bundle.""",
-        "watches":"""
+        "watches": """
 A depset with the zipped archives of bundles that need to be expanded into the Watch secttion of
 the packaging bundle. Only applicable for iOS applications.""",
     },

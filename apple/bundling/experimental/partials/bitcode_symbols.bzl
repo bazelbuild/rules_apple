@@ -35,8 +35,9 @@ load(
     "processor",
 )
 
-def _bitcode_symbols_partial_impl(ctx, binary_artifact, debug_outputs_provider=None):
+def _bitcode_symbols_partial_impl(ctx, binary_artifact, debug_outputs_provider = None):
     """Implementation for the bitcode symbols processing partial."""
+
     # If there is no AppleDebugOutputs provider, return early.
     if not debug_outputs_provider:
         return struct()
