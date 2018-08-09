@@ -80,8 +80,10 @@ NewAppleResourceInfo = provider(
         "frameworks": """Files to be bundled as part of a framework. This is explicitly used for
 objc_framework, since we treat the files references as resources that need to be packaged into the
 Frameworks section of the bundle.""",
-        "plists": """Plist files to be merged and processed. Plist files that should not be
-processed should be propagated in `generics`.""",
+        "infoplists": """Plist files to be merged and processed. Plist files that should not be
+merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
+only be bucketed with the `bucketize_typed` method.""",
+        "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
@@ -191,6 +193,11 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         elif resource_short_path.endswith(".png"):
             buckets.setdefault(
                 "pngs",
+                default = [],
+            ).append((parent, None, depset(direct = [resource])))
+        elif resource_short_path.endswith(".plist"):
+            buckets.setdefault(
+                "plists",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
         else:
