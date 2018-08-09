@@ -67,7 +67,8 @@ function create_new_workspace() {
   cat > ../external/xctestrunner/file/BUILD <<EOF
 filegroup(
     name = "file",
-    srcs = ["ios_test_runner.par"],
+    # http_file downloads files with the "downloaded" name by default.
+    srcs = ["downloaded"],
     visibility = ["//visibility:public"],
 )
 EOF
