@@ -110,6 +110,7 @@ function CleanupSimulator() {
 }
 
 readonly STD_REDIRECT_DYLIB="$PWD/%std_redirect_dylib_path%"
+
 readonly TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/bazel_temp.XXXXXX")
 
 trap 'rm -rf "${TEMP_DIR}"; CleanupSimulator ${TEST_DEVICE_ID}' ERR EXIT
