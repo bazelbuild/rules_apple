@@ -53,6 +53,10 @@ load(
     "@build_bazel_rules_apple//common:define_utils.bzl",
     "define_utils",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:outputs.bzl",
+    "outputs",
+)
 
 def _datamodels(ctx, parent_dir, files, swift_module):
     datamodel_files = files.to_list()
@@ -375,18 +379,18 @@ def _noop(ctx, parent_dir, files):
     _ignore = [ctx]
     return struct(files = [(processor.location.resource, parent_dir, files)])
 
-def _merge_root_infoplists(ctx, infoplists):
+def _merge_root_infoplists(ctx, infoplists, out_infoplist):
     """Registers the root Info.plist generation action.
 
     Args:
       ctx: The target's rule context.
       infoplists: List of plists that should be merged into the root Info.plist.
+      out_infoplist: Reference to the output Info plist.
 
     Returns:
       A list of tuples as described in processor.bzl with the Info.plist file
       reference and the PkgInfo file if required.
     """
-    out_infoplist = intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
     files = [out_infoplist]
 
     out_pkginfo = None
@@ -554,7 +558,8 @@ def _resources_partial_impl(
             if hasattr(result, "infoplists"):
                 infoplists.extend(result.infoplists)
 
-    bundle_files.extend(_merge_root_infoplists(ctx, infoplists))
+    out_infoplist = outputs.infoplist(ctx)
+    bundle_files.extend(_merge_root_infoplists(ctx, infoplists, out_infoplist))
 
     return struct(bundle_files = bundle_files, providers = [final_provider])
 

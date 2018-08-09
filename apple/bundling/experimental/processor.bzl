@@ -74,6 +74,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental:intermediates.bzl",
     "intermediates",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:outputs.bzl",
+    "outputs",
+)
 
 # Location enum that can be used to tag files into their appropriate location
 # in the final archive.
@@ -202,7 +206,7 @@ def _process(ctx, partials):
 
     # TODO(kaipi): Replace this with a declared file. The archive extension is
     # not yet available in the attributes (or product descriptor).
-    output_archive = ctx.outputs.archive
+    output_archive = outputs.archive(ctx)
     codesigning_actions.post_process_and_sign_archive_action(
         ctx,
         archive_codesigning_path,
