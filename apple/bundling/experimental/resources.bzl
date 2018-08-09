@@ -170,7 +170,7 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
                 "xibs",
                 default = [],
             ).append((parent, swift_module, depset(direct = [resource])))
-        elif ".xcassets/" in resource_short_path:
+        elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
             buckets.setdefault(
                 "xcassets",
                 default = [],
