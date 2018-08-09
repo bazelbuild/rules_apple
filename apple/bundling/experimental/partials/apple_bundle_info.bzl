@@ -19,6 +19,10 @@ load(
     "partial",
 )
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -35,8 +39,8 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
+    "@build_bazel_rules_apple//apple/bundling/experimental:outputs.bzl",
+    "outputs",
 )
 
 def _apple_bundle_info_partial_impl(ctx):
@@ -46,16 +50,17 @@ def _apple_bundle_info_partial_impl(ctx):
     return struct(
         providers = [
             AppleBundleInfo(
-                archive = None,
+                archive = outputs.archive(ctx),
                 archive_root = None,
                 bundle_dir = None,
                 bundle_id = ctx.attr.bundle_id,
                 bundle_name = bundling_support.bundle_name(ctx),
                 bundle_extension = bundling_support.bundle_extension(ctx),
                 entitlements = getattr(ctx.attr, "entitlements", None),
-                infoplist = None,
+                infoplist = outputs.infoplist(ctx),
                 minimum_os_version = platform_support.minimum_os(ctx),
                 product_type = product_support.product_type(ctx),
+                propagated_framework_files = depset([]),
                 uses_swift = swift_support.uses_swift(ctx.attr.deps),
             ),
         ],
