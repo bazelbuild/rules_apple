@@ -182,7 +182,6 @@ def merge_root_infoplists(
         child_plists = [],
         child_required_values = [],
         include_executable_name = True,
-        include_xcode_env = False,
         version_keys_required = False):
     """Creates an action that merges Info.plists and converts them to binary.
 
@@ -206,8 +205,6 @@ def merge_root_infoplists(
       include_executable_name: If True, the executable name will be added to
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
-      include_xcode_env: If True, whether the development environment and
-          platform info should be added to the plist (just like Xcode does).
       version_keys_required: If True, the merged Info.plist file must include
           entries for CFBundleShortVersionString and CFBundleVersion.
     """
@@ -294,31 +291,31 @@ def merge_root_infoplists(
                 struct(**product_type_descriptor.additional_infoplist_values),
             )
 
-    if include_xcode_env:
-        environment_plist = ctx.actions.declare_file(
-            "environment.plist",
-            sibling = output_plist,
-        )
+    environment_plist = ctx.actions.declare_file(
+        "environment.plist",
+        sibling = output_plist,
+    )
 
-        platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
-        platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
+    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
+    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
 
-        _generate_environment_plist(ctx, environment_plist, platform_with_version)
-        input_files.append(environment_plist)
+    _generate_environment_plist(ctx, environment_plist, platform_with_version)
+    input_files.append(environment_plist)
 
+    if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
+        plist_key = "LSMinimumSystemVersion"
+    else:
         plist_key = "MinimumOSVersion"
-        if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
-            plist_key = "LSMinimumSystemVersion"
 
-        forced_plists.extend([
-            environment_plist.path,
-            struct(
-                CFBundleSupportedPlatforms = [platform.name_in_plist],
-                DTPlatformName = platform.name_in_plist.lower(),
-                DTSDKName = platform_with_version,
-                **{plist_key: platform_support.minimum_os(ctx)}
-            ),
-        ])
+    forced_plists.extend([
+        environment_plist.path,
+        struct(
+            CFBundleSupportedPlatforms = [platform.name_in_plist],
+            DTPlatformName = platform.name_in_plist.lower(),
+            DTSDKName = platform_with_version,
+            **{plist_key: platform_support.minimum_os(ctx)}
+        ),
+    ])
 
     output_files = [output_plist]
     if output_pkginfo:
