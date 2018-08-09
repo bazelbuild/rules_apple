@@ -150,8 +150,8 @@ def _frameworks(ctx, parent_dir, files):
         ],
     )
 
-def _plists(ctx, parent_dir, files):
-    """Processes plists.
+def _infoplists(ctx, parent_dir, files):
+    """Processes infoplists.
 
     If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
     merged into one. If parent_dir is empty (or None), the files are be treated as root level
@@ -187,6 +187,41 @@ def _plists(ctx, parent_dir, files):
         )
     else:
         return struct(files = [], infoplists = files.to_list())
+
+def _plists_and_strings(ctx, parent_dir, files):
+    """Processes plists and string files.
+
+    If compilation mode is `opt`, the plist files will be compiled into binary to make them
+    smaller. Otherwise, they will be copied verbatim to avoid the extra processing time.
+
+    Args:
+        ctx: The target's context.
+        parent_dir: The path under which the files should be placed.
+        files: The plist or string files to process.
+
+    Returns:
+        A struct containing a `files` field with tuples as described in processor.bzl.
+    """
+
+    # If this is not an optimized build, then just copy the files
+    if ctx.var["COMPILATION_MODE"] != "opt":
+        return _noop(ctx, parent_dir, files)
+
+    plist_files = []
+    for file in files.to_list():
+        plist_file = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            paths.join(parent_dir or "", file.basename),
+        )
+        resource_actions.compile_plist(ctx, file, plist_file)
+        plist_files.append(plist_file)
+
+    return struct(
+        files = [
+            (processor.location.resource, parent_dir, depset(direct = plist_files)),
+        ],
+    )
 
 def _pngs(ctx, parent_dir, files):
     """Register PNG processing actions.
@@ -255,41 +290,6 @@ def _storyboards(ctx, parent_dir, files, swift_module):
     return struct(
         files = [
             (processor.location.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
-        ],
-    )
-
-def _strings(ctx, parent_dir, files):
-    """Processes strings files.
-
-    If compilation mode is `opt`, the string files will be compiled into binary to make them
-    smaller. Otherwise, they will be copied verbatim to avoid the extra processing time.
-
-    Args:
-        ctx: The target's context.
-        parent_dir: The path under which the strings should be placed.
-        files: The string files to process.
-
-    Returns:
-        A struct containing a `files` field with tuples as described in processor.bzl.
-    """
-
-    # If this is not an optimized build, then just copy the files
-    if ctx.var["COMPILATION_MODE"] != "opt":
-        return _noop(ctx, parent_dir, files)
-
-    string_files = []
-    for file in files.to_list():
-        string_file = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
-            paths.join(parent_dir or "", file.basename),
-        )
-        resource_actions.compile_plist(ctx, file, string_file)
-        string_files.append(string_file)
-
-    return struct(
-        files = [
-            (processor.location.resource, parent_dir, depset(direct = string_files)),
         ],
     )
 
@@ -499,7 +499,7 @@ def _resources_partial_impl(
         plist_provider = resources.bucketize_typed(
             ctx.attr,
             owner = str(ctx.label),
-            bucket_type = "plists",
+            bucket_type = "infoplists",
             res_attrs = plist_attrs,
         )
         providers.append(plist_provider)
@@ -527,10 +527,11 @@ def _resources_partial_impl(
         "datamodels": (_datamodels, True),
         "frameworks": (_frameworks, False),
         "generics": (_noop, False),
-        "plists": (_plists, False),
+        "infoplists": (_infoplists, False),
+        "plists": (_plists_and_strings, False),
         "pngs": (_pngs, False),
         "storyboards": (_storyboards, True),
-        "strings": (_strings, False),
+        "strings": (_plists_and_strings, False),
         "texture_atlases": (_texture_atlases, False),
         "xcassets": (_xcassets, False),
         "xibs": (_xibs, True),
