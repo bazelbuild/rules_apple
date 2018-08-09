@@ -14,6 +14,8 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
     return "\033[1;{color}m{text}{reset}".format(
@@ -93,7 +95,7 @@ def apple_rules_dependencies(ignore_version_differences = False):
           incompatible versions of depended-upon repositories will be silenced.
     """
     _maybe(
-        native.git_repository,
+        git_repository,
         name = "bazel_skylib",
         remote = "https://github.com/bazelbuild/bazel-skylib.git",
         tag = "0.4.0",
@@ -101,7 +103,7 @@ def apple_rules_dependencies(ignore_version_differences = False):
     )
 
     _maybe(
-        native.git_repository,
+        git_repository,
         name = "build_bazel_rules_swift",
         remote = "https://github.com/bazelbuild/rules_swift.git",
         tag = "0.3.0",
