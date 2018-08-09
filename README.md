@@ -30,6 +30,8 @@ replacing the version number in the `tag` attribute with the version of the
 rules you wish to depend on:
 
 ```python
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
@@ -40,6 +42,7 @@ load(
     "@build_bazel_rules_apple//apple:repositories.bzl",
     "apple_rules_dependencies",
 )
+
 apple_rules_dependencies()
 ```
 
@@ -48,6 +51,8 @@ the following to your `WORKSPACE`, which is an external dependency needed to run
 the tests.
 
 ```python
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
 http_file(
     name = "xctestrunner",
     executable = 1,
