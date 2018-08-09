@@ -31,6 +31,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
 
 # List of native resource attributes to use to collect by default. This list should dissapear in the
 # long term; objc_library will remove the resource specific attributes and the native rules (that
@@ -94,11 +98,7 @@ def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
     # Kill switch to disable the aspect unless explicitly required.
-    if not define_utils.bool_value(
-        ctx,
-        "apple.experimental.resource_propagation",
-        False,
-    ):
+    if not is_experimental_bundling_enabled(ctx):
         return []
 
     # If the target already propagates a NewAppleResourceInfo, do nothing.
