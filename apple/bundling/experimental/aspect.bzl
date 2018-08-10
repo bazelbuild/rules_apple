@@ -46,7 +46,7 @@ _NATIVE_RESOURCE_ATTRS = [
     "data",
     "datamodels",
     "resources",
-    "storyboard",
+    "storyboards",
     "strings",
     "xibs",
 ]

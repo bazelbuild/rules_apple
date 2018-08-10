@@ -259,7 +259,12 @@ def _storyboards(ctx, parent_dir, files, swift_module):
     compiled_storyboardcs = []
     for storyboard in files.to_list():
         storyboardc_path = paths.join(
-            parent_dir or "",
+            # We append something at the end of the name to avoid having X.lproj names in the path.
+            # It seems like ibtool will output with different paths depending on whether it is part
+            # of a localization bundle. By appending something at the end, we avoid having X.lproj
+            # directory names in ibtool's arguments. This is not the case from the storyboard
+            # linking action, so we do not change the path there.
+            (parent_dir or "") + "_storyboardc",
             paths.replace_extension(storyboard.basename, ".storyboardc"),
         )
         storyboardc_dir = intermediates.directory(
