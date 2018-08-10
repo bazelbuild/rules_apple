@@ -67,6 +67,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:codesigning_actions.bzl",
     "codesigning_actions",
 )
@@ -91,6 +95,42 @@ _LOCATION_ENUM = struct(
     resource = "resource",
     watch = "watch",
 )
+
+def _invalid_top_level_directories_for_platform(platform_type):
+    """List of invalid top level directories for the given platform."""
+
+    # As far as we know, there are no locations in macOS bundles that would break
+    # codesigning.
+    if platform_type == "macos":
+        return []
+
+    # Non macOS bundles can't have a top level Resources folder, as it breaks
+    # codesigning for some reason. With this, we validate that there are no
+    # Resources folder going to be created in the bundle, with a message that
+    # better explains which files are incorrectly placed.
+    return ["Resources"]
+
+def _is_parent_dir_valid(invalid_top_level_dirs, parent_dir):
+    """Validates that the files to bundle are not placed in invalid locations.
+
+    codesign will complain when building a non macOS bundle that contains certain
+    folders at the top level. We check if there are files that would break
+    codesign, and fail early with a nicer message.
+
+    Args:
+      invalid_top_level_dirs: String list containing the top level
+          directories that have to be avoided when bundling resources.
+      parent_dir: String containing the a parent directory inside a bundle.
+
+    Returns:
+      False if the parent_dir value is invalid.
+    """
+    if not parent_dir:
+        return True
+    for invalid_dir in invalid_top_level_dirs:
+        if parent_dir == invalid_dir or parent_dir.startswith(invalid_dir + "/"):
+            return False
+    return True
 
 def _archive_paths(ctx):
     """Returns the map of location type to final archive path."""
@@ -131,10 +171,20 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
     # List of locations where zip files should be unzipped instead of placed as is.
     unzip_locations = [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin, _LOCATION_ENUM.watch]
 
+    platform_type = platform_support.platform_type(ctx)
+    invalid_top_level_dirs = _invalid_top_level_directories_for_platform(platform_type)
+
+    processed_file_target_paths = {}
     for partial_output in partial_outputs:
         if not hasattr(partial_output, "bundle_files"):
             continue
         for location, parent_dir, files in partial_output.bundle_files:
+            if (invalid_top_level_dirs and
+                not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
+                fail(("Error: For %s bundles, the following top level " +
+                      "directories are invalid: %s") %
+                     (platform_type, ", ".join(invalid_top_level_dirs)))
+
             sources = files.to_list()
             input_files.extend(sources)
 
@@ -152,6 +202,12 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
                 else:
                     if not source.is_directory:
                         target_path = paths.join(target_path, source.basename)
+                        if target_path in processed_file_target_paths:
+                            fail(
+                                ("Multiple files would be placed at \"%s\" in the bundle, which " +
+                                 "is not allowed") % target_path,
+                            )
+                        processed_file_target_paths[target_path] = None
                     control_files.append(struct(src = source.path, dest = target_path))
 
     control = struct(
