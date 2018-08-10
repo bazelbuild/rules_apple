@@ -429,14 +429,13 @@ def _deduplicate(resources_provider, avoid_provider, field):
       A list of tuples with the resources present in avoid_providers removed from
       resources_providers.
     """
-    if not avoid_provider or not hasattr(avoid_provider, field):
-        return getattr(resources_provider, field)
 
     # Build a dictionary with the files under each key for the avoided resources.
     avoid_dict = {}
-    for parent_dir, swift_module, files in getattr(avoid_provider, field):
-        key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-        avoid_dict[key] = files.to_list()
+    if avoid_provider:
+        for parent_dir, swift_module, files in getattr(avoid_provider, field):
+            key = "%s_%s" % (parent_dir or "root", swift_module or "root")
+            avoid_dict[key] = files.to_list()
 
     # Get the resources to keep, compare them to the avoid_dict under the same
     # key, and remove the duplicated file references. Then recreate the original
@@ -445,32 +444,35 @@ def _deduplicate(resources_provider, avoid_provider, field):
     for parent_dir, swift_module, files in getattr(resources_provider, field):
         key = "%s_%s" % (parent_dir or "root", swift_module or "root")
 
+        # Dictionary used as a set to mark files as processed by short_path to deduplicate generated
+        # files that may appear more than once if multiple architectures are being built.
+        multi_architecture_deduplication_set = {}
         deduped_files = depset([])
-        if key in avoid_dict:
-            for to_bundle_file in files.to_list():
-                if to_bundle_file in avoid_dict[key]:
-                    # If the resource file is present in the provider of resources to avoid, and
-                    # smart_dedupe is enabled, we compare the owners of the resource through the
-                    # owners dictionaries of the providers. If there are owners present in
-                    # resources_provider which are not present in avoid_provider, it means that
-                    # there is at least one target that declares usage of the resource which is not
-                    # accounted for in avoid_provider. If this is the case, we add the resource to
-                    # be bundled in the bundle represented by resource_provider.
-                    short_path = to_bundle_file.short_path
-                    deduped_owners = [
-                        o
-                        for o in resources_provider.owners[short_path]
-                        if o not in avoid_provider.owners[short_path]
-                    ]
-                    if deduped_owners:
-                        deduped_files = depset(
-                            direct = [to_bundle_file],
-                            transitive = [deduped_files],
-                        )
-                else:
-                    deduped_files = depset(direct = [to_bundle_file], transitive = [deduped_files])
-        else:
-            deduped_files = depset(transitive = [deduped_files, files])
+        for to_bundle_file in files.to_list():
+            short_path = to_bundle_file.short_path
+            if short_path in multi_architecture_deduplication_set:
+                continue
+            multi_architecture_deduplication_set[short_path] = None
+            if key in avoid_dict and to_bundle_file in avoid_dict[key]:
+                # If the resource file is present in the provider of resources to avoid, and
+                # smart_dedupe is enabled, we compare the owners of the resource through the
+                # owners dictionaries of the providers. If there are owners present in
+                # resources_provider which are not present in avoid_provider, it means that
+                # there is at least one target that declares usage of the resource which is not
+                # accounted for in avoid_provider. If this is the case, we add the resource to
+                # be bundled in the bundle represented by resource_provider.
+                deduped_owners = [
+                    o
+                    for o in resources_provider.owners[short_path]
+                    if o not in avoid_provider.owners[short_path]
+                ]
+                if deduped_owners:
+                    deduped_files = depset(
+                        direct = [to_bundle_file],
+                        transitive = [deduped_files],
+                    )
+            else:
+                deduped_files = depset(direct = [to_bundle_file], transitive = [deduped_files])
 
         if deduped_files:
             deduped_tuples.append((parent_dir, swift_module, deduped_files))
