@@ -206,23 +206,26 @@ def _mappingmodels(ctx, parent_dir, files):
 
     return struct(files = output_files)
 
-def _plists_and_strings(ctx, parent_dir, files):
+def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
     """Processes plists and string files.
 
-    If compilation mode is `opt`, the plist files will be compiled into binary to make them
-    smaller. Otherwise, they will be copied verbatim to avoid the extra processing time.
+    If compilation mode is `opt`, or if force_binary is True, the plist files will be compiled into
+    binary to make them smaller. Otherwise, they will be copied verbatim to avoid the extra
+    processing time.
 
     Args:
         ctx: The target's context.
         parent_dir: The path under which the files should be placed.
         files: The plist or string files to process.
+        force_binary: If true, files will be converted to binary independently of the compilation
+            mode.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
 
-    # If this is not an optimized build, then just copy the files
-    if ctx.var["COMPILATION_MODE"] != "opt":
+    # If this is not an optimized build, and force_compile is False, then just copy the files
+    if not force_binary and ctx.var["COMPILATION_MODE"] != "opt":
         return _noop(ctx, parent_dir, files)
 
     plist_files = []

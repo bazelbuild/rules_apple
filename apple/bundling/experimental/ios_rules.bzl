@@ -46,7 +46,6 @@ def ios_application_impl(ctx):
         "app_icons",
         "launch_images",
         "launch_storyboard",
-        "settings_bundle",
         "strings",
     ]
 
@@ -80,6 +79,7 @@ def ios_application_impl(ctx):
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
+        partials.settings_bundle_partial(),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
             dependency_targets = swift_dylib_dependencies,
