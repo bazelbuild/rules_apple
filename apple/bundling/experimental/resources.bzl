@@ -71,6 +71,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
 
 NewAppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
@@ -128,8 +132,9 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         swift_module: The Swift module name to associate to these resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
-            for each resource.
+        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
+            each resource. If it is a struct, it will be considered a partial context, and will be
+            invoked with partial.call().
 
     Returns:
         A NewAppleResourceInfo provider with resources bucketized according to type.
@@ -146,8 +151,8 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         resource_short_path = resource.short_path
 
         owners[resource_short_path] = owner_depset
-        if str(type(parent_dir_param)) == "function":
-            parent = parent_dir_param(resource)
+        if str(type(parent_dir_param)) == "struct":
+            parent = partial.call(parent_dir_param, resource)
         else:
             parent = parent_dir_param
 
@@ -232,8 +237,9 @@ def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         res_attrs: The attributes under which to collect the resources.
-        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
-            for each resource.
+        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
+            each resource. If it is a struct, it will be considered a partial context, and will be
+            invoked with partial.call().
 
     Returns:
         A NewAppleResourceInfo provider with resources in the given bucket.
@@ -248,8 +254,8 @@ def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir
         owner_depset = depset(direct = [owner])
     for resource in resources:
         owners[resource.short_path] = owner_depset
-        if str(type(parent_dir_param)) == "function":
-            parent = parent_dir_param(resource)
+        if str(type(parent_dir_param)) == "struct":
+            parent = partial.call(parent_dir_param, resource)
         else:
             parent = parent_dir_param
 
