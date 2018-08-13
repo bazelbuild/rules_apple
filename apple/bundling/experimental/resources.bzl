@@ -83,6 +83,7 @@ Frameworks section of the bundle.""",
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
 only be bucketed with the `bucketize_typed` method.""",
+        "mappingmodels": "Datamodel mapping files.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
@@ -182,15 +183,20 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
                 "datamodels",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
+        elif ".xcmappingmodel/" in resource_short_path:
+            buckets.setdefault(
+                "mappingmodels",
+                default = [],
+            ).append((parent, None, depset(direct = [resource])))
         elif ".atlas" in resource_short_path:
             buckets.setdefault(
                 "texture_atlases",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
+        elif resource_short_path.endswith(".png"):
             # Process standalone pngs last so that special resource types that use png can be
             # bucketed correctly.
 
-        elif resource_short_path.endswith(".png"):
             buckets.setdefault(
                 "pngs",
                 default = [],

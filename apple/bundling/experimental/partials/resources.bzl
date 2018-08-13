@@ -188,6 +188,31 @@ def _infoplists(ctx, parent_dir, files):
     else:
         return struct(files = [], infoplists = files.to_list())
 
+def _mappingmodels(ctx, parent_dir, files):
+    """Processes mapping models."""
+    grouped_mappingmodels = group_files_by_directory(
+        files.to_list(),
+        ["xcmappingmodel"],
+        attr = "resources",
+    )
+
+    output_files = []
+    for mappingmodel_path, input_files in grouped_mappingmodels.items():
+        compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
+        output_file = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            paths.join(parent_dir or "", compiled_model_name),
+        )
+
+        resource_actions.compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file)
+
+        output_files.append(
+            (processor.location.resource, parent_dir, depset(direct = [output_file])),
+        )
+
+    return struct(files = output_files)
+
 def _plists_and_strings(ctx, parent_dir, files):
     """Processes plists and string files.
 
@@ -535,6 +560,7 @@ def _resources_partial_impl(
         "frameworks": (_frameworks, False),
         "generics": (_noop, False),
         "infoplists": (_infoplists, False),
+        "mappingmodels": (_mappingmodels, False),
         "plists": (_plists_and_strings, False),
         "pngs": (_pngs, False),
         "storyboards": (_storyboards, True),
