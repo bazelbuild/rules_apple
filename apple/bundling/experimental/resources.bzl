@@ -391,6 +391,36 @@ def _minimize(bucket):
         for k, r in resources_by_key.items()
     ]
 
+def _nest_bundles(provider_to_nest, nesting_bundle_dir):
+    """Nests resources in a NewAppleResourceInfo provider under a new parent bundle directory.
+
+    This method is mostly used by rules that create resource bundles in order to nest other resource
+    bundle targets within themselves. For instance, objc_bundle_library supports the bundles
+    attribute, through which other objc_bundle_library or objc_bundle targets can be added. In these
+    use cases, the dependency bundles are added as nested bundles into the dependent bundle.
+
+    This method prepends the parent_dir field in the buckets with the given
+    nesting_bundle_dir argument.
+
+    Args:
+        provider_to_nest: A NewAppleResourceInfo provider with the resources to nest.
+        nesting_bundle_dir: The new bundle directory under which to bundle the resources.
+
+    Returns:
+        A new NewAppleResourceInfo provider with the resources nested under nesting_bundle_dir.
+    """
+    nested_provider_fields = {}
+    for field in _populated_resource_fields(provider_to_nest):
+        nested_provider_fields[field] = [
+            (paths.join(nesting_bundle_dir, parent_dir or ""), swift_module, files)
+            for parent_dir, swift_module, files in getattr(provider_to_nest, field)
+        ]
+
+    return NewAppleResourceInfo(
+        owners = provider_to_nest.owners,
+        **nested_provider_fields
+    )
+
 def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
 
@@ -403,5 +433,6 @@ resources = struct(
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
+    nest_bundles = _nest_bundles,
     populated_resource_fields = _populated_resource_fields,
 )
