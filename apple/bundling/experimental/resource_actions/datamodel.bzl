@@ -27,11 +27,11 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
     """Creates an action that compiles datamodels.
 
     Args:
-      ctx: The target's rule context.
-      datamodel_path: The path to the directory containing the datamodels.
-      module_name: The module name to use when compiling the datamodels.
-      input_files: The list of files to process for the given datamodel.
-      output_file: The file reference to the compiled datamodel.
+        ctx: The target's rule context.
+        datamodel_path: The path to the directory containing the datamodels.
+        module_name: The module name to use when compiling the datamodels.
+        input_files: The list of files to process for the given datamodel.
+        output_file: The file reference to the compiled datamodel.
     """
     platform = platform_support.platform(ctx)
     platform_name = platform.name_in_plist.lower()
@@ -55,4 +55,28 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "MomCompile",
+    )
+
+def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
+    """Creates an action that compiles CoreData mapping models.
+
+    Args:
+        ctx: The target's rule context.
+        mappingmodel_path: The path to the directory containing the mapping model.
+        input_files: The list of files to process for the given mapping model.
+        output_file: The file reference to the compiled mapping model.
+    """
+    args = [
+        "mapc",
+        file_support.xctoolrunner_path(mappingmodel_path),
+        file_support.xctoolrunner_path(output_file.path),
+    ]
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = input_files,
+        outputs = [output_file],
+        executable = ctx.executable._xctoolrunner,
+        arguments = args,
+        mnemonic = "MappingModelCompile",
     )

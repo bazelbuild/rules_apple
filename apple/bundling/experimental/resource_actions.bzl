@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:datamodel.bzl",
     _compile_datamodels = "compile_datamodels",
+    _compile_mappingmodel = "compile_mappingmodel",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:ibtool.bzl",
@@ -46,6 +47,7 @@ load(
 resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
     compile_datamodels = _compile_datamodels,
+    compile_mappingmodel = _compile_mappingmodel,
     compile_plist = _compile_plist,
     compile_storyboard = _compile_storyboard,
     compile_texture_atlas = _compile_texture_atlas,
