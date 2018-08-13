@@ -187,7 +187,7 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
             buckets.setdefault(
                 "datamodels",
                 default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            ).append((parent, swift_module, depset(direct = [resource])))
         elif ".xcmappingmodel/" in resource_short_path:
             buckets.setdefault(
                 "mappingmodels",
