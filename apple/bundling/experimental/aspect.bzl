@@ -125,11 +125,19 @@ def _apple_resource_aspect_impl(target, ctx):
         # objc_bundle_library should handle it within its implementation.
         plist_provider = resources.bucketize_typed(
             ctx.rule.attr,
-            bucket_type = "plists",
+            bucket_type = "infoplists",
             res_attrs = ["infoplist", "infoplists"],
             parent_dir_param = parent_dir_param,
         )
         providers.append(plist_provider)
+
+        # Nest bundles added through the bundles attribute in objc_bundle_library.
+        if ctx.rule.attr.bundles:
+            bundle_merged_provider = resources.merge_providers(
+                [x[NewAppleResourceInfo] for x in ctx.rule.attr.bundles],
+            )
+
+            providers.append(resources.nest_bundles(bundle_merged_provider, parent_dir_param))
 
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
@@ -138,6 +146,12 @@ def _apple_resource_aspect_impl(target, ctx):
         # treats objc_library targets without sources as resource aggregators.
         if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
+
+        # Collect objc_library's bundles dependencies and propagate them.
+        providers.extend([
+            x[NewAppleResourceInfo]
+            for x in ctx.rule.attr.bundles
+        ])
 
     elif ctx.rule.kind == "swift_library":
         # TODO(kaipi): Properly handle swift modules, this is just a placeholder that won't work in
@@ -197,7 +211,7 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Get the providers from dependencies.
-    for attr in ["data", "deps", "bundles"]:
+    for attr in ["data", "deps"]:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
                 x[NewAppleResourceInfo]
