@@ -19,6 +19,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "product_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:partials.bzl",
     "partials",
 )
@@ -56,23 +60,12 @@ def ios_application_impl(ctx):
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
-    swift_dylib_dependencies = ctx.attr.frameworks + ctx.attr.extensions
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
-        swift_dylib_dependencies.append(ctx.attr.watch_application)
 
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(
-            binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(
-            debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
         partials.embedded_bundles_partial(targets = embeddable_targets),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
@@ -80,15 +73,31 @@ def ios_application_impl(ctx):
             top_level_attrs = top_level_attrs,
         ),
         partials.settings_bundle_partial(),
-        partials.swift_dylibs_partial(
-            binary_artifact = binary_artifact,
-            dependency_targets = swift_dylib_dependencies,
-            bundle_dylibs = True,
-            # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
-            # builds, or at least only for device builds.
-            package_swift_support = True,
-        ),
     ]
+
+    # Only add binary processing partials if the target does not use stub binaries.
+    product_type = product_support.product_type(ctx)
+    product_type_descriptor = product_support.product_type_descriptor(product_type)
+    if product_type_descriptor and not product_type_descriptor.stub:
+        processor_partials.extend([
+            partials.bitcode_symbols_partial(
+                binary_artifact = binary_artifact,
+                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            ),
+            partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+            partials.debug_symbols_partial(
+                debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
+                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            ),
+            partials.swift_dylibs_partial(
+                binary_artifact = binary_artifact,
+                dependency_targets = embeddable_targets,
+                bundle_dylibs = True,
+                # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
+                # builds, or at least only for device builds.
+                package_swift_support = True,
+            ),
+        ])
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
@@ -181,25 +190,32 @@ def ios_extension_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(
-            binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(
-            debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
-        partials.swift_dylibs_partial(
-            binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
-        ),
     ]
+
+    # Only add binary processing partials if the target does not use stub binaries.
+    product_type = product_support.product_type(ctx)
+    product_type_descriptor = product_support.product_type_descriptor(product_type)
+    if product_type_descriptor and not product_type_descriptor.stub:
+        processor_partials.extend([
+            partials.bitcode_symbols_partial(
+                binary_artifact = binary_artifact,
+                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            ),
+            partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+            partials.debug_symbols_partial(
+                debug_dependencies = ctx.attr.frameworks,
+                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            ),
+            partials.swift_dylibs_partial(
+                binary_artifact = binary_artifact,
+                dependency_targets = ctx.attr.frameworks,
+            ),
+        ])
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
