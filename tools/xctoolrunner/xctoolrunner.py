@@ -66,6 +66,45 @@ def _apply_realpath(argv):
       argv[i] = os.path.realpath(arg)
 
 
+def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
+  """Filter messages from ibtool.
+
+  Args:
+    tool_exit_status: The exit status of "xcrun ibtool".
+    raw_stdout: This is the unmodified stdout captured from "xcrun ibtool".
+    raw_stderr: This is the unmodified stderr captured from "xcrun ibtool".
+
+  Returns:
+    A tuple of the filtered stdout and strerr.
+  """
+
+  spurious_patterns = list(map(re.compile, [
+      r"WARNING: Unhandled destination metrics: \(null\)"
+  ]))
+
+  def is_spurious_message(line):
+    for pattern in spurious_patterns:
+      match = pattern.search(line)
+      if match is not None:
+        return True
+    return False
+
+  stdout = []
+  for line in raw_stdout.splitlines():
+    if not is_spurious_message(line):
+      stdout.append(line + "\n")
+
+  # Some of the time, in a successful run, ibtool reports on stderr some
+  # internal assertions and ask "Please file a bug report with Apple", but
+  # it isn't clear that there is really a problem. Since everything else
+  # (warnings about assets, etc.) is reported on stdout, just drop stderr
+  # on successful runs.
+  if tool_exit_status == 0:
+    raw_stderr = None
+
+  return ("".join(stdout), raw_stderr)
+
+
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
   xcrunargs = ["xcrun",
@@ -89,7 +128,10 @@ def ibtool(_, toolargs):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  return execute.execute_and_filter_output(xcrunargs, trim_paths=True)
+  return execute.execute_and_filter_output(
+      xcrunargs,
+      trim_paths=True,
+      filtering=ibtool_filtering)
 
 
 def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
