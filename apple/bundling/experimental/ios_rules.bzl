@@ -151,6 +151,7 @@ def ios_framework_impl(ctx):
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
+            version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
