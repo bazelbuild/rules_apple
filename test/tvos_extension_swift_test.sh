@@ -34,7 +34,7 @@ function create_minimal_tvos_application_with_swift_extension() {
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension")
-load("@build_bazel_rules_apple//apple:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
 swift_library(
@@ -117,7 +117,7 @@ function create_minimal_swift_tvos_application_with_swift_extension() {
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension")
-load("@build_bazel_rules_apple//apple:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
 swift_library(
