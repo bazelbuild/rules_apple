@@ -25,6 +25,10 @@ load(
     "partial",
 )
 load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:processor.bzl",
     "processor",
 )
@@ -146,6 +150,55 @@ def _deduplicate(resources_provider, avoid_provider, field):
 
     return deduped_tuples
 
+def _locales_requested(ctx):
+    """Determines which locales to include when resource actions.
+
+    If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
+    'Base' is included by default to any given list of locales to include.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        A set of locales to include or None if all should be included.
+    """
+    requested_locales = ctx.var.get("apple.locales_to_include")
+    if requested_locales != None:
+        return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
+    else:
+        return None
+
+def _locale_for_path(resource_path):
+    """Returns the detected locale for the given resource path."""
+    if not resource_path:
+        return None
+
+    loc = resource_path.find(".lproj")
+    if loc == -1:
+        return None
+
+    # If there was more after '.lproj', then it has to be a directory, otherwise
+    # it was part of some other extension.
+    if (loc + 6) > len(resource_path) and resource_path[loc + 6] != "/":
+        return None
+
+    locale_start = resource_path.rfind("/", end = loc)
+    if locale_start < 0:
+        return resource_path[0:loc]
+
+    return resource_path[locale_start + 1:loc]
+
+def _validate_processed_locales(locales_requested, locales_included, locales_dropped):
+    """Prints a warning if locales were dropped and none of the requested ones were included."""
+    if sets.length(locales_dropped):
+        # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
+        # could mean that the user made a mistake in defining the locales they want to keep.
+        if not sets.is_equal(locales_requested, locales_included):
+            unused_locales = sets.difference(locales_requested, locales_included)
+            print("Warning: Did not have resources that matched " + sets.str(unused_locales) +
+                  " in locale filter. Please verify apple.locales_to_include is defined" +
+                  " properly.")
+
 def _resources_partial_impl(
         ctx,
         plist_attrs = [],
@@ -214,20 +267,41 @@ def _resources_partial_impl(
     fields = resources.populated_resource_fields(final_provider)
 
     infoplists = []
+
+    locales_requested = _locales_requested(ctx)
+    locales_included = sets.make(["Base"])
+    locales_dropped = sets.make()
+
     for field in fields:
         processing_func, requires_swift_module = provider_field_to_action[field]
         deduplicated = _deduplicate(final_provider, avoid_provider, field)
-        for parent, swift_module, files in deduplicated:
-            extra_args = {}
+        for parent_dir, swift_module, files in deduplicated:
+            if locales_requested:
+                locale = _locale_for_path(parent_dir)
+                if sets.contains(locales_requested, locale):
+                    sets.insert(locales_included, locale)
+                elif locale != None:
+                    sets.insert(locales_dropped, locale)
+                    continue
+
+            processing_args = {
+                "ctx": ctx,
+                "parent_dir": parent_dir,
+                "files": files,
+            }
 
             # Only pass the Swift module name if the type of resource to process
             # requires it.
             if requires_swift_module:
-                extra_args["swift_module"] = swift_module
-            result = processing_func(ctx, parent, files, **extra_args)
+                processing_args["swift_module"] = swift_module
+
+            result = processing_func(**processing_args)
             bundle_files.extend(result.files)
             if hasattr(result, "infoplists"):
                 infoplists.extend(result.infoplists)
+
+    if locales_requested:
+        _validate_processed_locales(locales_requested, locales_included, locales_dropped)
 
     out_infoplist = outputs.infoplist(ctx)
     bundle_files.extend(_merge_root_infoplists(ctx, infoplists, out_infoplist))
