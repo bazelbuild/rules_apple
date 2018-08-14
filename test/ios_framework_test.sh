@@ -461,6 +461,58 @@ function test_framework_contains_expected_files() {
       "framework.framework/Headers/Framework.h"
 }
 
+# Tests that the correct rpath was added at link-time to the framework's binary.
+# The rpath should match the framework bundle name.
+function test_framework_has_correct_rpath() {
+    create_minimal_ios_framework
+    cat > framework/BUILD <<EOF
+package(default_visibility = ["//app:__pkg__"])
+
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_framework")
+
+ios_framework(
+  name = "framework",
+  hdrs = ["Framework.h"],
+  bundle_id = "my.framework.id",
+  bundle_name = "FrameworkBundleName",
+  families = ["iphone"],
+  infoplists = ["Info.plist"],
+  extension_safe = True,
+  minimum_os_version = "9.0",
+  deps = [":framework_lib"],
+)
+
+objc_library(
+  name = "framework_lib",
+  srcs = [
+      "Framework.h",
+      "Framework.m",
+  ],
+  deps = [":framework_dependent_lib"],
+  structured_resources = [":Resources"],
+  alwayslink = 1,
+)
+
+objc_library(
+  name = "framework_dependent_lib",
+  srcs = ["FrameworkDependent.m"],
+)
+
+filegroup(
+  name = "Resources",
+  srcs = glob(["Images/*.png"]),
+)
+EOF
+
+  do_build ios //framework:framework || fail "Should build"
+  # Extracts binary from framework zip.
+  unzip_single_file "test-bin/framework/framework.zip" "FrameworkBundleName.framework/FrameworkBundleName" \
+      > "$TEST_TMPDIR/framework_binary"
+  # Ensures binary contains correct rpath.
+  otool -l "$TEST_TMPDIR/framework_binary" > "$TEST_TMPDIR/otool_output"
+  assert_contains "@rpath/FrameworkBundleName.framework/FrameworkBundleName" "$TEST_TMPDIR/otool_output"
+}
+
 # Tests that an ios_framework builds fine without any version info
 # since it isn't required.
 function test_framework_no_versions() {
