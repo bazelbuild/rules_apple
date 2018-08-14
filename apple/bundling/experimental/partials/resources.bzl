@@ -50,13 +50,15 @@ load(
     "resources_support",
 )
 
-def _merge_root_infoplists(ctx, infoplists, out_infoplist):
+def _merge_root_infoplists(ctx, infoplists, out_infoplist, version_keys_required):
     """Registers the root Info.plist generation action.
 
     Args:
       ctx: The target's rule context.
       infoplists: List of plists that should be merged into the root Info.plist.
       out_infoplist: Reference to the output Info plist.
+      version_keys_required: Whether to validate that the Info.plist version keys are correctly
+            configured.
 
     Returns:
       A list of tuples as described in processor.bzl with the Info.plist file
@@ -75,6 +77,7 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist):
         out_infoplist,
         out_pkginfo,
         bundle_id = ctx.attr.bundle_id,
+        version_keys_required = version_keys_required,
     )
 
     return [(processor.location.content, None, depset(direct = files))]
@@ -201,9 +204,10 @@ def _validate_processed_locales(locales_requested, locales_included, locales_dro
 
 def _resources_partial_impl(
         ctx,
-        plist_attrs = [],
-        targets_to_avoid = [],
-        top_level_attrs = []):
+        plist_attrs,
+        targets_to_avoid,
+        top_level_attrs,
+        version_keys_required):
     """Implementation for the resource processing partial."""
     providers = [
         x[NewAppleResourceInfo]
@@ -304,11 +308,22 @@ def _resources_partial_impl(
         _validate_processed_locales(locales_requested, locales_included, locales_dropped)
 
     out_infoplist = outputs.infoplist(ctx)
-    bundle_files.extend(_merge_root_infoplists(ctx, infoplists, out_infoplist))
+    bundle_files.extend(
+        _merge_root_infoplists(
+            ctx,
+            infoplists,
+            out_infoplist,
+            version_keys_required = version_keys_required,
+        ),
+    )
 
     return struct(bundle_files = bundle_files, providers = [final_provider])
 
-def resources_partial(plist_attrs = [], targets_to_avoid = [], top_level_attrs = []):
+def resources_partial(
+        plist_attrs = [],
+        targets_to_avoid = [],
+        top_level_attrs = [],
+        version_keys_required = True):
     """Constructor for the resources processing partial.
 
     This partial collects and propagates all resources that should be bundled in the target being
@@ -321,6 +336,8 @@ def resources_partial(plist_attrs = [], targets_to_avoid = [], top_level_attrs =
             target being processed.
         top_level_attrs: List of attributes containing resources that need to be processed from the
             target being processed.
+        version_keys_required: Whether to validate that the Info.plist version keys are correctly
+            configured.
 
     Returns:
         A partial that returns the bundle location of the resources and the resources provider.
@@ -330,4 +347,5 @@ def resources_partial(plist_attrs = [], targets_to_avoid = [], top_level_attrs =
         plist_attrs = plist_attrs,
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,
+        version_keys_required = version_keys_required,
     )
