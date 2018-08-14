@@ -102,6 +102,25 @@ local_repository(
     name = 'build_bazel_rules_swift',
     path = '$(rlocation build_bazel_rules_swift)',
 )
+
+# We load rules_swift dependencies into the WORKSPACE. This is safe to do
+# _for now_ because Swift currently depends on:
+#
+# * skylib - which is already loaded, so it won't be loaded again.
+# * swift_protobuf - which is not used in the integration tests, so it won't be
+#   loaded.
+# * protobuf - which also is not used in the integration tests.
+# * swift_toolchain - which is generated locally, so nothing to download.
+#
+# If these assumptions change over time, we'll need to reassess this way of
+# loading rules_swift dependencies.
+
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
+)
+
+swift_rules_dependencies()
 EOF
 }
 
