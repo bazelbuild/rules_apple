@@ -39,7 +39,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
 load("@build_bazel_rules_apple//apple:watchos.bzl",
      "watchos_application",
      "watchos_extension")
-load("@build_bazel_rules_apple//apple:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
 ios_application(

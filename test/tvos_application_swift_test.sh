@@ -35,7 +35,7 @@ function create_minimal_tvos_application() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application")
-load("@build_bazel_rules_apple//apple:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
 tvos_application(
