@@ -34,7 +34,7 @@ function create_minimal_ios_application() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application")
-load("@build_bazel_rules_apple//apple:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
 ios_application(

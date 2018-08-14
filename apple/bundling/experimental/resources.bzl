@@ -71,6 +71,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
 
 NewAppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
@@ -80,8 +84,11 @@ NewAppleResourceInfo = provider(
         "frameworks": """Files to be bundled as part of a framework. This is explicitly used for
 objc_framework, since we treat the files references as resources that need to be packaged into the
 Frameworks section of the bundle.""",
-        "plists": """Plist files to be merged and processed. Plist files that should not be
-processed should be propagated in `generics`.""",
+        "infoplists": """Plist files to be merged and processed. Plist files that should not be
+merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
+only be bucketed with the `bucketize_typed` method.""",
+        "mappingmodels": "Datamodel mapping files.",
+        "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
@@ -125,8 +132,9 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         swift_module: The Swift module name to associate to these resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
-            for each resource.
+        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
+            each resource. If it is a struct, it will be considered a partial context, and will be
+            invoked with partial.call().
 
     Returns:
         A NewAppleResourceInfo provider with resources bucketized according to type.
@@ -143,8 +151,8 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         resource_short_path = resource.short_path
 
         owners[resource_short_path] = owner_depset
-        if str(type(parent_dir_param)) == "function":
-            parent = parent_dir_param(resource)
+        if str(type(parent_dir_param)) == "struct":
+            parent = partial.call(parent_dir_param, resource)
         else:
             parent = parent_dir_param
 
@@ -179,18 +187,28 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
             buckets.setdefault(
                 "datamodels",
                 default = [],
+            ).append((parent, swift_module, depset(direct = [resource])))
+        elif ".xcmappingmodel/" in resource_short_path:
+            buckets.setdefault(
+                "mappingmodels",
+                default = [],
             ).append((parent, None, depset(direct = [resource])))
         elif ".atlas" in resource_short_path:
             buckets.setdefault(
                 "texture_atlases",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
+        elif resource_short_path.endswith(".png"):
             # Process standalone pngs last so that special resource types that use png can be
             # bucketed correctly.
 
-        elif resource_short_path.endswith(".png"):
             buckets.setdefault(
                 "pngs",
+                default = [],
+            ).append((parent, None, depset(direct = [resource])))
+        elif resource_short_path.endswith(".plist"):
+            buckets.setdefault(
+                "plists",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
         else:
@@ -219,8 +237,9 @@ def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         res_attrs: The attributes under which to collect the resources.
-        parent_dir_param: Either a string or a function used to calculate the value of parent_dir
-            for each resource.
+        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
+            each resource. If it is a struct, it will be considered a partial context, and will be
+            invoked with partial.call().
 
     Returns:
         A NewAppleResourceInfo provider with resources in the given bucket.
@@ -235,8 +254,8 @@ def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir
         owner_depset = depset(direct = [owner])
     for resource in resources:
         owners[resource.short_path] = owner_depset
-        if str(type(parent_dir_param)) == "function":
-            parent = parent_dir_param(resource)
+        if str(type(parent_dir_param)) == "struct":
+            parent = partial.call(parent_dir_param, resource)
         else:
             parent = parent_dir_param
 
@@ -384,6 +403,36 @@ def _minimize(bucket):
         for k, r in resources_by_key.items()
     ]
 
+def _nest_bundles(provider_to_nest, nesting_bundle_dir):
+    """Nests resources in a NewAppleResourceInfo provider under a new parent bundle directory.
+
+    This method is mostly used by rules that create resource bundles in order to nest other resource
+    bundle targets within themselves. For instance, objc_bundle_library supports the bundles
+    attribute, through which other objc_bundle_library or objc_bundle targets can be added. In these
+    use cases, the dependency bundles are added as nested bundles into the dependent bundle.
+
+    This method prepends the parent_dir field in the buckets with the given
+    nesting_bundle_dir argument.
+
+    Args:
+        provider_to_nest: A NewAppleResourceInfo provider with the resources to nest.
+        nesting_bundle_dir: The new bundle directory under which to bundle the resources.
+
+    Returns:
+        A new NewAppleResourceInfo provider with the resources nested under nesting_bundle_dir.
+    """
+    nested_provider_fields = {}
+    for field in _populated_resource_fields(provider_to_nest):
+        nested_provider_fields[field] = [
+            (paths.join(nesting_bundle_dir, parent_dir or ""), swift_module, files)
+            for parent_dir, swift_module, files in getattr(provider_to_nest, field)
+        ]
+
+    return NewAppleResourceInfo(
+        owners = provider_to_nest.owners,
+        **nested_provider_fields
+    )
+
 def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
 
@@ -396,5 +445,6 @@ resources = struct(
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
+    nest_bundles = _nest_bundles,
     populated_resource_fields = _populated_resource_fields,
 )

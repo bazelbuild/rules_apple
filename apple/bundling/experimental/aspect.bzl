@@ -15,25 +15,33 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling/experimental:resources.bzl",
-    "NewAppleResourceInfo",
-    "resources",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 load(
     "@build_bazel_rules_apple//common:define_utils.bzl",
     "define_utils",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling/experimental:experimental.bzl",
     "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:resources.bzl",
+    "NewAppleResourceInfo",
+    "resources",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
 )
 
 # List of native resource attributes to use to collect by default. This list should dissapear in the
@@ -46,12 +54,12 @@ _NATIVE_RESOURCE_ATTRS = [
     "data",
     "datamodels",
     "resources",
-    "storyboard",
+    "storyboards",
     "strings",
     "xibs",
 ]
 
-def _structured_resources_parent_dir(resource):
+def _structured_resources_parent_dir(resource, parent_dir):
     """Returns the package relative path for the parent directory of a resource.
 
     Args:
@@ -62,7 +70,7 @@ def _structured_resources_parent_dir(resource):
     """
     package_relative = path_utils.owner_relative_path(resource)
     path = paths.dirname(package_relative).rstrip("/")
-    return path or None
+    return paths.join(parent_dir or "", path or "") or None
 
 def _bundle_relative_parent_dir(resource, extension):
     """Returns the bundle relative path to the resource rooted at the bundle.
@@ -88,12 +96,6 @@ def _bundle_relative_parent_dir(resource, extension):
         parent_dir = paths.join(parent_dir, bundle_relative_dir)
     return parent_dir
 
-def _objc_bundle_parent_dir(resource):
-    return _bundle_relative_parent_dir(resource, "bundle")
-
-def _objc_framework_parent_dir(resource):
-    return _bundle_relative_parent_dir(resource, "framework")
-
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
@@ -113,7 +115,10 @@ def _apple_resource_aspect_impl(target, ctx):
     # Owner to attach to the resources as they're being bucketed.
     owner = None
     if ctx.rule.kind == "objc_bundle":
-        bucketize_args["parent_dir_param"] = _objc_bundle_parent_dir
+        bucketize_args["parent_dir_param"] = partial.make(
+            _bundle_relative_parent_dir,
+            extension = "bundle",
+        )
         collect_args["res_attrs"] = ["bundle_imports"]
 
     elif ctx.rule.kind == "objc_bundle_library":
@@ -125,11 +130,19 @@ def _apple_resource_aspect_impl(target, ctx):
         # objc_bundle_library should handle it within its implementation.
         plist_provider = resources.bucketize_typed(
             ctx.rule.attr,
-            bucket_type = "plists",
+            bucket_type = "infoplists",
             res_attrs = ["infoplist", "infoplists"],
             parent_dir_param = parent_dir_param,
         )
         providers.append(plist_provider)
+
+        # Nest bundles added through the bundles attribute in objc_bundle_library.
+        if ctx.rule.attr.bundles:
+            bundle_merged_provider = resources.merge_providers(
+                [x[NewAppleResourceInfo] for x in ctx.rule.attr.bundles],
+            )
+
+            providers.append(resources.nest_bundles(bundle_merged_provider, parent_dir_param))
 
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
@@ -139,10 +152,14 @@ def _apple_resource_aspect_impl(target, ctx):
         if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
 
+        # Collect objc_library's bundles dependencies and propagate them.
+        providers.extend([
+            x[NewAppleResourceInfo]
+            for x in ctx.rule.attr.bundles
+        ])
+
     elif ctx.rule.kind == "swift_library":
-        # TODO(kaipi): Properly handle swift modules, this is just a placeholder that won't work in
-        # all cases.
-        bucketize_args["swift_module"] = ctx.rule.attr.module_name
+        bucketize_args["swift_module"] = target[SwiftInfo].module_name
         collect_args["res_attrs"] = ["resources"]
         owner = str(ctx.label)
 
@@ -158,7 +175,7 @@ def _apple_resource_aspect_impl(target, ctx):
             # Since objc_framework contains code that might reference the resources, set the
             # objc_framework target as the owner for these resources.
             owner = str(ctx.label),
-            parent_dir_param = _objc_framework_parent_dir,
+            parent_dir_param = partial.make(_bundle_relative_parent_dir, extension = "framework"),
         )
         providers.append(frameworks_provider)
 
@@ -180,24 +197,33 @@ def _apple_resource_aspect_impl(target, ctx):
     # parent_dir_param
     if hasattr(ctx.rule.attr, "structured_resources"):
         if ctx.rule.attr.structured_resources:
-            # TODO(kaipi): Handle collecting structured_resources from objc_bundle_library. It
-            # should prepend the parent_dir with the bundle name.
             # TODO(kaipi): Validate that structured_resources doesn't have processable resources,
             # e.g. we shouldn't accept xib files that should be compiled before bundling.
             structured_files = resources.collect(
                 ctx.rule.attr,
                 res_attrs = ["structured_resources"],
             )
+
+            if ctx.rule.kind == "objc_bundle_library":
+                # TODO(kaipi): Once we remove the native objc_bundle_library, there won't be a need
+                # for repeating the bundle name here.
+                structured_parent_dir = "%s.bundle" % ctx.label.name
+            else:
+                structured_parent_dir = None
+
             providers.append(
                 resources.bucketize(
                     structured_files,
                     owner = owner,
-                    parent_dir_param = _structured_resources_parent_dir,
+                    parent_dir_param = partial.make(
+                        _structured_resources_parent_dir,
+                        parent_dir = structured_parent_dir,
+                    ),
                 ),
             )
 
     # Get the providers from dependencies.
-    for attr in ["data", "deps", "bundles"]:
+    for attr in ["data", "deps"]:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
                 x[NewAppleResourceInfo]
