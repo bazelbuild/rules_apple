@@ -11,7 +11,10 @@ py_binary(
 py_test(
     name = "xctoolrunner_test",
     srcs = ["xctoolrunner_test.py"],
-    deps = [":xctoolrunner"],
+    deps = [
+        ":xctoolrunner",
+        "//:py_init_shim",
+    ],
 )
 
 # Consumed by bazel tests.
