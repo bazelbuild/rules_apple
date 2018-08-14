@@ -15,19 +15,6 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling/experimental:resources.bzl",
-    "NewAppleResourceInfo",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
-)
-load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -36,8 +23,25 @@ load(
     "partial",
 )
 load(
+    "@build_bazel_rules_apple//common:define_utils.bzl",
+    "define_utils",
+)
+load(
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:experimental.bzl",
     "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental:resources.bzl",
+    "NewAppleResourceInfo",
+    "resources",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
 )
 
 # List of native resource attributes to use to collect by default. This list should dissapear in the
@@ -155,9 +159,7 @@ def _apple_resource_aspect_impl(target, ctx):
         ])
 
     elif ctx.rule.kind == "swift_library":
-        # TODO(kaipi): Properly handle swift modules, this is just a placeholder that won't work in
-        # all cases.
-        bucketize_args["swift_module"] = ctx.rule.attr.module_name
+        bucketize_args["swift_module"] = target[SwiftInfo].module_name
         collect_args["res_attrs"] = ["resources"]
         owner = str(ctx.label)
 
