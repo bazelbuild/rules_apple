@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""File references to important output files from the rule.
+"""File references to important output files from the rule. Test
 
 These file references can be used across the bundling logic, but there must be only 1 action
 registered to generate these files.
