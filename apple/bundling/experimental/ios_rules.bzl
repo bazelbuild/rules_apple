@@ -83,6 +83,8 @@ def ios_application_impl(ctx):
             partials.bitcode_symbols_partial(
                 binary_artifact = binary_artifact,
                 debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+                dependency_targets = embeddable_targets,
+                package_bitcode = True,
             ),
             partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
             partials.debug_symbols_partial(
@@ -139,6 +141,7 @@ def ios_framework_impl(ctx):
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            dependency_targets = ctx.attr.frameworks,
         ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
@@ -206,6 +209,7 @@ def ios_extension_impl(ctx):
             partials.bitcode_symbols_partial(
                 binary_artifact = binary_artifact,
                 debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+                dependency_targets = ctx.attr.frameworks,
             ),
             partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
             partials.debug_symbols_partial(

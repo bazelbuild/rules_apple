@@ -52,6 +52,7 @@ def watchos_application_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(dependency_targets = [ctx.attr.extension]),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
         partials.embedded_bundles_partial(targets = [ctx.attr.extension]),
