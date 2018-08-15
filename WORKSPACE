@@ -4,6 +4,13 @@ load("//apple:repositories.bzl", "apple_rules_dependencies")
 
 apple_rules_dependencies()
 
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
+)
+
+swift_rules_dependencies()
+
 # Used by our integration tests, but not a required dependency for all users of
 # these rules.
 
