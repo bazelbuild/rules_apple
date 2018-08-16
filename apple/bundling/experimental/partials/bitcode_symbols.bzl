@@ -51,7 +51,7 @@ def _bitcode_symbols_partial_impl(
     """Implementation for the bitcode symbols processing partial."""
 
     bitcode_dirs = []
-    if debug_outputs_provider:
+    if binary_artifact and debug_outputs_provider:
         debug_outputs_map = debug_outputs_provider.outputs_map
 
         bitcode_files = []
@@ -115,7 +115,7 @@ def _bitcode_symbols_partial_impl(
     )
 
 def bitcode_symbols_partial(
-        binary_artifact,
+        binary_artifact = None,
         debug_outputs_provider = None,
         dependency_targets = [],
         package_bitcode = False):
