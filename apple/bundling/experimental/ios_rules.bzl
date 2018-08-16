@@ -85,6 +85,11 @@ def ios_application_impl(ctx):
         partials.settings_bundle_partial(),
     ]
 
+    if ctx.attr.watch_application:
+        processor_partials.append(
+            partials.watchos_stub_partial(package_watchkit_support = True),
+        )
+
     # Only add binary processing partials if the target does not use stub binaries.
     product_type = product_support.product_type(ctx)
     product_type_descriptor = product_support.product_type_descriptor(product_type)
