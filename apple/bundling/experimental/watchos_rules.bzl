@@ -49,6 +49,17 @@ def watchos_application_impl(ctx):
     ]
     binary_artifact = binary_support.create_stub_binary(ctx)
 
+    bundle_verification_targets = [
+        struct(
+            target = ctx.attr.extension,
+            parent_bundle_id_reference = [
+                "NSExtension",
+                "NSExtensionAttributes",
+                "WKAppBundleIdentifier",
+            ],
+        ),
+    ]
+
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
@@ -57,6 +68,7 @@ def watchos_application_impl(ctx):
         partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
         partials.embedded_bundles_partial(targets = [ctx.attr.extension]),
         partials.resources_partial(
+            bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),

@@ -59,15 +59,25 @@ def ios_application_impl(ctx):
     # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
+
+        bundle_verification_targets.append(
+            struct(
+                target = ctx.attr.watch_application,
+                parent_bundle_id_reference = ["WKCompanionAppBundleIdentifier"],
+            ),
+        )
 
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.embedded_bundles_partial(targets = embeddable_targets),
         partials.resources_partial(
+            bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,

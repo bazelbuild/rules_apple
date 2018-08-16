@@ -49,16 +49,19 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials/support:resources_support.bzl",
     "resources_support",
 )
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
 
-def _merge_root_infoplists(ctx, infoplists, out_infoplist, version_keys_required):
+def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """Registers the root Info.plist generation action.
 
     Args:
       ctx: The target's rule context.
       infoplists: List of plists that should be merged into the root Info.plist.
       out_infoplist: Reference to the output Info plist.
-      version_keys_required: Whether to validate that the Info.plist version keys are correctly
-            configured.
+      **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
       A list of tuples as described in processor.bzl with the Info.plist file
@@ -77,7 +80,7 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, version_keys_required
         out_infoplist,
         out_pkginfo,
         bundle_id = ctx.attr.bundle_id,
-        version_keys_required = version_keys_required,
+        **kwargs
     )
 
     return [(processor.location.content, None, depset(direct = files))]
@@ -204,6 +207,7 @@ def _validate_processed_locales(locales_requested, locales_included, locales_dro
 
 def _resources_partial_impl(
         ctx,
+        bundle_verification_targets,
         plist_attrs,
         targets_to_avoid,
         top_level_attrs,
@@ -307,12 +311,28 @@ def _resources_partial_impl(
     if locales_requested:
         _validate_processed_locales(locales_requested, locales_included, locales_dropped)
 
+    bundle_verification_infoplists = [
+        b.target[AppleBundleInfo].infoplist
+        for b in bundle_verification_targets
+    ]
+
+    bundle_verification_required_values = [
+        (
+            b.target[AppleBundleInfo].infoplist,
+            [[b.parent_bundle_id_reference, ctx.attr.bundle_id]],
+        )
+        for b in bundle_verification_targets
+        if hasattr(b, "parent_bundle_id_reference")
+    ]
+
     out_infoplist = outputs.infoplist(ctx)
     bundle_files.extend(
         _merge_root_infoplists(
             ctx,
             infoplists,
             out_infoplist,
+            child_plists = bundle_verification_infoplists,
+            child_required_values = bundle_verification_required_values,
             version_keys_required = version_keys_required,
         ),
     )
@@ -320,6 +340,7 @@ def _resources_partial_impl(
     return struct(bundle_files = bundle_files, providers = [final_provider])
 
 def resources_partial(
+        bundle_verification_targets = [],
         plist_attrs = [],
         targets_to_avoid = [],
         top_level_attrs = [],
@@ -330,6 +351,11 @@ def resources_partial(
     processed.
 
     Args:
+        bundle_verification_targets: List of structs that reference embedable targets that need to
+            be validated. The structs must have a `target` field with the target containing an
+            Info.plist file that will be validated. The structs may also have a
+            `parent_bundle_id_reference` field that contains the plist path, in list form, to the
+            plist entry that must contain this target's bundle ID.
         plist_attrs: List of attributes that should be processed as Info plists that should be
             merged and processed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
@@ -344,6 +370,7 @@ def resources_partial(
     """
     return partial.make(
         _resources_partial_impl,
+        bundle_verification_targets = bundle_verification_targets,
         plist_attrs = plist_attrs,
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,

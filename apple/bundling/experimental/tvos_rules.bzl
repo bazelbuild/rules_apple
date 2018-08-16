@@ -69,7 +69,7 @@ def tvos_application_impl(ctx):
         ),
         partials.embedded_bundles_partial(targets = embeddable_targets),
         partials.resources_partial(
-            bundle_verification_targets = ctx.attr.extensions,
+            bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),
