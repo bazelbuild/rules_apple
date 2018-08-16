@@ -272,11 +272,17 @@ def _macos_path_formats(path_in_archive_format = "%s"):
     Returns:
       A dictionary of path format attributes for macOS bundles.
     """
+    # TODO(kaipi): Refactor these names to account for not returning only formats when we fully
+    # migrate to the experimental branch for bundling.
+
     return {
         "_bundle_binary_path_format": attr.string(default = "MacOS/%s"),
         "_bundle_contents_path_format": attr.string(default = "Contents/%s"),
         "_bundle_resources_path_format": attr.string(default = "Resources/%s"),
         "_path_in_archive_format": attr.string(default = path_in_archive_format),
+        "_new_bundle_relative_contents_path": attr.string(default = "Contents"),
+        "_new_contents_relative_binary_path": attr.string(default = "MacOS"),
+        "_new_contents_relative_resource_path": attr.string(default = "Resources"),
     }
 
 def _code_signing_attributes(code_signing):
@@ -536,11 +542,17 @@ def _simple_path_formats(path_in_archive_format = ""):
     Returns:
       A dictionary of path format attributes for iOS, tvOS, and watchOS bundles.
     """
+    # TODO(kaipi): Refactor these names to account for not returning only formats when we fully
+    # migrate to the experimental branch for bundling.
+
     return {
         "_bundle_binary_path_format": attr.string(default = "%s"),
         "_bundle_contents_path_format": attr.string(default = "%s"),
         "_bundle_resources_path_format": attr.string(default = "%s"),
         "_path_in_archive_format": attr.string(default = path_in_archive_format),
+        "_new_bundle_relative_contents_path": attr.string(default = ""),
+        "_new_contents_relative_binary_path": attr.string(default = ""),
+        "_new_contents_relative_resource_path": attr.string(default = ""),
     }
 
 # Define the loadable module that lists the exported symbols in this file.
