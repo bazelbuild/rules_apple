@@ -70,6 +70,13 @@ for indexing the test sources.
 `depset` of `File`s representing transitive swift modules which are needed by
 IDEs to be used for indexing the test sources.
 """,
+        "deps": """
+`depset` of `string`s representing the labels of all immediate deps of the test.
+Only source files from these deps will be present in `sources`. This may be used
+by IDEs to differentiate a test target's transitive module maps from its direct
+module maps, as including the direct module maps may break indexing for the
+source files of the immediate deps.
+""",
     },
 )
 
@@ -181,6 +188,7 @@ def _test_info_aspect_impl(target, ctx):
     includes = depset()
     module_maps = depset()
     swift_modules = depset()
+    dep_labels = []
 
     # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
     # dep doesn't, just filter it out.
@@ -196,6 +204,8 @@ def _test_info_aspect_impl(target, ctx):
     # Combine the AppleTestInfo sources info from deps into one for apple_binary.
     if ctx.rule.kind == "apple_binary":
         for dep in deps:
+            dep_labels.append(str(dep.label))
+
             test_info = dep[AppleTestInfo]
             sources = _merge_depsets(test_info.sources, sources)
             non_arc_sources = _merge_depsets(
@@ -237,6 +247,7 @@ def _test_info_aspect_impl(target, ctx):
         includes = includes,
         module_maps = module_maps,
         swift_modules = swift_modules,
+        deps = depset(dep_labels),
     )]
 
 test_info_aspect = aspect(
