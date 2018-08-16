@@ -56,7 +56,6 @@ def watchos_application_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
         partials.embedded_bundles_partial(targets = [ctx.attr.extension]),
-        partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
@@ -108,7 +107,6 @@ def watchos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
-        partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
