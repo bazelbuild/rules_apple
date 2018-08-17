@@ -179,6 +179,7 @@ def ios_framework_impl(ctx):
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
