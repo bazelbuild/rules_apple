@@ -58,6 +58,7 @@ def macos_application_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(targets = ctx.attr.extensions),
+        partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
@@ -117,6 +118,7 @@ def macos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.macos_additional_contents_partial(),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             top_level_attrs = [

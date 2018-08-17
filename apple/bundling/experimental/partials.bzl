@@ -43,6 +43,10 @@ load(
     _framework_provider_partial = "framework_provider_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:macos_additional_contents.bzl",
+    _macos_additional_contents_partial = "macos_additional_contents_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:provisioning_profile.bzl",
     _provisioning_profile_partial = "provisioning_profile_partial",
 )
@@ -71,6 +75,7 @@ partials = struct(
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
     framework_provider_partial = _framework_provider_partial,
+    macos_additional_contents_partial = _macos_additional_contents_partial,
     provisioning_profile_partial = _provisioning_profile_partial,
     resources_partial = _resources_partial,
     settings_bundle_partial = _settings_bundle_partial,
