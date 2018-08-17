@@ -73,6 +73,10 @@ def ios_application_impl(ctx):
         )
 
     processor_partials = [
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.app_icons,
+            launch_images = ctx.files.launch_images,
+        ),
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.embedded_bundles_partial(targets = embeddable_targets),
@@ -207,6 +211,9 @@ def ios_extension_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
     processor_partials = [
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.app_icons,
+        ),
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.resources_partial(

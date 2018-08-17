@@ -54,6 +54,10 @@ def tvos_application_impl(ctx):
     swift_dylib_dependencies = ctx.attr.extensions
 
     processor_partials = [
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.app_icons,
+            launch_images = ctx.files.launch_images,
+        ),
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
