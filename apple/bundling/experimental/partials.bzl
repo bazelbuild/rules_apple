@@ -15,6 +15,10 @@
 """Proxy file for referencing processor partials."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:app_assets_validation.bzl",
+    _app_assets_validation_partial = "app_assets_validation_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:apple_bundle_info.bzl",
     _apple_bundle_info_partial = "apple_bundle_info_partial",
 )
@@ -68,6 +72,7 @@ load(
 )
 
 partials = struct(
+    app_assets_validation_partial = _app_assets_validation_partial,
     apple_bundle_info_partial = _apple_bundle_info_partial,
     binary_partial = _binary_partial,
     bitcode_symbols_partial = _bitcode_symbols_partial,
