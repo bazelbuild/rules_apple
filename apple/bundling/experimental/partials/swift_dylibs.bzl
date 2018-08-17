@@ -100,6 +100,10 @@ def _swift_dylibs_partial_impl(
     transitive_binary_sets = []
     transitive_swift_support_files = []
     for dependency in dependency_targets:
+        if _AppleSwiftDylibsInfo not in dependency:
+            # Skip targets without the _AppleSwiftDylibsInfo provider, as they don't use Swift
+            # (i.e. sticker extensions that have stubs).
+            continue
         provider = dependency[_AppleSwiftDylibsInfo]
         transitive_binary_sets.append(provider.binary)
         transitive_swift_support_files.extend(provider.swift_support_files)
