@@ -44,7 +44,7 @@ load(
 )
 
 def _apple_bundle_info_partial_impl(ctx):
-    """Implementation for the binary processing partial."""
+    """Implementation for the AppleBundleInfo processing partial."""
 
     # TODO(kaipi): Fill in missing file fields.
     return struct(
@@ -67,7 +67,7 @@ def _apple_bundle_info_partial_impl(ctx):
     )
 
 def apple_bundle_info_partial():
-    """Constructor for the binary processing partial.
+    """Constructor for the AppleBundleInfo processing partial.
 
     This partial propagates the AppleBundleInfo provider for this target.
 
