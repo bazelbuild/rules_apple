@@ -94,10 +94,11 @@ def ios_application_impl(ctx):
             partials.watchos_stub_partial(package_watchkit_support = True),
         )
 
-    # Only add binary processing partials if the target does not use stub binaries.
-    product_type = product_support.product_type(ctx)
-    product_type_descriptor = product_support.product_type_descriptor(product_type)
-    if product_type_descriptor and not product_type_descriptor.stub:
+    stub_binary = None
+    if product_support.is_stub(ctx):
+        stub_binary = binary_artifact
+    else:
+        # Only add binary processing partials if the target does not use stub binaries.
         processor_partials.extend([
             partials.bitcode_symbols_partial(
                 binary_artifact = binary_artifact,
@@ -119,6 +120,15 @@ def ios_application_impl(ctx):
                 package_swift_support = True,
             ),
         ])
+
+    processor_partials.append(
+        # We need to add this partial everytime in case any of the extensions uses a stub binary and
+        # the stub needs to be packaged in the support directories.
+        partials.messages_stub_partial(
+            binary_artifact = stub_binary,
+            package_messages_support = True,
+        ),
+    )
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
@@ -223,10 +233,12 @@ def ios_extension_impl(ctx):
         ),
     ]
 
-    # Only add binary processing partials if the target does not use stub binaries.
-    product_type = product_support.product_type(ctx)
-    product_type_descriptor = product_support.product_type_descriptor(product_type)
-    if product_type_descriptor and not product_type_descriptor.stub:
+    if product_support.is_stub(ctx):
+        processor_partials.append(
+            partials.messages_stub_partial(binary_artifact = binary_artifact),
+        )
+    else:
+        # Only add binary processing partials if the target does not use stub binaries.
         processor_partials.extend([
             partials.bitcode_symbols_partial(
                 binary_artifact = binary_artifact,
