@@ -255,7 +255,6 @@ def _resources_partial_impl(
     # resources and a boolean indicating whether the Swift module is required for that processing.
     provider_field_to_action = {
         "datamodels": (resources_support.datamodels, True),
-        "frameworks": (resources_support.frameworks, False),
         "generics": (resources_support.noop, False),
         "infoplists": (resources_support.infoplists, False),
         "mappingmodels": (resources_support.mappingmodels, False),

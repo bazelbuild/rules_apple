@@ -47,6 +47,10 @@ load(
     _framework_headers_partial = "framework_headers_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/partials:framework_import.bzl",
+    _framework_import_partial = "framework_import_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental/partials:framework_provider.bzl",
     _framework_provider_partial = "framework_provider_partial",
 )
@@ -87,6 +91,7 @@ partials = struct(
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
+    framework_import_partial = _framework_import_partial,
     framework_headers_partial = _framework_headers_partial,
     framework_provider_partial = _framework_provider_partial,
     macos_additional_contents_partial = _macos_additional_contents_partial,

@@ -113,36 +113,6 @@ def _datamodels(ctx, parent_dir, files, swift_module):
 
     return struct(files = output_files)
 
-def _frameworks(ctx, parent_dir, files):
-    """Processes files that need to be packaged as frameworks."""
-    _ignore = [ctx]
-
-    # Filter framework files to remove any header related files from being packaged into the final
-    # bundle.
-    framework_files = []
-    for file in files.to_list():
-        file_short_path = file.short_path
-
-        # TODO(b/36435385): Use the new tuple argument format to check for both extensions in one
-        # call.
-        if file_short_path.endswith(".h"):
-            continue
-        if file_short_path.endswith(".modulemap"):
-            continue
-        if "Headers/" in file_short_path:
-            continue
-        if "PrivateHeaders/" in file_short_path:
-            continue
-        if "Modules/" in file_short_path:
-            continue
-        framework_files.append(file)
-
-    return struct(
-        files = [
-            (processor.location.framework, parent_dir, depset(direct = framework_files)),
-        ],
-    )
-
 def _infoplists(ctx, parent_dir, files):
     """Processes infoplists.
 
@@ -407,7 +377,6 @@ def _noop(ctx, parent_dir, files):
 
 resources_support = struct(
     datamodels = _datamodels,
-    frameworks = _frameworks,
     infoplists = _infoplists,
     mappingmodels = _mappingmodels,
     noop = _noop,
