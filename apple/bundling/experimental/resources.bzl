@@ -81,9 +81,6 @@ NewAppleResourceInfo = provider(
     fields = {
         "generics": "Generic resources not mapped to the other types.",
         "datamodels": "Datamodel files.",
-        "frameworks": """Files to be bundled as part of a framework. This is explicitly used for
-objc_framework, since we treat the files references as resources that need to be packaged into the
-Frameworks section of the bundle.""",
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
 only be bucketed with the `bucketize_typed` method.""",

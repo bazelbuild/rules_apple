@@ -163,22 +163,6 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["resources"]
         owner = str(ctx.label)
 
-    elif ctx.rule.kind == "objc_framework" and ctx.rule.attr.is_dynamic:
-        # Treat dynamic objc_framework files as resources that need to be packaged into the
-        # Frameworks section of the bundle.
-        # TODO(kaipi): Only collect bundleable files (i.e. filter headers and module maps) so we
-        # don't propagate them as they're unneeded for bundling.
-        frameworks_provider = resources.bucketize_typed(
-            ctx.rule.attr,
-            bucket_type = "frameworks",
-            res_attrs = ["framework_imports"],
-            # Since objc_framework contains code that might reference the resources, set the
-            # objc_framework target as the owner for these resources.
-            owner = str(ctx.label),
-            parent_dir_param = partial.make(_bundle_relative_parent_dir, extension = "framework"),
-        )
-        providers.append(frameworks_provider)
-
     elif ctx.rule.kind == "apple_binary" or ctx.rule.kind == "apple_stub_binary":
         # Set the binary targets as the default_owner to avoid losing ownership information when
         # aggregating dependencies resources that have an owners on one branch, and that don't have

@@ -80,6 +80,7 @@ def ios_application_impl(ctx):
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.embedded_bundles_partial(targets = embeddable_targets),
+        partials.framework_import_partial(targets = ctx.attr.extensions + ctx.attr.frameworks),
         partials.resources_partial(
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
