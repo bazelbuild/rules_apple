@@ -79,10 +79,10 @@ XCTESTRUN="$TEST_TMP_DIR/tests.xctestrun"
 cp -f "$BAZEL_XCTESTRUN_TEMPLATE" "$XCTESTRUN"
 
 # Replace the substitution values into the xctestrun file.
-sed -i '' 's@BAZEL_TEST_BUNDLE_PATH@'"$XCTESTRUN_TEST_BUNDLE_PATH"'@g' "$XCTESTRUN"
-sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN"
-sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
-sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_BUNDLE_PATH@'"$XCTESTRUN_TEST_BUNDLE_PATH"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
 
 # If XML_OUTPUT_FILE is not an absolute path, make it absolute with regards of
 # where this script is being run.
