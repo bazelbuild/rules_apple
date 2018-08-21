@@ -893,7 +893,7 @@ def _run(
     smart_dedupe_enabled = define_utils.bool_value(
         ctx,
         "apple.experimental.smart_dedupe",
-        False,
+        True,
     )
     whitelisted_mapping = None
     if smart_dedupe_enabled:
