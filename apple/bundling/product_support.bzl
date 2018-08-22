@@ -231,6 +231,21 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     ),
 }
 
+def _contains_stub_binary(ctx):
+    """Returns whether the current product type contains a stub binary.
+
+    Args:
+      ctx: The Skylark context.
+
+    Returns:
+      True if the current target contains a stub binary, False otherwise.
+    """
+    product_type = _product_type(ctx)
+    product_type_descriptor = _product_type_descriptor(product_type)
+    if product_type_descriptor and product_type_descriptor.stub:
+        return True
+    return False
+
 def _product_type(ctx):
     """Returns the product type identifier for the current target.
 
@@ -274,6 +289,7 @@ def _product_type_descriptor(product_type):
 
 # Define the loadable module that lists the exported symbols in this file.
 product_support = struct(
+    contains_stub_binary = _contains_stub_binary,
     product_type = _product_type,
     product_type_descriptor = _product_type_descriptor,
 )

@@ -98,7 +98,7 @@ def ios_application_impl(ctx):
         )
 
     stub_binary = None
-    if product_support.is_stub(ctx):
+    if product_support.contains_stub_binary(ctx):
         stub_binary = binary_artifact
     else:
         # Only add binary processing partials if the target does not use stub binaries.
@@ -239,7 +239,7 @@ def ios_extension_impl(ctx):
         ),
     ]
 
-    if product_support.is_stub(ctx):
+    if product_support.contains_stub_binary(ctx):
         processor_partials.append(
             partials.messages_stub_partial(binary_artifact = binary_artifact),
         )
