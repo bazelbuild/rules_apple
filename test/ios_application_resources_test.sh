@@ -884,7 +884,7 @@ EOF
 
   do_build ios //app:app && fail "Should fail"
 
-  expect_log "Multiple files would be placed at \"foo.txt\" in the bundle, which is not allowed"
+  expect_log "Multiple files would be placed at \".*foo.txt\" in the bundle, which is not allowed"
 
 }
 
