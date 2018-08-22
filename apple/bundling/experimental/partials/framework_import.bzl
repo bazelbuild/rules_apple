@@ -53,11 +53,11 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
             if AppleFrameworkImportInfo in x
         ]
         if avoid_transitive_sets:
-            avoid_files = depset(transitive = avoid_transitive_sets)
+            avoid_files = depset(transitive = avoid_transitive_sets).to_list()
 
             # Remove any files present in the targets to avoid from framework files that need to be
             # bundled.
-            files_to_bundle = [x for x in files_to_bundle if x not in avoid_files.to_list()]
+            files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     bundle_files = []
     for file in files_to_bundle:
