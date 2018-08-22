@@ -80,7 +80,9 @@ def ios_application_impl(ctx):
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.embedded_bundles_partial(targets = embeddable_targets),
-        partials.framework_import_partial(targets = ctx.attr.extensions + ctx.attr.frameworks),
+        partials.framework_import_partial(
+            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
+        ),
         partials.resources_partial(
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
@@ -180,6 +182,7 @@ def ios_framework_impl(ctx):
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(),
         partials.resources_partial(
@@ -228,6 +231,7 @@ def ios_extension_impl(ctx):
         ),
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
+        partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
