@@ -35,7 +35,7 @@ load(
     "processor",
 )
 
-def _framework_import_partial_impl(ctx, targets):
+def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
     """Implementation for the framework import file processing partial."""
     _ignored = [ctx]
 
@@ -44,11 +44,23 @@ def _framework_import_partial_impl(ctx, targets):
         for x in targets
         if AppleFrameworkImportInfo in x
     ]
+    files_to_bundle = depset(transitive = transitive_sets).to_list()
 
-    all_files = depset(transitive = transitive_sets).to_list()
+    if targets_to_avoid:
+        avoid_transitive_sets = [
+            x[AppleFrameworkImportInfo].framework_imports
+            for x in targets_to_avoid
+            if AppleFrameworkImportInfo in x
+        ]
+        if avoid_transitive_sets:
+            avoid_files = depset(transitive = avoid_transitive_sets)
+
+            # Remove any files present in the targets to avoid from framework files that need to be
+            # bundled.
+            files_to_bundle = [x for x in files_to_bundle if x not in avoid_files.to_list()]
 
     bundle_files = []
-    for file in all_files:
+    for file in files_to_bundle:
         framework_path = path_utils.farthest_directory_matching(file.short_path, "framework")
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
@@ -63,7 +75,7 @@ def _framework_import_partial_impl(ctx, targets):
 
     return struct(bundle_files = bundle_files)
 
-def framework_import_partial(targets):
+def framework_import_partial(targets, targets_to_avoid = []):
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
@@ -71,6 +83,8 @@ def framework_import_partial(targets):
 
     Args:
         targets: The list of targets through which to collect the framework import files.
+        targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
+            to be used when deduplicating frameworks already bundled.
 
     Returns:
         A partial that returns the bundle location of the framework import files.
@@ -78,4 +92,5 @@ def framework_import_partial(targets):
     return partial.make(
         _framework_import_partial_impl,
         targets = targets,
+        targets_to_avoid = targets_to_avoid,
     )
