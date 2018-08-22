@@ -108,7 +108,7 @@ def _deduplicate(resources_provider, avoid_provider, field):
 
     # Build a dictionary with the files under each key for the avoided resources.
     avoid_dict = {}
-    if avoid_provider:
+    if avoid_provider and hasattr(avoid_provider, field):
         for parent_dir, swift_module, files in getattr(avoid_provider, field):
             key = "%s_%s" % (parent_dir or "root", swift_module or "root")
             avoid_dict[key] = files.to_list()
