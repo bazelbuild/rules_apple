@@ -96,67 +96,6 @@ objc_library(
 EOF
 }
 
-function test_resources_only_in_framework() {
-  create_basic_project
-
-  cat >> app/BUILD <<EOF
-ios_framework(
-    name = "framework",
-    bundle_id = "com.framework",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "8",
-    deps = [":shared_lib"],
-)
-
-ios_application(
-    name = "app",
-    bundle_id = "com.app",
-    families = ["iphone"],
-    frameworks = [":framework"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "8",
-    deps = [":app_lib"],
-)
-EOF
-
-  do_build ios //app:app --define=apple.experimental.smart_dedupe=0 \
-      || fail "Should build"
-
-  # This test makes sure that without smart deduplication, the naive duplication
-  # method is preserved. When smart deduplication is enabled by default, this
-  # test should be removed.
-
-  # Verify framework has resources
-  assert_assets_contains "test-bin/app/framework.zip" \
-      "framework.framework/Assets.car" "star.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/nonlocalized.plist"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/sample.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/resource_only_lib.txt"
-
-  # These resources are referenced by app_lib, but naive deduplication removes
-  # them from the app bundle.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Assets.car"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/sample.png"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/basic_bundle.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/nonlocalized.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/nonlocalized.strings"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "framework.framework/resource_only_lib.txt"
-}
-
 function test_resources_in_app_and_framework() {
   create_basic_project
 
@@ -182,8 +121,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app --define=apple.experimental.smart_dedupe=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify framework has resources
   assert_assets_contains "test-bin/app/framework.zip" \
@@ -260,8 +198,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app --define=apple.experimental.smart_dedupe=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the resource is in the framework.
   assert_zip_contains "test-bin/app/framework.zip" \

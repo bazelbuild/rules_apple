@@ -28,10 +28,8 @@ function tear_down() {
   rm -rf framework
 }
 
-# Creates framework and app targets with common resources with the given
-# value for the dedupe_unbundled_resources attribute on ios_application.
+# Creates framework and app targets with common resources.
 function create_app_and_framework_with_common_resources() {
-  dedupe_unbundled_resources="$1"; shift
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
@@ -56,7 +54,6 @@ filegroup(
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
-    dedupe_unbundled_resources = ${dedupe_unbundled_resources},
     extensions = [":ext"],
     families = ["iphone"],
     frameworks = [":framework"],
@@ -69,7 +66,6 @@ ios_application(
 ios_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
-    dedupe_unbundled_resources = ${dedupe_unbundled_resources},
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info-Ext.plist"],
@@ -106,13 +102,11 @@ filegroup(
 EOF
 
   mkdir -p app/Images
-  cat > app/Images/app.png <<EOF
-This is fake image for the app
-EOF
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      app/Images/app.png
 
-  cat > app/Images/framework.png <<EOF
-This is fake image for the framework
-EOF
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      app/Images/framework.png
 
   cat > app/Info-Framework.plist <<EOF
 {
@@ -218,10 +212,9 @@ filegroup(
 )
 EOF
 
-mkdir -p framework/Images
-cat > framework/Images/foo.png <<EOF
-This is fake image
-EOF
+  mkdir -p framework/Images
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      framework/Images/foo.png
 
   cat > framework/Info.plist <<EOF
 {
@@ -638,10 +631,9 @@ filegroup(
 )
 EOF
 
-mkdir -p app/Images
-cat > app/Images/foo.png <<EOF
-This is fake image
-EOF
+  mkdir -p app/Images
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      app/Images/foo.png
 
   cat > app/Info-Framework.plist <<EOF
 {
@@ -793,10 +785,12 @@ EOF
       "Payload/app.app/PlugIns/ext.appex/Frameworks/framework.framework/framework"
 }
 
+
 # Tests that root-level resources depended on by both an application and its
-# framework end up in both if deduping isn't explicitly enabled.
-function test_root_level_resource_deduping_off() {
-  create_app_and_framework_with_common_resources False
+# framework end up in both bundles given that both bundles have explicit owners
+# on the resources
+function test_root_level_resource_smart_dedupe_keeps_resources() {
+  create_app_and_framework_with_common_resources
 
   do_build ios //app:app || fail "Should build"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -804,26 +798,6 @@ function test_root_level_resource_deduping_off() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Images/framework.png"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/Images/framework.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Images/app.png"
-}
-
-
-# Tests that root-level resources depended on by both an application and its
-# framework end up in the framework only if resource dedupng is on.
-function test_root_level_resource_deduping_on() {
-  create_app_and_framework_with_common_resources True
-
-  # Disable smart dedupe explicitly as this test only makes sense in that case.
-  # When it is enabled by default, we should delete this test.
-  do_build ios //app:app --define=apple.experimental.smart_dedupe=0 \
-      || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Images/framework.png"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Images/framework.png"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appex/Images/framework.png"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Images/app.png"
@@ -897,14 +871,12 @@ filegroup(
 EOF
 
   mkdir -p app/Images
-  cat > app/Images/common.png <<EOF
-This is fake image for the app
-EOF
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      app/Images/common.png
 
   mkdir -p framework/Images
-  cat > framework/Images/common.png <<EOF
-This is fake image for the framework
-EOF
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      framework/Images/common.png
 
   cat > framework/Info-Framework.plist <<EOF
 {
@@ -1368,10 +1340,9 @@ EOF
 }
 EOF
 
-mkdir -p app/Images
-cat > app/Images/foo.png <<EOF
-This is fake image
-EOF
+  mkdir -p app/Images
+  cp -f $(rlocation build_bazel_rules_apple/test/testdata/resources/sample.png) \
+      app/Images/foo.png
 
   cat > app/Framework-Info.plist <<EOF
 {
