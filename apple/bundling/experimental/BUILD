@@ -8,3 +8,17 @@ package(default_visibility = [
 ])
 
 licenses(["notice"])
+
+# Consumed by bazel tests.
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]) + [
+        "//apple/bundling/experimental/partials:for_bazel_tests",
+        "//apple/bundling/experimental/resource_actions:for_bazel_tests",
+        "//apple/bundling/experimental/testing:for_bazel_tests",
+    ],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)

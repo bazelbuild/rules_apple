@@ -1,7 +1,7 @@
-# Partials.
+# Testing.
 
-# This file exists to create a package under which to load the processor
-# partials bzl files.
+# This file exists to create a package under which to load the testing
+# rules bzl files.
 
 package(default_visibility = [
     "//apple/bundling/experimental:__pkg__",
@@ -13,9 +13,7 @@ licenses(["notice"])
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = glob(["**"]) + [
-        "//apple/bundling/experimental/partials/support:for_bazel_tests",
-    ],
+    srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",
     ],
