@@ -79,7 +79,6 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
         infoplists,
         out_infoplist,
         out_pkginfo,
-        bundle_id = ctx.attr.bundle_id,
         **kwargs
     )
 
@@ -207,12 +206,17 @@ def _validate_processed_locales(locales_requested, locales_included, locales_dro
 
 def _resources_partial_impl(
         ctx,
+        bundle_id,
         bundle_verification_targets,
         plist_attrs,
         targets_to_avoid,
         top_level_attrs,
         version_keys_required):
     """Implementation for the resource processing partial."""
+
+    # If no explicit bundle ID was given to the partial, use the attribute value by default.
+    bundle_id = bundle_id or ctx.attr.bundle_id
+
     providers = [
         x[NewAppleResourceInfo]
         for x in ctx.attr.deps
@@ -318,7 +322,7 @@ def _resources_partial_impl(
     bundle_verification_required_values = [
         (
             b.target[AppleBundleInfo].infoplist,
-            [[b.parent_bundle_id_reference, ctx.attr.bundle_id]],
+            [[b.parent_bundle_id_reference, bundle_id]],
         )
         for b in bundle_verification_targets
         if hasattr(b, "parent_bundle_id_reference")
@@ -330,6 +334,7 @@ def _resources_partial_impl(
             ctx,
             infoplists,
             out_infoplist,
+            bundle_id = bundle_id,
             child_plists = bundle_verification_infoplists,
             child_required_values = bundle_verification_required_values,
             version_keys_required = version_keys_required,
@@ -339,6 +344,7 @@ def _resources_partial_impl(
     return struct(bundle_files = bundle_files, providers = [final_provider])
 
 def resources_partial(
+        bundle_id = None,
         bundle_verification_targets = [],
         plist_attrs = [],
         targets_to_avoid = [],
@@ -350,6 +356,8 @@ def resources_partial(
     processed.
 
     Args:
+        bundle_id: Bundle ID to use when processing resources. If no value is given, it will
+            use the value specified in ctx.attr.bundle_id.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
@@ -369,6 +377,7 @@ def resources_partial(
     """
     return partial.make(
         _resources_partial_impl,
+        bundle_id = bundle_id,
         bundle_verification_targets = bundle_verification_targets,
         plist_attrs = plist_attrs,
         targets_to_avoid = targets_to_avoid,
