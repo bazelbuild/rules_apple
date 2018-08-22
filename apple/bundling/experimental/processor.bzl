@@ -101,7 +101,7 @@ def _invalid_top_level_directories_for_platform(platform_type):
 
     # As far as we know, there are no locations in macOS bundles that would break
     # codesigning.
-    if platform_type == "macos":
+    if platform_type == apple_common.platform_type.macos:
         return []
 
     # Non macOS bundles can't have a top level Resources folder, as it breaks
