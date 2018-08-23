@@ -120,9 +120,11 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
       input_files: The list of plists to merge.
       output_plist: The file reference for the output plist.
     """
+    product_name = paths.replace_extension(bundle_name, "")
     substitutions = {
         "BUNDLE_NAME": bundle_name,
-        "PRODUCT_NAME": paths.replace_extension(bundle_name, ""),
+        "PRODUCT_NAME": product_name,
+        "TARGET_NAME": product_name,
     }
 
     target = '%s (while bundling under "%s")' % (bundle_name, str(ctx.label))
