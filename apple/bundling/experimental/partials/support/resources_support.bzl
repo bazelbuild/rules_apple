@@ -362,11 +362,11 @@ def _xibs(ctx, parent_dir, files, swift_module):
     swift_module = swift_module or ctx.label.name
     nib_files = []
     for file in files.to_list():
-        nib_name = paths.replace_extension(file.basename, ".nib")
-        nib_path = paths.join(parent_dir or "", nib_name)
-        nib_file = intermediates.file(ctx.actions, ctx.label.name, nib_path)
-        resource_actions.compile_xib(ctx, swift_module, file, nib_file)
-        nib_files.append(nib_file)
+        basename = paths.replace_extension(file.basename, "")
+        out_path = paths.join("nibs", parent_dir or "", basename)
+        out_dir = intermediates.directory(ctx.actions, ctx.label.name, out_path)
+        resource_actions.compile_xib(ctx, swift_module, file, out_dir)
+        nib_files.append(out_dir)
 
     return struct(files = [(processor.location.resource, parent_dir, depset(direct = nib_files))])
 
