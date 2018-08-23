@@ -340,4 +340,42 @@ EOF
       fail "Did not find star2_iphone in Assets.car"
 }
 
+function test_can_compile_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries() {
+  create_minimal_ios_application
+
+  cat > app/Dummy.swift <<EOF
+struct Dummy {}
+EOF
+
+  # Make a local copy of the storyboards with other names, so they're treated as
+  # different ones.
+  cp -rf \
+      $(rlocation build_bazel_rules_apple/test/testdata/resources/storyboard_ios.storyboard) \
+      app/lib.storyboard
+  cp -rf \
+      $(rlocation build_bazel_rules_apple/test/testdata/resources/storyboard_ios.storyboard) \
+      app/other.storyboard
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+    resources = [
+        "lib.storyboard",
+    ],
+    deps = [":other_lib"],
+)
+
+swift_library(
+    name = "other_lib",
+    srcs = ["Dummy.swift"],
+    resources = [
+        "other.storyboard",
+    ],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+}
+
 run_suite "ios_application bundling resources with Swift bundling tests"
