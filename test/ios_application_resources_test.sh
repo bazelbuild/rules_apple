@@ -506,7 +506,7 @@ EOF
 
   create_dump_plist "//app:app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
-      CFBundleIdentifier CFBundleName
+      CFBundleIdentifier CFBundleName TargetName
   do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
@@ -515,6 +515,8 @@ EOF
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "bundle_library_ios.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
+  assert_equals "bundle_library_ios" \
+      "$(cat "test-genfiles/app/TargetName")"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/Assets.car"
