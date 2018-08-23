@@ -276,7 +276,7 @@ def _storyboards(ctx, parent_dir, files, swift_module):
     linked_storyboard_dir = intermediates.directory(
         ctx.actions,
         ctx.label.name,
-        paths.join(parent_dir or "", "storyboards"),
+        paths.join("storyboards", parent_dir or "", swift_module or ""),
     )
     resource_actions.link_storyboards(
         ctx,
