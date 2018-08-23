@@ -51,7 +51,6 @@ load(
 # attributes, we will not merge them to split them again.
 _NATIVE_RESOURCE_ATTRS = [
     "asset_catalogs",
-    "data",
     "datamodels",
     "resources",
     "storyboards",
@@ -207,7 +206,8 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Get the providers from dependencies.
-    for attr in ["data", "deps"]:
+    # TODO(kaipi): Add data here once we propagate resources through that attribute.
+    for attr in ["deps"]:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
                 x[NewAppleResourceInfo]
