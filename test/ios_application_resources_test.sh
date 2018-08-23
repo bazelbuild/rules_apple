@@ -140,6 +140,35 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
 }
 
+# Tests that various xib files can be used as launch_storyboards, specifically
+# in a mode that outputs multiple files per XIB.
+function test_xib_as_launchscreen_in_min_os_8() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone", "ipad"],
+    infoplists = ["Info.plist"],
+    launch_storyboard = "@build_bazel_rules_apple//test/testdata/resources:launch_screen_ios.xib",
+    minimum_os_version = "8.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  unzip -l test-bin/app/app.ipa
+
+  # Verify nib files created.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/launch_screen_ios~iphone.nib/runtime.nib"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/launch_screen_ios~ipad.nib/runtime.nib"
+}
+
 # Tests that empty strings files can be processed.
 function test_empty_strings_files() {
   create_common_files

@@ -4,6 +4,7 @@ licenses(["notice"])
 
 exports_files([
     "launch_screen_ios.storyboard",
+    "launch_screen_ios.xib",
     "nonlocalized.plist",
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
@@ -20,6 +21,7 @@ filegroup(
     srcs = [
         "BUILD",
         "launch_screen_ios.storyboard",
+        "launch_screen_ios.xib",
         "storyboard_ios.storyboard",
         "view_ios.xib",
         ":app_icons_ios",

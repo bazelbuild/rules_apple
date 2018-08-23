@@ -19,6 +19,10 @@ load(
     "collections",
 )
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
     "file_support",
 )
@@ -119,7 +123,7 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
         no_sandbox = True,
     )
 
-def compile_xib(ctx, swift_module, input_file, output_file):
+def compile_xib(ctx, swift_module, input_file, output_dir):
     """Creates an action that compiles a Xib file.
 
     Args:
@@ -127,16 +131,18 @@ def compile_xib(ctx, swift_module, input_file, output_file):
       swift_module: The name of the Swift module to use when compiling the
         Xib file.
       input_file: The Xib file to compile.
-      output_file: The file reference for the output nib.
+      output_dir: The file reference for the output directory.
     """
 
     min_os = platform_support.minimum_os(ctx)
     families = platform_support.families(ctx)
 
+    nib_name = paths.replace_extension(paths.basename(input_file.short_path), ".nib")
+
     args = [
         "ibtool",
         "--compile",
-        file_support.xctoolrunner_path(output_file.path),
+        file_support.xctoolrunner_path(paths.join(output_dir.path, nib_name)),
     ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
@@ -148,7 +154,7 @@ def compile_xib(ctx, swift_module, input_file, output_file):
     platform_support.xcode_env_action(
         ctx,
         inputs = [input_file],
-        outputs = [output_file],
+        outputs = [output_dir],
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "XibCompile",
