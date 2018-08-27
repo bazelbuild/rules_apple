@@ -205,6 +205,8 @@ def _apple_resource_aspect_impl(target, ctx):
             else:
                 structured_parent_dir = None
 
+            # Avoid processing PNG files that are referenced through the structured_resources
+            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
             providers.append(
                 resources.bucketize(
                     structured_files,
@@ -213,6 +215,7 @@ def _apple_resource_aspect_impl(target, ctx):
                         _structured_resources_parent_dir,
                         parent_dir = structured_parent_dir,
                     ),
+                    avoid_buckets = ["pngs"],
                 ),
             )
 
