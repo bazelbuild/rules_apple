@@ -108,7 +108,12 @@ def _get_attr_as_list(attr, attribute):
         return value
     return [value]
 
-def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = None):
+def _bucketize(
+        resources,
+        swift_module = None,
+        owner = None,
+        parent_dir_param = None,
+        avoid_buckets = None):
     """Separates the given resources into resource bucket types.
 
     This method takes a list of resources and constructs a tuple object for each, placing it inside
@@ -122,7 +127,9 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
     path to the owning package; or in an objc_library it can be None, signaling that these resources
     should be placed in the root level.
 
-    Once all resources have been placed in buckets, each of the lists will be minimized.
+    If no bucket was detected based on the short path for a specific resource, it will be placed
+    into the "generics" bucket. Resources in this bucket will not be processed and will be copied as
+    is. Once all resources have been placed in buckets, each of the lists will be minimized.
 
     Finally, it will return a NewAppleResourceInfo provider with the resources bucketed per type.
 
@@ -134,6 +141,8 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
             each resource. If it is a struct, it will be considered a partial context, and will be
             invoked with partial.call().
+        avoid_buckets: List of buckets to avoid when bucketing. Used to mark certain file types to
+            avoid being processed, as they will fall into the "generics" bucket.
 
     Returns:
         A NewAppleResourceInfo provider with resources bucketized according to type.
@@ -141,6 +150,12 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
     buckets = {}
     owners = {}
     owner_depset = None
+
+    # Transform the list of buckets to avoid into a set for faster lookup.
+    avoid_bucket_set = {}
+    if avoid_buckets:
+        avoid_bucket_set = {k: None for k in avoid_buckets}
+
     if owner:
         # By using one depset reference, we can save memory for the cases where multiple resources
         # only have one owner.
@@ -197,7 +212,7 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
                 "texture_atlases",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
-        elif resource_short_path.endswith(".png"):
+        elif not "pngs" in avoid_bucket_set and resource_short_path.endswith(".png"):
             # Process standalone pngs last so that special resource types that use png can be
             # bucketed correctly.
 
