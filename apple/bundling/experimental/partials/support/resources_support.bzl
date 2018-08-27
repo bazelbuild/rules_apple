@@ -217,8 +217,7 @@ def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
 def _pngs(ctx, parent_dir, files):
     """Register PNG processing actions.
 
-    If compilation mode is `opt`, the PNG files will be copied using `pngcopy` to make them smaller.
-    Otherwise, they will be copied verbatim to avoid the extra processing time.
+    The PNG files will be copied using `pngcopy` to make them smaller.
 
     Args:
         ctx: The target's context.
@@ -228,11 +227,6 @@ def _pngs(ctx, parent_dir, files):
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
-
-    # If this is not an optimized build, then just copy the files
-    if ctx.var["COMPILATION_MODE"] != "opt":
-        return _noop(ctx, parent_dir, files)
-
     png_files = []
     for file in files.to_list():
         png_path = paths.join(parent_dir or "", file.basename)
