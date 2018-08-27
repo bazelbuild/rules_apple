@@ -230,11 +230,11 @@ def _resources_partial_impl(
         providers.append(resources.bucketize(files, owner = str(ctx.label)))
 
     if plist_attrs:
+        plists = resources.collect(ctx.attr, res_attrs = plist_attrs)
         plist_provider = resources.bucketize_typed(
-            ctx.attr,
+            plists,
             owner = str(ctx.label),
             bucket_type = "infoplists",
-            res_attrs = plist_attrs,
         )
         providers.append(plist_provider)
 
@@ -264,6 +264,8 @@ def _resources_partial_impl(
         "mappingmodels": (resources_support.mappingmodels, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
+        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
+        "resource_zips": (resources_support.resource_zips, False),
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),

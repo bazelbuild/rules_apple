@@ -43,6 +43,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:texture_atlas.bzl",
     _compile_texture_atlas = "compile_texture_atlas",
 )
+load(
+    "@build_bazel_rules_apple//apple/bundling/experimental/resource_actions:zip.bzl",
+    _unzip = "unzip",
+)
 
 resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
@@ -56,4 +60,5 @@ resource_actions = struct(
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
     merge_root_infoplists = _merge_root_infoplists,
+    unzip = _unzip,
 )

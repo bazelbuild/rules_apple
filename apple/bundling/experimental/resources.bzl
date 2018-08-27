@@ -87,6 +87,8 @@ only be bucketed with the `bucketize_typed` method.""",
         "mappingmodels": "Datamodel mapping files.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
+        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
+        "resource_zips": "ZIP files that need to be extracted into the resources bundle location.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "texture_atlases": "Texture atlas files.",
@@ -219,21 +221,18 @@ def _bucketize(resources, swift_module = None, owner = None, parent_dir_param = 
         **dict([(k, _minimize(b)) for k, b in buckets.items()])
     )
 
-def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir_param = None):
+def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = None):
     """Collects and bucketizes a specific type of resource.
 
-    Finds all the resources present in the attributes listed in res_attrs, and adds them directly
-    into a NewAppleResourceInfo provider under the field named in bucket_type. This avoids the
-    sorting mechanism that `bucketize` does, while grouping resources together using
-    parent_dir_param.
+    Adds the given resources directly into a NewAppleResourceInfo provider under the field named in
+    bucket_type. This avoids the sorting mechanism that `bucketize` does, while grouping resources
+    together using parent_dir_param.
 
     Args:
-        attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in the case of
-            aspects.
+        resources: List of resources to place in bucket_type.
         bucket_type: The NewAppleResourceInfo field under which to collect the resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        res_attrs: The attributes under which to collect the resources.
         parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
             each resource. If it is a struct, it will be considered a partial context, and will be
             invoked with partial.call().
@@ -241,7 +240,6 @@ def _bucketize_typed(attr, bucket_type, owner = None, res_attrs = [], parent_dir
     Returns:
         A NewAppleResourceInfo provider with resources in the given bucket.
     """
-    resources = _collect(attr, res_attrs)
     typed_bucket = []
     owners = {}
     owner_depset = None

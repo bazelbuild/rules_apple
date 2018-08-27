@@ -127,10 +127,10 @@ def _apple_resource_aspect_impl(target, ctx):
 
         # Collect the specified infoplists that should be merged together. The replacement for
         # objc_bundle_library should handle it within its implementation.
+        plists = resources.collect(ctx.rule.attr, res_attrs = ["infoplist", "infoplists"])
         plist_provider = resources.bucketize_typed(
-            ctx.rule.attr,
+            plists,
             bucket_type = "infoplists",
-            res_attrs = ["infoplist", "infoplists"],
             parent_dir_param = parent_dir_param,
         )
         providers.append(plist_provider)
@@ -168,6 +168,17 @@ def _apple_resource_aspect_impl(target, ctx):
         # an owner on another branch. When rules_apple stops using apple_binary intermediaries this
         # should be removed as there would not be an intermediate aggregator.
         owner = str(ctx.label)
+
+    elif apple_common.Objc in target:
+        # TODO(kaipi): Clean up usages of the ObjcProvider as means to propagate resources, then
+        # remove this case.
+        if hasattr(target[apple_common.Objc], "merge_zip"):
+            merge_zips = target[apple_common.Objc].merge_zip.to_list()
+            merge_zips_provider = resources.bucketize_typed(
+                merge_zips,
+                bucket_type = "resource_zips",
+            )
+            providers.append(merge_zips_provider)
 
     # Collect all resource files related to this target.
     files = resources.collect(ctx.rule.attr, **collect_args)
