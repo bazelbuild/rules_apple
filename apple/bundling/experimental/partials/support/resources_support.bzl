@@ -236,6 +236,34 @@ def _pngs(ctx, parent_dir, files):
 
     return struct(files = [(processor.location.resource, parent_dir, depset(direct = png_files))])
 
+def _resource_zips(ctx, parent_dir, files):
+    """Register resource ZIP processing actions.
+
+    The ZIP files will be extracted into a tree artifact that will then be bundled into the
+    resources location.
+
+    Args:
+        ctx: The target's context.
+        parent_dir: The path under which the images should be placed.
+        files: The PNG files to process.
+
+    Returns:
+        A struct containing a `files` field with tuples as described in processor.bzl.
+    """
+    unzipped_dirs = []
+    for file in files.to_list():
+        unzipped_path = paths.join(
+            parent_dir or "",
+            paths.replace_extension(file.basename, "_unzipped"),
+        )
+        unzipped_dir = intermediates.directory(ctx.actions, ctx.label.name, unzipped_path)
+        resource_actions.unzip(ctx, file, unzipped_dir)
+        unzipped_dirs.append(unzipped_dir)
+
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(direct = unzipped_dirs))],
+    )
+
 def _storyboards(ctx, parent_dir, files, swift_module):
     """Processes storyboard files."""
     swift_module = swift_module or ctx.label.name
@@ -376,6 +404,7 @@ resources_support = struct(
     noop = _noop,
     plists_and_strings = _plists_and_strings,
     pngs = _pngs,
+    resource_zips = _resource_zips,
     storyboards = _storyboards,
     texture_atlases = _texture_atlases,
     xcassets = _xcassets,
