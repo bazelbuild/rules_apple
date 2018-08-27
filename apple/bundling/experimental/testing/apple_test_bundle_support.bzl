@@ -20,6 +20,10 @@ load(
     "AppleExtraOutputsInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling/experimental:outputs.bzl",
     "outputs",
 )
@@ -73,7 +77,7 @@ def _apple_test_bundle_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
 
     test_host_list = []
-    if ctx.attr.test_host:
+    if ctx.attr.test_host and ctx.attr.product_type == apple_product_type.unit_test_bundle:
         test_host_list.append(ctx.attr.test_host)
 
     processor_partials = [
