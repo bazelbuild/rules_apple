@@ -215,7 +215,8 @@ def _resources_partial_impl(
     """Implementation for the resource processing partial."""
 
     # If no explicit bundle ID was given to the partial, use the attribute value by default.
-    bundle_id = bundle_id or ctx.attr.bundle_id
+    # TODO(kaipi): Migrate this so that each partial invocation passes the bundle ID to use.
+    bundle_id = bundle_id or getattr(ctx.attr, "bundle_id", None)
 
     providers = [
         x[NewAppleResourceInfo]
@@ -316,32 +317,35 @@ def _resources_partial_impl(
     if locales_requested:
         _validate_processed_locales(locales_requested, locales_included, locales_dropped)
 
-    bundle_verification_infoplists = [
-        b.target[AppleBundleInfo].infoplist
-        for b in bundle_verification_targets
-    ]
+    if bundle_id:
+        # If no bundle ID was given, do not process the root Info.plist and do not validate embedded
+        # bundles.
+        bundle_verification_infoplists = [
+            b.target[AppleBundleInfo].infoplist
+            for b in bundle_verification_targets
+        ]
 
-    bundle_verification_required_values = [
-        (
-            b.target[AppleBundleInfo].infoplist,
-            [[b.parent_bundle_id_reference, bundle_id]],
+        bundle_verification_required_values = [
+            (
+                b.target[AppleBundleInfo].infoplist,
+                [[b.parent_bundle_id_reference, bundle_id]],
+            )
+            for b in bundle_verification_targets
+            if hasattr(b, "parent_bundle_id_reference")
+        ]
+
+        out_infoplist = outputs.infoplist(ctx)
+        bundle_files.extend(
+            _merge_root_infoplists(
+                ctx,
+                infoplists,
+                out_infoplist,
+                bundle_id = bundle_id,
+                child_plists = bundle_verification_infoplists,
+                child_required_values = bundle_verification_required_values,
+                version_keys_required = version_keys_required,
+            ),
         )
-        for b in bundle_verification_targets
-        if hasattr(b, "parent_bundle_id_reference")
-    ]
-
-    out_infoplist = outputs.infoplist(ctx)
-    bundle_files.extend(
-        _merge_root_infoplists(
-            ctx,
-            infoplists,
-            out_infoplist,
-            bundle_id = bundle_id,
-            child_plists = bundle_verification_infoplists,
-            child_required_values = bundle_verification_required_values,
-            version_keys_required = version_keys_required,
-        ),
-    )
 
     return struct(bundle_files = bundle_files, providers = [final_provider])
 

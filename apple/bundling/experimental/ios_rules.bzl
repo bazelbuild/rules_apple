@@ -39,6 +39,7 @@ load(
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
+    "IosStaticFrameworkBundleInfo",
 )
 
 def ios_application_impl(ctx):
@@ -283,4 +284,33 @@ def ios_extension_impl(ctx):
         ),
         embedded_bundles_provider,
         IosExtensionBundleInfo(),
+    ] + processor_result.providers
+
+def ios_static_framework_impl(ctx):
+    """Experimental implementation of ios_static_framework."""
+
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.static_framework_header_modulemap_partial(
+            hdrs = ctx.files.hdrs,
+            binary_objc_provider = binary_target[apple_common.Objc],
+        ),
+    ]
+
+    if not ctx.attr.exclude_resources:
+        processor_partials.append(partials.resources_partial())
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        IosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
