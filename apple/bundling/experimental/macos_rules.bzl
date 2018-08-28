@@ -29,6 +29,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "MacosApplicationBundleInfo",
+    "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
 )
 
@@ -46,12 +47,6 @@ def macos_application_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(
-            binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
-            dependency_targets = ctx.attr.extensions,
-            package_bitcode = True,
-        ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.extensions,
@@ -97,6 +92,58 @@ def macos_application_impl(ctx):
         MacosApplicationBundleInfo(),
     ] + processor_result.providers
 
+def macos_bundle_impl(ctx):
+    """Experimental implementation of macos_bundle."""
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
+        partials.macos_additional_contents_partial(),
+        partials.resources_partial(
+            plist_attrs = ["infoplists"],
+            top_level_attrs = [
+                "app_icons",
+                "strings",
+            ],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+        ),
+    ]
+
+    if ctx.file.provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    # This can't be made into a partial as it needs the output archive
+    # reference.
+    # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
+    embedded_bundles_provider = collect_embedded_bundle_provider(
+        plugins = [ctx.outputs.archive],
+    )
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        embedded_bundles_provider,
+        MacosBundleBundleInfo(),
+    ] + processor_result.providers
+
 def macos_extension_impl(ctx):
     """Experimental implementation of macos_extension."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
@@ -110,10 +157,6 @@ def macos_extension_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(
-            binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
