@@ -44,9 +44,24 @@ load(
     "@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
+    "framework_import_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
+    experimental_ios_test_bundle_impl = "ios_test_bundle_impl",
+)
 
 def _ios_test_bundle_impl(ctx):
     """Implementation for the _ios_test_bundle rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_ios_test_bundle_impl(ctx)
+
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx,
         "IosTestArchive",
@@ -59,7 +74,11 @@ _ios_test_bundle = rule_factory.make_bundling_rule(
     additional_attrs = {
         "dedupe_unbundled_resources": attr.bool(default = True),
         # The test host that will run these tests. Optional.
-        "test_host": attr.label(mandatory = False, providers = [AppleBundleInfo]),
+        "test_host": attr.label(
+            aspects = [framework_import_aspect],
+            mandatory = False,
+            providers = [AppleBundleInfo],
+        ),
     },
     archive_extension = ".zip",
     binary_providers = [apple_common.AppleLoadableBundleBinary],

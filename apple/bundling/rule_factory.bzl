@@ -112,6 +112,14 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_usage_aspect",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
+    "framework_import_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    new_apple_resource_aspect = "apple_resource_aspect",
+)
 
 # Serves as an enum to express if an attribute is unsupported, mandatory, or
 # optional.
@@ -455,7 +463,12 @@ def _make_bundling_rule(
             # transitive dependencies (for example using aspects), but exactly one
             # dependency (the binary) should be set.
             "deps": attr.label_list(
-                aspects = [apple_bundling_aspect, swift_usage_aspect],
+                aspects = [
+                    apple_bundling_aspect,
+                    swift_usage_aspect,
+                    new_apple_resource_aspect,
+                    framework_import_aspect,
+                ],
                 mandatory = True,
                 cfg = deps_cfg,
             ),
@@ -463,7 +476,12 @@ def _make_bundling_rule(
     else:
         binary_dep_attrs = {
             "deps": attr.label_list(
-                aspects = [apple_bundling_aspect, swift_usage_aspect],
+                aspects = [
+                    apple_bundling_aspect,
+                    swift_usage_aspect,
+                    new_apple_resource_aspect,
+                    framework_import_aspect,
+                ],
                 cfg = apple_common.multi_arch_split,
             ),
             # Required by apple_common.multi_arch_split on 'deps'.

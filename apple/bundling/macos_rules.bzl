@@ -75,6 +75,16 @@ load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
+    experimental_macos_application_impl = "macos_application_impl",
+    experimental_macos_bundle_impl = "macos_bundle_impl",
+    experimental_macos_extension_impl = "macos_extension_impl",
+)
 
 # Attributes that are common to all macOS bundles.
 _COMMON_MACOS_BUNDLE_ATTRS = {
@@ -111,6 +121,8 @@ def _additional_contents_bundlable_files(ctx, file_map):
 
 def _macos_application_impl(ctx):
     """Implementation of the macos_application rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_macos_application_impl(ctx)
 
     app_icons = ctx.files.app_icons
     if app_icons:
@@ -202,6 +214,9 @@ macos_application = rule_factory.make_bundling_rule(
 
 def _macos_bundle_impl(ctx):
     """Implementation of the macos_bundle rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_macos_bundle_impl(ctx)
+
     app_icons = ctx.files.app_icons
     if app_icons:
         bundling_support.ensure_single_xcassets_type(
@@ -382,6 +397,9 @@ macos_command_line_application = rule(
 
 def _macos_extension_impl(ctx):
     """Implementation of the macos_extension rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_macos_extension_impl(ctx)
+
     app_icons = ctx.files.app_icons
     if app_icons:
         bundling_support.ensure_single_xcassets_type(
