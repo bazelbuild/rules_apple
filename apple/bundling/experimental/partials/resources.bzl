@@ -213,11 +213,6 @@ def _resources_partial_impl(
         top_level_attrs,
         version_keys_required):
     """Implementation for the resource processing partial."""
-
-    # If no explicit bundle ID was given to the partial, use the attribute value by default.
-    # TODO(kaipi): Migrate this so that each partial invocation passes the bundle ID to use.
-    bundle_id = bundle_id or getattr(ctx.attr, "bundle_id", None)
-
     providers = [
         x[NewAppleResourceInfo]
         for x in ctx.attr.deps
@@ -362,8 +357,9 @@ def resources_partial(
     processed.
 
     Args:
-        bundle_id: Bundle ID to use when processing resources. If no value is given, it will
-            use the value specified in ctx.attr.bundle_id.
+        bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
+            the bundle will not contain a root Info.plist and no embedded bundle verification will
+            occur.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
