@@ -5,7 +5,7 @@ language: swift
 # Travis does not use osx_image when it computes the matrix itself, if we want
 # to test on multiple versions, then it required manually building the matrix
 # to set a different osx_image for each configuration.
-osx_image: xcode9.3
+osx_image: xcode9.4
 
 # Build out the matrix ourselves so we can set multiple variables.
 # - `BAZEL`: Used in `before_install` to pick the version of bazel to use,
