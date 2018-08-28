@@ -45,9 +45,20 @@ load(
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
+    experimental_tvos_application_impl = "tvos_application_impl",
+    experimental_tvos_extension_impl = "tvos_extension_impl",
+)
 
 def _tvos_application_impl(ctx):
     """Implementation of the `tvos_application` Skylark rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_tvos_application_impl(ctx)
 
     if ctx.attr.platform_type != "tvos":
         fail("platform_type must be 'tvos'")
@@ -221,6 +232,9 @@ architecture of the rules. Do not change its value.
 
 def _tvos_extension_impl(ctx):
     """Implementation of the `tvos_extension` Skylark rule."""
+    if is_experimental_bundling_enabled(ctx):
+        return experimental_tvos_extension_impl(ctx)
+
     binary_provider = binary_support.get_binary_provider(
         ctx.attr.deps,
         apple_common.AppleExecutableBinary,
