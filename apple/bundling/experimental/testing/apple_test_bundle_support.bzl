@@ -81,7 +81,7 @@ def _apple_test_bundle_impl(ctx):
         test_host_list.append(ctx.attr.test_host)
 
     processor_partials = [
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(

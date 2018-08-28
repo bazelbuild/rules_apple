@@ -44,8 +44,10 @@ def macos_application_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
     debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
 
+    bundle_id = ctx.attr.bundle_id
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -55,6 +57,7 @@ def macos_application_impl(ctx):
         partials.embedded_bundles_partial(targets = ctx.attr.extensions),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
+            bundle_id = bundle_id,
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
             top_level_attrs = [
@@ -102,8 +105,10 @@ def macos_bundle_impl(ctx):
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
 
+    bundle_id = ctx.attr.bundle_id
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -111,6 +116,7 @@ def macos_bundle_impl(ctx):
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
+            bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "app_icons",
@@ -154,8 +160,10 @@ def macos_extension_impl(ctx):
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
+    bundle_id = ctx.attr.bundle_id
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -163,6 +171,7 @@ def macos_extension_impl(ctx):
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
+            bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "app_icons",

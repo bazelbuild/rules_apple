@@ -50,6 +50,8 @@ def tvos_application_impl(ctx):
     debug_outputs_provider = binary_provider_struct.debug_outputs_provider
     binary_artifact = binary_provider.binary
 
+    bundle_id = ctx.attr.bundle_id
+
     embeddable_targets = ctx.attr.extensions
     swift_dylib_dependencies = ctx.attr.extensions
 
@@ -58,7 +60,7 @@ def tvos_application_impl(ctx):
             app_icons = ctx.files.app_icons,
             launch_images = ctx.files.launch_images,
         ),
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -73,6 +75,7 @@ def tvos_application_impl(ctx):
         ),
         partials.embedded_bundles_partial(targets = embeddable_targets),
         partials.resources_partial(
+            bundle_id = bundle_id,
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
@@ -125,8 +128,10 @@ def tvos_extension_impl(ctx):
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
+    bundle_id = ctx.attr.bundle_id
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
@@ -137,6 +142,7 @@ def tvos_extension_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.resources_partial(
+            bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),
