@@ -435,10 +435,9 @@ def _apple_test_impl(ctx, test_type):
             DefaultInfo(
                 executable = executable,
                 files = outputs,
-                runfiles = ctx.runfiles(
-                    files = test_runfiles,
-                    transitive_files = ctx.attr.runner.data_runfiles.files,
-                ),
+                runfiles = ctx.runfiles(files = test_runfiles)
+                    .merge(ctx.attr.runner.default_runfiles)
+                    .merge(ctx.attr.runner.data_runfiles),
             ),
         ] + extra_providers,
     )
