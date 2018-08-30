@@ -19,13 +19,13 @@ registered to generate these files.
 """
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
-
-def _infoplist(ctx):
-    """Returns a file reference for this target's Info.plist file."""
-    return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
 
 def _archive(ctx):
     """Returns a file reference for this target's archive."""
@@ -34,7 +34,19 @@ def _archive(ctx):
     # DefaultInfo.
     return ctx.outputs.archive
 
+def _archive_root_path(ctx):
+    """Returns a the path to a directory reference for this target's archive root."""
+
+    # TODO(b/65366691): Migrate this to an actual tree artifact.
+    archive_root_name = paths.replace_extension(_archive(ctx).path, "_archive-root")
+    return archive_root_name
+
+def _infoplist(ctx):
+    """Returns a file reference for this target's Info.plist file."""
+    return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
+
 outputs = struct(
-    infoplist = _infoplist,
     archive = _archive,
+    archive_root_path = _archive_root_path,
+    infoplist = _infoplist,
 )

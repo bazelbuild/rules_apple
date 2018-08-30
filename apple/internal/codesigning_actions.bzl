@@ -40,7 +40,8 @@ def _post_process_and_sign_archive_action(
         archive_codesigning_path,
         frameworks_path,
         input_archive,
-        output_archive):
+        output_archive,
+        output_archive_root_path):
     """Post-processes and signs an archived bundle.
 
     Args:
@@ -48,8 +49,10 @@ def _post_process_and_sign_archive_action(
       archive_codesigning_path: The codesigning path relative to the archive.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
-        that has not yet been processed or signed.
+          that has not yet been processed or signed.
       output_archive: The `File` representing the processed and signed archive.
+      output_archive_root_path: The `string` path to where the processed, uncompressed archive
+          should be located.
     """
     input_files = [input_archive]
 
@@ -101,11 +104,6 @@ def _post_process_and_sign_archive_action(
         ipa_post_processor_path = ipa_post_processor.path
         input_files.append(ipa_post_processor)
 
-    # The directory where the archive contents will be collected. This path is
-    # also passed out via the AppleBundleInfo provider so that external tools can
-    # access the bundle layout directly, saving them an extra unzipping step.
-    work_dir = paths.replace_extension(output_archive.path, ".archive-root")
-
     # Only compress the IPA for optimized (release) builds. For debug builds,
     # zip without compression, which will speed up the build.
     should_compress = (ctx.var["COMPILATION_MODE"] == "opt")
@@ -125,7 +123,7 @@ def _post_process_and_sign_archive_action(
             "%should_compress%": "1" if should_compress else "",
             "%signing_command_lines%": signing_command_lines,
             "%unprocessed_archive_path%": input_archive.path,
-            "%work_dir%": work_dir,
+            "%work_dir%": output_archive_root_path,
         },
     )
 
