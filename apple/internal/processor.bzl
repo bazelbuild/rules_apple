@@ -265,15 +265,15 @@ def _process(ctx, partials):
     archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
     frameworks_path = archive_paths[_LOCATION_ENUM.framework]
 
-    # TODO(kaipi): Replace this with a declared file. The archive extension is
-    # not yet available in the attributes (or product descriptor).
     output_archive = outputs.archive(ctx)
+    output_archive_root_path = outputs.archive_root_path(ctx)
     codesigning_actions.post_process_and_sign_archive_action(
         ctx,
         archive_codesigning_path,
         frameworks_path,
         unprocessed_archive,
         output_archive,
+        output_archive_root_path,
     )
 
     providers = []
