@@ -111,7 +111,10 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
         file_support.xctoolrunner_path(output_dir.path),
     ]
     args.extend(_ibtool_arguments(min_os, families))
-    args.extend([f.path for f in storyboardc_dirs])
+    args.extend([
+        file_support.xctoolrunner_path(f.path)
+        for f in storyboardc_dirs
+    ])
 
     platform_support.xcode_env_action(
         ctx,
