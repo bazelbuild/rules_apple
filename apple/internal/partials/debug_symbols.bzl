@@ -136,13 +136,6 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
 
 def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_provider = None):
     """Implementation for the debug symbols processing partial."""
-
-    # If there is no AppleDebugOutputs provider, return early.
-    if not debug_outputs_provider:
-        return struct()
-
-    bundle_name = bundling_support.bundle_name(ctx)
-
     deps_providers = [
         x[_AppleDebugInfo]
         for x in debug_dependencies
@@ -151,47 +144,53 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
     dsym_bundles = depset(transitive = [x.dsym_bundles for x in deps_providers])
     output_files = depset(transitive = [x.files for x in deps_providers])
+    output_providers = []
 
-    if ctx.fragments.objc.generate_dsym:
-        bundle_extension = bundling_support.bundle_extension(ctx)
-        dsym_files = _bundle_dsym_files(
-            ctx,
-            debug_outputs_provider,
-            bundle_name,
-            bundle_extension,
-        )
-        output_files = depset(
-            dsym_files,
-            transitive = [output_files],
-        )
+    if debug_outputs_provider:
+        output_providers.append(debug_outputs_provider)
 
-        absolute_dsym_bundle_path = paths.join(
-            ctx.bin_dir.path,
-            ctx.label.package,
-            bundle_name + bundle_extension + ".dSYM",
-        )
-        dsym_bundles = depset(
-            [absolute_dsym_bundle_path],
-            transitive = [dsym_bundles],
-        )
+        bundle_name = bundling_support.bundle_name(ctx)
 
-    if ctx.fragments.objc.generate_linkmap:
-        linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
-        output_files = depset(
-            linkmaps,
-            transitive = [output_files],
-        )
+        if ctx.fragments.objc.generate_dsym:
+            bundle_extension = bundling_support.bundle_extension(ctx)
+            dsym_files = _bundle_dsym_files(
+                ctx,
+                debug_outputs_provider,
+                bundle_name,
+                bundle_extension,
+            )
+            output_files = depset(
+                dsym_files,
+                transitive = [output_files],
+            )
+
+            absolute_dsym_bundle_path = paths.join(
+                ctx.bin_dir.path,
+                ctx.label.package,
+                bundle_name + bundle_extension + ".dSYM",
+            )
+            dsym_bundles = depset(
+                [absolute_dsym_bundle_path],
+                transitive = [dsym_bundles],
+            )
+
+        if ctx.fragments.objc.generate_linkmap:
+            linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
+            output_files = depset(
+                linkmaps,
+                transitive = [output_files],
+            )
+
+    output_providers.append(
+        _AppleDebugInfo(
+            dsym_bundles = dsym_bundles,
+            files = output_files,
+        ),
+    )
 
     return struct(
         output_files = output_files,
-        providers = [
-            _AppleDebugInfo(
-                dsym_bundles = dsym_bundles,
-                files = output_files,
-            ),
-            # Repropagate the AppleDebugOutputs provider.
-            debug_outputs_provider,
-        ],
+        providers = output_providers,
     )
 
 def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None):
