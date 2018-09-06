@@ -77,6 +77,11 @@ by IDEs to differentiate a test target's transitive module maps from its direct
 module maps, as including the direct module maps may break indexing for the
 source files of the immediate deps.
 """,
+        "module_name": """
+`string` representing the module name used by the test's sources. This is only
+set if the test only contains a single top-level Swift dependency. This may be
+used by an IDE to identify the Swift module (if any) used by the test's sources.
+""",
     },
 )
 
@@ -193,6 +198,7 @@ def _test_info_aspect_impl(target, ctx):
     module_maps = depset()
     swift_modules = depset()
     dep_labels = []
+    module_name = None
 
     # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
     # dep doesn't, just filter it out.
@@ -207,8 +213,12 @@ def _test_info_aspect_impl(target, ctx):
 
     # Combine the AppleTestInfo sources info from deps into one for apple_binary.
     if ctx.rule.kind == "apple_binary":
+        swift_infos = []
         for dep in deps:
             dep_labels.append(str(dep.label))
+
+            if SwiftInfo in dep:
+                swift_infos.append(dep[SwiftInfo])
 
             test_info = dep[AppleTestInfo]
             sources = _merge_depsets(test_info.sources, sources)
@@ -216,6 +226,13 @@ def _test_info_aspect_impl(target, ctx):
                 test_info.non_arc_sources,
                 non_arc_sources,
             )
+
+        # Set module_name only for test targets with a single Swift dependency.
+        # This is not used if there are multiple Swift dependencies, as it will
+        # not be possible to reduce them into a single Swift module and picking
+        # an arbitrary one is fragile.
+        if len(swift_infos) == 1:
+            module_name = getattr(swift_infos[0], "module_name", None)
     else:
         # Collect sources from the current target and add any relevant transitive
         # information. Note that we do not propagate sources transitively as we
@@ -252,6 +269,7 @@ def _test_info_aspect_impl(target, ctx):
         module_maps = module_maps,
         swift_modules = swift_modules,
         deps = depset(dep_labels),
+        module_name = module_name,
     )]
 
 test_info_aspect = aspect(
