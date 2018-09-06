@@ -146,8 +146,11 @@ def _coverage_files_aspect_impl(target, ctx):
     return struct(providers = [CoverageFiles(coverage_files = coverage_files)])
 
 coverage_files_aspect = aspect(
-    implementation = _coverage_files_aspect_impl,
-    attr_aspects = ["binary", "deps", "test_host"],
+    attr_aspects = [
+        "binary",
+        "deps",
+        "test_host",
+    ],
     doc = """
 This aspect walks the dependency graph through the `binary`, `deps` and
 `test_host` attributes and collects all the sources and headers that are
@@ -157,6 +160,7 @@ a test run.
 This aspect propagates a `CoverageFiles` provider which is just a set that
 contains all the `srcs` and `hdrs` files.
 """,
+    implementation = _coverage_files_aspect_impl,
 )
 
 def _collect_files(rule_attr, attr_name):
@@ -251,8 +255,10 @@ def _test_info_aspect_impl(target, ctx):
     )]
 
 test_info_aspect = aspect(
-    implementation = _test_info_aspect_impl,
-    attr_aspects = ["binary", "deps"],
+    attr_aspects = [
+        "binary",
+        "deps",
+    ],
     doc = """
 This aspect walks the dependency graph through the `binary` and `deps`
 attributes and collects sources, transitive includes, transitive module maps,
@@ -260,6 +266,7 @@ and transitive Swift modules.
 
 This aspect propagates an `AppleTestInfo` provider.
 """,
+    implementation = _test_info_aspect_impl,
 )
 
 def _apple_test_common_attributes():
@@ -374,21 +381,22 @@ def _apple_test_impl(ctx, test_type):
     execution_requirements = runner.execution_requirements
     test_environment = runner.test_environment
 
-    test_runfiles = [ctx.outputs.test_bundle]
+    direct_runfiles = [ctx.outputs.test_bundle]
+    transitive_runfiles = []
     test_host = ctx.attr.test_host
     if test_host:
-        test_runfiles.append(test_host[AppleBundleInfo].archive)
+        direct_runfiles.append(test_host[AppleBundleInfo].archive)
 
     if ctx.configuration.coverage_enabled:
         test_environment = dicts.add(
             test_environment,
             _get_coverage_test_environment(ctx),
         )
-        test_runfiles.extend(
-            list(ctx.attr.test_bundle[CoverageFiles].coverage_files),
+        transitive_runfiles.append(
+            ctx.attr.test_bundle[CoverageFiles].coverage_files,
         )
-        test_runfiles.extend(ctx.attr._gcov.files.to_list())
-        test_runfiles.extend(ctx.attr._mcov.files.to_list())
+        transitive_runfiles.append(ctx.attr._gcov.files)
+        transitive_runfiles.append(ctx.attr._mcov.files)
 
     file_actions.symlink(
         ctx,
@@ -406,7 +414,7 @@ def _apple_test_impl(ctx, test_type):
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
-        test_runfiles.extend(data_dep.files.to_list())
+        transitive_runfiles.append(data_dep.files)
 
     outputs = depset([ctx.outputs.test_bundle, executable])
 
@@ -435,7 +443,10 @@ def _apple_test_impl(ctx, test_type):
             DefaultInfo(
                 executable = executable,
                 files = outputs,
-                runfiles = ctx.runfiles(files = test_runfiles)
+                runfiles = ctx.runfiles(
+                    files = direct_runfiles,
+                    transitive_files = depset(transitive = transitive_runfiles),
+                )
                     .merge(ctx.attr.runner.default_runfiles)
                     .merge(ctx.attr.runner.data_runfiles),
             ),
@@ -451,7 +462,6 @@ def _apple_ui_test_impl(ctx):
     return _apple_test_impl(ctx, "xcuitest")
 
 apple_ui_test = rule(
-    implementation = _apple_ui_test_impl,
     attrs = _apple_ui_test_attributes(),
     doc = """
 Rule to execute UI (XCUITest) tests for a generic Apple platform.
@@ -462,11 +472,15 @@ Outputs:
       when executing `bazel build` on this target.
   executable: The test script to be executed to run the tests.
 """,
-    fragments = ["apple", "objc"],
+    fragments = [
+        "apple",
+        "objc",
+    ],
     outputs = {
         "test_bundle": "%{name}.zip",
     },
     test = True,
+    implementation = _apple_ui_test_impl,
 )
 
 apple_unit_test = rule(
@@ -481,7 +495,10 @@ Outputs:
       when executing `bazel build` on this target.
   executable: The test script to be executed to run the tests.
 """,
-    fragments = ["apple", "objc"],
+    fragments = [
+        "apple",
+        "objc",
+    ],
     outputs = {
         "test_bundle": "%{name}.zip",
     },
