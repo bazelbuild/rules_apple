@@ -36,6 +36,13 @@ where the signed bundle was constructed (before archiving). Other rules
 want to read that path from the provider to avoid unzipping the output
 archive.
 """,
+        "binary": """
+`File`. The binary (executable, dynamic library, etc.) that was bundled. The
+physical file is identical to the one inside the bundle except that it is
+always unsigned, so note that it is _not_ a path to the binary inside your
+output bundle. The primary purpose of this field is to provide a way to access
+the binary directly at analysis time; for example, for code coverage.
+""",
         "bundle_dir": "`File`. The directory that represents the bundle.",
         "bundle_id": """
 `string`. The bundle identifier (i.e., `CFBundleIdentifier` in

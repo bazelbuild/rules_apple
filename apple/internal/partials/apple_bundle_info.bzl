@@ -57,6 +57,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
             AppleBundleInfo(
                 archive = outputs.archive(ctx),
                 archive_root = outputs.archive_root_path(ctx),
+                binary = None,
                 bundle_dir = None,
                 bundle_id = bundle_id,
                 bundle_name = bundling_support.bundle_name(ctx),
