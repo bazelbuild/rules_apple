@@ -1288,6 +1288,7 @@ def _run(
                       getattr(ctx.attr, "_extension_safe", False))
     apple_bundle_info_args = {
         "archive": ctx.outputs.archive,
+        "binary": binary_artifact,
         "bundle_dir": bundle_dir,
         "bundle_extension": bundling_support.bundle_extension(ctx),
         "bundle_id": bundle_id,
