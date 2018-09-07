@@ -19,16 +19,12 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
     "file_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
@@ -39,16 +35,12 @@ def _binary_partial_impl(ctx, binary_artifact):
     """Implementation for the binary processing partial."""
 
     # Create intermediate file with proper name for the binary.
-    intermediate_file = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
-        bundling_support.bundle_name(ctx),
-    )
-    file_actions.symlink(ctx, binary_artifact, intermediate_file)
+    output_binary = outputs.binary(ctx)
+    file_actions.symlink(ctx, binary_artifact, output_binary)
 
     return struct(
         bundle_files = [
-            (processor.location.binary, None, depset([intermediate_file])),
+            (processor.location.binary, None, depset([output_binary])),
         ],
     )
 

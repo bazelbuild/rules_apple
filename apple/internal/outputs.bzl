@@ -23,6 +23,10 @@ load(
     "paths",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -35,11 +39,19 @@ def _archive(ctx):
     return ctx.outputs.archive
 
 def _archive_root_path(ctx):
-    """Returns a the path to a directory reference for this target's archive root."""
+    """Returns the path to a directory reference for this target's archive root."""
 
     # TODO(b/65366691): Migrate this to an actual tree artifact.
     archive_root_name = paths.replace_extension(_archive(ctx).path, "_archive-root")
     return archive_root_name
+
+def _binary(ctx):
+    """Returns a file reference for the binary that will be packaged into this target's archive. """
+    return intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        bundling_support.bundle_name(ctx),
+    )
 
 def _infoplist(ctx):
     """Returns a file reference for this target's Info.plist file."""
@@ -48,5 +60,6 @@ def _infoplist(ctx):
 outputs = struct(
     archive = _archive,
     archive_root_path = _archive_root_path,
+    binary = _binary,
     infoplist = _infoplist,
 )

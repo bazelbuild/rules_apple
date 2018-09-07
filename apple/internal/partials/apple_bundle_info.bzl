@@ -51,14 +51,12 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
         # If there's no bundle ID, don't add the Info.plist file into AppleBundleInfo.
         infoplist = outputs.infoplist(ctx)
 
-    # TODO(kaipi): Fill in missing file fields.
     return struct(
         providers = [
             AppleBundleInfo(
                 archive = outputs.archive(ctx),
                 archive_root = outputs.archive_root_path(ctx),
-                binary = None,
-                bundle_dir = None,
+                binary = outputs.binary(ctx),
                 bundle_id = bundle_id,
                 bundle_name = bundling_support.bundle_name(ctx),
                 bundle_extension = bundling_support.bundle_extension(ctx),
