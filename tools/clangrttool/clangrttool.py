@@ -26,6 +26,7 @@ import os
 import sys
 import zipfile
 
+# Third party imports
 from macholib.MachO import MachO
 from macholib import mach_o
 from macholib.ptypes import sizeof
@@ -62,11 +63,12 @@ class ClangRuntimeTool(object):
     self._output_zip_path = output_zip_path
 
   def _get_rpath(self, header):
-    """Returns a generator of RPATH values in the header."""
+    """Returns a generator of RPATH string values in the header."""
     for (idx, (lc, cmd, data)) in enumerate(header.commands):
       if lc.cmd == mach_o.LC_RPATH:
         ofs = cmd.path - sizeof(lc.__class__) - sizeof(cmd.__class__)
-        yield data[ofs:data.find('\x00', ofs)]
+        yield data[ofs:data.find(b'\x00', ofs)].decode(
+            sys.getfilesystemencoding())
 
   def _get_xcode_clang_path(self, header):
     """Returns the path to the clang directory inside of Xcode.
