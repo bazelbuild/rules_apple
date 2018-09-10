@@ -114,7 +114,7 @@ def ios_application_impl(ctx):
             ),
             partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
             partials.debug_symbols_partial(
-                debug_dependencies = ctx.attr.frameworks + ctx.attr.extensions,
+                debug_dependencies = embeddable_targets,
                 debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             ),
             partials.swift_dylibs_partial(
