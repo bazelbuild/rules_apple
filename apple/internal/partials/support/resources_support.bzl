@@ -51,6 +51,41 @@ load(
     "resource_actions",
 )
 
+def _asset_catalogs(ctx, parent_dir, files):
+    """Processes asset catalog files."""
+
+    # Only merge the resulting plist for the top level bundle. For resource
+    # bundles, skip generating the plist.
+    assets_plist = None
+    infoplists = []
+    if not parent_dir:
+        # TODO(kaipi): Merge this into the top level Info.plist.
+        assets_plist_path = paths.join(parent_dir or "", "xcassets-info.plist")
+        assets_plist = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            assets_plist_path,
+        )
+        infoplists.append(assets_plist)
+
+    assets_dir = intermediates.directory(
+        ctx.actions,
+        ctx.label.name,
+        paths.join(parent_dir or "", "xcassets"),
+    )
+
+    resource_actions.compile_asset_catalog(
+        ctx,
+        files.to_list(),
+        assets_dir,
+        assets_plist,
+    )
+
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(direct = [assets_dir]))],
+        infoplists = infoplists,
+    )
+
 def _datamodels(ctx, parent_dir, files, swift_module):
     datamodel_files = files.to_list()
 
@@ -118,8 +153,8 @@ def _infoplists(ctx, parent_dir, files):
 
     If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
     merged into one. If parent_dir is empty (or None), the files are be treated as root level
-    infoplist and returned to be processed along with other root plists (e.g. xcassets returns a
-    plist that needs to be merged into the root.).
+    infoplist and returned to be processed along with other root plists (e.g. asset catalog
+    processing returns a plist that needs to be merged into the root).
 
     Args:
         ctx: The target's context.
@@ -344,41 +379,6 @@ def _texture_atlases(ctx, parent_dir, files):
         ],
     )
 
-def _xcassets(ctx, parent_dir, files):
-    """Processes xcasset files."""
-
-    # Only merge the resulting plist for the top level bundle. For resource
-    # bundles, skip generating the plist.
-    assets_plist = None
-    infoplists = []
-    if not parent_dir:
-        # TODO(kaipi): Merge this into the top level Info.plist.
-        assets_plist_path = paths.join(parent_dir or "", "xcassets-info.plist")
-        assets_plist = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
-            assets_plist_path,
-        )
-        infoplists.append(assets_plist)
-
-    assets_dir = intermediates.directory(
-        ctx.actions,
-        ctx.label.name,
-        paths.join(parent_dir or "", "xcassets"),
-    )
-
-    resource_actions.compile_asset_catalog(
-        ctx,
-        files.to_list(),
-        assets_dir,
-        assets_plist,
-    )
-
-    return struct(
-        files = [(processor.location.resource, parent_dir, depset(direct = [assets_dir]))],
-        infoplists = infoplists,
-    )
-
 def _xibs(ctx, parent_dir, files, swift_module):
     """Processes Xib files."""
     swift_module = swift_module or ctx.label.name
@@ -398,6 +398,7 @@ def _noop(ctx, parent_dir, files):
     return struct(files = [(processor.location.resource, parent_dir, files)])
 
 resources_support = struct(
+    asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,
     mappingmodels = _mappingmodels,
@@ -407,6 +408,5 @@ resources_support = struct(
     resource_zips = _resource_zips,
     storyboards = _storyboards,
     texture_atlases = _texture_atlases,
-    xcassets = _xcassets,
     xibs = _xibs,
 )
