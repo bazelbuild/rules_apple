@@ -254,8 +254,8 @@ def _resources_partial_impl(
     # Map of resource provider fields to a tuple that contains the method to use to process those
     # resources and a boolean indicating whether the Swift module is required for that processing.
     provider_field_to_action = {
+        "asset_catalogs": (resources_support.asset_catalogs, False),
         "datamodels": (resources_support.datamodels, True),
-        "generics": (resources_support.noop, False),
         "infoplists": (resources_support.infoplists, False),
         "mappingmodels": (resources_support.mappingmodels, False),
         "plists": (resources_support.plists_and_strings, False),
@@ -265,7 +265,7 @@ def _resources_partial_impl(
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),
-        "xcassets": (resources_support.xcassets, False),
+        "unprocessed": (resources_support.noop, False),
         "xibs": (resources_support.xibs, True),
     }
 
