@@ -79,7 +79,7 @@ load(
 NewAppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     fields = {
-        "generics": "Generic resources not mapped to the other types.",
+        "asset_catalogs": "Resources that need to be embedded into Assets.car.",
         "datamodels": "Datamodel files.",
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
@@ -92,7 +92,7 @@ only be bucketed with the `bucketize_typed` method.""",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "texture_atlases": "Texture atlas files.",
-        "xcassets": "Resources that need to be embedded into Assets.car.",
+        "unprocessed": "Generic resources not mapped to the other types.",
         "xibs": "XIB Interface files.",
         "owners": """Map of resource short paths to a depset of strings that represent targets that
 declare ownership of that resource.""",
@@ -128,8 +128,8 @@ def _bucketize(
     should be placed in the root level.
 
     If no bucket was detected based on the short path for a specific resource, it will be placed
-    into the "generics" bucket. Resources in this bucket will not be processed and will be copied as
-    is. Once all resources have been placed in buckets, each of the lists will be minimized.
+    into the "unprocessed" bucket. Resources in this bucket will not be processed and will be copied
+    as is. Once all resources have been placed in buckets, each of the lists will be minimized.
 
     Finally, it will return a NewAppleResourceInfo provider with the resources bucketed per type.
 
@@ -142,7 +142,7 @@ def _bucketize(
             each resource. If it is a struct, it will be considered a partial context, and will be
             invoked with partial.call().
         avoid_buckets: List of buckets to avoid when bucketing. Used to mark certain file types to
-            avoid being processed, as they will fall into the "generics" bucket.
+            avoid being processed, as they will fall into the "unprocessed" bucket.
 
     Returns:
         A NewAppleResourceInfo provider with resources bucketized according to type.
@@ -194,7 +194,7 @@ def _bucketize(
             ).append((parent, swift_module, depset(direct = [resource])))
         elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
             buckets.setdefault(
-                "xcassets",
+                "asset_catalogs",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
         elif ".xcdatamodel" in resource_short_path:
@@ -227,7 +227,7 @@ def _bucketize(
             ).append((parent, None, depset(direct = [resource])))
         else:
             buckets.setdefault(
-                "generics",
+                "unprocessed",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
 
