@@ -84,7 +84,6 @@ NewAppleResourceInfo = provider(
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
 only be bucketed with the `bucketize_typed` method.""",
-        "mappingmodels": "Datamodel mapping files.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
         # TODO(b/113252360): Remove this once we can correctly process Fileset files.
@@ -197,16 +196,11 @@ def _bucketize(
                 "asset_catalogs",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
-        elif ".xcdatamodel" in resource_short_path:
+        elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
             buckets.setdefault(
                 "datamodels",
                 default = [],
             ).append((parent, swift_module, depset(direct = [resource])))
-        elif ".xcmappingmodel/" in resource_short_path:
-            buckets.setdefault(
-                "mappingmodels",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
         elif ".atlas" in resource_short_path:
             buckets.setdefault(
                 "texture_atlases",

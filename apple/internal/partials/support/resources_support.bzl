@@ -51,6 +51,61 @@ load(
     "resource_actions",
 )
 
+def _compile_datamodels(ctx, parent_dir, swift_module, datamodel_groups):
+    "Compiles datamodels into mom files."
+    output_files = []
+    module_name = swift_module or ctx.label.name
+    for datamodel_path, files in datamodel_groups.items():
+        datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
+
+        datamodel_parent = parent_dir
+        if datamodel_path.endswith(".xcdatamodeld"):
+            basename = datamodel_name + ".momd"
+            output_file = intermediates.directory(
+                ctx.actions,
+                ctx.label.name,
+                basename,
+            )
+            datamodel_parent = paths.join(datamodel_parent or "", basename)
+        else:
+            output_file = intermediates.file(
+                ctx.actions,
+                ctx.label.name,
+                datamodel_name + ".mom",
+            )
+
+        resource_actions.compile_datamodels(
+            ctx,
+            datamodel_path,
+            module_name,
+            files.to_list(),
+            output_file,
+        )
+        output_files.append(
+            (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
+        )
+
+    return output_files
+
+def _compile_mappingmodels(ctx, parent_dir, mappingmodel_groups):
+    """Compiles mapping models into cdm files."""
+    output_files = []
+    for mappingmodel_path, input_files in mappingmodel_groups.items():
+        compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
+        output_file = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            paths.join(parent_dir or "", compiled_model_name),
+        )
+
+        resource_actions.compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file)
+
+        output_files.append(
+            (processor.location.resource, parent_dir, depset(direct = [output_file])),
+        )
+
+    return output_files
+
 def _asset_catalogs(ctx, parent_dir, files):
     """Processes asset catalog files."""
 
@@ -87,64 +142,45 @@ def _asset_catalogs(ctx, parent_dir, files):
     )
 
 def _datamodels(ctx, parent_dir, files, swift_module):
+    "Processes datamodel related files."
     datamodel_files = files.to_list()
 
-    standalone_models = []
-    grouped_models = []
+    standalone_datamodels = []
+    grouped_datamodels = []
+    mappingmodels = []
 
     # Split the datamodels into whether they are inside an xcdatamodeld bundle or not.
     for datamodel in datamodel_files:
-        if ".xcdatamodeld/" in datamodel.short_path:
-            grouped_models.append(datamodel)
+        datamodel_short_path = datamodel.short_path
+        if ".xcmappingmodel/" in datamodel_short_path:
+            mappingmodels.append(datamodel)
+        elif ".xcdatamodeld/" in datamodel_short_path:
+            grouped_datamodels.append(datamodel)
         else:
-            standalone_models.append(datamodel)
+            standalone_datamodels.append(datamodel)
 
     # Create a map of highest-level datamodel bundle to the files it contains. Datamodels can be
     # present within standalone .xcdatamodel/ folders or in a versioned bundle, in which many
     # .xcdatamodel/ are contained inside an .xcdatamodeld/ bundle. .xcdatamodeld/ bundles are
     # processed altogether, while .xcdatamodel/ bundles are processed by themselves.
     datamodel_groups = group_files_by_directory(
-        grouped_models,
+        grouped_datamodels,
         ["xcdatamodeld"],
         attr = "datamodels",
     )
     datamodel_groups.update(group_files_by_directory(
-        standalone_models,
+        standalone_datamodels,
         ["xcdatamodel"],
         attr = "datamodels",
     ))
+    mappingmodel_groups = group_files_by_directory(
+        mappingmodels,
+        ["xcmappingmodel"],
+        attr = "resources",
+    )
 
-    output_files = []
-    module_name = swift_module or ctx.label.name
-    for datamodel_path, files in datamodel_groups.items():
-        datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
-
-        datamodel_parent = parent_dir
-        if datamodel_path.endswith(".xcdatamodeld"):
-            basename = datamodel_name + ".momd"
-            output_file = intermediates.directory(
-                ctx.actions,
-                ctx.label.name,
-                basename,
-            )
-            datamodel_parent = paths.join(datamodel_parent or "", basename)
-        else:
-            output_file = intermediates.file(
-                ctx.actions,
-                ctx.label.name,
-                datamodel_name + ".mom",
-            )
-
-        resource_actions.compile_datamodels(
-            ctx,
-            datamodel_path,
-            module_name,
-            files.to_list(),
-            output_file,
-        )
-        output_files.append(
-            (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
-        )
+    output_files = list(_compile_datamodels(ctx, parent_dir, swift_module, datamodel_groups))
+    output_files.extend(_compile_mappingmodels(ctx, parent_dir, mappingmodel_groups))
 
     return struct(files = output_files)
 
@@ -185,31 +221,6 @@ def _infoplists(ctx, parent_dir, files):
         )
     else:
         return struct(files = [], infoplists = files.to_list())
-
-def _mappingmodels(ctx, parent_dir, files):
-    """Processes mapping models."""
-    grouped_mappingmodels = group_files_by_directory(
-        files.to_list(),
-        ["xcmappingmodel"],
-        attr = "resources",
-    )
-
-    output_files = []
-    for mappingmodel_path, input_files in grouped_mappingmodels.items():
-        compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
-        output_file = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
-            paths.join(parent_dir or "", compiled_model_name),
-        )
-
-        resource_actions.compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file)
-
-        output_files.append(
-            (processor.location.resource, parent_dir, depset(direct = [output_file])),
-        )
-
-    return struct(files = output_files)
 
 def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
     """Processes plists and string files.
@@ -401,7 +412,6 @@ resources_support = struct(
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,
-    mappingmodels = _mappingmodels,
     noop = _noop,
     plists_and_strings = _plists_and_strings,
     pngs = _pngs,
