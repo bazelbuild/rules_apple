@@ -317,3 +317,8 @@ test_suite(
         # ":ButtonsMacUITests",
     ],
 )
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+)
