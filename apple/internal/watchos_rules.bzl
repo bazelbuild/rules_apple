@@ -31,10 +31,6 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:embedded_bundles.bzl",
-    "collect_embedded_bundle_provider",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -68,7 +64,11 @@ def watchos_application_impl(ctx):
         partials.bitcode_symbols_partial(dependency_targets = [ctx.attr.extension]),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
-        partials.embedded_bundles_partial(targets = [ctx.attr.extension]),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = [ctx.attr.extension],
+            watch_bundles = [ctx.outputs.archive],
+        ),
         partials.resources_partial(
             bundle_id = bundle_id,
             bundle_verification_targets = bundle_verification_targets,
@@ -90,15 +90,10 @@ def watchos_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    embedded_bundles_provider = collect_embedded_bundle_provider(
-        watches = [ctx.outputs.archive],
-    )
-
     return [
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        embedded_bundles_provider,
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
@@ -124,6 +119,7 @@ def watchos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
@@ -139,17 +135,9 @@ def watchos_extension_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # This can't be made into a partial as it needs the output archive
-    # reference.
-    # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
-    embedded_bundles_provider = collect_embedded_bundle_provider(
-        plugins = [ctx.outputs.archive],
-    )
-
     return [
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        embedded_bundles_provider,
         WatchosExtensionBundleInfo(),
     ] + processor_result.providers
