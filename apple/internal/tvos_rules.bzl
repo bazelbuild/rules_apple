@@ -27,10 +27,6 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:embedded_bundles.bzl",
-    "collect_embedded_bundle_provider",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
@@ -73,7 +69,10 @@ def tvos_application_impl(ctx):
             debug_dependencies = ctx.attr.extensions,
             debug_outputs_provider = debug_outputs_provider,
         ),
-        partials.embedded_bundles_partial(targets = embeddable_targets),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = embeddable_targets,
+        ),
         partials.resources_partial(
             bundle_id = bundle_id,
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
@@ -141,6 +140,7 @@ def tvos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
@@ -158,17 +158,9 @@ def tvos_extension_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # This can't be made into a partial as it needs the output archive
-    # reference.
-    # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
-    embedded_bundles_provider = collect_embedded_bundle_provider(
-        plugins = [ctx.outputs.archive],
-    )
-
     return [
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        embedded_bundles_provider,
         TvosExtensionBundleInfo(),
     ] + processor_result.providers

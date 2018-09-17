@@ -31,10 +31,6 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:embedded_bundles.bzl",
-    "collect_embedded_bundle_provider",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
@@ -81,7 +77,10 @@ def ios_application_impl(ctx):
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.embedded_bundles_partial(targets = embeddable_targets),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = embeddable_targets,
+        ),
         partials.framework_import_partial(
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
@@ -187,6 +186,10 @@ def ios_framework_impl(ctx):
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
+        partials.embedded_bundles_partial(
+            frameworks = [ctx.outputs.archive],
+            embeddable_targets = ctx.attr.frameworks,
+        ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(),
@@ -204,16 +207,8 @@ def ios_framework_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # This can't be made into a partial as it needs the output archive reference.
-    # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
-    embedded_bundles_provider = collect_embedded_bundle_provider(
-        frameworks = [ctx.outputs.archive],
-        targets = ctx.attr.frameworks,
-    )
-
     return [
         DefaultInfo(files = processor_result.output_files),
-        embedded_bundles_provider,
         IosFrameworkBundleInfo(),
     ] + processor_result.providers
 
@@ -239,6 +234,10 @@ def ios_extension_impl(ctx):
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
+        partials.embedded_bundles_partial(
+            plugins = [ctx.outputs.archive],
+            embeddable_targets = ctx.attr.frameworks,
+        ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             bundle_id = bundle_id,
@@ -278,19 +277,10 @@ def ios_extension_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # This can't be made into a partial as it needs the output archive
-    # reference.
-    # TODO(kaipi): Remove direct reference to ctx.outputs.archive.
-    embedded_bundles_provider = collect_embedded_bundle_provider(
-        plugins = [ctx.outputs.archive],
-        targets = ctx.attr.frameworks,
-    )
-
     return [
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        embedded_bundles_provider,
         IosExtensionBundleInfo(),
     ] + processor_result.providers
 
