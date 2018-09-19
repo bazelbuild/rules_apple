@@ -234,9 +234,19 @@ def _macos_bundle_impl(ctx):
 
     # TODO(b/36557429): Add support for macOS frameworks.
 
+    binary_provider_type = apple_common.AppleLoadableBundleBinary
+
+    # Kernel extensions on macOS have a mach header file type of MH_KEXT_BUNDLE.
+    # The -kext linker flag is used to produce these binaries.
+    # No userspace technologies can be linked into a KEXT.
+    # Using an "executable" to get around the extra userspace linker flags
+    # that are added to a "loadable_bundle".
+    if ctx.attr.product_type == apple_product_type.kernel_extension:
+        binary_provider_type = apple_common.AppleExecutableBinary
+
     binary_provider = binary_support.get_binary_provider(
         ctx.attr.deps,
-        apple_common.AppleLoadableBundleBinary,
+        binary_provider_type,
     )
     binary_artifact = binary_provider.binary
     deps_objc_providers = providers.find_all(ctx.attr.deps, apple_common.Objc)
@@ -275,7 +285,10 @@ macos_bundle = rule_factory.make_bundling_rule(
         },
     ),
     archive_extension = ".zip",
-    binary_providers = [apple_common.AppleLoadableBundleBinary],
+    binary_providers = [
+        [apple_common.AppleLoadableBundleBinary],
+        [apple_common.AppleExecutableBinary],
+    ],
     bundles_frameworks = True,
     code_signing = rule_factory.code_signing(
         ".provisionprofile",
