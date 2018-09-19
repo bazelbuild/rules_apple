@@ -20,6 +20,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "product_support",
 )
 load(
@@ -355,6 +359,11 @@ def _create_linked_binary_target(
         ),
     ]
 
+    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    additional_linkopts = ["-rpath", "@executable_path/../../Frameworks"]
+    if bundling_args.get("product_type") == apple_product_type.kernel_extension:
+        additional_linkopts = []
+
     # Link the executable from any library deps provided. Pass the entitlements
     # target as an extra dependency to the binary rule to pick up the extra
     # linkopts (if any) propagated by it.
@@ -366,7 +375,7 @@ def _create_linked_binary_target(
         dylibs = kwargs.get("frameworks"),
         extension_safe = extension_safe,
         features = kwargs.get("features"),
-        linkopts = linkopts + ["-rpath", "@executable_path/../../Frameworks"],
+        linkopts = linkopts + additional_linkopts,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         sdk_frameworks = sdk_frameworks,
@@ -447,6 +456,15 @@ def _create_binary(
             **args_copy
         )
     else:
+        if product_type_descriptor and product_type_descriptor.bundle_extension == ".kext":
+            # KEXTs are of file type MH_KEXT_BUNDLE, not MH_BUNDLE.
+            # Use "executable" and the kernel_extension feature to set the proper link flags.
+            binary_type = "executable"
+
+            # Disables c++ stdlib and Foundation linking. Adds -kext linker flag.
+            features = args_copy.get("features", [])
+            features += ["kernel_extension"]
+            args_copy["features"] = features
         return _create_linked_binary_target(
             name,
             platform_type,

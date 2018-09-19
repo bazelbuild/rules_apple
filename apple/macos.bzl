@@ -183,15 +183,18 @@ def macos_bundle(name, **kwargs):
         binary_args["bundle_loader"] = bundle_loader
 
     # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    features = []
     linkopts = binary_args.get("linkopts", [])
-    linkopts += ["-rpath", "@executable_path/../Frameworks"]
+    if binary_args.get("product_type") != apple_product_type.kernel_extension:
+        features.append("link_cocoa")
+        linkopts += ["-rpath", "@executable_path/../Frameworks"]
     binary_args["linkopts"] = linkopts
 
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
         binary_type = "loadable_bundle",
-        features = ["link_cocoa"],
+        features = features,
         **binary_args
     )
 
