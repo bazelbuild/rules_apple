@@ -18,11 +18,39 @@ load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
     "AppleTestRunner",
 )
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "is_xcode_at_least_version",
+)
 
-def _get_template_substitutions(ctx):
+def _get_xctestrun_template_substitutions(ctx):
+    """Returns the template substitutions for the xctestrun template."""
+    xcode_version = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    # Xcode 10 introduced new dylibs that are required when running unit tests, so we need to
+    # provide different values in the xctestrun file that describes the test.
+    # TODO(kaipi): Revisit this when Nitro has support for macOS. Nitro should be the one detecting
+    #              Xcode version and configuring it appropriately.
+    if is_xcode_at_least_version(xcode_version, "10.0"):
+        xctestrun_insert_libraries = [
+            "__PLATFORMS__/MacOSX.platform/Developer/usr/lib/libXCTestBundleInject.dylib",
+            "__DEVELOPERUSRLIB__/libMainThreadChecker.dylib",
+        ]
+    else:
+        xctestrun_insert_libraries = [
+            "__PLATFORMS__/MacOSX.platform/Developer/Library/PrivateFrameworks/IDEBundleInjection.framework/IDEBundleInjection",
+        ]
+
+    subs = {
+        "xctestrun_insert_libraries": ":".join(xctestrun_insert_libraries),
+    }
+
+    return {"%(" + k + ")s": subs[k] for k in subs}
+
+def _get_template_substitutions(xctestrun_template):
     """Returns the template substitutions for this runner."""
     subs = {
-        "xctestrun_template": ctx.file._xctestrun_template.short_path,
+        "xctestrun_template": xctestrun_template.short_path,
     }
 
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -38,10 +66,20 @@ def _get_test_environment(ctx):
 
 def _macos_test_runner_impl(ctx):
     """Implementation for the macos_runner rule."""
+    preprocessed_xctestrun_template = ctx.actions.declare_file(
+        "{}.generated.xctestrun".format(ctx.label.name),
+    )
+
+    ctx.actions.expand_template(
+        template = ctx.file._xctestrun_template,
+        output = preprocessed_xctestrun_template,
+        substitutions = _get_xctestrun_template_substitutions(ctx),
+    )
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
-        substitutions = _get_template_substitutions(ctx),
+        substitutions = _get_template_substitutions(preprocessed_xctestrun_template),
     )
 
     return [
@@ -52,7 +90,7 @@ def _macos_test_runner_impl(ctx):
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
-                files = [ctx.file._xctestrun_template],
+                files = [preprocessed_xctestrun_template],
             ),
         ),
     ]

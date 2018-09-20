@@ -17,7 +17,7 @@
 			<key>DYLD_LIBRARY_PATH</key>
 			<string>__PLATFORMS__/MacOSX.platform/Developer/Library/Frameworks:__SHAREDFRAMEWORKS__</string>
 			<key>DYLD_INSERT_LIBRARIES</key>
-			<string>__PLATFORMS__/MacOSX.platform/Developer/Library/PrivateFrameworks/IDEBundleInjection.framework/IDEBundleInjection</string>
+			<string>%(xctestrun_insert_libraries)s</string>
 			<key>XCInjectBundleInto</key>
 			<string>BAZEL_TEST_HOST_BINARY</string>
 		</dict>
