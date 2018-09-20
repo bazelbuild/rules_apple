@@ -34,68 +34,95 @@ Frameworks section of the packaging bundle.""",
         "plugins": """
 A depset with the zipped archives of bundles that need to be expanded into the
 PlugIns section of the packaging bundle.""",
-        "watches": """
-A depset with the zipped archives of bundles that need to be expanded into the Watch secttion of
+        "watch_bundles": """
+A depset with the zipped archives of bundles that need to be expanded into the Watch section of
 the packaging bundle. Only applicable for iOS applications.""",
     },
 )
 
-def collect_embedded_bundle_provider(frameworks = [], plugins = [], watches = [], targets = []):
-    """Collects embeddable bundles into a single AppleEmbeddableInfo provider."""
-    embeddable_providers = [
-        x[_AppleEmbeddableInfo]
-        for x in targets
-        if _AppleEmbeddableInfo in x
-    ]
-
-    framework_bundles = depset(frameworks)
-    plugin_bundles = depset(plugins)
-    watch_bundles = depset(watches)
-    for provider in embeddable_providers:
-        framework_bundles = depset(transitive = [framework_bundles, provider.frameworks])
-        plugin_bundles = depset(transitive = [plugin_bundles, provider.plugins])
-        watch_bundles = depset(transitive = [watch_bundles, provider.watches])
-
-    return _AppleEmbeddableInfo(
-        frameworks = framework_bundles,
-        plugins = plugin_bundles,
-        watches = watch_bundles,
-    )
-
-def _embedded_bundles_partial_impl(ctx, targets = []):
+def _embedded_bundles_partial_impl(
+        ctx,
+        bundle_embedded_bundles,
+        embeddable_targets,
+        frameworks,
+        plugins,
+        watch_bundles):
     """Implementation for the embedded bundles processing partial."""
     _ignore = [ctx]
 
-    embeddable_provider = collect_embedded_bundle_provider(targets = targets)
-
-    bundle_files = [
-        (processor.location.framework, None, embeddable_provider.frameworks),
-        (processor.location.plugin, None, embeddable_provider.plugins),
-        (processor.location.watch, None, embeddable_provider.watches),
+    embeddable_providers = [
+        x[_AppleEmbeddableInfo]
+        for x in embeddable_targets
+        if _AppleEmbeddableInfo in x
     ]
+
+    transitive_frameworks = []
+    transitive_plugins = []
+    transitive_watch_bundles = []
+    for provider in embeddable_providers:
+        transitive_frameworks.append(provider.frameworks)
+        transitive_plugins.append(provider.plugins)
+        transitive_watch_bundles.append(provider.watch_bundles)
+
+    bundle_files = []
+    if bundle_embedded_bundles:
+        bundle_files.extend([
+            (processor.location.framework, None, depset(transitive = transitive_frameworks)),
+            (processor.location.plugin, None, depset(transitive = transitive_plugins)),
+            (processor.location.watch, None, depset(transitive = transitive_watch_bundles)),
+        ])
+
+        # Clear the transitive lists to avoid propagating them, since they will be packaged in the
+        # bundle processing this partial and do not need to be propagated.
+        transitive_frameworks = []
+        transitive_plugins = []
+        transitive_watch_bundles = []
 
     return struct(
         bundle_files = bundle_files,
+        providers = [
+            _AppleEmbeddableInfo(
+                frameworks = depset(frameworks, transitive = transitive_frameworks),
+                plugins = depset(plugins, transitive = transitive_plugins),
+                watch_bundles = depset(watch_bundles, transitive = transitive_watch_bundles),
+            ),
+        ],
     )
 
-def embedded_bundles_partial(targets):
+def embedded_bundles_partial(
+        bundle_embedded_bundles = False,
+        embeddable_targets = [],
+        frameworks = [],
+        plugins = [],
+        watch_bundles = []):
     """Constructor for the embedded bundles processing partial.
 
-    This partial collects AppleEmbeddableInfo from the given targets and packages
-    them into their respective locations. Embeddable bundles are considered to be
+    This partial is used to propagate and package embedded bundles into their respective locations
+    inside top level bundling targets. Embeddable bundles are considered to be
     frameworks, plugins (i.e. extensions) and watchOS applications in the case of
     ios_application.
 
     Args:
-      targets: The list of targets containing transitive embeddable bundles that
-        need to be packaged into the target using this partial.
+        bundle_embedded_bundles: If True, this target will embed all transitive embeddable_bundles
+            _only_ propagated through the targets given in embeddable_targets. If False, the
+            embeddable bundles will be propagated downstream for a top level target to bundle them.
+        embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
+            propagate.
+        frameworks: List of framework bundles that should be propagated downstream for a top level
+            target to bundle inside `Frameworks`.
+        plugins: List of plugin bundles that should be propagated downstream for a top level
+            target to bundle inside `PlugIns`.
+        watch_bundles: List of watchOS application bundles that should be propagated downstream for
+            a top level target to bundle inside `Watch`.
 
     Returns:
-      A partial that returns the bundle location of the embeddable bundles and
-      the AppleEmbeddableInfo provider containing the bundles embedded by this
-      target.
+          A partial that propagates and/or packages embeddable bundles.
     """
     return partial.make(
         _embedded_bundles_partial_impl,
-        targets = targets,
+        bundle_embedded_bundles = bundle_embedded_bundles,
+        embeddable_targets = embeddable_targets,
+        frameworks = frameworks,
+        plugins = plugins,
+        watch_bundles = watch_bundles,
     )
