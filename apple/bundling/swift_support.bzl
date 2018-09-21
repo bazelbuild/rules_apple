@@ -15,18 +15,6 @@
 """Support functions for working with Swift."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-    "apple_bundling_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundlingSwiftInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:swift.bzl",
-    "swift_linkopts",
-)
-load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
@@ -56,23 +44,6 @@ def _swift_usage_info(targets):
         return swift_usage_providers[0]
     return None
 
-def _uses_legacy_swift(targets):
-    """Returns True if any of the given targets uses the legacy Swift rule.
-
-    Note that this is not propagated through extensions or child apps (such as
-    Watch) -- that is, an Objective-C application that contains a Swift
-    application extension does not "use Swift" in the sense denoted by this
-    function.
-
-    Args:
-      targets: List of targets to check.
-
-    Returns:
-      True if any of the targets directly uses Swift; otherwise, False.
-    """
-    swift_providers = providers.find_all(targets, AppleBundlingSwiftInfo)
-    return any([p.uses_swift == "legacy" for p in swift_providers])
-
 def _uses_swift(targets):
     """Returns True if any of the given targets uses Swift.
 
@@ -87,7 +58,7 @@ def _uses_swift(targets):
     Returns:
       True if any of the targets directly uses Swift; otherwise, False.
     """
-    return _uses_legacy_swift(targets) or (_swift_usage_info(targets) != None)
+    return (_swift_usage_info(targets) != None)
 
 def _swift_runtime_linkopts_impl(ctx):
     """Implementation of the internal `swift_runtime_linkopts` rule.
@@ -107,21 +78,12 @@ def _swift_runtime_linkopts_impl(ctx):
     linkopts = []
     is_static = ctx.attr.is_static
 
-    if _uses_legacy_swift(ctx.attr.deps):
-        # TODO(b/69419493): Delete this code path once the rules_apple swift_library
-        # rule is deleted.
-        linkopts.extend(
-            swift_linkopts(ctx.fragments.apple, ctx.var, is_static = is_static),
-        )
-        if is_static:
-            linkopts.extend(["-Xlinker", "-force_load_swift_libs"])
-    else:
-        swift_usage_info = _swift_usage_info(ctx.attr.deps)
-        if swift_usage_info:
-            linkopts.extend(swift_common.swift_runtime_linkopts(
-                is_static = is_static,
-                toolchain = swift_usage_info.toolchain,
-            ))
+    swift_usage_info = _swift_usage_info(ctx.attr.deps)
+    if swift_usage_info:
+        linkopts.extend(swift_common.swift_runtime_linkopts(
+            is_static = is_static,
+            toolchain = swift_usage_info.toolchain,
+        ))
 
     if linkopts:
         return struct(
@@ -137,7 +99,7 @@ swift_runtime_linkopts = rule(
     attrs = {
         "is_static": attr.bool(),
         "deps": attr.label_list(
-            aspects = [apple_bundling_aspect, swift_usage_aspect],
+            aspects = [swift_usage_aspect],
             mandatory = True,
         ),
     },
