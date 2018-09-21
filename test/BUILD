@@ -242,15 +242,6 @@ apple_multi_shell_test(
     shard_count = 2,
 )
 
-# The swift_library test does not use any canned configurations; it controls
-# options manually for various tests.
-apple_shell_test(
-    name = "swift_library_test",
-    size = "medium",
-    src = "swift_library_test.sh",
-    shard_count = 8,
-)
-
 apple_multi_shell_test(
     name = "tvos_application_test",
     size = "medium",
