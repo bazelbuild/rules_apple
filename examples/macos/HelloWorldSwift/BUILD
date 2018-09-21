@@ -7,7 +7,7 @@ load(
     "macos_application",
 )
 load(
-    "//apple:swift.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
 load(
