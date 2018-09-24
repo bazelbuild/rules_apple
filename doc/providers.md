@@ -10,7 +10,6 @@ rules, then you will use these providers to communicate between them.
 ## Provider types
 
 * [AppleBundleInfo](#AppleBundleInfo)
-* [AppleBundlingSwiftInfo](#AppleBundlingSwiftInfo)
 * [AppleBundleVersionInfo](#AppleBundleVersionInfo)
 * [IosApplicationBundleInfo](#IosApplicationBundleInfo)
 * [IosExtensionBundleInfo](#IosExtensionBundleInfo)
@@ -151,41 +150,6 @@ rules&mdash;applications, extensions, frameworks, test bundles, and so forth.
         does not consider embedded bundles; for example, an Objective-C
         application containing a Swift extension would have this field set to
         true for the extension but false for the application.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<a name="AppleBundlingSwiftInfo"></a>
-## AppleBundlingSwiftInfo
-
-This provider is used to indicate whether Swift is required by any code in the
-target (but not in any of its embedded bundles). In other words, this only
-applies within the bundle's direct dependencies (`deps`); it does not pass
-through application/extension boundaries. For example, if an extension uses
-Swift but an application does not, then the application does not "use Swift" as
-defined by this provider.
-
-This provider is mainly an implementation detail of the bundling aspect and is
-not intended to be used by other rules.
-
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Fields</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>uses_swift</code></td>
-      <td>
-        <p>Boolean</p>
-        <p>True if Swift is used by the target propagating this provider or
-        any of its direct dependencies (its <code>deps</code> attribute).</p>
       </td>
     </tr>
   </tbody>
