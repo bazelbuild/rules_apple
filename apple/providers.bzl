@@ -103,25 +103,6 @@ set to true for the extension but false for the application.
     },
 )
 
-AppleBundlingSwiftInfo = provider(
-    doc = """
-Provides information about whether Swift needs to be bundled with a target.
-
-The `AppleBundlingSwiftInfo` provider is used to indicate whether Swift is
-required by any code in the bundle. Note that this only applies within the
-bundle's direct dependencies (`deps`); it does not pass through
-application/extension boundaries. For example, if an extension uses Swift but an
-application does not, then the application does not "use Swift" as defined by
-this provider.
-""",
-    fields = {
-        "uses_swift": """
-Boolean. True if Swift is used by the target propagating this
-provider or by any of its transitive dependencies.
-""",
-    },
-)
-
 AppleBundleVersionInfo = provider(
     doc = "Provides versioning information for an Apple bundle.",
     fields = {

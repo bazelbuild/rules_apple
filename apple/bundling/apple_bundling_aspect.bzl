@@ -20,7 +20,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundlingSwiftInfo",
     "AppleResourceBundleTargetData",
     "AppleResourceInfo",
     "AppleResourceSet",
@@ -340,41 +339,6 @@ def _transitive_apple_resource_info(target, ctx):
         owners = smart_dedupe.merge_owners_mappings(owner_mappings, default_owner = default_owner),
     )
 
-def _transitive_apple_bundling_swift_info(target, ctx):
-    """Builds the `AppleBundlingSwiftInfo` provider to be propagated.
-
-    Args:
-      target: The target to which the aspect is being applied.
-      ctx: The Skylark context.
-
-    Returns:
-      An `AppleBundlingSwiftInfo` provider, or `None` if nothing should be
-      propagated for this target.
-    """
-    if hasattr(target, "swift"):
-        # This string will still evaluate truthily in a Boolean context, so any
-        # bundling logic that asks `if p.uses_swift` will continue to work. This
-        # however lets the logic that computes binary linker options distinguish
-        # between the legacy Swift rules and the new Swift rules.
-        # TODO(b/69419493): Once the legacy rule is deleted, the
-        # `AppleBundlingSwiftInfo` provider can go away entirely; the bundler can
-        # use `swift_usage_aspect` and its provider alone to determine whether to
-        # bundle Swift libraries.
-        uses_swift = "legacy"
-    else:
-        uses_swift = SwiftInfo in target
-
-    # If the target itself doesn't use Swift, check its deps.
-    if not uses_swift:
-        deps = getattr(ctx.rule.attr, "deps", [])
-        swift_info_providers = providers.find_all(deps, AppleBundlingSwiftInfo)
-        for p in swift_info_providers:
-            if p.uses_swift:
-                uses_swift = p.uses_swift
-                break
-
-    return AppleBundlingSwiftInfo(uses_swift = uses_swift)
-
 def _apple_bundling_aspect_impl(target, ctx):
     """Implementation of `apple_bundling_aspect`.
 
@@ -399,10 +363,6 @@ def _apple_bundling_aspect_impl(target, ctx):
         if apple_resource_info:
             providers.append(apple_resource_info)
 
-    apple_bundling_swift_info = _transitive_apple_bundling_swift_info(target, ctx)
-    if apple_bundling_swift_info:
-        providers.append(apple_bundling_swift_info)
-
     return providers
 
 apple_bundling_aspect = aspect(
@@ -417,7 +377,6 @@ resources that need to be associated with a module when compiled (data models,
 storyboards, and XIBs), we annotate those resources with that information as
 well.
 
-This aspect may propagate the `AppleResourceInfo` and `AppleBundlingSwiftInfo`
-providers. Refer to the documentation for those providers for a description of
-the fields they contain.
+This aspect may propagate the `AppleResourceInfo` provider. Refer to the
+documentation for that providers for a description of the fields it contains.
 """
