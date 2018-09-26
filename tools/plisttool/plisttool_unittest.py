@@ -658,6 +658,12 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_allow_nonexistant_variable(self):
+    plist1 = {
+        'FooBraces': 'A-${NOT_A_VARIABLE}-B'
+    }
+    _plisttool_result({'plists': [plist1], 'allow_missing_variables': True})
+
   def test_nonexistant_variable_substitution(self):
     plist1 = {
         'FooBraces': 'A-${NOT_A_VARIABLE}-B'
