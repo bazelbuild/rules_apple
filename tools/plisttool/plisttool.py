@@ -54,6 +54,9 @@ the following keys:
       substitutions when processing the plists. All keys/values will get
       support for the rfc1034identifier qualifier.
   target: The target name, used for warning/error messages.
+  allow_missing_variables: Don't validate all variables are replaced after
+      processing the plist. This is useful if there will be multiple processing
+      steps.
 
 The info_plist_options dictionary can contain the following keys:
 
@@ -296,9 +299,9 @@ ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
 
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
-    'binary', 'forced_plists', 'entitlements_options', 'info_plist_options',
-    'output', 'plists', 'raw_substitutions', 'target',
-    'variable_substitutions',
+    'allow_missing_variables', 'binary', 'forced_plists',
+    'entitlements_options', 'info_plist_options', 'output', 'plists',
+    'raw_substitutions', 'target', 'variable_substitutions',
 ])
 
 # All valid keys in the info_plist_options control structure.
@@ -1366,8 +1369,10 @@ class PlistTool(object):
     for t in tasks:
       t.update_plist(out_plist, subs_engine)
 
-    SubstitutionEngine.validate_no_variable_references(
-        target, '', out_plist, msg_additions=unknown_var_msg_additions)
+    allow_missing_variables = self._control.get('allow_missing_variables', False)
+    if not allow_missing_variables:
+      SubstitutionEngine.validate_no_variable_references(
+          target, '', out_plist, msg_additions=unknown_var_msg_additions)
 
     if tasks:
       saved_copy = copy.deepcopy(out_plist)
