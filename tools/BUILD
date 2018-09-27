@@ -9,6 +9,7 @@ filegroup(
     srcs = glob(["**"]) + [
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
+        "//tools/codesigningtool:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",
         "//tools/plisttool:for_bazel_tests",
         "//tools/provisioning_profile_tool:for_bazel_tests",

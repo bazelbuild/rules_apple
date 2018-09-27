@@ -316,6 +316,11 @@ def _code_signing_attributes(code_signing):
         "_skip_simulator_signing_allowed": attr.bool(
             default = code_signing.skip_simulator_signing_allowed,
         ),
+        "_codesigningtool": attr.label(
+            cfg="host",
+            executable=True,
+            default=Label("@build_bazel_rules_apple//tools/codesigningtool"),
+        ),
     }
     if not code_signing.skip_signing:
         code_signing_attrs["entitlements"] = attr.label(
