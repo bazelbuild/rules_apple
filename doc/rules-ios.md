@@ -508,6 +508,14 @@ app and extensions, list it in the `frameworks` attributes of those
       </td>
     </tr>
     <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
+        that this framework depends on.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
