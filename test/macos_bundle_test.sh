@@ -482,7 +482,7 @@ EOF
 }
 
 # Tests that the apple_product_type.kernel_extension product_type produces a valid kext.
-function test_kernel_extension() {
+function disabled_test_kernel_extension() {  # Blocked on b/117147764
   mkdir -p kext
 
   cat > kext/kext-builder_info.cc <<EOF
