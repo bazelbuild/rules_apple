@@ -34,9 +34,10 @@ if [[ -n "${BAZEL:-}" ]]; then
     test
     --show_progress_rate_limit=30.0
     --test_output=errors
+    --spawn_strategy=local
   )
   if [[ -n "${TAGS:-}" ]]; then
-    TEST_ARGS+=( "--test_tag_filters=${TAGS}" )
+    TEST_ARGS+=( "--test_tag_filters=${TAGS}")
   fi
   bazel "${TEST_ARGS[@]}" "${TARGET}"
   set +x

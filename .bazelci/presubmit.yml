@@ -4,6 +4,8 @@ platforms:
     build_targets:
     - "tools/..."
     - "test/..."
+    test_flags:
+    - "--spawn_strategy=local"
     test_targets:
     - "tools/..."
     - "test/..."
