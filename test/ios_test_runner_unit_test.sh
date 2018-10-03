@@ -162,7 +162,7 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = "PassingUnitTestWithHost",
+    name = "PassingWithHost",
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
     minimum_os_version = "9.0",
@@ -184,7 +184,7 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = 'FailingUnitTestWithHost',
+    name = 'FailingWithHost',
     infoplists = ["FailUnitTest-Info.plist"],
     deps = [":fail_unit_test_lib"],
     minimum_os_version = "9.0",
@@ -242,7 +242,7 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = 'EnvUnitTestWithHost',
+    name = 'EnvWithHost',
     infoplists = ["EnvUnitTest-Info.plist"],
     deps = [":env_unit_test_lib"],
     minimum_os_version = "9.0",
@@ -253,7 +253,7 @@ EOF
 }
 
 function do_ios_test() {
-  do_test ios "--test_output=all" "$@"
+  do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
 
 function test_ios_unit_test_pass() {
@@ -270,10 +270,10 @@ function test_ios_unit_test_with_host_pass() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_tests
-  do_ios_test //ios:PassingUnitTestWithHost || fail "should pass"
+  do_ios_test //ios:PassingWithHost || fail "should pass"
 
   expect_log "Test Suite 'PassingUnitTest' passed"
-  expect_log "Test Suite 'PassingUnitTestWithHost.xctest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
 
@@ -291,10 +291,10 @@ function test_ios_unit_test_with_host_fail() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_tests
-  ! do_ios_test //ios:FailingUnitTestWithHost || fail "should fail"
+  ! do_ios_test //ios:FailingWithHost || fail "should fail"
 
   expect_log "Test Suite 'FailingUnitTest' failed"
-  expect_log "Test Suite 'FailingUnitTestWithHost.xctest' failed"
+  expect_log "Test Suite 'FailingWithHost.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
 }
 
@@ -313,11 +313,11 @@ function test_ios_unit_test_with_host_with_filter() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_tests
-  do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingUnitTestWithHost || fail "should pass"
+  do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
 
   expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
   expect_log "Test Suite 'PassingUnitTest' passed"
-  expect_log "Test Suite 'PassingUnitTestWithHost.xctest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
@@ -333,7 +333,7 @@ function test_ios_unit_test_with_host_with_env() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
-  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUnitTestWithHost || fail "should pass"
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
 }

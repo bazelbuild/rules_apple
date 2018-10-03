@@ -256,7 +256,12 @@ EOF
 }
 
 function do_test() {
-  declare -a bazel_options=("--test_output=all" "--verbose_failures" "--ios_minimum_os=8.0")
+  declare -a bazel_options=(
+    "--test_output=all"
+    "--verbose_failures"
+    "--ios_minimum_os=8.0"
+    "--spawn_strategy=local"
+  )
   if [[ -n "${EXTRA_BUILD_OPTIONS[@]-}" ]]; then
     bazel_options+=( "${EXTRA_BUILD_OPTIONS[@]}" )
   fi
