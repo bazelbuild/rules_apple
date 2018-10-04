@@ -19,9 +19,17 @@ load(
     "AppleTestRunner",
 )
 
+def _get_bundle_inject_path(ctx):
+    xcode_version = ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version()
+    if xcode_version and xcode_version < apple_common.dotted_version("10.0"):
+        return "Library/PrivateFrameworks/IDEBundleInjection.framework/IDEBundleInjection"
+
+    return "usr/lib/libXCTestBundleInject.dylib"
+
 def _get_template_substitutions(ctx):
     """Returns the template substitutions for this runner."""
     subs = {
+        "xctestrun_bundle_inject_path": _get_bundle_inject_path(ctx),
         "xctestrun_template": ctx.file._xctestrun_template.short_path,
     }
 
