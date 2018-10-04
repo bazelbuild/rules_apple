@@ -83,6 +83,7 @@ cp -f "$BAZEL_XCTESTRUN_TEMPLATE" "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_BUNDLE_INJECT_PATH@%(xctestrun_bundle_inject_path)s@g' "$XCTESTRUN"
 
 # If XML_OUTPUT_FILE is not an absolute path, make it absolute with regards of
 # where this script is being run.
