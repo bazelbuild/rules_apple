@@ -257,14 +257,43 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
         # only have one owner.
         owner_depset = depset(direct = [owner])
     for resource in resources:
-        owners[resource.short_path] = owner_depset
+        resource_short_path = resource.short_path
+        owners[resource_short_path] = owner_depset
         if str(type(parent_dir_param)) == "struct":
             parent = partial.call(parent_dir_param, resource)
         else:
             parent = parent_dir_param
 
+        if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
+            lproj_path = path_utils.farthest_directory_matching(resource_short_path, "lproj")
+            parent = paths.join(parent or "", paths.basename(lproj_path))
+
         typed_bucket.append((parent, None, depset(direct = [resource])))
     return NewAppleResourceInfo(owners = owners, **{bucket_type: _minimize(typed_bucket)})
+
+def _bundle_relative_parent_dir(resource, extension):
+    """Returns the bundle relative path to the resource rooted at the bundle.
+
+    Looks for the first instance of a folder with the suffix specified by `extension`, and then
+    returns the directory path to the file within the bundle. For example, for a resource with path
+    my/package/Contents.bundle/directory/foo.txt and `extension` equal to `"bundle"`, it would
+    return Contents.bundle/directory.
+
+    Args:
+        resource: The resource for which to calculate the bundle relative path.
+        extension: The bundle extension to use when finding the relative path.
+
+    Returns:
+        The bundle relative path, rooted at the outermost bundle.
+    """
+    bundle_path = path_utils.farthest_directory_matching(resource.short_path, extension)
+    bundle_relative_path = paths.relativize(resource.short_path, bundle_path)
+
+    parent_dir = paths.basename(bundle_path)
+    bundle_relative_dir = paths.dirname(bundle_relative_path).strip("/")
+    if bundle_relative_dir:
+        parent_dir = paths.join(parent_dir, bundle_relative_dir)
+    return parent_dir
 
 def _collect(attr, res_attrs = []):
     """Collects all resource attributes present in the given attributes.
@@ -443,12 +472,28 @@ def _populated_resource_fields(provider):
     # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
     return [f for f in dir(provider) if f not in ["owners", "to_json", "to_proto"]]
 
+def _structured_resources_parent_dir(resource, parent_dir):
+    """Returns the package relative path for the parent directory of a resource.
+
+    Args:
+        resource: The resource for which to calculate the package relative path.
+        parent_dir: Parent directory to prepend to the package relative path.
+
+    Returns:
+        The package relative path to the parent directory of the resource.
+    """
+    package_relative = path_utils.owner_relative_path(resource)
+    path = paths.dirname(package_relative).rstrip("/")
+    return paths.join(parent_dir or "", path or "") or None
+
 resources = struct(
     bucketize = _bucketize,
     bucketize_typed = _bucketize_typed,
+    bundle_relative_parent_dir = _bundle_relative_parent_dir,
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
     nest_bundles = _nest_bundles,
     populated_resource_fields = _populated_resource_fields,
+    structured_resources_parent_dir = _structured_resources_parent_dir,
 )

@@ -14,14 +14,11 @@
 
 """Rules related to Apple resources and resource bundles."""
 
-def objc_bundle_library(**kwargs):
-    """Creates an `objc_bundle_library` target.
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_rules.bzl",
+    _apple_bundle_import = "apple_bundle_import",
+    _apple_resource_bundle = "apple_resource_bundle",
+)
 
-    This rule is a placeholder that will be updated after everyone has migrated
-    to the Skylark rules and the native rule has been deleted.
-
-    Args:
-      **kwargs: Arguments that will be passed directly into the native
-          `objc_bundle_library` rule.
-    """
-    native.objc_bundle_library(**kwargs)
+apple_bundle_import = _apple_bundle_import
+apple_resource_bundle = _apple_resource_bundle

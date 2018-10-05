@@ -441,6 +441,121 @@ EOF
       "Payload/app.app/basic.bundle"
 }
 
+# Usage: verify_new_resource_bundle_deduping [application_minimum_os] [framework_minimum_os]
+#
+# Verifies that resource bundles that are dependencies of a framework are
+# bundled with the framework if no deduplication is happening.
+#
+# NOTE: This does now use xibs, storyboards, xcassets to avoid flake from
+# ibtool/actool. See the note in the BUILD file.
+function verify_new_resource_bundle_deduping() {
+  application_minimum_os="$1"; shift
+  framework_minimum_os="$1"; shift
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+     "ios_application",
+     "ios_framework"
+    )
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    deps = [":framework_lib"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    frameworks = [":framework"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "${application_minimum_os}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_framework(
+    name = "framework",
+    hdrs = ["Framework.h"],
+    bundle_id = "my.bundle.id.framework",
+    families = ["iphone"],
+    infoplists = ["Info-Framework.plist"],
+    linkopts = ["-application_extension"],
+    minimum_os_version = "${framework_minimum_os}",
+    deps = [":framework_lib"],
+)
+
+objc_library(
+    name = "framework_lib",
+    srcs = [
+        "Framework.h",
+        "Framework.m",
+    ],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:new_basic_bundle",
+        "@build_bazel_rules_apple//test/testdata/resources:new_simple_bundle_library",
+    ],
+    alwayslink = 1,
+)
+EOF
+
+  cat > app/Info-Framework.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "FMWK";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+  cat > app/Info-App.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/main.m <<EOF
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+
+  cat > app/Framework.h <<EOF
+#ifndef FRAMEWORK_FRAMEWORK_H_
+#define FRAMEWORK_FRAMEWORK_H_
+
+void doStuff();
+
+#endif  // FRAMEWORK_FRAMEWORK_H_
+EOF
+
+  cat > app/Framework.m <<EOF
+#import <Foundation/Foundation.h>
+
+void doStuff() {
+  NSLog(@"Framework method called\n");
+}
+EOF
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
+  # Assert that the framework contains the bundled files...
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/generated.strings"
+  # ...and that the application doesn't.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/simple_bundle_library.bundle"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/basic.bundle"
+}
+
 # Tests that the bundled .framework contains the expected files.
 function test_framework_contains_expected_files() {
   create_minimal_ios_framework
@@ -934,6 +1049,14 @@ function test_resource_bundle_is_in_framework_same_min_os() {
 
 function test_resource_bundle_is_in_framework_different_min_os() {
   verify_resource_bundle_deduping "8.0" "9.0"
+}
+
+function test_apple_resource_bundle_is_in_framework_same_min_os() {
+  verify_new_resource_bundle_deduping "9.0" "9.0"
+}
+
+function test_apple_resource_bundle_is_in_framework_different_min_os() {
+  verify_new_resource_bundle_deduping "8.0" "9.0"
 }
 
 # Tests that resource bundles that are dependencies of a framework are

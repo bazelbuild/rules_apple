@@ -15,20 +15,8 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
-)
-load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
-)
-load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
@@ -58,43 +46,6 @@ _NATIVE_RESOURCE_ATTRS = [
     "xibs",
 ]
 
-def _structured_resources_parent_dir(resource, parent_dir):
-    """Returns the package relative path for the parent directory of a resource.
-
-    Args:
-        resource: The resource for which to calculate the package relative path.
-
-    Returns:
-        The package relative path to the parent directory of the resource.
-    """
-    package_relative = path_utils.owner_relative_path(resource)
-    path = paths.dirname(package_relative).rstrip("/")
-    return paths.join(parent_dir or "", path or "") or None
-
-def _bundle_relative_parent_dir(resource, extension):
-    """Returns the bundle relative path to the resource rooted at the bundle.
-
-    Looks for the first instance of a folder with the suffix specified by `extension`, and then
-    returns the directory path to the file within the bundle. For example, for a resource with path
-    my/package/Contents.bundle/directory/foo.txt and `extension` equal to `"bundle"`, it would
-    return Contents.bundle/directory.
-
-    Args:
-        resource: The resource for which to calculate the bundle relative path.
-        extension: The bundle extension to use when finding the relative path.
-
-    Returns:
-        The bundle relative path, rooted at the outermost bundle.
-    """
-    bundle_path = path_utils.farthest_directory_matching(resource.short_path, extension)
-    bundle_relative_path = paths.relativize(resource.short_path, bundle_path)
-
-    parent_dir = paths.basename(bundle_path)
-    bundle_relative_dir = paths.dirname(bundle_relative_path).strip("/")
-    if bundle_relative_dir:
-        parent_dir = paths.join(parent_dir, bundle_relative_dir)
-    return parent_dir
-
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
@@ -113,9 +64,12 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
+
+    # TODO(b/33618143): Remove the objc_bundle and objc_bundle_library cases when they are removed
+    # from native bazel.
     if ctx.rule.kind == "objc_bundle":
         bucketize_args["parent_dir_param"] = partial.make(
-            _bundle_relative_parent_dir,
+            resources.bundle_relative_parent_dir,
             extension = "bundle",
         )
         collect_args["res_attrs"] = ["bundle_imports"]
@@ -212,7 +166,7 @@ def _apple_resource_aspect_impl(target, ctx):
                     structured_files,
                     owner = owner,
                     parent_dir_param = partial.make(
-                        _structured_resources_parent_dir,
+                        resources.structured_resources_parent_dir,
                         parent_dir = structured_parent_dir,
                     ),
                     avoid_buckets = ["pngs"],
@@ -220,8 +174,7 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Get the providers from dependencies.
-    # TODO(kaipi): Add data here once we propagate resources through that attribute.
-    for attr in ["deps"]:
+    for attr in ["deps", "data"]:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
                 x[NewAppleResourceInfo]
