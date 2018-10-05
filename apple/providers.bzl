@@ -160,6 +160,18 @@ between frameworks and application bundles.
     },
 )
 
+AppleResourceBundleInfo = provider(
+    doc = """
+Denotes that a target is an Apple resource bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an Apple resource bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an Apple resource bundle should use this provider to describe that
+requirement.
+""",
+)
+
 IosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is an iOS application.
