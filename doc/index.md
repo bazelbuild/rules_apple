@@ -81,11 +81,6 @@ below.
   </thead>
   <tbody>
     <tr>
-      <th align="left" valign="top">Swift</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:swift.bzl</code></td>
-      <td valign="top"><code><a href="rules-swift.md#swift_library">swift_library</a></code><br/></td>
-    </tr>
-    <tr>
       <th align="left" valign="top" rowspan="2">General</th>
       <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
       <td valign="top"><code><a href="rules-general.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
