@@ -34,6 +34,9 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_framework_import",
+    )
 
 objc_library(
     name = "lib",
@@ -125,13 +128,14 @@ EOF
 EOF
 }
 
-# Usage: create_minimal_ios_application_and_extension_with_objc_framework <dynamic>
+# Usage: create_minimal_ios_application_and_extension_with_framework_import <dynamic> <import_rule>
 #
-# Creates minimal iOS application and extension targets that depends on an
-# `objc_framework`. The `dynamic` argument should be `True` or `False` and will
-# be used to populate the framework's `is_dynamic` attribute.
-function create_minimal_ios_application_and_extension_with_objc_framework() {
+# Creates minimal iOS application and extension targets that depends on a
+# framework import target. The `dynamic` argument should be `True` or `False`
+# and will be used to populate the framework's `is_dynamic` attribute.
+function create_minimal_ios_application_and_extension_with_framework_import() {
   readonly framework_type="$1"
+  readonly import_rule="$2"
 
   cat >> app/BUILD <<EOF
 ios_application(
@@ -163,7 +167,7 @@ objc_library(
     deps = [":fmwk"],
 )
 
-objc_framework(
+$import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
     is_dynamic = $([[ "$framework_type" == dynamic ]] && echo True || echo False),
@@ -550,9 +554,41 @@ EOF
 # set to False) is not bundled with the application or extension.
 function test_prebuilt_static_framework_dependency() {
   create_common_files
-  create_minimal_ios_application_and_extension_with_objc_framework static
+  create_minimal_ios_application_and_extension_with_framework_import static objc_framework
 
   do_build ios //app:app || fail "Should build"
+
+  # Verify that it's not bundled.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
+}
+
+# Tests that a prebuilt static framework (i.e., apple_framework_import with
+# is_dynamic set to False) is not bundled with the application or extension.
+function test_prebuilt_static_apple_framework_import_dependency() {
+  create_common_files
+  create_minimal_ios_application_and_extension_with_framework_import static apple_framework_import
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -581,9 +617,46 @@ function test_prebuilt_static_framework_dependency() {
 # set to True) is bundled properly with the application.
 function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
-  create_minimal_ios_application_and_extension_with_objc_framework dynamic
+  create_minimal_ios_application_and_extension_with_framework_import dynamic objc_framework
 
   do_build ios //app:app || fail "Should build"
+
+  # Verify that the framework is bundled with the application and that the
+  # binary, plist, and resources are included.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
+
+  # Verify that Headers and Modules directories are excluded.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+
+  # Verify that the framework is not bundled with the extension.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
+}
+
+# Tests that a prebuilt dynamic framework (i.e., apple_framework_import with
+# is_dynamic set to True) is bundled properly with the application.
+function test_prebuilt_dynamic_apple_framework_import_dependency() {
+  create_common_files
+  create_minimal_ios_application_and_extension_with_framework_import dynamic apple_framework_import
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
 
   # Verify that the framework is bundled with the application and that the
   # binary, plist, and resources are included.
