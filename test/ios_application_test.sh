@@ -33,6 +33,9 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "apple_product_type",
      "ios_application"
     )
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_framework_import",
+    )
 
 objc_library(
     name = "lib",
@@ -91,12 +94,14 @@ EOF
 EOF
 }
 
-# Creates a minimal iOS application target that depends on an objc_framework.
+# Creates a minimal iOS application target that depends on an imported
+# framework.
 #
 # This function takes a required parameter denoting whether the framework is
 # static or dynamic (corresponding to the framework's is_dynamic attribute).
-function create_minimal_ios_application_with_objc_framework() {
+function create_minimal_ios_application_with_framework_import() {
   readonly framework_type="$1"
+  readonly import_rule="$2"
 
   cat >> app/BUILD <<EOF
 ios_application(
@@ -118,7 +123,7 @@ objc_library(
     deps = [":fmwk"],
 )
 
-objc_framework(
+$import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
     is_dynamic = $([[ "$framework_type" == dynamic ]] && echo True || echo False),
@@ -691,9 +696,31 @@ EOF
 # set to False) is not bundled with the application.
 function test_prebuilt_static_framework_dependency() {
   create_common_files
-  create_minimal_ios_application_with_objc_framework static
+  create_minimal_ios_application_with_framework_import static objc_framework
 
   do_build ios //app:app || fail "Should build"
+
+  # Verify that it's not bundled.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+}
+
+# Tests that a prebuilt static framework (i.e., apple_framework_import with
+# is_dynamic set to False) is not bundled with the application.
+function test_prebuilt_static_apple_framework_import_dependency() {
+  create_common_files
+  create_minimal_ios_application_with_framework_import static apple_framework_import
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -712,9 +739,33 @@ function test_prebuilt_static_framework_dependency() {
 # set to True) is bundled properly with the application.
 function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
-  create_minimal_ios_application_with_objc_framework dynamic
+  create_minimal_ios_application_with_framework_import dynamic objc_framework
 
   do_build ios //app:app || fail "Should build"
+
+  # Verify that the binary, plist, and resources are included.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
+
+  # Verify that Headers and Modules directories are excluded.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+}
+
+# Tests that a prebuilt dynamic framework (i.e., apple_framework_import with
+# is_dynamic set to True) is bundled properly with the application.
+function test_prebuilt_dynamic_apple_framework_import_dependency() {
+  create_common_files
+  create_minimal_ios_application_with_framework_import dynamic apple_framework_import
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
 
   # Verify that the binary, plist, and resources are included.
   assert_zip_contains "test-bin/app/app.ipa" \

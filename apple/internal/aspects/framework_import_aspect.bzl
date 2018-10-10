@@ -14,14 +14,10 @@
 
 """Implementation of the aspect that propagates framework import files."""
 
-AppleFrameworkImportInfo = provider(
-    doc = "Provider that propagates information about framework import targets.",
-    fields = {
-        "framework_imports": """
-Depset of Files that represent framework imports that need to be bundled in the top level
-application bundle under the Frameworks directory.
-""",
-    },
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
+    "AppleFrameworkImportInfo",
+    "filter_framework_imports_for_bundling",
 )
 
 def _framework_import_aspect_impl(target, ctx):
@@ -37,26 +33,15 @@ def _framework_import_aspect_impl(target, ctx):
             if AppleFrameworkImportInfo in dep_target:
                 transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
 
+    # TODO(b/117496841): Remove this if once objc_framework is removed from Bazel.
     if (ctx.rule.kind == "objc_framework" and
         ctx.rule.attr.is_dynamic and
         ctx.rule.attr.framework_imports):
-        framework_imports = []
-        for file_target in ctx.rule.attr.framework_imports:
-            for file in file_target.files.to_list():
-                file_short_path = file.short_path
-                if file_short_path.endswith(".h"):
-                    continue
-                if file_short_path.endswith(".modulemap"):
-                    continue
-                if "Headers/" in file_short_path:
-                    # This matches /Headers/ and /PrivateHeaders/
-                    continue
-                if "/Modules/" in file_short_path:
-                    continue
-                framework_imports.append(file)
-
-        if framework_imports:
-            transitive_sets.append(depset(framework_imports))
+        filtered_framework_imports = filter_framework_imports_for_bundling(
+            ctx.rule.files.framework_imports,
+        )
+        if filtered_framework_imports:
+            transitive_sets.append(depset(filtered_framework_imports))
 
     if not transitive_sets:
         return []

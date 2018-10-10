@@ -27,7 +27,7 @@ load(
     "path_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
+    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
     "AppleFrameworkImportInfo",
 )
 load(
