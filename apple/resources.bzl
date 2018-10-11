@@ -18,7 +18,9 @@ load(
     "@build_bazel_rules_apple//apple/internal:resource_rules.bzl",
     _apple_bundle_import = "apple_bundle_import",
     _apple_resource_bundle = "apple_resource_bundle",
+    _apple_resource_group = "apple_resource_group",
 )
 
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
+apple_resource_group = _apple_resource_group
