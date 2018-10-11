@@ -89,6 +89,23 @@ below.
       <td valign="top"><code>@build_bazel_rules_apple//apple:apple_genrule.bzl</code></td>
       <td valign="top"><code><a href="rules-general.md#apple_genrule">apple_genrule</a></code><br/></td>
     </tr>
+    <tr>
+      <td valign="top"><code>@build_bazel_rules_apple//apple:apple_framework_import.bzl</code></td>
+      <td valign="top"><code><a href="rules-general.md#apple_framework_import">apple_framework_import</a></code><br/></td>
+    </tr>
+    <tr>
+      <th align="left" valign="top" rowspan="2">Resources</th>
+      <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
+      <td valign="top"><code><a href="rules-resources.md#apple_bundle_import">apple_bundle_import</a></code><br/></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
+      <td valign="top"><code><a href="rules-resources.md#apple_resource_bundle">apple_resource_bundle</a></code><br/></td>
+    </tr>
+    <tr>
+      <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
+      <td valign="top"><code><a href="rules-resources.md#apple_resource_group">apple_resource_group</a></code><br/></td>
+    </tr>
   </tbody>
 </table>
 
