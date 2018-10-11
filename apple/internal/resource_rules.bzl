@@ -68,15 +68,15 @@ apple_bundle_import = rule(
             allow_files = True,
             mandatory = True,
             doc = """
-The list of files under a .bundle directory which are provided to Objective-C targets that depend on
-this target.
+The list of files under a .bundle directory to be propagated to the top-level bundling target.
 """,
         ),
     },
     doc = """
 This rule encapsulates an already-built bundle. It is defined by a list of files in exactly one
 .bundle directory. apple_bundle_import targets need to be added to library targets through the
-data attribute.
+data attribute, or to other resource targets (i.e. apple_resource_bundle) through the resources
+attribute.
 """,
 )
 
@@ -117,12 +117,16 @@ def _apple_resource_bundle_impl(ctx):
             ),
         )
 
-    if ctx.attr.bundles:
-        bundles_merged_provider = resources.merge_providers(
-            [x[NewAppleResourceInfo] for x in ctx.attr.bundles],
-        )
-
-        providers.append(resources.nest_bundles(bundles_merged_provider, bundle_name))
+    # Find any targets added through resources which might propagate the NewAppleResourceInfo
+    # provider, for example, apple_resource_bundle or apple_bundle_import targets.
+    resource_providers = [
+        x[NewAppleResourceInfo]
+        for x in ctx.attr.resources
+        if NewAppleResourceInfo in x
+    ]
+    if resource_providers:
+        resources_merged_provider = resources.merge_providers(resource_providers)
+        providers.append(resources.nest_in_bundle(resources_merged_provider, bundle_name))
 
     return [
         AppleResourceBundleInfo(),
@@ -132,16 +136,10 @@ def _apple_resource_bundle_impl(ctx):
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
     attrs = {
-        "bundles": attr.label_list(
-            allow_empty = True,
-            providers = [[AppleResourceBundleInfo]],
-            doc = """
-The list of bundle targets that this target requires to be included in the final bundle.
-""",
-        ),
         "bundle_name": attr.string(
             doc = """
-The name of the output bundle. If not present, the target's name will be used instead.
+The desired name of the bundle (without the `.bundle` extension). If this attribute is not set,
+then the `name` of the target will be used instead.
 """,
         ),
         "infoplists": attr.label_list(
@@ -171,13 +169,16 @@ those files as dependencies. Other file types that are not processed will be cop
 files are placed in the root of the resource bundle (e.g. Payload/foo.app/bar.bundle/...) in most
 cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj),
 they will be placed in a directory of the same name in the app bundle.
+
+You can also add other `apple_resource_bundle` and `apple_bundle_import` targets into `resources`,
+and the resource bundle structures will be propagated into the final bundle.
 """,
         ),
         "structured_resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
             doc = """
-Files to include in the final application bundle. They are not processed or compiled in any way
+Files to include in the final resource bundle. They are not processed or compiled in any way
 besides the processing done by the rules that actually generate them. These files are placed in the
 bundle root in the same structure passed to this argument, so ["res/foo.png"] will end up in
 res/foo.png inside the bundle.
@@ -185,7 +186,7 @@ res/foo.png inside the bundle.
         ),
     },
     doc = """
-This rule encapsulates a library which is provided to dependers as a bundle. An
+This rule encapsulates a target which is provided to dependers as a bundle. An
 apple_resource_bundle's resources are put in a resource bundle in the top level Apple bundle
 dependent. apple_resource_bundle targets need to be added to library targets through the
 data attribute.

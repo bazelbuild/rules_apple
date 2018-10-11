@@ -436,7 +436,7 @@ def _minimize(bucket):
         for k, r in resources_by_key.items()
     ]
 
-def _nest_bundles(provider_to_nest, nesting_bundle_dir):
+def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
     """Nests resources in a NewAppleResourceInfo provider under a new parent bundle directory.
 
     This method is mostly used by rules that create resource bundles in order to nest other resource
@@ -493,7 +493,7 @@ resources = struct(
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
-    nest_bundles = _nest_bundles,
+    nest_in_bundle = _nest_in_bundle,
     populated_resource_fields = _populated_resource_fields,
     structured_resources_parent_dir = _structured_resources_parent_dir,
 )
