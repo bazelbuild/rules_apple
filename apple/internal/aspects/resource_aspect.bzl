@@ -95,7 +95,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 [x[NewAppleResourceInfo] for x in ctx.rule.attr.bundles],
             )
 
-            providers.append(resources.nest_bundles(bundle_merged_provider, parent_dir_param))
+            providers.append(resources.nest_in_bundle(bundle_merged_provider, parent_dir_param))
 
     elif ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
