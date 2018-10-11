@@ -15,18 +15,22 @@
 """Experimental implementation of macOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "MacosApplicationBundleInfo",
+    "MacosBundleBundleInfo",
+    "MacosExtensionBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "MacosApplicationBundleInfo",
-    "MacosBundleBundleInfo",
-    "MacosExtensionBundleInfo",
 )
 
 def macos_application_impl(ctx):
@@ -102,7 +106,18 @@ def macos_bundle_impl(ctx):
     # add linking support directly into the rule.
 
     binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
+
+    binary_provider_type = apple_common.AppleLoadableBundleBinary
+
+    # Kernel extensions on macOS have a mach header file type of MH_KEXT_BUNDLE.
+    # The -kext linker flag is used to produce these binaries.
+    # No userspace technologies can be linked into a KEXT.
+    # Using an "executable" to get around the extra userspace linker flags
+    # that are added to a "loadable_bundle".
+    if ctx.attr.product_type == apple_product_type.kernel_extension:
+        binary_provider_type = apple_common.AppleExecutableBinary
+
+    binary_artifact = binary_target[binary_provider_type].binary
 
     bundle_id = ctx.attr.bundle_id
 
