@@ -2,15 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-sh_library(
-    name = "wrapper_common",
-    srcs = ["wrapper_common.sh"],
-    data = [
-        "//tools/realpath",
-        "@bazel_tools//tools/objc:xcrunwrapper",
-    ],
-)
-
 py_library(
     name = "execute",
     srcs = ["execute.py"],
