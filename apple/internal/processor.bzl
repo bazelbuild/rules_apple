@@ -82,6 +82,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
 
 # Location enum that can be used to tag files into their appropriate location
 # in the final archive.
@@ -134,28 +138,46 @@ def _is_parent_dir_valid(invalid_top_level_dirs, parent_dir):
 
 def _archive_paths(ctx):
     """Returns the map of location type to final archive path."""
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    bundle_path = ctx.attr._path_in_archive_format % (
+    bundle_name_with_extension = (
         bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
     )
-    contents_path = paths.join(bundle_path, ctx.attr._new_bundle_relative_contents_path)
+    bundle_path = paths.join(
+        rule_descriptor.bundle_locations.archive_relative,
+        bundle_name_with_extension,
+    )
+
+    contents_path = paths.join(
+        bundle_path,
+        rule_descriptor.bundle_locations.bundle_relative_contents,
+    )
 
     # Map of location types to relative paths in the archive.
     return {
         _LOCATION_ENUM.archive: "",
         _LOCATION_ENUM.binary: paths.join(
             contents_path,
-            ctx.attr._new_contents_relative_binary_path,
+            rule_descriptor.bundle_locations.contents_relative_binary,
         ),
         _LOCATION_ENUM.bundle: bundle_path,
         _LOCATION_ENUM.content: contents_path,
-        _LOCATION_ENUM.framework: paths.join(contents_path, "Frameworks"),
-        _LOCATION_ENUM.plugin: paths.join(contents_path, "PlugIns"),
+        _LOCATION_ENUM.framework: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_frameworks,
+        ),
+        _LOCATION_ENUM.plugin: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_plugins,
+        ),
         _LOCATION_ENUM.resource: paths.join(
             contents_path,
-            ctx.attr._new_contents_relative_resource_path,
+            rule_descriptor.bundle_locations.contents_relative_resources,
         ),
-        _LOCATION_ENUM.watch: paths.join(contents_path, "Watch"),
+        _LOCATION_ENUM.watch: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_watch,
+        ),
     }
 
 def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
