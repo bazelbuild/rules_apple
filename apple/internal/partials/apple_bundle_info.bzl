@@ -51,6 +51,10 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
         # If there's no bundle ID, don't add the Info.plist file into AppleBundleInfo.
         infoplist = outputs.infoplist(ctx)
 
+    uses_swift = False
+    if hasattr(ctx.attr, "deps"):
+        uses_swift = swift_support.uses_swift(ctx.attr.deps)
+
     return struct(
         providers = [
             AppleBundleInfo(
@@ -65,7 +69,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
                 minimum_os_version = platform_support.minimum_os(ctx),
                 product_type = product_support.product_type(ctx),
                 propagated_framework_files = depset([]),
-                uses_swift = swift_support.uses_swift(ctx.attr.deps),
+                uses_swift = uses_swift,
             ),
         ],
     )

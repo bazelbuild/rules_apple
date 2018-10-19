@@ -50,15 +50,14 @@ _COMMON_PRIVATE_TOOL_ATTRS = {
         executable = True,
     ),
     "_process_and_sign_template": attr.label(
-        single_file = True,
+        allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
     ),
     # TODO(b/117933004): Find out whether realpath is still needed for symlinking, and if not,
     # remove this attribute, which is still used by file_actions.symlink.
     "_realpath": attr.label(
         cfg = "host",
-        allow_files = True,
-        single_file = True,
+        allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/realpath"),
     ),
     "_xcode_config": attr.label(
@@ -117,9 +116,9 @@ of the target will be used instead.
 """,
             ),
             "infoplists": attr.label_list(
+                allow_empty = False,
                 allow_files = [".plist"],
                 mandatory = True,
-                non_empty = True,
                 doc = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
@@ -150,8 +149,7 @@ by the flag `--ios_minimum_os` will be used instead.
 """,
             ),
             "provisioning_profile": attr.label(
-                allow_files = [rule_descriptor.provisioning_profile_extension],
-                single_file = True,
+                allow_single_file = [rule_descriptor.provisioning_profile_extension],
                 doc = """
 The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
 optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
@@ -209,9 +207,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     """Creates an Apple bundling rule."""
     rule_attrs = [
         {
-            # TODO(kaipi): Make this attribute private. It is required by the native linking API.
+            # TODO(kaipi): Make these attributes private. They are required by the native linking
+            # API and product_support.
             "platform_type": attr.string(default = platform_type),
-            "_product_type": attr.string(default = product_type),
+            "product_type": attr.string(default = product_type),
         },
     ]
 

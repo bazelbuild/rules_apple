@@ -261,7 +261,9 @@ def merge_root_infoplists(
             **{str(p.owner): v for (p, v) in child_required_values}
         )
 
-    if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
+    if (hasattr(ctx.attr, "version") and
+        ctx.attr.version and
+        AppleBundleVersionInfo in ctx.attr.version):
         version_info = ctx.attr.version[AppleBundleVersionInfo]
         input_files.append(version_info.version_file)
         info_plist_options["version_file"] = version_info.version_file.path
