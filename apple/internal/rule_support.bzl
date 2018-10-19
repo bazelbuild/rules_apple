@@ -81,7 +81,8 @@ def _describe_rule_type(
         skip_signing: Whether this rule skips the signing step.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
-        stub_binary_path: Xcode path to the stub binary to copy as this rule's binary artifact.
+        stub_binary_path: Xcode SDK root relative path to the stub binary to copy as this rule's
+            binary artifact.
 
     Returns:
         A struct with fields that describe the configuration for a specific bundling rule.
@@ -143,7 +144,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             product_type = apple_product_type.messages_application,
-            stub_binary_path = "__BAZEL_XCODE_SDKROOT__/../../../Library/Application Support/" +
+            stub_binary_path = "../../../Library/Application Support/" +
                                "MessagesApplicationStub/MessagesApplicationStub",
         ),
         # ios_imessage_extension
@@ -158,7 +159,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".appex",
             product_type = apple_product_type.messages_sticker_pack_extension,
-            stub_binary_path = "__BAZEL_XCODE_SDKROOT__/../../../Library/Application Support/" +
+            stub_binary_path = "../../../Library/Application Support/" +
                                "MessagesApplicationExtensionStub/MessagesApplicationExtensionStub",
         ),
         # ios_static_framework
@@ -279,7 +280,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             product_type = apple_product_type.watch2_application,
             requires_pkginfo = True,
-            stub_binary_path = "__BAZEL_XCODE_SDKROOT__/Library/Application Support/WatchKit/WK",
+            stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
         # watchos_extension
         apple_product_type.watch2_extension: _describe_rule_type(

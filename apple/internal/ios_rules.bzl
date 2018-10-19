@@ -15,6 +15,14 @@
 """Experimental implementation of iOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "IosApplicationBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosStaticFrameworkBundleInfo",
+    "IosStickerPackExtensionBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -31,11 +39,16 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "IosApplicationBundleInfo",
-    "IosExtensionBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosStaticFrameworkBundleInfo",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
+    "stub_support",
 )
 
 def ios_application_impl(ctx):
@@ -311,4 +324,54 @@ def ios_static_framework_impl(ctx):
     return [
         DefaultInfo(files = processor_result.output_files),
         IosStaticFrameworkBundleInfo(),
+    ] + processor_result.providers
+
+def ios_sticker_pack_extension_impl(ctx):
+    """Experimental implementation of ios_sticker_pack_extension."""
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    top_level_attrs = [
+        "sticker_assets",
+        "strings",
+    ]
+
+    binary_artifact = stub_support.create_stub_binary(
+        ctx,
+        xcode_stub_path = rule_descriptor.stub_binary_path,
+    )
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        # TODO(kaipi): Refactor this partial into a more generic interface to account for
+        # sticker_assets as a top level attribute.
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.sticker_assets,
+        ),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.embedded_bundles_partial(
+            plugins = [outputs.archive(ctx)],
+        ),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            top_level_attrs = top_level_attrs,
+        ),
+        partials.messages_stub_partial(binary_artifact = binary_artifact),
+    ]
+
+    if platform_support.is_device_build(ctx):
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        IosExtensionBundleInfo(),
+        IosStickerPackExtensionBundleInfo(),
     ] + processor_result.providers

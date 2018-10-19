@@ -18,6 +18,14 @@ load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    "ios_sticker_pack_extension_impl",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -457,3 +465,10 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
         tests = tests,
         tags = tags,
     )
+
+ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule(
+    implementation = ios_sticker_pack_extension_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.messages_sticker_pack_extension,
+    doc = "Builds and bundles an iOS Sticker Pack Extension.",
+)
