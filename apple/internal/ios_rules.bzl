@@ -19,6 +19,7 @@ load(
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
+    "IosImessageExtensionBundleInfo",
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
 )
@@ -28,6 +29,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
     "product_support",
 )
 load(
@@ -41,6 +43,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
@@ -326,7 +332,71 @@ def ios_static_framework_impl(ctx):
         IosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 
-def ios_sticker_pack_extension_impl(ctx):
+def _ios_imessage_extension_impl(ctx):
+    """Experimental implementation of ios_imessage_extension."""
+    top_level_attrs = [
+        "app_icons",
+        "strings",
+    ]
+
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        # TODO(kaipi): Refactor this partial into a more generic interface to account for
+        # sticker_assets as a top level attribute.
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.app_icons,
+        ),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            plugins = [ctx.outputs.archive],
+            embeddable_targets = ctx.attr.frameworks,
+        ),
+        partials.extension_safe_validation_partial(is_extension_safe = True),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
+            top_level_attrs = top_level_attrs,
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+    ]
+
+    if platform_support.is_device_build(ctx):
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        IosExtensionBundleInfo(),
+        IosImessageExtensionBundleInfo(),
+    ] + processor_result.providers
+
+def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
@@ -375,3 +445,21 @@ def ios_sticker_pack_extension_impl(ctx):
         IosExtensionBundleInfo(),
         IosStickerPackExtensionBundleInfo(),
     ] + processor_result.providers
+
+# Rule definitions for rules that use the Skylark linking API and the new rule_factory support.
+# TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
+# attributes.
+
+ios_imessage_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_imessage_extension_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.messages_extension,
+    doc = "Builds and bundles an iOS iMessage Extension.",
+)
+
+ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_sticker_pack_extension_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.messages_sticker_pack_extension,
+    doc = "Builds and bundles an iOS Sticker Pack Extension.",
+)

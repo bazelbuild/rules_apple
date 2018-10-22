@@ -159,6 +159,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
     ],
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
