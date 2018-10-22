@@ -29,11 +29,13 @@ function tear_down() {
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
-     "ios_application",
-     "ios_sticker_pack_extension",
-    )
+load(
+    "@build_bazel_rules_apple//apple:ios.bzl",
+    "apple_product_type",
+    "ios_application",
+    "ios_sticker_pack_extension",
+    "ios_imessage_extension",
+)
 
 objc_library(
     name = "lib",
@@ -185,6 +187,82 @@ EOF
   expect_log "Message StickerPack extensions use an asset catalog named "
   # The 10 icons and the Contents.json should all be listed, so 11 hits.
   expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 11
+}
+
+# Tests that a message extension fails to build with *.appiconset assets.
+function test_imessage_extension_builds_with_appiconset_fails() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":imessage_ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_imessage_extension(
+    name = "imessage_ext",
+    app_icons = ["@build_bazel_rules_apple//test/testdata/resources:app_icons_ios"],
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should fail build"
+
+  # Check for the start of the log message
+  expect_log "Message extensions must use Messages Extensions Icon Sets "
+  # The 10 icons and the Contents.json should all be listed, so 11 hits.
+  expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 11
+}
+
+# Tests that a message extension builds correctly when its app icons are
+# in an asset directory named ".stickersiconset".
+function test_imessage_extension_builds_with_stickersiconset() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":imessage_ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_imessage_extension(
+    name = "imessage_ext",
+    app_icons = ["@build_bazel_rules_apple//test/testdata/resources:message_ext_app_icon_ios"],
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app --define=apple.experimental.bundling=1 \
+      || fail "Should build"
+
+  # Spot check that a few icons end up correctly there.
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/imessage_ext.appex/app_icon27x20@2x.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/PlugIns/imessage_ext.appex/app_icon32x24@2x.png"
 }
 
 run_suite "imessage bundling resource tests"

@@ -53,11 +53,14 @@ def _describe_bundle_locations(
 def _describe_rule_type(
         additional_infoplist_values = None,
         allowed_device_families = None,
+        app_icon_extension = None,
+        app_icon_parent_extension = None,
         archive_extension = ".zip",
         bundle_extension = None,
         bundle_locations = None,
         product_type = None,
         provisioning_profile_extension = ".mobileprovision",
+        requires_deps = True,
         requires_pkginfo = False,
         requires_signing_for_device = True,
         skip_signing = False,
@@ -69,12 +72,18 @@ def _describe_rule_type(
         additional_infoplist_values: Dictionary of additional values to set into the rule's
             Info.plist.
         allowed_device_families: If given, the list of device families that this rule supports.
+        app_icon_extension: For rules that require icons, the extension of the directory that should
+            hold the icons (e.g. .appiconset).
+        app_icon_parent_extension: For rules that require icons, the extension of the asset catalog
+            that should hold the icon sets (e.g. .xcassets or .xcstickers).
         archive_extension: Extension for the archive output of the rule.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
         product_type: The product type for this rule.
         provisioning_profile_extension: Extension for the expected provisioning profile files for
             this rule.
+        requires_deps: Whether this rule has a user linked binary and accepts dependencies to be
+            linked into the binary.
         requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
@@ -94,11 +103,14 @@ def _describe_rule_type(
     return struct(
         additional_infoplist_values = additional_infoplist_values,
         allowed_device_families = allowed_device_families,
+        app_icon_extension = app_icon_extension,
+        app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
         product_type = product_type,
         provisioning_profile_extension = provisioning_profile_extension,
+        requires_deps = requires_deps,
         requires_pkginfo = requires_pkginfo,
         requires_signing_for_device = requires_signing_for_device,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
@@ -118,6 +130,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
@@ -141,15 +155,20 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.messages_application: _describe_rule_type(
             additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
             allowed_device_families = ["iphone", "ipad"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             product_type = apple_product_type.messages_application,
+            requires_deps = False,
             stub_binary_path = "../../../Library/Application Support/" +
                                "MessagesApplicationStub/MessagesApplicationStub",
         ),
         # ios_imessage_extension
         apple_product_type.messages_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
             product_type = apple_product_type.messages_extension,
         ),
@@ -157,8 +176,11 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.messages_sticker_pack_extension: _describe_rule_type(
             additional_infoplist_values = {"LSApplicationIsStickerProvider": "YES"},
             allowed_device_families = ["iphone", "ipad"],
+            app_icon_parent_extension = ".xcstickers",
+            app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
             product_type = apple_product_type.messages_sticker_pack_extension,
+            requires_deps = False,
             stub_binary_path = "../../../Library/Application Support/" +
                                "MessagesApplicationExtensionStub/MessagesApplicationExtensionStub",
         ),
@@ -188,6 +210,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["mac"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             product_type = apple_product_type.application,
@@ -261,6 +285,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["tv"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             product_type = apple_product_type.application,
@@ -277,8 +303,11 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_application
         apple_product_type.watch2_application: _describe_rule_type(
             allowed_device_families = ["watch"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             product_type = apple_product_type.watch2_application,
+            requires_deps = False,
             requires_pkginfo = True,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),

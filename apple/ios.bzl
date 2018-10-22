@@ -20,11 +20,8 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
-    "ios_sticker_pack_extension_impl",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    _ios_imessage_extension = "ios_imessage_extension",
+    _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
 # Alias the internal rules when we load them. This lets the rules keep their
@@ -45,8 +42,17 @@ load(
 # Explicitly export this because we want it visible to users loading this file.
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
+    _apple_product_type = "apple_product_type",
 )
+
+# Re-export rules that do not need overridden attributes.
+# TODO(b/118104491): Remove this export and move the rule definition back to this file.
+ios_sticker_pack_extension = _ios_sticker_pack_extension
+
+# Re-export apple_product_type.
+# TODO(b/117886202): Migrate usages of apple_product_type to common.bzl. We may not even need to
+# export apple_product_type once there is 1 rule per product type.
+apple_product_type = _apple_product_type
 
 def ios_application(name, **kwargs):
     """Builds and bundles an iOS application.
@@ -466,9 +472,21 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
         tags = tags,
     )
 
-ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule(
-    implementation = ios_sticker_pack_extension_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.messages_sticker_pack_extension,
-    doc = "Builds and bundles an iOS Sticker Pack Extension.",
-)
+# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
+def ios_imessage_extension(name, **kwargs):
+    """Macro to override the linkopts attribute to add required flags for iMessage extensions."""
+    frameworks = kwargs.pop("frameworks", [])
+
+    linkopts = kwargs.pop("linkopts", [])
+    linkopts.extend([
+        "-application_extension",
+        "-e",
+        "_NSExtensionMain",
+    ])
+    return _ios_imessage_extension(
+        name = name,
+        dylibs = frameworks,
+        frameworks = frameworks,
+        linkopts = linkopts,
+        **kwargs
+    )
