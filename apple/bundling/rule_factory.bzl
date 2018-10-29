@@ -139,7 +139,7 @@ def _is_valid_attribute_mode(mode):
 _common_tool_attributes = {
     "_dsym_info_plist_template": attr.label(
         cfg = "host",
-        single_file = True,
+        allow_single_file = True,
         default = Label(
             "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
         ),
@@ -156,8 +156,7 @@ _common_tool_attributes = {
     ),
     "_realpath": attr.label(
         cfg = "host",
-        allow_files = True,
-        single_file = True,
+        allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/realpath"),
     ),
     "_xcrunwrapper": attr.label(
@@ -195,18 +194,16 @@ _bundling_tool_attributes = {
     # platform.
     "_runner_template": attr.label(
         cfg = "host",
-        allow_files = True,
-        single_file = True,
+        allow_single_file = True,
         default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
     ),
     "_process_and_sign_template": attr.label(
-        single_file = True,
+        allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
     ),
     "_std_redirect_dylib": attr.label(
         cfg = "host",
-        allow_files = True,
-        single_file = True,
+        allow_single_file = True,
         default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
     ),
     "_xctoolrunner": attr.label(
@@ -325,8 +322,7 @@ def _code_signing_attributes(code_signing):
             fail("Internal error: If code_signing.skip_signing = False, then " +
                  "code_signing.provision_profile_extension must be provided.")
         code_signing_attrs["provisioning_profile"] = attr.label(
-            allow_files = [code_signing.provision_profile_extension],
-            single_file = True,
+            allow_single_file = [code_signing.provision_profile_extension],
         )
         code_signing_attrs["entitlements_validation"] = attr.string(
             default = entitlements_validation_mode.loose,
@@ -443,7 +439,7 @@ def _make_bundling_rule(
         configurable_attrs["infoplists"] = attr.label_list(
             allow_files = [".plist"],
             mandatory = want_mandatory,
-            non_empty = want_mandatory,
+            allow_empty = not want_mandatory,
         )
 
     if use_binary_rule:
@@ -451,7 +447,7 @@ def _make_bundling_rule(
             "binary": attr.label(
                 mandatory = False,
                 providers = binary_providers,
-                single_file = True,
+                allow_single_file = True,
             ),
             # Even for rules that don't bundle a user-provided binary (like
             # watchos_application and some ios_application/extension targets), the

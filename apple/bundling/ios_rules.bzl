@@ -203,8 +203,7 @@ ios_application = rule_factory.make_bundling_rule(
         ),
         "launch_images": attr.label_list(allow_files = True),
         "launch_storyboard": attr.label(
-            allow_files = [".storyboard", ".xib"],
-            single_file = True,
+            allow_single_file = [".storyboard", ".xib"],
         ),
         "settings_bundle": attr.label(
             aspects = [new_apple_resource_aspect],
