@@ -43,6 +43,7 @@ always unsigned, so note that it is _not_ a path to the binary inside your
 output bundle. The primary purpose of this field is to provide a way to access
 the binary directly at analysis time; for example, for code coverage.
 """,
+        # TODO(b/118772102): Remove this field.
         "bundle_dir": "`File`. The directory that represents the bundle.",
         "bundle_id": """
 `string`. The bundle identifier (i.e., `CFBundleIdentifier` in
