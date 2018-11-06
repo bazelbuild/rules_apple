@@ -50,11 +50,19 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
     providers = []
 
     if package_messages_support:
-        extension_binaries = [
-            x[_AppleMessagesStubInfo].binary
-            for x in ctx.attr.extensions
-            if _AppleMessagesStubInfo in x
-        ]
+        # TODO(kaipi): Make extensions a parameter of the partial, not a hardcoded lookup in the
+        # partial.
+        if hasattr(ctx.attr, "extensions"):
+            extension_binaries = [
+                x[_AppleMessagesStubInfo].binary
+                for x in ctx.attr.extensions
+                if _AppleMessagesStubInfo in x
+            ]
+        elif hasattr(ctx.attr, "extension"):
+            if _AppleMessagesStubInfo in ctx.attr.extension:
+                extension_binaries = [ctx.attr.extension[_AppleMessagesStubInfo].binary]
+            else:
+                extension_binaries = []
 
         if extension_binaries:
             bundle_files.append(
