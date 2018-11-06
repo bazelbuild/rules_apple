@@ -23,6 +23,8 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "IosFrameworkBundleInfo",
+    "IosImessageExtensionBundleInfo",
+    "IosStickerPackExtensionBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -317,6 +319,20 @@ List of sticker files to bundle. The collection of assets should be under a fold
 `*.*.xcstickers`. The icons go in a `*.stickersiconset` (instead of `*.appiconset`); and the files
 for the stickers should all be in Sticker Pack directories, so `*.stickerpack/*.sticker` or
 `*.stickerpack/*.stickersequence`.
+""",
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.messages_application:
+        attrs.append({
+            "extension": attr.label(
+                mandatory = True,
+                providers = [
+                    [AppleBundleInfo, IosImessageExtensionBundleInfo],
+                    [AppleBundleInfo, IosStickerPackExtensionBundleInfo],
+                ],
+                doc = """
+Single label referencing either an ios_imessage_extension or ios_sticker_pack_extension target.
+Required.
 """,
             ),
         })

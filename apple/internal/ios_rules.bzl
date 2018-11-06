@@ -19,6 +19,7 @@ load(
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
+    "IosImessageApplicationBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
@@ -59,9 +60,6 @@ load(
 
 def ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
-
-    # TODO(kaipi): Handle other things related to iOS apps, like frameworks,
-    # extensions and SwiftSupport.
     top_level_attrs = [
         "app_icons",
         "launch_images",
@@ -332,6 +330,62 @@ def ios_static_framework_impl(ctx):
         IosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 
+def _ios_imessage_application_impl(ctx):
+    """Experimental implementation of ios_imessage_application."""
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    top_level_attrs = [
+        "app_icons",
+        "strings",
+    ]
+
+    binary_artifact = stub_support.create_stub_binary(
+        ctx,
+        xcode_stub_path = rule_descriptor.stub_binary_path,
+    )
+
+    bundle_id = ctx.attr.bundle_id
+
+    bundle_verification_targets = [struct(target = ctx.attr.extension)]
+    embeddable_targets = [ctx.attr.extension]
+
+    processor_partials = [
+        partials.app_assets_validation_partial(
+            app_icons = ctx.files.app_icons,
+        ),
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = embeddable_targets,
+        ),
+        partials.framework_import_partial(targets = [ctx.attr.extension]),
+        partials.messages_stub_partial(
+            binary_artifact = binary_artifact,
+            package_messages_support = True,
+        ),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            bundle_verification_targets = bundle_verification_targets,
+            plist_attrs = ["infoplists"],
+            top_level_attrs = top_level_attrs,
+        ),
+    ]
+
+    if platform_support.is_device_build(ctx):
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        IosImessageApplicationBundleInfo(),
+    ] + processor_result.providers
+
 def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
     top_level_attrs = [
@@ -449,6 +503,13 @@ def _ios_sticker_pack_extension_impl(ctx):
 # Rule definitions for rules that use the Skylark linking API and the new rule_factory support.
 # TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
 # attributes.
+
+ios_imessage_application = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_imessage_application_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.messages_application,
+    doc = "Builds and bundles an iOS iMessage Application.",
+)
 
 ios_imessage_extension = rule_factory.create_apple_bundling_rule(
     implementation = _ios_imessage_extension_impl,

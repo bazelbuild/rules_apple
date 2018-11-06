@@ -33,8 +33,9 @@ load(
     "@build_bazel_rules_apple//apple:ios.bzl",
     "apple_product_type",
     "ios_application",
-    "ios_sticker_pack_extension",
+    "ios_imessage_application",
     "ios_imessage_extension",
+    "ios_sticker_pack_extension",
 )
 
 objc_library(
@@ -100,6 +101,37 @@ ios_application(
     minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
+)
+
+ios_sticker_pack_extension(
+    name = "stickerpack",
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["Info-Ext.plist"],
+    minimum_os_version = "10.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
+)
+EOF
+}
+
+# Usage: create_minimal_ios_imessage_application_with_stickerpack
+#
+# Creates a minimal iOS iMessage application target with stickerpack extension.
+function create_minimal_ios_imessage_application_with_stickerpack() {
+  if [[ ! -f app/BUILD ]]; then
+    fail "create_common_files must be called first."
+  fi
+
+  cat >> app/BUILD <<EOF
+ios_imessage_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extension = ":stickerpack",
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "8.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
 )
 
 ios_sticker_pack_extension(
@@ -263,6 +295,22 @@ EOF
       "Payload/app.app/PlugIns/imessage_ext.appex/app_icon27x20@2x.png"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/imessage_ext.appex/app_icon32x24@2x.png"
+}
+
+function test_message_application() {
+  create_common_files
+  create_minimal_ios_imessage_application_with_stickerpack
+  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+      LSApplicationLaunchProhibited
+
+  do_build ios //app:dump_plist || fail "Should build"
+
+  # Ignore the following checks for simulator builds.
+  is_device_build ios || return 0
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "MessagesApplicationSupport/MessagesApplicationSupportStub"
+  assert_equals "true" "$(cat "test-genfiles/app/LSApplicationLaunchProhibited")"
 }
 
 run_suite "imessage bundling resource tests"

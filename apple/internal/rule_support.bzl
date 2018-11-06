@@ -157,6 +157,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
+            archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             product_type = apple_product_type.messages_application,

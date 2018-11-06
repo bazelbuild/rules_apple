@@ -20,6 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
@@ -47,6 +48,7 @@ load(
 
 # Re-export rules that do not need overridden attributes.
 # TODO(b/118104491): Remove this export and move the rule definition back to this file.
+ios_imessage_application = _ios_imessage_application
 ios_sticker_pack_extension = _ios_sticker_pack_extension
 
 # Re-export apple_product_type.
