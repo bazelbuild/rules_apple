@@ -483,7 +483,10 @@ def _structured_resources_parent_dir(resource, parent_dir):
         The package relative path to the parent directory of the resource.
     """
     package_relative = path_utils.owner_relative_path(resource)
-    path = paths.dirname(package_relative).rstrip("/")
+    if resource.is_directory:
+        path = package_relative
+    else:
+        path = paths.dirname(package_relative).rstrip("/")
     return paths.join(parent_dir or "", path or "") or None
 
 resources = struct(
