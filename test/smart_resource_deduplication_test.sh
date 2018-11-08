@@ -55,6 +55,13 @@ EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application", "ios_framework")
 
+genrule(
+    name = "gen_file",
+    srcs = [],
+    outs = ["gen_file.txt"],
+    cmd = "echo 'this is generated' > \"\$@\"",
+)
+
 objc_library(
     name = "resource_only_lib",
     resources = ["resource_only_lib.txt"]
@@ -70,6 +77,7 @@ objc_library(
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
     ],
     resources = [
+        "gen_file.txt",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],
@@ -115,7 +123,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "9",
     strings = ["app.strings"],
     deps = [":app_lib"],
 )
@@ -136,6 +144,8 @@ EOF
       "framework.framework/basic.bundle/basic_bundle.txt"
   assert_zip_contains "test-bin/app/framework.zip" \
       "framework.framework/resource_only_lib.txt"
+  assert_zip_contains "test-bin/app/framework.zip" \
+      "framework.framework/gen_file.txt"
 
   # Because app_lib directly references these assets, smart dedupe ensures that
   # they are present in the same bundle as the binary that has app_lib, which
@@ -153,6 +163,8 @@ EOF
       "Payload/app.app/nonlocalized.plist"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/gen_file.txt"
 
   # This file is added by the top level bundling target, so it should be present
   # at the top level bundle.

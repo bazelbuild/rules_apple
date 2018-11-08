@@ -106,12 +106,12 @@ def _deduplicate(resources_provider, avoid_provider, field):
       resources_providers.
     """
 
-    # Build a dictionary with the files under each key for the avoided resources.
+    # Build a dictionary with the file paths under each key for the avoided resources.
     avoid_dict = {}
     if avoid_provider and hasattr(avoid_provider, field):
         for parent_dir, swift_module, files in getattr(avoid_provider, field):
             key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-            avoid_dict[key] = files.to_list()
+            avoid_dict[key] = {x.short_path: None for x in files.to_list()}
 
     # Get the resources to keep, compare them to the avoid_dict under the same
     # key, and remove the duplicated file references. Then recreate the original
@@ -129,14 +129,13 @@ def _deduplicate(resources_provider, avoid_provider, field):
             if short_path in multi_architecture_deduplication_set:
                 continue
             multi_architecture_deduplication_set[short_path] = None
-            if key in avoid_dict and to_bundle_file in avoid_dict[key]:
-                # If the resource file is present in the provider of resources to avoid, and
-                # smart_dedupe is enabled, we compare the owners of the resource through the
-                # owners dictionaries of the providers. If there are owners present in
-                # resources_provider which are not present in avoid_provider, it means that
-                # there is at least one target that declares usage of the resource which is not
-                # accounted for in avoid_provider. If this is the case, we add the resource to
-                # be bundled in the bundle represented by resource_provider.
+            if key in avoid_dict and short_path in avoid_dict[key]:
+                # If the resource file is present in the provider of resources to avoid, we compare
+                # the owners of the resource through the owners dictionaries of the providers. If
+                # there are owners present in resources_provider which are not present in
+                # avoid_provider, it means that there is at least one target that declares usage of
+                # the resource which is not accounted for in avoid_provider. If this is the case, we
+                # add the resource to be bundled in the bundle represented by resource_provider.
                 deduped_owners = [
                     o
                     for o in resources_provider.owners[short_path]
