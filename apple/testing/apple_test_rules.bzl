@@ -175,7 +175,7 @@ def _collect_files(rule_attr, attr_name):
     if not attr_val:
         return depset()
 
-    attr_val_as_list = attr_val if type(attr_val) == "list" else [attr_val]
+    attr_val_as_list = attr_val if type(attr_val) == type([]) else [attr_val]
     files = [f for src in attr_val_as_list for f in getattr(src, "files", [])]
     return depset(files)
 
