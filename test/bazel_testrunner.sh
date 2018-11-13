@@ -26,10 +26,9 @@
 
 test_script="$1"; shift
 
-# Update this to change the default version of Xcode used in tests. (Later in
-# this script we search for it and will fallback to a different version if
-# found, but this lets us fix a default version for CI if desired.)
-export XCODE_VERSION_FOR_TESTS=8.3.3
+# Use the image's default Xcode version when running tests to avoid flakes
+# because of multiple Xcodes running at the same time.
+export XCODE_VERSION_FOR_TESTS="$(xcodebuild -version | sed -nE 's/Xcode (.+)/\1/p')"
 
 function print_message_and_exit() {
   echo "$1" >&2; exit 1;
