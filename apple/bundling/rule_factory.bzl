@@ -482,7 +482,7 @@ def _make_bundling_rule(
                     new_apple_resource_aspect,
                     framework_import_aspect,
                 ],
-                cfg = apple_common.multi_arch_split,
+                cfg = deps_cfg,
             ),
             # Required by apple_common.multi_arch_split on 'deps'.
             "platform_type": attr.string(mandatory = True),
