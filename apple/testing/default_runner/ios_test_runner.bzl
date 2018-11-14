@@ -28,6 +28,11 @@ def _get_template_substitutions(ctx):
         "testrunner_binary": ctx.executable._testrunner.short_path,
         "device_type": ctx.attr.device_type,
     }
+    # if ios_simulator_device and ios_simulator_version are specified in the bazel test command, override device_type
+    if ctx.fragments.objc.ios_simulator_device:
+        subs["device_type"] = ctx.fragments.objc.ios_simulator_device
+    if ctx.fragments.objc.ios_simulator_device:
+        subs["os_version"] = str(ctx.fragments.objc.ios_simulator_version)
     return {"%(" + k + ")s": subs[k] for k in subs}
 
 def _get_test_environment(ctx):
