@@ -21,6 +21,7 @@ ios_application(
     ],
     infoplists = ["TestHost.plist"],
     launch_storyboard = "LaunchScreen.storyboard",
+    minimum_os_version = "8.0",
     visibility = ["//visibility:public"],
     deps = [":Main"],
 )

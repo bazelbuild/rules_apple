@@ -92,6 +92,7 @@ ios_application(
 ios_static_framework(
     name = "ButtonsStaticFramework",
     bundle_name = "ButtonsStaticFramework",
+    minimum_os_version = "8.0",
     deps = [":ButtonsLib"],
 )
 
