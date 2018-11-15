@@ -137,7 +137,6 @@ macos_command_line_launchdplist = rule(
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
-                non_empty = False,
             ),
         },
     ),
