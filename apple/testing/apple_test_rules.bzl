@@ -321,23 +321,20 @@ The xctest bundle that contains the test code and resources. Required.
         ),
         # gcov and mcov are binary files required to calculate test coverage.
         "_gcov": attr.label(
-            allow_files = True,
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:gcov"),
-            single_file = True,
+            allow_single_file = True,
         ),
         "_mcov": attr.label(
-            allow_files = True,
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:mcov"),
-            single_file = True,
+            allow_single_file = True,
         ),
         # The realpath binary needed for symlinking.
         "_realpath": attr.label(
-            allow_files = True,
             cfg = "host",
             default = Label("@build_bazel_rules_apple//tools/realpath"),
-            single_file = True,
+            allow_single_file = True,
         ),
     }
 

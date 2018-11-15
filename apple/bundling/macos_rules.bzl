@@ -384,18 +384,16 @@ macos_command_line_application = rule(
             "binary": attr.label(
                 mandatory = True,
                 providers = [apple_common.AppleExecutableBinary],
-                single_file = True,
+                allow_single_file = True,
             ),
             "bundle_id": attr.string(mandatory = False),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
-                non_empty = False,
             ),
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
-                non_empty = False,
             ),
             "minimum_os_version": attr.string(mandatory = False),
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),
