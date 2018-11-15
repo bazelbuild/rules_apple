@@ -346,7 +346,9 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
             "likely a bug in rules_apple, please file a bug with reproduction steps.",
         )
 
-    if len(providers) == 1:
+    if not default_owner and validate_all_resources_owned == False and len(providers) == 1:
+        # Short path to avoid the merging and validation loops if the loop won't change the owners
+        # mapping nor validate that all resources are marked as owned.
         return providers[0]
 
     buckets = {}

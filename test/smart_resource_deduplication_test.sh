@@ -88,6 +88,12 @@ objc_library(
 )
 
 objc_library(
+    name = "shared_lib_with_no_direct_resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    deps = [":resource_only_lib"],
+)
+
+objc_library(
     name = "app_lib",
     srcs = ["main.m"],
     asset_catalogs = [
@@ -100,6 +106,12 @@ objc_library(
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],
     deps = [":shared_lib", ":resource_only_lib"],
+)
+
+objc_library(
+    name = "app_lib_with_no_direct_resources",
+    srcs = ["main.m"],
+    deps = [":shared_lib_with_no_direct_resources"],
 )
 EOF
 }
@@ -178,6 +190,40 @@ EOF
   # in both the framework and the app. But when accounting for the lack of
   # sources in :resource_only_lib, the resource is bundled in the app as well.
   assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/resource_only_lib.txt"
+}
+
+function test_shared_resource_deduplicated_when_not_referenced_by_app_only_lib() {
+  create_basic_project
+
+  cat >> app/BUILD <<EOF
+ios_framework(
+    name = "framework",
+    bundle_id = "com.framework",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "8",
+    deps = [":shared_lib_with_no_direct_resources"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "com.app",
+    families = ["iphone"],
+    frameworks = [":framework"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9",
+    strings = ["app.strings"],
+    deps = [":app_lib_with_no_direct_resources"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  # This is a tricky corner case, in which a resource only lib is depended by
+  # dependency chains that contain no other resources. In this very specific
+  # scenario, the resource might not be correctly deduplicated.
+  assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/resource_only_lib.txt"
 }
 
