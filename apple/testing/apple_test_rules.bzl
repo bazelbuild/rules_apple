@@ -114,19 +114,16 @@ Dictionary with the environment variables required for the test.
 CoverageFiles = provider(
     doc = """
 Provider used by the `coverage_files_aspect` aspect to propagate the
-transitive closure of sources that a test depends on. These sources are then
-made available during the coverage action as they are required by the coverage
-insfrastructure. The sources are provided in the `coverage_files` field. This
-provider is only available if when coverage collecting is enabled.
+transitive closure of sources and binaries that a test depends on. These files
+are then made available during the coverage action as they are required by the
+coverage insfrastructure. The sources are provided in the `coverage_files` field,
+and the binaries in the `covered_binaries` field. This provider is only available
+if when coverage collecting is enabled.
 """,
 )
 
 def _coverage_files_aspect_impl(target, ctx):
     """Implementation for the `coverage_files_aspect` aspect."""
-
-    # target is needed for the method signature that aspect() expects in the
-    # implementation method.
-    target = target  # unused argument
 
     # Skip collecting files if coverage is not enabled.
     if not ctx.configuration.coverage_enabled:
@@ -142,13 +139,31 @@ def _coverage_files_aspect_impl(target, ctx):
     # Collect dependencies coverage files.
     for dep in attrs.get(ctx.rule.attr, "deps", []):
         coverage_files += dep[CoverageFiles].coverage_files
+
+    # Collect the binaries themselves from the various bundles involved in the test. These will be
+    # passed through the test environment so that `llvm-cov` can access the coverage mapping data
+    # embedded in them.
+    direct_binaries = []
+    transitive_binaries_sets = []
+    if AppleBundleInfo in target:
+        direct_binaries.append(target[AppleBundleInfo].binary)
+
     for attr in ["binary", "test_host"]:
         if hasattr(ctx.rule.attr, attr):
             attr_value = getattr(ctx.rule.attr, attr)
             if attr_value:
                 coverage_files += attr_value[CoverageFiles].coverage_files
+                transitive_binaries_sets.append(attr_value[CoverageFiles].covered_binaries)
 
-    return struct(providers = [CoverageFiles(coverage_files = coverage_files)])
+    return struct(providers = [
+        CoverageFiles(
+            coverage_files = coverage_files,
+            covered_binaries = depset(
+                direct = direct_binaries,
+                transitive = transitive_binaries_sets,
+            ),
+        ),
+    ])
 
 coverage_files_aspect = aspect(
     attr_aspects = [
@@ -380,6 +395,9 @@ def _get_template_substitutions(ctx, test_type):
 def _get_coverage_test_environment(ctx):
     """Returns environment variables required for test coverage support."""
     gcov_files = ctx.attr._gcov.files.to_list()
+    coverage_files = ctx.attr.test_bundle[CoverageFiles]
+    covered_binary_paths = [f.short_path for f in coverage_files.covered_binaries.to_list()]
+
     return {
         "APPLE_COVERAGE": "1",
         # TODO(b/72383680): Remove the workspace_name prefix for the path.
@@ -388,6 +406,7 @@ def _get_coverage_test_environment(ctx):
             ctx.workspace_name,
             gcov_files[0].path,
         ]),
+        "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
 def _apple_test_impl(ctx, test_type):
@@ -410,8 +429,15 @@ def _apple_test_impl(ctx, test_type):
         transitive_runfiles.append(
             ctx.attr.test_bundle[CoverageFiles].coverage_files,
         )
+        transitive_runfiles.append(
+            ctx.attr.test_bundle[CoverageFiles].covered_binaries,
+        )
         transitive_runfiles.append(ctx.attr._gcov.files)
         transitive_runfiles.append(ctx.attr._mcov.files)
+
+        # _coverage_support is a private attribute added by Bazel to all test targets (see
+        # https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/analysis/skylark/SkylarkRuleClassFunctions.java).
+        transitive_runfiles.append(ctx.attr._coverage_support.files)
 
     file_actions.symlink(
         ctx,
