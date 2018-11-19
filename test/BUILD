@@ -149,6 +149,7 @@ apple_multi_shell_test(
     ],
     flaky = 1,
     shard_count = 5,
+    tags = ["exclusive"],
 )
 
 apple_multi_shell_test(
@@ -160,6 +161,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_ios",
     ],
     shard_count = 5,
+    tags = ["exclusive"],
 )
 
 apple_multi_shell_test(
