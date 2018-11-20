@@ -35,6 +35,7 @@ if [[ -n "${BAZEL:-}" ]]; then
     --show_progress_rate_limit=30.0
     --test_output=errors
     --spawn_strategy=local
+    --test_env=PATH
   )
   if [[ -n "${TAGS:-}" ]]; then
     TEST_ARGS+=( "--test_tag_filters=${TAGS}")
