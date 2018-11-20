@@ -7,6 +7,7 @@ platforms:
     - "examples:ci_build_targets"
     test_flags:
     - "--spawn_strategy=local"
+    - "--test_env=PATH"
     test_targets:
     - "tools/..."
     - "test/..."
