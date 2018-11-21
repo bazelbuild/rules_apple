@@ -117,8 +117,8 @@ macos_test_runner = rule(
         "test_runner_template": "%{name}.sh",
     },
     fragments = ["apple", "objc"],
-)
-"""Rule to identify an macOS runner that runs tests for macOS.
+    doc = """
+Rule to identify an macOS runner that runs tests for macOS.
 
 Provides:
   AppleTestRunner:
@@ -130,4 +130,5 @@ Provides:
         test.
   Runfiles:
     files: The files needed during runtime for the test to be performed.
-"""
+""",
+)

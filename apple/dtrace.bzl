@@ -55,16 +55,17 @@ def _dtrace_compile_impl(ctx):
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
     attrs = {
-        "srcs": attr.label_list(allow_files = [".d"], allow_empty = False),
+        "srcs": attr.label_list(
+            allow_files = [".d"],
+            allow_empty = False,
+            doc = "dtrace(.d) sources.",
+        ),
     },
     output_to_genfiles = True,
-)
-"""
+    doc = """
 Compiles
 [dtrace files with probes](https://www.ibm.com/developerworks/aix/library/au-dtraceprobes.html)
 to generate header files to use those probes in C languages. The header files
 generated will have the same name as the source files but with a .h extension.
-
-Args:
-  srcs: dtrace(.d) sources.
-"""
+""",
+)

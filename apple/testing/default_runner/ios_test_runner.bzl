@@ -115,8 +115,8 @@ By default, it is the latest supported version of the device type.'
         "test_runner_template": "%{name}.sh",
     },
     fragments = ["apple", "objc"],
-)
-"""Rule to identify an iOS runner that runs tests for iOS.
+    doc = """
+Rule to identify an iOS runner that runs tests for iOS.
 
 The runner will create a new simulator according to the given arguments to run
 tests.
@@ -129,4 +129,5 @@ Outputs:
         requirements for this test.
   Runfiles:
     files: The files needed during runtime for the test to be performed.
-"""
+""",
+)
