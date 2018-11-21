@@ -139,18 +139,47 @@ apple_bundle_version = rule(
     attrs = {
         "build_label_pattern": attr.string(
             mandatory = False,
+            doc = """
+A pattern that should contain placeholders inside curly braces (e.g.,
+`"foo_{version}_bar"`) that is used to parse the build label that is generated
+in the build info file with the `--embed_label` option passed to Bazel. Each of
+the placeholders is expected to match one of the keys in the `capture_groups`
+attribute.
+""",
         ),
         "build_version": attr.string(
             mandatory = True,
+            doc = """
+A string that will be used as the value for the `CFBundleVersion` key in a
+depending bundle's Info.plist. If this string contains placeholders, then they
+will be replaced by strings captured out of `build_label_pattern`.
+""",
         ),
         "capture_groups": attr.string_dict(
             mandatory = False,
+            doc = """
+A dictionary where each key is the name of a placeholder found in
+`build_label_pattern` and the corresponding value is the regular expression that
+should match that placeholder. If this attribute is provided, then
+`build_label_pattern` must also be provided.
+""",
         ),
         "fallback_build_label": attr.string(
             mandatory = False,
+            doc = """
+A build label to use when the no `--embed_label` was provided on the build. Used
+to provide a version that will be used during development.
+""",
         ),
         "short_version_string": attr.string(
             mandatory = False,
+            doc = """
+A string that will be used as the value for the `CFBundleShortVersionString` key
+in a depending bundle's Info.plist. If this string contains placeholders, then
+they will be replaced by strings captured out of `build_label_pattern`. This
+attribute is optional; if it is omitted, then the value of `build_version` will
+be used for this key as well.
+""",
         ),
         "_versiontool": attr.label(
             cfg = "host",
@@ -160,37 +189,15 @@ apple_bundle_version = rule(
             executable = True,
         ),
     },
-)
-"""Produces a target that contains versioning information for an Apple bundle.
+    doc = """
+Produces a target that contains versioning information for an Apple bundle.
 
 Targets created by this rule do not generate outputs themselves, but instead
 should be used in the `version` attribute of an Apple application or extension
 bundle target to set the version keys in that bundle's Info.plist file.
 
-Args:
-  build_label_pattern: A pattern that should contain placeholders inside curly
-      braces (e.g., `"foo_{version}_bar"`) that is used to parse the build label
-      that is generated in the build info file with the `--embed_label` option
-      passed to Bazel. Each of the placeholders is expected to match one of the
-      keys in the `capture_groups` attribute.
-  build_version: A string that will be used as the value for the
-      `CFBundleVersion` key in a depending bundle's Info.plist. If this string
-      contains placeholders, then they will be replaced by strings captured out
-      of `build_label_pattern`.
-  capture_groups: A dictionary where each key is the name of a placeholder found
-      in `build_label_pattern` and the corresponding value is the regular
-      expression that should match that placeholder. If this attribute is
-      provided, then `build_label_pattern` must also be provided.
-  fallback_build_label: A build label to use when the no `--embed_label` was
-      provided on the build. Used to provide a version that will be used
-      during development.
-  short_version_string: A string that will be used as the value for the
-      `CFBundleShortVersionString` key in a depending bundle's Info.plist. If
-      this string contains placeholders, then they will be replaced by strings
-      captured out of `build_label_pattern`. This attribute is optional; if it
-      is omitted, then the value of `build_version` will be used for this key as
-      well.
 Provides:
   AppleBundleVersionInfo: Contains a reference to the JSON file that holds the
       version information for a bundle.
-"""
+""",
+)
