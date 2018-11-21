@@ -109,11 +109,11 @@ def _apple_framework_import_impl(ctx):
             )
     else:
         if ctx.attr.sdk_dylibs:
-            objc_provider_fields["sdk_dylib"] = ctx.attr.sdk_dylibs
+            objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
         if ctx.attr.sdk_frameworks:
-            objc_provider_fields["sdk_framework"] = ctx.attr.sdk_frameworks
+            objc_provider_fields["sdk_framework"] = depset(ctx.attr.sdk_frameworks)
         if ctx.attr.weak_sdk_frameworks:
-            objc_provider_fields["weak_sdk_framework"] = ctx.attr.weak_sdk_frameworks
+            objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
 
     # TODO(kaipi): Remove this dummy binary. It is only required because the
