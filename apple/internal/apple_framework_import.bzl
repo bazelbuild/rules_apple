@@ -148,7 +148,7 @@ on this target.
 """,
         ),
         "is_dynamic": attr.bool(
-            mandatory = True,
+            default = False,
             doc = """
 Indicates whether this framework is linked dynamically or not. If this attribute is set to True, the
 final application binary will link against this framework and also be copied into the final
