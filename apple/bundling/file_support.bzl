@@ -76,7 +76,7 @@ def _intermediate_dir(ctx, pattern, path = None, prefix = None):
     Returns:
       A new `File` object (which actually represents a directory).
     """
-    return ctx.experimental_new_directory(
+    return ctx.actions.declare_directory(
         _intermediate_name(pattern, ctx.label, path, prefix),
     )
 

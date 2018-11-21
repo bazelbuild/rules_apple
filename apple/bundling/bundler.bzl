@@ -1188,7 +1188,7 @@ def _run(
     if bundling_support.bundle_name_with_extension(ctx).endswith(".app"):
         experimental_bundling = "off"
     if experimental_bundling in ("bundle_and_archive", "bundle_only"):
-        out_bundle = ctx.experimental_new_directory(
+        out_bundle = ctx.actions.declare_directory(
             bundling_support.bundle_name_with_extension(ctx),
         )
         main_outputs.append(out_bundle)
