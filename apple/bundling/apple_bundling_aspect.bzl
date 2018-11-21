@@ -368,8 +368,7 @@ def _apple_bundling_aspect_impl(target, ctx):
 apple_bundling_aspect = aspect(
     implementation = _apple_bundling_aspect_impl,
     attr_aspects = ["bundles", "deps"],
-)
-"""
+    doc = """
 This aspect walks the dependency graph through the `deps` attribute and
 collects information needed during the bundling process. For example, we
 determine whether Swift is used anywhere within the dependency chain, and for
@@ -379,4 +378,5 @@ well.
 
 This aspect may propagate the `AppleResourceInfo` provider. Refer to the
 documentation for that providers for a description of the fields it contains.
-"""
+""",
+)

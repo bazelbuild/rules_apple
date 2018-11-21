@@ -93,7 +93,7 @@ macos_command_line_infoplist = rule(
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
-                non_empty = False,
+                allow_empty = True,
             ),
             "minimum_os_version": attr.string(mandatory = False),
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),

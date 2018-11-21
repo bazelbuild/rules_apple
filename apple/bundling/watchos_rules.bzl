@@ -36,7 +36,6 @@ load(
     "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
     "rule_factory",
 )
-load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",

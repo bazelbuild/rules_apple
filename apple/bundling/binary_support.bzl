@@ -21,9 +21,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "product_support",
 )
 load(

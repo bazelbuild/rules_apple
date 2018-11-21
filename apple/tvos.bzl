@@ -30,8 +30,11 @@ load(
 # Explicitly export this because we want it visible to users loading this file.
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
+    _apple_product_type = "apple_product_type",
 )
+
+# Re-export apple_product_type.
+apple_product_type = _apple_product_type
 
 def tvos_application(name, **kwargs):
     """Builds and bundles a tvOS application.
