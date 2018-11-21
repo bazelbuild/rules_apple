@@ -860,7 +860,7 @@ def _momc(ctx, input_files, resource_info):
 
         platform_support.xcode_env_action(
             ctx,
-            inputs = list(children),
+            inputs = children.to_list(),
             outputs = [out_file],
             executable = ctx.executable._xctoolrunner,
             arguments = args,
