@@ -121,7 +121,7 @@ def _apple_bundle_version_impl(ctx):
     )
     inputs.append(control_file)
 
-    ctx.action(
+    ctx.actions.run(
         executable = ctx.executable._versiontool,
         arguments = [control_file.path, bundle_version_file.path],
         inputs = inputs,
