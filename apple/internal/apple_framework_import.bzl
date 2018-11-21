@@ -123,6 +123,12 @@ def _apple_framework_import_impl(ctx):
     dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
     ctx.actions.write(dummy_binary, "_dummy_file_")
 
+    objc_provider_fields["providers"] = [
+        dep[apple_common.Objc]
+        for dep in ctx.attr.deps
+        if apple_common.Objc in dep
+    ]
+
     objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
     providers.append(objc_provider)
     providers.append(
@@ -179,6 +185,15 @@ Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`.
 regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
 are not present at runtime. Only applicable for static frameworks (i.e. `is_dynamic = False`).
 """,
+        ),
+        "deps": attr.label_list(
+            doc = """
+A list of targets that are dependencies of the target being built, which will be
+linked into that target.
+""",
+            providers = [
+                [apple_common.Objc],
+            ],
         ),
     },
     doc = """

@@ -166,7 +166,7 @@ ios_application(
 
 ```python
 apple_framework_import(name, framework_import, is_dynamic, sdk_dylibs,
-sdk_frameworks, weak_sdk_frameworks)
+sdk_frameworks, weak_sdk_frameworks, deps)
 ```
 
 This rule encapsulates an already-built framework. It is defined by a list of
@@ -271,6 +271,13 @@ objc_library(
         frameworks, symbols from weakly linked frameworks do not cause an error
         if they are not present at runtime. Only applicable for static
         frameworks (i.e. `is_dynamic = False`).</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of labels; optional</code></p>
+        <p>Labels of targets this framework depends on</p>
       </td>
     </tr>
   </tbody>
