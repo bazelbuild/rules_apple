@@ -674,7 +674,7 @@ def _run(
         progress_description,
         bundle_id,
         binary_artifact,
-        additional_bundlable_files = depset(),
+        additional_bundlable_files = [],
         additional_resource_sets = [],
         avoid_propagated_framework_files = None,
         embedded_bundles = [],
