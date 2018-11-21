@@ -48,7 +48,7 @@ def _apple_genrule_impl(ctx):
         fail("apple_genrule must have one or more outputs", attr = "outs")
     files_to_build = depset(ctx.outputs.outs)
 
-    if ctx.attr.executable and len(files_to_build) > 1:
+    if ctx.attr.executable and len(files_to_build.to_list()) > 1:
         fail(
             "if genrules produce executables, they are allowed only one output. " +
             "If you need the executable=1 argument, then you should split this " +
@@ -68,7 +68,7 @@ def _apple_genrule_impl(ctx):
         make_variables = _compute_make_variables(
             ctx.genfiles_dir,
             ctx.label,
-            depset(resolved_srcs),
+            depset(resolved_srcs.to_list()),
             files_to_build,
         ),
         tools = ctx.attr.tools,
@@ -84,8 +84,8 @@ def _apple_genrule_impl(ctx):
 
     apple_action(
         ctx,
-        inputs = list(resolved_srcs) + resolved_inputs,
-        outputs = list(files_to_build),
+        inputs = resolved_srcs.to_list() + resolved_inputs,
+        outputs = files_to_build.to_list(),
         env = env,
         command = argv,
         progress_message = "%s %s" % (message, ctx.label),
