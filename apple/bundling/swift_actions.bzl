@@ -14,10 +14,6 @@
 
 """Actions used to copy Swift libraries into the bundle."""
 
-load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
 load("@build_bazel_rules_apple//apple/bundling:file_support.bzl", "file_support")
 load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",

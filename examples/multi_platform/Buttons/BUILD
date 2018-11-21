@@ -7,7 +7,6 @@ licenses(["notice"])
 load(
     "//apple:ios.bzl",
     "ios_application",
-    "ios_extension",
     "ios_static_framework",
     "ios_ui_test",
     "ios_unit_test",
