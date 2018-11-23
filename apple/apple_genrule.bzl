@@ -109,7 +109,7 @@ _apple_genrule_inner = rule(
         "outs": attr.output_list(mandatory = True),
         "cmd": attr.string(mandatory = True),
         "message": attr.string(),
-        "output_licenses": attr.license(),
+        "output_licenses": attr.label_list(allow_files = True),
         "executable": attr.bool(default = False),
         "no_sandbox": attr.bool(),
         "_xcode_config": attr.label(default = configuration_field(
