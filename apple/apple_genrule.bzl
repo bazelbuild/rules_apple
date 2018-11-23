@@ -29,14 +29,16 @@ def _compute_make_variables(
         label,
         resolved_srcs,
         files_to_build):
+    resolved_srcs_list = resolved_srcs.to_list()
+    files_to_build_list = files_to_build.to_list()
     variables = {
-        "SRCS": cmd_helper.join_paths(" ", resolved_srcs),
-        "OUTS": cmd_helper.join_paths(" ", files_to_build),
+        "SRCS": " ".join(resolved_srcs_list),
+        "OUTS": " ".join(files_to_build_list),
     }
-    if len(resolved_srcs.to_list()) == 1:
-        variables["<"] = list(resolved_srcs)[0].path
-    if len(files_to_build.to_list()) == 1:
-        variables["@"] = list(files_to_build)[0].path
+    if len(resolved_srcs_list) == 1:
+        variables["<"] = resolved_srcs_list[0].path
+    if len(files_to_build_list) == 1:
+        variables["@"] = files_to_build_list[0].path
         variables["@D"] = paths.dirname(variables["@"])
     else:
         variables["@D"] = genfiles_dir.path + "/" + label.package
@@ -59,7 +61,7 @@ def _apple_genrule_impl(ctx):
     label_dict = {}
     for dep in ctx.attr.srcs:
         resolved_srcs = depset(transitive = [resolved_srcs, dep.files])
-        label_dict[dep.label] = dep.files
+        label_dict[dep.label] = dep.files.to_list()
 
     resolved_inputs, argv, runfiles_manifests = ctx.resolve_command(
         command = ctx.attr.cmd,
@@ -84,8 +86,8 @@ def _apple_genrule_impl(ctx):
 
     apple_action(
         ctx,
-        inputs = list(resolved_srcs) + resolved_inputs,
-        outputs = list(files_to_build),
+        inputs = resolved_srcs.to_list() + resolved_inputs,
+        outputs = files_to_build.to_list(),
         env = env,
         command = argv,
         progress_message = "%s %s" % (message, ctx.label),
