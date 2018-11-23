@@ -31,7 +31,7 @@ def apple_action(ctx, **kw):
         execution_requirements["no-sandbox"] = "1"
 
     kw["execution_requirements"] = execution_requirements
-    ctx.action(**kw)
+    ctx.actions.run_shell(**kw)
 
 def apple_actions_run(ctx_actions, **kw):
     """Creates an actions.run() that only runs on MacOS/Darwin.
