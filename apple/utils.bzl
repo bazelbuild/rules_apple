@@ -163,7 +163,7 @@ def group_files_by_directory(files, extensions, attr):
                 not_matched = False
                 container = path[:after_index]
                 if container in grouped_files:
-                    grouped_files[container] += [f]
+                    grouped_files[container].append(f)
                 else:
                     grouped_files[container] = [f]
 
