@@ -31,7 +31,11 @@ def apple_action(ctx, **kw):
         execution_requirements["no-sandbox"] = "1"
 
     kw["execution_requirements"] = execution_requirements
-    ctx.action(**kw)
+
+    # Disable the lint warning because this can't be remapped, it needs
+    # to be split into run and run_shell, which is pending work.
+    # buildozer: disable=ctx-actions
+    ctx.action(**kw)  # buildozer: disable=ctx-actions
 
 def apple_actions_run(ctx_actions, **kw):
     """Creates an actions.run() that only runs on MacOS/Darwin.
