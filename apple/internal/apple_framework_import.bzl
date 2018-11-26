@@ -130,12 +130,7 @@ def _apple_framework_import_impl(ctx):
     dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
     ctx.actions.write(dummy_binary, "_dummy_file_")
 
-    objc_provider_fields["providers"] = [
-        dep[apple_common.Objc]
-        for dep in ctx.attr.deps
-        if apple_common.Objc in dep
-    ]
-
+    objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
     providers.append(objc_provider)
     providers.append(
