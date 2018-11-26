@@ -92,6 +92,10 @@ def _apple_framework_import_impl(ctx):
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider_fields = {}
 
+    transitive_sets = []
+    for dep in ctx.attr.deps:
+        transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
+
     if ctx.attr.is_dynamic:
         if any([ctx.attr.sdk_dylibs, ctx.attr.sdk_frameworks, ctx.attr.weak_sdk_frameworks]):
             fail(
@@ -104,9 +108,7 @@ def _apple_framework_import_impl(ctx):
 
         filtered_framework_imports = filter_framework_imports_for_bundling(framework_imports)
         if filtered_framework_imports:
-            providers.append(
-                AppleFrameworkImportInfo(framework_imports = depset(filtered_framework_imports)),
-            )
+            transitive_sets.append(depset(filtered_framework_imports))
     else:
         if ctx.attr.sdk_dylibs:
             objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
@@ -115,9 +117,11 @@ def _apple_framework_import_impl(ctx):
         if ctx.attr.weak_sdk_frameworks:
             objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
-        providers.append(
-            AppleFrameworkImportInfo(framework_imports = depset(framework_imports)),
-        )
+
+
+    providers.append(
+        AppleFrameworkImportInfo(framework_imports = depset(transitive = transitive_sets))
+    )
 
     # TODO(kaipi): Remove this dummy binary. It is only required because the
     # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
