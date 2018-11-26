@@ -115,6 +115,9 @@ def _apple_framework_import_impl(ctx):
         if ctx.attr.weak_sdk_frameworks:
             objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
+        providers.append(
+            AppleFrameworkImportInfo(framework_imports = depset(framework_imports)),
+        )
 
     # TODO(kaipi): Remove this dummy binary. It is only required because the
     # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
@@ -192,7 +195,7 @@ A list of targets that are dependencies of the target being built, which will be
 linked into that target.
 """,
             providers = [
-                [apple_common.Objc],
+                [apple_common.Objc, AppleFrameworkImportInfo],
             ],
         ),
     },
