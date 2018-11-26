@@ -47,15 +47,49 @@ fi
 # -------------------------------------------------------------------------------------------------
 # Asked to do a buildifier run.
 if [[ -n "${BUILDIFER:-}" ]]; then
-  # bazelbuild/buildtools/issues/220 - diff doesn't include the file that needs updating
-  if ! find . \( -name BUILD -o -name "*.bzl" \) -print | xargs buildifier -d > /dev/null 2>&1 ; then
-    echo "ERROR: BUILD/.bzl file formatting issue(s):"
-    echo ""
-    find . \( -name BUILD -o -name "*.bzl" \) -print -exec buildifier -v -d {} \;
-    echo ""
-    echo "Please download the latest buildifier"
-    echo "   https://github.com/bazelbuild/buildtools/releases"
-    echo "and run it over the changed BUILD/.bzl files."
+  FOUND_ISSUES="no"
+
+  # Check for format issues?
+  if [[ "${FORMAT:-yes}" == "yes" ]] ; then
+    # bazelbuild/buildtools/issues/220 - diff doesn't include the file that needs updating
+    if ! find . \( -name BUILD -o -name "*.bzl" \) -print | xargs buildifier -d > /dev/null 2>&1 ; then
+      if [[ "${FOUND_ISSUES}" != "no" ]] ; then
+        echo ""
+      fi
+      echo "ERROR: BUILD/.bzl file formatting issue(s):"
+      echo ""
+      # bazelbuild/buildtools/issues/329 - sed out the exit status lines.
+      find . \( -name BUILD -o -name "*.bzl" \) -print -exec buildifier -v -d {} \; \
+          2>&1 | sed -E -e '/^exit status 1$/d'
+      echo ""
+      echo "Please download the latest buildifier"
+      echo "   https://github.com/bazelbuild/buildtools/releases"
+      echo "and run it over the changed BUILD/.bzl files."
+      FOUND_ISSUES="yes"
+    fi
+  fi
+
+  # Check for lint issues?
+  if [[ "${LINT:-yes}" == "yes" ]] ; then
+    LINT_ISSUES=$(find . \( -name BUILD -o -name "*.bzl" \) -print | xargs buildifier --lint=warn 2>&1)
+    if [[ -n "${LINT_ISSUES}" ]] ; then
+      if [[ "${FOUND_ISSUES}" != "no" ]] ; then
+        echo ""
+      fi
+      echo "ERROR: BUILD/.bzl lint issue(s):"
+      echo ""
+      echo "${LINT_ISSUES}"
+      echo ""
+      echo "Please download the latest buildifier"
+      echo "   https://github.com/bazelbuild/buildtools/releases"
+      echo "and run it with --lint=(warn|fix) over the changed BUILD/.bzl files"
+      echo "and make the edits as needed."
+      FOUND_ISSUES="yes"
+    fi
+  fi
+
+  # Anything?
+  if [[ "${FOUND_ISSUES}" != "no" ]] ; then
     exit 1
   fi
 fi
