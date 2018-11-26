@@ -15,10 +15,6 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_bundling_enabled",
 )
@@ -30,6 +26,10 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 # List of native resource attributes to use to collect by default. This list should dissapear in the

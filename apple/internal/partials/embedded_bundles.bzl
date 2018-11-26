@@ -15,12 +15,12 @@
 """Partial implementation for processing embeddadable bundles."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 _AppleEmbeddableInfo = provider(

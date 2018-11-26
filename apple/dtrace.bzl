@@ -15,10 +15,6 @@
 """Bazel rules for working with dtrace."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "apple_action",
     "label_scoped_path",
@@ -26,6 +22,10 @@ load(
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
     "path_utils",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _dtrace_compile_impl(ctx):

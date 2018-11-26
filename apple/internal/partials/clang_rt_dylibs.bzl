@@ -15,10 +15,6 @@
 """Partial implementation for Clang runtime libraries processing."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:clang_support.bzl",
     "clang_support",
 )
@@ -29,6 +25,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _clang_rt_dylibs_partial_impl(ctx, binary_artifact):

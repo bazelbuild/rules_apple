@@ -60,14 +60,6 @@ rule.
 """
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -90,6 +82,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 # Location enum that can be used to tag files into their appropriate location

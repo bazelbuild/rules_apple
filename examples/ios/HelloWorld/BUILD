@@ -1,12 +1,12 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
 load("//apple:ios.bzl", "ios_application")
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
 
 objc_library(
     name = "Sources",

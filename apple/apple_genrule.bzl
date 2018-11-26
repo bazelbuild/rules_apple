@@ -15,13 +15,13 @@
 """Genrule which provides Apple's Xcode environment."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "DARWIN_EXECUTION_REQUIREMENTS",
     "apple_action",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _compute_make_variables(

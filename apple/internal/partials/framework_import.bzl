@@ -15,24 +15,24 @@
 """Partial implementation for framework import file processing."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
     "AppleFrameworkImportInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _framework_import_partial_impl(ctx, targets, targets_to_avoid):

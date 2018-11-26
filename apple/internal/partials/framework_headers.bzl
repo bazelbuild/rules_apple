@@ -15,12 +15,12 @@
 """Partial implementation for embedding provisioning profiles."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _framework_headers_partial_impl(ctx, hdrs):

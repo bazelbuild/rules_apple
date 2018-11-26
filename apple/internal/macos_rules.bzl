@@ -15,12 +15,6 @@
 """Experimental implementation of macOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "MacosApplicationBundleInfo",
-    "MacosBundleBundleInfo",
-    "MacosExtensionBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -31,6 +25,12 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "MacosApplicationBundleInfo",
+    "MacosBundleBundleInfo",
+    "MacosExtensionBundleInfo",
 )
 
 def macos_application_impl(ctx):

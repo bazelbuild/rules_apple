@@ -15,10 +15,6 @@
 """Actions that operate on plist files."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -27,12 +23,12 @@ load(
     "file_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
-    "plist_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
+    "plist_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -45,6 +41,10 @@ load(
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
     "attrs",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _environment_plist_action(ctx):

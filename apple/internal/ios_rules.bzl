@@ -15,16 +15,6 @@
 """Experimental implementation of iOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "IosApplicationBundleInfo",
-    "IosExtensionBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosImessageApplicationBundleInfo",
-    "IosImessageExtensionBundleInfo",
-    "IosStaticFrameworkBundleInfo",
-    "IosStickerPackExtensionBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -34,16 +24,16 @@ load(
     "product_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
@@ -56,6 +46,16 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
     "stub_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "IosApplicationBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageApplicationBundleInfo",
+    "IosImessageExtensionBundleInfo",
+    "IosStaticFrameworkBundleInfo",
+    "IosStickerPackExtensionBundleInfo",
 )
 
 def ios_application_impl(ctx):

@@ -15,11 +15,6 @@
 """Helper methods for implementing the test bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -34,6 +29,11 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleExtraOutputsInfo",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given

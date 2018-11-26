@@ -15,12 +15,8 @@
 """Partial implementation for processing the settings bundle for iOS apps."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "resources_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
@@ -32,8 +28,12 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
+    "@build_bazel_rules_apple//common:path_utils.bzl",
+    "path_utils",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _settings_bundle_partial_impl(ctx):

@@ -15,18 +15,6 @@
 """ACTool related actions."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
     "file_support",
 )
@@ -42,6 +30,18 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
     "xcode_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+)
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _actool_args_for_special_file_types(ctx, asset_files):

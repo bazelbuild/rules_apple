@@ -15,10 +15,6 @@
 """Actions related to codesigning."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
     "codesigning_support",
 )
@@ -33,6 +29,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _post_process_and_sign_archive_action(

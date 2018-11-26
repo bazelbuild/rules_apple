@@ -23,10 +23,6 @@ wrapping macro because rules cannot invoke other rules.
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
@@ -59,6 +55,16 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
+    experimental_macos_application_impl = "macos_application_impl",
+    experimental_macos_bundle_impl = "macos_bundle_impl",
+    experimental_macos_extension_impl = "macos_extension_impl",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
@@ -76,14 +82,8 @@ load(
     "providers",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
-    experimental_macos_application_impl = "macos_application_impl",
-    experimental_macos_bundle_impl = "macos_bundle_impl",
-    experimental_macos_extension_impl = "macos_extension_impl",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 # Attributes that are common to all macOS bundles.

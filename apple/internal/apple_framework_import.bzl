@@ -15,12 +15,12 @@
 """Implementation of apple_framework_import."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 AppleFrameworkImportInfo = provider(

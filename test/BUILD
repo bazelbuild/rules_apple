@@ -1,7 +1,3 @@
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
@@ -15,6 +11,10 @@ load(
     "apple_multi_shell_test",
     "apple_shell_test",
 )
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
 
 # To enable sharding of the apple_shell_test rules, invoke bazel with
 #   '--define bazel_rules_apple.shell_test_sharding=1'

@@ -15,10 +15,6 @@
 """Functions related to code signing of Apple bundles."""
 
 load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
     "mock_support",
 )
@@ -29,6 +25,10 @@ load(
 load(
     "@build_bazel_rules_apple//common:define_utils.bzl",
     "define_utils",
+)
+load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
 )
 
 def _extract_provisioning_plist_command(ctx, provisioning_profile):

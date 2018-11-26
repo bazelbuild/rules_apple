@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
     "apple_resource_bundle",
 )
+
+package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 

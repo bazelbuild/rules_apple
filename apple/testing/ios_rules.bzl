@@ -15,15 +15,6 @@
 """Bazel rules for iOS tests."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "IosXcTestBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "full_label",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
@@ -36,25 +27,34 @@ load(
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "apple_ui_test",
-    "apple_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
     "framework_import_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     experimental_ios_test_bundle_impl = "ios_test_bundle_impl",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_bundling_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
+    "apple_test_bundle_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
+    "apple_ui_test",
+    "apple_unit_test",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "IosXcTestBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "full_label",
 )
 
 def _ios_test_bundle_impl(ctx):

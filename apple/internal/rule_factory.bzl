@@ -15,24 +15,8 @@
 """Helpers for defining Apple bundling rules uniformly."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleBundleVersionInfo",
-    "IosFrameworkBundleInfo",
-    "IosImessageExtensionBundleInfo",
-    "IosStickerPackExtensionBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
@@ -43,8 +27,24 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleBundleVersionInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageExtensionBundleInfo",
+    "IosStickerPackExtensionBundleInfo",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_usage_aspect",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 # Private attributes on every rule that provide access to tools and other file dependencies.

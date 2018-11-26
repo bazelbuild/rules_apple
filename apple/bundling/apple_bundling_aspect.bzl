@@ -15,8 +15,12 @@
 """An aspect that collects information used during Apple bundling."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
+    "smart_dedupe",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -30,10 +34,6 @@ load(
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//common:providers.bzl",
     "providers",
 )
@@ -42,8 +42,8 @@ load(
     "SwiftInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
-    "smart_dedupe",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _attr_files(ctx, name):

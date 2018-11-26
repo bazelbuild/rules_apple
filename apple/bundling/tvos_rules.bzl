@@ -38,14 +38,6 @@ load(
 )
 load("@build_bazel_rules_apple//apple/bundling:run_actions.bzl", "run_actions")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceInfo",
-    "AppleResourceSet",
-    "TvosApplicationBundleInfo",
-    "TvosExtensionBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_bundling_enabled",
 )
@@ -53,6 +45,14 @@ load(
     "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
     experimental_tvos_application_impl = "tvos_application_impl",
     experimental_tvos_extension_impl = "tvos_extension_impl",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceInfo",
+    "AppleResourceSet",
+    "TvosApplicationBundleInfo",
+    "TvosExtensionBundleInfo",
 )
 
 def _tvos_application_impl(ctx):

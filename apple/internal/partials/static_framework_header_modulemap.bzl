@@ -15,10 +15,6 @@
 """Partial implementation for bundling header and modulemaps for static frameworks."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -33,6 +29,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provider):

@@ -56,18 +56,12 @@ load(
     "run_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceSet",
-    "IosApplicationBundleInfo",
-    "IosExtensionBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosStaticFrameworkBundleInfo",
-    "WatchosApplicationBundleInfo",
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
+    "framework_import_aspect",
 )
 load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    new_apple_resource_aspect = "apple_resource_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
@@ -81,12 +75,18 @@ load(
     experimental_ios_static_framework_impl = "ios_static_framework_impl",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
-    "framework_import_aspect",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceSet",
+    "IosApplicationBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosStaticFrameworkBundleInfo",
+    "WatchosApplicationBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    new_apple_resource_aspect = "apple_resource_aspect",
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
 )
 
 def _ios_application_impl(ctx):

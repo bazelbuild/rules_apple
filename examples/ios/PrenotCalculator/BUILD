@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//apple:ios.bzl", "ios_application")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-load("//apple:ios.bzl", "ios_application")
 
 ios_application(
     name = "PrenotCalculator",
