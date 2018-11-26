@@ -94,7 +94,8 @@ def _apple_framework_import_impl(ctx):
 
     transitive_sets = []
     for dep in ctx.attr.deps:
-        transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
+        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports"):
+            transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
 
     if ctx.attr.is_dynamic:
         if any([ctx.attr.sdk_dylibs, ctx.attr.sdk_frameworks, ctx.attr.weak_sdk_frameworks]):
