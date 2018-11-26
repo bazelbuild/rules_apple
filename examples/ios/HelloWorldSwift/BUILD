@@ -1,9 +1,9 @@
+load("//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-load("//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 swift_library(
     name = "Sources",

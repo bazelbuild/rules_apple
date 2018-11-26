@@ -1,3 +1,12 @@
+load(
+    "//apple/testing/default_runner:ios_test_runner.bzl",
+    "ios_test_runner",
+)
+load(
+    "//apple/testing/default_runner:macos_test_runner.bzl",
+    "macos_test_runner",
+)
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
@@ -7,15 +16,6 @@ exports_files([
     "macos_test_runner.template.sh",
     "macos_test_runner.template.xctestrun",
 ])
-
-load(
-    "//apple/testing/default_runner:ios_test_runner.bzl",
-    "ios_test_runner",
-)
-load(
-    "//apple/testing/default_runner:macos_test_runner.bzl",
-    "macos_test_runner",
-)
 
 ios_test_runner(
     name = "ios_default_runner",

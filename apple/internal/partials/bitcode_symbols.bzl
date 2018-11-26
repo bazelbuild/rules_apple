@@ -15,14 +15,6 @@
 """Partial implementation for bitcode symbol file processing."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "join_commands",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -33,6 +25,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "join_commands",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 _AppleBitcodeInfo = provider(

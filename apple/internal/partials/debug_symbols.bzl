@@ -15,20 +15,20 @@
 """Partial implementation for debug symbol file processing."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
     "file_actions",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 # TODO(b/110264170): Expose this provider so that IDEs can use it to reference the dSYM bundles

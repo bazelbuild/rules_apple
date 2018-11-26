@@ -19,16 +19,8 @@ These are internal rules not to be used outside of the
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
     "file_actions",
-)
-load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -37,8 +29,16 @@ load(
     LegacySwiftInfo = "SwiftInfo",
 )
 load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 AppleTestInfo = provider(

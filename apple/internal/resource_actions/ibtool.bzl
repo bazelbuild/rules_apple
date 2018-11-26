@@ -15,20 +15,20 @@
 """IBTool related actions."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
     "file_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _ibtool_arguments(min_os, families):

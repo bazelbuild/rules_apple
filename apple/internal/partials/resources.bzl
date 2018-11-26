@@ -21,16 +21,20 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "resources_support",
 )
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -38,20 +42,16 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+)
+load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):

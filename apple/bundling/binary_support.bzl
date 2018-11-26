@@ -19,21 +19,21 @@ load(
     "entitlements",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
     "product_support",
 )
 load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_runtime_linkopts",
+)
+load(
+    "@build_bazel_rules_apple//common:providers.bzl",
+    "providers",
 )
 
 def _get_binary_provider(deps, provider_key):

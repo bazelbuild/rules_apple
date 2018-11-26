@@ -15,12 +15,12 @@
 """Experimental implementation of iOS test bundle rules."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "IosXcTestBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "IosXcTestBundleInfo",
 )
 
 def ios_test_bundle_impl(ctx):

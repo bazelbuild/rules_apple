@@ -15,10 +15,6 @@
 """Actions that manipulate entitlements and provisioning profiles."""
 
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
-    "entitlements_validation_mode",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -33,6 +29,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
     "plist_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",

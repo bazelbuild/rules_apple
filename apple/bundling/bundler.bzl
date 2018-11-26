@@ -19,23 +19,6 @@ This file is only meant to be imported by the platform-specific top-level rules
 """
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
-    "AppleResourceInfo",
-    "AppleResourceSet",
-    "apple_resource_set_utils",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-    "optionally_prefixed_path",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
@@ -88,12 +71,29 @@ load(
     "resource_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
+    "smart_dedupe",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:swift_actions.bzl",
     "swift_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleExtraOutputsInfo",
+    "AppleResourceInfo",
+    "AppleResourceSet",
+    "apple_resource_set_utils",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+    "optionally_prefixed_path",
 )
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
@@ -108,8 +108,8 @@ load(
     "providers",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:smart_dedupe.bzl",
-    "smart_dedupe",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 # Directories inside .frameworks that should not be included in final

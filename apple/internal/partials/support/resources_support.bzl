@@ -31,14 +31,6 @@ All methods in this file follow this convention:
 """
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -49,6 +41,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _compile_datamodels(ctx, parent_dir, swift_module, datamodel_groups):

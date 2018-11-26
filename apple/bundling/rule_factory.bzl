@@ -89,16 +89,20 @@ for their platform through either `simple_path_formats` or `macos_path_formats`.
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
     "apple_bundling_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
     "AppleEntitlementsInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
+    "framework_import_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    new_apple_resource_aspect = "apple_resource_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple:common.bzl",
@@ -113,12 +117,8 @@ load(
     "swift_usage_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
-    "framework_import_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    new_apple_resource_aspect = "apple_resource_aspect",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 # Serves as an enum to express if an attribute is unsupported, mandatory, or

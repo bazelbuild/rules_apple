@@ -19,15 +19,6 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
-    _ios_imessage_application = "ios_imessage_application",
-    _ios_imessage_extension = "ios_imessage_extension",
-    _ios_sticker_pack_extension = "ios_sticker_pack_extension",
-)
-
-# Alias the internal rules when we load them. This lets the rules keep their
-# original name in queries and logs since they collide with the wrapper macros.
-load(
     "@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
     _ios_application = "ios_application",
     _ios_extension = "ios_extension",
@@ -35,15 +26,19 @@ load(
     _ios_static_framework = "ios_static_framework",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    _apple_product_type = "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_imessage_application = "ios_imessage_application",
+    _ios_imessage_extension = "ios_imessage_extension",
+    _ios_sticker_pack_extension = "ios_sticker_pack_extension",
+)
+load(
     "@build_bazel_rules_apple//apple/testing:ios_rules.bzl",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
-)
-
-# Explicitly export this because we want it visible to users loading this file.
-load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    _apple_product_type = "apple_product_type",
 )
 
 # Re-export rules that do not need overridden attributes.

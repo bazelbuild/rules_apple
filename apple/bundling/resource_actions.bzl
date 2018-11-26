@@ -15,22 +15,6 @@
 """Actions used to process resources in Apple bundles."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -61,6 +45,22 @@ load(
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
     "path_utils",
+)
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 # Sentinel value used as the key in the dictionary returned by

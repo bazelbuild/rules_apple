@@ -15,8 +15,9 @@
 """Implementation of resource bundle/importing rules."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "NewAppleResourceInfo",
+    "resources",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -27,9 +28,8 @@ load(
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "NewAppleResourceInfo",
-    "resources",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _apple_bundle_import_impl(ctx):

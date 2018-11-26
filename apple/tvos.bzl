@@ -18,19 +18,14 @@ load(
     "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
     "binary_support",
 )
-
-# Alias the internal rules when we load them. This lets the rules keep their
-# original name in queries and logs since they collide with the wrapper macros.
+load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    _apple_product_type = "apple_product_type",
+)
 load(
     "@build_bazel_rules_apple//apple/bundling:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_extension = "tvos_extension",
-)
-
-# Explicitly export this because we want it visible to users loading this file.
-load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    _apple_product_type = "apple_product_type",
 )
 
 # Re-export apple_product_type.

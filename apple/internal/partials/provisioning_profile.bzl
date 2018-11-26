@@ -15,10 +15,6 @@
 """Partial implementation for embedding provisioning profiles."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
     "file_actions",
 )
@@ -29,6 +25,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _provisioning_profile_partial_impl(ctx, profile_artifact, extension):

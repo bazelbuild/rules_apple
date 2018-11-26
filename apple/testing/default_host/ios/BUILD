@@ -1,8 +1,8 @@
+load("//apple:ios.bzl", "ios_application")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-load("//apple:ios.bzl", "ios_application")
 
 objc_library(
     name = "Main",

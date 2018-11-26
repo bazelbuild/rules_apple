@@ -68,12 +68,12 @@ load(
     "path_utils",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 NewAppleResourceInfo = provider(

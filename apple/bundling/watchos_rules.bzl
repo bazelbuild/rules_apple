@@ -37,13 +37,6 @@ load(
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceSet",
-    "WatchosApplicationBundleInfo",
-    "WatchosExtensionBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_bundling_enabled",
 )
@@ -51,6 +44,13 @@ load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     experimental_watchos_application_impl = "watchos_application_impl",
     experimental_watchos_extension_impl = "watchos_extension_impl",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceSet",
+    "WatchosApplicationBundleInfo",
+    "WatchosExtensionBundleInfo",
 )
 
 def _watchos_application_impl(ctx):

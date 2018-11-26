@@ -15,12 +15,12 @@
 """Actions to manipulate support files for Apple product types."""
 
 load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
 )
 
 def _create_stub_zip_for_archive_merging(ctx, stub_binary, stub_descriptor):

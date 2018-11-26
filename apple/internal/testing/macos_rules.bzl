@@ -15,12 +15,12 @@
 """Experimental implementation of macOS test bundle rules."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "MacosXcTestBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "MacosXcTestBundleInfo",
 )
 
 def macos_test_bundle_impl(ctx):

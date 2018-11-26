@@ -15,10 +15,6 @@
 """Partial implementation for app assets validation."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -26,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
     "product_support",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _app_assets_validation_partial_impl(ctx, app_icons, launch_images):

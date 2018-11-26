@@ -15,14 +15,6 @@
 """Partial implementation for the AppleBundleInfo provider."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -41,6 +33,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _apple_bundle_info_partial_impl(ctx, bundle_id):

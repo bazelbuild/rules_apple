@@ -23,9 +23,6 @@ load(
     "macos_command_line_infoplist",
     "macos_command_line_launchdplist",
 )
-
-# Alias the internal rules when we load them. This lets the rules keep their
-# original name in queries and logs since they collide with the wrapper macros.
 load(
     "@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
     _macos_application = "macos_application",
@@ -34,15 +31,13 @@ load(
     _macos_extension = "macos_extension",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/testing:macos_rules.bzl",
     _macos_ui_test = "macos_ui_test",
     _macos_unit_test = "macos_unit_test",
-)
-
-# Explicitly export this because we want it visible to users loading this file.
-load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
 )
 
 def macos_application(name, **kwargs):

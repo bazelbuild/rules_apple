@@ -15,22 +15,6 @@
 """Plist related actions."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
-)
-load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -41,6 +25,22 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "product_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "apple_action",
+)
+load(
+    "@build_bazel_rules_apple//common:attrs.bzl",
+    "attrs",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
