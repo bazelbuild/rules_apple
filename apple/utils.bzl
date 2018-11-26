@@ -14,8 +14,8 @@
 
 """Utility functions for working with strings, lists, and files in Skylark."""
 
+# Standard execution requirements to force building on Mac.
 DARWIN_EXECUTION_REQUIREMENTS = {"requires-darwin": ""}
-"""Standard execution requirements to force building on Mac."""
 
 def apple_action(ctx, **kw):
     """Creates an action that only runs on MacOS/Darwin.
