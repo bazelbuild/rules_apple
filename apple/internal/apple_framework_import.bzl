@@ -118,8 +118,11 @@ def _apple_framework_import_impl(ctx):
             objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
 
+    provider_fields = {}
+    if transitive_sets:
+        provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     providers.append(
-        AppleFrameworkImportInfo(framework_imports = depset(transitive = transitive_sets)),
+        AppleFrameworkImportInfo(**provider_fields),
     )
 
     # TODO(kaipi): Remove this dummy binary. It is only required because the
