@@ -97,9 +97,9 @@ def _additional_contents_bundlable_files(ctx, file_map):
     """Gathers the additional Contents files in a macOS bundle.
 
     This function takes the label-keyed dictionary represented by `file_map` and
-    gathers the files from all of those targets, transforming them into bundlable
-    file objects that place the file in the appropriate subdirectory of the
-    bundle's Contents folder.
+    gathers the files from all of those non-bundle targets, transforming them into
+    bundlable file objects that place the file in the appropriate subdirectory of
+    the bundle's Contents folder.
 
     Args:
       ctx: The rule context.
@@ -111,13 +111,45 @@ def _additional_contents_bundlable_files(ctx, file_map):
     bundlable_files = []
 
     for target, contents_subdir in file_map.items():
-        bundlable_files.extend([bundling_support.contents_file(
-            ctx,
-            f,
-            contents_subdir + "/" + path_utils.owner_relative_path(f),
-        ) for f in target.files])
+        if AppleBundleInfo not in target:
+            bundlable_files.extend([bundling_support.contents_file(
+                ctx,
+                f,
+                contents_subdir + "/" + path_utils.owner_relative_path(f),
+            ) for f in target.files])
 
     return depset(bundlable_files)
+
+def _additional_contents_embedded_bundles(ctx, file_map):
+    """Gathers the additional Contents embedded bundles in a macOS bundle.
+
+    This function takes the label-keyed dictionary represented by `file_map` and
+    gathers the bundles from all of those targets, returning values that represent
+    embedded bundles within another bundle.
+
+    These values are used by the bundler to indicate how dependencies that are
+    themselves bundles (such as extensions or frameworks) should be bundled in
+    the application or target that depends on them.
+
+    Args:
+      ctx: The rule context.
+      file_map: The label-keyed dictionary.
+
+    Returns:
+      A list of embeddable bundles gathered from the targets.
+    """
+    _ignore = (ctx,)
+    embedded_bundles = []
+
+    for target, contents_subdir in file_map.items():
+        if AppleBundleInfo in target:
+            embedded_bundles.append(bundling_support.embedded_bundle(
+                contents_subdir,
+                target,
+                verify_has_child_plist = False,
+            ))
+
+    return embedded_bundles
 
 def _macos_application_impl(ctx):
     """Implementation of the macos_application rule."""
@@ -140,7 +172,7 @@ def _macos_application_impl(ctx):
         ))
 
     # TODO(b/36557429): Add support for macOS frameworks.
-    embedded_bundles = [
+    extensions = [
         bundling_support.embedded_bundle(
             "PlugIns",
             extension,
@@ -166,7 +198,10 @@ def _macos_application_impl(ctx):
             ctx.attr.additional_contents,
         ),
         additional_resource_sets = additional_resource_sets,
-        embedded_bundles = embedded_bundles,
+        embedded_bundles = extensions + _additional_contents_embedded_bundles(
+            ctx,
+            ctx.attr.additional_contents,
+        ),
         deps_objc_providers = [deps_objc_provider],
     )
 
@@ -261,6 +296,10 @@ def _macos_bundle_impl(ctx):
             ctx.attr.additional_contents,
         ),
         additional_resource_sets = additional_resource_sets,
+        embedded_bundles = _additional_contents_embedded_bundles(
+            ctx,
+            ctx.attr.additional_contents,
+        ),
         deps_objc_providers = deps_objc_providers,
     )
 
@@ -443,6 +482,10 @@ def _macos_extension_impl(ctx):
             ctx.attr.additional_contents,
         ),
         additional_resource_sets = additional_resource_sets,
+        embedded_bundles = _additional_contents_embedded_bundles(
+            ctx,
+            ctx.attr.additional_contents,
+        ),
         deps_objc_providers = [deps_objc_provider],
     )
 

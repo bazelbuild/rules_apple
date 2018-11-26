@@ -64,9 +64,9 @@ def _embedded_bundles_partial_impl(
         transitive_plugins.append(provider.plugins)
         transitive_watch_bundles.append(provider.watch_bundles)
 
-    bundle_files = []
+    bundle_zips = []
     if bundle_embedded_bundles:
-        bundle_files.extend([
+        bundle_zips.extend([
             (processor.location.framework, None, depset(transitive = transitive_frameworks)),
             (processor.location.plugin, None, depset(transitive = transitive_plugins)),
             (processor.location.watch, None, depset(transitive = transitive_watch_bundles)),
@@ -79,7 +79,7 @@ def _embedded_bundles_partial_impl(
         transitive_watch_bundles = []
 
     return struct(
-        bundle_files = bundle_files,
+        bundle_zips = bundle_zips,
         providers = [
             _AppleEmbeddableInfo(
                 frameworks = depset(frameworks, transitive = transitive_frameworks),

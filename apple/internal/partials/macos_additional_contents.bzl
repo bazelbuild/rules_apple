@@ -27,6 +27,10 @@ load(
     "path_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -38,15 +42,32 @@ def _macos_additional_contents_partial_impl(ctx):
         return struct()
 
     bundle_files = []
+    bundle_zips = []
     for target, subdirectory in ctx.attr.additional_contents.items():
-        for file in target.files:
-            package_relative = path_utils.owner_relative_path(file)
-            nested_path = paths.dirname(package_relative).rstrip("/")
-            bundle_files.append(
-                (processor.location.content, paths.join(subdirectory, nested_path), depset([file])),
+        if AppleBundleInfo in target:
+            bundle_zips.append(
+                (
+                    processor.location.content,
+                    subdirectory,
+                    depset([target[AppleBundleInfo].archive]),
+                ),
             )
+        else:
+            for file in target.files:
+                package_relative = path_utils.owner_relative_path(file)
+                nested_path = paths.dirname(package_relative).rstrip("/")
+                bundle_files.append(
+                    (
+                        processor.location.content,
+                        paths.join(subdirectory, nested_path),
+                        depset([file]),
+                    ),
+                )
 
-    return struct(bundle_files = bundle_files)
+    return struct(
+        bundle_files = bundle_files,
+        bundle_zips = bundle_zips,
+    )
 
 def macos_additional_contents_partial():
     """Constructor for the macOS additional contents processing partial.
