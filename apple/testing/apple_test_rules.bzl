@@ -134,11 +134,11 @@ def _coverage_files_aspect_impl(target, ctx):
     # Collect this target's coverage files.
     for attr in ["srcs", "hdrs", "non_arc_srcs"]:
         for files in [x.files for x in attrs.get(ctx.rule.attr, attr, [])]:
-            coverage_files += files
+            coverage_files = _merge_depsets(files, coverage_files)
 
     # Collect dependencies coverage files.
     for dep in attrs.get(ctx.rule.attr, "deps", []):
-        coverage_files += dep[CoverageFiles].coverage_files
+        coverage_files = _merge_depsets(dep[CoverageFiles].coverage_files, coverage_files)
 
     # Collect the binaries themselves from the various bundles involved in the test. These will be
     # passed through the test environment so that `llvm-cov` can access the coverage mapping data
@@ -152,7 +152,7 @@ def _coverage_files_aspect_impl(target, ctx):
         if hasattr(ctx.rule.attr, attr):
             attr_value = getattr(ctx.rule.attr, attr)
             if attr_value:
-                coverage_files += attr_value[CoverageFiles].coverage_files
+                coverage_files = _merge_depsets(attr_value[CoverageFiles].coverage_files, coverage_files)
                 transitive_binaries_sets.append(attr_value[CoverageFiles].covered_binaries)
 
     return struct(providers = [
@@ -461,7 +461,7 @@ def _apple_test_impl(ctx, test_type):
 
     extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
     if extra_outputs_provider:
-        outputs += extra_outputs_provider.files
+        outputs = _merge_depsets(extra_outputs_provider.files, outputs)
 
     extra_providers = []
 
