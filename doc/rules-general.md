@@ -277,7 +277,8 @@ objc_library(
       <td><code>deps</code></td>
       <td>
         <p><code>List of labels; optional</code></p>
-        <p>Labels of targets this framework depends on</p>
+        <p>A list of targets that are dependencies of the target being built,
+        which will be linked into that target.</p>
       </td>
     </tr>
   </tbody>
