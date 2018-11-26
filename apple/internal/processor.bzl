@@ -23,9 +23,14 @@ All partials handled by this processor must follow this API:
 
   - The only expected argument has to be ctx.
   - The expected output is a struct with the following optional fields:
-    * bundle_files: Contains a tuple of the format
+    * bundle_files: Contains tuples of the format
       (location_type, parent_dir, files) where location_type is a field of the
-      location enum. These data is then used to construct the output bundle.
+      location enum. The files are then placed at the given location in the
+      output bundle.
+    * bundle_zips: Contains tuples of the format
+      (location_type, parent_dir, files) where location_type is a field of the
+      location enum and each file is a ZIP file. The files extracted from the
+      ZIPs are then placed at the given location in the output bundle.
     * output_files: Depset of `File`s that should be returned as outputs of the
       target.
     * providers: Providers that will be collected and returned by the rule.
@@ -195,17 +200,12 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
 
     location_to_paths = _archive_paths(ctx)
 
-    # List of locations where zip files should be unzipped instead of placed as is.
-    unzip_locations = [_LOCATION_ENUM.framework, _LOCATION_ENUM.plugin, _LOCATION_ENUM.watch]
-
     platform_type = platform_support.platform_type(ctx)
     invalid_top_level_dirs = _invalid_top_level_directories_for_platform(platform_type)
 
     processed_file_target_paths = {}
     for partial_output in partial_outputs:
-        if not hasattr(partial_output, "bundle_files"):
-            continue
-        for location, parent_dir, files in partial_output.bundle_files:
+        for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
             if (invalid_top_level_dirs and
                 not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
                 fail(("Error: For %s bundles, the following top level " +
@@ -218,24 +218,29 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
             for source in sources:
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
 
-                # When bundling framework and plugin files, if we get a zip file
-                # decompress it in that location. The files placed within these
-                # locations should never be zip resources that would be placed without
-                # expanding. If we get zip resources, they would be packaged normally
-                # as part of the else statement below.
+                if not source.is_directory:
+                    target_path = paths.join(target_path, source.basename)
+                    if target_path in processed_file_target_paths:
+                        fail(
+                            ("Multiple files would be placed at \"%s\" in the bundle, which " +
+                             "is not allowed") % target_path,
+                        )
+                    processed_file_target_paths[target_path] = None
+                control_files.append(struct(src = source.path, dest = target_path))
 
-                if (location in unzip_locations and source.short_path.endswith(".zip")):
-                    control_zips.append(struct(src = source.path, dest = target_path))
-                else:
-                    if not source.is_directory:
-                        target_path = paths.join(target_path, source.basename)
-                        if target_path in processed_file_target_paths:
-                            fail(
-                                ("Multiple files would be placed at \"%s\" in the bundle, which " +
-                                 "is not allowed") % target_path,
-                            )
-                        processed_file_target_paths[target_path] = None
-                    control_files.append(struct(src = source.path, dest = target_path))
+        for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
+            if (invalid_top_level_dirs and
+                not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
+                fail(("Error: For %s bundles, the following top level " +
+                      "directories are invalid: %s") %
+                     (platform_type, ", ".join(invalid_top_level_dirs)))
+
+            sources = zip_files.to_list()
+            input_files.extend(sources)
+
+            for source in sources:
+                target_path = paths.join(location_to_paths[location], parent_dir or "")
+                control_zips.append(struct(src = source.path, dest = target_path))
 
     control = struct(
         bundle_merge_files = control_files,

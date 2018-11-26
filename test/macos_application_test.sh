@@ -29,7 +29,9 @@ function tear_down() {
 # Creates common source, targets, and basic plist for macOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:macos.bzl",
+     "macos_application",
+     "macos_bundle")
 
 objc_library(
     name = "lib",
@@ -307,12 +309,36 @@ EOF
 2
 EOF
 
+  mkdir -p app/subbundle
+
+  cat > app/subbundle/Info.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "APPL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+
   cat >> app/BUILD <<EOF
+macos_bundle(
+    name = "subbundle",
+    additional_contents = {
+        ":simple.txt": "Simple",
+        "//app/filegroup": "Filegroup",
+    },
+    bundle_id = "my.bundle.id.subbundle",
+    infoplists = ["subbundle/Info.plist"],
+    minimum_os_version = "10.10",
+)
+
 macos_application(
     name = "app",
     additional_contents = {
         ":simple.txt": "Simple",
         "//app/filegroup": "Filegroup",
+        ":subbundle": "Embedded"
     },
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
@@ -330,6 +356,11 @@ EOF
       "app.app/Contents/Filegroup/1.txt")"
   assert_equals "2" "$(unzip_single_file "test-bin/app/app.zip" \
       "app.app/Contents/Filegroup/nested/2.txt")"
+  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Simple/simple.txt"
+  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/1.txt"
+  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/nested/2.txt"
+  assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
+      "app.app/Contents/Embedded/subbundle.bundle/Contents/Simple/simple.txt")"
 }
 
 # Tests that the bundle_extension attribute changes the extension.
