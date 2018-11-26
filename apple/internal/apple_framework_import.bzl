@@ -92,6 +92,11 @@ def _apple_framework_import_impl(ctx):
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider_fields = {}
 
+    transitive_sets = []
+    for dep in ctx.attr.deps:
+        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports"):
+            transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
+
     if ctx.attr.is_dynamic:
         if any([ctx.attr.sdk_dylibs, ctx.attr.sdk_frameworks, ctx.attr.weak_sdk_frameworks]):
             fail(
@@ -104,9 +109,7 @@ def _apple_framework_import_impl(ctx):
 
         filtered_framework_imports = filter_framework_imports_for_bundling(framework_imports)
         if filtered_framework_imports:
-            providers.append(
-                AppleFrameworkImportInfo(framework_imports = depset(filtered_framework_imports)),
-            )
+            transitive_sets.append(depset(filtered_framework_imports))
     else:
         if ctx.attr.sdk_dylibs:
             objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
@@ -116,6 +119,13 @@ def _apple_framework_import_impl(ctx):
             objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
 
+    provider_fields = {}
+    if transitive_sets:
+        provider_fields["framework_imports"] = depset(transitive = transitive_sets)
+    providers.append(
+        AppleFrameworkImportInfo(**provider_fields),
+    )
+
     # TODO(kaipi): Remove this dummy binary. It is only required because the
     # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
     # argument. This change was submitted in https://github.com/bazelbuild/bazel/commit/f8ffac. We
@@ -123,6 +133,7 @@ def _apple_framework_import_impl(ctx):
     dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
     ctx.actions.write(dummy_binary, "_dummy_file_")
 
+    objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
     providers.append(objc_provider)
     providers.append(
@@ -179,6 +190,15 @@ Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`.
 regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
 are not present at runtime. Only applicable for static frameworks (i.e. `is_dynamic = False`).
 """,
+        ),
+        "deps": attr.label_list(
+            doc = """
+A list of targets that are dependencies of the target being built, which will be
+linked into that target.
+""",
+            providers = [
+                [apple_common.Objc, AppleFrameworkImportInfo],
+            ],
         ),
     },
     doc = """

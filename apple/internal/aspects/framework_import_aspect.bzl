@@ -31,7 +31,8 @@ def _framework_import_aspect_impl(target, ctx):
             continue
         for dep_target in getattr(ctx.rule.attr, attribute):
             if AppleFrameworkImportInfo in dep_target:
-                transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
+                if hasattr(dep_target[AppleFrameworkImportInfo], "framework_imports"):
+                    transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
 
     # TODO(b/117496841): Remove this if once objc_framework is removed from Bazel.
     if (ctx.rule.kind == "objc_framework" and
