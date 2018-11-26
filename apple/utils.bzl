@@ -34,7 +34,8 @@ def apple_action(ctx, **kw):
 
     # Disable the lint warning because this can't be remapped, it needs
     # to be split into run and run_shell, which is pending work.
-    # buildozer: disable=ctx-actions
+    # ...and disabling the linter doesn't work:
+    # github.com/bazelbuild/buildtools/issues/458
     ctx.action(**kw)  # buildozer: disable=ctx-actions
 
 def apple_actions_run(ctx_actions, **kw):
