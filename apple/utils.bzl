@@ -168,9 +168,9 @@ def group_files_by_directory(files, extensions, attr):
                 not_matched = False
                 container = path[:after_index]
                 if container in grouped_files:
-                    grouped_files[container] += [f]
+                    grouped_files[container].append(f)
                 else:
-                    grouped_files[container] = depset([f])
+                    grouped_files[container] = [f]
 
                 # No need to check other extensions
                 break
@@ -183,7 +183,7 @@ def group_files_by_directory(files, extensions, attr):
         fail("Expected only files inside directories named with the extensions " +
              "%r, but found: %s" % (extensions, formatted_files), attr)
 
-    return grouped_files
+    return {k: depset(v) for k, v in grouped_files.items()}
 
 def is_xcode_at_least_version(xcode_config, desired_version):
     """Returns True if we are building with at least the given Xcode version.
