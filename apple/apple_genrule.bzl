@@ -32,8 +32,8 @@ def _compute_make_variables(
     resolved_srcs_list = resolved_srcs.to_list()
     files_to_build_list = files_to_build.to_list()
     variables = {
-        "SRCS": " ".join(["'{}'".format(x.path) for x in resolved_srcs_list])
-        "OUTS": " ".join(["'{}'".format(x.path) for x in files_to_build_list])
+        "SRCS": " ".join(["'{}'".format(x.path) for x in resolved_srcs_list]),
+        "OUTS": " ".join(["'{}'".format(x.path) for x in files_to_build_list]),
     }
     if len(resolved_srcs_list) == 1:
         variables["<"] = resolved_srcs_list[0].path
