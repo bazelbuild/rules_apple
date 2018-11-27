@@ -281,7 +281,7 @@ objc_library(
 ## apple_genrule
 
 ```python
-apple_genrule(name, cmd, executable, message, output_licenses, outs, srcs, tools)
+apple_genrule(name, cmd, executable, message, outs, srcs, tools)
 ```
 
 Variation of `genrule` that provides an Apple-specific environment and `make`
