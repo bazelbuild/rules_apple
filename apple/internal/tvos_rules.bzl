@@ -19,6 +19,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
+    "run_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -97,18 +101,12 @@ def tvos_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # TODO(kaipi): Add support for `bazel run` for tvos_application.
-    executable = ctx.actions.declare_file(ctx.label.name)
-    ctx.actions.write(
-        executable,
-        "#!/bin/bash\necho Unimplemented",
-        is_executable = True,
-    )
-
     return [
         DefaultInfo(
-            executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = run_actions.start_simulator(ctx),
+            ),
         ),
         TvosApplicationBundleInfo(),
     ] + processor_result.providers
