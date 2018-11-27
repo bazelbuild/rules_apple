@@ -256,6 +256,14 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "macos_dylib_test",
+    size = "medium",
+    src = "macos_dylib_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+    shard_count = 2,
+)
+
+apple_multi_shell_test(
     name = "tvos_application_test",
     size = "medium",
     src = "tvos_application_test.sh",
