@@ -15,6 +15,22 @@
 """Implementation of apple_dynamic_framework_import and apple_static_framework_import of framework import rules."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -110,8 +126,11 @@ def _apple_framework_import_impl(ctx):
 
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
+    providers = []
+
+    framework_imports = ctx.files.framework_imports
     objc_provider_fields = {
-        "static_framework_file": depset(ctx.files.framework_imports),
+        "static_framework_file": depset(framework_imports),
     }
 
     if ctx.attr.sdk_dylibs:
@@ -121,7 +140,24 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    return [_objc_provider(ctx, objc_provider_fields)]
+    providers.append(_objc_provider(ctx, objc_provider_fields))
+
+    bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
+    if bundle_files:
+        parent_dir_param = partial.make(
+            resources.bundle_relative_parent_dir,
+            extension = "bundle",
+        )
+        resource_provider = resources.bucketize(
+            bundle_files,
+            parent_dir_param = parent_dir_param,
+        )
+        providers += [
+            AppleResourceBundleInfo(),
+            resource_provider,
+        ]
+
+    return providers
 
 apple_dynamic_framework_import = rule(
     implementation = _apple_framework_import_impl,
