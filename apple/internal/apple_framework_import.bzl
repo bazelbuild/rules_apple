@@ -15,12 +15,24 @@
 """Implementation of apple_framework_import."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
 )
 
 AppleFrameworkImportInfo = provider(
@@ -118,6 +130,21 @@ def _apple_framework_import_impl(ctx):
         if ctx.attr.weak_sdk_frameworks:
             objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
         objc_provider_fields["static_framework_file"] = framework_imports_set
+
+        bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
+        if bundle_files:
+            parent_dir_param = partial.make(
+                resources.bundle_relative_parent_dir,
+                extension = "bundle",
+            )
+            resource_provider = resources.bucketize(
+                bundle_files,
+                parent_dir_param = parent_dir_param,
+            )
+            providers += [
+                AppleResourceBundleInfo(),
+                resource_provider,
+            ]
 
     provider_fields = {}
     if transitive_sets:
