@@ -167,10 +167,8 @@ def group_files_by_directory(files, extensions, attr):
             if after_index != -1:
                 not_matched = False
                 container = path[:after_index]
-                if container in grouped_files:
-                    grouped_files[container].append(f)
-                else:
-                    grouped_files[container] = [f]
+                contained_files = grouped_files.setdefault(container, default = [])
+                contained_files.append(f)
 
                 # No need to check other extensions
                 break
