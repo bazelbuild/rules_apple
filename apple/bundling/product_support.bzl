@@ -45,6 +45,8 @@ load(
 # * `bundle`: A loadable macOS bundle. This is the default product type for
 #   `macos_bundle` targets; it can be overridden with a more specific product type
 #   if needed.
+# * `dylib`: A dynamically-loadable library. This is the default product type for
+#   `macos_dylib`; it does not need to be set explicitly (and cannot be changed).
 # * `framework`: A basic dynamic framework. This is the default product type for
 #   those targets; it does not need to be set explicitly (and cannot be changed).
 # * `kernel_extension`: A macOS kernel extension. This product type should be used
@@ -89,6 +91,7 @@ apple_product_type = struct(
     application = "com.apple.product-type.application",
     app_extension = "com.apple.product-type.app-extension",
     bundle = "com.apple.product-type.bundle",
+    dylib = "com.apple.product-type.library.dynamic",
     framework = "com.apple.product-type.framework",
     kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",
@@ -165,6 +168,9 @@ _PRODUCT_TYPE_DESCRIPTORS = {
     ),
     apple_product_type.bundle: _describe_product_type(
         bundle_extension = ".bundle",
+    ),
+    apple_product_type.dylib: _describe_product_type(
+        bundle_extension = ".dylib",
     ),
     apple_product_type.framework: _describe_product_type(
         bundle_extension = ".framework",

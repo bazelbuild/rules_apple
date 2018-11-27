@@ -28,6 +28,7 @@ load(
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
+    _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
 )
 load(
@@ -282,6 +283,83 @@ def macos_command_line_application(name, **kwargs):
     cmd_line_app_args.pop("deps")
 
     _macos_command_line_application(
+        name = name,
+        **cmd_line_app_args
+    )
+
+def macos_dylib(name, **kwargs):
+    """Builds a macOS dylib.
+
+    A dylib is a standalone binary dynamic library. Unlike a plain `apple_binary`
+    target, however, this rule supports versioning and embedding an `Info.plist`
+    into the binary and allows the binary to be code-signed.
+
+    Args:
+      name: The name of the target. (The extension `.dylib` will be added.)
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          extension. Optional.
+      infoplists: A list of plist files that will be merged and embedded in the
+          binary. The merge is only at the top level of the plist; so
+          sub-dictionaries are not merged.
+      linkopts: A list of strings representing extra flags that should be passed
+          to the linker.
+      minimum_os_version: An optional string indicating the minimum macOS version
+          supported by the target, represented as a dotted version number (for
+          example, `"10.11"`). If this attribute is omitted, then the value
+          specified by the flag `--macos_minimum_os` will be used instead.
+      deps: A list of dependencies, such as libraries, that are linked into the
+          final binary. Any resources found in those dependencies are
+          ignored.
+    """
+
+    # Xcode will happily apply entitlements during code signing for a dylib even
+    # though it doesn't have a Capabilities tab in the project settings.
+    # Until there's official support for it, we'll fail if we see those attributes
+    # (which are added to the rule because of the code_signing_attributes usage in
+    # the rule definition).
+    if "entitlements" in kwargs or "provisioning_profile" in kwargs:
+        fail("macos_dylib does not support entitlements or provisioning " +
+             "profiles at this time")
+
+    binary_args = dict(kwargs)
+
+    original_deps = binary_args.pop("deps")
+    binary_deps = list(original_deps)
+
+    # If any of the Info.plist-affecting attributes is provided, create a merged
+    # Info.plist target. This target also propagates an objc provider that
+    # contains the linkopts necessary to add the Info.plist to the binary, so it
+    # must become a dependency of the binary as well.
+    bundle_id = binary_args.get("bundle_id")
+    infoplists = binary_args.get("infoplists")
+    version = binary_args.get("version")
+
+    if bundle_id or infoplists or version:
+        merged_infoplist_name = name + ".merged_infoplist"
+
+        macos_command_line_infoplist(
+            name = merged_infoplist_name,
+            bundle_id = bundle_id,
+            infoplists = infoplists,
+            minimum_os_version = binary_args.get("minimum_os_version"),
+            version = version,
+        )
+        binary_deps.extend([":" + merged_infoplist_name])
+
+    # Create the unsigned binary, then run the command line application rule that
+    # signs it.
+    cmd_line_app_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.macos),
+        binary_type = "dylib",
+        deps = binary_deps,
+        link_swift_statically = True,
+        suppress_entitlements = True,
+        **binary_args
+    )
+    cmd_line_app_args.pop("deps")
+
+    _macos_dylib(
         name = name,
         **cmd_line_app_args
     )
