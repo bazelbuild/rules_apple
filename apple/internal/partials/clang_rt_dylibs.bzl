@@ -33,7 +33,7 @@ load(
 
 def _clang_rt_dylibs_partial_impl(ctx, binary_artifact):
     """Implementation for the Clang runtime dylibs processing partial."""
-    bundle_files = []
+    bundle_zips = []
     if clang_support.should_package_clang_runtime(ctx):
         clang_rt_zip = intermediates.file(
             ctx.actions,
@@ -46,12 +46,12 @@ def _clang_rt_dylibs_partial_impl(ctx, binary_artifact):
             clang_rt_zip,
         )
 
-        bundle_files.append(
+        bundle_zips.append(
             (processor.location.framework, None, depset([clang_rt_zip])),
         )
 
     return struct(
-        bundle_files = bundle_files,
+        bundle_zips = bundle_zips,
     )
 
 def clang_rt_dylibs_partial(binary_artifact):
