@@ -75,6 +75,16 @@ def _validate_single_framework(framework_paths):
             ),
         )
 
+def _get_framework_binary_file(framework_groups):
+    framework_dir = framework_groups.keys()[0]
+    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+    framework_short_path = paths.join(framework_dir, framework_name)
+    for framework_import in framework_groups[framework_dir].to_list():
+        if framework_import.short_path == framework_short_path:
+            return framework_import
+
+    fail("There has to be a binary file in the imported framework.")
+
 def _apple_framework_import_impl(ctx):
     """Implementation for the apple_framework_import rule."""
     framework_imports = ctx.files.framework_imports
@@ -117,15 +127,9 @@ def _apple_framework_import_impl(ctx):
             transitive_sets.append(depset(filtered_framework_imports))
     else:
         if ctx.attr.alwayslink:
-            framework_dir = framework_groups.keys()[0]
-            framework_name = paths.split_extension(paths.basename(framework_dir))[0]
-            framework_short_path = paths.join(framework_dir, framework_name)
-            framework_file = [
-                x
-                for x in framework_imports
-                if x.short_path == framework_short_path
-            ][0]
-            objc_provider_fields["force_load_library"] = depset([framework_file])
+            objc_provider_fields["force_load_library"] = depset(
+                [_get_framework_binary_file(framework_groups)],
+            )
         if ctx.attr.sdk_dylibs:
             objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
         if ctx.attr.sdk_frameworks:
