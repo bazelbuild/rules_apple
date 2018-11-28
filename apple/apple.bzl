@@ -17,6 +17,8 @@
 load(
     "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
     _apple_framework_import = "apple_framework_import",
+    _apple_static_framework_import = "apple_static_framework_import",
 )
 
 apple_framework_import = _apple_framework_import
+apple_static_framework_import = _apple_static_framework_import
