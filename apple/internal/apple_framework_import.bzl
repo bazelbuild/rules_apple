@@ -78,7 +78,7 @@ def _framework_dirs(framework_imports):
 
     # TODO(b/120920467): Add validation to ensure only a single framework is being imported.
 
-    return depset(framework_groups.keys())
+    return framework_groups.keys()
 
 def _objc_provider(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
@@ -102,7 +102,7 @@ def _apple_framework_import_impl(ctx):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     providers.append(providers.append(AppleFrameworkImportInfo(**provider_fields)))
 
-    framework_dirs_set = _framework_dirs(ctx.files.framework_imports)
+    framework_dirs_set = depset(_framework_dirs(ctx.files.framework_imports))
     objc_provider = _objc_provider(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
@@ -133,6 +133,17 @@ def _apple_static_framework_import_impl(ctx):
         "static_framework_file": depset(framework_imports),
     }
 
+    framework_dirs = _framework_dirs(ctx.files.framework_imports)
+    if ctx.attr.alwayslink:
+        framework_dir = framework_dirs[0]
+        framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+        framework_short_path = paths.join(framework_dir, framework_name)
+        framework_file = [
+            x
+            for x in framework_imports
+            if x.short_path == framework_short_path
+        ][0]
+        objc_provider_fields["force_load_library"] = depset([framework_file])
     if ctx.attr.sdk_dylibs:
         objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
     if ctx.attr.sdk_frameworks:
@@ -198,6 +209,18 @@ apple_static_framework_import = rule(
             doc = """
 The list of files under a .framework directory which are provided to Apple based targets that depend
 on this target.
+""",
+        ),
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
+If true, any binary that depends (directly or indirectly) on this framework
+will link in all the object files for the framework file, even if some
+contain no symbols referenced by the binary. This is useful if your code isn't
+explicitly called by code in the binary; for example, if you rely on runtime
+checks for protocol conformances added in extensions in the library but do not
+directly reference any other symbols in the object file that adds that
+conformance. Only applicable for static frameworks (i.e. `is_dynamic = False`).
 """,
         ),
         "sdk_dylibs": attr.string_list(
