@@ -68,6 +68,16 @@ def filter_framework_imports_for_bundling(framework_imports):
 
     return filtered_imports
 
+def _get_framework_binary_file(framework_groups):
+    framework_dir = framework_groups.keys()[0]
+    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+    framework_short_path = paths.join(framework_dir, framework_name)
+    for framework_import in framework_groups[framework_dir].to_list():
+        if framework_import.short_path == framework_short_path:
+            return framework_import
+
+    fail("There has to be a binary file in the imported framework.")
+
 def _framework_dirs(framework_imports):
     """Implementation for the apple_dynamic_framework_import rule."""
     framework_groups = group_files_by_directory(
@@ -78,7 +88,7 @@ def _framework_dirs(framework_imports):
 
     # TODO(b/120920467): Add validation to ensure only a single framework is being imported.
 
-    return framework_groups.keys()
+    return framework_groups
 
 def _objc_provider(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
@@ -102,7 +112,8 @@ def _apple_framework_import_impl(ctx):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     providers.append(providers.append(AppleFrameworkImportInfo(**provider_fields)))
 
-    framework_dirs_set = depset(_framework_dirs(ctx.files.framework_imports))
+    framework_groups = framework_groups(ctx.files.framework_imports)
+    framework_dirs_set = depset(framework_groups.keys())
     objc_provider = _objc_provider(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
@@ -133,17 +144,11 @@ def _apple_static_framework_import_impl(ctx):
         "static_framework_file": depset(framework_imports),
     }
 
-    framework_dirs = _framework_dirs(ctx.files.framework_imports)
+    framework_groups = _framework_dirs(ctx.files.framework_imports)
     if ctx.attr.alwayslink:
-        framework_dir = framework_dirs[0]
-        framework_name = paths.split_extension(paths.basename(framework_dir))[0]
-        framework_short_path = paths.join(framework_dir, framework_name)
-        framework_file = [
-            x
-            for x in framework_imports
-            if x.short_path == framework_short_path
-        ][0]
-        objc_provider_fields["force_load_library"] = depset([framework_file])
+        objc_provider_fields["force_load_library"] = depset(
+            [_get_framework_binary_file(framework_groups)],
+        )
     if ctx.attr.sdk_dylibs:
         objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
     if ctx.attr.sdk_frameworks:
