@@ -165,8 +165,8 @@ ios_application(
 ## apple_framework_import
 
 ```python
-apple_framework_import(name, framework_import, is_dynamic, sdk_dylibs,
-sdk_frameworks, weak_sdk_frameworks, deps)
+apple_framework_import(name, framework_import, is_dynamic, alwayslink,
+sdk_dylibs, sdk_frameworks, weak_sdk_frameworks, deps)
 ```
 
 This rule encapsulates an already-built framework. It is defined by a list of
@@ -233,6 +233,19 @@ objc_library(
         application bundle inside the <code>Frameworks</code> directory. If this
         attribute is <code>False</code>, the framework will be statically linked
         into the final application binary instead.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>alwayslink</code></td>
+      <td>
+        <p><code>Bool; optional</code></p>
+        <p>If true, any binary that depends (directly or indirectly) on this framework
+        will link in all the object files for the framework file, even if some
+        contain no symbols referenced by the binary. This is useful if your code isn't
+        explicitly called by code in the binary; for example, if you rely on runtime
+        checks for protocol conformances added in extensions in the library but do not
+        directly reference any other symbols in the object file that adds that
+        conformance. Only applicable for static frameworks (i.e. `is_dynamic = False`).</p>
       </td>
     </tr>
     <tr>

@@ -98,10 +98,15 @@ def _apple_framework_import_impl(ctx):
             transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
 
     if ctx.attr.is_dynamic:
-        if any([ctx.attr.sdk_dylibs, ctx.attr.sdk_frameworks, ctx.attr.weak_sdk_frameworks]):
+        if any([
+            ctx.attr.alwayslink,
+            ctx.attr.sdk_dylibs,
+            ctx.attr.sdk_frameworks,
+            ctx.attr.weak_sdk_frameworks,
+        ]):
             fail(
-                "Error: sdk_dylibs, sdk_frameworks and weak_sdk_frameworks can only be set for " +
-                "static frameworks (i.e. is_dynamic = False)",
+                "Error: alwayslink, sdk_dylibs, sdk_frameworks and weak_sdk_frameworks " +
+                "can only be set for static frameworks (i.e. is_dynamic = False)",
             )
 
         objc_provider_fields["dynamic_framework_file"] = framework_imports_set
@@ -111,6 +116,16 @@ def _apple_framework_import_impl(ctx):
         if filtered_framework_imports:
             transitive_sets.append(depset(filtered_framework_imports))
     else:
+        if ctx.attr.alwayslink:
+            framework_dir = framework_groups.keys()[0]
+            framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+            framework_short_path = paths.join(framework_dir, framework_name)
+            framework_file = [
+                x
+                for x in framework_imports
+                if x.short_path == framework_short_path
+            ][0]
+            objc_provider_fields["force_load_library"] = depset([framework_file])
         if ctx.attr.sdk_dylibs:
             objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
         if ctx.attr.sdk_frameworks:
@@ -165,6 +180,18 @@ Indicates whether this framework is linked dynamically or not. If this attribute
 final application binary will link against this framework and also be copied into the final
 application bundle inside the Frameworks directory. If this attribute is False, the framework will
 be statically linked into the final application binary instead.
+""",
+        ),
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
+If true, any binary that depends (directly or indirectly) on this framework
+will link in all the object files for the framework file, even if some
+contain no symbols referenced by the binary. This is useful if your code isn't
+explicitly called by code in the binary; for example, if you rely on runtime
+checks for protocol conformances added in extensions in the library but do not
+directly reference any other symbols in the object file that adds that
+conformance. Only applicable for static frameworks (i.e. `is_dynamic = False`).
 """,
         ),
         "sdk_dylibs": attr.string_list(
