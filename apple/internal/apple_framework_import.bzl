@@ -119,7 +119,7 @@ def _apple_framework_import_impl(ctx):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     providers = [AppleFrameworkImportInfo(**provider_fields)]
 
-    framework_dirs_set = _framework_dirs(ctx.file.framework_imports)
+    framework_dirs_set = _framework_dirs(ctx.files.framework_imports)
     objc_provider_fields = {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
@@ -140,7 +140,7 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    framework_dirs_set = _framework_dirs(ctx.file.framework_imports)
+    framework_dirs_set = _framework_dirs(ctx.files.framework_imports)
     return _apple_providers(ctx, objc_provider_fields, framework_dirs_set)
 
 apple_framework_import = rule(
