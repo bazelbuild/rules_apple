@@ -208,8 +208,8 @@ are not present at runtime.
         ),
         "deps": attr.label_list(
             doc = """
-A list of targets that are dependencies of the target being built, which will
-be linked into that target.
+A list of targets that are dependencies of the target being built, which will be
+linked into that target.
 """,
             providers = [
                 [apple_common.Objc, AppleFrameworkImportInfo],
