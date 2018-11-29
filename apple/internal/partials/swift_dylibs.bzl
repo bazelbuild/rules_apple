@@ -32,7 +32,8 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "xcrun_action",
+    "apple_actions_run",
+    "xcrun_env",
 )
 load(
     "@bazel_skylib//lib:collections.bzl",
@@ -67,25 +68,25 @@ File object that represents a directory containing the Swift dylibs to package f
 
 def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
-    args = [
-        "swift-stdlib-tool",
-        "--copy",
-        "--destination",
-        output_dir.path,
+
+    swift_stdlib_tool_args = [
         "--platform",
         platform_name,
-    ] + collections.before_each("--scan-executable", [
-        x.path
-        for x in binary_files
-    ])
+        "--output_path",
+        output_dir.path,
+        "--realpath",
+        ctx.executable._realpath.path,
+    ]
 
-    xcrun_action(
-        ctx,
+    apple_actions_run(
+        ctx.actions,
         inputs = binary_files,
+        tools = [ctx.executable._realpath],
+        executable = ctx.executable._swift_stdlib_tool,
         outputs = [output_dir],
-        arguments = args,
+        arguments = swift_stdlib_tool_args + [x.path for x in binary_files],
         mnemonic = "SwiftStdlibCopy",
-        no_sandbox = True,
+        env = xcrun_env(ctx),
     )
 
 def _swift_dylibs_partial_impl(
@@ -118,23 +119,25 @@ def _swift_dylibs_partial_impl(
     bundle_files = []
     propagated_binaries = depset([])
     if bundle_dylibs:
-        platform_name = platform_support.platform(ctx).name_in_plist.lower()
-        output_dir = intermediates.directory(
-            ctx.actions,
-            ctx.label.name,
-            "swiftlibs",
-        )
-        _swift_dylib_action(
-            ctx,
-            platform_name,
-            transitive_binaries.to_list(),
-            output_dir,
-        )
+        binaries_to_check = transitive_binaries.to_list()
+        if binaries_to_check:
+            platform_name = platform_support.platform(ctx).name_in_plist.lower()
+            output_dir = intermediates.directory(
+                ctx.actions,
+                ctx.label.name,
+                "swiftlibs",
+            )
+            _swift_dylib_action(
+                ctx,
+                platform_name,
+                binaries_to_check,
+                output_dir,
+            )
 
-        bundle_files.append((processor.location.framework, None, depset([output_dir])))
+            bundle_files.append((processor.location.framework, None, depset([output_dir])))
 
-        swift_support_file = (platform_name, output_dir)
-        transitive_swift_support_files.append(swift_support_file)
+            swift_support_file = (platform_name, output_dir)
+            transitive_swift_support_files.append(swift_support_file)
 
         if package_swift_support:
             # Package all the transitive SwiftSupport dylibs into the archive for this target.
