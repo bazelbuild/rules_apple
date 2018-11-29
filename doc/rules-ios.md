@@ -904,6 +904,14 @@ Builds an XCUITest test suite with the given runners.
       </td>
     </tr>
     <tr>
+      <td><code>env</code></td>
+      <td>
+        <p><code>Dictionary of strings; optional</code></p>
+        <p>Dictionary of environment variables that should be set during the
+        test execution.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -1029,6 +1037,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>env</code></td>
+      <td>
+        <p><code>Dictionary of strings; optional</code></p>
+        <p>Dictionary of environment variables that should be set during the
+        test execution.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -1139,6 +1155,14 @@ Builds an XCTest unit test suite with the given runners.
         same bundle ID as the <code>test_host</code> bundle ID. If not
         specified, the <code>test_host</code>'s bundle ID will be used with a
         "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>env</code></td>
+      <td>
+        <p><code>Dictionary of strings; optional</code></p>
+        <p>Dictionary of environment variables that should be set during the
+        test execution.</p>
       </td>
     </tr>
     <tr>

@@ -334,6 +334,11 @@ The xctest bundle that contains the test code and resources. Required.
             mandatory = True,
             providers = [AppleBundleInfo],
         ),
+        "env": attr.string_dict(
+            doc = """
+Dictionary of environment variables that should be set during the test execution.
+""",
+        ),
         # gcov and mcov are binary files required to calculate test coverage.
         "_gcov": attr.label(
             cfg = "host",
@@ -413,7 +418,13 @@ def _apple_test_impl(ctx, test_type):
     """Common implementation for the apple test rules."""
     runner = ctx.attr.runner[AppleTestRunner]
     execution_requirements = runner.execution_requirements
-    test_environment = runner.test_environment
+
+    # TODO(b/120222745): Standardize the setup of the environment variables passed on the env
+    # attribute.
+    test_environment = dicts.add(
+        ctx.attr.env,
+        runner.test_environment,
+    )
 
     direct_runfiles = [ctx.outputs.test_bundle]
     transitive_runfiles = []
