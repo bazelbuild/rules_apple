@@ -1995,7 +1995,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_framework"
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import",
+     "apple_static_framework_import",
     )
 
 objc_library(
