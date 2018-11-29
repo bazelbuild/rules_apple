@@ -447,7 +447,6 @@ load("@build_bazel_rules_apple//apple:apple.bzl",
 apple_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
-    is_dynamic = 1,
 )
 
 objc_library(
@@ -615,7 +614,6 @@ load("@build_bazel_rules_apple//apple:apple.bzl",
 apple_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
-    is_dynamic = 1,
 )
 
 objc_library(

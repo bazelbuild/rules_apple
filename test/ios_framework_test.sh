@@ -1390,7 +1390,6 @@ objc_library(
 apple_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
-    is_dynamic = True,
 )
 EOF
 
@@ -2053,10 +2052,9 @@ genrule(
     cmd = "cp \$< \$@",
 )
 
-apple_framework_import(
+apple_static_framework_import(
     name = "inner_framework",
     framework_imports = glob(["InnerFramework.framework/**"]) + ["InnerFramework.framework/InnerFramework"],
-    is_dynamic = False,
 )
 EOF
 

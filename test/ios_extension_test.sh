@@ -137,6 +137,15 @@ function create_minimal_ios_application_and_extension_with_framework_import() {
   readonly framework_type="$1"
   readonly import_rule="$2"
 
+  local is_dynamic
+  if [[ $import_rule == objc_import ]]; then
+    local dynamic
+    [[ $framework_type == dynamic ]] && dynamic=True || dynamic=False
+    is_dynamic="is_dynamic = $dynamic,"
+  else
+    is_dynamic=""
+  fi
+
   cat >> app/BUILD <<EOF
 ios_application(
     name = "app",
@@ -170,7 +179,7 @@ objc_library(
 $import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
-    is_dynamic = $([[ "$framework_type" == dynamic ]] && echo True || echo False),
+    $is_dynamic
 )
 EOF
 
@@ -585,7 +594,7 @@ function test_prebuilt_static_framework_dependency() {
 # is_dynamic set to False) is not bundled with the application or extension.
 function test_prebuilt_static_apple_framework_import_dependency() {
   create_common_files
-  create_minimal_ios_application_and_extension_with_framework_import static apple_framework_import
+  create_minimal_ios_application_and_extension_with_framework_import static apple_static_framework_import
 
   do_build ios //app:app || fail "Should build"
 
