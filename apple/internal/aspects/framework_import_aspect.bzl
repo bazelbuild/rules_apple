@@ -20,13 +20,19 @@ load(
     "filter_framework_imports_for_bundling",
 )
 
+# List of attributes through which the aspect propagates. We include `runtime_deps` here as
+# these are supported by `objc_library` for frameworks that should be present in the bundle, but not
+# linked against.
+# TODO(b/120205406): Migrate the `runtime_deps` use case to be referenced through `data` instead.
+_FRAMEWORK_IMPORT_ASPECT_ATTRS = ["deps", "frameworks", "runtime_deps"]
+
 def _framework_import_aspect_impl(target, ctx):
     """Implementation of the framework import propagation aspect."""
     if AppleFrameworkImportInfo in target:
         return []
 
     transitive_sets = []
-    for attribute in ["deps", "frameworks"]:
+    for attribute in _FRAMEWORK_IMPORT_ASPECT_ATTRS:
         if not hasattr(ctx.rule.attr, attribute):
             continue
         for dep_target in getattr(ctx.rule.attr, attribute):
@@ -51,7 +57,7 @@ def _framework_import_aspect_impl(target, ctx):
 
 framework_import_aspect = aspect(
     implementation = _framework_import_aspect_impl,
-    attr_aspects = ["deps", "frameworks"],
+    attr_aspects = _FRAMEWORK_IMPORT_ASPECT_ATTRS,
     doc = """
 Aspect that collects all files from framework import targets (e.g. objc_framework) so that they can
 be packaged within the top-level application bundle.
