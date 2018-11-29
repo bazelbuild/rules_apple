@@ -281,10 +281,11 @@ def _process(ctx, partials):
     """
     partial_outputs = [partial.call(p, ctx) for p in partials]
 
-    unprocessed_archive = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
-        "unprocessed_archive.zip",
+    # This output, while an intermediate artifact not exposed through the AppleBundleInfo provider,
+    # is used by Tulsi for custom processing logic. (b/120221708)
+    unprocessed_archive = ctx.actions.declare_file(
+        "{}.unprocessed.zip".format(ctx.label.name),
+        sibling = outputs.archive(ctx),
     )
     _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
 
