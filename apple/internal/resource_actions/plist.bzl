@@ -27,6 +27,10 @@ load(
     "product_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
@@ -137,9 +141,10 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
         variable_substitutions = struct(**substitutions),
     )
 
-    control_file = ctx.actions.declare_file(
+    control_file = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
         "%s-control" % output_plist.basename,
-        sibling = output_plist,
     )
     ctx.actions.write(
         output = control_file,
@@ -295,9 +300,10 @@ def merge_root_infoplists(
                 struct(**product_type_descriptor.additional_infoplist_values),
             )
 
-    environment_plist = ctx.actions.declare_file(
+    environment_plist = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
         "environment.plist",
-        sibling = output_plist,
     )
 
     platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
@@ -335,9 +341,11 @@ def merge_root_infoplists(
         target = str(ctx.label),
         variable_substitutions = struct(**substitutions),
     )
-    control_file = ctx.actions.declare_file(
+
+    control_file = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
         "%s-control" % output_plist.basename,
-        sibling = output_plist,
     )
     ctx.actions.write(
         output = control_file,
