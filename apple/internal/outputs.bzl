@@ -55,7 +55,9 @@ def _binary(ctx):
 
 def _infoplist(ctx):
     """Returns a file reference for this target's Info.plist file."""
-    return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
+
+    # TODO(b/73349137): Revert to using intermediate artifacts.
+    return ctx.actions.declare_file("{}-Info.plist".format(ctx.label.name))
 
 outputs = struct(
     archive = _archive,
