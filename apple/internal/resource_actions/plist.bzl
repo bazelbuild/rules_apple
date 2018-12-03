@@ -144,7 +144,7 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
     control_file = intermediates.file(
         ctx.actions,
         ctx.label.name,
-        "%s-control" % output_plist.basename,
+        paths.join(bundle_name, "%s-control" % output_plist.basename),
     )
     ctx.actions.write(
         output = control_file,
@@ -345,7 +345,7 @@ def merge_root_infoplists(
     control_file = intermediates.file(
         ctx.actions,
         ctx.label.name,
-        "%s-control" % output_plist.basename,
+        "%s-root-control" % output_plist.basename,
     )
     ctx.actions.write(
         output = control_file,
