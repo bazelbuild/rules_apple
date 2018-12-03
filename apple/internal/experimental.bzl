@@ -21,4 +21,4 @@ load(
 
 def is_experimental_bundling_enabled(ctx):
     """Returns whether experimental bundling is enabled."""
-    return define_utils.bool_value(ctx, "apple.experimental.bundling", False)
+    return define_utils.bool_value(ctx, "apple.experimental.bundling", True)
