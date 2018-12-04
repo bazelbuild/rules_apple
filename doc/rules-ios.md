@@ -1209,7 +1209,7 @@ build a single framework artifact that works for all architectures by specifying
 
 ```python
 ios_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, data, deps, [test specific attributes])
+test_host, data, deps, provisioning_profile, [test specific attributes])
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -1310,6 +1310,16 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>provisioning_profile</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
+        when bundling the test bundle. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
+      </td>
+    </tr>
+    <tr>
       <td><code>[test specific attributes]</code></td>
       <td>
         <p>For a list of the attributes inherited by all test rules, please check the
@@ -1325,7 +1335,7 @@ of the attributes inherited by all test rules, please check the
 
 ```python
 ios_ui_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
-test_host, deps, [test specific attributes])
+test_host, deps, provisioning_profile, [test specific attributes])
 ```
 
 Builds an XCUITest test suite with the given runners.
@@ -1427,6 +1437,16 @@ Builds an XCUITest test suite with the given runners.
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>provisioning_profile</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
+        when bundling the test bundle. This value is optional for simulator
+        builds as the simulator doesn't fully enforce entitlements, but is
+        <strong>required for device builds.</strong></p>
       </td>
     </tr>
     <tr>
