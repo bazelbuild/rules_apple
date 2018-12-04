@@ -177,6 +177,7 @@ ios_ui_test(
     name = "PassingUiTest",
     infoplists = ["PassUiTest-Info.plist"],
     deps = [":pass_ui_test_lib"],
+    minimum_os_version = "8.0",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -190,6 +191,7 @@ ios_ui_test(
     name = 'FailingUiTest',
     infoplists = ["FailUiTest-Info.plist"],
     deps = [":fail_ui_test_lib"],
+    minimum_os_version = "8.0",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -249,6 +251,7 @@ ios_ui_test(
     name = 'EnvUiTest',
     infoplists = ["EnvUiTest-Info.plist"],
     deps = [":env_ui_test_lib"],
+    minimum_os_version = "8.0",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
