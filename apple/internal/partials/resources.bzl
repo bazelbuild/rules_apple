@@ -21,10 +21,6 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
     "resources_support",
 )
@@ -75,18 +71,7 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
       A list of tuples as described in processor.bzl with the Info.plist file
       reference and the PkgInfo file if required.
     """
-
-    # TODO(b/73349137): Remove this symlink. It's only used so that the file has the proper name
-    # when bundled.
-    plist_symlink = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
-        "Info.plist",
-    )
-
-    files = [plist_symlink]
-
-    file_actions.symlink(ctx, out_infoplist, plist_symlink)
+    files = [out_infoplist]
 
     out_pkginfo = None
     if ctx.attr._needs_pkginfo:

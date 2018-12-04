@@ -55,10 +55,7 @@ def _binary(ctx):
 
 def _infoplist(ctx):
     """Returns a file reference for this target's Info.plist file."""
-
-    # TODO(b/73349137): Revert to using intermediate artifacts. It uses a rare format for the name
-    # because there are clients that have genrules that generate APPNAME-Info.plist files.
-    return ctx.actions.declare_file("_{}-Private-Info.plist".format(ctx.label.name))
+    return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
 
 outputs = struct(
     archive = _archive,
