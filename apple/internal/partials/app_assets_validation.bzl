@@ -19,6 +19,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
     "product_support",
@@ -62,6 +66,12 @@ def _app_assets_validation_partial_impl(ctx, app_icons, launch_images):
                 app_icons,
                 path_fragments,
                 message = message,
+            )
+        elif platform_support.platform_type(ctx) == apple_common.platform_type.tvos:
+            bundling_support.ensure_single_xcassets_type(
+                "app_icons",
+                app_icons,
+                "brandassets",
             )
         else:
             bundling_support.ensure_single_xcassets_type(
