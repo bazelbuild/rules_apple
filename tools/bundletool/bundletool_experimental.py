@@ -177,7 +177,7 @@ class Bundler(object):
           continue
 
         # Check for Unix --x--x--x permissions.
-        executable = src_zipinfo.external_attr >> 16L & 0111 != 0
+        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
         data = src_zip.read(src_zipinfo)
         self._write_entry(file_dest, data, executable, bundle_root)
 
@@ -200,7 +200,7 @@ class Bundler(object):
 
     self._makedirs_safely(os.path.dirname(full_dest))
     shutil.copy(src, full_dest)
-    os.chmod(full_dest, 0755 if executable else 0644)
+    os.chmod(full_dest, 0o755 if executable else 0o644)
 
   def _write_entry(self, dest, data, executable, bundle_root):
     """Writes the given data as a file in the output ZIP archive.
@@ -226,7 +226,7 @@ class Bundler(object):
     self._makedirs_safely(os.path.dirname(full_dest))
     with open(full_dest, 'wb') as f:
       f.write(data)
-    os.chmod(full_dest, 0755 if executable else 0644)
+    os.chmod(full_dest, 0o755 if executable else 0o644)
 
   def _makedirs_safely(self, path):
     """Creates a new directory, silently succeeding if it already exists.
