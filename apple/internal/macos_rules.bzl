@@ -58,6 +58,9 @@ def macos_application_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = ctx.attr.extensions,
         ),
+        partials.framework_import_partial(
+            targets = ctx.attr.deps + ctx.attr.extensions,
+        ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,

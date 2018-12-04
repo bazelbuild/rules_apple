@@ -208,6 +208,10 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_application_test.sh",
     configurations = MACOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/binaries:empty_dylib",
+        "//test/testdata/binaries:empty_staticlib",
+    ],
     shard_count = 8,
 )
 
