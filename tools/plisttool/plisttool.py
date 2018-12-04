@@ -154,6 +154,7 @@ import subprocess
 import sys
 
 # Python 2/3 compatibility setup.
+# We don't want to depend on `six`, so we recreate the bits we need here.
 
 try:
   _string_types = basestring
