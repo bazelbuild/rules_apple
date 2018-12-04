@@ -116,7 +116,7 @@ apple_multi_shell_test(
 
 apple_multi_shell_test(
     name = "ios_application_swift_resources_test",
-    size = "medium",
+    size = "large",
     src = "ios_application_swift_resources_test.sh",
     configurations = IOS_CONFIGURATIONS,
     data = [
