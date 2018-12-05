@@ -125,7 +125,7 @@ class Bundler(object):
 
     post_processor = self._control.get('post_processor')
     if post_processor:
-      self._post_process_bundle(self, output_path, post_processor)
+      self._post_process_bundle(output_path, post_processor)
 
     code_signing_commands = self._control.get('code_signing_commands')
     if code_signing_commands:
