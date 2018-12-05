@@ -248,7 +248,7 @@ class Bundler(object):
     """
     exit_code = os.system('%s "%s"' % (post_processor, bundle_root))
     if exit_code:
-      raise PostProcessingError(exit_code)
+      raise PostProcessorError(exit_code)
 
   def _sign_bundle(self, bundle_root, command_lines):
     """Executes the signing command lines on the bundle.
