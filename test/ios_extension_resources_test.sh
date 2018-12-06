@@ -164,7 +164,8 @@ ios_application(
 
 ios_extension(
     name = "ext",
-    app_icons = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
+    # TODO(b/120618397): Reenable the stickers.
+    # app_icons = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -177,12 +178,13 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sequence.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sticker.png"
+  # TODO(b/120618397): Reenable these assertions.
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/Info.plist"
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sequence.png"
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/ext.appex/sticker_pack.stickerpack/sticker.png"
 }
 
 # Tests that a sticker pack application fails to build and emits a reasonable
