@@ -147,7 +147,6 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
     ],
-    flaky = 1,
     shard_count = 5,
 )
 
