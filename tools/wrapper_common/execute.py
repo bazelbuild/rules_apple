@@ -29,8 +29,8 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
   Args:
     cmd_args: A list of strings beginning with the command to execute followed
         by its arguments.
-    filtering: Optionally specify a filter for stdout. It must be callable and
-        have the following signature:
+    filtering: Optionally specify a filter for stdout/stderr. It must be
+        callable and have the following signature:
 
           myFilter(tool_exit_status, stdout_string, stderr_string) ->
              (stdout_string, stderr_string)
@@ -61,7 +61,7 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
     stdout = stdout.decode('utf8', 'replace')
     stderr = stderr.decode('utf8', 'replace')
 
-  if stdout and filtering:
+  if (stdout or stderr) and filtering:
     if not callable(filtering):
       raise TypeError("'filtering' must be callable.")
     stdout, stderr = filtering(cmd_result, stdout, stderr)
