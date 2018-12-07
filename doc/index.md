@@ -111,15 +111,20 @@ below.
 
 ## Related types
 
-* [`apple_product_type`](types.md#apple_product_type) &ndash; Defines
-  identifiers used to indicate special product types for Apple targets. This is
-  currently exported by `@build_bazel_rules_apple//apple:ios.bzl` (the only
-  platform that needs special product types at this time).
+*   [`apple_product_type`](types.md#apple_product_type) &ndash; Defines
+    identifiers used to indicate special product types for Apple targets. This
+    is currently exported by `@build_bazel_rules_apple//apple:ios.bzl` (the only
+    platform that needs special product types at this time).
+
+## Available options
+
+Check out [this page](common_info.md) for more information on available options
+that these rules honor during a build.
 
 ## Extending or integrating with these rules
 
 If you want to write custom rules that integrate with these Apple platform rules
-(for example, write a rule that provides resources to an application or takes
-an application as a dependency), then please refer to the documentation on
+(for example, write a rule that provides resources to an application or takes an
+application as a dependency), then please refer to the documentation on
 [providers](providers.md) to see the data that these rules propagate as output
 and expect as input.
