@@ -1,6 +1,10 @@
 ---
 platforms:
   macos:
+    build_flags:
+    # Disable remote cache until https://github.com/bazelbuild/bazel/issues/6260
+    # is fixed.
+    - "--noremote_accept_cached"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -8,6 +12,9 @@ platforms:
     test_flags:
     - "--spawn_strategy=local"
     - "--test_env=PATH"
+    # Disable remote cache until https://github.com/bazelbuild/bazel/issues/6260
+    # is fixed.
+    - "--noremote_accept_cached"
     test_targets:
     - "tools/..."
     - "test/..."
