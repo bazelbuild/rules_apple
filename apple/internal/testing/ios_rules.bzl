@@ -25,5 +25,7 @@ load(
 
 def ios_test_bundle_impl(ctx):
     """Experimental implementation of ios_application."""
-    providers = apple_test_bundle_support.apple_test_bundle_impl(ctx)
-    return providers + [IosXcTestBundleInfo()]
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx,
+        extra_providers = [IosXcTestBundleInfo()],
+    )
