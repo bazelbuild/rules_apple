@@ -1,6 +1,9 @@
 ---
 platforms:
   macos:
+    build_flags:
+    # Disable until https://github.com/bazelbuild/bazel/issues/6260 is fixed.
+    - "--noremote_accept_cached"
     build_targets:
     - "tools/..."
     - "test/..."
