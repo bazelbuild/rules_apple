@@ -5,9 +5,12 @@ platforms:
     - "tools/..."
     - "test/..."
     - "examples:ci_build_targets"
+    build_flags:
+    - "--noremote_accept_cached"
     test_flags:
     - "--spawn_strategy=local"
     - "--test_env=PATH"
+    - "--noremote_accept_cached"
     test_targets:
     - "tools/..."
     - "test/..."
