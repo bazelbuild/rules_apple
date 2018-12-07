@@ -110,7 +110,8 @@ ios_sticker_pack_extension(
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
+    # TODO(b/120618397): Reenable the stickers.
+    # sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
 )
 EOF
 }
@@ -141,7 +142,8 @@ ios_sticker_pack_extension(
     infoplists = ["Info-Ext.plist"],
     minimum_os_version = "10.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
+    # TODO(b/120618397): Reenable the stickers.
+    # sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
 )
 EOF
 }
@@ -176,12 +178,13 @@ function test_sticker_pack_builds_with_stickersiconset() {
   do_build ios //app:app --define=apple.experimental.bundling=1 \
       || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sequence.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sticker.png"
+  # TODO(b/120618397): Reenable these assertions.
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/Info.plist"
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sequence.png"
+  # assert_zip_contains "test-bin/app/app.ipa" \
+  #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sticker.png"
 }
 
 # Tests that a sticker pack application fails to build and emits a reasonable
