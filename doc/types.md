@@ -234,7 +234,7 @@ during builds.
     <tr>
       <td><code>skip</code></td>
       <td>
-        <p>Perform no checks at all.</p?
+        <p>Perform no checks at all.</p>
         <p>This should only be need in cases where the build result is
         <i>not</i> used directly, and some external process resigns the build
         after the fact correcting the entitlements/provisioning.</p>
