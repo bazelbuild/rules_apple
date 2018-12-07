@@ -145,14 +145,14 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   Returns:
     A tuple of the filtered stdout and strerr.
   """
-  section_header = re.compile("^/\\* ([^ ]*) \\*/$")
+  section_header = re.compile("^/\\* ([^ ]+) \\*/$")
 
   excluded_sections = ["com.apple.actool.compilation-results"]
 
   spurious_patterns = list(map(re.compile, [
       r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
       r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app icons"
-      r" only apply to iPad apps targeting releases of iOS prior to 10.0.",
+      r" only apply to iPad apps targeting releases of iOS prior to 10\.0\.",
   ]))
 
   def is_spurious_message(line):
@@ -174,7 +174,9 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
       current_section = header_match.group(1)
       continue
 
-    if current_section and current_section not in excluded_sections:
+    if not current_section:
+      output.append(line + "\n")
+    elif current_section not in excluded_sections:
       if is_spurious_message(line):
         continue
 
