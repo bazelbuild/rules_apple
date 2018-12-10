@@ -1104,4 +1104,43 @@ EOF
 
 }
 
+# Tests that the bundled application contains the compiled texture atlas.
+function test_texture_atlas_bundled_with_app() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:star_atlas_files",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/star.atlasc/star.1.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/star.atlasc/star.plist"
+
+  # Make sure those were the only files in the .atlasc.
+  atlasc_count="$(zipinfo -1 "test-bin/app/app.ipa" | \
+      grep "^Payload/app\.app/star\.atlasc/..*$" | wc -l | tr -d ' ')"
+  assert_equals "2" "$atlasc_count"
+}
+
 run_suite "ios_application bundling with resources tests"
