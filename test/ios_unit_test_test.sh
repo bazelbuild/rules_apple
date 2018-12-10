@@ -500,8 +500,7 @@ EOF
 @end
 EOF
 
-  do_build ios //app:test --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:test || fail "Should build"
 
   assert_zip_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
@@ -692,8 +691,7 @@ EOF
 @end
 EOF
 
-  do_build ios //app:test --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:test || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"

@@ -322,8 +322,7 @@ macos_application(
 )
 EOF
 
-  do_build macos //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build macos //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/basic_bundle.txt"
@@ -422,8 +421,7 @@ macos_application(
 )
 EOF
 
-  do_build macos //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build macos //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/Bar.bundle/baz.txt"
@@ -538,8 +536,7 @@ EOF
   create_dump_plist "//app:app.zip" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
-  do_build macos //app:dump_plist --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build macos //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist

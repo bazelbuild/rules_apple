@@ -156,8 +156,7 @@ function test_sticker_pack_extension() {
   create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/stickerpack.appex/Info.plist" \
       LSApplicationIsStickerProvider
 
-  do_build ios //app:dump_plist --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   assert_equals "YES" "$(cat "test-genfiles/app/LSApplicationIsStickerProvider")"
 
@@ -175,8 +174,7 @@ function test_sticker_pack_builds_with_stickersiconset() {
 
   create_minimal_ios_application_with_stickerpack
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # TODO(b/120618397): Reenable these assertions.
   # assert_zip_contains "test-bin/app/app.ipa" \
@@ -215,8 +213,7 @@ ios_sticker_pack_extension(
 )
 EOF
 
-  ! do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should fail build"
+  ! do_build ios //app:app || fail "Should fail build"
 
   # Check for the start of the log message
   expect_log "Message StickerPack extensions use an asset catalog named "
@@ -252,8 +249,7 @@ ios_imessage_extension(
 )
 EOF
 
-  ! do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should fail build"
+  ! do_build ios //app:app || fail "Should fail build"
 
   # Check for the start of the log message
   expect_log "Message extensions must use Messages Extensions Icon Sets "
@@ -290,8 +286,7 @@ ios_imessage_extension(
 )
 EOF
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Spot check that a few icons end up correctly there.
   assert_zip_contains "test-bin/app/app.ipa" \

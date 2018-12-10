@@ -488,8 +488,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/basic_bundle.txt"
@@ -592,8 +591,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Bar.bundle/baz.txt"
@@ -723,8 +721,7 @@ EOF
   create_dump_plist "//app:app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName TargetName
-  do_build ios //app:dump_plist --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:dump_plist || fail "Should build"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist.
