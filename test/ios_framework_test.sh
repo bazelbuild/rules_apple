@@ -542,8 +542,7 @@ void doStuff() {
 }
 EOF
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
   # Assert that the framework contains the bundled files...
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
@@ -1476,8 +1475,7 @@ void inner() {
 }
 EOF
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Assert that the inner framework was propagated to the application...
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -2157,8 +2155,7 @@ void doStuff() {
 }
 EOF
 
-  do_build ios //staticlib:gen_staticlib --define=apple.experimental.bundling=1 \
-      || fail "Should build static lib"
+  do_build ios //staticlib:gen_staticlib || fail "Should build static lib"
 
   cp test-genfiles/staticlib/staticlib.a \
       app/inner_framework_pregen

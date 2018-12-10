@@ -719,8 +719,7 @@ function test_prebuilt_static_apple_framework_import_dependency() {
   create_common_files
   create_minimal_ios_application_with_framework_import static apple_framework_import
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that it's not bundled.
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -764,8 +763,7 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
   create_common_files
   create_minimal_ios_application_with_framework_import dynamic apple_framework_import
 
-  do_build ios //app:app --define=apple.experimental.bundling=1 \
-      || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Verify that the binary, plist, and resources are included.
   assert_zip_contains "test-bin/app/app.ipa" \
