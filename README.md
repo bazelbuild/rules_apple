@@ -108,4 +108,3 @@ update your build targets.
 ## Coming soon
 
 * Support for compiling texture atlases
-* Improved rules for creating resource bundles
