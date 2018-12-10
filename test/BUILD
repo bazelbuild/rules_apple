@@ -101,6 +101,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
+        "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = 1,
     shard_count = 8,
