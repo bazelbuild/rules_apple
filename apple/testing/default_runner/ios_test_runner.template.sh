@@ -18,7 +18,8 @@ set -e
 
 basename_without_extension() {
   local full_path="$1"
-  local filename=$(basename "$full_path")
+  local filename
+  filename=$(basename "$full_path")
   echo "${filename%.*}"
 }
 
@@ -26,25 +27,25 @@ basename_without_extension() {
 runner_flags=("-v")
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
-runner_flags+=(--work_dir="${TMP_DIR}")
+runner_flags+=("--work_dir=${TMP_DIR}")
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
 TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
 unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
-runner_flags+=(--test_bundle_path="${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
+runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
 
 TEST_HOST_PATH="%(test_host_path)s"
 if [[ -n "$TEST_HOST_PATH" ]]; then
   TEST_HOST_NAME=$(basename_without_extension "${TEST_HOST_PATH}")
   TEST_HOST_TMP_DIR="${TMP_DIR}/${TEST_HOST_NAME}"
   unzip -qq -d "${TEST_HOST_TMP_DIR}" "${TEST_HOST_PATH}"
-  runner_flags+=(--app_under_test_path="${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_NAME}.app")
+  runner_flags+=("--app_under_test_path=${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_NAME}.app")
 fi
 
 if [[ -n "${TEST_UNDECLARED_OUTPUTS_DIR}" ]]; then
   OUTPUT_DIR="${PWD}/${TEST_UNDECLARED_OUTPUTS_DIR}"
-  runner_flags+=(--output_dir="$OUTPUT_DIR")
+  runner_flags+=("--output_dir=$OUTPUT_DIR")
   mkdir -p "$OUTPUT_DIR"
 fi
 
