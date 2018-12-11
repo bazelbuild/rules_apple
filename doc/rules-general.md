@@ -285,6 +285,85 @@ objc_library(
 </table>
 
 
+<a name="apple_framework_relative_headers"></a>
+## apple_framework_relative_headers
+
+```python
+apple_framework_relative_headers(name, hdrs, framework_name)
+```
+
+This rule enables framework-style imports of a set of headers.
+`apple_framework_relative_headers` targets need to be added to library
+targets through the `deps` attribute.
+
+### Examples
+
+```python
+apple_framework_relative_headers(
+    name = "FOOFrameworkHeaders",
+    hdrs = glob([
+        "Sources/*.h",
+    ]),
+    framework_name = "FOOFramework",
+)
+
+objc_library(
+    name = "foo_lib",
+    hdrs = glob([
+        "Sources/*.h",
+    ]),
+    ...,
+    deps = [
+        ":FOOFrameworkHeaders",
+    ],
+)
+```
+
+In Objective-C source you can now import the headers like so:
+
+```objc
+#import <FOOFramework/FOOFramework.h>
+```
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>hdrs</code></td>
+      <td>
+        <p><code>Headers, optional</code></p>
+        <p>The list of C, C++, Objective-C, and Objective-C++ header files published by
+          this library to be included by sources in dependent rules using framework-style
+          import statements.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>framework_name</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>The name of the folder within which all hdrs will be placed in order to support
+          framework-style import statements.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
 <a name="apple_genrule"></a>
 ## apple_genrule
 

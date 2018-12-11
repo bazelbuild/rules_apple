@@ -19,4 +19,11 @@ load(
     _apple_framework_import = "apple_framework_import",
 )
 
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_framework_relative_headers.bzl",
+    _apple_framework_relative_headers = "apple_framework_relative_headers",
+)
+
 apple_framework_import = _apple_framework_import
+
+apple_framework_relative_headers = _apple_framework_relative_headers

@@ -81,6 +81,13 @@ apple_shell_test(
     shard_count = 8,
 )
 
+apple_shell_test(
+    name = "apple_framework_relative_headers_test",
+    size = "medium",
+    src = "apple_framework_relative_headers_test.sh",
+    shard_count = 8,
+)
+
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",
