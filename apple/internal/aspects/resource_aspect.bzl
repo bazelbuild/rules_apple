@@ -15,10 +15,6 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "NewAppleResourceInfo",
     "resources",
@@ -48,10 +44,6 @@ _NATIVE_RESOURCE_ATTRS = [
 
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
-
-    # Kill switch to disable the aspect unless explicitly required.
-    if not is_experimental_bundling_enabled(ctx):
-        return []
 
     # If the target already propagates a NewAppleResourceInfo, do nothing.
     if NewAppleResourceInfo in target:

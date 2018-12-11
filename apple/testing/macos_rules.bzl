@@ -32,15 +32,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
-    experimental_macos_test_bundle_impl = "macos_test_bundle_impl",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
+    "macos_test_bundle_impl",
 )
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
@@ -50,27 +42,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "MacosXcTestBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "full_label",
 )
 
-def _macos_test_bundle_impl(ctx):
-    """Implementation for the _macos_test_bundle rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_macos_test_bundle_impl(ctx)
-
-    return apple_test_bundle_support.apple_test_bundle_impl(
-        ctx,
-        "MacOSTestArchive",
-        "MacOSTest",
-        [MacosXcTestBundleInfo()],
-    )
-
 _macos_test_bundle = rule_factory.make_bundling_rule(
-    _macos_test_bundle_impl,
+    macos_test_bundle_impl,
     additional_attrs = {
         "dedupe_unbundled_resources": attr.bool(default = True),
         # The test host that will run these tests. Optional.

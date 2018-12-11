@@ -22,12 +22,6 @@ binary creation, entitlements support, and other features--which requires a
 wrapping macro because rules cannot invoke other rules.
 """
 
-load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl", "binary_support")
-load("@build_bazel_rules_apple//apple/bundling:bundler.bzl", "bundler")
-load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-    "bundling_support",
-)
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
@@ -37,80 +31,18 @@ load(
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
-    experimental_watchos_application_impl = "watchos_application_impl",
-    experimental_watchos_extension_impl = "watchos_extension_impl",
+    "watchos_application_impl",
+    "watchos_extension_impl",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleResourceSet",
-    "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
 
-def _watchos_application_impl(ctx):
-    """Implementation of the watchos_application Skylark rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_watchos_application_impl(ctx)
-
-    app_icons = ctx.files.app_icons
-    if app_icons:
-        bundling_support.ensure_single_xcassets_type(
-            "app_icons",
-            app_icons,
-            "appiconset",
-        )
-
-    # Collect asset catalogs and storyboards, if any are present.
-    additional_resource_sets = []
-    additional_resources = depset(app_icons + ctx.files.storyboards)
-    if additional_resources:
-        additional_resource_sets.append(AppleResourceSet(
-            resources = additional_resources,
-        ))
-
-    embedded_bundles = []
-
-    ext = ctx.attr.extension
-    if ext:
-        embedded_bundles.append(bundling_support.embedded_bundle(
-            "PlugIns",
-            ext,
-            verify_has_child_plist = True,
-            parent_bundle_id_reference = [
-                "NSExtension",
-                "NSExtensionAttributes",
-                "WKAppBundleIdentifier",
-            ],
-        ))
-
-    binary_artifact = binary_support.create_stub_binary(ctx)
-
-    additional_providers, legacy_providers = bundler.run(
-        ctx,
-        "WatchosApplicationArchive",
-        "watchOS application",
-        ctx.attr.bundle_id,
-        additional_resource_sets = additional_resource_sets,
-        binary_artifact = binary_artifact,
-        embedded_bundles = embedded_bundles,
-    )
-
-    # TODO(b/36513412): Support 'bazel run'.
-    return struct(
-        providers = [
-            WatchosApplicationBundleInfo(),
-        ] + additional_providers,
-        **legacy_providers
-    )
-
 watchos_application = rule_factory.make_bundling_rule(
-    _watchos_application_impl,
+    watchos_application_impl,
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
         "extension": attr.label(
@@ -137,53 +69,8 @@ watchos_application = rule_factory.make_bundling_rule(
     use_binary_rule = False,
 )
 
-def _watchos_extension_impl(ctx):
-    """Implementation of the watchos_extension Skylark rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_watchos_extension_impl(ctx)
-
-    app_icons = ctx.files.app_icons
-    if app_icons:
-        bundling_support.ensure_single_xcassets_type(
-            "app_icons",
-            app_icons,
-            "appiconset",
-        )
-
-    # Collect asset catalogs and storyboards, if any are present.
-    additional_resource_sets = []
-    additional_resources = depset(app_icons)
-    if additional_resources:
-        additional_resource_sets.append(AppleResourceSet(
-            resources = additional_resources,
-        ))
-
-    binary_provider = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleExecutableBinary,
-    )
-    binary_artifact = binary_provider.binary
-    deps_objc_provider = binary_provider.objc
-    additional_providers, legacy_providers = bundler.run(
-        ctx,
-        "WatchosExtensionArchive",
-        "watchOS extension",
-        ctx.attr.bundle_id,
-        additional_resource_sets = additional_resource_sets,
-        binary_artifact = binary_artifact,
-        deps_objc_providers = [deps_objc_provider],
-    )
-
-    return struct(
-        providers = [
-            WatchosExtensionBundleInfo(),
-            binary_provider,
-        ] + additional_providers,
-        **legacy_providers
-    )
-
 watchos_extension = rule_factory.make_bundling_rule(
-    _watchos_extension_impl,
+    watchos_extension_impl,
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
     },
