@@ -19,6 +19,10 @@ load(
     "binary_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
+    "entitlements",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
     _ios_application = "ios_application",
     _ios_extension = "ios_extension",
@@ -40,11 +44,6 @@ load(
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
 )
-
-# Re-export rules that do not need overridden attributes.
-# TODO(b/118104491): Remove this export and move the rule definition back to this file.
-ios_imessage_application = _ios_imessage_application
-ios_sticker_pack_extension = _ios_sticker_pack_extension
 
 # Re-export apple_product_type.
 # TODO(b/117886202): Migrate usages of apple_product_type to common.bzl. We may not even need to
@@ -470,20 +469,80 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
     )
 
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
+def ios_imessage_application(name, **kwargs):
+    """Macro to preprocess entitlements for iMessage applications."""
+    entitlements_name = "{}_entitlements".format(name)
+    entitlements(
+        name = entitlements_name,
+        bundle_id = kwargs.get("bundle_id"),
+        platform_type = str(apple_common.platform_type.ios),
+        provisioning_profile = kwargs.get("provisioning_profile"),
+        testonly = kwargs.get("testonly", None),
+        validation_mode = kwargs.get("entitlements_validation"),
+    )
+
+    _ios_imessage_application(
+        name = name,
+        entitlements = ":{}".format(entitlements_name),
+        **kwargs
+    )
+
+# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
+def ios_sticker_pack_extension(name, **kwargs):
+    """Macro to preprocess entitlements for Sticker Pack extensions."""
+    entitlements_name = "{}_entitlements".format(name)
+    entitlements(
+        name = entitlements_name,
+        bundle_id = kwargs.get("bundle_id"),
+        platform_type = str(apple_common.platform_type.ios),
+        provisioning_profile = kwargs.get("provisioning_profile"),
+        testonly = kwargs.get("testonly", None),
+        validation_mode = kwargs.get("entitlements_validation"),
+    )
+
+    _ios_sticker_pack_extension(
+        name = name,
+        entitlements = ":{}".format(entitlements_name),
+        **kwargs
+    )
+
+# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_imessage_extension(name, **kwargs):
-    """Macro to override the linkopts attribute to add required flags for iMessage extensions."""
+    """Macro to override the linkopts and preprocess entitlements for iMessage extensions."""
     frameworks = kwargs.pop("frameworks", [])
 
+    # TODO(b/120861201): The linkopts and entitlements macro additions here only exist because the
+    # Starlark linking API does not accept extra linkopts and link inputs. With those, it will be
+    # possible to merge these workarounds into the rule implementations.
     linkopts = kwargs.pop("linkopts", [])
     linkopts.extend([
         "-application_extension",
         "-e",
         "_NSExtensionMain",
     ])
+
+    original_entitlements = kwargs.pop("entitlements", None)
+
+    entitlements_name = "{}_entitlements".format(name)
+    entitlements(
+        name = entitlements_name,
+        bundle_id = kwargs.get("bundle_id"),
+        entitlements = original_entitlements,
+        platform_type = str(apple_common.platform_type.ios),
+        provisioning_profile = kwargs.get("provisioning_profile"),
+        testonly = kwargs.get("testonly", None),
+        validation_mode = kwargs.get("entitlements_validation"),
+    )
+
+    deps = kwargs.pop("deps", [])
+    deps.append(":{}".format(entitlements_name))
+
     return _ios_imessage_extension(
         name = name,
         dylibs = frameworks,
+        entitlements = ":{}".format(entitlements_name),
         frameworks = frameworks,
         linkopts = linkopts,
+        deps = deps,
         **kwargs
     )

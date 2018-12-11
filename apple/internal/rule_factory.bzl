@@ -15,6 +15,10 @@
 """Helpers for defining Apple bundling rules uniformly."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
+    "AppleEntitlementsInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -292,10 +296,10 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
             ),
         })
 
-    if rule_descriptor.requires_deps:
+    if not rule_descriptor.skip_signing:
         attrs.append({
             "entitlements": attr.label(
-                allow_single_file = [".entitlements"],
+                providers = [[], [AppleEntitlementsInfo]],
                 doc = """
 The entitlements file required for device builds of this target. If absent, the default entitlements
 from the provisioning profile will be used.
