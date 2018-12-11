@@ -20,7 +20,10 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top"><code>@build_bazel_rules_apple//apple:ios.bzl</code></td>
       <td valign="top">
         <code><a href="rules-ios.md#ios_application">ios_application</a></code><br/>
+        <code><a href="rules-ios.md#ios_imessage_application">ios_imessage_application</a></code><br/>
         <code><a href="rules-ios.md#ios_extension">ios_extension</a></code><br/>
+        <code><a href="rules-ios.md#ios_imessage_extension">ios_imessage_extension</a></code><br/>
+        <code><a href="rules-ios.md#ios_sticker_pack_extension">ios_sticker_pack_extension</a></code><br/>
         <code><a href="rules-ios.md#ios_framework">ios_framework</a></code><br/>
         <code><a href="rules-ios.md#ios_static_framework">ios_static_framework</a></code><br/>
       </td>
