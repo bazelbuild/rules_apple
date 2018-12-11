@@ -31,6 +31,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
@@ -300,6 +304,19 @@ The following variables are substituted in the entitlements file: `$(CFBundleIde
 bundle ID of the application and `$(AppIdentifierPrefix)` with the value of the
 `ApplicationIdentifierPrefix` key from the target's provisioning profile.
 """,
+            ),
+            "entitlements_validation": attr.string(
+                default = entitlements_validation_mode.loose,
+                doc = """
+An `entitlements_validation_mode` to control the validation of the requested entitlements against
+the provisioning profile to ensure they are supported.
+""",
+                values = [
+                    entitlements_validation_mode.error,
+                    entitlements_validation_mode.warn,
+                    entitlements_validation_mode.loose,
+                    entitlements_validation_mode.skip,
+                ],
             ),
         })
 
