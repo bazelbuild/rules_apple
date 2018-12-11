@@ -15,46 +15,45 @@
 """Implementation of apple_framework_relative_headers."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl", 
-    "file_actions"
+    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
+    "file_actions",
 )
 
 def _apple_framework_relative_headers_impl(ctx):
-  """Implementation for apple_framework_relative_headers rule."""
-  output_dir = ctx.attr.framework_name + "_apple_framework_relative_headers"
+    """Implementation for apple_framework_relative_headers rule."""
+    output_dir = ctx.attr.framework_name + "_apple_framework_relative_headers"
 
-  outputs = []
-  for f in ctx.files.hdrs:
-    framework_path =  "/".join([output_dir, ctx.attr.framework_name, f.basename])
-    framework_header_file = ctx.actions.declare_file(framework_path)
-    file_actions.symlink(ctx, f, framework_header_file)
-    outputs.append(framework_header_file)
+    outputs = []
+    for f in ctx.files.hdrs:
+        framework_path = "/".join([output_dir, ctx.attr.framework_name, f.basename])
+        framework_header_file = ctx.actions.declare_file(framework_path)
+        file_actions.symlink(ctx, f, framework_header_file)
+        outputs.append(framework_header_file)
 
-  include_dir = "/".join([
-      ctx.configuration.bin_dir.path,
-      ctx.label.workspace_root,
-      ctx.label.package,
-      output_dir
-  ])
-  return [
-      apple_common.new_objc_provider(
-          header=depset(outputs),
-          include=depset([include_dir]),
-      ),
-      DefaultInfo(files=depset(outputs)),
-  ]
-
+    include_dir = "/".join([
+        ctx.configuration.bin_dir.path,
+        ctx.label.workspace_root,
+        ctx.label.package,
+        output_dir,
+    ])
+    return [
+        apple_common.new_objc_provider(
+            header = depset(outputs),
+            include = depset([include_dir]),
+        ),
+        DefaultInfo(files = depset(outputs)),
+    ]
 
 apple_framework_relative_headers = rule(
     _apple_framework_relative_headers_impl,
     attrs = {
-        "hdrs": attr.label_list(allow_files=[".h"], allow_empty=False),
-        "framework_name": attr.string(mandatory=True),
+        "hdrs": attr.label_list(allow_files = [".h"], allow_empty = False),
+        "framework_name": attr.string(mandatory = True),
         "_realpath": attr.label(
-            cfg="host",
-            allow_files=True,
-            single_file=True,
-            default=Label("@bazel_tools//tools/objc:realpath"),
+            cfg = "host",
+            allow_files = True,
+            single_file = True,
+            default = Label("@bazel_tools//tools/objc:realpath"),
         ),
     },
 )
