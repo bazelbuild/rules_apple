@@ -89,10 +89,6 @@ for their platform through either `simple_path_formats` or `macos_path_formats`.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:apple_bundling_aspect.bzl",
-    "apple_bundling_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
     "AppleEntitlementsInfo",
 )
@@ -102,7 +98,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    new_apple_resource_aspect = "apple_resource_aspect",
+    "apple_resource_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple:common.bzl",
@@ -466,9 +462,8 @@ def _make_bundling_rule(
             # dependency (the binary) should be set.
             "deps": attr.label_list(
                 aspects = [
-                    apple_bundling_aspect,
                     swift_usage_aspect,
-                    new_apple_resource_aspect,
+                    apple_resource_aspect,
                     framework_import_aspect,
                 ],
                 mandatory = True,
@@ -479,9 +474,8 @@ def _make_bundling_rule(
         binary_dep_attrs = {
             "deps": attr.label_list(
                 aspects = [
-                    apple_bundling_aspect,
                     swift_usage_aspect,
-                    new_apple_resource_aspect,
+                    apple_resource_aspect,
                     framework_import_aspect,
                 ],
                 cfg = deps_cfg,

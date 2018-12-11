@@ -23,14 +23,6 @@ wrapping macro because rules cannot invoke other rules.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:bundler.bzl",
-    "bundler",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -55,31 +47,20 @@ load(
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_bundling_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
-    experimental_macos_application_impl = "macos_application_impl",
-    experimental_macos_bundle_impl = "macos_bundle_impl",
-    experimental_macos_extension_impl = "macos_extension_impl",
+    "macos_application_impl",
+    "macos_bundle_impl",
+    "macos_extension_impl",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleResourceSet",
-    "MacosApplicationBundleInfo",
-    "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
     "path_utils",
-)
-load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -151,71 +132,8 @@ def _additional_contents_embedded_bundles(ctx, file_map):
 
     return embedded_bundles
 
-def _macos_application_impl(ctx):
-    """Implementation of the macos_application rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_macos_application_impl(ctx)
-
-    app_icons = ctx.files.app_icons
-    if app_icons:
-        bundling_support.ensure_single_xcassets_type(
-            "app_icons",
-            app_icons,
-            "appiconset",
-        )
-
-    additional_resource_sets = []
-    additional_resources = depset(app_icons)
-    if additional_resources:
-        additional_resource_sets.append(AppleResourceSet(
-            resources = additional_resources,
-        ))
-
-    # TODO(b/36557429): Add support for macOS frameworks.
-    extensions = [
-        bundling_support.embedded_bundle(
-            "PlugIns",
-            extension,
-            verify_has_child_plist = True,
-        )
-        for extension in ctx.attr.extensions
-    ]
-
-    binary_provider = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleExecutableBinary,
-    )
-    binary_artifact = binary_provider.binary
-    deps_objc_provider = binary_provider.objc
-    additional_providers, legacy_providers = bundler.run(
-        ctx,
-        "MacosApplicationArchive",
-        "macOS application",
-        ctx.attr.bundle_id,
-        binary_artifact = binary_artifact,
-        additional_bundlable_files = _additional_contents_bundlable_files(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        additional_resource_sets = additional_resource_sets,
-        embedded_bundles = extensions + _additional_contents_embedded_bundles(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        deps_objc_providers = [deps_objc_provider],
-    )
-
-    # TODO(b/36556789): Add support for "bazel run".
-    return struct(
-        providers = [
-            MacosApplicationBundleInfo(),
-            binary_provider,
-        ] + additional_providers,
-        **legacy_providers
-    )
-
 macos_application = rule_factory.make_bundling_rule(
-    _macos_application_impl,
+    macos_application_impl,
     additional_attrs = dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
@@ -247,73 +165,8 @@ macos_application = rule_factory.make_bundling_rule(
     ),
 )
 
-def _macos_bundle_impl(ctx):
-    """Implementation of the macos_bundle rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_macos_bundle_impl(ctx)
-
-    app_icons = ctx.files.app_icons
-    if app_icons:
-        bundling_support.ensure_single_xcassets_type(
-            "app_icons",
-            app_icons,
-            "appiconset",
-        )
-
-    additional_resource_sets = []
-    additional_resources = depset(app_icons)
-    if additional_resources:
-        additional_resource_sets.append(AppleResourceSet(
-            resources = additional_resources,
-        ))
-
-    # TODO(b/36557429): Add support for macOS frameworks.
-
-    binary_provider_type = apple_common.AppleLoadableBundleBinary
-
-    # Kernel extensions on macOS have a mach header file type of MH_KEXT_BUNDLE.
-    # The -kext linker flag is used to produce these binaries.
-    # No userspace technologies can be linked into a KEXT.
-    # Using an "executable" to get around the extra userspace linker flags
-    # that are added to a "loadable_bundle".
-    if ctx.attr.product_type == apple_product_type.kernel_extension:
-        binary_provider_type = apple_common.AppleExecutableBinary
-
-    binary_provider = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        binary_provider_type,
-    )
-    binary_artifact = binary_provider.binary
-    deps_objc_providers = providers.find_all(ctx.attr.deps, apple_common.Objc)
-    additional_providers, legacy_providers = bundler.run(
-        ctx,
-        "MacosBundleArchive",
-        "macOS executable bundle",
-        ctx.attr.bundle_id,
-        binary_artifact = binary_artifact,
-        additional_bundlable_files = _additional_contents_bundlable_files(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        additional_resource_sets = additional_resource_sets,
-        embedded_bundles = _additional_contents_embedded_bundles(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        deps_objc_providers = deps_objc_providers,
-    )
-
-    # TODO(b/36556789): Add support for "bazel run".
-    return struct(
-        providers = [
-            MacosBundleBundleInfo(),
-            binary_provider,
-        ] + additional_providers,
-        **legacy_providers
-    )
-
 macos_bundle = rule_factory.make_bundling_rule(
-    _macos_bundle_impl,
+    macos_bundle_impl,
     additional_attrs = dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
@@ -541,60 +394,8 @@ macos_dylib = rule(
     fragments = ["apple", "objc"],
 )
 
-def _macos_extension_impl(ctx):
-    """Implementation of the macos_extension rule."""
-    if is_experimental_bundling_enabled(ctx):
-        return experimental_macos_extension_impl(ctx)
-
-    app_icons = ctx.files.app_icons
-    if app_icons:
-        bundling_support.ensure_single_xcassets_type(
-            "app_icons",
-            app_icons,
-            "appiconset",
-        )
-
-    additional_resource_sets = []
-    additional_resources = depset(app_icons)
-    if additional_resources:
-        additional_resource_sets.append(AppleResourceSet(
-            resources = additional_resources,
-        ))
-
-    binary_provider = binary_support.get_binary_provider(
-        ctx.attr.deps,
-        apple_common.AppleExecutableBinary,
-    )
-    binary_artifact = binary_provider.binary
-    deps_objc_provider = binary_provider.objc
-    additional_providers, legacy_providers = bundler.run(
-        ctx,
-        "MacosExtensionArchive",
-        "macOS extension",
-        ctx.attr.bundle_id,
-        binary_artifact = binary_artifact,
-        additional_bundlable_files = _additional_contents_bundlable_files(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        additional_resource_sets = additional_resource_sets,
-        embedded_bundles = _additional_contents_embedded_bundles(
-            ctx,
-            ctx.attr.additional_contents,
-        ),
-        deps_objc_providers = [deps_objc_provider],
-    )
-
-    return struct(
-        providers = [
-            MacosExtensionBundleInfo(),
-            binary_provider,
-        ] + additional_providers,
-        **legacy_providers
-    )
-
 macos_extension = rule_factory.make_bundling_rule(
-    _macos_extension_impl,
+    macos_extension_impl,
     additional_attrs = dicts.add(
         _COMMON_MACOS_BUNDLE_ATTRS,
         {
