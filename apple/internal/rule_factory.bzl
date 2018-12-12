@@ -67,6 +67,13 @@ _COMMON_PRIVATE_TOOL_ATTRS = {
         executable = True,
         default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
     ),
+    "_dsym_info_plist_template": attr.label(
+        cfg = "host",
+        allow_single_file = True,
+        default = Label(
+            "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+        ),
+    ),
     "_environment_plist": attr.label(
         cfg = "host",
         executable = True,
