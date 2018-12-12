@@ -493,7 +493,7 @@ objc_library(
         "Framework.m",
     ],
     data = [
-        "@build_bazel_rules_apple//test/testdata/resources:new_basic_bundle",
+        "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
         "@build_bazel_rules_apple//test/testdata/resources:new_simple_bundle_library",
     ],
     alwayslink = 1,

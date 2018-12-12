@@ -421,15 +421,16 @@ EOF
       "$(cat "test-genfiles/app/UILaunchStoryboardName")"
 }
 
-# Tests that objc_bundle files are bundled correctly with the application.
-function test_objc_bundle() {
+# Tests that apple_bundle_import files are bundled correctly with the
+# application.
+function test_apple_bundle_import() {
   create_common_files
 
   cat >> app/BUILD <<EOF
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    bundles = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle"
     ],
 )
@@ -461,93 +462,6 @@ EOF
   # didn't flatten it).
   assert_strings_is_binary "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
-}
-
-# Tests that apple_bundle_import files are bundled correctly with the
-# application.
-function test_apple_bundle_import() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-objc_library(
-    name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    data = [
-        "@build_bazel_rules_apple//test/testdata/resources:new_basic_bundle"
-    ],
-)
-
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib", ":resources"],
-)
-EOF
-
-  do_build ios //app:app || fail "Should build"
-
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/basic_bundle.txt"
-
-  # Verify strings and plists are in binary format.
-  assert_strings_is_binary "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/should_be_binary.strings"
-
-  assert_plist_is_binary "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/should_be_binary.plist"
-
-  # Verify that a nested file is still nested (the resource processing
-  # didn't flatten it).
-  assert_strings_is_binary "test-bin/app/app.ipa" \
-      "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
-}
-
-# Tests that objc_bundle files are bundled correctly with the application if
-# the files have an owner-relative path that begins with something other than
-# the bundle name (for example, "foo/Bar.bundle/..." instead of
-# "Bar.bundle/..."). The path inside the bundle should start from the .bundle
-# segment, not earlier.
-function test_objc_bundle_with_extra_prefix_directories() {
-  create_common_files
-
-  mkdir -p app/foo/Bar.bundle
-  cat >> app/foo/Bar.bundle/baz.txt <<EOF
-dummy content
-EOF
-
-  cat >> app/BUILD <<EOF
-objc_bundle(
-    name = "bundle",
-    bundle_imports = glob(["foo/Bar.bundle/**/*"]),
-)
-
-objc_library(
-    name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    bundles = [":bundle"],
-)
-
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib", ":resources"],
-)
-EOF
-
-  do_build ios //app:app || fail "Should build"
-
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Bar.bundle/baz.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/foo/Bar.bundle/baz.txt"
 }
 
 # Tests that apple_bundle_import files are bundled correctly with the
