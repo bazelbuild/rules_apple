@@ -120,27 +120,11 @@ mkdir "${APP_DIR}"
 
 KillAllDevices
 
-# Get the xcode version number, like: 6.4.
-# The expected output of "xcodebuild -version" is like:
-# Xcode 6.4
-# Build version 6E35b
-#
-# So the expected output of "xcodebuild -version|grep \"Xcode\"" is like:
-# Xcode 6.4
-#
-# awk will pull out the version number, e.g. "6.4".
-readonly XCODE_VERSION=$(xcodebuild -version | grep "Xcode" | awk '{ print $2 }')
-if [[ "${XCODE_VERSION}" == 6.* ]]; then
-  simulator_name="iOS Simulator"
-else
-  simulator_name="Simulator"
-fi
-
 # Get the developer path, like: /Applications/Xcode.app/Contents/Developer
 readonly DEVELOPER_PATH=$(xcode-select -p)
 
 # Launch the simulator.
-"${DEVELOPER_PATH}/Applications/${simulator_name}.app/Contents/MacOS/${simulator_name}" -CurrentDeviceUDID "${TEST_DEVICE_ID}" &
+"${DEVELOPER_PATH}/Applications/Simulator.app/Contents/MacOS/Simulator" -CurrentDeviceUDID "${TEST_DEVICE_ID}" &
 wait_for_sim_to_boot "${TEST_DEVICE_ID}"
 
 # Pass environment variables prefixed with "IOS_" to the simulator, replace the
