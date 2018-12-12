@@ -40,13 +40,6 @@ def _apple_bundle_import_impl(ctx):
         attr = "bundle_imports",
     )
 
-    if len(bundle_groups) != 1:
-        fail(
-            "There has to be exactly 1 imported bundle. Found:\n{}".format(
-                "\n".join(bundle_groups.keys()),
-            ),
-        )
-
     parent_dir_param = partial.make(
         resources.bundle_relative_parent_dir,
         extension = "bundle",
@@ -56,6 +49,9 @@ def _apple_bundle_import_impl(ctx):
         parent_dir_param = parent_dir_param,
     )
     return [
+        # TODO(b/120904073): Remove the objc provider. It's here only because objc_bundle provided
+        # it and there are use cases that require it.
+        apple_common.new_objc_provider(),
         AppleResourceBundleInfo(),
         resource_provider,
     ]
@@ -73,9 +69,9 @@ The list of files under a .bundle directory to be propagated to the top-level bu
         ),
     },
     doc = """
-This rule encapsulates an already-built bundle. It is defined by a list of files in exactly one
-.bundle directory. apple_bundle_import targets need to be added to library targets through the
-data attribute, or to other resource targets (i.e. apple_resource_bundle) through the resources
+This rule encapsulates an already-built bundle. It is defined by a list of files in a .bundle
+directory. apple_bundle_import targets need to be added to library targets through the data
+attribute, or to other resource targets (i.e. apple_resource_bundle) through the resources
 attribute.
 """,
 )

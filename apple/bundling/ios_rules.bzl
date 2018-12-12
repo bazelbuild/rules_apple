@@ -48,13 +48,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleResourceBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
 )
 
 ios_application = rule_factory.make_bundling_rule(
@@ -76,7 +73,7 @@ ios_application = rule_factory.make_bundling_rule(
         ),
         "settings_bundle": attr.label(
             aspects = [new_apple_resource_aspect],
-            providers = [["objc"]],
+            providers = [["objc"], [AppleResourceBundleInfo]],
         ),
         "watch_application": attr.label(
             providers = [[AppleBundleInfo, WatchosApplicationBundleInfo]],
