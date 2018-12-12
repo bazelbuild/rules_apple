@@ -85,14 +85,8 @@ filegroup(
     srcs = glob(["assets2_ios.xcassets/**"]),
 )
 
-objc_bundle(
-    name = "basic_bundle",
-    bundle_imports = [":basic_bundle_files"],
-)
-
-# This target should replace the objc_bundle target above once we migrate away from it.
 apple_bundle_import(
-    name = "new_basic_bundle",
+    name = "basic_bundle",
     bundle_imports = [":basic_bundle_files"],
 )
 
@@ -167,13 +161,13 @@ apple_resource_bundle(
         "storyboard_ios.storyboard",
         "view_ios.xib",
         ":assets_ios",
+        ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_storyboards_ios",
         ":localized_strings",
         ":localized_xibs_ios",
         ":mapping_model",
-        ":new_basic_bundle",
         ":unversioned_datamodel",
         ":versioned_datamodel",
     ],
@@ -230,7 +224,7 @@ apple_resource_bundle(
     ],
     resources = [
         # TODO: asset_catalogs
-        ":new_basic_bundle",
+        ":basic_bundle",
         ":mapping_model",
         #    ":unversioned_datamodel",
         #    ":versioned_datamodel",
@@ -294,10 +288,10 @@ apple_resource_bundle(
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
         "sample.png",
+        ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
-        ":new_basic_bundle",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -340,13 +334,8 @@ filegroup(
     srcs = glob(["mapping_model.xcmappingmodel/**"]),
 )
 
-objc_bundle(
-    name = "settings_bundle_ios",
-    bundle_imports = [":settings_bundle_ios_files"],
-)
-
 apple_bundle_import(
-    name = "new_settings_bundle_ios",
+    name = "settings_bundle_ios",
     bundle_imports = [":settings_bundle_ios_files"],
 )
 
