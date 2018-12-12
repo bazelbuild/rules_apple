@@ -18,10 +18,6 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 
 AppleFrameworkImportInfo = provider(
     doc = "Provider that propagates information about framework import targets.",
@@ -56,25 +52,6 @@ def filter_framework_imports_for_bundling(framework_imports):
 
     return filtered_imports
 
-def _validate_single_framework(framework_paths):
-    """Validates that there is only 1 framework being imported.
-
-    This method validates that only 1 framework is imported by this target, even if it is composed
-    by multiple .framework bundles. In such a case, all of them must have the same name.
-
-    Args:
-        framework_paths: List of .framework containers being imported by the target.
-    """
-    framework_names = {}
-    for framework_path in framework_paths:
-        framework_names[paths.basename(framework_path)] = None
-    if len(framework_names) > 1:
-        fail(
-            "There has to be exactly 1 imported framework. Found:\n{}".format(
-                "\n".join(framework_names),
-            ),
-        )
-
 def _apple_framework_import_impl(ctx):
     """Implementation for the apple_framework_import rule."""
     framework_imports = ctx.files.framework_imports
@@ -84,7 +61,7 @@ def _apple_framework_import_impl(ctx):
         attr = "framework_imports",
     )
 
-    _validate_single_framework(framework_groups.keys())
+    # TODO(b/120920467): Add validation to ensure only a single framework is being imported.
 
     providers = []
 
@@ -202,8 +179,8 @@ linked into that target.
         ),
     },
     doc = """
-This rule encapsulates an already-built framework. It is defined by a list of files in exactly one
-.framework directory. apple_framework_import targets need to be added to library targets through the
-`deps` attribute.
+This rule encapsulates an already-built framework. It is defined by a list of files in a .framework
+directory. apple_framework_import targets need to be added to library targets through the `deps`
+attribute.
 """,
 )
