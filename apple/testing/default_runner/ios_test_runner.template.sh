@@ -77,14 +77,14 @@ if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
   LAUNCH_OPTIONS_JSON_STR="{${LAUNCH_OPTIONS_JSON_STR}}"
   LAUNCH_OPTIONS_JSON_PATH="${TMP_DIR}/launch_options.json"
   echo "${LAUNCH_OPTIONS_JSON_STR}" > "${LAUNCH_OPTIONS_JSON_PATH}"
-  runner_flags+=(--launch_options_json_path="${LAUNCH_OPTIONS_JSON_PATH}")
+  runner_flags+=("--launch_options_json_path=${LAUNCH_OPTIONS_JSON_PATH}")
 fi
 
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   simulator_test
-  --device_type="%(device_type)s"
-  --os_version="%(os_version)s"
+  "--device_type=%(device_type)s"
+  "--os_version=%(os_version)s"
   "$@")
 "${cmd[@]}" 2>&1
 status=$?
