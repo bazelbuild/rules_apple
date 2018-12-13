@@ -225,7 +225,7 @@ contain no symbols referenced by the binary. This is useful if your code isn't
 explicitly called by code in the binary; for example, if you rely on runtime
 checks for protocol conformances added in extensions in the library but do not
 directly reference any other symbols in the object file that adds that
-conformance. Only applicable for static frameworks (i.e. `is_dynamic = False`).
+conformance.
 """,
         ),
         "sdk_dylibs": attr.string_list(

@@ -97,7 +97,6 @@ objc_library(
 apple_dynamic_framework_import(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
-    is_dynamic = True,
 )
 EOF
 

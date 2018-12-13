@@ -723,8 +723,8 @@ function test_prebuilt_static_framework_dependency() {
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that a prebuilt static framework (i.e., apple_dynamic_framework_import with
-# is_dynamic set to False) is not bundled with the application.
+# Tests that a prebuilt static framework (i.e., apple_static_framework_import)
+# is not bundled with the application.
 function test_prebuilt_static_apple_framework_import_dependency() {
   create_common_files
   create_minimal_ios_application_with_framework_import static apple_static_framework_import
@@ -767,8 +767,8 @@ function test_prebuilt_dynamic_framework_dependency() {
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import with
-# is_dynamic set to True) is bundled properly with the application.
+# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
+# is bundled properly with the application.
 function test_prebuilt_dynamic_apple_framework_import_dependency() {
   create_common_files
   create_minimal_ios_application_with_framework_import dynamic apple_dynamic_framework_import
