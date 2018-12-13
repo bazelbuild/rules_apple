@@ -23,10 +23,10 @@ def _get_template_substitutions(ctx):
     """Returns the template substitutions for this runner."""
     test_env = ctx.configuration.test_env
     subs = {
+        "device_type": ctx.attr.device_type,
         "os_version": ctx.attr.os_version,
         "test_env": ",".join([k + "=" + v for (k, v) in test_env.items()]),
         "testrunner_binary": ctx.executable._testrunner.short_path,
-        "device_type": ctx.attr.device_type,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -62,30 +62,6 @@ def _ios_test_runner_impl(ctx):
 ios_test_runner = rule(
     _ios_test_runner_impl,
     attrs = {
-        "_testrunner": attr.label(
-            default = Label(
-                "@xctestrunner//file",
-            ),
-            allow_single_file = True,
-            executable = True,
-            cfg = "host",
-            doc = """
-It is the rule that needs to provide the AppleTestRunner provider. This
-dependency is the test runner binary.
-""",
-        ),
-        "_test_template": attr.label(
-            default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
-            ),
-            allow_single_file = True,
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                fragment = "apple",
-                name = "xcode_config_label",
-            ),
-        ),
         "device_type": attr.string(
             default = "",
             doc = """
@@ -109,6 +85,30 @@ The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
 """,
+        ),
+        "_test_template": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
+            ),
+            allow_single_file = True,
+        ),
+        "_testrunner": attr.label(
+            default = Label(
+                "@xctestrunner//file",
+            ),
+            allow_single_file = True,
+            executable = True,
+            cfg = "host",
+            doc = """
+It is the rule that needs to provide the AppleTestRunner provider. This
+dependency is the test runner binary.
+""",
+        ),
+        "_xcode_config": attr.label(
+            default = configuration_field(
+                fragment = "apple",
+                name = "xcode_config_label",
+            ),
         ),
     },
     outputs = {

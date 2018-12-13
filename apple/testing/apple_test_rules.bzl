@@ -51,13 +51,6 @@ considered to be all of which belong to the first-level dependencies on the test
 target.
 """,
     fields = {
-        "sources": """
-`depset` of `File`s containing sources from the test's immediate deps.
-""",
-        "non_arc_sources": """
-`depset` of `File`s containing non-ARC sources from the test's immediate
-deps.
-""",
         "includes": """
 `depset` of `string`s representing transitive include paths which are needed by
 IDEs to be used for indexing the test sources.
@@ -65,6 +58,18 @@ IDEs to be used for indexing the test sources.
         "module_maps": """
 `depset` of `File`s representing module maps which are needed by IDEs to be used
 for indexing the test sources.
+""",
+        "module_name": """
+`string` representing the module name used by the test's sources. This is only
+set if the test only contains a single top-level Swift dependency. This may be
+used by an IDE to identify the Swift module (if any) used by the test's sources.
+""",
+        "non_arc_sources": """
+`depset` of `File`s containing non-ARC sources from the test's immediate
+deps.
+""",
+        "sources": """
+`depset` of `File`s containing sources from the test's immediate deps.
 """,
         "swift_modules": """
 `depset` of `File`s representing transitive swift modules which are needed by
@@ -77,11 +82,6 @@ by IDEs to differentiate a test target's transitive module maps from its direct
 module maps, as including the direct module maps may break indexing for the
 source files of the immediate deps.
 """,
-        "module_name": """
-`string` representing the module name used by the test's sources. This is only
-set if the test only contains a single top-level Swift dependency. This may be
-used by an IDE to identify the Swift module (if any) used by the test's sources.
-""",
     },
 )
 
@@ -93,6 +93,13 @@ In addition to the fields, all the runfiles that the runner target declares will
 added to the test rules runfiles.
 """,
     fields = {
+        "execution_requirements": """
+Dictionary that represents the specific hardware
+requirements for this test.
+""",
+        "test_environment": """
+Dictionary with the environment variables required for the test.
+""",
         "test_runner_template": """
 Template file that contains the specific mechanism with
 which the tests will be run. The apple_ui_test and apple_unit_test rules
@@ -100,13 +107,6 @@ will substitute the following values:
     * %(test_host_path)s:   Path to the app being tested.
     * %(test_bundle_path)s: Path to the test bundle that contains the tests.
     * %(test_type)s:        The test type, whether it is unit or UI.
-""",
-        "execution_requirements": """
-Dictionary that represents the specific hardware
-requirements for this test.
-""",
-        "test_environment": """
-Dictionary with the environment variables required for the test.
 """,
     },
 )
@@ -310,6 +310,11 @@ def _apple_test_common_attributes():
             default = [],
             doc = "Files to be made available to the test during its execution.",
         ),
+        "env": attr.string_dict(
+            doc = """
+Dictionary of environment variables that should be set during the test execution.
+""",
+        ),
         "platform_type": attr.string(
             doc = """
 The Apple platform that this test is targeting. Required. Possible values are
@@ -333,11 +338,6 @@ The xctest bundle that contains the test code and resources. Required.
 """,
             mandatory = True,
             providers = [AppleBundleInfo],
-        ),
-        "env": attr.string_dict(
-            doc = """
-Dictionary of environment variables that should be set during the test execution.
-""",
         ),
         # gcov and mcov are binary files required to calculate test coverage.
         "_gcov": attr.label(

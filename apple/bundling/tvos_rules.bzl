@@ -46,46 +46,6 @@ tvos_application = rule_factory.make_bundling_rule(
     tvos_application_impl,
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
-        "extensions": attr.label_list(
-            providers = [[
-                AppleBundleInfo,
-                TvosExtensionBundleInfo,
-            ]],
-        ),
-        "launch_images": attr.label_list(allow_files = True),
-        "settings_bundle": attr.label(providers = [["objc"]]),
-        "platform_type": attr.string(
-            default = "tvos",
-            doc = """
-This attribute is public as an implementation detail while we migrate the
-architecture of the rules. Do not change its value.
-""",
-        ),
-        "_child_configuration_dummy": attr.label(
-            cfg = apple_common.multi_arch_split,
-            default = configuration_field(
-                name = "cc_toolchain",
-                fragment = "cpp",
-            ),
-        ),
-        "_cc_toolchain": attr.label(
-            default = configuration_field(
-                name = "cc_toolchain",
-                fragment = "cpp",
-            ),
-        ),
-        "_googlemac_proto_compiler": attr.label(
-            cfg = "host",
-            default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
-        ),
-        "_googlemac_proto_compiler_support": attr.label(
-            cfg = "host",
-            default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
-        ),
-        "_protobuf_well_known_types": attr.label(
-            cfg = "host",
-            default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
-        ),
         "binary_type": attr.string(
             default = "executable",
             doc = """
@@ -108,7 +68,47 @@ This attribute is public as an implementation detail while we migrate the
 architecture of the rules. Do not change its value.
 """,
         ),
+        "extensions": attr.label_list(
+            providers = [[
+                AppleBundleInfo,
+                TvosExtensionBundleInfo,
+            ]],
+        ),
+        "launch_images": attr.label_list(allow_files = True),
         "linkopts": attr.string_list(),
+        "platform_type": attr.string(
+            default = "tvos",
+            doc = """
+This attribute is public as an implementation detail while we migrate the
+architecture of the rules. Do not change its value.
+""",
+        ),
+        "settings_bundle": attr.label(providers = [["objc"]]),
+        "_cc_toolchain": attr.label(
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
+        ),
+        "_child_configuration_dummy": attr.label(
+            cfg = apple_common.multi_arch_split,
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
+        ),
+        "_googlemac_proto_compiler": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
+        ),
+        "_googlemac_proto_compiler_support": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
+        ),
+        "_protobuf_well_known_types": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
+        ),
     },
     archive_extension = ".ipa",
     bundles_frameworks = True,

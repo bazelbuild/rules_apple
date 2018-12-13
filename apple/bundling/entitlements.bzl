@@ -148,9 +148,9 @@ def _extract_signing_info(ctx):
         profile_metadata = _new_entitlements_artifact(ctx, ".profile_metadata")
         outputs = [profile_metadata]
         control = {
+            "profile_metadata": profile_metadata.path,
             "provisioning_profile": provisioning_profile.path,
             "target": str(ctx.label),
-            "profile_metadata": profile_metadata.path,
         }
         if not entitlements:
             # No entitlements, extract the default one from the profile.
@@ -304,6 +304,12 @@ entitlements = rule(
         "entitlements": attr.label(
             allow_single_file = [".entitlements", ".plist"],
         ),
+        # Used to pass the platform type through from the calling rule.
+        "platform_type": attr.string(),
+        "provisioning_profile": attr.label(
+            allow_single_file = [".mobileprovision", ".provisionprofile"],
+        ),
+        "validation_mode": attr.string(),
         "_plisttool": attr.label(
             cfg = "host",
             default = Label(
@@ -318,12 +324,6 @@ entitlements = rule(
             ),
             executable = True,
         ),
-        # Used to pass the platform type through from the calling rule.
-        "platform_type": attr.string(),
-        "provisioning_profile": attr.label(
-            allow_single_file = [".mobileprovision", ".provisionprofile"],
-        ),
-        "validation_mode": attr.string(),
         # This needs to be an attribute on the rule for platform_support
         # to access it.
         "_xcode_config": attr.label(default = configuration_field(

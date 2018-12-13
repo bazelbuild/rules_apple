@@ -45,15 +45,15 @@ the binary directly at analysis time; for example, for code coverage.
 """,
         # TODO(b/118772102): Remove this field.
         "bundle_dir": "`File`. The directory that represents the bundle.",
+        "bundle_extension": """
+`string`. The bundle extension.
+""",
         "bundle_id": """
 `string`. The bundle identifier (i.e., `CFBundleIdentifier` in
 `Info.plist`) of the bundle.
 """,
         "bundle_name": """
 `string`. The name of the bundle, without the extension.
-""",
-        "bundle_extension": """
-`string`. The bundle extension.
 """,
         "entitlements": "`File`. Entitlements file used to codesign, if any.",
         "extension_safe": """
@@ -148,15 +148,15 @@ can provide attributes like `bundles`, `resources`, and `structured_resources`
 that allow users to associate resources with the code that uses them.
 """,
     fields = {
-        "resource_sets": """
-`list` of `struct`s. Each `struct` is one defined by
-`AppleResourceSet` and the full list describes the transitive resources
-propagated by this rule.
-""",
         "owners": """
 `dict` of resource short paths to a `depset` of target labels in string form.
 Used to account for multiple resource references to decide whether or not to deduplicate resources
 between frameworks and application bundles.
+""",
+        "resource_sets": """
+`list` of `struct`s. Each `struct` is one defined by
+`AppleResourceSet` and the full list describes the transitive resources
+propagated by this rule.
 """,
     },
 )

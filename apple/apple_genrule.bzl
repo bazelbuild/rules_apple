@@ -32,8 +32,8 @@ def _compute_make_variables(
     resolved_srcs_list = resolved_srcs.to_list()
     files_to_build_list = files_to_build.to_list()
     variables = {
-        "SRCS": " ".join([x.path for x in resolved_srcs_list]),
         "OUTS": " ".join([x.path for x in files_to_build_list]),
+        "SRCS": " ".join([x.path for x in resolved_srcs_list]),
     }
     if len(resolved_srcs_list) == 1:
         variables["<"] = resolved_srcs_list[0].path
@@ -107,12 +107,12 @@ _apple_genrule_inner = rule(
     implementation = _apple_genrule_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
-        "tools": attr.label_list(cfg = "host", allow_files = True),
         "outs": attr.output_list(mandatory = True),
         "cmd": attr.string(mandatory = True),
-        "message": attr.string(),
         "executable": attr.bool(default = False),
+        "message": attr.string(),
         "no_sandbox": attr.bool(),
+        "tools": attr.label_list(cfg = "host", allow_files = True),
         "_xcode_config": attr.label(default = configuration_field(
             fragment = "apple",
             name = "xcode_config_label",

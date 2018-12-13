@@ -116,6 +116,46 @@ _COMMON_PRIVATE_TOOL_ATTRS = {
 }
 
 _COMMON_BINARY_LINKING_ATTRS = {
+    "binary_type": attr.string(
+        default = "executable",
+        doc = """
+This attribute is public as an implementation detail while we migrate the architecture of the rules.
+Do not change its value.
+""",
+    ),
+    "bundle_loader": attr.label(
+        aspects = [apple_common.objc_proto_aspect],
+        doc = """
+This attribute is public as an implementation detail while we migrate the architecture of the rules.
+Do not change its value.
+""",
+    ),
+    "dylibs": attr.label_list(
+        aspects = [apple_common.objc_proto_aspect],
+        doc = """
+This attribute is public as an implementation detail while we migrate the architecture of the rules.
+Do not change its value.
+""",
+    ),
+    "linkopts": attr.string_list(
+        doc = """
+A list of strings representing extra flags that should be passed to the linker.
+""",
+    ),
+    "deps": attr.label_list(
+        aspects = [
+            apple_common.objc_proto_aspect,
+            apple_resource_aspect,
+            framework_import_aspect,
+            swift_usage_aspect,
+        ],
+        cfg = apple_common.multi_arch_split,
+        doc = """
+A list of dependencies targets that will be linked into this target's binary. Any resources, such as
+asset catalogs, that are referenced by those targets will also be transitively included in the final
+bundle.
+""",
+    ),
     "_cc_toolchain": attr.label(
         default = configuration_field(
             name = "cc_toolchain",
@@ -140,46 +180,6 @@ _COMMON_BINARY_LINKING_ATTRS = {
     "_protobuf_well_known_types": attr.label(
         cfg = "host",
         default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
-    ),
-    "binary_type": attr.string(
-        default = "executable",
-        doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-""",
-    ),
-    "bundle_loader": attr.label(
-        aspects = [apple_common.objc_proto_aspect],
-        doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-""",
-    ),
-    "deps": attr.label_list(
-        aspects = [
-            apple_common.objc_proto_aspect,
-            apple_resource_aspect,
-            framework_import_aspect,
-            swift_usage_aspect,
-        ],
-        cfg = apple_common.multi_arch_split,
-        doc = """
-A list of dependencies targets that will be linked into this target's binary. Any resources, such as
-asset catalogs, that are referenced by those targets will also be transitively included in the final
-bundle.
-""",
-    ),
-    "dylibs": attr.label_list(
-        aspects = [apple_common.objc_proto_aspect],
-        doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-""",
-    ),
-    "linkopts": attr.string_list(
-        doc = """
-A list of strings representing extra flags that should be passed to the linker.
-""",
     ),
 }
 
