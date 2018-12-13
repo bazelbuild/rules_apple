@@ -94,7 +94,7 @@ def _objc_provider(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _apple_framework_import_impl(ctx):
+def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     transitive_sets = []
     for dep in ctx.attr.deps:
@@ -176,7 +176,7 @@ def _apple_static_framework_import_impl(ctx):
     return providers
 
 apple_dynamic_framework_import = rule(
-    implementation = _apple_framework_import_impl,
+    implementation = _apple_dynamic_framework_import_impl,
     attrs = {
         "framework_imports": attr.label_list(
             allow_empty = False,
