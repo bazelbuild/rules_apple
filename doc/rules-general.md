@@ -165,11 +165,10 @@ ios_application(
 ## apple_dynamic_framework_import
 
 ```python
-apple_dynamic_framework_import(name, framework_import, is_dynamic, sdk_dylibs,
-sdk_frameworks, weak_sdk_frameworks, deps)
+apple_dynamic_framework_import(name, framework_import, deps)
 ```
 
-This rule encapsulates an already-built framework. It is defined by a list of
+This rule encapsulates an already-built dynamic framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_dynamic_framework_import` targets
 need to be added to library targets through the `deps` attribute.
 ### Examples
@@ -178,13 +177,6 @@ need to be added to library targets through the `deps` attribute.
 apple_dynamic_framework_import(
     name = "my_dynamic_framework",
     framework_imports = glob(["my_dynamic_framework.framework/**"]),
-    is_dynamic = True,
-)
-
-apple_dynamic_framework_import(
-    name = "my_static_framework",
-    framework_imports = glob(["my_static_framework.framework/**"]),
-    is_dynamic = False,
 )
 
 objc_library(
@@ -192,6 +184,70 @@ objc_library(
     ...,
     deps = [
         ":my_dynamic_framework",
+    ],
+)
+```
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>framework_imports</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
+        <p>The list of files under a <code>.framework</code> directory which are
+        provided to Apple based targets that depend on this target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of labels; optional</code></p>
+        <p>A list of targets that are dependencies of the target being built,
+        which will be linked into that target.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a name="apple_static_framework_import"></a>
+## apple_static_framework_import
+
+```python
+apple_static_framework_import(name, framework_import, alwayslink, sdk_dylibs,
+sdk_frameworks, weak_sdk_frameworks, deps)
+```
+
+This rule encapsulates an already-built static framework. It is defined by a list of
+files in exactly one `.framework` directory. `apple_static_framework_import` targets
+need to be added to library targets through the `deps` attribute.
+### Examples
+
+```python
+apple_static_framework_import(
+    name = "my_static_framework",
+    framework_imports = glob(["my_static_framework.framework/**"]),
+)
+
+objc_library(
+    name = "foo_lib",
+    ...,
+    deps = [
         ":my_static_framework",
     ],
 )
@@ -224,18 +280,6 @@ objc_library(
       </td>
     </tr>
     <tr>
-      <td><code>is_dynamic</code></td>
-      <td>
-        <p><code>Bool; required</code></p>
-        <p>Indicates whether this framework is linked dynamically or not. If
-        this attribute is set to <code>True</code>, the final application binary
-        will link against this framework and also be copied into the final
-        application bundle inside the <code>Frameworks</code> directory. If this
-        attribute is <code>False</code>, the framework will be statically linked
-        into the final application binary instead.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>alwayslink</code></td>
       <td>
         <p><code>Bool; optional</code></p>
@@ -245,7 +289,7 @@ objc_library(
         explicitly called by code in the binary; for example, if you rely on runtime
         checks for protocol conformances added in extensions in the library but do not
         directly reference any other symbols in the object file that adds that
-        conformance. Only applicable for static frameworks (i.e. `is_dynamic = False`).</p>
+        conformance.</p>
       </td>
     </tr>
     <tr>
@@ -257,8 +301,7 @@ objc_library(
         <code>libc++</code> is included automatically if the binary has any
         C++ or Objective-C++ sources in its dependency tree. When linking a
         binary, all libraries named in that binary's transitive dependency graph
-        are used. Only applicable for static frameworks (i.e.
-        `is_dynamic = False`).</p>
+        are used.</p>
       </td>
     </tr>
     <tr>
@@ -271,8 +314,7 @@ objc_library(
         when building for the iOS, tvOS and watchOS platforms. For macOS, only
         <code>Foundation</code> is always included. When linking a top level
         binary, all SDK frameworks listed in that binary's transitive dependency
-        graph are linked. Only applicable for static frameworks (i.e.
-        `is_dynamic = False`).</p>
+        graph are linked.</p>
       </td>
     </tr>
     <tr>
@@ -282,8 +324,7 @@ objc_library(
         <p>Names of SDK frameworks to weakly link with. For instance,
         <code>MediaAccessibility</code>. In difference to regularly linked SDK
         frameworks, symbols from weakly linked frameworks do not cause an error
-        if they are not present at runtime. Only applicable for static
-        frameworks (i.e. `is_dynamic = False`).</p>
+        if they are not present at runtime.</p>
       </td>
     </tr>
     <tr>
