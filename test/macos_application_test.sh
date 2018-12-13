@@ -33,7 +33,7 @@ load("@build_bazel_rules_apple//apple:macos.bzl",
      "macos_application",
      "macos_bundle")
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import")
+     "apple_dynamic_framework_import")
 
 objc_library(
     name = "lib",
@@ -94,7 +94,7 @@ objc_library(
     deps = [":fmwk"],
 )
 
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
     is_dynamic = True,

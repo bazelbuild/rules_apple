@@ -1333,7 +1333,7 @@ EOF
 }
 
 # Test that if an ios_framework target depends on a prebuilt framework (i.e.,
-# apple_framework_import), that the inner framework is propagated up to the
+# apple_dynamic_framework_import), that the inner framework is propagated up to the
 # application and not nested in the outer framework.
 #
 # NOTE: This does not use xibs, storyboards, xcassets to avoid flake from
@@ -1345,7 +1345,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_framework"
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import",
+     "apple_dynamic_framework_import",
     )
 
 objc_library(
@@ -1387,7 +1387,7 @@ objc_library(
     alwayslink = 1,
 )
 
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
 )
@@ -1986,7 +1986,7 @@ EOF
 }
 
 # Test that if an ios_framework target depends on a prebuilt static library
-# framework (i.e., apple_framework_import), that the inner framework is
+# framework (i.e., apple_dynamic_framework_import), that the inner framework is
 # propagated up to the application and not nested in the outer framework.
 function test_framework_depends_on_prebuilt_static_apple_framework_import() {
   cat > app/BUILD <<EOF

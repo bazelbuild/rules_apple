@@ -441,10 +441,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_unit_test",
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import",
+     "apple_dynamic_framework_import",
     )
 
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
 )
@@ -608,10 +608,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import",
+     "apple_dynamic_framework_import",
     )
 
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
 )

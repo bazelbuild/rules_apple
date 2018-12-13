@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of apple_framework_import and apple_static_framework_import of framework import rules."""
+"""Implementation of apple_dynamic_framework_import and apple_static_framework_import of framework import rules."""
 
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
@@ -72,7 +72,7 @@ def _validate_single_framework(framework_paths):
         )
 
 def _framework_dirs(framework_imports):
-    """Implementation for the apple_framework_import rule."""
+    """Implementation for the apple_dynamic_framework_import rule."""
     framework_groups = group_files_by_directory(
         framework_imports,
         ["framework"],
@@ -94,7 +94,7 @@ def _objc_provider(ctx, objc_provider_fields):
     return apple_common.new_objc_provider(**objc_provider_fields)
 
 def _apple_framework_import_impl(ctx):
-    """Implementation for the apple_framework_import rule."""
+    """Implementation for the apple_dynamic_framework_import rule."""
     transitive_sets = []
     for dep in ctx.attr.deps:
         if hasattr(dep[AppleFrameworkImportInfo], "framework_imports"):
@@ -141,7 +141,7 @@ def _apple_static_framework_import_impl(ctx):
 
     return [_objc_provider(ctx, objc_provider_fields)]
 
-apple_framework_import = rule(
+apple_dynamic_framework_import = rule(
     implementation = _apple_framework_import_impl,
     attrs = {
         "framework_imports": attr.label_list(
@@ -165,7 +165,7 @@ linked into that target.
     },
     doc = """
 This rule encapsulates an already-built framework. It is defined by a list of files in exactly one
-.framework directory. apple_framework_import targets need to be added to library targets through the
+.framework directory. apple_dynamic_framework_import targets need to be added to library targets through the
 `deps` attribute.
 """,
 )

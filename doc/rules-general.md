@@ -161,27 +161,27 @@ ios_application(
 </table>
 
 
-<a name="apple_framework_import"></a>
-## apple_framework_import
+<a name="apple_dynamic_framework_import"></a>
+## apple_dynamic_framework_import
 
 ```python
-apple_framework_import(name, framework_import, is_dynamic, sdk_dylibs,
+apple_dynamic_framework_import(name, framework_import, is_dynamic, sdk_dylibs,
 sdk_frameworks, weak_sdk_frameworks, deps)
 ```
 
 This rule encapsulates an already-built framework. It is defined by a list of
-files in exactly one `.framework` directory. `apple_framework_import` targets
+files in exactly one `.framework` directory. `apple_dynamic_framework_import` targets
 need to be added to library targets through the `deps` attribute.
 ### Examples
 
 ```python
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "my_dynamic_framework",
     framework_imports = glob(["my_dynamic_framework.framework/**"]),
     is_dynamic = True,
 )
 
-apple_framework_import(
+apple_dynamic_framework_import(
     name = "my_static_framework",
     framework_imports = glob(["my_static_framework.framework/**"]),
     is_dynamic = False,

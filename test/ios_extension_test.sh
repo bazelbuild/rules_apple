@@ -35,7 +35,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_extension",
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_framework_import",
+     "apple_dynamic_framework_import",
      "apple_static_framework_import",
     )
 
@@ -591,7 +591,7 @@ function test_prebuilt_static_framework_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that a prebuilt static framework (i.e., apple_framework_import with
+# Tests that a prebuilt static framework (i.e., apple_dynamic_framework_import with
 # is_dynamic set to False) is not bundled with the application or extension.
 function test_prebuilt_static_apple_framework_import_dependency() {
   create_common_files
@@ -658,11 +658,11 @@ function test_prebuilt_dynamic_framework_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that a prebuilt dynamic framework (i.e., apple_framework_import with
+# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import with
 # is_dynamic set to True) is bundled properly with the application.
 function test_prebuilt_dynamic_apple_framework_import_dependency() {
   create_common_files
-  create_minimal_ios_application_and_extension_with_framework_import dynamic apple_framework_import
+  create_minimal_ios_application_and_extension_with_framework_import dynamic apple_dynamic_framework_import
 
   do_build ios //app:app || fail "Should build"
 
