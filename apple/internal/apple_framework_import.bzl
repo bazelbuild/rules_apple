@@ -52,25 +52,6 @@ def filter_framework_imports_for_bundling(framework_imports):
 
     return filtered_imports
 
-def _validate_single_framework(framework_paths):
-    """Validates that there is only 1 framework being imported.
-
-    This method validates that only 1 framework is imported by this target, even if it is composed
-    by multiple .framework bundles. In such a case, all of them must have the same name.
-
-    Args:
-        framework_paths: List of .framework containers being imported by the target.
-    """
-    framework_names = {}
-    for framework_path in framework_paths:
-        framework_names[paths.basename(framework_path)] = None
-    if len(framework_names) > 1:
-        fail(
-            "There has to be exactly 1 imported framework. Found:\n{}".format(
-                "\n".join(framework_names),
-            ),
-        )
-
 def _framework_dirs(framework_imports):
     """Implementation for the apple_dynamic_framework_import rule."""
     framework_groups = group_files_by_directory(
