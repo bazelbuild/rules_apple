@@ -161,16 +161,16 @@ _common_tool_attributes = {
         default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
         executable = True,
     ),
-    "_xcrunwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-    ),
     "_xcode_config": attr.label(
         default = configuration_field(
             name = "xcode_config_label",
             fragment = "apple",
         ),
+    ),
+    "_xcrunwrapper": attr.label(
+        cfg = "host",
+        executable = True,
+        default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
     ),
 }
 
@@ -192,16 +192,16 @@ _bundling_tool_attributes = {
         executable = True,
         default = Label("@build_bazel_rules_apple//tools/clangrttool"),
     ),
+    "_process_and_sign_template": attr.label(
+        allow_single_file = True,
+        default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
+    ),
     # TODO(b/74731511): Refactor this attribute into being specified for each
     # platform.
     "_runner_template": attr.label(
         cfg = "host",
         allow_single_file = True,
         default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
-    ),
-    "_process_and_sign_template": attr.label(
-        allow_single_file = True,
-        default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
     ),
     "_std_redirect_dylib": attr.label(
         cfg = "host",
@@ -286,10 +286,10 @@ def _macos_path_formats(path_in_archive_format = "%s"):
         "_bundle_binary_path_format": attr.string(default = "MacOS/%s"),
         "_bundle_contents_path_format": attr.string(default = "Contents/%s"),
         "_bundle_resources_path_format": attr.string(default = "Resources/%s"),
-        "_path_in_archive_format": attr.string(default = path_in_archive_format),
         "_new_bundle_relative_contents_path": attr.string(default = "Contents"),
         "_new_contents_relative_binary_path": attr.string(default = "MacOS"),
         "_new_contents_relative_resource_path": attr.string(default = "Resources"),
+        "_path_in_archive_format": attr.string(default = path_in_archive_format),
     }
 
 def _code_signing_attributes(code_signing):
@@ -472,6 +472,8 @@ def _make_bundling_rule(
         }
     else:
         binary_dep_attrs = {
+            # Required by apple_common.multi_arch_split on 'deps'.
+            "platform_type": attr.string(mandatory = True),
             "deps": attr.label_list(
                 aspects = [
                     swift_usage_aspect,
@@ -480,8 +482,6 @@ def _make_bundling_rule(
                 ],
                 cfg = deps_cfg,
             ),
-            # Required by apple_common.multi_arch_split on 'deps'.
-            "platform_type": attr.string(mandatory = True),
         }
 
     rule_args = dict(**kwargs)
@@ -563,10 +563,10 @@ def _simple_path_formats(path_in_archive_format = ""):
         "_bundle_binary_path_format": attr.string(default = "%s"),
         "_bundle_contents_path_format": attr.string(default = "%s"),
         "_bundle_resources_path_format": attr.string(default = "%s"),
-        "_path_in_archive_format": attr.string(default = path_in_archive_format),
         "_new_bundle_relative_contents_path": attr.string(default = ""),
         "_new_contents_relative_binary_path": attr.string(default = ""),
         "_new_contents_relative_resource_path": attr.string(default = ""),
+        "_path_in_archive_format": attr.string(default = path_in_archive_format),
     }
 
 # Define the loadable module that lists the exported symbols in this file.

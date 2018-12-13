@@ -303,8 +303,8 @@ def _resources_partial_impl(
 
             processing_args = {
                 "ctx": ctx,
-                "parent_dir": parent_dir,
                 "files": files,
+                "parent_dir": parent_dir,
             }
 
             # Only pass the Swift module name if the type of resource to process

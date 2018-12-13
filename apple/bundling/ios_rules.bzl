@@ -127,12 +127,12 @@ ios_extension = rule_factory.make_bundling_rule(
 ios_framework = rule_factory.make_bundling_rule(
     ios_framework_impl,
     additional_attrs = {
+        "hdrs": attr.label_list(allow_files = [".h"]),
         "dedupe_unbundled_resources": attr.bool(default = True),
         "extension_safe": attr.bool(default = False),
         "frameworks": attr.label_list(
             providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
         ),
-        "hdrs": attr.label_list(allow_files = [".h"]),
     },
     archive_extension = ".zip",
     binary_providers = [apple_common.AppleDylibBinary],
@@ -149,10 +149,10 @@ ios_framework = rule_factory.make_bundling_rule(
 ios_static_framework = rule_factory.make_bundling_rule(
     ios_static_framework_impl,
     additional_attrs = {
+        "hdrs": attr.label_list(allow_files = [".h"]),
         "avoid_deps": attr.label_list(),
         "dedupe_unbundled_resources": attr.bool(default = True),
         "exclude_resources": attr.bool(default = False),
-        "hdrs": attr.label_list(allow_files = [".h"]),
     },
     archive_extension = ".zip",
     binary_providers = [apple_common.AppleStaticLibrary],
