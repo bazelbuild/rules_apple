@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of apple_framework_import and apple_static_framework_import."""
+"""Implementation of apple_framework_import and apple_static_framework_import of framework import rules."""
 
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
