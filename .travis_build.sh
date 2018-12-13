@@ -83,14 +83,13 @@ if [[ -n "${BUILDIFER:-}" ]]; then
 
   # Check for lint issues?
   if [[ "${LINT:-yes}" == "yes" ]] ; then
-    LINT_ISSUES=$(find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn 2>&1)
-    if [[ -n "${LINT_ISSUES}" ]] ; then
+    if ! find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn > /dev/null 2>&1 ; then
       if [[ "${FOUND_ISSUES}" != "no" ]] ; then
         echo ""
       fi
       echo "ERROR: BUILD/.bzl lint issue(s):"
       echo ""
-      echo "${LINT_ISSUES}"
+      find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn
       echo ""
       echo "Please download the latest buildifier"
       echo "   https://github.com/bazelbuild/buildtools/releases"
