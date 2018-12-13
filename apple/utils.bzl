@@ -202,17 +202,6 @@ def is_xcode_at_least_version(xcode_config, desired_version):
     desired_version_value = apple_common.dotted_version(desired_version)
     return current_version >= desired_version_value
 
-def join_commands(cmds):
-    """Joins a list of shell commands with ' && '.
-
-    Args:
-      cmds: The list of commands to join.
-    Returns:
-      A string with the given commands joined with ' && ', suitable for use in a
-      shell script action.
-    """
-    return " && ".join(cmds)
-
 def label_scoped_path(label, path):
     """Return the path scoped to the label of a build target.
 
