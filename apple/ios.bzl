@@ -519,6 +519,9 @@ def ios_imessage_extension(name, **kwargs):
         "-application_extension",
         "-e",
         "_NSExtensionMain",
+        # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+        "-rpath",
+        "@executable_path/../../Frameworks",
     ])
 
     original_entitlements = kwargs.pop("entitlements", None)
