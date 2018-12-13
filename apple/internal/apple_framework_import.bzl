@@ -83,25 +83,15 @@ def _framework_dirs(framework_imports):
 
     return depset(framework_groups.keys())
 
-def _apple_providers(ctx, objc_provider_fields, framework_dirs_set):
+def _objc_provider(ctx, objc_provider_fields):
     # TODO(kaipi): Remove this dummy binary. It is only required because the
     # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
     # argument. This change was submitted in https://github.com/bazelbuild/bazel/commit/f8ffac. We
     # can't remove this until that change is released in bazel.
     dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
     ctx.actions.write(dummy_binary, "_dummy_file_")
-
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
-    objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
-    return [
-        objc_provider,
-        apple_common.new_dynamic_framework_provider(
-            binary = dummy_binary,
-            objc = objc_provider,
-            framework_dirs = framework_dirs_set,
-            framework_files = depset(ctx.files.framework_imports),
-        ),
-    ]
+    return apple_common.new_objc_provider(**objc_provider_fields)
 
 def _apple_framework_import_impl(ctx):
     """Implementation for the apple_framework_import rule."""
@@ -114,18 +104,27 @@ def _apple_framework_import_impl(ctx):
     if filtered_framework_imports:
         transitive_sets.append(depset(filtered_framework_imports))
 
+    providers = []
+
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
-    providers = [AppleFrameworkImportInfo(**provider_fields)]
+    providers.append(providers.append(AppleFrameworkImportInfo(**provider_fields)))
 
     framework_dirs_set = _framework_dirs(ctx.files.framework_imports)
-    objc_provider_fields = {
+    providers.append(_objc_provider(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
-    }
+    }))
 
-    return providers + _apple_providers(ctx, objc_provider_fields, framework_dirs_set)
+    providers.append(apple_common.new_dynamic_framework_provider(
+        binary = dummy_binary,
+        objc = objc_provider,
+        framework_dirs = framework_dirs_set,
+        framework_files = depset(ctx.files.framework_imports),
+    ))
+
+    return providers
 
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
@@ -140,8 +139,7 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    framework_dirs_set = _framework_dirs(ctx.files.framework_imports)
-    return _apple_providers(ctx, objc_provider_fields, framework_dirs_set)
+    return [_objc_provider(ctx, objc_provider_fields)]
 
 apple_framework_import = rule(
     implementation = _apple_framework_import_impl,
