@@ -27,10 +27,6 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "join_commands",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -89,7 +85,7 @@ def _bitcode_symbols_partial_impl(
                         "set -e && " +
                         "OUTPUT_DIR={output_path} && " +
                         "mkdir -p {output_path} && " +
-                        join_commands(copy_commands)
+                        " && ".join(copy_commands)
                     ).format(output_path = bitcode_dir.path),
                 ],
                 mnemonic = "BitcodeSymbolsCopy",
