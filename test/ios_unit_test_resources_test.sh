@@ -35,18 +35,22 @@ load(
     "ios_framework",
     "ios_unit_test",
 )
+load(
+    "@build_bazel_rules_apple//apple:resources.bzl",
+    "apple_bundle_import",
+)
 
-objc_bundle(
+apple_bundle_import(
     name = "shared_bundle",
     bundle_imports = glob(["shared.bundle/**"]),
 )
 
-objc_bundle(
+apple_bundle_import(
     name = "app_bundle",
     bundle_imports = glob(["app.bundle/**"]),
 )
 
-objc_bundle(
+apple_bundle_import(
     name = "test_bundle",
     bundle_imports = glob(["test.bundle/**"]),
 )
