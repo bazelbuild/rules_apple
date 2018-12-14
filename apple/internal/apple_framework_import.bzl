@@ -70,7 +70,7 @@ def filter_framework_imports_for_bundling(framework_imports):
 
 def _all_framework_binaries(frameworks_groups):
     return [
-        _get_framework_binary_file(framework_dir, frameworks_imports.to_list())
+        _get_framework_binary_file(framework_dir, framework_imports.to_list())
         for framework_dir, framework_imports in frameworks_groups.items()
     ]
 
