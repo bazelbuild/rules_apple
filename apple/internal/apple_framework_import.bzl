@@ -117,7 +117,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     providers.append(providers.append(AppleFrameworkImportInfo(**provider_fields)))
 
-    framework_groups = framework_groups(ctx.files.framework_imports)
+    framework_groups = _framework_dirs(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider = _objc_provider(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
