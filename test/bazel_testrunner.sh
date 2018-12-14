@@ -102,6 +102,11 @@ local_repository(
     path = '$(rlocation build_bazel_rules_swift)',
 )
 
+local_repository(
+    name = 'build_bazel_apple_support',
+    path = '$(rlocation build_bazel_apple_support)',
+)
+
 # We load rules_swift dependencies into the WORKSPACE. This is safe to do
 # _for now_ because Swift currently depends on:
 #
