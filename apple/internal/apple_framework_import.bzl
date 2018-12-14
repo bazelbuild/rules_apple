@@ -68,11 +68,16 @@ def filter_framework_imports_for_bundling(framework_imports):
 
     return filtered_imports
 
-def _get_framework_binary_file(framework_groups):
-    framework_dir = framework_groups.keys()[0]
+def _all_framework_binaries(frameworks_groups):
+    return [
+        _get_framework_binary_file(framework_dir, frameworks_imports.to_list())
+        for framework_dir, framework_imports in frameworks_groups.items()
+    ]
+
+def _get_framework_binary_file(framework_dir, framework_imports):
     framework_name = paths.split_extension(paths.basename(framework_dir))[0]
     framework_short_path = paths.join(framework_dir, framework_name)
-    for framework_import in framework_groups[framework_dir].to_list():
+    for framework_import in framework_imports:
         if framework_import.short_path == framework_short_path:
             return framework_import
 
@@ -147,7 +152,7 @@ def _apple_static_framework_import_impl(ctx):
     framework_groups = _framework_dirs(ctx.files.framework_imports)
     if ctx.attr.alwayslink:
         objc_provider_fields["force_load_library"] = depset(
-            [_get_framework_binary_file(framework_groups)],
+            _all_framework_binaries(framework_groups),
         )
     if ctx.attr.sdk_dylibs:
         objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
