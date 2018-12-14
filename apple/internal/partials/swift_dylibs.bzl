@@ -110,7 +110,7 @@ def _swift_dylibs_partial_impl(
         transitive_swift_support_files.extend(provider.swift_support_files)
     transitive_binaries = depset(transitive = transitive_binary_sets)
 
-    if swift_support.uses_swift(ctx.attr.deps):
+    if binary_artifact and swift_support.uses_swift(ctx.attr.deps):
         transitive_binaries = depset(
             direct = [binary_artifact],
             transitive = [transitive_binaries],
