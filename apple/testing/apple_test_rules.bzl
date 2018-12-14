@@ -339,6 +339,10 @@ The xctest bundle that contains the test code and resources. Required.
             mandatory = True,
             providers = [AppleBundleInfo],
         ),
+        "_apple_coverage_support": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_apple_support//tools:coverage_support"),
+        ),
         # gcov and mcov are binary files required to calculate test coverage.
         "_gcov": attr.label(
             cfg = "host",
@@ -445,10 +449,7 @@ def _apple_test_impl(ctx, test_type):
         )
         transitive_runfiles.append(ctx.attr._gcov.files)
         transitive_runfiles.append(ctx.attr._mcov.files)
-
-        # _coverage_support is a private attribute added by Bazel to all test targets (see
-        # https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/analysis/skylark/SkylarkRuleClassFunctions.java).
-        transitive_runfiles.append(ctx.attr._coverage_support.files)
+        transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
 
     file_actions.symlink(
         ctx,
