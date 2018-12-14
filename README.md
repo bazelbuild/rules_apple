@@ -32,7 +32,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.9.0",
+    tag = "0.10.0",
 )
 
 load(
@@ -41,6 +41,13 @@ load(
 )
 
 apple_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
+)
+
+swift_rules_dependencies()
 ```
 
 If you're going to use `ios_unit_test` or `ios_ui_test`, you'll also need to add
