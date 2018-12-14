@@ -511,9 +511,9 @@ def ios_imessage_extension(name, **kwargs):
     """Macro to override the linkopts and preprocess entitlements for iMessage extensions."""
     frameworks = kwargs.pop("frameworks", [])
 
-    # TODO(b/120861201): The linkopts and entitlements macro additions here only exist because the
-    # Starlark linking API does not accept extra linkopts and link inputs. With those, it will be
-    # possible to merge these workarounds into the rule implementations.
+    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
+    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
+    # these workarounds into the rule implementations.
     linkopts = kwargs.pop("linkopts", [])
     linkopts.extend([
         "-application_extension",
@@ -524,28 +524,16 @@ def ios_imessage_extension(name, **kwargs):
         "@executable_path/../../Frameworks",
     ])
 
-    original_entitlements = kwargs.pop("entitlements", None)
-
-    entitlements_name = "{}_entitlements".format(name)
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
-        entitlements = original_entitlements,
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
         platform_type = str(apple_common.platform_type.ios),
-        provisioning_profile = kwargs.get("provisioning_profile"),
-        testonly = kwargs.get("testonly", None),
-        validation_mode = kwargs.get("entitlements_validation"),
+        **kwargs
     )
-
-    deps = kwargs.pop("deps", [])
-    deps.append(":{}".format(entitlements_name))
 
     return _ios_imessage_extension(
         name = name,
         dylibs = frameworks,
-        entitlements = ":{}".format(entitlements_name),
         frameworks = frameworks,
         linkopts = linkopts,
-        deps = deps,
-        **kwargs
+        **bundling_args
     )

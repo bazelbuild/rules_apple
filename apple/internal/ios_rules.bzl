@@ -368,6 +368,14 @@ def _ios_imessage_application_impl(ctx):
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),
+        partials.swift_dylibs_partial(
+            binary_artifact = None,
+            dependency_targets = [ctx.attr.extension],
+            bundle_dylibs = True,
+            # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
+            # builds, or at least only for device builds.
+            package_swift_support = True,
+        ),
     ]
 
     if platform_support.is_device_build(ctx):

@@ -94,6 +94,12 @@ _COMMON_PRIVATE_TOOL_ATTRS = {
         cfg = "host",
         allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/realpath"),
+        executable = True,
+    ),
+    "_swift_stdlib_tool": attr.label(
+        cfg = "host",
+        default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
+        executable = True,
     ),
     "_xcode_config": attr.label(
         default = configuration_field(
