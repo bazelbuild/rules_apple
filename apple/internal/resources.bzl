@@ -474,7 +474,7 @@ def _populated_resource_fields(provider):
     # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
     return [f for f in dir(provider) if f not in ["owners", "to_json", "to_proto"]]
 
-def _structured_resources_parent_dir(resource, parent_dir):
+def _structured_resources_parent_dir(resource, parent_dir = None):
     """Returns the package relative path for the parent directory of a resource.
 
     Args:
