@@ -19,23 +19,6 @@ load(
     "paths",
 )
 
-def _bundle_relative_path(f):
-    """Returns the portion of `f`'s path relative to its containing `.bundle`.
-
-    This function fails if `f` does not have an ancestor directory named with the
-    `.bundle` extension.
-
-    Args:
-      f: A file.
-
-    Returns:
-      The `.bundle`-relative path to the file.
-    """
-    return paths.relativize(
-        f.short_path,
-        _farthest_directory_matching(f.short_path, "bundle"),
-    )
-
 def _farthest_directory_matching(path, extension):
     """Returns the part of a path with the given extension closest to the root.
 
@@ -103,7 +86,6 @@ def _owner_relative_path(f):
 
 # Define the loadable module that lists the exported symbols in this file.
 path_utils = struct(
-    bundle_relative_path = _bundle_relative_path,
     farthest_directory_matching = _farthest_directory_matching,
     owner_relative_path = _owner_relative_path,
 )
