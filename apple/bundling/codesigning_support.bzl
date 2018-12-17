@@ -187,7 +187,7 @@ def _codesign_command(ctx, path_to_sign, entitlements_file):
     # to the directory where the bundle is being built.
     if platform_support.is_device_build(ctx):
         entitlements_flag = ""
-        if entitlements_file and path_to_sign.use_entitlements:
+        if path_to_sign.use_entitlements and entitlements_file:
             entitlements_flag = (
                 "--entitlements %s" % shell.quote(entitlements_file.path)
             )
