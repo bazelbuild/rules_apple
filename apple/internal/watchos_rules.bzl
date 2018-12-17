@@ -15,10 +15,6 @@
 """Experimental implementation of watchOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -31,6 +27,14 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
+    "stub_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -38,12 +42,18 @@ load(
 
 def watchos_application_impl(ctx):
     """Experimental implementation of ios_application."""
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
     top_level_attrs = [
         "app_icons",
         "storyboards",
         "strings",
     ]
-    binary_artifact = binary_support.create_stub_binary(ctx)
+
+    binary_artifact = stub_support.create_stub_binary(
+        ctx,
+        xcode_stub_path = rule_descriptor.stub_binary_path,
+    )
 
     bundle_id = ctx.attr.bundle_id
 
