@@ -190,7 +190,7 @@ This can be used in a few interesting ways:
   only work/test in one language.
 - If a product is pulling in some other component(s) that support more
   localizations that the product does, it can be used to strip away those
-  extra localizations there by shrinking the find product send to the
+  extra localizations thereby shrinking the final product sent to the
   end users.
 
 ## Info.plist Handling
