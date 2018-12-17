@@ -83,6 +83,7 @@ def _post_process_and_sign_archive_action(
                 paths.join("$WORK_DIR", frameworks_path) + "/",
                 optional = True,
                 glob = "*",
+                use_entitlements = False,
             ),
         ]
         is_device = platform_support.is_device_build(ctx)
