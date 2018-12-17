@@ -404,6 +404,7 @@ def ios_ui_test_suite(name, runners = [], tags = [], **kwargs):
         name = name,
         tests = tests,
         tags = tags,
+        visibility = kwargs.get("visibility"),
     )
 
 def ios_unit_test(name, **kwargs):
@@ -466,6 +467,7 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
         name = name,
         tests = tests,
         tags = tags,
+        visibility = kwargs.get("visibility"),
     )
 
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
