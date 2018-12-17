@@ -386,7 +386,7 @@ def _make_bundling_rule(
           information about the default product type for targets created by this
           rule and whether or not the attribute is private.
       use_binary_rule: True if this depends on a full-fledged binary rule,
-          such as apple_binary or apple_stub_binary.
+          such as apple_binary.
       deps_cfg: Specify the configuration of the dependencies. Defaults to
           "target".
       **kwargs: Additional arguments that are passed directly to `rule()`.

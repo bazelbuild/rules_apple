@@ -58,123 +58,6 @@ def _get_binary_provider(deps, provider_key):
         return matching_providers[0]
     return None
 
-def _create_stub_binary(ctx):
-    """Creates a binary for a bundle by copying a stub from the SDK.
-
-    Some Apple bundles may not need a binary target depending on their product
-    type; for example, watchOS applications and iMessage sticker packs contain
-    stub binaries copied from the platform SDK, rather than binaries with user
-    code. This function creates an `apple_stub_binary` target (instead of
-    `apple_binary`) that ensures that the platform transition is correct (for
-    platform selection in downstream dependencies) but that does not cause any
-    user code to be linked.
-
-    Args:
-      ctx: The bundling rule context.
-
-    Returns:
-      The binary stub artifact copied out of the SDK.
-    """
-    product_type = product_support.product_type(ctx)
-    product_type_descriptor = product_support.product_type_descriptor(
-        product_type,
-    )
-
-    if not product_type_descriptor or not product_type_descriptor.stub:
-        fail(("%s failed: create_stub_binary may only be called from a bundling " +
-              "rule of a product type which declares a stub") % ctx.label)
-
-    output_artifact = ctx.actions.declare_file(
-        "stubs/%s.binary_stub" % (ctx.label.name),
-    )
-
-    platform_support.xcode_env_action(
-        ctx,
-        outputs = [output_artifact],
-        executable = ctx.executable._xcrunwrapper,
-        arguments = [
-            "/bin/cp",
-            product_type_descriptor.stub.xcenv_based_path,
-            output_artifact.path,
-        ],
-        mnemonic = "CopyStubExecutable",
-        progress_message = "Copying stub executable for %s" % (ctx.label),
-    )
-
-    return output_artifact
-
-def _create_stub_binary_target(
-        name,
-        platform_type,
-        stub_descriptor,
-        **kwargs):
-    """Creates a binary target for a bundle by copying a stub from the SDK.
-
-    Some Apple bundles may not need a binary target depending on their product
-    type; for example, watchOS applications and iMessage sticker packs contain
-    stub binaries copied from the platform SDK, rather than binaries with user
-    code. This function creates an `apple_stub_binary` target (instead of
-    `apple_binary`) that ensures that the platform transition is correct (for
-    platform selection in downstream dependencies) but that does not cause any
-    user code to be linked.
-
-    Args:
-      name: The name of the bundle target, from which the binary target's name
-          will be derived.
-      platform_type: The platform type for which the binary should be copied.
-      stub_descriptor: The information about the product type's stub executable.
-      **kwargs: The arguments that were passed into the top-level macro.
-
-    Returns:
-      A modified copy of `**kwargs` that should be passed to the bundling rule.
-
-    Deprecated:
-      Stub binary targets are deprecated. Use create_stub_binary in the bundling
-      rule context instead.
-    """
-    # TODO(b/69630422): Migrate all callers off of apple_stub_binary. Use
-    # create_stub_binary in the rule context instead.
-
-    bundling_args = dict(kwargs)
-
-    apple_binary_name = "%s.apple_binary" % name
-    minimum_os_version = kwargs.get("minimum_os_version")
-
-    # Remove the deps so that we only pass them to the binary, not to the
-    # bundling rule.
-    deps = bundling_args.pop("deps", [])
-
-    native.apple_stub_binary(
-        name = apple_binary_name,
-        minimum_os_version = minimum_os_version,
-        platform_type = platform_type,
-        xcenv_based_path = stub_descriptor.xcenv_based_path,
-        deps = deps,
-        tags = ["manual"] + kwargs.get("tags", []),
-        testonly = kwargs.get("testonly"),
-        visibility = kwargs.get("visibility"),
-    )
-
-    bundling_args["binary"] = apple_binary_name
-    bundling_args["deps"] = [apple_binary_name]
-
-    # For device builds, make sure that the stub binary still gets signed with the
-    # appropriate entitlements (and that they have their substitutions applied).
-    entitlements_value = kwargs.get("entitlements")
-    provisioning_profile = kwargs.get("provisioning_profile")
-    entitlements_name = "%s_entitlements" % name
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
-        entitlements = entitlements_value,
-        platform_type = platform_type,
-        provisioning_profile = provisioning_profile,
-        validation_mode = kwargs.get("entitlements_validation"),
-    )
-    bundling_args["entitlements"] = ":" + entitlements_name
-
-    return bundling_args
-
 def _create_swift_runtime_linkopts_target(
         name,
         deps,
@@ -394,11 +277,9 @@ def _create_binary(
         **kwargs):
     """Creates a binary target for a bundle.
 
-    This function checks the desired product type of the bundle and creates either
-    an `apple_binary` or `apple_stub_binary` depending on what the product type
-    needs. It must be called from one of the top-level application or extension
-    macros, because it invokes a rule to create a target. As such, it cannot be
-    called within rule implementation functions.
+    This function creates either an `apple_binary`. It must be called from one of the top-level
+    application or extension macros, because it invokes a rule to create a target. As such, it
+    cannot be called within rule implementation functions.
 
     Args:
       name: The name of the bundle target, from which the binary target's name
@@ -443,43 +324,33 @@ def _create_binary(
     product_type_descriptor = product_support.product_type_descriptor(
         product_type,
     )
-    if product_type_descriptor and product_type_descriptor.stub:
-        if suppress_entitlements:
-            fail("INTERNAL ERROR: suppress_entitlements unsupported on stubs.")
-        return _create_stub_binary_target(
-            name,
-            platform_type,
-            product_type_descriptor.stub,
-            **args_copy
-        )
-    else:
-        if product_type_descriptor and product_type_descriptor.bundle_extension == ".kext":
-            # KEXTs are of file type MH_KEXT_BUNDLE, not MH_BUNDLE.
-            # Use "executable" and the kernel_extension feature to set the proper link flags.
-            binary_type = "executable"
 
-            # Disables c++ stdlib and Foundation linking. Adds -kext linker flag.
-            features = args_copy.get("features", [])
-            features += ["kernel_extension"]
-            args_copy["features"] = features
-        return _create_linked_binary_target(
-            name,
-            platform_type,
-            linkopts,
-            binary_type,
-            sdk_frameworks,
-            extension_safe,
-            bundle_loader,
-            link_swift_statically = link_swift_statically,
-            suppress_entitlements = suppress_entitlements,
-            **args_copy
-        )
+    if product_type_descriptor and product_type_descriptor.bundle_extension == ".kext":
+        # KEXTs are of file type MH_KEXT_BUNDLE, not MH_BUNDLE.
+        # Use "executable" and the kernel_extension feature to set the proper link flags.
+        binary_type = "executable"
+
+        # Disables c++ stdlib and Foundation linking. Adds -kext linker flag.
+        features = args_copy.get("features", [])
+        features += ["kernel_extension"]
+        args_copy["features"] = features
+    return _create_linked_binary_target(
+        name,
+        platform_type,
+        linkopts,
+        binary_type,
+        sdk_frameworks,
+        extension_safe,
+        bundle_loader,
+        link_swift_statically = link_swift_statically,
+        suppress_entitlements = suppress_entitlements,
+        **args_copy
+    )
 
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
     add_entitlements_and_swift_linkopts = _add_entitlements_and_swift_linkopts,
     create_binary = _create_binary,
     create_linked_binary_target = _create_linked_binary_target,
-    create_stub_binary = _create_stub_binary,
     get_binary_provider = _get_binary_provider,
 )
