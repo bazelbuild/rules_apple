@@ -78,6 +78,7 @@ load(
 
 NewAppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
+    # @unsorted-dict-items
     fields = {
         "asset_catalogs": "Resources that need to be embedded into Assets.car.",
         "datamodels": "Datamodel files.",

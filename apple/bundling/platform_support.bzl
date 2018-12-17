@@ -25,6 +25,7 @@ load(
 
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
+# @unsorted-dict-items
 _DEVICE_FAMILY_VALUES = {
     "iphone": 1,
     "ipad": 2,
