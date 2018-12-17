@@ -167,6 +167,10 @@ def _xcode_env_action(ctx, **kwargs):
     before any of those transitions, and so the rule must ensure the right
     platform/arches are being used itself.
 
+    TODO(b/121134880): Once we have support Starlark defined rule transitions, we can migrate usages
+    of this wrapper to apple_support.run and apple_support.run_shell, as we'll add a rule transition
+    so that the rule context gets the correct platform value configured.
+
     Args:
       ctx: The Skylark context.
       **kwargs: Arguments to be passed into apple_action.
