@@ -36,10 +36,6 @@ load(
     "xcrun_env",
 )
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
