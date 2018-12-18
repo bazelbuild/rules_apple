@@ -81,7 +81,7 @@ def _get_framework_binary_file(framework_dir, framework_imports):
         if framework_import.short_path == framework_short_path:
             return framework_import
 
-    fail("There has to be a binary file in the imported framework.")
+    fail("ERORR: There has to be a binary file in the imported framework.")
 
 def _framework_dirs(framework_imports):
     """Implementation for the apple_dynamic_framework_import rule."""
