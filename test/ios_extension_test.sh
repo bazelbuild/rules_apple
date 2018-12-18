@@ -139,7 +139,7 @@ function create_minimal_ios_application_and_extension_with_framework_import() {
   readonly import_rule="$2"
 
   local is_dynamic
-  if [[ $import_rule == objc_import ]]; then
+  if [[ $import_rule == objc_* ]]; then
     local dynamic
     [[ $framework_type == dynamic ]] && dynamic=True || dynamic=False
     is_dynamic="is_dynamic = $dynamic,"
