@@ -104,7 +104,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = 1,
-    shard_count = 8,
+    shard_count = 16,
 )
 
 apple_multi_shell_test(
@@ -112,7 +112,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_application_swift_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    shard_count = 3,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -125,7 +125,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
     flaky = 1,
-    shard_count = 4,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -148,7 +148,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
     ],
-    shard_count = 5,
+    shard_count = 6,
 )
 
 apple_multi_shell_test(
@@ -168,7 +168,7 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 8,
+    shard_count = 12,
 )
 
 apple_multi_shell_test(
@@ -227,7 +227,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_bundle_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 7,
+    shard_count = 8,
 )
 
 apple_multi_shell_test(
@@ -235,7 +235,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_command_line_application_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 2,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -251,7 +251,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_dylib_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 2,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
@@ -275,7 +275,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_extension_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 4,
+    shard_count = 8,
 )
 
 apple_multi_shell_test(
@@ -291,7 +291,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "watchos_application_test.sh",
     configurations = WATCHOS_CONFIGURATIONS,
-    shard_count = 8,
+    shard_count = 12,
 )
 
 apple_multi_shell_test(
@@ -337,7 +337,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_application_clang_rt_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    shard_count = 2,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -397,4 +397,5 @@ apple_shell_test(
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
+    shard_count = 3,
 )
