@@ -99,23 +99,28 @@ def _objc_provider_with_dependencies(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _apple_dynamic_framework_import_impl(ctx):
-    """Implementation for the apple_dynamic_framework_import rule."""
-    transitive_sets = []
-    for dep in ctx.attr.deps:
-        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports"):
-            transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
+def _transitive_framework_imports(deps):
+    return [
+        dep[AppleFrameworkImportInfo].framework_imports
+        for dep in deps
+        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports")
+    ]
 
-    filtered_framework_imports = filter_framework_imports_for_bundling(ctx.files.framework_imports)
-    if filtered_framework_imports:
-        transitive_sets.append(depset(filtered_framework_imports))
-
-    providers = []
-
+def _framework_import_info(transitive_sets):
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
-    providers.append(AppleFrameworkImportInfo(**provider_fields))
+    return AppleFrameworkImportInfo(**provider_fields)
+
+def _apple_dynamic_framework_import_impl(ctx):
+    """Implementation for the apple_dynamic_framework_import rule."""
+    providers = []
+
+    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    filtered_framework_imports = filter_framework_imports_for_bundling(ctx.files.framework_imports)
+    if filtered_framework_imports:
+        transitive_sets.append(depset(filtered_framework_imports))
+    providers.append(_framework_import_info(transitive_sets))
 
     framework_groups = _framework_dirs(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
@@ -143,6 +148,9 @@ def _apple_dynamic_framework_import_impl(ctx):
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     providers = []
+
+    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    providers.append(_framework_import_info(transitive_sets))
 
     framework_imports = ctx.files.framework_imports
     objc_provider_fields = {
