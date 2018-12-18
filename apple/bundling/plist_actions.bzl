@@ -31,8 +31,8 @@ load(
     "plist_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "product_support",
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -229,15 +229,11 @@ def _merge_infoplists(
 
         # Collect any values for special product types that we have to manually put
         # in (duplicating what Xcode apparently does under the hood).
-        product_type = product_support.product_type(ctx)
-        product_type_descriptor = product_support.product_type_descriptor(
-            product_type,
-        )
-        if product_type_descriptor:
-            if product_type_descriptor.additional_infoplist_values:
-                forced_plists.append(
-                    struct(**product_type_descriptor.additional_infoplist_values),
-                )
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+        if rule_descriptor.additional_infoplist_values:
+            forced_plists.append(
+                struct(**rule_descriptor.additional_infoplist_values),
+            )
 
     if include_xcode_env:
         environment_plist = _environment_plist_action(ctx)

@@ -19,13 +19,8 @@ load(
     "entitlements",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
@@ -317,11 +312,7 @@ def _create_binary(
     if not product_type:
         product_type = args_copy.get("product_type")
 
-    product_type_descriptor = product_support.product_type_descriptor(
-        product_type,
-    )
-
-    if product_type_descriptor and product_type_descriptor.bundle_extension == ".kext":
+    if product_type and product_type == apple_product_type.kernel_extension:
         # KEXTs are of file type MH_KEXT_BUNDLE, not MH_BUNDLE.
         # Use "executable" and the kernel_extension feature to set the proper link flags.
         binary_type = "executable"
