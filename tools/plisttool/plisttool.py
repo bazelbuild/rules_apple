@@ -1163,8 +1163,14 @@ class EntitlementsTask(PlistToolTask):
         'com.apple.security.application-groups', self.target,
         report_extras=report_extras)
 
+    # com.apple.developer.associated-domains
+    self._check_entitlements_array(
+        entitlements, profile_entitlements,
+        'com.apple.developer.associated-domains', self.target,
+        report_extras=report_extras,
+        supports_wildcards=True)
+
     # TODO: aps-environment ?
-    # TODO: com.apple.developer.associated-domains ?
 
   @staticmethod
   def _does_id_match(id, allowed,

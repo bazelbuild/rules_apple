@@ -1692,6 +1692,69 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_entitlements_associated_domains_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.developer.associated-domains': ['bundle.my'],
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.associated-domains': [
+                        'bundle.my',
+                    ],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_associated_domains_match_wildcard(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.developer.associated-domains': ['bundle.my'],
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.associated-domains': [
+                        '*',
+                    ],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_associated_domains_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+            _testing_target, 'com.apple.developer.associated-domains',
+            'bundle.my', 'bundle.your'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.developer.associated-domains': ['bundle.my'],
+          }],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.developer.associated-domains': [
+                          'bundle.your',
+                      ],
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
 
 if __name__ == '__main__':
   unittest.main()
