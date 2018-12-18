@@ -15,6 +15,10 @@
 """Plist related actions."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -67,7 +71,7 @@ def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
       mnemonic: The mnemonic to display when the action executes. Defaults to
           None.
     """
-    apple_action(
+    apple_support.run(
         ctx,
         inputs = inputs + [control_file],
         outputs = outputs,
