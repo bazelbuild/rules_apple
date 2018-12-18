@@ -15,6 +15,10 @@
 """Helpers for defining Apple bundling rules uniformly."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
     "AppleEntitlementsInfo",
 )
@@ -58,82 +62,81 @@ load(
 )
 
 # Private attributes on every rule that provide access to tools and other file dependencies.
-_COMMON_PRIVATE_TOOL_ATTRS = {
-    "_bundletool": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/bundletool"),
-    ),
-    "_bundletool_experimental": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
-    ),
-    "_dsym_info_plist_template": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label(
-            "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+_COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
+    {
+        "_bundletool": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/bundletool"),
         ),
-    ),
-    "_environment_plist": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/environment_plist"),
-    ),
-    "_plisttool": attr.label(
-        cfg = "host",
-        default = Label("@build_bazel_rules_apple//tools/plisttool"),
-        executable = True,
-    ),
-    "_process_and_sign_template": attr.label(
-        allow_single_file = True,
-        default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
-    ),
-    # TODO(b/117933004): Find out whether realpath is still needed for symlinking, and if not,
-    # remove this attribute, which is still used by file_actions.symlink.
-    "_realpath": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label("@build_bazel_rules_apple//tools/realpath"),
-        executable = True,
-    ),
-    # TODO(b/74731511): Refactor this attribute into being specified for each
-    # platform.
-    "_runner_template": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
-    ),
-    "_std_redirect_dylib": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
-    ),
-    "_swift_stdlib_tool": attr.label(
-        cfg = "host",
-        default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
-        executable = True,
-    ),
-    "_xcode_config": attr.label(
-        default = configuration_field(
-            name = "xcode_config_label",
-            fragment = "apple",
+        "_bundletool_experimental": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
         ),
-    ),
-    # TODO(b/117932394): Remove uses of this private attribute and migrate them to the _xctoolrunner
-    # tool instead.
-    "_xcrunwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-    ),
-    "_xctoolrunner": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
-    ),
-}
+        "_dsym_info_plist_template": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label(
+                "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+            ),
+        ),
+        "_environment_plist": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/environment_plist"),
+        ),
+        "_plisttool": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_rules_apple//tools/plisttool"),
+            executable = True,
+        ),
+        "_process_and_sign_template": attr.label(
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
+        ),
+        # TODO(b/117933004): Find out whether realpath is still needed for symlinking, and if not,
+        # remove this attribute, which is still used by file_actions.symlink.
+        "_realpath": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//tools/realpath"),
+            executable = True,
+        ),
+        # TODO(b/74731511): Refactor this attribute into being specified for each
+        # platform.
+        "_runner_template": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
+        ),
+        "_std_redirect_dylib": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
+        ),
+        "_swift_stdlib_tool": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
+            executable = True,
+        ),
+        # TODO(b/117932394): Remove uses of this private attribute and migrate them to the _xctoolrunner
+        # tool instead.
+        # - and/or -
+        # TODO(b/118264452): Remove this once all apple actions are migrated to apple_support
+        "_xcrunwrapper": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+        ),
+        "_xctoolrunner": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
+        ),
+    },
+    apple_support.action_required_attrs(),
+)
 
 _COMMON_BINARY_LINKING_ATTRS = {
     "binary_type": attr.string(

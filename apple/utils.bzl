@@ -238,25 +238,3 @@ def optionally_prefixed_path(path, prefix):
     if prefix:
         return prefix + "/" + path
     return path
-
-def xcrun_env(ctx):
-    """Returns the environment dictionary necessary to use xcrunwrapper."""
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    platform = ctx.fragments.apple.single_arch_platform
-    action_env = apple_common.target_apple_env(xcode_config, platform)
-    action_env.update(apple_common.apple_host_system_env(xcode_config))
-    return action_env
-
-def xcrun_action(ctx, **kw):
-    """Creates an apple action that executes xcrunwrapper.
-
-    args:
-      ctx: The context of the rule that owns this action.
-
-    This method takes the same keyword arguments as ctx.action, however you don't
-    need to specify the executable.
-    """
-    kw["env"] = dict(kw.get("env", {}))
-    kw["env"].update(xcrun_env(ctx))
-
-    apple_action(ctx, executable = ctx.executable._xcrunwrapper, **kw)

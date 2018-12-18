@@ -15,8 +15,8 @@
 """Texture atlas related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "xcrun_action",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 
 def compile_texture_atlas(ctx, input_path, input_files, output_dir):
@@ -28,8 +28,9 @@ def compile_texture_atlas(ctx, input_path, input_files, output_dir):
       input_files: The atlas file inputs that will be compiled.
       output_dir: The file reference for the compiled output directory.
     """
-    xcrun_action(
+    apple_support.run(
         ctx,
+        executable = "/usr/bin/xcrun",
         arguments = [
             "TextureAtlas",
             input_path,
