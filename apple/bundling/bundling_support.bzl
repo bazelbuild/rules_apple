@@ -15,8 +15,8 @@
 """Low-level bundling name helpers."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "product_support",
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
 )
 
 def _binary_file(ctx, src, dest, executable = False):
@@ -112,12 +112,8 @@ def _bundle_extension(ctx):
         # do *not* require them to include the leading dot, so we add it here.
         ext = "." + ext
     else:
-        product_type = product_support.product_type(ctx)
-        product_type_descriptor = product_support.product_type_descriptor(
-            product_type,
-        )
-        if product_type_descriptor:
-            ext = product_type_descriptor.bundle_extension
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+        ext = rule_descriptor.bundle_extension
 
     return ext
 
