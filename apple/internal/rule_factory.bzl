@@ -51,6 +51,7 @@ load(
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
     "TvosExtensionBundleInfo",
+    "WatchosExtensionBundleInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -445,6 +446,40 @@ def _get_tvos_attrs(rule_descriptor):
 
     return attrs
 
+def _get_watchos_attrs(rule_descriptor):
+    """Returns a list of dictionaries with attributes for the watchOS platform."""
+    attrs = []
+
+    if rule_descriptor.product_type == apple_product_type.watch2_application:
+        attrs.append({
+            "extension": attr.label(
+                providers = [
+                    [AppleBundleInfo, WatchosExtensionBundleInfo],
+                ],
+                doc = "The `watchos_extension` that is bundled with the watch application.",
+            ),
+            "storyboards": attr.label_list(
+                allow_files = [".storyboard"],
+                doc = """
+A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
+the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
+which case it will be placed under a directory with the same name in the bundle.
+""",
+            ),
+            # TODO(b/121201268): Rename this attribute as it implies code dependencies, but they are
+            # not actually compiled and linked, since the watchOS application uses a stub binary.
+            "deps": attr.label_list(
+                aspects = [apple_resource_aspect],
+                doc = """
+A list of targets whose resources will be included in the final application. Since a watchOS
+application does not contain any code of its own, any code in the dependent libraries will be
+ignored.
+""",
+            ),
+        })
+
+    return attrs
+
 def _create_apple_bundling_rule(implementation, platform_type, product_type, doc):
     """Creates an Apple bundling rule."""
     rule_attrs = [
@@ -469,6 +504,8 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         rule_attrs.extend(_get_ios_attrs(rule_descriptor))
     elif platform_type == "tvos":
         rule_attrs.extend(_get_tvos_attrs(rule_descriptor))
+    elif platform_type == "watchos":
+        rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
     archive_name = "%{name}" + rule_descriptor.archive_extension
     return rule(
