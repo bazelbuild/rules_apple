@@ -30,7 +30,6 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
      "ios_application"
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
@@ -617,24 +616,6 @@ EOF
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
   expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
-}
-
-# Tests that an iMessage application contains the appropriate stub executable
-# and auto-injected plist keys.
-function test_message_application() {
-  create_common_files
-  create_minimal_ios_application "apple_product_type.messages_application"
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
-      LSApplicationLaunchProhibited
-
-  do_build ios //app:dump_plist || fail "Should build"
-
-  # Ignore the following checks for simulator builds.
-  is_device_build ios || return 0
-
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "MessagesApplicationSupport/MessagesApplicationSupportStub"
-  assert_equals "true" "$(cat "test-genfiles/app/LSApplicationLaunchProhibited")"
 }
 
 # Tests that applications can transitively depend on objc_bundle_library, and

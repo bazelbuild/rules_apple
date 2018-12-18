@@ -30,7 +30,6 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
      "ios_application",
      "ios_extension",
     )
@@ -342,7 +341,6 @@ EOF
 function test_extension_with_mismatched_bundle_id_fails_to_build() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
      "ios_application",
      "ios_extension",
     )
@@ -413,7 +411,6 @@ EOF
 function test_extension_with_mismatched_short_version_fails_to_build() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
      "ios_application",
      "ios_extension",
     )
@@ -484,7 +481,6 @@ EOF
 function test_extension_with_mismatched_version_fails_to_build() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
-     "apple_product_type",
      "ios_application",
      "ios_extension",
     )

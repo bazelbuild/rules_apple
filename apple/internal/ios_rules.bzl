@@ -21,7 +21,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
@@ -98,6 +97,17 @@ def ios_application_impl(ctx):
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            dependency_targets = embeddable_targets,
+            package_bitcode = True,
+        ),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = embeddable_targets,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
@@ -113,6 +123,14 @@ def ios_application_impl(ctx):
             top_level_attrs = top_level_attrs,
         ),
         partials.settings_bundle_partial(),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = embeddable_targets,
+            bundle_dylibs = True,
+            # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
+            # least only for device builds.
+            package_swift_support = True,
+        ),
     ]
 
     if ctx.attr.watch_application:
@@ -120,38 +138,10 @@ def ios_application_impl(ctx):
             partials.watchos_stub_partial(package_watchkit_support = True),
         )
 
-    stub_binary = None
-    if product_support.contains_stub_binary(ctx):
-        stub_binary = binary_artifact
-    else:
-        # Only add binary processing partials if the target does not use stub binaries.
-        processor_partials.extend([
-            partials.bitcode_symbols_partial(
-                binary_artifact = binary_artifact,
-                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-                dependency_targets = embeddable_targets,
-                package_bitcode = True,
-            ),
-            partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-            partials.debug_symbols_partial(
-                debug_dependencies = embeddable_targets,
-                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-            ),
-            partials.swift_dylibs_partial(
-                binary_artifact = binary_artifact,
-                dependency_targets = embeddable_targets,
-                bundle_dylibs = True,
-                # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
-                # builds, or at least only for device builds.
-                package_swift_support = True,
-            ),
-        ])
-
     processor_partials.append(
         # We need to add this partial everytime in case any of the extensions uses a stub binary and
         # the stub needs to be packaged in the support directories.
         partials.messages_stub_partial(
-            binary_artifact = stub_binary,
             package_messages_support = True,
         ),
     )
@@ -253,6 +243,16 @@ def ios_extension_impl(ctx):
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
         partials.embedded_bundles_partial(
             plugins = [ctx.outputs.archive],
             embeddable_targets = ctx.attr.frameworks,
@@ -264,30 +264,11 @@ def ios_extension_impl(ctx):
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+        ),
     ]
-
-    if product_support.contains_stub_binary(ctx):
-        processor_partials.append(
-            partials.messages_stub_partial(binary_artifact = binary_artifact),
-        )
-    else:
-        # Only add binary processing partials if the target does not use stub binaries.
-        processor_partials.extend([
-            partials.bitcode_symbols_partial(
-                binary_artifact = binary_artifact,
-                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-                dependency_targets = ctx.attr.frameworks,
-            ),
-            partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-            partials.debug_symbols_partial(
-                debug_dependencies = ctx.attr.frameworks,
-                debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-            ),
-            partials.swift_dylibs_partial(
-                binary_artifact = binary_artifact,
-                dependency_targets = ctx.attr.frameworks,
-            ),
-        ])
 
     if platform_support.is_device_build(ctx):
         processor_partials.append(
@@ -376,8 +357,8 @@ def _ios_imessage_application_impl(ctx):
             binary_artifact = None,
             dependency_targets = [ctx.attr.extension],
             bundle_dylibs = True,
-            # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
-            # builds, or at least only for device builds.
+            # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
+            # least only for device builds.
             package_swift_support = True,
         ),
     ]

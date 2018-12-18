@@ -141,17 +141,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_extension_resources_test",
-    size = "medium",
-    src = "ios_extension_resources_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-    ],
-    shard_count = 5,
-)
-
-apple_multi_shell_test(
     name = "ios_imessage_test",
     size = "medium",
     src = "ios_imessage_test.sh",
