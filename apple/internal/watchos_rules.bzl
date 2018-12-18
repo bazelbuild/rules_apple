@@ -19,12 +19,20 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
@@ -40,7 +48,7 @@ load(
     "WatchosExtensionBundleInfo",
 )
 
-def watchos_application_impl(ctx):
+def _watchos_application_impl(ctx):
     """Experimental implementation of ios_application."""
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
@@ -107,14 +115,17 @@ def watchos_application_impl(ctx):
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
-def watchos_extension_impl(ctx):
+def _watchos_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
     top_level_attrs = [
         "app_icons",
         "strings",
     ]
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
 
     bundle_id = ctx.attr.bundle_id
 
@@ -123,11 +134,11 @@ def watchos_extension_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
         partials.resources_partial(
@@ -151,3 +162,17 @@ def watchos_extension_impl(ctx):
         ),
         WatchosExtensionBundleInfo(),
     ] + processor_result.providers
+
+watchos_application = rule_factory.create_apple_bundling_rule(
+    implementation = _watchos_application_impl,
+    platform_type = "watchos",
+    product_type = apple_product_type.watch2_application,
+    doc = "Builds and bundles an watchOS Application.",
+)
+
+watchos_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _watchos_extension_impl,
+    platform_type = "watchos",
+    product_type = apple_product_type.watch2_extension,
+    doc = "Builds and bundles an watchOS Extension.",
+)
