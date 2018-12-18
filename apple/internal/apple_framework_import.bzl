@@ -95,7 +95,7 @@ def _framework_dirs(framework_imports):
 
     return framework_groups
 
-def _objc_provider(ctx, objc_provider_fields):
+def _objc_provider_with_dependencies(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     return apple_common.new_objc_provider(**objc_provider_fields)
 
@@ -119,7 +119,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     framework_groups = _framework_dirs(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    objc_provider = _objc_provider(ctx, {
+    objc_provider = _objc_provider_with_dependencies(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
     })
@@ -161,7 +161,7 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    providers.append(_objc_provider(ctx, objc_provider_fields))
+    providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
