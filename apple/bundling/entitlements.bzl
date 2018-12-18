@@ -15,6 +15,10 @@
 """Actions that manipulate entitlements and provisioning profiles."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
     "bundling_support",
 )
@@ -33,10 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:common.bzl",
     "entitlements_validation_mode",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
 )
 load(
     "@build_bazel_rules_apple//common:define_utils.bzl",
@@ -167,7 +167,7 @@ def _extract_signing_info(ctx):
             content = struct(**control).to_json(),
         )
 
-        apple_action(
+        apple_support.run(
             ctx,
             inputs = [control_file, provisioning_profile],
             outputs = outputs,
@@ -176,7 +176,7 @@ def _extract_signing_info(ctx):
             mnemonic = "ExtractFromProvisioningProfile",
             # Since the tools spawns openssl and/or security tool, it doesn't
             # support being sandboxed.
-            no_sandbox = True,
+            execution_requirements = {"no-sandbox": "1"},
         )
 
     return struct(

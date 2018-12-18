@@ -15,13 +15,20 @@
 """Bazel rules for working with dtrace."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
     "label_scoped_path",
 )
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
     "path_utils",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
@@ -39,14 +46,13 @@ def _dtrace_compile_impl(ctx):
             paths.replace_extension(label_scoped_owner_path, ".h"),
         )
         output_hdrs.append(hdr)
-        apple_action(
+        apple_support.run(
             ctx,
             inputs = [src],
             outputs = [hdr],
             mnemonic = "dtraceCompile",
             executable = "/usr/sbin/dtrace",
             arguments = ["-h", "-s", src.path, "-o", hdr.path],
-            use_default_shell_env = False,
             progress_message = ("Compiling dtrace probes %s" % (src.basename)),
         )
 
@@ -54,14 +60,15 @@ def _dtrace_compile_impl(ctx):
 
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
-    attrs = {
+    attrs = dicts.add(apple_support.action_required_attrs(), {
         "srcs": attr.label_list(
             allow_files = [".d"],
             allow_empty = False,
             doc = "dtrace(.d) sources.",
         ),
-    },
+    }),
     output_to_genfiles = True,
+    fragments = ["apple"],
     doc = """
 Compiles
 [dtrace files with probes](https://www.ibm.com/developerworks/aix/library/au-dtraceprobes.html)
