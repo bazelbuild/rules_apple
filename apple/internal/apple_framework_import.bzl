@@ -115,7 +115,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
-    providers.append(providers.append(AppleFrameworkImportInfo(**provider_fields)))
+    providers.append(AppleFrameworkImportInfo(**provider_fields))
 
     framework_groups = _framework_dirs(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
