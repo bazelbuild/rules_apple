@@ -31,10 +31,6 @@ load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_runtime_linkopts",
 )
-load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
-)
 
 def _get_binary_provider(deps, provider_key):
     """Returns the provider from a rule's binary dependency.
@@ -51,7 +47,7 @@ def _get_binary_provider(deps, provider_key):
     Returns:
       The provider propagated by the single "deps" target of the current rule.
     """
-    matching_providers = providers.find_all(deps, provider_key)
+    matching_providers = [x[provider_key] for x in deps if provider_key in x]
     if matching_providers:
         if len(matching_providers) > 1:
             fail("Expected only one binary provider")

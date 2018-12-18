@@ -15,10 +15,6 @@
 """Support functions for working with Swift."""
 
 load(
-    "@build_bazel_rules_apple//common:providers.bzl",
-    "providers",
-)
-load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftUsageInfo",
     "swift_common",
@@ -39,9 +35,9 @@ def _swift_usage_info(targets):
       The `SwiftUsageInfo` provider for any of the targets in the list, or `None`
       if none of the targets transitively used Swift.
     """
-    swift_usage_providers = providers.find_all(targets, SwiftUsageInfo)
-    if swift_usage_providers:
-        return swift_usage_providers[0]
+    for x in targets:
+        if SwiftUsageInfo in x:
+            return x[SwiftUsageInfo]
     return None
 
 def _uses_swift(targets):
