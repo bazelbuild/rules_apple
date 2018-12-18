@@ -51,7 +51,6 @@ load(
 _ios_test_bundle = rule_factory.make_bundling_rule(
     ios_test_bundle_impl,
     additional_attrs = {
-        "dedupe_unbundled_resources": attr.bool(default = True),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(
             aspects = [framework_import_aspect],
@@ -99,7 +98,6 @@ def _ios_test(
         product_type,
         bundle_id = None,
         bundle_loader = None,
-        dedupe_unbundled_resources = None,
         infoplists = [
             "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
         ],
@@ -158,7 +156,6 @@ def _ios_test(
         name = test_bundle_name,
         bundle_name = name,
         bundle_id = bundle_id,
-        dedupe_unbundled_resources = dedupe_unbundled_resources,
         infoplists = infoplists,
         product_type = product_type,
         test_host = test_host,

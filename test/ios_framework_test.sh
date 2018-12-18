@@ -1562,7 +1562,6 @@ ios_framework(
     infoplists = ["Framework-Info.plist", "Info-Common.plist"],
     minimum_os_version = "9.0",
     deps = [":dep_framework_lib"],
-    dedupe_unbundled_resources = True,
 )
 
 objc_library(

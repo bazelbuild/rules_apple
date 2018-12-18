@@ -64,9 +64,6 @@ def ios_application(name, **kwargs):
           there may be only one such `.appiconset` directory in the list.
       bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
           application.
-      dedupe_unbundled_resources: If true, ensures that resources present in
-          any frameworks that this application depends on are not also present
-          at the main app level. True by default.
       entitlements: The entitlements file required for device builds of this
           application. If absent, the default entitlements from the provisioning
           profile will be used.
@@ -234,9 +231,6 @@ def ios_framework(name, **kwargs):
           framework. If specified, it will override the bundle ID in the plist
           file. If no bundle ID is specified by either this attribute or in the
           plist file, the build will fail.
-      dedupe_unbundled_resources: If true, ensures that resources present in
-          any frameworks that this target depends on are not also present
-          in this framework. True by default.
       extension_safe: If true, compiles and links this framework with
           `-application-extension` restricting the binary to use only
           extension-safe APIs. False by default.
