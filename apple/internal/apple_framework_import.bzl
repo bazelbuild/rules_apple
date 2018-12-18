@@ -173,10 +173,7 @@ def _apple_static_framework_import_impl(ctx):
             bundle_files,
             parent_dir_param = parent_dir_param,
         )
-        providers += [
-            AppleResourceBundleInfo(),
-            resource_provider,
-        ]
+        providers.append(resource_provider)
 
     return providers
 
