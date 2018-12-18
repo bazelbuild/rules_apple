@@ -58,6 +58,9 @@ def _describe_rule_type(
         archive_extension = ".zip",
         bundle_extension = None,
         bundle_locations = None,
+        has_launch_images = False,
+        has_settings_bundle = False,
+        is_executable = False,
         product_type = None,
         provisioning_profile_extension = ".mobileprovision",
         requires_deps = True,
@@ -79,6 +82,9 @@ def _describe_rule_type(
         archive_extension: Extension for the archive output of the rule.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
+        has_launch_images: Whether the rule supports launch images.
+        has_settings_bundle: Whether the rule supports a settings bundle.
+        is_executable: Whether targets of this rule can be executed with `bazel run`.
         product_type: The product type for this rule.
         provisioning_profile_extension: Extension for the expected provisioning profile files for
             this rule.
@@ -108,6 +114,9 @@ def _describe_rule_type(
         archive_extension = archive_extension,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
+        has_launch_images = has_launch_images,
+        has_settings_bundle = has_settings_bundle,
+        is_executable = is_executable,
         product_type = product_type,
         provisioning_profile_extension = provisioning_profile_extension,
         requires_deps = requires_deps,
@@ -135,6 +144,9 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            has_launch_images = True,
+            has_settings_bundle = True,
+            is_executable = True,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
         ),
@@ -288,8 +300,12 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
+            archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            has_launch_images = True,
+            has_settings_bundle = True,
+            is_executable = True,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
         ),
