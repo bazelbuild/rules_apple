@@ -19,17 +19,10 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    _apple_product_type = "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:tvos_rules.bzl",
+    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_extension = "tvos_extension",
 )
-
-# Re-export apple_product_type.
-apple_product_type = _apple_product_type
 
 def tvos_application(name, **kwargs):
     """Builds and bundles a tvOS application.
@@ -154,17 +147,22 @@ def tvos_extension(name, **kwargs):
     # prepends "-Wl," to each option, we must use the form expected by ld, not
     # the form expected by clang (i.e., -application_extension, not
     # -fapplication-extension).
-    linkopts = kwargs.get("linkopts", [])
-    linkopts += ["-e", "_TVExtensionMain", "-application_extension"]
-    kwargs["linkopts"] = linkopts
-
     # Make sure that TVServices.framework is linked in as well, to ensure that
     # _TVExtensionMain is found. (Anyone writing a TV extension should already be
     # importing this framework, anyway.)
-    bundling_args = binary_support.create_binary(
+    linkopts = kwargs.get("linkopts", [])
+    linkopts.extend([
+        "-e",
+        "_TVExtensionMain",
+        "-application_extension",
+        "-framework",
+        "TVServices",
+    ])
+    kwargs["linkopts"] = linkopts
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.tvos),
-        sdk_frameworks = ["TVServices"],
+        platform_type = str(apple_common.platform_type.tvos),
         **kwargs
     )
 

@@ -19,6 +19,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
     "run_actions",
 )
@@ -31,12 +35,16 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
 )
 
-def tvos_application_impl(ctx):
+def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
 
     top_level_attrs = [
@@ -111,19 +119,17 @@ def tvos_application_impl(ctx):
         TvosApplicationBundleInfo(),
     ] + processor_result.providers
 
-def tvos_extension_impl(ctx):
+def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     top_level_attrs = [
         "app_icons",
         "strings",
     ]
 
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
 
     bundle_id = ctx.attr.bundle_id
 
@@ -132,11 +138,11 @@ def tvos_extension_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
         partials.resources_partial(
@@ -162,3 +168,17 @@ def tvos_extension_impl(ctx):
         ),
         TvosExtensionBundleInfo(),
     ] + processor_result.providers
+
+tvos_application = rule_factory.create_apple_bundling_rule(
+    implementation = _tvos_application_impl,
+    platform_type = "tvos",
+    product_type = apple_product_type.application,
+    doc = "Builds and bundles a tvOS Application.",
+)
+
+tvos_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _tvos_extension_impl,
+    platform_type = "tvos",
+    product_type = apple_product_type.app_extension,
+    doc = "Builds and bundles a tvOS Extension.",
+)

@@ -42,9 +42,11 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleResourceBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
+    "TvosExtensionBundleInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -95,6 +97,18 @@ _COMMON_PRIVATE_TOOL_ATTRS = {
         allow_single_file = True,
         default = Label("@build_bazel_rules_apple//tools/realpath"),
         executable = True,
+    ),
+    # TODO(b/74731511): Refactor this attribute into being specified for each
+    # platform.
+    "_runner_template": attr.label(
+        cfg = "host",
+        allow_single_file = True,
+        default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
+    ),
+    "_std_redirect_dylib": attr.label(
+        cfg = "host",
+        allow_single_file = True,
+        default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
     ),
     "_swift_stdlib_tool": attr.label(
         cfg = "host",
@@ -283,7 +297,7 @@ An `apple_bundle_version` target that represents the version for this target. Se
         ),
     })
 
-    if len(rule_descriptor.allowed_device_families):
+    if len(rule_descriptor.allowed_device_families) > 1:
         attrs.append({
             "families": attr.string_list(
                 mandatory = True,
@@ -306,6 +320,31 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
                     app_icon_extension = rule_descriptor.app_icon_extension,
                     app_icon_parent_extension = rule_descriptor.app_icon_parent_extension,
                 ),
+            ),
+        })
+
+    if rule_descriptor.has_launch_images:
+        attrs.append({
+            "launch_images": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the launch images for the application. Each file must have a containing
+directory named `*.xcassets/*.launchimage` and there may be only one such `.launchimage` directory
+in the list.
+""",
+            ),
+        })
+
+    if rule_descriptor.has_settings_bundle:
+        attrs.append({
+            "settings_bundle": attr.label(
+                aspects = [apple_resource_aspect],
+                providers = [["objc"], [AppleResourceBundleInfo]],
+                doc = """
+A resource bundle (e.g. `apple_bundle_import`) target that contains the files that make up the
+application's settings bundle. These files will be copied into the root of the final application
+bundle in a directory named `Settings.bundle`.
+""",
             ),
         })
 
@@ -387,6 +426,22 @@ that this target depends on.
 
     return attrs
 
+def _get_tvos_attrs(rule_descriptor):
+    """Returns a list of dictionaries with attributes for the tvOS platform."""
+    attrs = []
+
+    if rule_descriptor.product_type == apple_product_type.application:
+        attrs.append({
+            "extensions": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, TvosExtensionBundleInfo],
+                ],
+                doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+        })
+
+    return attrs
+
 def _create_apple_bundling_rule(implementation, platform_type, product_type, doc):
     """Creates an Apple bundling rule."""
     rule_attrs = [
@@ -409,6 +464,8 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     # TODO(kaipi): Add support for all platforms.
     if platform_type == "ios":
         rule_attrs.extend(_get_ios_attrs(rule_descriptor))
+    elif platform_type == "tvos":
+        rule_attrs.extend(_get_tvos_attrs(rule_descriptor))
 
     archive_name = "%{name}" + rule_descriptor.archive_extension
     return rule(
@@ -416,6 +473,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
         doc = doc,
+        executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
