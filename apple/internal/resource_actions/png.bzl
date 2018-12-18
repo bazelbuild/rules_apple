@@ -15,8 +15,8 @@
 """PNG related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "xcrun_action",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 
 def copy_png(ctx, input_file, output_file):
@@ -27,10 +27,11 @@ def copy_png(ctx, input_file, output_file):
       input_file: The png file to be copied.
       output_file: The file reference for the output plist.
     """
-    xcrun_action(
+    apple_support.run(
         ctx,
         inputs = [input_file],
         outputs = [output_file],
+        executable = "/usr/bin/xcrun",
         arguments = [
             "copypng",
             "-strip-PNG-text",

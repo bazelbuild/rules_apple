@@ -89,6 +89,10 @@ for their platform through either `simple_path_formats` or `macos_path_formats`.
 """
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
     "AppleEntitlementsInfo",
 )
@@ -132,47 +136,45 @@ def _is_valid_attribute_mode(mode):
 
 # Private attributes on every rule that provide access to tools and other
 # file dependencies.
-_common_tool_attributes = {
-    "_dsym_info_plist_template": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label(
-            "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+_common_tool_attributes = dicts.add(
+    {
+        "_dsym_info_plist_template": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label(
+                "@build_bazel_rules_apple//apple/bundling:dsym_info_plist_template",
+            ),
         ),
-    ),
-    "_environment_plist": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@build_bazel_rules_apple//tools/environment_plist"),
-    ),
-    "_plisttool": attr.label(
-        cfg = "host",
-        default = Label("@build_bazel_rules_apple//tools/plisttool"),
-        executable = True,
-    ),
-    "_realpath": attr.label(
-        cfg = "host",
-        allow_single_file = True,
-        default = Label("@build_bazel_rules_apple//tools/realpath"),
-        executable = True,
-    ),
-    "_swift_stdlib_tool": attr.label(
-        cfg = "host",
-        default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
-        executable = True,
-    ),
-    "_xcode_config": attr.label(
-        default = configuration_field(
-            name = "xcode_config_label",
-            fragment = "apple",
+        "_environment_plist": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/environment_plist"),
         ),
-    ),
-    "_xcrunwrapper": attr.label(
-        cfg = "host",
-        executable = True,
-        default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-    ),
-}
+        "_plisttool": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_rules_apple//tools/plisttool"),
+            executable = True,
+        ),
+        "_realpath": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//tools/realpath"),
+            executable = True,
+        ),
+        "_swift_stdlib_tool": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
+            executable = True,
+        ),
+        # TODO(b/118264452): Remove this once all apple actions are migrated to apple_support
+        "_xcrunwrapper": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+        ),
+    },
+    apple_support.action_required_attrs(),
+)
 
 # Private attributes on every rule that provide access to tools used by the
 # bundler.

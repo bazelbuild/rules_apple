@@ -15,6 +15,10 @@
 """Partial implementation for Swift dylib processing for bundles."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -29,11 +33,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_actions_run",
-    "xcrun_env",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -74,15 +73,14 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
         ctx.executable._realpath.path,
     ]
 
-    apple_actions_run(
-        ctx.actions,
+    apple_support.run(
+        ctx,
         inputs = binary_files,
         tools = [ctx.executable._realpath],
         executable = ctx.executable._swift_stdlib_tool,
         outputs = [output_dir],
         arguments = swift_stdlib_tool_args + [x.path for x in binary_files],
         mnemonic = "SwiftStdlibCopy",
-        env = xcrun_env(ctx),
     )
 
 def _swift_dylibs_partial_impl(
