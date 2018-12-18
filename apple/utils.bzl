@@ -58,27 +58,6 @@ def apple_actions_run(ctx_actions, **kw):
     kw["execution_requirements"] = execution_requirements
     ctx_actions.run(**kw)
 
-def apple_actions_runshell(ctx_actions, **kw):
-    """Creates an actions.run_shell() that only runs on MacOS/Darwin.
-
-    Call it similar to how you would call ctx.actions.run_shell:
-      apple_actions_runshell(ctx.actions, outputs=[...], inputs=[...],...)
-
-    Args:
-      ctx_actions: The ctx.actions object to use.
-      **kw: Additional arguments that are passed directly to
-        `actions.run_shell`.
-    """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
-    ctx_actions.run_shell(**kw)
-
 def full_label(l):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 
