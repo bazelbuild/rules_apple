@@ -58,7 +58,6 @@ ios_application = rule_factory.make_bundling_rule(
     ios_application_impl,
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
-        "dedupe_unbundled_resources": attr.bool(default = True),
         "extensions": attr.label_list(
             providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
             aspects = [framework_import_aspect],
@@ -103,7 +102,6 @@ ios_extension = rule_factory.make_bundling_rule(
     additional_attrs = {
         "app_icons": attr.label_list(allow_files = True),
         "asset_catalogs": attr.label_list(allow_files = True),
-        "dedupe_unbundled_resources": attr.bool(default = True),
         "frameworks": attr.label_list(
             providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
         ),
@@ -128,7 +126,6 @@ ios_framework = rule_factory.make_bundling_rule(
     ios_framework_impl,
     additional_attrs = {
         "hdrs": attr.label_list(allow_files = [".h"]),
-        "dedupe_unbundled_resources": attr.bool(default = True),
         "extension_safe": attr.bool(default = False),
         "frameworks": attr.label_list(
             providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
@@ -151,7 +148,6 @@ ios_static_framework = rule_factory.make_bundling_rule(
     additional_attrs = {
         "hdrs": attr.label_list(allow_files = [".h"]),
         "avoid_deps": attr.label_list(),
-        "dedupe_unbundled_resources": attr.bool(default = True),
         "exclude_resources": attr.bool(default = False),
     },
     archive_extension = ".zip",

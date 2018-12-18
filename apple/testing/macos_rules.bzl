@@ -51,7 +51,6 @@ load(
 _macos_test_bundle = rule_factory.make_bundling_rule(
     macos_test_bundle_impl,
     additional_attrs = {
-        "dedupe_unbundled_resources": attr.bool(default = True),
         # The test host that will run these tests. Optional.
         "test_host": attr.label(providers = [AppleBundleInfo], aspects = [framework_import_aspect]),
     },
@@ -88,7 +87,6 @@ def _macos_test(
         product_type,
         bundle_id = None,
         bundle_loader = None,
-        dedupe_unbundled_resources = None,
         infoplists = [
             "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
         ],
@@ -150,7 +148,6 @@ def _macos_test(
         name = test_bundle_name,
         bundle_id = bundle_id,
         bundle_name = name,
-        dedupe_unbundled_resources = dedupe_unbundled_resources,
         infoplists = infoplists,
         product_type = product_type,
         test_host = test_host,
