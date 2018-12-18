@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of apple_dynamic_framework_import and apple_static_framework_import of framework import rules."""
+"""Implementation of framework import rules."""
 
 load(
     "@bazel_skylib//lib:partial.bzl",
