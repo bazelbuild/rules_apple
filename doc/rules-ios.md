@@ -7,8 +7,8 @@
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, extensions, families, frameworks, infoplists,
 ipa_post_processor, launch_images, launch_storyboard, linkopts,
-minimum_os_version, product_type, provisioning_profile, settings_bundle,
-strings, version, watch_application, deps)
+minimum_os_version, provisioning_profile, settings_bundle, strings, version,
+watch_application, deps)
 ```
 
 Builds and bundles an iOS application.
@@ -170,14 +170,6 @@ Builds and bundles an iOS application.
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>). If this attribute is omitted, then the value specified
         by the flag <code>--ios_minimum_os</code> will be used instead.
-      </td>
-    </tr>
-    <tr>
-      <td><code>product_type</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>Deprecated. To declare an iOS iMessage Application, use the
-        <code>ios_imessage_application</code> rule.</p>
       </td>
     </tr>
     <tr>
@@ -388,8 +380,7 @@ iMessage extension or a Sticker Pack extension.
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, product_type, provisioning_profile, strings,
-version, deps)
+linkopts, minimum_os_version, provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -420,14 +411,6 @@ Builds and bundles an iOS application extension.
         <p>For most extensions, each file must have a containing directory named
         <code>*.xcassets/*.appiconset</code> and there may be only one such
         <code>.appiconset</code> directory in the list.</p>
-        <p>For Message StickerPack extensions (<code>product_type</code> of
-        <code>apple_product_type.messages_sticker_pack_extension</code>), the
-        collection of assets should be under a folder named
-        <code>*.*.xcstickers</code>. The main icons go in a
-        <code>*.stickersiconset</code> (instead of <code>*.appiconset</code>);
-        and the files for the stickers should all be in Sticker Pack
-        directories, so <code>*.stickerpack/*.sticker</code> or
-        <code>*.stickerpack/*.stickersequence</code>.</p>
       </td>
     </tr>
     <tr>
@@ -529,15 +512,6 @@ Builds and bundles an iOS application extension.
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>). If this attribute is omitted, then the value specified
         by the flag <code>--ios_minimum_os</code> will be used instead.
-      </td>
-    </tr>
-    <tr>
-      <td><code>product_type</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>Deprecated. To declare an iOS iMessage Extension, use the
-        <code>ios_imessage_extension</code> rule. To declare an iOS Sticker Pack
-        extension, use the <code>ios_sticker_pack_extension</code> rule.</p>
       </td>
     </tr>
     <tr>
