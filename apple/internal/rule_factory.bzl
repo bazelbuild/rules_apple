@@ -139,73 +139,79 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
-_COMMON_BINARY_LINKING_ATTRS = {
-    "binary_type": attr.string(
-        default = "executable",
-        doc = """
+def _common_binary_linking_attrs(rule_descriptor):
+    return {
+        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API.
+        "binary": attr.label(
+            allow_single_file = True,
+            mandatory = False,
+        ),
+        "binary_type": attr.string(
+            default = "executable",
+            doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
-""",
-    ),
-    "bundle_loader": attr.label(
-        aspects = [apple_common.objc_proto_aspect],
-        doc = """
+    """,
+        ),
+        "bundle_loader": attr.label(
+            aspects = [apple_common.objc_proto_aspect],
+            doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
-""",
-    ),
-    "dylibs": attr.label_list(
-        aspects = [apple_common.objc_proto_aspect],
-        doc = """
+    """,
+        ),
+        "dylibs": attr.label_list(
+            aspects = [apple_common.objc_proto_aspect],
+            doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
-""",
-    ),
-    "linkopts": attr.string_list(
-        doc = """
+    """,
+        ),
+        "linkopts": attr.string_list(
+            doc = """
 A list of strings representing extra flags that should be passed to the linker.
-""",
-    ),
-    "deps": attr.label_list(
-        aspects = [
-            apple_common.objc_proto_aspect,
-            apple_resource_aspect,
-            framework_import_aspect,
-            swift_usage_aspect,
-        ],
-        cfg = apple_common.multi_arch_split,
-        doc = """
+    """,
+        ),
+        "deps": attr.label_list(
+            aspects = [
+                apple_common.objc_proto_aspect,
+                apple_resource_aspect,
+                framework_import_aspect,
+                swift_usage_aspect,
+            ],
+            cfg = rule_descriptor.deps_cfg,
+            doc = """
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
 bundle.
-""",
-    ),
-    "_cc_toolchain": attr.label(
-        default = configuration_field(
-            name = "cc_toolchain",
-            fragment = "cpp",
+    """,
         ),
-    ),
-    "_child_configuration_dummy": attr.label(
-        cfg = apple_common.multi_arch_split,
-        default = configuration_field(
-            name = "cc_toolchain",
-            fragment = "cpp",
+        "_cc_toolchain": attr.label(
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
         ),
-    ),
-    "_googlemac_proto_compiler": attr.label(
-        cfg = "host",
-        default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
-    ),
-    "_googlemac_proto_compiler_support": attr.label(
-        cfg = "host",
-        default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
-    ),
-    "_protobuf_well_known_types": attr.label(
-        cfg = "host",
-        default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
-    ),
-}
+        "_child_configuration_dummy": attr.label(
+            cfg = apple_common.multi_arch_split,
+            default = configuration_field(
+                name = "cc_toolchain",
+                fragment = "cpp",
+            ),
+        ),
+        "_googlemac_proto_compiler": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
+        ),
+        "_googlemac_proto_compiler_support": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
+        ),
+        "_protobuf_well_known_types": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
+        ),
+    }
 
 def _get_legacy_attributes(rule_descriptor):
     """Returns a dictionary with legacy attributes that should get replaced by rule descriptors."""
@@ -230,27 +236,48 @@ def _get_common_bundling_attributes(rule_descriptor):
     # TODO(kaipi): Review platform specific wording in the documentation before migrating macOS
     # rules to use this rule factory.
     attrs = [_COMMON_PRIVATE_TOOL_ATTRS]
+
+    if rule_descriptor.requires_bundle_id:
+        attrs.append({
+            "bundle_id": attr.string(
+                mandatory = True,
+                doc = "The bundle ID (reverse-DNS path followed by app name) for this target.",
+            ),
+        })
+
+    if rule_descriptor.has_infoplist:
+        attrs.append({
+            "infoplists": attr.label_list(
+                allow_empty = False,
+                allow_files = [".plist"],
+                mandatory = True,
+                doc = """
+A list of .plist files that will be merged to form the Info.plist for this target. At least one file
+must be specified. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+for what is supported.
+""",
+            ),
+        })
+
+    if rule_descriptor.requires_provisioning_profile:
+        attrs.append({
+            "provisioning_profile": attr.label(
+                allow_single_file = [rule_descriptor.provisioning_profile_extension],
+                doc = """
+The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
+optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
+required for device builds.
+""".format(profile_extension = rule_descriptor.provisioning_profile_extension),
+            ),
+        })
+
     attrs.append({
-        "bundle_id": attr.string(
-            mandatory = True,
-            doc = "The bundle ID (reverse-DNS path followed by app name) for this target.",
-        ),
         "bundle_name": attr.string(
             mandatory = False,
             doc = """
 The desired name of the bundle (without the extension). If this attribute is not set, then the name
 of the target will be used instead.
-""",
-        ),
-        "infoplists": attr.label_list(
-            allow_empty = False,
-            allow_files = [".plist"],
-            mandatory = True,
-            doc = """
-A list of .plist files that will be merged to form the Info.plist for this target. At least one file
-must be specified. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
-for what is supported.
 """,
         ),
         # TODO(b/36512239): Rename to "bundle_post_processor".
@@ -275,14 +302,6 @@ dotted version number (for example, "9.0"). If this attribute is omitted, then t
 by the flag `--ios_minimum_os` will be used instead.
 """,
         ),
-        "provisioning_profile": attr.label(
-            allow_single_file = [rule_descriptor.provisioning_profile_extension],
-            doc = """
-The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
-optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
-required for device builds.
-""".format(profile_extension = rule_descriptor.provisioning_profile_extension),
-        ),
         "strings": attr.label_list(
             allow_files = [".strings"],
             doc = """
@@ -302,14 +321,18 @@ An `apple_bundle_version` target that represents the version for this target. Se
     })
 
     if len(rule_descriptor.allowed_device_families) > 1:
+        extra_args = {}
+        if not rule_descriptor.mandatory_families:
+            extra_args["default"] = rule_descriptor.allowed_device_families
         attrs.append({
             "families": attr.string_list(
-                mandatory = True,
+                mandatory = rule_descriptor.mandatory_families,
                 allow_empty = False,
                 doc = """
 A list of device families supported by this extension. Valid values are `iphone` and `ipad`; at
 least one must be specified.
 """,
+                **extra_args
             ),
         })
 
@@ -413,9 +436,50 @@ Required.
 """,
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.framework:
+        attrs.append({
+            # TODO(kaipi): This attribute is not publicly documented, but it is tested in
+            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
+            # what to do with this.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.static_framework:
+        attrs.append({
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "avoid_deps": attr.label_list(
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+        })
 
     # TODO(kaipi): Once all platforms have framework rules, move this into
-    # _COMMON_BINARY_LINKING_ATTRS.
+    # _common_binary_linking_attrs().
     if rule_descriptor.requires_deps:
         attrs.append({
             "frameworks": attr.label_list(
@@ -497,7 +561,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     rule_attrs.append(_get_legacy_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:
-        rule_attrs.append(_COMMON_BINARY_LINKING_ATTRS)
+        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
 
     # TODO(kaipi): Add support for all platforms.
     if platform_type == "ios":

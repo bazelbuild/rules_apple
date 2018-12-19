@@ -58,13 +58,18 @@ def _describe_rule_type(
         archive_extension = ".zip",
         bundle_extension = None,
         bundle_locations = None,
+        deps_cfg = None,
+        has_infoplist = True,
         has_launch_images = False,
         has_settings_bundle = False,
         is_executable = False,
+        mandatory_families = False,
         product_type = None,
         provisioning_profile_extension = ".mobileprovision",
+        requires_bundle_id = True,
         requires_deps = True,
         requires_pkginfo = False,
+        requires_provisioning_profile = True,
         requires_signing_for_device = True,
         skip_signing = False,
         skip_simulator_signing_allowed = True,
@@ -82,15 +87,24 @@ def _describe_rule_type(
         archive_extension: Extension for the archive output of the rule.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
+        deps_cfg: The configuration for the deps attribute. This should be None for rules that use
+            the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
+            that use the Starlark linking API.
+        has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
         is_executable: Whether targets of this rule can be executed with `bazel run`.
+        mandatory_families: If there are multiple families to choose from, whether the user is
+            required to provide a value for them.
         product_type: The product type for this rule.
         provisioning_profile_extension: Extension for the expected provisioning profile files for
             this rule.
+        requires_bundle_id: Whether the rule requires a bundle ID.
         requires_deps: Whether this rule has a user linked binary and accepts dependencies to be
             linked into the binary.
         requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
+        requires_provisioning_profile: Whether the rule requires a provisioning profile when
+            building for devices.
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
         skip_signing: Whether this rule skips the signing step.
@@ -114,13 +128,18 @@ def _describe_rule_type(
         archive_extension = archive_extension,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
+        deps_cfg = deps_cfg,
+        has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
         is_executable = is_executable,
+        mandatory_families = mandatory_families,
         product_type = product_type,
         provisioning_profile_extension = provisioning_profile_extension,
+        requires_bundle_id = requires_bundle_id,
         requires_deps = requires_deps,
         requires_pkginfo = requires_pkginfo,
+        requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         skip_signing = skip_signing,
@@ -147,6 +166,7 @@ _RULE_TYPE_DESCRIPTORS = {
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,
+            mandatory_families = True,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
         ),
@@ -154,12 +174,14 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".appex",
+            mandatory_families = True,
             product_type = apple_product_type.app_extension,
         ),
         # ios_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
+            mandatory_families = True,
             product_type = apple_product_type.framework,
             skip_signing = True,
         ),
@@ -172,6 +194,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            mandatory_families = True,
             product_type = apple_product_type.messages_application,
             requires_deps = False,
             stub_binary_path = "../../../Library/Application Support/" +
@@ -183,6 +206,8 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
+            deps_cfg = apple_common.multi_arch_split,
+            mandatory_families = True,
             product_type = apple_product_type.messages_extension,
         ),
         # ios_stickerpack_extension
@@ -192,6 +217,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcstickers",
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
+            mandatory_families = True,
             product_type = apple_product_type.messages_sticker_pack_extension,
             requires_deps = False,
             stub_binary_path = "../../../Library/Application Support/" +
@@ -201,7 +227,10 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.static_framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
+            has_infoplist = False,
             product_type = apple_product_type.static_framework,
+            requires_bundle_id = False,
+            requires_provisioning_profile = False,
             skip_signing = True,
         ),
         # ios_ui_test
@@ -313,6 +342,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            deps_cfg = apple_common.multi_arch_split,
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,
@@ -323,6 +353,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["tv"],
             bundle_extension = ".appex",
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.app_extension,
         ),
     },
@@ -342,6 +373,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.watch2_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
             bundle_extension = ".appex",
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.watch2_extension,
         ),
     },

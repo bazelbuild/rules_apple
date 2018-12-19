@@ -26,8 +26,6 @@ load(
     "@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
     _ios_application = "ios_application",
     _ios_extension = "ios_extension",
-    _ios_framework = "ios_framework",
-    _ios_static_framework = "ios_static_framework",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
@@ -35,8 +33,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_framework = "ios_framework",
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
+    _ios_static_framework = "ios_static_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 load(
@@ -339,7 +339,6 @@ def ios_static_framework(name, **kwargs):
     passthrough_args = kwargs
     passthrough_args.pop("avoid_deps", None)
     passthrough_args.pop("deps", None)
-    passthrough_args["binary"] = ":" + apple_static_library_name
 
     _ios_static_framework(
         name = name,

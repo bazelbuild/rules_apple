@@ -167,7 +167,7 @@ def ios_application_impl(ctx):
         ] + processor_result.providers,
     )
 
-def ios_framework_impl(ctx):
+def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     # TODO(kaipi): Add support for packaging headers.
 
@@ -284,7 +284,7 @@ def ios_extension_impl(ctx):
         IosExtensionBundleInfo(),
     ] + processor_result.providers
 
-def ios_static_framework_impl(ctx):
+def _ios_static_framework_impl(ctx):
     """Experimental implementation of ios_static_framework."""
 
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
@@ -494,6 +494,20 @@ def _ios_sticker_pack_extension_impl(ctx):
 # Rule definitions for rules that use the Skylark linking API and the new rule_factory support.
 # TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
 # attributes.
+
+ios_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_framework_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles an iOS Dynamic Framework.",
+)
+
+ios_static_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_static_framework_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.static_framework,
+    doc = "Builds and bundles an iOS Static Framework.",
+)
 
 ios_imessage_application = rule_factory.create_apple_bundling_rule(
     implementation = _ios_imessage_application_impl,
