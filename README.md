@@ -48,6 +48,13 @@ load(
 )
 
 swift_rules_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
 ```
 
 If you're going to use `ios_unit_test` or `ios_ui_test`, you'll also need to add
