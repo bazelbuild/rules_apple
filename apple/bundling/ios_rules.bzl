@@ -42,8 +42,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     "ios_application_impl",
     "ios_extension_impl",
-    "ios_framework_impl",
-    "ios_static_framework_impl",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -119,50 +117,5 @@ ios_extension = rule_factory.make_bundling_rule(
             apple_product_type.messages_extension,
             apple_product_type.messages_sticker_pack_extension,
         ],
-    ),
-)
-
-ios_framework = rule_factory.make_bundling_rule(
-    ios_framework_impl,
-    additional_attrs = {
-        "hdrs": attr.label_list(allow_files = [".h"]),
-        "extension_safe": attr.bool(default = False),
-        "frameworks": attr.label_list(
-            providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
-        ),
-    },
-    archive_extension = ".zip",
-    binary_providers = [apple_common.AppleDylibBinary],
-    code_signing = rule_factory.code_signing(skip_signing = True),
-    device_families = rule_factory.device_families(allowed = ["iphone", "ipad"]),
-    path_formats = rule_factory.simple_path_formats(path_in_archive_format = "%s"),
-    platform_type = apple_common.platform_type.ios,
-    product_type = rule_factory.product_type(
-        apple_product_type.framework,
-        private = True,
-    ),
-)
-
-ios_static_framework = rule_factory.make_bundling_rule(
-    ios_static_framework_impl,
-    additional_attrs = {
-        "hdrs": attr.label_list(allow_files = [".h"]),
-        "avoid_deps": attr.label_list(),
-        "exclude_resources": attr.bool(default = False),
-    },
-    archive_extension = ".zip",
-    binary_providers = [apple_common.AppleStaticLibrary],
-    bundle_id_attr_mode = rule_factory.attribute_modes.UNSUPPORTED,
-    code_signing = rule_factory.code_signing(skip_signing = True),
-    device_families = rule_factory.device_families(
-        allowed = ["iphone", "ipad"],
-        mandatory = False,
-    ),
-    infoplists_attr_mode = rule_factory.attribute_modes.UNSUPPORTED,
-    path_formats = rule_factory.simple_path_formats(path_in_archive_format = "%s"),
-    platform_type = apple_common.platform_type.ios,
-    product_type = rule_factory.product_type(
-        apple_product_type.static_framework,
-        private = True,
     ),
 )
