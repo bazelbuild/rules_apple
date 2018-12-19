@@ -23,8 +23,8 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceBundleInfo",
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
