@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of apple_framework_import."""
+"""Implementation of framework import rules."""
 
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
@@ -52,9 +64,25 @@ def filter_framework_imports_for_bundling(framework_imports):
 
     return filtered_imports
 
-def _apple_framework_import_impl(ctx):
-    """Implementation for the apple_framework_import rule."""
-    framework_imports = ctx.files.framework_imports
+def _all_framework_binaries(frameworks_groups):
+    """Returns a list of Files of all imported binaries."""
+    return [
+        _get_framework_binary_file(framework_dir, framework_imports.to_list())
+        for framework_dir, framework_imports in frameworks_groups.items()
+    ]
+
+def _get_framework_binary_file(framework_dir, framework_imports):
+    """Returns the File that is the framework's binary."""
+    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+    framework_short_path = paths.join(framework_dir, framework_name)
+    for framework_import in framework_imports:
+        if framework_import.short_path == framework_short_path:
+            return framework_import
+
+    fail("ERROR: There has to be a binary file in the imported framework.")
+
+def _grouped_framework_files(framework_imports):
+    """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
         framework_imports,
         ["framework"],
@@ -63,45 +91,45 @@ def _apple_framework_import_impl(ctx):
 
     # TODO(b/120920467): Add validation to ensure only a single framework is being imported.
 
-    providers = []
+    return framework_groups
 
-    framework_imports_set = depset(framework_imports)
-    framework_dirs_set = depset(framework_groups.keys())
-    objc_provider_fields = {}
+def _objc_provider_with_dependencies(ctx, objc_provider_fields):
+    """Returns a new Objc provider which includes transitive Objc dependencies."""
+    objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
+    return apple_common.new_objc_provider(**objc_provider_fields)
 
-    transitive_sets = []
-    for dep in ctx.attr.deps:
-        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports"):
-            transitive_sets.append(dep[AppleFrameworkImportInfo].framework_imports)
+def _transitive_framework_imports(deps):
+    """Returns the list of transitive framework imports for the given deps."""
+    return [
+        dep[AppleFrameworkImportInfo].framework_imports
+        for dep in deps
+        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports")
+    ]
 
-    if ctx.attr.is_dynamic:
-        if any([ctx.attr.sdk_dylibs, ctx.attr.sdk_frameworks, ctx.attr.weak_sdk_frameworks]):
-            fail(
-                "Error: sdk_dylibs, sdk_frameworks and weak_sdk_frameworks can only be set for " +
-                "static frameworks (i.e. is_dynamic = False)",
-            )
-
-        objc_provider_fields["dynamic_framework_file"] = framework_imports_set
-        objc_provider_fields["dynamic_framework_dir"] = framework_dirs_set
-
-        filtered_framework_imports = filter_framework_imports_for_bundling(framework_imports)
-        if filtered_framework_imports:
-            transitive_sets.append(depset(filtered_framework_imports))
-    else:
-        if ctx.attr.sdk_dylibs:
-            objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
-        if ctx.attr.sdk_frameworks:
-            objc_provider_fields["sdk_framework"] = depset(ctx.attr.sdk_frameworks)
-        if ctx.attr.weak_sdk_frameworks:
-            objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
-        objc_provider_fields["static_framework_file"] = framework_imports_set
-
+def _framework_import_info(transitive_sets):
+    """Returns an AppleFrameworkImportInfo containg any transitive framework imports."""
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
-    providers.append(
-        AppleFrameworkImportInfo(**provider_fields),
-    )
+    return AppleFrameworkImportInfo(**provider_fields)
+
+def _apple_dynamic_framework_import_impl(ctx):
+    """Implementation for the apple_dynamic_framework_import rule."""
+    providers = []
+
+    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    filtered_framework_imports = filter_framework_imports_for_bundling(ctx.files.framework_imports)
+    if filtered_framework_imports:
+        transitive_sets.append(depset(filtered_framework_imports))
+    providers.append(_framework_import_info(transitive_sets))
+
+    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
+    framework_dirs_set = depset(framework_groups.keys())
+    objc_provider = _objc_provider_with_dependencies(ctx, {
+        "dynamic_framework_file": depset(ctx.files.framework_imports),
+        "dynamic_framework_dir": framework_dirs_set,
+    })
+    providers.append(objc_provider)
 
     # TODO(kaipi): Remove this dummy binary. It is only required because the
     # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
@@ -109,22 +137,57 @@ def _apple_framework_import_impl(ctx):
     # can't remove this until that change is released in bazel.
     dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
     ctx.actions.write(dummy_binary, "_dummy_file_")
+    providers.append(apple_common.new_dynamic_framework_provider(
+        binary = dummy_binary,
+        objc = objc_provider,
+        framework_dirs = framework_dirs_set,
+        framework_files = depset(ctx.files.framework_imports),
+    ))
 
-    objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
-    objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
-    providers.append(objc_provider)
-    providers.append(
-        apple_common.new_dynamic_framework_provider(
-            binary = dummy_binary,
-            objc = objc_provider,
-            framework_dirs = framework_dirs_set,
-            framework_files = framework_imports_set,
-        ),
-    )
     return providers
 
-apple_framework_import = rule(
-    implementation = _apple_framework_import_impl,
+def _apple_static_framework_import_impl(ctx):
+    """Implementation for the apple_static_framework_import rule."""
+    providers = []
+
+    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    providers.append(_framework_import_info(transitive_sets))
+
+    framework_imports = ctx.files.framework_imports
+    objc_provider_fields = {
+        "static_framework_file": depset(framework_imports),
+    }
+
+    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
+    if ctx.attr.alwayslink:
+        objc_provider_fields["force_load_library"] = depset(
+            _all_framework_binaries(framework_groups),
+        )
+    if ctx.attr.sdk_dylibs:
+        objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
+    if ctx.attr.sdk_frameworks:
+        objc_provider_fields["sdk_framework"] = depset(ctx.attr.sdk_frameworks)
+    if ctx.attr.weak_sdk_frameworks:
+        objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
+
+    providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
+
+    bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
+    if bundle_files:
+        parent_dir_param = partial.make(
+            resources.bundle_relative_parent_dir,
+            extension = "bundle",
+        )
+        resource_provider = resources.bucketize(
+            bundle_files,
+            parent_dir_param = parent_dir_param,
+        )
+        providers.append(resource_provider)
+
+    return providers
+
+apple_dynamic_framework_import = rule(
+    implementation = _apple_dynamic_framework_import_impl,
     attrs = {
         "framework_imports": attr.label_list(
             allow_empty = False,
@@ -135,13 +198,43 @@ The list of files under a .framework directory which are provided to Apple based
 on this target.
 """,
         ),
-        "is_dynamic": attr.bool(
+        "deps": attr.label_list(
+            doc = """
+A list of targets that are dependencies of the target being built, which will be linked into that
+target.
+""",
+            providers = [
+                [apple_common.Objc, AppleFrameworkImportInfo],
+            ],
+        ),
+    },
+    doc = """
+This rule encapsulates an already-built dynamic framework. It is defined by a list of files in
+exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
+targets through the `deps` attribute.
+""",
+)
+
+apple_static_framework_import = rule(
+    implementation = _apple_static_framework_import_impl,
+    attrs = {
+        "framework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
             mandatory = True,
             doc = """
-Indicates whether this framework is linked dynamically or not. If this attribute is set to True, the
-final application binary will link against this framework and also be copied into the final
-application bundle inside the Frameworks directory. If this attribute is False, the framework will
-be statically linked into the final application binary instead.
+The list of files under a .framework directory which are provided to Apple based targets that depend
+on this target.
+""",
+        ),
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
+If true, any binary that depends (directly or indirectly) on this framework will link in all the
+object files for the framework file, even if some contain no symbols referenced by the binary. This
+is useful if your code isn't explicitly called by code in the binary; for example, if you rely on
+runtime checks for protocol conformances added in extensions in the library but do not directly
+reference any other symbols in the object file that adds that conformance.
 """,
         ),
         "sdk_dylibs": attr.string_list(
@@ -149,7 +242,6 @@ be statically linked into the final application binary instead.
 Names of SDK .dylib libraries to link with. For instance, `libz` or `libarchive`. `libc++` is
 included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree.
 When linking a binary, all libraries named in that binary's transitive dependency graph are used.
-Only applicable for static frameworks (i.e. `is_dynamic = False`).
 """,
         ),
         "sdk_frameworks": attr.string_list(
@@ -157,15 +249,14 @@ Only applicable for static frameworks (i.e. `is_dynamic = False`).
 Names of SDK frameworks to link with (e.g. `AddressBook`, `QuartzCore`). `UIKit` and `Foundation`
 are always included when building for the iOS, tvOS and watchOS platforms. For macOS, only
 `Foundation` is always included. When linking a top level binary, all SDK frameworks listed in that
-binary's transitive dependency graph are linked. Only applicable for static frameworks (i.e.
-`is_dynamic = False`).
+binary's transitive dependency graph are linked.
 """,
         ),
         "weak_sdk_frameworks": attr.string_list(
             doc = """
 Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`. In difference to
 regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
-are not present at runtime. Only applicable for static frameworks (i.e. `is_dynamic = False`).
+are not present at runtime.
 """,
         ),
         "deps": attr.label_list(
@@ -179,8 +270,8 @@ linked into that target.
         ),
     },
     doc = """
-This rule encapsulates an already-built framework. It is defined by a list of files in a .framework
-directory. apple_framework_import targets need to be added to library targets through the `deps`
-attribute.
+This rule encapsulates an already-built static framework. It is defined by a list of files in a
+.framework directory. apple_static_framework_import targets need to be added to library targets
+through the `deps` attribute.
 """,
 )
