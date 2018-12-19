@@ -65,22 +65,24 @@ def filter_framework_imports_for_bundling(framework_imports):
     return filtered_imports
 
 def _all_framework_binaries(frameworks_groups):
+    """Returns a list of Files of all imported binaries."""
     return [
         _get_framework_binary_file(framework_dir, framework_imports.to_list())
         for framework_dir, framework_imports in frameworks_groups.items()
     ]
 
 def _get_framework_binary_file(framework_dir, framework_imports):
+    """Returns the File that is the framework's binary."""
     framework_name = paths.split_extension(paths.basename(framework_dir))[0]
     framework_short_path = paths.join(framework_dir, framework_name)
     for framework_import in framework_imports:
         if framework_import.short_path == framework_short_path:
             return framework_import
 
-    fail("ERORR: There has to be a binary file in the imported framework.")
+    fail("ERROR: There has to be a binary file in the imported framework.")
 
-def _framework_dirs(framework_imports):
-    """Implementation for the apple_dynamic_framework_import rule."""
+def _grouped_framework_files(framework_imports):
+    """Returns a dictionary of each framework's imports, grouped by path to the .framwork root."""
     framework_groups = group_files_by_directory(
         framework_imports,
         ["framework"],
@@ -92,10 +94,12 @@ def _framework_dirs(framework_imports):
     return framework_groups
 
 def _objc_provider_with_dependencies(ctx, objc_provider_fields):
+    """Returns a new Objc provider which includes transitive Objc dependencies."""
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     return apple_common.new_objc_provider(**objc_provider_fields)
 
 def _transitive_framework_imports(deps):
+    """Returns the list of transitive framework imports for the given deps."""
     return [
         dep[AppleFrameworkImportInfo].framework_imports
         for dep in deps
@@ -103,6 +107,7 @@ def _transitive_framework_imports(deps):
     ]
 
 def _framework_import_info(transitive_sets):
+    """Returns an AppleFrameworkImportInfo containg any transitive framework imports."""
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
@@ -118,7 +123,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         transitive_sets.append(depset(filtered_framework_imports))
     providers.append(_framework_import_info(transitive_sets))
 
-    framework_groups = _framework_dirs(ctx.files.framework_imports)
+    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider = _objc_provider_with_dependencies(ctx, {
         "dynamic_framework_file": depset(ctx.files.framework_imports),
@@ -153,7 +158,7 @@ def _apple_static_framework_import_impl(ctx):
         "static_framework_file": depset(framework_imports),
     }
 
-    framework_groups = _framework_dirs(ctx.files.framework_imports)
+    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
     if ctx.attr.alwayslink:
         objc_provider_fields["force_load_library"] = depset(
             _all_framework_binaries(framework_groups),
@@ -204,7 +209,7 @@ linked into that target.
         ),
     },
     doc = """
-This rule encapsulates an already-built framework. It is defined by a list of files in exactly one
+This rule encapsulates an already-built dynamic framework. It is defined by a list of files in exactly one
 .framework directory. apple_dynamic_framework_import targets need to be added to library targets through the
 `deps` attribute.
 """,
