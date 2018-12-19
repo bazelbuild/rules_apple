@@ -103,19 +103,11 @@ def compile_plist(ctx, input_file, output_file):
         in_file = input_file.path,
         plutil_command = plutil_command,
     )
-
-    # Ideally we should be able to use command, which would set up the
-    # /bin/sh -c prefix for us.
-    # TODO(b/77637734): Change this to use command instead.
-    apple_action(
+    apple_support.run_shell(
         ctx,
         inputs = [input_file],
         outputs = [output_file],
-        executable = "/bin/sh",
-        arguments = [
-            "-c",
-            complete_command,
-        ],
+        command = complete_command,
         mnemonic = mnemonic,
     )
 
