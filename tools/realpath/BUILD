@@ -1,5 +1,5 @@
 load(
-    "//apple:apple_genrule.bzl",
+    "@build_bazel_apple_support//rules:apple_genrule.bzl",
     "apple_genrule",
 )
 
