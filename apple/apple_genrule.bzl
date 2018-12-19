@@ -15,11 +15,6 @@
 """Genrule which provides Apple's Xcode environment."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "DARWIN_EXECUTION_REQUIREMENTS",
-    "apple_action",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -75,7 +70,7 @@ def _apple_genrule_impl(ctx):
         ),
         tools = ctx.attr.tools,
         label_dict = label_dict,
-        execution_requirements = DARWIN_EXECUTION_REQUIREMENTS,
+        execution_requirements = {"requires-darwin": ""},
     )
 
     message = ctx.attr.message or "Executing apple_genrule"
@@ -84,7 +79,7 @@ def _apple_genrule_impl(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     env.update(apple_common.apple_host_system_env(xcode_config))
 
-    apple_action(
+    _apple_action(
         ctx,
         inputs = resolved_srcs.to_list() + resolved_inputs,
         outputs = files_to_build.to_list(),
@@ -121,6 +116,22 @@ _apple_genrule_inner = rule(
     output_to_genfiles = True,
     fragments = ["apple"],
 )
+
+def _apple_action(ctx, **kw):
+    execution_requirements = kw.get("execution_requirements", {})
+    execution_requirements["requires-darwin"] = ""
+
+    no_sandbox = kw.pop("no_sandbox", False)
+    if no_sandbox:
+        execution_requirements["no-sandbox"] = "1"
+
+    kw["execution_requirements"] = execution_requirements
+
+    # Disable the lint warning because this can't be remapped, it needs
+    # to be split into run and run_shell, which is pending work.
+    # ...and disabling the linter doesn't work:
+    # github.com/bazelbuild/buildtools/issues/458
+    ctx.action(**kw)  # buildozer: disable=ctx-actions
 
 def apple_genrule(
         name,
@@ -177,6 +188,14 @@ def apple_genrule(
       **kwargs: Extra args meant to just be the common rules for all rules
         (tags, etc.).
     """
+    print(
+        "DEPRECATED: rules_apple's apple_genrule is deprecated; please migrate" +
+        " to the one provide by https://github.com/bazelbuild/apple_support," +
+        " this one will go away in the next release. You should be able to" +
+        "simply swap the load to be:" +
+        "  load(\"@build_bazel_apple_support//rules:apple_genrule.bzl\", \"apple_genrule\")",
+    )
+
     if executable:
         if len(outs) != 1:
             fail("apple_genrule, if executable, must have exactly one output")

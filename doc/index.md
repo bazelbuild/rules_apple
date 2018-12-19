@@ -89,10 +89,6 @@ below.
       <td valign="top"><code><a href="rules-general.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
     </tr>
     <tr>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:apple_genrule.bzl</code></td>
-      <td valign="top"><code><a href="rules-general.md#apple_genrule">apple_genrule</a></code><br/></td>
-    </tr>
-    <tr>
       <td valign="top"><code>@build_bazel_rules_apple//apple:apple.bzl</code></td>
       <td valign="top"><code><a href="rules-general.md#apple_framework_import">apple_framework_import</a></code><br/></td>
     </tr>
