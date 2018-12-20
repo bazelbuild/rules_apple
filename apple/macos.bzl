@@ -25,15 +25,18 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
-    _macos_application = "macos_application",
-    _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
-    _macos_extension = "macos_extension",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
+    _macos_application = "macos_application",
+    _macos_bundle = "macos_bundle",
+    _macos_extension = "macos_extension",
 )
 load(
     "@build_bazel_rules_apple//apple/testing:macos_rules.bzl",

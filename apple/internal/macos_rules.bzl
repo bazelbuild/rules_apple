@@ -27,13 +27,17 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
 )
 
-def macos_application_impl(ctx):
+def _macos_application_impl(ctx):
     """Experimental implementation of macos_application."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
@@ -101,7 +105,7 @@ def macos_application_impl(ctx):
         MacosApplicationBundleInfo(),
     ] + processor_result.providers
 
-def macos_bundle_impl(ctx):
+def _macos_bundle_impl(ctx):
     """Experimental implementation of macos_bundle."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
@@ -162,7 +166,7 @@ def macos_bundle_impl(ctx):
         MacosBundleBundleInfo(),
     ] + processor_result.providers
 
-def macos_extension_impl(ctx):
+def _macos_extension_impl(ctx):
     """Experimental implementation of macos_extension."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
@@ -209,3 +213,24 @@ def macos_extension_impl(ctx):
         ),
         MacosExtensionBundleInfo(),
     ] + processor_result.providers
+
+macos_application = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_application_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.application,
+    doc = "Builds and bundles a macOS Application.",
+)
+
+macos_bundle = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_bundle_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.bundle,
+    doc = "Builds and bundles a macOS Loadable Bundle.",
+)
+
+macos_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_extension_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.app_extension,
+    doc = "Builds and bundles a macOS Application Extension.",
+)
