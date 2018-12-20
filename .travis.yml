@@ -23,14 +23,14 @@ osx_image: xcode10.1
 # the two different bazel versions.
 matrix:
   include:
-    # One build on linux to run buildifer since linux agents are faster on travis.
+    # One build on linux to run buildifier since linux agents are faster on travis.
     - os: linux
       dist: trusty
       sudo: false
       language: c++
       # Lint is disabled because of github.com/bazelbuild/buildtools/issues/458
       # and there is one file that needs that at the moment.
-      env: BUILDIFER=RELEASE LINT=no
+      env: BUILDIFIER=RELEASE LINT=no
     # The normal macOS builds.
     - env: BAZEL=HEAD TARGET=//tools/...
     # //test/... is split because it takes too long and times out on travis.

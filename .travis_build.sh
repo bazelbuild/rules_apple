@@ -46,7 +46,7 @@ fi
 
 # -------------------------------------------------------------------------------------------------
 # Asked to do a buildifier run.
-if [[ -n "${BUILDIFER:-}" ]]; then
+if [[ -n "${BUILDIFIER:-}" ]]; then
   FOUND_ISSUES="no"
 
   # buildifier supports BUILD/WORKSPACE/*.bzl files, this provides the args
