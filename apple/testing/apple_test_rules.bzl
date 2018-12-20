@@ -385,6 +385,10 @@ def _apple_ui_test_attributes():
                 mandatory = True,
                 providers = [AppleBundleInfo],
             ),
+            "provisioning_profile": attr.label(
+                doc = "The provisioning_profile for signing .xctest",
+                allow_single_file = [".mobileprovision", ".provisionprofile"],
+            ),
         },
     )
 

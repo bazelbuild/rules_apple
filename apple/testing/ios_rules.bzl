@@ -107,6 +107,7 @@ def _ios_test(
         test_rule = None,
         test_host = None,
         deps = [],
+        uses_provisioning_profile = False,
         **kwargs):
     """Macro that routes the external macro arguments into the correct targets.
 
@@ -151,6 +152,9 @@ def _ios_test(
         suppress_entitlements = True,
         target_name_template = "%s_test_binary",
     )
+
+    if uses_provisioning_profile:
+        bundling_args["provisioning_profile"] = kwargs.pop("provisioning_profile", None)
 
     _ios_test_bundle(
         name = test_bundle_name,
@@ -198,5 +202,6 @@ def ios_ui_test(
         product_type = apple_product_type.ui_test_bundle,
         runner = runner,
         test_rule = apple_ui_test,
+        uses_provisioning_profile = True,
         **kwargs
     )
