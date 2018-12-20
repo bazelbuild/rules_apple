@@ -126,8 +126,8 @@ def _apple_dynamic_framework_import_impl(ctx):
     framework_groups = _grouped_framework_files(ctx.files.framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider = _objc_provider_with_dependencies(ctx, {
-        "dynamic_framework_file": depset(ctx.files.framework_imports),
         "dynamic_framework_dir": framework_dirs_set,
+        "dynamic_framework_file": depset(ctx.files.framework_imports),
     })
     providers.append(objc_provider)
 
@@ -227,16 +227,6 @@ The list of files under a .framework directory which are provided to Apple based
 on this target.
 """,
         ),
-        "alwayslink": attr.bool(
-            default = False,
-            doc = """
-If true, any binary that depends (directly or indirectly) on this framework will link in all the
-object files for the framework file, even if some contain no symbols referenced by the binary. This
-is useful if your code isn't explicitly called by code in the binary; for example, if you rely on
-runtime checks for protocol conformances added in extensions in the library but do not directly
-reference any other symbols in the object file that adds that conformance.
-""",
-        ),
         "sdk_dylibs": attr.string_list(
             doc = """
 Names of SDK .dylib libraries to link with. For instance, `libz` or `libarchive`. `libc++` is
@@ -267,6 +257,16 @@ linked into that target.
             providers = [
                 [apple_common.Objc, AppleFrameworkImportInfo],
             ],
+        ),
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
+If true, any binary that depends (directly or indirectly) on this framework will link in all the
+object files for the framework file, even if some contain no symbols referenced by the binary. This
+is useful if your code isn't explicitly called by code in the binary; for example, if you rely on
+runtime checks for protocol conformances added in extensions in the library but do not directly
+reference any other symbols in the object file that adds that conformance.
+""",
         ),
     },
     doc = """
