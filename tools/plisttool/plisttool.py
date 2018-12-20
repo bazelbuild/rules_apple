@@ -1166,7 +1166,7 @@ class EntitlementsTask(PlistToolTask):
             **report_extras)
 
     aps_environment = entitlements.get('aps-environment')
-    if aps_environment and profile_entitlements:
+    if aps_environment and profile_entitlements is not None:
         profile_aps_environment = profile_entitlements.get('aps-environment')
         if not profile_aps_environment:
           self._report(
