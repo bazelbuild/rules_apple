@@ -38,26 +38,6 @@ def apple_action(ctx, **kw):
     # github.com/bazelbuild/buildtools/issues/458
     ctx.action(**kw)  # buildozer: disable=ctx-actions
 
-def apple_actions_run(ctx_actions, **kw):
-    """Creates an actions.run() that only runs on MacOS/Darwin.
-
-    Call it similar to how you would call ctx.actions.run:
-      apple_actions_run(ctx.actions, outputs=[...], inputs=[...],...)
-
-    Args:
-      ctx_actions: The ctx.actions object to use.
-      **kw: Additional arguments that are passed directly to `actions.run`.
-    """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
-    ctx_actions.run(**kw)
-
 def full_label(l):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 
