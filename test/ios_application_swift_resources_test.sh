@@ -34,6 +34,8 @@ function create_minimal_ios_application() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application")
+load("@build_bazel_rules_apple//apple:resources.bzl",
+     "apple_resource_group")
 load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library")
 
@@ -45,6 +47,13 @@ ios_application(
     minimum_os_version = "9.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
+    structured_resources = [
+        "@build_bazel_rules_apple//test/testdata/resources:structured",
+    ],
 )
 EOF
 
@@ -79,8 +88,8 @@ function test_app_contains_resources_from_swift_library() {
 swift_library(
     name = "lib",
     srcs = ["AppDelegate.swift"],
-    module_name = "$module_name",
-    resources = [
+    data = [
+        ":structured_resources",
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources",
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
@@ -93,9 +102,7 @@ swift_library(
         "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
         "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
     ],
-    structured_resources = [
-        "@build_bazel_rules_apple//test/testdata/resources:structured",
-    ],
+    module_name = "$module_name",
 )
 EOF
 
@@ -176,8 +183,8 @@ swift_library(
 swift_library(
     name = "lib_with_resources",
     srcs = ["Dummy.swift"],
-    module_name = "$module_name",
-    resources = [
+    data = [
+        ":structured_resources",
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources",
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
@@ -190,9 +197,7 @@ swift_library(
         "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
         "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
     ],
-    structured_resources = [
-        "@build_bazel_rules_apple//test/testdata/resources:structured",
-    ],
+    module_name = "$module_name",
 )
 EOF
 
@@ -272,7 +277,7 @@ EOF
 swift_library(
     name = "lib",
     srcs = ["AppDelegate.swift"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
     ],
     deps = [":lib_with_resources"],
@@ -281,7 +286,7 @@ swift_library(
 swift_library(
     name = "lib_with_resources",
     srcs = ["Dummy.swift"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
     ],
 )
@@ -309,7 +314,7 @@ EOF
 swift_library(
     name = "lib",
     srcs = ["AppDelegate.swift"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
     ],
     deps = [":lib2"],
@@ -318,7 +323,7 @@ swift_library(
 swift_library(
     name = "lib2",
     srcs = ["Dummy.swift"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets2_ios",
     ],
 )
@@ -360,7 +365,7 @@ EOF
 swift_library(
     name = "lib",
     srcs = ["AppDelegate.swift"],
-    resources = [
+    data = [
         "lib.storyboard",
     ],
     deps = [":other_lib"],
@@ -369,7 +374,7 @@ swift_library(
 swift_library(
     name = "other_lib",
     srcs = ["Dummy.swift"],
-    resources = [
+    data = [
         "other.storyboard",
     ],
 )
