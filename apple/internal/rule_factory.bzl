@@ -47,10 +47,12 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleResourceBundleInfo",
+    "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
     "TvosExtensionBundleInfo",
+    "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
 load(
@@ -74,6 +76,11 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             cfg = "host",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
+        ),
+        "_clangrttool": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/clangrttool"),
         ),
         "_dsym_info_plist_template": attr.label(
             cfg = "host",
@@ -295,7 +302,6 @@ hermetic given these inputs to ensure that the result can be safely cached.
 """,
         ),
         "minimum_os_version": attr.string(
-            mandatory = True,
             doc = """
 An optional string indicating the minimum OS version supported by the target, represented as a
 dotted version number (for example, "9.0"). If this attribute is omitted, then the value specified
@@ -477,10 +483,39 @@ fashion, such as a Cocoapod.
 """,
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.application:
+        attrs.append({
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
+                doc = """
+A list of iOS application extensions to include in the final application bundle.
+""",
+            ),
+            "launch_storyboard": attr.label(
+                allow_single_file = [".storyboard", ".xib"],
+                doc = """
+The `.storyboard` or `.xib` file that should be used as the launch screen for the application. The
+provided file will be compiled into the appropriate format (`.storyboardc` or `.nib`) and placed in
+the root of the final bundle. The generated file will also be registered in the bundle's
+Info.plist under the key `UILaunchStoryboardName`.
+""",
+            ),
+            "watch_application": attr.label(
+                providers = [[AppleBundleInfo, WatchosApplicationBundleInfo]],
+                doc = """
+A `watchos_application` target that represents an Apple Watch application that should be embedded in
+the application bundle.
+""",
+            ),
+        })
 
     # TODO(kaipi): Once all platforms have framework rules, move this into
     # _common_binary_linking_attrs().
     if rule_descriptor.requires_deps:
+        extra_args = {}
+        if rule_descriptor.product_type == apple_product_type.application:
+            extra_args["aspects"] = [framework_import_aspect]
+
         attrs.append({
             "frameworks": attr.label_list(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
@@ -489,6 +524,7 @@ A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
+                **extra_args
             ),
         })
 
