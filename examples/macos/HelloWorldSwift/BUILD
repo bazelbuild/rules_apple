@@ -18,7 +18,7 @@ licenses(["notice"])
 swift_library(
     name = "Sources",
     srcs = ["Sources/AppDelegate.swift"],
-    resources = [
+    data = [
         "Resources/Main.storyboard",
     ],
 )

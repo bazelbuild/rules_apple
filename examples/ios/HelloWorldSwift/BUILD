@@ -10,7 +10,7 @@ swift_library(
     srcs = [
         "Sources/AppDelegate.swift",
     ],
-    resources = [
+    data = [
         "Resources/Main.storyboard",
     ],
 )
