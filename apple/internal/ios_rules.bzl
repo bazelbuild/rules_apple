@@ -61,7 +61,7 @@ load(
     "IosStickerPackExtensionBundleInfo",
 )
 
-def ios_application_impl(ctx):
+def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
     top_level_attrs = [
         "app_icons",
@@ -221,7 +221,7 @@ def _ios_framework_impl(ctx):
         IosFrameworkBundleInfo(),
     ] + processor_result.providers
 
-def ios_extension_impl(ctx):
+def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
     top_level_attrs = [
         "app_icons",
@@ -494,6 +494,20 @@ def _ios_sticker_pack_extension_impl(ctx):
 # Rule definitions for rules that use the Skylark linking API and the new rule_factory support.
 # TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
 # attributes.
+
+ios_application = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_application_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.application,
+    doc = "Builds and bundles an iOS Application.",
+)
+
+ios_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_extension_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.app_extension,
+    doc = "Builds and bundles an iOS Application Extension.",
+)
 
 ios_framework = rule_factory.create_apple_bundling_rule(
     implementation = _ios_framework_impl,

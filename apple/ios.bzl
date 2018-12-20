@@ -23,16 +23,13 @@ load(
     "entitlements",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:ios_rules.bzl",
-    _ios_application = "ios_application",
-    _ios_extension = "ios_extension",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     _apple_product_type = "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_application = "ios_application",
+    _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",

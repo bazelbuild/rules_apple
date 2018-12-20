@@ -173,6 +173,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
