@@ -1,7 +1,7 @@
 # Aspects.
 
-# This file exists to create a package under which to load the testing
-# rules bzl files.
+# This file exists to create a package under which to load the aspect
+# bzl files.
 
 package(default_visibility = [
     "//apple/internal:__pkg__",
