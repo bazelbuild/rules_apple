@@ -33,9 +33,9 @@ load(
 # have these attributes) will dissapear. The new resource rules will either have specific attributes
 # or use data, but in any of those cases, this list won't be used as if there are specific
 # attributes, we will not merge them to split them again.
-# TODO(b/121042700): Enable objc_library resource collection in data.
 _NATIVE_RESOURCE_ATTRS = [
     "asset_catalogs",
+    "data",
     "datamodels",
     "resources",
     "storyboards",
