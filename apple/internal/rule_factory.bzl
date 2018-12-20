@@ -51,6 +51,7 @@ load(
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
+    "MacosExtensionBundleInfo",
     "TvosExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -530,6 +531,49 @@ that this target depends on.
 
     return attrs
 
+def _get_macos_attrs(rule_descriptor):
+    """Returns a list of dictionaries with attributes for the macOS platform."""
+    attrs = []
+
+    attrs.append({
+        "additional_contents": attr.label_keyed_string_dict(
+            allow_files = True,
+            doc = """
+Files that should be copied into specific subdirectories of the Contents folder in the bundle. The
+keys of this dictionary are labels pointing to single files, filegroups, or targets; the
+corresponding value is the name of the subdirectory of Contents where they should be placed.
+
+The relative directory structure of filegroup contents is preserved when they are copied into the
+desired Contents subdirectory.
+""",
+        ),
+    })
+
+    if rule_descriptor.product_type in [apple_product_type.application, apple_product_type.bundle]:
+        attrs.append({
+            # TODO(b/117886202): This should be part of the rule descriptor, once the new
+            # macos_kernel_extension, macos_spotlight_importer and macos_xpc_service rules are
+            # extracted from macos_application and macos_bundle.
+            "bundle_extension": attr.string(
+                doc = """
+The extension, without a leading dot, that will be used to name the bundle. If this attribute is not
+set, then the default extension is determined by the application's product_type.
+""",
+            ),
+        })
+
+    if rule_descriptor.product_type == apple_product_type.application:
+        attrs.append({
+            "extensions": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, MacosExtensionBundleInfo],
+                ],
+                doc = "A list of macOS extensions to include in the final application bundle.",
+            ),
+        })
+
+    return attrs
+
 def _get_tvos_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for the tvOS platform."""
     attrs = []
@@ -602,6 +646,8 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     # TODO(kaipi): Add support for all platforms.
     if platform_type == "ios":
         rule_attrs.extend(_get_ios_attrs(rule_descriptor))
+    elif platform_type == "macos":
+        rule_attrs.extend(_get_macos_attrs(rule_descriptor))
     elif platform_type == "tvos":
         rule_attrs.extend(_get_tvos_attrs(rule_descriptor))
     elif platform_type == "watchos":

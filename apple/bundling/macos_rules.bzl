@@ -23,10 +23,6 @@ wrapping macro because rules cannot invoke other rules.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:codesigning_support.bzl",
     "codesigning_support",
 )
@@ -39,164 +35,16 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
-    "macos_application_impl",
-    "macos_bundle_impl",
-    "macos_extension_impl",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "MacosExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
-)
-
-# Attributes that are common to all macOS bundles.
-_COMMON_MACOS_BUNDLE_ATTRS = {
-    "additional_contents": attr.label_keyed_string_dict(
-        allow_files = True,
-    ),
-}
-
-def _additional_contents_bundlable_files(ctx, file_map):
-    """Gathers the additional Contents files in a macOS bundle.
-
-    This function takes the label-keyed dictionary represented by `file_map` and
-    gathers the files from all of those non-bundle targets, transforming them into
-    bundlable file objects that place the file in the appropriate subdirectory of
-    the bundle's Contents folder.
-
-    Args:
-      ctx: The rule context.
-      file_map: The label-keyed dictionary.
-
-    Returns:
-      A `depset` of bundlable files gathered from the targets.
-    """
-    bundlable_files = []
-
-    for target, contents_subdir in file_map.items():
-        if AppleBundleInfo not in target:
-            bundlable_files.extend([bundling_support.contents_file(
-                ctx,
-                f,
-                contents_subdir + "/" + path_utils.owner_relative_path(f),
-            ) for f in target.files])
-
-    return depset(bundlable_files)
-
-def _additional_contents_embedded_bundles(ctx, file_map):
-    """Gathers the additional Contents embedded bundles in a macOS bundle.
-
-    This function takes the label-keyed dictionary represented by `file_map` and
-    gathers the bundles from all of those targets, returning values that represent
-    embedded bundles within another bundle.
-
-    These values are used by the bundler to indicate how dependencies that are
-    themselves bundles (such as extensions or frameworks) should be bundled in
-    the application or target that depends on them.
-
-    Args:
-      ctx: The rule context.
-      file_map: The label-keyed dictionary.
-
-    Returns:
-      A list of embeddable bundles gathered from the targets.
-    """
-    _ignore = (ctx,)
-    embedded_bundles = []
-
-    for target, contents_subdir in file_map.items():
-        if AppleBundleInfo in target:
-            embedded_bundles.append(bundling_support.embedded_bundle(
-                contents_subdir,
-                target,
-                verify_has_child_plist = False,
-            ))
-
-    return embedded_bundles
-
-macos_application = rule_factory.make_bundling_rule(
-    macos_application_impl,
-    additional_attrs = dicts.add(
-        _COMMON_MACOS_BUNDLE_ATTRS,
-        {
-            "app_icons": attr.label_list(allow_files = True),
-            # The default extension comes from the product type so it is not
-            # repeated here.
-            "bundle_extension": attr.string(),
-            "extensions": attr.label_list(
-                providers = [[AppleBundleInfo, MacosExtensionBundleInfo]],
-            ),
-        },
-    ),
-    archive_extension = ".zip",
-    bundles_frameworks = True,
-    code_signing = rule_factory.code_signing(
-        ".provisionprofile",
-        requires_signing_for_device = False,
-    ),
-    device_families = rule_factory.device_families(allowed = ["mac"]),
-    needs_pkginfo = True,
-    path_formats = rule_factory.macos_path_formats(path_in_archive_format = "%s"),
-    platform_type = apple_common.platform_type.macos,
-    product_type = rule_factory.product_type(
-        apple_product_type.application,
-        values = [
-            apple_product_type.application,
-            apple_product_type.xpc_service,
-        ],
-    ),
-)
-
-macos_bundle = rule_factory.make_bundling_rule(
-    macos_bundle_impl,
-    additional_attrs = dicts.add(
-        _COMMON_MACOS_BUNDLE_ATTRS,
-        {
-            "app_icons": attr.label_list(allow_files = True),
-            # The default extension comes from the product type so it is not
-            # repeated here.
-            "bundle_extension": attr.string(),
-        },
-    ),
-    archive_extension = ".zip",
-    binary_providers = [
-        [apple_common.AppleLoadableBundleBinary],
-        [apple_common.AppleExecutableBinary],
-    ],
-    bundles_frameworks = True,
-    code_signing = rule_factory.code_signing(
-        ".provisionprofile",
-        requires_signing_for_device = False,
-    ),
-    device_families = rule_factory.device_families(allowed = ["mac"]),
-    path_formats = rule_factory.macos_path_formats(path_in_archive_format = "%s"),
-    platform_type = apple_common.platform_type.macos,
-    product_type = rule_factory.product_type(
-        apple_product_type.bundle,
-        values = [
-            apple_product_type.bundle,
-            apple_product_type.kernel_extension,
-            apple_product_type.spotlight_importer,
-        ],
-    ),
 )
 
 def _macos_command_line_application_impl(ctx):
@@ -392,26 +240,4 @@ macos_dylib = rule(
     ),
     executable = False,
     fragments = ["apple", "objc"],
-)
-
-macos_extension = rule_factory.make_bundling_rule(
-    macos_extension_impl,
-    additional_attrs = dicts.add(
-        _COMMON_MACOS_BUNDLE_ATTRS,
-        {
-            "app_icons": attr.label_list(allow_files = True),
-        },
-    ),
-    archive_extension = ".zip",
-    code_signing = rule_factory.code_signing(
-        ".provisionprofile",
-        requires_signing_for_device = False,
-    ),
-    device_families = rule_factory.device_families(allowed = ["mac"]),
-    path_formats = rule_factory.macos_path_formats(path_in_archive_format = "%s"),
-    platform_type = apple_common.platform_type.macos,
-    product_type = rule_factory.product_type(
-        apple_product_type.app_extension,
-        private = True,
-    ),
 )

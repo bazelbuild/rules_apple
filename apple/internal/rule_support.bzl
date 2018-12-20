@@ -276,6 +276,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             product_type = apple_product_type.app_extension,
@@ -285,6 +287,8 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             product_type = apple_product_type.bundle,
