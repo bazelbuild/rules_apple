@@ -1263,7 +1263,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_bundle_id_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_BUNDLE_ID_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_BUNDLE_ID_MISMATCH % (
             _testing_target, 'my.bundle.id', 'other.bundle.id'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.other.bundle.id'}],
@@ -1275,7 +1275,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_bundle_id_wildcard_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_BUNDLE_ID_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_BUNDLE_ID_MISMATCH % (
             _testing_target, 'my.bundle.id', 'other.*'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.other.*'}],
@@ -1315,7 +1315,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_team_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY', 'TeamIdentifier', "['ASDFGH']"))):
       _plisttool_result({
           'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
@@ -1331,7 +1331,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_app_id_prefix_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY', 'ApplicationIdentifierPrefix', "['ASDFGH']"))):
       _plisttool_result({
           'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
@@ -1394,7 +1394,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_id_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY.my.bundle.id', 'ASDFGH.my.bundle.id'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.my.bundle.id'}],
@@ -1412,7 +1412,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_id_mismatch_wildcard(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY.my.bundle.id', 'ASDFGH.*'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.my.bundle.id'}],
@@ -1465,7 +1465,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_id_wildcard_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY.*', 'ASDFGH.*'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.*'}],
@@ -1484,7 +1484,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_id_wildcard_mismatch_wildcard(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
             _testing_target, 'QWERTY.*', 'ASDFGH.my.bundle.id'))):
       _plisttool_result({
           'plists': [{'application-identifier': 'QWERTY.*'}],
@@ -1551,7 +1551,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_keychain_not_allowed(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
             _testing_target, 'keychain-access-groups'))):
       _plisttool_result({
           'plists': [{'keychain-access-groups': ['QWERTY.my.bundle.id']}],
@@ -1588,7 +1588,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_keychain_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
             _testing_target, 'keychain-access-groups', 'QWERTY.my.bundle.id',
             'ASDFGH.*", "QWERTY.my.bundle.id.also'))):
       _plisttool_result({
@@ -1630,7 +1630,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_groups_wildcard_no_match(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
             _testing_target, 'com.apple.security.application-groups',
             'QWERTY.my.bundle.id', 'QWERTY.*'))):
       _plisttool_result({
@@ -1668,7 +1668,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_groups_not_allowed(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
             _testing_target, 'com.apple.security.application-groups'))):
       _plisttool_result({
           'plists': [{
@@ -1689,7 +1689,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_groups_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
             _testing_target, 'com.apple.security.application-groups',
             'QWERTY.my.bundle.id', 'ASDFGH.*", "QWERTY.my.bundle.id.also'))):
       _plisttool_result({
@@ -1773,7 +1773,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_associated_domains_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
             _testing_target, 'com.apple.developer.associated-domains',
             'bundle.my', 'bundle.your'))):
       _plisttool_result({
