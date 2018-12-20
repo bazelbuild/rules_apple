@@ -264,7 +264,7 @@ RAW_SUBSTITUTION_KEY_IN_VALUE = (
     'substitution: "%s" for key "%s".'
 )
 
-ENTITLMENTS_BUNDLE_ID_MISMATCH = (
+ENTITLEMENTS_BUNDLE_ID_MISMATCH = (
     'In target "%s"; the bundle_id ("%s") did not match the id in the '
     'entitlements ("%s").'
 )
@@ -274,22 +274,22 @@ ENTITLEMENTS_PROFILE_HAS_EXPIRED = (
     'past.'
 )
 
-ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH = (
+ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH = (
     'In target "%s"; the entitlements "com.apple.developer.team-identifier" '
     '("%s") did not match the provisioning profile\'s "%s" ("%s").'
 )
 
-ENTITLMENTS_APP_ID_PROFILE_MISMATCH = (
+ENTITLEMENTS_APP_ID_PROFILE_MISMATCH = (
     'In target "%s"; the entitlements "application-identifier" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
 )
 
-ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
+ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
     'Target "%s" uses entitlements with a "%s" key, but the profile does not '
     'support use of this key.'
 )
 
-ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
+ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
     'Target "%s" uses entitlements "%s" value of "%s", but the profile does '
     'not support it (["%s"]).'
 )
@@ -1088,7 +1088,7 @@ class EntitlementsTask(PlistToolTask):
 
     if not self._does_id_match(bundle_id, provisioned_id,
                                allowed_supports_wildcards=True):
-      raise PlistToolError(ENTITLMENTS_BUNDLE_ID_MISMATCH % (
+      raise PlistToolError(ENTITLEMENTS_BUNDLE_ID_MISMATCH % (
           self.target, bundle_id, provisioned_id))
 
   def _sanity_check_profile(self):
@@ -1137,7 +1137,7 @@ class EntitlementsTask(PlistToolTask):
         from_profile = self._profile_metadata.get(key, [])
         if src_team_id not in from_profile:
           self._report(
-              ENTITLMENTS_TEAM_ID_PROFILE_MISMATCH % (
+              ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
                 self.target, src_team_id, key, from_profile),
               **report_extras)
 
@@ -1151,7 +1151,7 @@ class EntitlementsTask(PlistToolTask):
           src_app_id, profile_app_id, allowed_supports_wildcards=True,
           id_supports_wildcards=True):
         self._report(
-            ENTITLMENTS_APP_ID_PROFILE_MISMATCH % (
+            ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
               self.target, src_app_id, profile_app_id),
             **report_extras)
 
@@ -1268,7 +1268,7 @@ class EntitlementsTask(PlistToolTask):
     profile_grps = profile_entitlements.get(key_name)
     if not profile_grps:
       self._report(
-          ENTITLMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name),
+          ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name),
           **report_extras)
       return
 
@@ -1281,7 +1281,7 @@ class EntitlementsTask(PlistToolTask):
       if not self._does_id_match_list(src_grp, profile_grps,
           allowed_supports_wildcards=supports_wildcards):
         self._report(
-            ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
+            ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
               target, key_name, src_grp, '", "'.join(profile_grps)),
             **report_extras)
 
