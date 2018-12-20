@@ -294,6 +294,11 @@ ENTITLMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
     'not support it (["%s"]).'
 )
 
+ENTITLEMENTS_VALUE_HAS_WILDCARD = (
+    'Target "%s" uses entitlements "%s" value of "%s", but wildcards are not '
+    'expected.'
+)
+
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
     'binary', 'forced_plists', 'entitlements_options', 'info_plist_options',
@@ -1168,7 +1173,8 @@ class EntitlementsTask(PlistToolTask):
         entitlements, profile_entitlements,
         'com.apple.developer.associated-domains', self.target,
         report_extras=report_extras,
-        supports_wildcards=True)
+        supports_wildcards=True,
+        allow_wildcards_in_entitlements=True)
 
     # TODO: aps-environment ?
 
@@ -1232,7 +1238,8 @@ class EntitlementsTask(PlistToolTask):
   @classmethod
   def _check_entitlements_array(
       self, entitlements, profile_entitlements, key_name, target,
-      supports_wildcards=False, report_extras=None):
+      supports_wildcards=False, report_extras=None,
+      allow_wildcards_in_entitlements=False):
     """Checks if the requested entitlements against the profile for a key
 
     Args:
@@ -1242,7 +1249,8 @@ class EntitlementsTask(PlistToolTask):
       key_name: The key to check.
       target: The target to include in errors.
       supports_wildcards: True/False for if wildcards should be supported
-          value from the profile_entitlements.
+          value from the profile_entitlements. This also means the entries
+          are reverse DNS style.
       report_extras: A dictionary of extra args for the _report helper.
     Raises:
       PlistToolError: For any issues found.
@@ -1265,7 +1273,11 @@ class EntitlementsTask(PlistToolTask):
       return
 
     for src_grp in src_grps:
-      assert '*' not in src_grp
+      if '*' in src_grp and not allow_wildcards_in_entitlements:
+       self._report(
+          ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp),
+          **report_extras)
+
       if not self._does_id_match_list(src_grp, profile_grps,
           allowed_supports_wildcards=supports_wildcards):
         self._report(

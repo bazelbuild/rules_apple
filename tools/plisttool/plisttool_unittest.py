@@ -1567,6 +1567,24 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_entitlements_keychain_entitlements_wildcard_not_allowed(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_HAS_WILDCARD % (
+            _testing_target, 'keychain-access-groups', 'QWERTY.*'))):
+      _plisttool_result({
+          'plists': [{'keychain-access-groups': ['QWERTY.*']}],
+          'entitlements_options': {
+              'bundle_id': 'my.bundle.id',
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'keychain-access-groups': ['QWERTY.*'],
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
   def test_entitlements_keychain_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
@@ -1716,6 +1734,26 @@ class PlistToolTest(unittest.TestCase):
     # This is really looking for the lack of an error being raised.
     plist1 = {
         'com.apple.developer.associated-domains': ['bundle.my'],
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.associated-domains': [
+                        '*',
+                    ],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
+  def test_entitlements_associated_domains_match_wildcard_requesting_wildcard(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.developer.associated-domains': ['my.co', '*.my.co'],
     }
     self._assert_plisttool_result({
         'plists': [plist1],
