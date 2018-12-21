@@ -24,11 +24,6 @@ load(
     "macos_command_line_launchdplist",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:macos_rules.bzl",
-    _macos_command_line_application = "macos_command_line_application",
-    _macos_dylib = "macos_dylib",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -36,6 +31,8 @@ load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
+    _macos_command_line_application = "macos_command_line_application",
+    _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
 )
 load(
@@ -283,7 +280,6 @@ def macos_command_line_application(name, **kwargs):
         suppress_entitlements = True,
         **binary_args
     )
-    cmd_line_app_args.pop("deps")
 
     _macos_command_line_application(
         name = name,
@@ -360,7 +356,6 @@ def macos_dylib(name, **kwargs):
         suppress_entitlements = True,
         **binary_args
     )
-    cmd_line_app_args.pop("deps")
 
     _macos_dylib(
         name = name,

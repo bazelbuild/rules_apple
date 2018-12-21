@@ -265,13 +265,19 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # macos_command_line_application
         apple_product_type.tool: _describe_rule_type(
+            allowed_device_families = ["mac"],
             bundle_extension = "",
             product_type = apple_product_type.tool,
+            provisioning_profile_extension = ".provisioningprofile",
+            requires_provisioning_profile = True,
+            requires_signing_for_device = False,
         ),
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
+            allowed_device_families = ["mac"],
             bundle_extension = "",
             product_type = apple_product_type.dylib,
+            requires_signing_for_device = False,
         ),
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(

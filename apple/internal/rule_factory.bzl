@@ -243,7 +243,7 @@ def _get_common_bundling_attributes(rule_descriptor):
 
     # TODO(kaipi): Review platform specific wording in the documentation before migrating macOS
     # rules to use this rule factory.
-    attrs = [_COMMON_PRIVATE_TOOL_ATTRS]
+    attrs = []
 
     if rule_descriptor.requires_bundle_id:
         attrs.append({
@@ -624,6 +624,98 @@ ignored.
 
     return attrs
 
+def _get_macos_binary_attrs(rule_descriptor):
+    """Returns a list of dictionaries with attributes for macOS binary rules."""
+    attrs = []
+
+    if rule_descriptor.requires_provisioning_profile:
+        attrs.append({
+            "provisioning_profile": attr.label(
+                allow_single_file = [rule_descriptor.provisioning_profile_extension],
+                doc = """
+The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
+optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
+required for device builds.
+""".format(profile_extension = rule_descriptor.provisioning_profile_extension),
+            ),
+        })
+
+    if rule_descriptor.product_type == apple_product_type.tool:
+        # TODO(kaipi): Document this attribute.
+        attrs.append({
+            "launchdplists": attr.label_list(
+                allow_files = [".plist"],
+            ),
+        })
+
+    attrs.append({
+        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API.
+        "binary": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "bundle_id": attr.string(
+            doc = """
+The bundle ID (reverse-DNS path followed by app name) of the command line application. If present,
+this value will be embedded in an Info.plist in the application binary.
+""",
+        ),
+        "infoplists": attr.label_list(
+            allow_files = [".plist"],
+            doc = """
+A list of .plist files that will be merged to form the Info.plist that represents the application
+and is embedded into the binary. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+for what is supported.
+""",
+        ),
+        "minimum_os_version": attr.string(
+            doc = """
+An optional string indicating the minimum macOS version supported by the target, represented as a
+dotted version number (for example, "10.11"). If this attribute is omitted, then the value specified
+by the flag --macos_minimum_os will be used instead.
+""",
+        ),
+        "version": attr.label(
+            providers = [[AppleBundleVersionInfo]],
+            doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+""",
+        ),
+    })
+
+    return attrs
+
+def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
+    """Creates an Apple rule that produces a single binary output."""
+    rule_attrs = [
+        {
+            # TODO(kaipi): Make these attributes private. They are required by the native linking
+            # API and product_support.
+            "platform_type": attr.string(default = platform_type),
+            "product_type": attr.string(default = product_type),
+        },
+    ]
+
+    rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
+    rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
+    rule_attrs.append(_get_legacy_attributes(rule_descriptor))
+
+    if rule_descriptor.requires_deps:
+        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
+
+    rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
+
+    return rule(
+        implementation = implementation,
+        # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
+        attrs = dicts.add(*rule_attrs),
+        doc = doc,
+        executable = rule_descriptor.is_executable,
+        fragments = ["apple", "cpp", "objc"],
+    )
+
 def _create_apple_bundling_rule(implementation, platform_type, product_type, doc):
     """Creates an Apple bundling rule."""
     rule_attrs = [
@@ -637,8 +729,9 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
 
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
 
-    rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
+    rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
     rule_attrs.append(_get_legacy_attributes(rule_descriptor))
+    rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
@@ -666,5 +759,6 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     )
 
 rule_factory = struct(
+    create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,
 )

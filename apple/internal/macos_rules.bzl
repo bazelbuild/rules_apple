@@ -19,6 +19,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_actions.bzl",
+    "codesigning_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -35,6 +39,10 @@ load(
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 
 def _macos_application_impl(ctx):
@@ -214,6 +222,59 @@ def _macos_extension_impl(ctx):
         MacosExtensionBundleInfo(),
     ] + processor_result.providers
 
+def _macos_command_line_application_impl(ctx):
+    """Implementation of the macos_command_line_application rule."""
+    output_file = ctx.actions.declare_file(ctx.label.name)
+
+    providers = []
+    outputs = [depset([output_file])]
+
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+
+    debug_outputs_partial = partials.debug_symbols_partial(
+        debug_outputs_provider = debug_outputs_provider,
+    )
+
+    result = partial.call(debug_outputs_partial, ctx)
+    outputs.append(result.output_files)
+    providers.extend(result.providers)
+
+    codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
+
+    return [
+        DefaultInfo(
+            executable = output_file,
+            files = depset(transitive = outputs),
+        ),
+    ] + providers
+
+def _macos_dylib_impl(ctx):
+    """Implementation of the macos_dylib rule."""
+    output_file = ctx.actions.declare_file(ctx.label.name + ".dylib")
+
+    providers = []
+    outputs = [depset([output_file])]
+
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
+    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+
+    debug_outputs_partial = partials.debug_symbols_partial(
+        debug_outputs_provider = debug_outputs_provider,
+    )
+
+    result = partial.call(debug_outputs_partial, ctx)
+    outputs.append(result.output_files)
+    providers.extend(result.providers)
+
+    codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
+
+    return [
+        DefaultInfo(files = depset(transitive = outputs)),
+    ] + providers
+
 macos_application = rule_factory.create_apple_bundling_rule(
     implementation = _macos_application_impl,
     platform_type = "macos",
@@ -233,4 +294,18 @@ macos_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "macos",
     product_type = apple_product_type.app_extension,
     doc = "Builds and bundles a macOS Application Extension.",
+)
+
+macos_command_line_application = rule_factory.create_apple_binary_rule(
+    implementation = _macos_command_line_application_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.tool,
+    doc = "Builds a macOS Command Line Application binary.",
+)
+
+macos_dylib = rule_factory.create_apple_binary_rule(
+    implementation = _macos_dylib_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.dylib,
+    doc = "Builds a macOS Dylib binary.",
 )
