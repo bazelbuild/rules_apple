@@ -137,6 +137,41 @@ def _post_process_and_sign_archive_action(
         progress_message = "Processing and signing %s" % ctx.label.name,
     )
 
+def _sign_binary_action(ctx, input_binary, output_binary):
+    """Signs the input binary file, copying it into the given output binary file.
+
+    Args:
+      ctx: The target's rule context.
+      input_binary: The `File` representing the binary to be signed.
+      output_binary: The `File` representing signed binary.
+    """
+
+    # It's not hermetic to sign the binary that was built by the apple_binary
+    # target that this rule takes as an input, so we copy it and then execute the
+    # code signing commands on that copy in the same action.
+    path_to_sign = codesigning_support.path_to_sign(output_binary.path)
+    signing_commands = codesigning_support.signing_command_lines(
+        ctx,
+        [path_to_sign],
+        None,
+    )
+
+    platform_support.xcode_env_action(
+        ctx,
+        inputs = [input_binary],
+        outputs = [output_binary],
+        command = [
+            "/bin/bash",
+            "-c",
+            "cp {input_binary} {output_binary}".format(
+                input_binary = ctx.file.binary.path,
+                output_binary = output_binary.path,
+            ) + "\n" + signing_commands,
+        ],
+        mnemonic = "SignBinary",
+    )
+
 codesigning_actions = struct(
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
+    sign_binary_action = _sign_binary_action,
 )
