@@ -25,6 +25,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
+    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
@@ -47,10 +48,12 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleResourceBundleInfo",
+    "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
+    "MacosApplicationBundleInfo",
     "MacosExtensionBundleInfo",
     "TvosExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
@@ -246,9 +249,10 @@ def _get_common_bundling_attributes(rule_descriptor):
     attrs = []
 
     if rule_descriptor.requires_bundle_id:
+        bundle_id_mandatory = not product_support.is_test_product_type(rule_descriptor.product_type)
         attrs.append({
             "bundle_id": attr.string(
-                mandatory = True,
+                mandatory = bundle_id_mandatory,
                 doc = "The bundle ID (reverse-DNS path followed by app name) for this target.",
             ),
         })
@@ -509,6 +513,15 @@ the application bundle.
 """,
             ),
         })
+    elif product_support.is_test_product_type(rule_descriptor.product_type):
+        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
+        attrs.append({
+            "test_host": attr.label(
+                aspects = [framework_import_aspect],
+                mandatory = test_host_mandatory,
+                providers = [AppleBundleInfo, IosApplicationBundleInfo],
+            ),
+        })
 
     # TODO(kaipi): Once all platforms have framework rules, move this into
     # _common_binary_linking_attrs().
@@ -569,6 +582,15 @@ set, then the default extension is determined by the application's product_type.
                     [AppleBundleInfo, MacosExtensionBundleInfo],
                 ],
                 doc = "A list of macOS extensions to include in the final application bundle.",
+            ),
+        })
+    elif product_support.is_test_product_type(rule_descriptor.product_type):
+        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
+        attrs.append({
+            "test_host": attr.label(
+                aspects = [framework_import_aspect],
+                mandatory = test_host_mandatory,
+                providers = [AppleBundleInfo, MacosApplicationBundleInfo],
             ),
         })
 
