@@ -759,6 +759,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     )
 
 rule_factory = struct(
+    common_tool_attributes = _COMMON_PRIVATE_TOOL_ATTRS,
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,
 )

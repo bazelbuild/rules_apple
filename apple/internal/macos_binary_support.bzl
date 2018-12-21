@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:rule_factory.bzl",
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
@@ -39,7 +39,7 @@ load(
     "dicts",
 )
 
-def _macos_command_line_infoplist_impl(ctx):
+def _macos_binary_infoplist_impl(ctx):
     """Implementation of the internal `macos_command_line_infoplist` rule.
 
     This rule is an internal implementation detail of
@@ -84,8 +84,8 @@ def _macos_command_line_infoplist_impl(ctx):
         ),
     ]
 
-macos_command_line_infoplist = rule(
-    _macos_command_line_infoplist_impl,
+macos_binary_infoplist = rule(
+    implementation = _macos_binary_infoplist_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
@@ -130,7 +130,7 @@ def _macos_command_line_launchdplist_impl(ctx):
     ]
 
 macos_command_line_launchdplist = rule(
-    _macos_command_line_launchdplist_impl,
+    implementation = _macos_command_line_launchdplist_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
