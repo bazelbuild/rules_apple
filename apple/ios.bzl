@@ -27,6 +27,11 @@ load(
     _apple_product_type = "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
+    _ios_ui_test = "ios_ui_test",
+    _ios_unit_test = "ios_unit_test",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     _ios_application = "ios_application",
     _ios_extension = "ios_extension",
@@ -35,11 +40,6 @@ load(
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
-)
-load(
-    "@build_bazel_rules_apple//apple/testing:ios_rules.bzl",
-    _ios_ui_test = "ios_ui_test",
-    _ios_unit_test = "ios_unit_test",
 )
 
 # Re-export apple_product_type.

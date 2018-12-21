@@ -15,6 +15,10 @@
 """Helper methods for implementing the test bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "binary_support",
+)
+load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
 )
@@ -125,6 +129,101 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         ],
     )
 
+def _assemble_test_targets(
+        name,
+        bundling_rule,
+        platform_type,
+        test_rule,
+        bundle_loader = None,
+        extra_linkopts = [],
+        platform_default_runner = None,
+        uses_provisioning_profile = False,
+        **kwargs):
+    """Macro that routes the external macro arguments into the correct targets.
+
+    This macro creates 3 targets:
+
+    * name + ".apple_binary": Represents the binary that contains the test code. It
+        captures the deps and test_host arguments.
+    * name + "_test_bundle": Represents the xctest bundle that contains the binary
+        along with the test resources. It captures the bundle_id and infoplists
+        arguments.
+    * name: The actual test target that can be invoked with `bazel test`. This
+        target takes all the remaining arguments passed.
+
+    Args:
+        name: The name for the top level test target.
+        bundling_rule: The rule to use when bundling the test bundle.
+        platform_type: The platform type for the targets being created.
+        test_rule: The rule to use for the top level test target.
+        bundle_loader: If specified, the apple_binary target to specify as the bundle loader for the
+            test binary.
+        extra_linkopts: Extra linkopts to pass to the linker.
+        platform_default_runner: The default runner for the platform, in case none is provider by
+            the user.
+        uses_provisioning_profile: Whether the test rule requires a provisioning profile for running
+            tests on devices. Used for UI tests.
+        **kwargs: Extra test attributes to proxy through.
+    """
+    test_bundle_name = name + "_test_bundle"
+
+    linkopts = kwargs.pop("linkopts", [])
+    linkopts.extend(extra_linkopts)
+
+    # Back door to support tags on the apple_binary for systems that
+    # collect binaries from a package as they see this (and tag
+    # can control that collection).
+    binary_tags = kwargs.pop("binary_tags", [])
+
+    deps = kwargs.pop("deps", [])
+
+    bundling_args = binary_support.create_linked_binary_target(
+        name = name,
+        deps = deps,
+        sdk_frameworks = ["XCTest"],
+        binary_type = "loadable_bundle",
+        bundle_loader = bundle_loader,
+        minimum_os_version = kwargs.pop("minimum_os_version", None),
+        platform_type = platform_type,
+        visibility = ["//visibility:private"],
+        linkopts = linkopts,
+        testonly = 1,
+        tags = binary_tags,
+        suppress_entitlements = True,
+        target_name_template = "%s_test_binary",
+    )
+
+    if uses_provisioning_profile:
+        bundling_args["provisioning_profile"] = kwargs.pop("provisioning_profile", None)
+
+    infoplists = kwargs.pop(
+        "infoplists",
+        ["@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"],
+    )
+
+    bundle_id = kwargs.pop("bundle_id", None)
+    test_host = kwargs.get("test_host")
+
+    bundling_rule(
+        name = test_bundle_name,
+        bundle_name = name,
+        bundle_id = bundle_id,
+        infoplists = infoplists,
+        test_host = test_host,
+        **bundling_args
+    )
+
+    runner = kwargs.pop("runner", platform_default_runner)
+
+    test_rule(
+        name = name,
+        platform_type = platform_type,
+        runner = runner,
+        test_bundle = test_bundle_name,
+        **kwargs
+    )
+
 apple_test_bundle_support = struct(
     apple_test_bundle_impl = _apple_test_bundle_impl,
+    assemble_test_targets = _assemble_test_targets,
 )
