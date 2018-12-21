@@ -19,13 +19,13 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:macos_command_line_support.bzl",
-    "macos_command_line_infoplist",
-    "macos_command_line_launchdplist",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
+    "macos_binary_infoplist",
+    "macos_command_line_launchdplist",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
@@ -252,7 +252,7 @@ def macos_command_line_application(name, **kwargs):
     if bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
-        macos_command_line_infoplist(
+        macos_binary_infoplist(
             name = merged_infoplist_name,
             bundle_id = bundle_id,
             infoplists = infoplists,
@@ -336,7 +336,7 @@ def macos_dylib(name, **kwargs):
     if bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
-        macos_command_line_infoplist(
+        macos_binary_infoplist(
             name = merged_infoplist_name,
             bundle_id = bundle_id,
             infoplists = infoplists,
@@ -345,9 +345,7 @@ def macos_dylib(name, **kwargs):
         )
         binary_deps.extend([":" + merged_infoplist_name])
 
-    # Create the unsigned binary, then run the command line application rule that
-    # signs it.
-    cmd_line_app_args = binary_support.create_binary(
+    dylib_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
         binary_type = "dylib",
@@ -359,7 +357,7 @@ def macos_dylib(name, **kwargs):
 
     _macos_dylib(
         name = name,
-        **cmd_line_app_args
+        **dylib_args
     )
 
 def macos_extension(name, **kwargs):
