@@ -16,12 +16,12 @@
 
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "NewAppleResourceInfo",
     "resources",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
@@ -113,12 +113,12 @@ def _apple_resource_bundle_impl(ctx):
             ),
         )
 
-    # Find any targets added through resources which might propagate the NewAppleResourceInfo
+    # Find any targets added through resources which might propagate the AppleResourceInfo
     # provider, for example, apple_resource_bundle or apple_bundle_import targets.
     resource_providers = [
-        x[NewAppleResourceInfo]
+        x[AppleResourceInfo]
         for x in ctx.attr.resources
-        if NewAppleResourceInfo in x
+        if AppleResourceInfo in x
     ]
     if resource_providers:
         resources_merged_provider = resources.merge_providers(resource_providers)
@@ -218,12 +218,12 @@ def _apple_resource_group_impl(ctx):
             ),
         )
 
-    # Find any targets added through resources which might propagate the NewAppleResourceInfo
+    # Find any targets added through resources which might propagate the AppleResourceInfo
     # provider, for example, other apple_resource_group and apple_resource_bundle targets.
     resource_providers.extend([
-        x[NewAppleResourceInfo]
+        x[AppleResourceInfo]
         for x in ctx.attr.resources
-        if NewAppleResourceInfo in x
+        if AppleResourceInfo in x
     ])
 
     if resource_providers:

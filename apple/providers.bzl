@@ -138,26 +138,25 @@ to ensure that they are explicitly produced as outputs of the build.
 )
 
 AppleResourceInfo = provider(
-    doc = """
-Provides information about resources from transitive dependencies.
-
-The `AppleResourceInfo` provider should be propagated by rules that want to
-propagate resources--such as images, strings, Interface Builder files, and so
-forth--to a depending application or extension. For example, `swift_library`
-can provide attributes like `bundles`, `resources`, and `structured_resources`
-that allow users to associate resources with the code that uses them.
-""",
+    doc = "Provider that propagates buckets of resources that are differentiated by type.",
+    # @unsorted-dict-items
     fields = {
-        "owners": """
-`dict` of resource short paths to a `depset` of target labels in string form.
-Used to account for multiple resource references to decide whether or not to deduplicate resources
-between frameworks and application bundles.
-""",
-        "resource_sets": """
-`list` of `struct`s. Each `struct` is one defined by
-`AppleResourceSet` and the full list describes the transitive resources
-propagated by this rule.
-""",
+        "asset_catalogs": "Resources that need to be embedded into Assets.car.",
+        "datamodels": "Datamodel files.",
+        "infoplists": """Plist files to be merged and processed. Plist files that should not be
+merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
+only be bucketed with the `bucketize_typed` method.""",
+        "plists": "Resource Plist files that should not be merged into Info.plist",
+        "pngs": "PNG images which are not bundled in an .xcassets folder.",
+        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
+        "resource_zips": "ZIP files that need to be extracted into the resources bundle location.",
+        "storyboards": "Storyboard files.",
+        "strings": "Localization strings files.",
+        "texture_atlases": "Texture atlas files.",
+        "unprocessed": "Generic resources not mapped to the other types.",
+        "xibs": "XIB Interface files.",
+        "owners": """Map of resource short paths to a depset of strings that represent targets that
+declare ownership of that resource.""",
     },
 )
 

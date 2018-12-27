@@ -14,7 +14,7 @@
 
 """Core resource propagation logic.
 
-Resource are propagated using NewAppleResourceInfo, in which each field (or bucket) contains data
+Resource are propagated using AppleResourceInfo, in which each field (or bucket) contains data
 for resources that should be bundled inside top-level Apple bundles (e.g. ios_application).
 
 Each bucket contains a list of tuples with the following schema:
@@ -32,11 +32,11 @@ Each bucket contains a list of tuples with the following schema:
         being compiled (e.g. xibs).
     - resource_files: This is a depset of all the files that should be placed under parent_dir.
 
-During propagation, each target will need to merge multiple NewAppleResourceInfo providers coming
+During propagation, each target will need to merge multiple AppleResourceInfo providers coming
 from dependencies. Merging will then aggressively minimize the tuples in order to only have one
 tuple per parent_dir per swift_module per bucket.
 
-NewAppleResourceInfo also has a `owners` field which contains a map with the short paths of every
+AppleResourceInfo also has a `owners` field which contains a map with the short paths of every
 resource in the buckets as keys, and a depset of the targets that declare usage as owner of that
 resource as values. This dictionary is meant to be used during the deduplication phase, to account
 for each usage of the resources in the dependency graph and avoid deduplication if the resource is
@@ -54,7 +54,7 @@ by the objc_library or swift_library targets that reference them.
 
 The None values in the `owners` dictionary are then replaced with a default owner in the
 `merge_providers` method, which should be called to merge a list of providers into a single
-NewAppleResourceInfo provider to be returned as the provider of the target, and to bundle the
+AppleResourceInfo provider to be returned as the provider of the target, and to bundle the
 resources contained within in the top-level bundling rules.
 
 This file provides methods to easily:
@@ -63,6 +63,10 @@ This file provides methods to easily:
     - minimize the resulting tuples in order to minimize memory usage
 """
 
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceInfo",
+)
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
     "path_utils",
@@ -74,29 +78,6 @@ load(
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
-)
-
-NewAppleResourceInfo = provider(
-    doc = "Provider that propagates buckets of resources that are differentiated by type.",
-    # @unsorted-dict-items
-    fields = {
-        "asset_catalogs": "Resources that need to be embedded into Assets.car.",
-        "datamodels": "Datamodel files.",
-        "infoplists": """Plist files to be merged and processed. Plist files that should not be
-merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
-only be bucketed with the `bucketize_typed` method.""",
-        "plists": "Resource Plist files that should not be merged into Info.plist",
-        "pngs": "PNG images which are not bundled in an .xcassets folder.",
-        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
-        "resource_zips": "ZIP files that need to be extracted into the resources bundle location.",
-        "storyboards": "Storyboard files.",
-        "strings": "Localization strings files.",
-        "texture_atlases": "Texture atlas files.",
-        "unprocessed": "Generic resources not mapped to the other types.",
-        "xibs": "XIB Interface files.",
-        "owners": """Map of resource short paths to a depset of strings that represent targets that
-declare ownership of that resource.""",
-    },
 )
 
 def _get_attr_as_list(attr, attribute):
@@ -131,7 +112,7 @@ def _bucketize(
     into the "unprocessed" bucket. Resources in this bucket will not be processed and will be copied
     as is. Once all resources have been placed in buckets, each of the lists will be minimized.
 
-    Finally, it will return a NewAppleResourceInfo provider with the resources bucketed per type.
+    Finally, it will return a AppleResourceInfo provider with the resources bucketed per type.
 
     Args:
         resources: List of resources to bucketize.
@@ -145,7 +126,7 @@ def _bucketize(
             avoid being processed, as they will fall into the "unprocessed" bucket.
 
     Returns:
-        A NewAppleResourceInfo provider with resources bucketized according to type.
+        A AppleResourceInfo provider with resources bucketized according to type.
     """
     buckets = {}
     owners = {}
@@ -226,7 +207,7 @@ def _bucketize(
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
 
-    return NewAppleResourceInfo(
+    return AppleResourceInfo(
         owners = owners,
         **dict([(k, _minimize(b)) for k, b in buckets.items()])
     )
@@ -234,13 +215,13 @@ def _bucketize(
 def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = None):
     """Collects and bucketizes a specific type of resource.
 
-    Adds the given resources directly into a NewAppleResourceInfo provider under the field named in
+    Adds the given resources directly into a AppleResourceInfo provider under the field named in
     bucket_type. This avoids the sorting mechanism that `bucketize` does, while grouping resources
     together using parent_dir_param.
 
     Args:
         resources: List of resources to place in bucket_type.
-        bucket_type: The NewAppleResourceInfo field under which to collect the resources.
+        bucket_type: The AppleResourceInfo field under which to collect the resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
@@ -248,7 +229,7 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
             invoked with partial.call().
 
     Returns:
-        A NewAppleResourceInfo provider with resources in the given bucket.
+        A AppleResourceInfo provider with resources in the given bucket.
     """
     typed_bucket = []
     owners = {}
@@ -270,7 +251,7 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
         typed_bucket.append((parent, None, depset(direct = [resource])))
-    return NewAppleResourceInfo(owners = owners, **{bucket_type: _minimize(typed_bucket)})
+    return AppleResourceInfo(owners = owners, **{bucket_type: _minimize(typed_bucket)})
 
 def _bundle_relative_parent_dir(resource, extension):
     """Returns the bundle relative path to the resource rooted at the bundle.
@@ -326,7 +307,7 @@ def _collect(attr, res_attrs = []):
     return files
 
 def _merge_providers(providers, default_owner = None, validate_all_resources_owned = False):
-    """Merges multiple NewAppleResourceInfo providers into one.
+    """Merges multiple AppleResourceInfo providers into one.
 
     Args:
         providers: The list of providers to merge. This method will fail unless there is at least 1
@@ -334,12 +315,12 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
         default_owner: The default owner to be used for resources which have a None value in the
             `owners` dictionary. May be None, in which case no owner is marked.
         validate_all_resources_owned: Whether to validate that all resources are owned. This is
-            useful for top-level rules to ensure that the resources in NewAppleResourceInfo that
+            useful for top-level rules to ensure that the resources in AppleResourceInfo that
             they are propagating are fully owned. If default_owner is set, this attribute does
             nothing, as by definition the resources will all have a default owner.
 
     Returns:
-        A NewAppleResourceInfo provider with the results of the merge of the given providers.
+        A AppleResourceInfo provider with the results of the merge of the given providers.
     """
     if not providers:
         fail(
@@ -397,7 +378,7 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
                 final_depset = None
             owners[resource_path] = final_depset
 
-    return NewAppleResourceInfo(
+    return AppleResourceInfo(
         owners = owners,
         **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
     )
@@ -440,7 +421,7 @@ def _minimize(bucket):
     ]
 
 def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
-    """Nests resources in a NewAppleResourceInfo provider under a new parent bundle directory.
+    """Nests resources in a AppleResourceInfo provider under a new parent bundle directory.
 
     This method is mostly used by rules that create resource bundles in order to nest other resource
     bundle targets within themselves. For instance, objc_bundle_library supports the bundles
@@ -451,11 +432,11 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
     nesting_bundle_dir argument.
 
     Args:
-        provider_to_nest: A NewAppleResourceInfo provider with the resources to nest.
+        provider_to_nest: A AppleResourceInfo provider with the resources to nest.
         nesting_bundle_dir: The new bundle directory under which to bundle the resources.
 
     Returns:
-        A new NewAppleResourceInfo provider with the resources nested under nesting_bundle_dir.
+        A new AppleResourceInfo provider with the resources nested under nesting_bundle_dir.
     """
     nested_provider_fields = {}
     for field in _populated_resource_fields(provider_to_nest):
@@ -464,7 +445,7 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
             for parent_dir, swift_module, files in getattr(provider_to_nest, field)
         ]
 
-    return NewAppleResourceInfo(
+    return AppleResourceInfo(
         owners = provider_to_nest.owners,
         **nested_provider_fields
     )
