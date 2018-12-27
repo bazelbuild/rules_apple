@@ -77,17 +77,19 @@ EOF
 EOF
 }
 
-# Usage: create_minimal_ios_application_with_tests [test_bundle_id]
+# Usage: create_minimal_ios_application_with_tests [test_bundle_id] [test_linkopts]
 #
 # Creates a minimal iOS application target along with a minimal Unit Test
 # target. The optional test_bundle_id parameter may be passed to override the
-# default test bundle identifier.
+# default test bundle identifier. The second optional test_linkopts parameter
+# may be passed to override the default test linkopts.
 function create_minimal_ios_application_with_tests() {
   if [[ ! -f app/BUILD ]]; then
     fail "create_common_files must be called first."
   fi
 
   test_bundle_id="\"${1:-}\""
+  test_linkopts=${2:-}
 
   cat >> app/BUILD <<EOF
 ios_application(
@@ -110,6 +112,12 @@ EOF
   if [[ -n "$test_bundle_id" ]]; then
   cat >> app/BUILD <<EOF
     bundle_id = $test_bundle_id,
+EOF
+  fi
+
+  if [[ -n "$test_linkopts" ]]; then
+  cat >> app/BUILD <<EOF
+    linkopts = $test_linkopts,
 EOF
   fi
 
@@ -695,7 +703,13 @@ EOF
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
   assert_zip_not_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
+}
 
+# Tests that select is usable in linkopts
+function test_select_on_linkopts() {
+  create_common_files
+  create_minimal_ios_application_with_tests "my.test_bundle.id" 'select({"//conditions:default":[]})'
+  do_build ios //app:unit_tests || fail "Should build"
 }
 
 run_suite "ios_unit_test bundling tests"

@@ -151,13 +151,13 @@ def tvos_extension(name, **kwargs):
     # _TVExtensionMain is found. (Anyone writing a TV extension should already be
     # importing this framework, anyway.)
     linkopts = kwargs.get("linkopts", [])
-    linkopts.extend([
+    linkopts += [
         "-e",
         "_TVExtensionMain",
         "-application_extension",
         "-framework",
         "TVServices",
-    ])
+    ]
     kwargs["linkopts"] = linkopts
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
