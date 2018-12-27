@@ -24,8 +24,11 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "NewAppleResourceInfo",
     "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//common:path_utils.bzl",
@@ -42,7 +45,7 @@ def _settings_bundle_partial_impl(ctx):
     if not ctx.attr.settings_bundle:
         return struct()
 
-    provider = ctx.attr.settings_bundle[NewAppleResourceInfo]
+    provider = ctx.attr.settings_bundle[AppleResourceInfo]
     fields = resources.populated_resource_fields(provider)
     bundle_files = []
     for field in fields:

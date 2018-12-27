@@ -42,12 +42,12 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "NewAppleResourceInfo",
     "resources",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@bazel_skylib//lib:new_sets.bzl",
@@ -223,9 +223,9 @@ def _resources_partial_impl(
     providers = []
     if hasattr(ctx.attr, "deps"):
         providers.extend([
-            x[NewAppleResourceInfo]
+            x[AppleResourceInfo]
             for x in ctx.attr.deps
-            if NewAppleResourceInfo in x
+            if AppleResourceInfo in x
         ])
 
     # TODO(kaipi): Bucket top_level_attrs directly instead of collecting and
@@ -244,9 +244,9 @@ def _resources_partial_impl(
         providers.append(plist_provider)
 
     avoid_providers = [
-        x[NewAppleResourceInfo]
+        x[AppleResourceInfo]
         for x in targets_to_avoid
-        if NewAppleResourceInfo in x
+        if AppleResourceInfo in x
     ]
 
     avoid_provider = None

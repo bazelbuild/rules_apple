@@ -16,8 +16,11 @@
 
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "NewAppleResourceInfo",
     "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -46,8 +49,8 @@ _NATIVE_RESOURCE_ATTRS = [
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
-    # If the target already propagates a NewAppleResourceInfo, do nothing.
-    if NewAppleResourceInfo in target:
+    # If the target already propagates a AppleResourceInfo, do nothing.
+    if AppleResourceInfo in target:
         return []
 
     providers = []
@@ -85,7 +88,7 @@ def _apple_resource_aspect_impl(target, ctx):
         # Nest bundles added through the bundles attribute in objc_bundle_library.
         if ctx.rule.attr.bundles:
             bundle_merged_provider = resources.merge_providers(
-                [x[NewAppleResourceInfo] for x in ctx.rule.attr.bundles],
+                [x[AppleResourceInfo] for x in ctx.rule.attr.bundles],
             )
 
             providers.append(resources.nest_in_bundle(bundle_merged_provider, parent_dir_param))
@@ -100,7 +103,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
         # Collect objc_library's bundles dependencies and propagate them.
         providers.extend([
-            x[NewAppleResourceInfo]
+            x[AppleResourceInfo]
             for x in ctx.rule.attr.bundles
         ])
 
@@ -170,9 +173,9 @@ def _apple_resource_aspect_impl(target, ctx):
     for attr in ["deps", "data"]:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
-                x[NewAppleResourceInfo]
+                x[AppleResourceInfo]
                 for x in getattr(ctx.rule.attr, attr)
-                if NewAppleResourceInfo in x
+                if AppleResourceInfo in x
             ])
 
     if providers:
