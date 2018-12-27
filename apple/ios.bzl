@@ -507,14 +507,14 @@ def ios_imessage_extension(name, **kwargs):
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
     # these workarounds into the rule implementations.
     linkopts = kwargs.pop("linkopts", [])
-    linkopts.extend([
+    linkopts += [
         "-application_extension",
         "-e",
         "_NSExtensionMain",
         # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
         "-rpath",
         "@executable_path/../../Frameworks",
-    ])
+    ]
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,

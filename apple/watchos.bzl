@@ -157,7 +157,7 @@ def watchos_extension(name, **kwargs):
     # the form expected by clang (i.e., -application_extension, not
     # -fapplication-extension).
     linkopts = kwargs.get("linkopts", [])
-    linkopts.append("-application_extension")
+    linkopts += ["-application_extension"]
     kwargs["linkopts"] = linkopts
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(

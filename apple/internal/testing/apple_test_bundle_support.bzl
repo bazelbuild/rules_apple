@@ -168,7 +168,7 @@ def _assemble_test_targets(
     test_bundle_name = name + "_test_bundle"
 
     linkopts = kwargs.pop("linkopts", [])
-    linkopts.extend(extra_linkopts)
+    linkopts += extra_linkopts
 
     # Back door to support tags on the apple_binary for systems that
     # collect binaries from a package as they see this (and tag
