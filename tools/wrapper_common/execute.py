@@ -73,9 +73,9 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
       stderr = _trim_paths(stderr)
 
   if stdout:
-    sys.stdout.write("%s\n" % stdout)
+    sys.stdout.write("%s" % stdout)
   if stderr:
-    sys.stderr.write("%s\n" % stderr)
+    sys.stderr.write("%s" % stderr)
 
   return cmd_result
 
