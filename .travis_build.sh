@@ -92,7 +92,7 @@ if [[ -n "${BUILDIFIER:-}" ]]; then
       fi
       echo "ERROR: BUILD/.bzl lint issue(s):"
       echo ""
-      # buildifier now exist with error if there are issues, so use `|| true`
+      # buildifier now exits with error if there are issues, so use `|| true`
       # to keep the script running.
       find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn || true
       echo ""
