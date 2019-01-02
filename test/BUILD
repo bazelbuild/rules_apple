@@ -231,6 +231,13 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "macos_kernel_extension_test",
+    size = "medium",
+    src = "macos_kernel_extension_test.sh",
+    configurations = MACOS_CONFIGURATIONS,
+)
+
+apple_multi_shell_test(
     name = "macos_command_line_application_test",
     size = "medium",
     src = "macos_command_line_application_test.sh",

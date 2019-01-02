@@ -258,6 +258,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            is_executable = True,
             product_type = apple_product_type.application,
             provisioning_profile_extension = ".provisioningprofile",
             requires_pkginfo = True,
@@ -267,6 +268,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.tool: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
+            is_executable = True,
             product_type = apple_product_type.tool,
             provisioning_profile_extension = ".provisioningprofile",
             requires_provisioning_profile = True,
@@ -306,8 +308,10 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.kernel_extension,
             provisioning_profile_extension = ".provisioningprofile",
+            requires_deps = True,
             requires_signing_for_device = False,
         ),
         # macos_spotlight_importer
@@ -315,8 +319,10 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".mdimporter",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.spotlight_importer,
             provisioning_profile_extension = ".provisioningprofile",
+            requires_deps = True,
             requires_signing_for_device = False,
         ),
         # macos_xpc_service
@@ -324,9 +330,12 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".xpc",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.xpc_service,
             provisioning_profile_extension = ".provisioningprofile",
+            requires_deps = True,
             requires_signing_for_device = False,
+            requires_pkginfo = True,
         ),
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(

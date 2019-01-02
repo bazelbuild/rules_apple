@@ -303,6 +303,42 @@ provider to describe that requirement.
 """,
 )
 
+MacosKernelExtensionBundleInfo = provider(
+    doc = """
+Denotes that a target is a macOS kernel extension.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS kernel extension
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a macOS kernel extension should use this provider to describe that
+requirement.
+""",
+)
+
+MacosSpotlightImporterBundleInfo = provider(
+    doc = """
+Denotes that a target is a macOS Spotlight Importer bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS Spotlight importer
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a macOS Spotlight importer should use this provider to describe that
+requirement.
+""",
+)
+
+MacosXPCServiceBundleInfo = provider(
+    doc = """
+Denotes that a target is a macOS XPC Service bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS XPC service
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a macOS XPC service should use this provider to describe that
+requirement.
+""",
+)
+
 MacosXcTestBundleInfo = provider(
     doc = """
 Denotes a target that is a macOS .xctest bundle.

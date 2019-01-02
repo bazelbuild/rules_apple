@@ -39,6 +39,9 @@ load(
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
+    "MacosKernelExtensionBundleInfo",
+    "MacosSpotlightImporterBundleInfo",
+    "MacosXPCServiceBundleInfo",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -46,7 +49,7 @@ load(
 )
 
 def _macos_application_impl(ctx):
-    """Experimental implementation of macos_application."""
+    """Implementation of macos_application."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
@@ -114,7 +117,7 @@ def _macos_application_impl(ctx):
     ] + processor_result.providers
 
 def _macos_bundle_impl(ctx):
-    """Experimental implementation of macos_bundle."""
+    """Implementation of macos_bundle."""
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
@@ -222,6 +225,136 @@ def _macos_extension_impl(ctx):
         MacosExtensionBundleInfo(),
     ] + processor_result.providers
 
+def _macos_kernel_extension_impl(ctx):
+    """Implementation of macos_kernel_extension."""
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            plugins = [ctx.outputs.archive],
+        ),
+        partials.macos_additional_contents_partial(),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+        ),
+    ]
+
+    if ctx.file.provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        MacosKernelExtensionBundleInfo(),
+    ] + processor_result.providers
+
+def _macos_spotlight_importer_impl(ctx):
+    """Implementation of macos_spotlight_importer."""
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            plugins = [ctx.outputs.archive],
+        ),
+        partials.macos_additional_contents_partial(),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+        ),
+    ]
+
+    if ctx.file.provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        MacosSpotlightImporterBundleInfo(),
+    ] + processor_result.providers
+
+def _macos_xpc_service_impl(ctx):
+    """Implementation of macos_xpc_service."""
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.framework_import_partial(
+            targets = ctx.attr.deps,
+        ),
+        partials.macos_additional_contents_partial(),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            bundle_dylibs = True,
+        ),
+    ]
+
+    if ctx.file.provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        MacosXPCServiceBundleInfo(),
+    ] + processor_result.providers
+
 def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
     output_file = ctx.actions.declare_file(ctx.label.name)
@@ -294,6 +427,27 @@ macos_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "macos",
     product_type = apple_product_type.app_extension,
     doc = "Builds and bundles a macOS Application Extension.",
+)
+
+macos_kernel_extension = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_kernel_extension_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.kernel_extension,
+    doc = "Builds and bundles a macOS Kernel Extension.",
+)
+
+macos_spotlight_importer = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_spotlight_importer_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.spotlight_importer,
+    doc = "Builds and bundles a macOS Spotlight Importer.",
+)
+
+macos_xpc_service = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_xpc_service_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.xpc_service,
+    doc = "Builds and bundles a macOS XPC Service.",
 )
 
 macos_command_line_application = rule_factory.create_apple_binary_rule(
