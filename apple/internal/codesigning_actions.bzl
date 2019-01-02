@@ -27,6 +27,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -128,7 +132,7 @@ def _post_process_and_sign_archive_action(
         },
     )
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = input_files,
         outputs = [output_archive],
@@ -156,7 +160,7 @@ def _sign_binary_action(ctx, input_binary, output_binary):
         None,
     )
 
-    platform_support.xcode_env_action(
+    legacy_actions.run_shell(
         ctx,
         inputs = [input_binary],
         outputs = [output_binary],

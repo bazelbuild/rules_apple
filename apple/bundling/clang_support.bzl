@@ -15,8 +15,8 @@
 """Supporting functions for Clang libraries."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
 )
 
 def _should_package_clang_runtime(ctx):
@@ -45,7 +45,7 @@ def _register_runtime_lib_actions(ctx, binary_artifact, output_zip):
       output_zip: A `File` object representing the ZIP output file where to
           package the runtime libraries.
     """
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = [binary_artifact],
         outputs = [output_zip],
@@ -56,7 +56,7 @@ def _register_runtime_lib_actions(ctx, binary_artifact, output_zip):
         ],
         mnemonic = "ClangRuntimeLibsCopy",
         # This action needs to read the contents of the Xcode bundle.
-        no_sandbox = True,
+        execution_requirements = {"no-sandbox": "1"},
     )
 
 clang_support = struct(

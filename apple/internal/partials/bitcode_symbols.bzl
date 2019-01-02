@@ -15,8 +15,8 @@
 """Partial implementation for bitcode symbol file processing."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -62,7 +62,7 @@ def _bitcode_symbols_partial_impl(
             # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
             copy_commands.append(
                 ("cp {bitcode_file} " +
-                 "${{{{OUTPUT_DIR}}}}/$(dwarfdump -u -arch {arch} {binary} " +
+                 "${{OUTPUT_DIR}}/$(dwarfdump -u -arch {arch} {binary} " +
                  "| cut -d' ' -f2).bcsymbolmap").format(
                     arch = arch,
                     binary = binary_artifact.path,
@@ -74,20 +74,12 @@ def _bitcode_symbols_partial_impl(
             bitcode_dir = intermediates.directory(ctx.actions, ctx.label.name, "bitcode_files")
             bitcode_dirs.append(bitcode_dir)
 
-            platform_support.xcode_env_action(
+            legacy_actions.run_shell(
                 ctx,
                 inputs = [binary_artifact] + bitcode_files,
                 outputs = [bitcode_dir],
-                command = [
-                    "/bin/bash",
-                    "-c",
-                    (
-                        "set -e && " +
-                        "OUTPUT_DIR={output_path} && " +
-                        "mkdir -p {output_path} && " +
-                        " && ".join(copy_commands)
-                    ).format(output_path = bitcode_dir.path),
-                ],
+                command = "mkdir -p ${OUTPUT_DIR} && " + " && ".join(copy_commands),
+                env = {"OUTPUT_DIR": bitcode_dir.path},
                 mnemonic = "BitcodeSymbolsCopy",
             )
 
