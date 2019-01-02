@@ -39,8 +39,8 @@ load(
     "entitlements_validation_mode",
 )
 load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 AppleEntitlementsInfo = provider(
@@ -119,7 +119,7 @@ def _include_debug_entitlements(ctx):
     """
     if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
         return False
-    add_debugger_entitlement = define_utils.bool_value(
+    add_debugger_entitlement = defines.bool_value(
         ctx,
         "apple.add_debugger_entitlement",
         None,

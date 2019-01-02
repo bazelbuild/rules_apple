@@ -23,8 +23,8 @@ load(
     "file_actions",
 )
 load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -149,7 +149,7 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
     dsym_bundles = depset(transitive = [x.dsym_bundles for x in deps_providers])
 
     # Only output dependency debug files if requested.
-    propagate_embedded_extra_outputs = define_utils.bool_value(
+    propagate_embedded_extra_outputs = defines.bool_value(
         ctx,
         "apple.propagate_embedded_extra_outputs",
         False,

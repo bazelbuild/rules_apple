@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Support functions for common define operations."""
+"""Support functions for common --define operations."""
 
 def _bool_value(ctx, define_name, default):
     """Looks up a define on ctx for a boolean value.
@@ -38,6 +38,6 @@ def _bool_value(ctx, define_name, default):
         ))
     return default
 
-define_utils = struct(
+defines = struct(
     bool_value = _bool_value,
 )

@@ -15,10 +15,10 @@
 """Temporary file to centralize configuration of the experimental bundling logic."""
 
 load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 def is_experimental_bundling_enabled(ctx):
     """Returns whether experimental bundling is enabled."""
-    return define_utils.bool_value(ctx, "apple.experimental.bundling", True)
+    return defines.bool_value(ctx, "apple.experimental.bundling", True)
