@@ -54,10 +54,9 @@ class ExecuteTest(unittest.TestCase):
     else:
       expected = bytes_out
 
-    # The trailing \n is added by execute_and_filter_output
-    expected += ' filtered\n'
+    expected += ' filtered'
     self.assertEqual(expected, stdout)
-    self.assertIn('filtered\n', stderr)
+    self.assertIn('filtered', stderr)
 
   @contextlib.contextmanager
   def _mock_streams(self):
