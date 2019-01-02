@@ -110,11 +110,7 @@ def _platform_type(ctx):
       The `PlatformType` for the current target, after being converted from its
       string attribute form.
     """
-    platform_type_string = attrs.get(
-        ctx.attr,
-        "platform_type",
-        default = attrs.private_fallback,
-    )
+    platform_type_string = ctx.attr.platform_type
     return getattr(apple_common.platform_type, platform_type_string)
 
 def _platform(ctx):
