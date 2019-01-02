@@ -18,6 +18,7 @@ filegroup(
         "//apple/internal/partials:for_bazel_tests",
         "//apple/internal/resource_actions:for_bazel_tests",
         "//apple/internal/testing:for_bazel_tests",
+        "//apple/internal/utils:for_bazel_tests",
     ],
     visibility = [
         "//apple:__subpackages__",

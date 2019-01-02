@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
 
 def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_file):
     """Creates an action that compiles datamodels.
@@ -48,7 +52,7 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
         file_support.xctoolrunner_path(output_file.path),
     ]
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = input_files,
         outputs = [output_file],
@@ -72,7 +76,7 @@ def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
         file_support.xctoolrunner_path(output_file.path),
     ]
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = input_files,
         outputs = [output_file],

@@ -27,6 +27,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -37,10 +41,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
 )
 load(
     "@build_bazel_rules_apple//common:attrs.bzl",
@@ -164,7 +164,7 @@ def _generate_environment_plist(ctx, environment_plist, platform_with_version):
       platform_with_version: A string containing the platform and version of the
         target.
     """
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         outputs = [environment_plist],
         executable = ctx.executable._environment_plist,

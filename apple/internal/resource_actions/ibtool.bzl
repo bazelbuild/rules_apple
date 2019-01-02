@@ -23,6 +23,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@bazel_skylib//lib:collections.bzl",
     "collections",
 )
@@ -78,14 +82,14 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
         file_support.xctoolrunner_path(input_file.path),
     ])
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = [input_file],
         outputs = [output_dir],
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardCompile",
-        no_sandbox = True,
+        execution_requirements = {"no-sandbox": "1"},
     )
 
 def link_storyboards(ctx, storyboardc_dirs, output_dir):
@@ -116,14 +120,14 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
         for f in storyboardc_dirs
     ])
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = storyboardc_dirs,
         outputs = [output_dir],
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "StoryboardLink",
-        no_sandbox = True,
+        execution_requirements = {"no-sandbox": "1"},
     )
 
 def compile_xib(ctx, swift_module, input_file, output_dir):
@@ -154,12 +158,12 @@ def compile_xib(ctx, swift_module, input_file, output_dir):
         file_support.xctoolrunner_path(input_file.path),
     ])
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = [input_file],
         outputs = [output_dir],
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "XibCompile",
-        no_sandbox = True,
+        execution_requirements = {"no-sandbox": "1"},
     )

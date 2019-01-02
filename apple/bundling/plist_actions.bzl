@@ -31,6 +31,10 @@ load(
     "plist_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -62,7 +66,7 @@ def _environment_plist_action(ctx):
     environment_plist = ctx.actions.declare_file(
         ctx.label.name + "_environment.plist",
     )
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         outputs = [environment_plist],
         executable = ctx.executable._environment_plist,

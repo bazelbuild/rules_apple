@@ -14,30 +14,6 @@
 
 """Utility functions for working with strings, lists, and files in Skylark."""
 
-# Standard execution requirements to force building on Mac.
-DARWIN_EXECUTION_REQUIREMENTS = {"requires-darwin": ""}
-
-def apple_action(ctx, **kw):
-    """Creates an action that only runs on MacOS/Darwin.
-
-    Call it similar to how you would call ctx.action:
-      apple_action(ctx, outputs=[...], inputs=[...],...)
-    """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
-
-    # Disable the lint warning because this can't be remapped, it needs
-    # to be split into run and run_shell, which is pending work.
-    # ...and disabling the linter doesn't work:
-    # github.com/bazelbuild/buildtools/issues/458
-    ctx.action(**kw)  # buildozer: disable=ctx-actions
-
 def full_label(l):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 

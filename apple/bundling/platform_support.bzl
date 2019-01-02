@@ -15,10 +15,6 @@
 """Support functions for working with Apple platforms and device families."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "apple_action",
-)
-load(
     "@build_bazel_rules_apple//common:attrs.bzl",
     "attrs",
 )
@@ -149,42 +145,6 @@ def _platform_and_sdk_version(ctx):
 
     return platform, sdk_version
 
-def _xcode_env_action(ctx, **kwargs):
-    """Executes a Darwin-only action with the necessary platform environment.
-
-    This rule is intended to be used by actions that invoke scripts like
-    "xctoolrunner" that need to pass the Xcode and target platform versions
-    into the environment but don't need to be wrapped by xcrunwrapper because
-    they already invoke it internally.
-
-    Rules using this action must require the "apple" configuration fragment.
-
-    Note: The env here is different than apple/utils.bzl's xcrun_env() in that
-    that uses ctx.fragments.apple.single_arch_platform, where here we look up the
-    platform off some locally define attributes. The difference being
-    xcrun_env()/xcrun_action() are used in context where all transitions have
-    already happened; but this is meant to be used in bundling, where we are
-    before any of those transitions, and so the rule must ensure the right
-    platform/arches are being used itself.
-
-    TODO(b/121134880): Once we have support Starlark defined rule transitions, we can migrate usages
-    of this wrapper to apple_support.run and apple_support.run_shell, as we'll add a rule transition
-    so that the rule context gets the correct platform value configured.
-
-    Args:
-      ctx: The Skylark context.
-      **kwargs: Arguments to be passed into apple_action.
-    """
-    platform = _platform(ctx)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    action_env = dict(kwargs.get("env", {}))
-    action_env.update(apple_common.target_apple_env(xcode_config, platform))
-    action_env.update(apple_common.apple_host_system_env(xcode_config))
-
-    kwargs["env"] = action_env
-
-    apple_action(ctx, **kwargs)
-
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
     families = _families,
@@ -194,5 +154,4 @@ platform_support = struct(
     platform_and_sdk_version = _platform_and_sdk_version,
     platform_type = _platform_type,
     ui_device_family_plist_value = _ui_device_family_plist_value,
-    xcode_env_action = _xcode_env_action,
 )

@@ -32,6 +32,10 @@ load(
     "xcode_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -210,12 +214,12 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
 
     args.extend(xcassets)
 
-    platform_support.xcode_env_action(
+    legacy_actions.run(
         ctx,
         inputs = asset_files,
         outputs = outputs,
         executable = ctx.executable._xctoolrunner,
         arguments = args,
         mnemonic = "AssetCatalogCompile",
-        no_sandbox = True,
+        execution_requirements = {"no-sandbox": "1"},
     )

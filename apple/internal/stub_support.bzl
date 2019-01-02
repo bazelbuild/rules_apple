@@ -15,8 +15,8 @@
 """Stub binary creation support methods."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -41,14 +41,13 @@ def _create_stub_binary(ctx, xcode_stub_path):
     )
 
     # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
-    platform_support.xcode_env_action(
+    legacy_actions.run_shell(
         ctx,
         outputs = [binary_artifact],
-        executable = "/bin/bash",
-        arguments = ["-c", "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
+        command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
             output_path = binary_artifact.path,
             xcode_stub_path = xcode_stub_path,
-        )],
+        ),
         mnemonic = "CopyStubExecutable",
         progress_message = "Copying stub executable for %s" % (ctx.label),
     )
