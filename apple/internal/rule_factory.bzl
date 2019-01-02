@@ -198,17 +198,11 @@ bundle.
     """,
         ),
         "_cc_toolchain": attr.label(
-            default = configuration_field(
-                name = "cc_toolchain",
-                fragment = "cpp",
-            ),
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
         "_child_configuration_dummy": attr.label(
             cfg = apple_common.multi_arch_split,
-            default = configuration_field(
-                name = "cc_toolchain",
-                fragment = "cpp",
-            ),
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
         "_googlemac_proto_compiler": attr.label(
             cfg = "host",
