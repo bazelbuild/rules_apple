@@ -23,8 +23,8 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//common:define_utils.bzl",
-    "define_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 load(
     "@bazel_skylib//lib:shell.bzl",
@@ -318,7 +318,7 @@ def _should_sign_simulator_bundles(ctx):
         return True
 
     # Default is to sign.
-    return define_utils.bool_value(
+    return defines.bool_value(
         ctx,
         "apple.codesign_simulator_bundles",
         True,
