@@ -39,6 +39,9 @@ load(
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
+    _macos_kernel_extension = "macos_kernel_extension",
+    _macos_spotlight_importer = "macos_spotlight_importer",
+    _macos_xpc_service = "macos_xpc_service",
 )
 
 def macos_application(name, **kwargs):
@@ -195,6 +198,64 @@ def macos_bundle(name, **kwargs):
     )
 
     _macos_bundle(
+        name = name,
+        **bundling_args
+    )
+
+def macos_kernel_extension(name, **kwargs):
+    """Packages a macOS Kernel Extension."""
+    binary_args = dict(kwargs)
+    features = binary_args.pop("features", [])
+    features += ["kernel_extension"]
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.macos),
+        features = features,
+        **binary_args
+    )
+
+    _macos_kernel_extension(
+        name = name,
+        **bundling_args
+    )
+
+def macos_spotlight_importer(name, **kwargs):
+    """Packages a macOS Spotlight Importer Bundle."""
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.macos),
+        **kwargs
+    )
+
+    _macos_spotlight_importer(
+        name = name,
+        **bundling_args
+    )
+
+def macos_xpc_service(name, **kwargs):
+    """Packages a macOS XPC Service Application."""
+    binary_args = dict(kwargs)
+
+    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
+    linkopts = binary_args.pop("linkopts", [])
+    linkopts += [
+        # TODO(b/122246990): Remove this rpath, as macos_xpc_service will not package any
+        # frameworks, and will rely on macos_application's Frameworks instead.
+        "-rpath",
+        "@executable_path/../Frameworks",
+        "-rpath",
+        "@executable_path/../../../../Frameworks",
+    ]
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.macos),
+        linkopts = linkopts,
+        **binary_args
+    )
+
+    _macos_xpc_service(
         name = name,
         **bundling_args
     )
