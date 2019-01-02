@@ -48,7 +48,7 @@ def _families(ctx):
     Returns:
       The list of device families that apply to the target being built.
     """
-    return attrs.get(ctx.attr, "families", ctx.attr._allowed_families)
+    return getattr(ctx.attr, "families", ctx.attr._allowed_families)
 
 def _ui_device_family_plist_value(ctx):
     """Returns the value to use for `UIDeviceFamily` in an info.plist.
