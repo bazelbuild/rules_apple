@@ -274,7 +274,7 @@ def merge_root_infoplists(
 
     # Keys to be forced into the Info.plist file.
     # b/67853874 - move this to the right platform specific rule(s).
-    launch_storyboard = attrs.get(ctx.file, "launch_storyboard")
+    launch_storyboard = getattr(ctx.file, "launch_storyboard", None)
     if launch_storyboard:
         short_name = paths.split_extension(launch_storyboard.basename)[0]
         forced_plists.append(struct(UILaunchStoryboardName = short_name))

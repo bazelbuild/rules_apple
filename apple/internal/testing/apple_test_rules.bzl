@@ -133,11 +133,11 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Collect this target's coverage files.
     for attr in ["srcs", "hdrs", "non_arc_srcs"]:
-        for files in [x.files for x in attrs.get(ctx.rule.attr, attr, [])]:
+        for files in [x.files for x in getattr(ctx.rule.attr, attr, [])]:
             coverage_files = _merge_depsets(files, coverage_files)
 
     # Collect dependencies coverage files.
-    for dep in attrs.get(ctx.rule.attr, "deps", []):
+    for dep in getattr(ctx.rule.attr, "deps", []):
         coverage_files = _merge_depsets(dep[CoverageFiles].coverage_files, coverage_files)
 
     # Collect the binaries themselves from the various bundles involved in the test. These will be
