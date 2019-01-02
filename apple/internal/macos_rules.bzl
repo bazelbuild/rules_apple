@@ -60,26 +60,27 @@ def _macos_application_impl(ctx):
     debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
 
     bundle_id = ctx.attr.bundle_id
+    embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
 
     processor_partials = [
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_dependencies = ctx.attr.extensions,
+            debug_dependencies = embedded_targets,
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = ctx.attr.extensions,
+            embeddable_targets = embedded_targets,
         ),
         partials.framework_import_partial(
-            targets = ctx.attr.deps + ctx.attr.extensions,
+            targets = ctx.attr.deps + embedded_targets,
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
+            bundle_verification_targets = [struct(target = ext) for ext in embedded_targets],
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "app_icons",
@@ -88,7 +89,7 @@ def _macos_application_impl(ctx):
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.extensions,
+            dependency_targets = embedded_targets,
             bundle_dylibs = True,
         ),
     ]
@@ -327,8 +328,8 @@ def _macos_xpc_service_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = debug_outputs_provider,
         ),
-        partials.framework_import_partial(
-            targets = ctx.attr.deps,
+        partials.embedded_bundles_partial(
+            xpc_services = [ctx.outputs.archive],
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
@@ -337,7 +338,6 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
-            bundle_dylibs = True,
         ),
     ]
 

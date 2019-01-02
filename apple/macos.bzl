@@ -240,10 +240,6 @@ def macos_xpc_service(name, **kwargs):
     # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
     linkopts = binary_args.pop("linkopts", [])
     linkopts += [
-        # TODO(b/122246990): Remove this rpath, as macos_xpc_service will not package any
-        # frameworks, and will rely on macos_application's Frameworks instead.
-        "-rpath",
-        "@executable_path/../Frameworks",
         "-rpath",
         "@executable_path/../../../../Frameworks",
     ]
