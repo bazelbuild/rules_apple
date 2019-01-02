@@ -55,6 +55,7 @@ load(
     "IosStickerPackExtensionBundleInfo",
     "MacosApplicationBundleInfo",
     "MacosExtensionBundleInfo",
+    "MacosXPCServiceBundleInfo",
     "TvosExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -577,7 +578,14 @@ set, then the default extension is determined by the application's product_type.
                 ],
                 doc = "A list of macOS extensions to include in the final application bundle.",
             ),
+            "xpc_services": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, MacosXPCServiceBundleInfo],
+                ],
+                doc = "A list of macOS XPC Services to include in the final application bundle.",
+            ),
         })
+
     elif product_support.is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({

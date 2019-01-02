@@ -38,7 +38,8 @@ def _describe_bundle_locations(
         contents_relative_frameworks = "Frameworks",
         contents_relative_plugins = "PlugIns",
         contents_relative_resources = "",
-        contents_relative_watch = "Watch"):
+        contents_relative_watch = "Watch",
+        contents_relative_xpc_service = "XPCServices"):
     """Creates a descriptor of locations for different types of artifacts within an Apple bundle."""
     return struct(
         archive_relative = archive_relative,
@@ -48,6 +49,7 @@ def _describe_bundle_locations(
         contents_relative_plugins = contents_relative_plugins,
         contents_relative_resources = contents_relative_resources,
         contents_relative_watch = contents_relative_watch,
+        contents_relative_xpc_service = contents_relative_xpc_service,
     )
 
 def _describe_rule_type(

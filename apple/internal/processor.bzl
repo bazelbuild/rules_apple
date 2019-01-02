@@ -103,6 +103,7 @@ _LOCATION_ENUM = struct(
     plugin = "plugin",
     resource = "resource",
     watch = "watch",
+    xpc_service = "xpc_service",
 )
 
 def _invalid_top_level_directories_for_platform(platform_type):
@@ -182,6 +183,10 @@ def _archive_paths(ctx):
         _LOCATION_ENUM.watch: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_watch,
+        ),
+        _LOCATION_ENUM.xpc_service: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_xpc_service,
         ),
     }
 

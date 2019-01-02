@@ -37,6 +37,9 @@ PlugIns section of the packaging bundle.""",
         "watch_bundles": """
 A depset with the zipped archives of bundles that need to be expanded into the Watch section of
 the packaging bundle. Only applicable for iOS applications.""",
+        "xpc_services": """
+A depset with the zipped archives of bundles that need to be expanded into the XPCServices section
+of the packaging bundle. Only applicable for macOS applications.""",
     },
 )
 
@@ -46,7 +49,8 @@ def _embedded_bundles_partial_impl(
         embeddable_targets,
         frameworks,
         plugins,
-        watch_bundles):
+        watch_bundles,
+        xpc_services):
     """Implementation for the embedded bundles processing partial."""
     _ignore = [ctx]
 
@@ -59,10 +63,12 @@ def _embedded_bundles_partial_impl(
     transitive_frameworks = []
     transitive_plugins = []
     transitive_watch_bundles = []
+    transitive_xpc_services = []
     for provider in embeddable_providers:
         transitive_frameworks.append(provider.frameworks)
         transitive_plugins.append(provider.plugins)
         transitive_watch_bundles.append(provider.watch_bundles)
+        transitive_xpc_services.append(provider.xpc_services)
 
     bundle_zips = []
     if bundle_embedded_bundles:
@@ -70,6 +76,7 @@ def _embedded_bundles_partial_impl(
             (processor.location.framework, None, depset(transitive = transitive_frameworks)),
             (processor.location.plugin, None, depset(transitive = transitive_plugins)),
             (processor.location.watch, None, depset(transitive = transitive_watch_bundles)),
+            (processor.location.xpc_service, None, depset(transitive = transitive_xpc_services)),
         ])
 
         # Clear the transitive lists to avoid propagating them, since they will be packaged in the
@@ -77,6 +84,7 @@ def _embedded_bundles_partial_impl(
         transitive_frameworks = []
         transitive_plugins = []
         transitive_watch_bundles = []
+        transitive_xpc_services = []
 
     return struct(
         bundle_zips = bundle_zips,
@@ -85,6 +93,7 @@ def _embedded_bundles_partial_impl(
                 frameworks = depset(frameworks, transitive = transitive_frameworks),
                 plugins = depset(plugins, transitive = transitive_plugins),
                 watch_bundles = depset(watch_bundles, transitive = transitive_watch_bundles),
+                xpc_services = depset(xpc_services, transitive = transitive_xpc_services),
             ),
         ],
     )
@@ -94,7 +103,8 @@ def embedded_bundles_partial(
         embeddable_targets = [],
         frameworks = [],
         plugins = [],
-        watch_bundles = []):
+        watch_bundles = [],
+        xpc_services = []):
     """Constructor for the embedded bundles processing partial.
 
     This partial is used to propagate and package embedded bundles into their respective locations
@@ -114,6 +124,8 @@ def embedded_bundles_partial(
             target to bundle inside `PlugIns`.
         watch_bundles: List of watchOS application bundles that should be propagated downstream for
             a top level target to bundle inside `Watch`.
+        xpc_services: List of macOS XPC Service bundles that should be propagated downstream for
+            a top level target to bundle inside `XPCServices`.
 
     Returns:
           A partial that propagates and/or packages embeddable bundles.
@@ -125,4 +137,5 @@ def embedded_bundles_partial(
         frameworks = frameworks,
         plugins = plugins,
         watch_bundles = watch_bundles,
+        xpc_services = xpc_services,
     )
