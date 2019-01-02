@@ -1734,7 +1734,9 @@ class PlistToolTest(unittest.TestCase):
           'plists': [plist],
           'entitlements_options': {
               'profile_metadata_file': {
-                  'Entitlements': {},
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                  },
                   'Version': 1,
               },
           },
