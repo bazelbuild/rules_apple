@@ -99,7 +99,11 @@ macos_binary_infoplist = rule(
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),
             "_allowed_families": attr.string_list(default = ["mac"]),
             "_needs_pkginfo": attr.bool(default = False),
-            "_platform_type": attr.string(
+            # TODO(kaipi): Make this private when it isn't also used by
+            # apple_binary (when there is a linking api to use). It is public
+            # for consistency and because this rule is an internal
+            # implementation detail.
+            "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),
             ),
             "_product_type": attr.string(default = apple_product_type.tool),
