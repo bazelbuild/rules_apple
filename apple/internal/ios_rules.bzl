@@ -210,9 +210,12 @@ def _ios_framework_impl(ctx):
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
-        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             binary_provider = binary_target[apple_common.AppleDylibBinary],
+        ),
+        partials.framework_header_modulemap_partial(
+            hdrs = ctx.files.hdrs,
+            binary_objc_provider = binary_target[apple_common.Objc],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
@@ -309,7 +312,7 @@ def _ios_static_framework_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.static_framework_header_modulemap_partial(
+        partials.framework_header_modulemap_partial(
             hdrs = ctx.files.hdrs,
             binary_objc_provider = binary_target[apple_common.Objc],
         ),
