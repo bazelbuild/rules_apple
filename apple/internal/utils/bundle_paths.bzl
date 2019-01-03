@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Support functions common path operations."""
+"""Support functions bundle related paths operations."""
 
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 
-def _farthest_directory_matching(path, extension):
+def _farthest_parent(path, extension):
     """Returns the part of a path with the given extension closest to the root.
 
     For example, if `path` is `"foo/bar.bundle/baz.bundle"`, passing `".bundle"`
@@ -85,7 +85,7 @@ def _owner_relative_path(f):
         return paths.relativize(f.short_path, f.owner.package)
 
 # Define the loadable module that lists the exported symbols in this file.
-path_utils = struct(
-    farthest_directory_matching = _farthest_directory_matching,
+bundle_paths = struct(
+    farthest_parent = _farthest_parent,
     owner_relative_path = _owner_relative_path,
 )
