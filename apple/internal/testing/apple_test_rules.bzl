@@ -29,10 +29,6 @@ load(
     LegacySwiftInfo = "SwiftInfo",
 )
 load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
-)
-load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )

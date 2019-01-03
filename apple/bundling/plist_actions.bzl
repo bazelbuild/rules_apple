@@ -43,10 +43,6 @@ load(
     "AppleBundleVersionInfo",
 )
 load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
