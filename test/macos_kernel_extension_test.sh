@@ -26,6 +26,13 @@ function tear_down() {
   rm -rf app
 }
 
+# Required for OSS testing, as the kernel test is disabled and the test
+# runner chokes when there are no tests in the suite.
+# TODO(b/117147764): Remove this empty test.
+function test_pass() {
+  :
+}
+
 function disabled_test_kernel_extension() {  # Blocked on b/117147764
   mkdir -p kext
 
