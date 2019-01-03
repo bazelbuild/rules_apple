@@ -31,8 +31,8 @@ load(
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -50,7 +50,7 @@ def _settings_bundle_partial_impl(ctx):
     bundle_files = []
     for field in fields:
         for parent_dir, _, files in getattr(provider, field):
-            bundle_name = path_utils.farthest_directory_matching(parent_dir, "bundle")
+            bundle_name = bundle_paths.farthest_parent(parent_dir, "bundle")
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
 
             if field in ["plists", "strings"]:

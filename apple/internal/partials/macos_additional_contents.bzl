@@ -23,8 +23,8 @@ load(
     "AppleBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -54,7 +54,7 @@ def _macos_additional_contents_partial_impl(ctx):
             )
         else:
             for file in target.files:
-                package_relative = path_utils.owner_relative_path(file)
+                package_relative = bundle_paths.owner_relative_path(file)
                 nested_path = paths.dirname(package_relative).rstrip("/")
                 bundle_files.append(
                     (

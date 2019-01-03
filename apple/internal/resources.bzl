@@ -68,8 +68,8 @@ load(
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -154,7 +154,7 @@ def _bucketize(
         # Special case for localized. If .lproj/ is in the path of the resource (and the parent
         # doesn't already have it) append the lproj component to the current parent.
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
-            lproj_path = path_utils.farthest_directory_matching(resource_short_path, "lproj")
+            lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
         # For each type of resource, place in appropriate bucket.
@@ -247,7 +247,7 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
             parent = parent_dir_param
 
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
-            lproj_path = path_utils.farthest_directory_matching(resource_short_path, "lproj")
+            lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
         typed_bucket.append((parent, None, depset(direct = [resource])))
@@ -268,7 +268,7 @@ def _bundle_relative_parent_dir(resource, extension):
     Returns:
         The bundle relative path, rooted at the outermost bundle.
     """
-    bundle_path = path_utils.farthest_directory_matching(resource.short_path, extension)
+    bundle_path = bundle_paths.farthest_parent(resource.short_path, extension)
     bundle_relative_path = paths.relativize(resource.short_path, bundle_path)
 
     parent_dir = paths.basename(bundle_path)
@@ -466,7 +466,7 @@ def _structured_resources_parent_dir(resource, parent_dir = None):
     Returns:
         The package relative path to the parent directory of the resource.
     """
-    package_relative = path_utils.owner_relative_path(resource)
+    package_relative = bundle_paths.owner_relative_path(resource)
     if resource.is_directory:
         path = package_relative
     else:

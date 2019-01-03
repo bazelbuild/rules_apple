@@ -23,8 +23,8 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//common:path_utils.bzl",
-    "path_utils",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -61,7 +61,7 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
 
     bundle_files = []
     for file in files_to_bundle:
-        framework_path = path_utils.farthest_directory_matching(file.short_path, "framework")
+        framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
         parent_dir = paths.basename(framework_path)
