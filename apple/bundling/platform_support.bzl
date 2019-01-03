@@ -14,11 +14,6 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
-)
-
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items
