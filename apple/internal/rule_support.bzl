@@ -243,6 +243,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
+            skip_simulator_signing_allowed = False,
         ),
         # ios_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -250,6 +251,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
+            skip_simulator_signing_allowed = False,
         ),
     },
     "macos": {
