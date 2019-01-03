@@ -20,11 +20,6 @@ This file should be loaded by the top-level Apple platform .bzl files
 and access the constants in their own targets.
 """
 
-load(
-    "@build_bazel_rules_apple//common:attrs.bzl",
-    "attrs",
-)
-
 # Product type identifiers used to describe various bundle types.
 #
 # The "product type" is a concept used internally by Xcode (the strings themselves
@@ -120,10 +115,15 @@ def _product_type(ctx):
       ctx: The Skylark context.
 
     Returns:
-      The product type identifier for the current target, or None if there is
-      none.
+      The product type identifier for the current target.
     """
-    return attrs.get(ctx.attr, "product_type", default = attrs.private_fallback)
+
+    # Check for a public attribute...
+    if hasattr(ctx.attr, "product_type"):
+        return ctx.attr.product_type
+
+    # Use the private attribute (will error if missing)...
+    return ctx.attr._product_type
 
 # Define the loadable module that lists the exported symbols in this file.
 product_support = struct(

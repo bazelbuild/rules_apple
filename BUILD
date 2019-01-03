@@ -19,7 +19,6 @@ filegroup(
     srcs = [
         "WORKSPACE",
         "//apple:for_bazel_tests",
-        "//common:for_bazel_tests",
         "//tools:for_bazel_tests",
         "@build_bazel_apple_support//:for_bazel_tests",
         "@build_bazel_rules_swift//:for_bazel_tests",
