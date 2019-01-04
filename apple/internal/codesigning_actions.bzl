@@ -142,12 +142,12 @@ def _post_process_and_sign_archive_action(
         mnemonic = "ProcessAndSign",
         progress_message = "Processing and signing %s" % ctx.label.name,
         execution_requirements = {
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
             # Added so that the output of this action is not cached remotely, in case multiple
             # developers sign the same artifact with different identities.
             "no-cache": "1",
+            # Unsure, but may be needed for keychain access, especially for files that live in
+            # $HOME.
+            "no-sandbox": "1",
         },
         tools = processing_tools,
     )
@@ -185,12 +185,12 @@ def _sign_binary_action(ctx, input_binary, output_binary):
         ],
         mnemonic = "SignBinary",
         execution_requirements = {
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
             # Added so that the output of this action is not cached remotely, in case multiple
             # developers sign the same artifact with different identities.
             "no-cache": "1",
+            # Unsure, but may be needed for keychain access, especially for files that live in
+            # $HOME.
+            "no-sandbox": "1",
         },
         tools = [
             ctx.executable._codesigningtool,
