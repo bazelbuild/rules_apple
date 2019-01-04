@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-    This is a fake provisioning profile used for integration tests. The
-    bundling rules detect a special build flag that mocks out provisioning and
-    signing ("––define=bazel_apple_rules.mock_provisioning=true") so that the
-    tests can be run in CI or locally without assuming that a particular
-    signing identity is present.
+    This is a fake provisioning profile used for integration tests. These tests
+    force the identity to be "-", so these files will not be read to detect the
+    identity, but can be used to validate that they are embedded correctly.
 -->
 <plist version="1.0">
 <dict>

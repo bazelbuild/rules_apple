@@ -15,10 +15,6 @@
 """Functions related to code signing of Apple bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:mock_support.bzl",
-    "mock_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
@@ -97,10 +93,6 @@ def _codesign_command(ctx, path_to_sign, provisioning_profile, entitlements_file
     if identity:
         cmd_codesigning.extend(["--identity", shell.quote(identity)])
 
-    # The command returned by this function is executed as part of the final
-    # bundling shell script. Each directory to be signed must be prefixed by
-    # $WORK_DIR, which is the variable in that script that contains the path
-    # to the directory where the bundle is being built.
     if is_device:
         if entitlements_file:
             cmd_codesigning.extend([
@@ -117,6 +109,11 @@ def _codesign_command(ctx, path_to_sign, provisioning_profile, entitlements_file
             "--timestamp=none",
             path,
         ])
+
+    # The command returned by this function is executed as part of the final
+    # bundling shell script. Each directory to be signed must be prefixed by
+    # $WORK_DIR, which is the variable in that script that contains the path
+    # to the directory where the bundle is being built.
     return (cmd_prefix + " ".join(cmd_codesigning))
 
 def _path_to_sign(path, optional = False, glob = None, use_entitlements = True):
