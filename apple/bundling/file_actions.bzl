@@ -28,7 +28,7 @@ def _symlink(ctx, source, target):
 
     # TODO(b/33386130): Create proper symlinks everywhere.
     ctx.actions.run_shell(
-        inputs = [source, ctx.file._realpath],
+        inputs = [source],
         outputs = [target],
         mnemonic = "Symlink",
         arguments = [
@@ -44,6 +44,7 @@ def _symlink(ctx, source, target):
                    '  cp "$2" "$3"; ' +
                    "fi"),
         progress_message = "Symlinking %s to %s" % (source.path, target.path),
+        tools = [ctx.file._realpath],
         execution_requirements = {"no-sandbox": "1"},
     )
 
