@@ -117,12 +117,6 @@ def _product_type(ctx):
     Returns:
       The product type identifier for the current target.
     """
-
-    # Check for a public attribute...
-    if hasattr(ctx.attr, "product_type"):
-        return ctx.attr.product_type
-
-    # Use the private attribute (will error if missing)...
     return ctx.attr._product_type
 
 # Define the loadable module that lists the exported symbols in this file.

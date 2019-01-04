@@ -125,17 +125,7 @@ def _macos_bundle_impl(ctx):
     # add linking support directly into the rule.
 
     binary_target = ctx.attr.deps[0]
-
     binary_provider_type = apple_common.AppleLoadableBundleBinary
-
-    # Kernel extensions on macOS have a mach header file type of MH_KEXT_BUNDLE.
-    # The -kext linker flag is used to produce these binaries.
-    # No userspace technologies can be linked into a KEXT.
-    # Using an "executable" to get around the extra userspace linker flags
-    # that are added to a "loadable_bundle".
-    if ctx.attr.product_type == apple_product_type.kernel_extension:
-        binary_provider_type = apple_common.AppleExecutableBinary
-
     binary_artifact = binary_target[binary_provider_type].binary
 
     bundle_id = ctx.attr.bundle_id
