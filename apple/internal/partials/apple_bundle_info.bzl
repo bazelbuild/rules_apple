@@ -27,10 +27,6 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "product_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_support",
 )
@@ -78,7 +74,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
                 entitlements = getattr(ctx.attr, "entitlements", None),
                 infoplist = infoplist,
                 minimum_os_version = platform_support.minimum_os(ctx),
-                product_type = product_support.product_type(ctx),
+                product_type = ctx.attr._product_type,
                 propagated_framework_files = depset([]),
                 uses_swift = uses_swift,
             ),

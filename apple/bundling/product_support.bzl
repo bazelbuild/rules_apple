@@ -108,19 +108,7 @@ def _is_test_product_type(product_type):
     """Returns whether the given product type is for tests purposes or not."""
     return product_type in [apple_product_type.ui_test_bundle, apple_product_type.unit_test_bundle]
 
-def _product_type(ctx):
-    """Returns the product type identifier for the current target.
-
-    Args:
-      ctx: The Skylark context.
-
-    Returns:
-      The product type identifier for the current target.
-    """
-    return ctx.attr._product_type
-
 # Define the loadable module that lists the exported symbols in this file.
 product_support = struct(
     is_test_product_type = _is_test_product_type,
-    product_type = _product_type,
 )

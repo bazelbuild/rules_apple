@@ -28,7 +28,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 
 def _describe_bundle_locations(
@@ -429,7 +428,7 @@ def _rule_descriptor_no_ctx(platform_type, product_type):
 def _rule_descriptor(ctx):
     """Returns the rule descriptor for platform and product types derived from the rule context."""
     platform_type = platform_support.platform_type(ctx)
-    product_type = product_support.product_type(ctx)
+    product_type = ctx.attr._product_type
     return _rule_descriptor_no_ctx(str(platform_type), product_type)
 
 rule_support = struct(
