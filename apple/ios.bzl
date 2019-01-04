@@ -23,10 +23,6 @@ load(
     "entitlements",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    _apple_product_type = "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
@@ -41,11 +37,6 @@ load(
     _ios_static_framework = "ios_static_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
-
-# Re-export apple_product_type.
-# TODO(b/117886202): Migrate usages of apple_product_type to common.bzl. We may not even need to
-# export apple_product_type once there is 1 rule per product type.
-apple_product_type = _apple_product_type
 
 def ios_application(name, **kwargs):
     """Builds and bundles an iOS application.
@@ -106,9 +97,6 @@ def ios_application(name, **kwargs):
           `UILaunchStoryboardName`.
       linkopts: A list of strings representing extra flags that the underlying
           `apple_binary` target created by this rule should pass to the linker.
-      product_type: An optional string denoting a special type of application,
-          such as a Messages Application in iOS 10 and higher. See
-          `apple_product_type`.
       provisioning_profile: The provisioning profile (`.mobileprovision` file) to
           use when bundling the application. This value is optional (and unused)
           for simulator builds but **required** for device builds.

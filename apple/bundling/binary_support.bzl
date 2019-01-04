@@ -19,10 +19,6 @@ load(
     "entitlements",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_runtime_linkopts",
 )
@@ -232,8 +228,6 @@ def _create_linked_binary_target(
 
     # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
     additional_linkopts = ["-rpath", "@executable_path/../../Frameworks"]
-    if bundling_args.get("product_type") == apple_product_type.kernel_extension:
-        additional_linkopts = []
 
     # Link the executable from any library deps provided. Pass the entitlements
     # target as an extra dependency to the binary rule to pick up the extra
@@ -302,25 +296,6 @@ def _create_binary(
             attr = "binary",
         )
 
-    # Note the pop/get difference here. If the attribute is present as "private",
-    # we want to pop it off so that it does not get passed down to the underlying
-    # bundling rule (this is the macro's way of giving us default information in
-    # the rule that we don't have access to yet). If the argument is present
-    # without the underscore, then we leave it in so that the bundling rule can
-    # access the value the user provided in their build target (if any).
-    product_type = args_copy.pop("_product_type", None)
-    if not product_type:
-        product_type = args_copy.get("product_type")
-
-    if product_type and product_type == apple_product_type.kernel_extension:
-        # KEXTs are of file type MH_KEXT_BUNDLE, not MH_BUNDLE.
-        # Use "executable" and the kernel_extension feature to set the proper link flags.
-        binary_type = "executable"
-
-        # Disables c++ stdlib and Foundation linking. Adds -kext linker flag.
-        features = args_copy.get("features", [])
-        features += ["kernel_extension"]
-        args_copy["features"] = features
     return _create_linked_binary_target(
         name,
         platform_type,
