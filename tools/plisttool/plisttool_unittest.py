@@ -1710,6 +1710,56 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_entitlements_aps_environment_matches(self):
+    plist = {'aps-environment': 'production'}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'aps-environment': 'production'
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
+  def test_entitlements_aps_environment_missing_profile(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(
+            plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISSING % _testing_target)):
+      plist = {'aps-environment': 'production'}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_aps_environment_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
+            _testing_target, 'production', 'development'))):
+      plist = {'aps-environment': 'production'}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'aps-environment': 'development',
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
   def test_entitlements_associated_domains_match(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {

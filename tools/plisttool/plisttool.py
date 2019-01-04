@@ -289,6 +289,16 @@ ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
     'support use of this key.'
 )
 
+ENTITLEMENTS_APS_ENVIRONMENT_MISSING = (
+    'Target "%s" uses entitlements with the aps-environment key, but the '
+    'profile does not have this key'
+)
+
+ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH = (
+    'In target "%s"; the entitlements "aps-environment" ("%s") did not '
+    'match the value in the provisioning profile ("%s").'
+)
+
 ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
     'Target "%s" uses entitlements "%s" value of "%s", but the profile does '
     'not support it (["%s"]).'
@@ -1155,6 +1165,19 @@ class EntitlementsTask(PlistToolTask):
               self.target, src_app_id, profile_app_id),
             **report_extras)
 
+    aps_environment = entitlements.get('aps-environment')
+    if aps_environment and profile_entitlements:
+        profile_aps_environment = profile_entitlements.get('aps-environment')
+        if not profile_aps_environment:
+          self._report(
+              ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target,
+              **report_extras)
+        elif aps_environment != profile_aps_environment:
+          self._report(
+              ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
+                self.target, aps_environment, profile_aps_environment),
+              **report_extras)
+
     # keychain-access-groups
     self._check_entitlements_array(
         entitlements, profile_entitlements,
@@ -1175,8 +1198,6 @@ class EntitlementsTask(PlistToolTask):
         report_extras=report_extras,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
-
-    # TODO: aps-environment ?
 
   @staticmethod
   def _does_id_match(id, allowed,
