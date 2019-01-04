@@ -109,13 +109,6 @@ below.
   </tbody>
 </table>
 
-## Related types
-
-*   [`apple_product_type`](types.md#apple_product_type) &ndash; Defines
-    identifiers used to indicate special product types for Apple targets. This
-    is currently exported by `@build_bazel_rules_apple//apple:ios.bzl` (the only
-    platform that needs special product types at this time).
-
 ## Available options
 
 Check out [this page](common_info.md) for more information on available options

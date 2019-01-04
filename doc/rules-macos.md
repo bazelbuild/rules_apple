@@ -10,10 +10,10 @@ be parts that are broken and/or missing.
 ## macos_application
 
 ```python
-macos_application(name, additional_contents, app_icons, bundle_extension,
-bundle_id, bundle_name, entitlements, entitlements_validation, extensions,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, product_type,
-provisioning_profile, strings, version, deps)
+macos_application(name, additional_contents, app_icons, bundle_id, bundle_name,
+entitlements, entitlements_validation, extensions, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, provisioning_profile, strings,
+version, deps)
 ```
 
 Builds and bundles a macOS application.
@@ -62,19 +62,6 @@ simple command line tool as a standalone binary, use
         <p>Files that comprise the app icons for the application. Each file
         must have a containing directory named<code>*.xcassets/*.appiconset</code> and
         there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_extension</code></td>
-      <td>
-        <p><code>DEPRECATED. String; optional</code></p>
-        <p>The extension, without a leading dot, that will be used to name the
-        application bundle. If this attribute is not set, then the default
-        extension is determined by the application's <code>product_type</code>.
-        For example, <code>apple_product_type.application</code> uses the
-        extension <code>app</code>, while
-        <code>apple_product_type.xpc_service</code> uses the extension
-        <code>xpc</code>.</p>
       </td>
     </tr>
     <tr>
@@ -171,15 +158,6 @@ simple command line tool as a standalone binary, use
       </td>
     </tr>
     <tr>
-      <td><code>product_type</code></td>
-      <td>
-        <p><code>DEPRECATED. String; optional; default is apple_product_type.application</code></p>
-        <p>An optional string denoting a special type of application, such as
-        an XPC service. See
-        <a href="types.md#apple_product_type"><code>apple_product_type</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>provisioning_profile</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -232,10 +210,9 @@ simple command line tool as a standalone binary, use
 ## macos_bundle
 
 ```python
-macos_bundle(name, additional_contents, app_icons, bundle_extension, bundle_id,
-bundle_name, entitlements, entitlements_validation, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, product_type,
-provisioning_profile, strings, version, deps)
+macos_bundle(name, additional_contents, app_icons, bundle_id, bundle_name,
+entitlements, entitlements_validation, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, provisioning_profile, strings, version, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
@@ -280,18 +257,6 @@ Builds and bundles a macOS loadable bundle.
         <p>Files that comprise the app icons for the bundle. Each file
         must have a containing directory named<code>*.xcassets/*.appiconset</code> and
         there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_extension</code></td>
-      <td>
-        <p><code>DEPRECATED. String; optional</code></p>
-        <p>The extension, without a leading dot, that will be used to name the
-        bundle. If this attribute is not set, then the default extension is
-        determined by the application's <code>product_type</code>. For example, <code>apple_product_type.bundle</code> uses the extension
-        <code>bundle</code>, while
-        <code>apple_product_type.spotlight_importer</code> uses the extension
-        <code>mdimporter</code>.</p>
       </td>
     </tr>
     <tr>
@@ -389,15 +354,6 @@ Builds and bundles a macOS loadable bundle.
         target, represented as a dotted version number (for example,
         <code>"10.11"</code>). If this attribute is omitted, then the value specified
         by the flag <code>--macos_minimum_os</code> will be used instead.
-      </td>
-    </tr>
-    <tr>
-      <td><code>product_type</code></td>
-      <td>
-        <p><code>DEPRECATED. String; optional; default is apple_product_type.bundle</code></p>
-        <p>An optional string denoting a special type of bundle, such as a
-        a Spotlight metadata importer. See
-        <a href="types.md#apple_product_type"><code>apple_product_type</code></a>.</p>
       </td>
     </tr>
     <tr>

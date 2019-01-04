@@ -31,7 +31,6 @@ function create_common_files() {
   cat > app/BUILD <<EOF
 load(
     "@build_bazel_rules_apple//apple:ios.bzl",
-    "apple_product_type",
     "ios_application",
     "ios_imessage_application",
     "ios_imessage_extension",
