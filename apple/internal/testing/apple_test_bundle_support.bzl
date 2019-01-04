@@ -21,7 +21,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
@@ -82,7 +81,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
 
     test_host_list = []
-    product_type = product_support.product_type(ctx)
+    product_type = ctx.attr._product_type
     if ctx.attr.test_host and product_type == apple_product_type.unit_test_bundle:
         test_host_list.append(ctx.attr.test_host)
 

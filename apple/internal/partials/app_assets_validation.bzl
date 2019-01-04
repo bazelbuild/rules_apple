@@ -25,7 +25,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -36,7 +35,7 @@ def _app_assets_validation_partial_impl(ctx, app_icons, launch_images):
     """Implementation for the app assets processing partial."""
 
     if app_icons:
-        product_type = product_support.product_type(ctx)
+        product_type = ctx.attr._product_type
         if product_type == apple_product_type.messages_extension:
             message = ("Message extensions must use Messages Extensions Icon Sets " +
                        "(named .stickersiconset), not traditional App Icon Sets")

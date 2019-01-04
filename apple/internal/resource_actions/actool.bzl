@@ -25,7 +25,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
@@ -65,7 +64,7 @@ def _actool_args_for_special_file_types(ctx, asset_files):
     """
     args = []
 
-    product_type = product_support.product_type(ctx)
+    product_type = ctx.attr._product_type
     if product_type in (
         apple_product_type.messages_extension,
         apple_product_type.messages_sticker_pack_extension,
@@ -185,7 +184,7 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
         ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         "8",
     ):
-        product_type = product_support.product_type(ctx)
+        product_type = ctx.attr._product_type
         if product_type:
             args.extend(["--product-type", product_type])
 
