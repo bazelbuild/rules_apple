@@ -720,10 +720,10 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
-            "_product_type": attr.string(default = product_type),
             # TODO(kaipi): Make this attribute private. It is required by the native linking
             # API.
             "platform_type": attr.string(default = platform_type),
+            "_product_type": attr.string(default = product_type),
         },
     ]
 
@@ -749,10 +749,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     """Creates an Apple bundling rule."""
     rule_attrs = [
         {
-            "_product_type": attr.string(default = product_type),
             # TODO(kaipi): Make this attribute private. It is required by the native linking
             # API.
             "platform_type": attr.string(default = platform_type),
+            "_product_type": attr.string(default = product_type),
         },
     ]
 
