@@ -187,8 +187,7 @@ def _collect_files(rule_attr, attr_name):
         return depset()
 
     attr_val_as_list = attr_val if type(attr_val) == type([]) else [attr_val]
-    files = [f for src in attr_val_as_list for f in getattr(src, "files", [])]
-    return depset(files)
+    return depset(transitive = [f.files for f in attr_val_as_list])
 
 def _merge_depsets(a, b):
     """Combines two depsets into one."""
