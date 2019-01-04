@@ -103,11 +103,13 @@ def _post_process_and_sign_archive_action(
             entitlements,
         )
 
+    processing_tools = [ctx.executable._codesigningtool]
+
     ipa_post_processor = ctx.executable.ipa_post_processor
     ipa_post_processor_path = ""
     if ipa_post_processor:
+        processing_tools.append(ipa_post_processor)
         ipa_post_processor_path = ipa_post_processor.path
-        input_files.append(ipa_post_processor)
 
     # Only compress the IPA for optimized (release) builds. For debug builds,
     # zip without compression, which will speed up the build.
@@ -139,6 +141,11 @@ def _post_process_and_sign_archive_action(
         executable = process_and_sign_template,
         mnemonic = "ProcessAndSign",
         progress_message = "Processing and signing %s" % ctx.label.name,
+        execution_requirements = {
+            "no-sandbox": "1",
+            "no-cache": "1",
+        },
+        tools = processing_tools,
     )
 
 def _sign_binary_action(ctx, input_binary, output_binary):
@@ -173,6 +180,13 @@ def _sign_binary_action(ctx, input_binary, output_binary):
             ) + "\n" + signing_commands,
         ],
         mnemonic = "SignBinary",
+        execution_requirements = {
+            "no-sandbox": "1",
+            "no-cache": "1",
+        },
+        tools = [
+            ctx.executable._codesigningtool,
+        ],
     )
 
 codesigning_actions = struct(
