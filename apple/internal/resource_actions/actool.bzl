@@ -23,12 +23,12 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
     "xcode_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",

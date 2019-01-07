@@ -15,10 +15,6 @@
 """Implementation of macOS test bundle rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
 )
@@ -26,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rules.bzl",
     "apple_ui_test",
     "apple_unit_test",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
