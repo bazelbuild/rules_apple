@@ -148,10 +148,6 @@ def label_scoped_path(label, path):
     """
     return label.name + "/" + path.lstrip("/")
 
-def module_cache_path(genfiles_dir):
-    """Returns the Clang module cache path to use for this rule."""
-    return genfiles_dir.path + "/_objc_module_cache"
-
 def optionally_prefixed_path(path, prefix):
     """Returns a path with an optional prefix.
 
