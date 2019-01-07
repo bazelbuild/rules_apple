@@ -23,9 +23,8 @@ load(
     "AppleEntitlementsInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
-    "product_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
@@ -68,6 +67,13 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+
+def _is_test_product_type(product_type):
+    """Returns whether the given product type is for tests purposes or not."""
+    return product_type in (
+        apple_product_type.ui_test_bundle,
+        apple_product_type.unit_test_bundle,
+    )
 
 # Private attributes on every rule that provide access to tools and other file dependencies.
 _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
@@ -249,7 +255,7 @@ def _get_common_bundling_attributes(rule_descriptor):
     attrs = []
 
     if rule_descriptor.requires_bundle_id:
-        bundle_id_mandatory = not product_support.is_test_product_type(rule_descriptor.product_type)
+        bundle_id_mandatory = not _is_test_product_type(rule_descriptor.product_type)
         attrs.append({
             "bundle_id": attr.string(
                 mandatory = bundle_id_mandatory,
@@ -513,7 +519,7 @@ the application bundle.
 """,
             ),
         })
-    elif product_support.is_test_product_type(rule_descriptor.product_type):
+    elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
@@ -591,7 +597,7 @@ set, then the default extension is determined by the application's product_type.
             ),
         })
 
-    elif product_support.is_test_product_type(rule_descriptor.product_type):
+    elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(

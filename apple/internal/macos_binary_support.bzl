@@ -23,7 +23,7 @@ load(
     "plist_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:product_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(

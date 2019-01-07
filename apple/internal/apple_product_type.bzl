@@ -14,10 +14,8 @@
 
 """Support for product types used by Apple bundling rules.
 
-This file should be loaded by the top-level Apple platform .bzl files
-(ios.bzl, watchos.bzl, and so forth) and should export *only* the
-`apple_product_type` struct so that BUILD files can import it through there
-and access the constants in their own targets.
+This should be internal to the Apple rules, used to control/configure the
+type of rule being created and thus its descriptor to control behaviors.
 """
 
 # Product type identifiers used to describe various bundle types.
@@ -102,13 +100,4 @@ apple_product_type = struct(
     watch2_application = "com.apple.product-type.application.watchapp2",
     watch2_extension = "com.apple.product-type.watchkit2-extension",
     xpc_service = "com.apple.product-type.xpc-service",
-)
-
-def _is_test_product_type(product_type):
-    """Returns whether the given product type is for tests purposes or not."""
-    return product_type in [apple_product_type.ui_test_bundle, apple_product_type.unit_test_bundle]
-
-# Define the loadable module that lists the exported symbols in this file.
-product_support = struct(
-    is_test_product_type = _is_test_product_type,
 )
