@@ -165,7 +165,7 @@ ios_application(
 ## apple_dynamic_framework_import
 
 ```python
-apple_dynamic_framework_import(name, framework_import, deps)
+apple_dynamic_framework_import(name, framework_imports, deps)
 ```
 
 This rule encapsulates an already-built dynamic framework. It is defined by a list of
@@ -229,7 +229,7 @@ objc_library(
 ## apple_static_framework_import
 
 ```python
-apple_static_framework_import(name, framework_import, alwayslink, sdk_dylibs,
+apple_static_framework_import(name, framework_imports, alwayslink, sdk_dylibs,
 sdk_frameworks, weak_sdk_frameworks, deps)
 ```
 
