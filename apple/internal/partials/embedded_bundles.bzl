@@ -15,6 +15,10 @@
 """Partial implementation for processing embeddadable bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -47,55 +51,79 @@ def _embedded_bundles_partial_impl(
         ctx,
         bundle_embedded_bundles,
         embeddable_targets,
-        frameworks,
-        plugins,
-        watch_bundles,
-        xpc_services):
+        **input_bundles_by_type):
     """Implementation for the embedded bundles processing partial."""
     _ignore = [ctx]
 
+    # Collect all _AppleEmbeddableInfo providers from the embeddable targets.
     embeddable_providers = [
         x[_AppleEmbeddableInfo]
         for x in embeddable_targets
         if _AppleEmbeddableInfo in x
     ]
 
-    transitive_frameworks = []
-    transitive_plugins = []
-    transitive_watch_bundles = []
-    transitive_xpc_services = []
-    for provider in embeddable_providers:
-        transitive_frameworks.append(provider.frameworks)
-        transitive_plugins.append(provider.plugins)
-        transitive_watch_bundles.append(provider.watch_bundles)
-        transitive_xpc_services.append(provider.xpc_services)
+    # Map of embedded bundle type to their final location in the top-level bundle.
+    bundle_type_to_location = {
+        "frameworks": processor.location.framework,
+        "plugins": processor.location.plugin,
+        "watch_bundles": processor.location.watch,
+        "xpc_services": processor.location.xpc_service,
+    }
 
-    bundle_zips = []
-    if bundle_embedded_bundles:
-        bundle_zips.extend([
-            (processor.location.framework, None, depset(transitive = transitive_frameworks)),
-            (processor.location.plugin, None, depset(transitive = transitive_plugins)),
-            (processor.location.watch, None, depset(transitive = transitive_watch_bundles)),
-            (processor.location.xpc_service, None, depset(transitive = transitive_xpc_services)),
-        ])
+    transitive_bundles = dict()
+    bundles_to_embed = []
+    embeddedable_info_fields = {}
 
-        # Clear the transitive lists to avoid propagating them, since they will be packaged in the
-        # bundle processing this partial and do not need to be propagated.
-        transitive_frameworks = []
-        transitive_plugins = []
-        transitive_watch_bundles = []
-        transitive_xpc_services = []
+    for bundle_type, bundle_location in bundle_type_to_location.items():
+        for provider in embeddable_providers:
+            if hasattr(provider, bundle_type):
+                transitive_bundles.setdefault(
+                    bundle_type,
+                    default = [],
+                ).append(getattr(provider, bundle_type))
+
+        if bundle_embedded_bundles:
+            # If this partial is configured to embed the transitive embeddable partials, collect
+            # them into a list to be returned by this partial.
+            if bundle_type in transitive_bundles:
+                transitive_depset = depset(transitive = transitive_bundles.get(bundle_type, []))
+
+                # With tree artifacts, we need to set the parent_dir of the file to be the basename
+                # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
+                # be too many embedded targets per top-level bundle.
+                if is_experimental_tree_artifact_enabled(ctx):
+                    for bundle in transitive_depset.to_list():
+                        bundles_to_embed.append(
+                            (bundle_location, bundle.basename, depset([bundle])),
+                        )
+                else:
+                    bundles_to_embed.append((bundle_location, None, transitive_depset))
+
+            # Clear the transitive list of bundles for this bundle type since they will be packaged
+            # in the bundle processing this partial and do not need to be propagated.
+            transitive_bundles[bundle_type] = []
+
+        # Construct the _AppleEmbeddableInfo provider field for the bundle type being processed.
+        # At this step, we inject the bundles that are inputs to this partial, since that propagates
+        # the info for a higher level bundle to embed this bundle.
+        if input_bundles_by_type.get(bundle_type) or transitive_bundles.get(bundle_type):
+            embeddedable_info_fields[bundle_type] = depset(
+                input_bundles_by_type.get(bundle_type, []),
+                transitive = transitive_bundles.get(bundle_type, []),
+            )
+
+    # Construct the output files fields. If tree artifacts is enabled, propagate the bundles to
+    # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
+    # extracted.
+    partial_output_fields = {}
+    if is_experimental_tree_artifact_enabled(ctx):
+        partial_output_fields["bundle_files"] = bundles_to_embed
+    else:
+        partial_output_fields["bundle_zips"] = bundles_to_embed
 
     return struct(
-        bundle_zips = bundle_zips,
-        providers = [
-            _AppleEmbeddableInfo(
-                frameworks = depset(frameworks, transitive = transitive_frameworks),
-                plugins = depset(plugins, transitive = transitive_plugins),
-                watch_bundles = depset(watch_bundles, transitive = transitive_watch_bundles),
-                xpc_services = depset(xpc_services, transitive = transitive_xpc_services),
-            ),
-        ],
+        providers = [_AppleEmbeddableInfo(**embeddedable_info_fields)],
+        **partial_output_fields
     )
 
 def embedded_bundles_partial(
