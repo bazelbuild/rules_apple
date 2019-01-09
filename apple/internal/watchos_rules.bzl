@@ -23,6 +23,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -85,7 +89,7 @@ def _watchos_application_impl(ctx):
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = [ctx.attr.extension],
-            watch_bundles = [ctx.outputs.archive],
+            watch_bundles = [outputs.archive(ctx)],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
@@ -140,7 +144,7 @@ def _watchos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = debug_outputs_provider,
         ),
-        partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
+        partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
