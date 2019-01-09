@@ -107,41 +107,33 @@ genrule(
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
 )
 
-objc_bundle_library(
+apple_resource_bundle(
     name = "bundle_library_ios",
-    asset_catalogs = [":assets_ios"],
-    bundles = [":basic_bundle"],
-    datamodels = [
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
-    ],
     infoplists = [
         "Info-template.plist",
     ],
     resources = [
+        "generated.strings",
         "nonlocalized.plist",
+        "nonlocalized.strings",
         "nonlocalized_resource.txt",
         "sample.png",
+        "storyboard_ios.storyboard",
+        "view_ios.xib",
+        ":assets_ios",
+        ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
-        ":mapping_model",
-    ],
-    storyboards = [
-        "storyboard_ios.storyboard",
         ":localized_storyboards_ios",
-    ],
-    strings = [
-        "nonlocalized.strings",
-        "generated.strings",
         ":localized_strings",
+        ":localized_xibs_ios",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
     ],
     structured_resources = [
         ":generate_structured_strings",
         ":structured",
-    ],
-    xibs = [
-        "view_ios.xib",
-        ":localized_xibs_ios",
     ],
 )
 
@@ -177,10 +169,8 @@ apple_resource_bundle(
     ],
 )
 
-objc_bundle_library(
+apple_resource_bundle(
     name = "bundle_library_macos",
-    # TODO: asset_catalogs
-    bundles = [":basic_bundle"],
     # TODO: Bazel seems to crash with an exception if given datamodels
     # and targeting macOS. So until objc_bundle_library is redone in
     # skylark we might just have to live this this.
@@ -192,18 +182,16 @@ objc_bundle_library(
         "Info-template.plist",
     ],
     resources = [
+        "generated.strings",
         "nonlocalized.plist",
+        "nonlocalized.strings",
         "nonlocalized_resource.txt",
         "sample.png",
+        ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
-        ":mapping_model",
-    ],
-    # TODO: storyboards
-    strings = [
-        "nonlocalized.strings",
-        "generated.strings",
         ":localized_strings",
+        ":mapping_model",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -251,22 +239,20 @@ apple_resource_bundle(
 # provides a bundle that does get some processing, but is less likely to cause
 # build/test flake. It is useful for some of the simpler tests looking at
 # resource deduping, etc.
-objc_bundle_library(
+apple_resource_bundle(
     name = "simple_bundle_library",
-    bundles = [":basic_bundle"],
     infoplists = [
         "Info-template.plist",
     ],
     resources = [
+        "generated.strings",
         "nonlocalized.plist",
+        "nonlocalized.strings",
         "nonlocalized_resource.txt",
         "sample.png",
+        ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
-    ],
-    strings = [
-        "nonlocalized.strings",
-        "generated.strings",
         ":localized_strings",
     ],
     structured_resources = [
