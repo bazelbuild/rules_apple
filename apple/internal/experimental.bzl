@@ -19,6 +19,6 @@ load(
     "defines",
 )
 
-def is_experimental_bundling_enabled(ctx):
-    """Returns whether experimental bundling is enabled."""
-    return defines.bool_value(ctx, "apple.experimental.bundling", True)
+def is_experimental_tree_artifact_enabled(ctx):
+    """Returns whether tree artifact outputs experiment is enabled."""
+    return defines.bool_value(ctx, "apple.experimental.tree_artifact_outputs", False)

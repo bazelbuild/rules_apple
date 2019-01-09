@@ -72,6 +72,10 @@ load(
     "codesigning_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -146,13 +150,18 @@ def _archive_paths(ctx):
     """Returns the map of location type to final archive path."""
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    bundle_name_with_extension = (
-        bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
-    )
-    bundle_path = paths.join(
-        rule_descriptor.bundle_locations.archive_relative,
-        bundle_name_with_extension,
-    )
+    if is_experimental_tree_artifact_enabled(ctx):
+        # If experimental tree artifacts are enabled, base all the outputs to be relative to the
+        # bundle path.
+        bundle_path = ""
+    else:
+        bundle_name_with_extension = (
+            bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
+        )
+        bundle_path = paths.join(
+            rule_descriptor.bundle_locations.archive_relative,
+            bundle_name_with_extension,
+        )
 
     contents_path = paths.join(
         bundle_path,
@@ -211,6 +220,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
     processed_file_target_paths = {}
     for partial_output in partial_outputs:
         for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
+            if is_experimental_tree_artifact_enabled(ctx) and location == _LOCATION_ENUM.archive:
+                # Skip bundling archive related files, as we're only building the bundle directory.
+                continue
             if (invalid_top_level_dirs and
                 not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
                 fail(("Error: For %s bundles, the following top level " +
@@ -234,6 +246,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
                 control_files.append(struct(src = source.path, dest = target_path))
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
+            if is_experimental_tree_artifact_enabled(ctx) and location == _LOCATION_ENUM.archive:
+                # Skip bundling archive related files, as we're only building the bundle directory.
+                continue
             if (invalid_top_level_dirs and
                 not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
                 fail(("Error: For %s bundles, the following top level " +
@@ -251,6 +266,9 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
         bundle_merge_files = control_files,
         bundle_merge_zips = control_zips,
         output = output_file.path,
+        # TODO(kaipi): Add support for codesigning and ipa_post_processor for the experimental
+        # tree artifact approach.
+        code_signing_commands = "",
     )
 
     control_file = intermediates.file(
@@ -263,10 +281,15 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
         content = control.to_json(),
     )
 
+    if is_experimental_tree_artifact_enabled(ctx):
+        executable = ctx.executable._bundletool_experimental
+    else:
+        executable = ctx.executable._bundletool
+
     ctx.actions.run(
         inputs = input_files + [control_file],
         outputs = [output_file],
-        executable = ctx.executable._bundletool,
+        executable = executable,
         arguments = [control_file.path],
         mnemonic = "BundleApp",
         progress_message = "Bundling %s" % ctx.label.name,
@@ -286,28 +309,37 @@ def _process(ctx, partials):
     """
     partial_outputs = [partial.call(p, ctx) for p in partials]
 
-    # This output, while an intermediate artifact not exposed through the AppleBundleInfo provider,
-    # is used by Tulsi for custom processing logic. (b/120221708)
-    unprocessed_archive = ctx.actions.declare_file(
-        "{}.unprocessed.zip".format(ctx.label.name),
-        sibling = outputs.archive(ctx),
-    )
-    _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
-
-    archive_paths = _archive_paths(ctx)
-    archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
-    frameworks_path = archive_paths[_LOCATION_ENUM.framework]
-
     output_archive = outputs.archive(ctx)
-    output_archive_root_path = outputs.archive_root_path(ctx)
-    codesigning_actions.post_process_and_sign_archive_action(
-        ctx,
-        archive_codesigning_path,
-        frameworks_path,
-        unprocessed_archive,
-        output_archive,
-        output_archive_root_path,
-    )
+
+    if is_experimental_tree_artifact_enabled(ctx):
+        _bundle_partial_outputs_files(ctx, partial_outputs, output_archive)
+        ctx.actions.write(
+            output = ctx.outputs.archive,
+            content = "test",
+        )
+    else:
+        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
+        # provider, is used by Tulsi for custom processing logic. (b/120221708)
+        unprocessed_archive = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            "unprocessed_archive.zip",
+        )
+        _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+
+        archive_paths = _archive_paths(ctx)
+        archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
+        frameworks_path = archive_paths[_LOCATION_ENUM.framework]
+
+        output_archive_root_path = outputs.archive_root_path(ctx)
+        codesigning_actions.post_process_and_sign_archive_action(
+            ctx,
+            archive_codesigning_path,
+            frameworks_path,
+            unprocessed_archive,
+            output_archive,
+            output_archive_root_path,
+        )
 
     providers = []
     output_files = depset([output_archive])

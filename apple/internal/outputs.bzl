@@ -23,6 +23,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -33,6 +37,11 @@ load(
 
 def _archive(ctx):
     """Returns a file reference for this target's archive."""
+    if is_experimental_tree_artifact_enabled(ctx):
+        bundle_name_with_extension = (
+            bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
+        )
+        return ctx.actions.declare_directory(bundle_name_with_extension)
 
     # TODO(kaipi): Look into removing this rule implicit output and just return it using
     # DefaultInfo.
