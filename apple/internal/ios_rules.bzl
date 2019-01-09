@@ -196,7 +196,7 @@ def _ios_framework_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            frameworks = [ctx.outputs.archive],
+            frameworks = [outputs.archive(ctx)],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
@@ -254,7 +254,7 @@ def _ios_extension_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            plugins = [ctx.outputs.archive],
+            plugins = [outputs.archive(ctx)],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
@@ -410,7 +410,7 @@ def _ios_imessage_extension_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            plugins = [ctx.outputs.archive],
+            plugins = [outputs.archive(ctx)],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),

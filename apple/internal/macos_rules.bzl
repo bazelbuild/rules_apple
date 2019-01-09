@@ -23,6 +23,10 @@ load(
     "codesigning_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -138,7 +142,7 @@ def _macos_bundle_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            plugins = [ctx.outputs.archive],
+            plugins = [outputs.archive(ctx)],
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
@@ -187,7 +191,7 @@ def _macos_extension_impl(ctx):
         partials.debug_symbols_partial(
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
-        partials.embedded_bundles_partial(plugins = [ctx.outputs.archive]),
+        partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
@@ -233,7 +237,7 @@ def _macos_kernel_extension_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            plugins = [ctx.outputs.archive],
+            plugins = [outputs.archive(ctx)],
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
@@ -276,7 +280,7 @@ def _macos_spotlight_importer_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            plugins = [ctx.outputs.archive],
+            plugins = [outputs.archive(ctx)],
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
@@ -319,7 +323,7 @@ def _macos_xpc_service_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            xpc_services = [ctx.outputs.archive],
+            xpc_services = [outputs.archive(ctx)],
         ),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
