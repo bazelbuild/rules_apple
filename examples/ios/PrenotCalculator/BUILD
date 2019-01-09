@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//apple:ios.bzl", "ios_application")
+load(
+    "//apple:ios.bzl",
+    "ios_application",
+    "ios_unit_test",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -51,4 +55,20 @@ objc_library(
 objc_bundle_library(
     name = "PrenotCalculatorResources",
     resources = glob(["Resources/**"]),
+)
+
+objc_library(
+    name = "PrenotCalculatorTestsLib",
+    srcs = [
+        "EquationTest.m",
+    ],
+    deps = [
+        ":PrenotCalculator_library",
+    ],
+)
+
+ios_unit_test(
+    name = "PrenotCalculatorTests",
+    minimum_os_version = "8.0",
+    deps = [":PrenotCalculatorTestsLib"],
 )

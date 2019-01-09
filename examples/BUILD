@@ -32,6 +32,7 @@ filegroup(
 test_suite(
     name = "ci_test_targets",
     tests = [
+        "//examples/ios/PrenotCalculator:PrenotCalculatorTests",
         "//examples/ios/Squarer:SquarerTests",
         "//examples/multi_platform/Buttons:iOSButtonsTestSuite",
         "//examples/multi_platform/Buttons:macOSButtonsTestSuite",
