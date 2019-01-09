@@ -17,6 +17,7 @@ load(
     "ios_application",
     "ios_unit_test",
 )
+load("//apple:resources.bzl", "apple_resource_bundle")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -52,7 +53,7 @@ objc_library(
     sdk_frameworks = ["CoreData"],
 )
 
-objc_bundle_library(
+apple_resource_bundle(
     name = "PrenotCalculatorResources",
     resources = glob(["Resources/**"]),
 )
