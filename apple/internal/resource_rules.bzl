@@ -121,12 +121,23 @@ def _apple_resource_bundle_impl(ctx):
         if AppleResourceInfo in x
     ]
     if resource_providers:
+        # Process resources that already have the AppleResourceInfo to add the nesting for the
+        # current apple_resource_bundle.
         resources_merged_provider = resources.merge_providers(resource_providers)
         providers.append(resources.nest_in_bundle(resources_merged_provider, bundle_name))
 
+    if providers:
+        complete_resource_provider = resources.merge_providers(providers)
+    else:
+        # If there were no resources to bundle, propagate an empty provider to signal that this
+        # target has already been processed anyways.
+        complete_resource_provider = AppleResourceInfo(owners = {})
+
     return [
+        # TODO(b/122578556): Remove this ObjC provider instance.
+        apple_common.new_objc_provider(),
+        complete_resource_provider,
         AppleResourceBundleInfo(),
-        resources.merge_providers(providers),
     ]
 
 apple_resource_bundle = rule(
