@@ -98,7 +98,7 @@ def apple_rules_dependencies(ignore_version_differences = False):
         git_repository,
         name = "bazel_skylib",
         remote = "https://github.com/bazelbuild/bazel-skylib.git",
-        tag = "0.5.0",
+        tag = "0.6.0",
         ignore_version_differences = ignore_version_differences,
     )
 
