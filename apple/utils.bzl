@@ -136,25 +136,3 @@ def is_xcode_at_least_version(xcode_config, desired_version):
 
     desired_version_value = apple_common.dotted_version(desired_version)
     return current_version >= desired_version_value
-
-def optionally_prefixed_path(path, prefix):
-    """Returns a path with an optional prefix.
-
-    The prefix will be treated as an ancestor directory, so for example:
-
-    ```
-    optionally_prefixed_path("foo", None) == "foo"
-    optionally_prefixed_path("foo", "bar") == "bar/foo"
-    ```
-
-    Args:
-      path: The path.
-      prefix: If None or empty, `path` will be returned; otherwise, the prefix
-          will be treated as an ancestor directory and will be prepended to the
-          path, with a slash.
-    Returns:
-      The path, optionally prepended with the prefix.
-    """
-    if prefix:
-        return prefix + "/" + path
-    return path
