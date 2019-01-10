@@ -19,12 +19,16 @@ load(
     "linker_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:plist_actions.bzl",
-    "plist_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
@@ -65,16 +69,20 @@ def _macos_binary_infoplist_impl(ctx):
         fail("Internal error: at least one of bundle_id, infoplists, or version " +
              "should have been provided")
 
-    plist_results = plist_actions.merge_infoplists(
-        ctx,
-        None,
-        infoplists,
-        bundle_id = bundle_id,
-        exclude_executable_name = True,
-        extract_from_ctxt = True,
-        include_xcode_env = True,
+    merged_infoplist = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        "Info.plist",
     )
-    merged_infoplist = plist_results.output_plist
+
+    resource_actions.merge_root_infoplists(
+        ctx,
+        input_plists = infoplists,
+        output_plist = merged_infoplist,
+        output_pkginfo = None,
+        bundle_id = bundle_id,
+        include_executable_name = False,
+    )
 
     return [
         linker_support.sectcreate_objc_provider(
@@ -118,12 +126,18 @@ def _macos_command_line_launchdplist_impl(ctx):
     if not launchdplists:
         fail("Internal error: launchdplists should have been provided")
 
-    plist_results = plist_actions.merge_infoplists(
-        ctx,
-        None,
-        launchdplists,
+    merged_launchdplist = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        "Launchd.plist",
     )
-    merged_launchdplist = plist_results.output_plist
+
+    resource_actions.merge_resource_infoplists(
+        ctx,
+        bundle_name = ctx.label.name,
+        input_files = launchdplists,
+        output_plist = merged_launchdplist,
+    )
 
     return [
         linker_support.sectcreate_objc_provider(
