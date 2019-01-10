@@ -130,15 +130,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         "dynamic_framework_file": depset(ctx.files.framework_imports),
     })
     providers.append(objc_provider)
-
-    # TODO(kaipi): Remove this dummy binary. It is only required because the
-    # new_dynamic_framework_provider Skylark API does not accept None as an argument for the binary
-    # argument. This change was submitted in https://github.com/bazelbuild/bazel/commit/f8ffac. We
-    # can't remove this until that change is released in bazel.
-    dummy_binary = ctx.actions.declare_file("_{}.dummy_binary".format(ctx.label.name))
-    ctx.actions.write(dummy_binary, "_dummy_file_")
     providers.append(apple_common.new_dynamic_framework_provider(
-        binary = dummy_binary,
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
         framework_files = depset(ctx.files.framework_imports),
