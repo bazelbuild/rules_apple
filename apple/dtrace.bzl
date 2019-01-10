@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "label_scoped_path",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -41,7 +37,7 @@ def _dtrace_compile_impl(ctx):
 
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
-        label_scoped_owner_path = label_scoped_path(ctx.label, owner_relative_path)
+        label_scoped_owner_path = ctx.label.name + "/" + owner_relative_path.lstrip("/")
         hdr = ctx.actions.declare_file(
             paths.replace_extension(label_scoped_owner_path, ".h"),
         )
