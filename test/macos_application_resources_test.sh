@@ -347,87 +347,7 @@ EOF
       "app.app/Contents/Resources/foo/Bar.bundle/baz.txt"
 }
 
-# Tests that objc_bundle_library resources are compiled and bundled correctly
-# with the application. This test uses a bundle library with many types of
-# resources, both localized and nonlocalized, and also a nested bundle.
-function test_objc_bundle_library() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-objc_library(
-    name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    bundles = [
-        "@build_bazel_rules_apple//test/testdata/resources:bundle_library_macos"
-    ],
-)
-
-macos_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    minimum_os_version = "10.10",
-    infoplists = ["Info.plist"],
-    deps = [":lib", ":resources"],
-)
-EOF
-
-  create_dump_plist "//app:app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/Info.plist" \
-      CFBundleIdentifier CFBundleName
-  do_build macos //app:dump_plist || fail "Should build"
-
-  # Verify the values injected by the Skylark rule for bundle_library's
-  # info.plist
-  assert_equals "org.bazel.bundle-library-macos" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "bundle_library_macos.bundle" \
-      "$(cat "test-genfiles/app/CFBundleName")"
-
-  # TODO: Assets.car from asset_catalogs
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/basic.bundle/basic_bundle.txt"
-  assert_strings_is_binary "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.strings"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.txt"
-  # TODO: localized storyboards.
-  # TODO: localized nibs from xibs.
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/mapping_model.cdm"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/nonlocalized_resource.txt"
-  # TODO: storyboards.
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/nested.txt"
-  # TODO: See note in testdata/resource/BUILD, objc_bundle_library targeting
-  # macOS crashes bazel if given datamodels. Revisit when objc_bundle_library
-  # is rewritten in skylark.
-  #assert_zip_contains "test-bin/app/app.zip" \
-  #    "app.app/Contents/Resources/bundle_library_macos.bundle/unversioned_datamodel.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
-  #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/v1.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
-  #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/v2.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
-  #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/VersionInfo.plist"
-  # TODO: nibs from xibs.
-
-  # Verify that the processed structured resources are present and compiled (if
-  # required).
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/nested.txt"
-
-  assert_strings_is_binary "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/generated.strings"
-
-  assert_plist_is_binary "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.plist"
-
-  assert_strings_is_binary "test-bin/app/app.zip" \
-      "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.strings"
- }
-
- # Tests that objc_bundle_library resources are compiled and bundled correctly
+# Tests that apple_resource_bundle resources are compiled and bundled correctly
 # with the application. This test uses a bundle library with many types of
 # resources, both localized and nonlocalized, and also a nested bundle.
 function test_apple_resource_bundle() {
@@ -438,7 +358,7 @@ objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
-        "@build_bazel_rules_apple//test/testdata/resources:new_bundle_library_macos"
+        "@build_bazel_rules_apple//test/testdata/resources:bundle_library_macos"
     ],
 )
 
