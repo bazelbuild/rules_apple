@@ -15,8 +15,8 @@
 """Support functions for manipulating intermediate files and directories."""
 
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "optionally_prefixed_path",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _intermediate_name(pattern, label, path, prefix):
@@ -33,11 +33,13 @@ def _intermediate_name(pattern, label, path, prefix):
     Returns:
       The name to use for an intermediate.
     """
+    if prefix == None:
+        prefix = ""
     name = pattern.replace("%{name}", label.name)
     if path:
-        name = name.replace("%{path}", optionally_prefixed_path(path, prefix))
+        name = name.replace("%{path}", paths.join(prefix, path))
     else:
-        name = optionally_prefixed_path(name, prefix)
+        name = paths.join(prefix, name)
     return name
 
 def _intermediate(ctx, pattern, path = None, prefix = None):
