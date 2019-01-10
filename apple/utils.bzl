@@ -137,17 +137,6 @@ def is_xcode_at_least_version(xcode_config, desired_version):
     desired_version_value = apple_common.dotted_version(desired_version)
     return current_version >= desired_version_value
 
-def label_scoped_path(label, path):
-    """Return the path scoped to the label of a build target.
-
-    Args:
-      label: The label of a build target.
-      path: The path that should be scoped to the label.
-    Returns:
-      The path after being scoped to the label.
-    """
-    return label.name + "/" + path.lstrip("/")
-
 def optionally_prefixed_path(path, prefix):
     """Returns a path with an optional prefix.
 
