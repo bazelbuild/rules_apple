@@ -36,6 +36,9 @@ load("@build_bazel_rules_apple//apple:apple.bzl",
      "apple_dynamic_framework_import",
      "apple_static_framework_import",
     )
+load("@build_bazel_rules_apple//apple:resources.bzl",
+     "apple_resource_bundle",
+    )
 
 objc_library(
     name = "lib",
@@ -618,7 +621,7 @@ EOF
   expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
-# Tests that applications can transitively depend on objc_bundle_library, and
+# Tests that applications can transitively depend on apple_resource_bundle, and
 # that the bundle library resources for the appropriate architecture are
 # used in a multi-arch build.
 function test_bundle_library_dependency() {
@@ -644,7 +647,7 @@ objc_library(
     bundles = [":appResources"],
 )
 
-objc_bundle_library(
+apple_resource_bundle(
     name = "appResources",
     resources = select({
         "@build_bazel_rules_apple//apple:ios_x86_64": ["foo_sim.txt"],
