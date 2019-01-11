@@ -27,10 +27,6 @@ load(
     "legacy_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
-    "AppleEntitlementsInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -39,47 +35,18 @@ load(
     "paths",
 )
 
-def _post_process_and_sign_archive_action(
-        ctx,
-        archive_codesigning_path,
-        frameworks_path,
-        input_archive,
-        output_archive,
-        output_archive_root_path):
-    """Post-processes and signs an archived bundle.
+def _codesigning_command(ctx, entitlements, frameworks_path, bundle_path = ""):
+    """Returns a codesigning command that includes framework embedded bundles.
 
     Args:
-      ctx: The target's rule context.
-      archive_codesigning_path: The codesigning path relative to the archive.
-      frameworks_path: The Frameworks path relative to the archive.
-      input_archive: The `File` representing the archive containing the bundle
-          that has not yet been processed or signed.
-      output_archive: The `File` representing the processed and signed archive.
-      output_archive_root_path: The `string` path to where the processed, uncompressed archive
-          should be located.
+        ctx: The rule context.
+        entitlements: The entitlements file to sign with. Can be None.
+        frameworks_path: The location of the Frameworks directory, relative to the archive.
+        bundle_path: The location of the bundle, relative to the archive.
+
+    Returns:
+        A string containing the codesigning commands.
     """
-    input_files = [input_archive]
-
-    entitlements = None
-
-    # Use the entitlements from the internal provider if it's present (to support
-    # rules that manipulate them before passing them to the bundler); otherwise,
-    # use the file that was provided instead.
-    if getattr(ctx.attr, "entitlements", None):
-        if AppleEntitlementsInfo in ctx.attr.entitlements:
-            entitlements = (
-                ctx.attr.entitlements[AppleEntitlementsInfo].final_entitlements
-            )
-        else:
-            entitlements = ctx.file.entitlements
-
-    if entitlements:
-        input_files.append(entitlements)
-
-    provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
-    if provisioning_profile:
-        input_files.append(provisioning_profile)
-
     signing_command_lines = ""
     if not ctx.attr._skip_signing:
         paths_to_sign = [
@@ -93,15 +60,52 @@ def _post_process_and_sign_archive_action(
         is_device = platform_support.is_device_build(ctx)
         if is_device or codesigning_support.should_sign_simulator_bundles(ctx):
             paths_to_sign.append(
-                codesigning_support.path_to_sign(
-                    paths.join("$WORK_DIR", archive_codesigning_path),
-                ),
+                codesigning_support.path_to_sign(paths.join("$WORK_DIR", bundle_path)),
             )
         signing_command_lines = codesigning_support.signing_command_lines(
             ctx,
             paths_to_sign,
             entitlements,
         )
+
+    return signing_command_lines
+
+def _post_process_and_sign_archive_action(
+        ctx,
+        archive_codesigning_path,
+        frameworks_path,
+        input_archive,
+        output_archive,
+        output_archive_root_path,
+        entitlements = None):
+    """Post-processes and signs an archived bundle.
+
+    Args:
+      ctx: The target's rule context.
+      archive_codesigning_path: The codesigning path relative to the archive.
+      frameworks_path: The Frameworks path relative to the archive.
+      input_archive: The `File` representing the archive containing the bundle
+          that has not yet been processed or signed.
+      output_archive: The `File` representing the processed and signed archive.
+      output_archive_root_path: The `string` path to where the processed, uncompressed archive
+          should be located.
+      entitlements: Optional file representing the entitlements to sign with.
+    """
+    input_files = [input_archive]
+
+    if entitlements:
+        input_files.append(entitlements)
+
+    provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+    if provisioning_profile:
+        input_files.append(provisioning_profile)
+
+    signing_command_lines = _codesigning_command(
+        ctx,
+        entitlements,
+        frameworks_path,
+        bundle_path = archive_codesigning_path,
+    )
 
     processing_tools = [ctx.executable._codesigningtool]
 
@@ -198,6 +202,7 @@ def _sign_binary_action(ctx, input_binary, output_binary):
     )
 
 codesigning_actions = struct(
+    codesigning_command = _codesigning_command,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     sign_binary_action = _sign_binary_action,
 )
