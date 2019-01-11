@@ -22,6 +22,18 @@ import subprocess
 import sys
 
 
+# Regex with benign codesign messages that can be safely ignored.
+# It matches the following bening outputs:
+# * signed Mach-O thin
+# * signed Mach-O universal
+# * signed app bundle with Mach-O universal
+# * signed bundle with Mach-O thin
+# * replacing existing signature
+_BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
+    r'(signed.*Mach-O (universal|thin)|libswift.*\.dylib: replacing existing signature)'
+)
+
+
 def _check_output(args, inputstr=None):
     proc = subprocess.Popen(args,
         stdin=subprocess.PIPE,
@@ -29,9 +41,10 @@ def _check_output(args, inputstr=None):
         stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(input=inputstr)
     if proc.returncode != 0:
-        raise subprocess.CalledProcessError(proc.returncode, args,
-            stdout + "\n\n" + stderr)
-    return stdout
+        # print the stdout and stderr, as the exception won't print it.
+        print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
+        raise subprocess.CalledProcessError(proc.returncode, args)
+    return stdout, stderr
 
 def plist_from_bytes(byte_content):
     try:
@@ -50,7 +63,7 @@ def _parse_mobileprovision_file(mobileprovision_file):
 
 def _certificate_fingerprint(identity):
     """Extracts a fingerprint given identity in a mobileprovision file."""
-    fingerprint = _check_output([
+    fingerprint, stderr = _check_output([
         "openssl", "x509", "-inform", "DER", "-noout", "-fingerprint",
     ], inputstr=identity).decode("utf-8").strip()
     fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
@@ -67,7 +80,7 @@ def _get_identities_from_provisioning_profile(mpf):
 def _find_codesign_identities():
     """Finds code signing identities on the current system."""
     ids = []
-    output = _check_output([
+    output, stderr = _check_output([
         "security", "find-identity", "-v", "-p", "codesigning",
     ]).decode("utf-8").strip()
     for line in output.splitlines():
@@ -86,6 +99,14 @@ def _find_codesign_identity(mobileprovision):
             return id_mpf
 
 
+def _filter_codesign_output(codesign_output):
+  """Filters the codesign output which can be extra verbose."""
+  filtered_lines = []
+  for line in codesign_output.split("\n"):
+    if line and not _BENIGN_CODESIGN_OUTPUT_REGEX.search(line):
+        filtered_lines.append(line)
+  return "\n".join(filtered_lines)
+
 def main(argv):
     parser = argparse.ArgumentParser(description="codesign wrapper")
     parser.add_argument("--mobileprovision", type=str,
@@ -103,8 +124,17 @@ def main(argv):
         print("ERROR: Unable to find an identity on the system matching the "\
             "ones in %s" % args.mobileprovision, file=sys.stderr)
         return 1
-    os.execve(args.codesign, [args.codesign, "-v", "--sign", identity] +
-        codesign_args, os.environ)
+    stdout, stderr = _check_output(
+        [args.codesign, "-v", "--sign", identity] + codesign_args,
+    )
+    if stdout:
+        filtered_stdout = _filter_codesign_output(stdout)
+        if filtered_stdout:
+            print(filtered_stdout)
+    if stderr:
+        filtered_stderr = _filter_codesign_output(stderr)
+        if filtered_stderr:
+            print(filtered_stderr)
 
 
 if __name__ == '__main__':
