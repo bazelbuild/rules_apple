@@ -72,6 +72,10 @@ load(
     "codesigning_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -86,6 +90,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -199,7 +207,13 @@ def _archive_paths(ctx):
         ),
     }
 
-def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
+def _bundle_partial_outputs_files(
+        ctx,
+        partial_outputs,
+        output_file,
+        codesigning_command = None,
+        extra_input_files = [],
+        post_processor_path = None):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
     Args:
@@ -207,6 +221,11 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
       partial_outputs: List of partial outputs from which to collect the files
         that will be bundled inside the final archive.
       output_file: The file where the final zipped bundle should be created.
+      codesigning_command: When building tree artifact outputs, the command to codesign the output
+          bundle.
+      extra_input_files: Extra files to include in the bundling action.
+      post_processor_path: When building tree artifact outputs, the path to the post processor
+          script.
     """
     control_files = []
     control_zips = []
@@ -266,9 +285,8 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
         bundle_merge_files = control_files,
         bundle_merge_zips = control_zips,
         output = output_file.path,
-        # TODO(kaipi): Add support for codesigning and ipa_post_processor for the experimental
-        # tree artifact approach.
-        code_signing_commands = "",
+        code_signing_commands = codesigning_command or "",
+        post_processor = post_processor_path or "",
     )
 
     control_file = intermediates.file(
@@ -281,19 +299,100 @@ def _bundle_partial_outputs_files(ctx, partial_outputs, output_file):
         content = control.to_json(),
     )
 
-    if is_experimental_tree_artifact_enabled(ctx):
-        executable = ctx.executable._bundletool_experimental
-    else:
-        executable = ctx.executable._bundletool
+    action_args = {
+        "inputs": input_files + [control_file] + extra_input_files,
+        "outputs": [output_file],
+        "arguments": [control_file.path],
+    }
 
-    ctx.actions.run(
-        inputs = input_files + [control_file],
-        outputs = [output_file],
-        executable = executable,
-        arguments = [control_file.path],
-        mnemonic = "BundleApp",
-        progress_message = "Bundling %s" % ctx.label.name,
-    )
+    if is_experimental_tree_artifact_enabled(ctx):
+        # Since the tree artifact bundler also runs the post processor and codesigning, this
+        # action needs to run on a macOS machine.
+        apple_support.run(
+            ctx,
+            executable = ctx.executable._bundletool_experimental,
+            mnemonic = "BundleTreeApp",
+            progress_message = "Bundling, processing and signing %s" % ctx.label.name,
+            tools = [ctx.executable._codesigningtool],
+            **action_args
+        )
+    else:
+        ctx.actions.run(
+            executable = ctx.executable._bundletool,
+            mnemonic = "BundleApp",
+            progress_message = "Bundling %s" % ctx.label.name,
+            **action_args
+        )
+
+def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
+    """Bundles, post-processes and signs the files in partial_outputs.
+
+    Args:
+        ctx: The rule context.
+        partial_outputs: The outputs of the partials used to process this target's bundle.
+        output_archive: The file representing the final bundled, post-processed and signed archive.
+    """
+    archive_paths = _archive_paths(ctx)
+    entitlements = entitlements_support.entitlements(ctx)
+
+    if is_experimental_tree_artifact_enabled(ctx):
+        extra_input_files = []
+
+        post_processor = ctx.executable.ipa_post_processor
+        post_processor_path = ""
+        if post_processor:
+            extra_input_files.append(post_processor)
+            post_processor_path = post_processor.path
+
+        if entitlements:
+            extra_input_files.append(entitlements)
+
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+        if provisioning_profile:
+            extra_input_files.append(provisioning_profile)
+
+        codesigning_command = codesigning_actions.codesigning_command(
+            ctx,
+            entitlements = entitlements,
+            frameworks_path = archive_paths[_LOCATION_ENUM.framework],
+        )
+
+        _bundle_partial_outputs_files(
+            ctx,
+            partial_outputs,
+            output_archive,
+            codesigning_command = codesigning_command,
+            extra_input_files = extra_input_files,
+            post_processor_path = post_processor_path,
+        )
+
+        ctx.actions.write(
+            output = ctx.outputs.archive,
+            content = "test",
+        )
+    else:
+        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
+        # provider, is used by Tulsi for custom processing logic. (b/120221708)
+        unprocessed_archive = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            "unprocessed_archive.zip",
+        )
+        _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+
+        archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
+        frameworks_path = archive_paths[_LOCATION_ENUM.framework]
+
+        output_archive_root_path = outputs.archive_root_path(ctx)
+        codesigning_actions.post_process_and_sign_archive_action(
+            ctx,
+            archive_codesigning_path,
+            frameworks_path,
+            unprocessed_archive,
+            output_archive,
+            output_archive_root_path,
+            entitlements = entitlements,
+        )
 
 def _process(ctx, partials):
     """Processes a list of partials that provide the files to be bundled.
@@ -310,49 +409,18 @@ def _process(ctx, partials):
     partial_outputs = [partial.call(p, ctx) for p in partials]
 
     output_archive = outputs.archive(ctx)
-
-    if is_experimental_tree_artifact_enabled(ctx):
-        _bundle_partial_outputs_files(ctx, partial_outputs, output_archive)
-        ctx.actions.write(
-            output = ctx.outputs.archive,
-            content = "test",
-        )
-    else:
-        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
-        # provider, is used by Tulsi for custom processing logic. (b/120221708)
-        unprocessed_archive = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
-            "unprocessed_archive.zip",
-        )
-        _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
-
-        archive_paths = _archive_paths(ctx)
-        archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
-        frameworks_path = archive_paths[_LOCATION_ENUM.framework]
-
-        output_archive_root_path = outputs.archive_root_path(ctx)
-        codesigning_actions.post_process_and_sign_archive_action(
-            ctx,
-            archive_codesigning_path,
-            frameworks_path,
-            unprocessed_archive,
-            output_archive,
-            output_archive_root_path,
-        )
+    _bundle_post_process_and_sign(ctx, partial_outputs, output_archive)
 
     providers = []
-    output_files = depset([output_archive])
+    transitive_output_files = [depset([output_archive])]
     for partial_output in partial_outputs:
         if hasattr(partial_output, "providers"):
             providers.extend(partial_output.providers)
         if hasattr(partial_output, "output_files"):
-            output_files = depset(
-                transitive = [output_files, partial_output.output_files],
-            )
+            transitive_output_files.append(partial_output.output_files)
 
     return struct(
-        output_files = output_files,
+        output_files = depset(transitive = transitive_output_files),
         providers = providers,
     )
 

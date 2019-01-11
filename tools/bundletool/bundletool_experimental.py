@@ -258,8 +258,7 @@ class Bundler(object):
       command_lines: A newline-separated list of command lines that should be
           executed in the bundle to sign it.
     """
-    work_dir = os.path.dirname(bundle_root)
-    exit_code = os.system('WORK_DIR=%s\n%s' % (work_dir, command_lines))
+    exit_code = os.system('WORK_DIR=%s\n%s' % (bundle_root, command_lines))
     if exit_code:
       raise CodeSignError(exit_code)
 
