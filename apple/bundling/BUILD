@@ -1,11 +1,8 @@
-package(default_visibility = ["//apple:__subpackages__"])
+package(default_visibility = [
+    "//apple:__subpackages__",
+])
 
 licenses(["notice"])
-
-filegroup(
-    name = "bundling",
-    srcs = glob(["*.bzl"]),
-)
 
 filegroup(
     name = "dsym_info_plist_template",
