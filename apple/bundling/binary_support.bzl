@@ -15,12 +15,12 @@
 """Binary creation support functions."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
-    "entitlements",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
     "swift_runtime_linkopts",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
+    "entitlements",
 )
 
 def _get_binary_provider(deps, provider_key):

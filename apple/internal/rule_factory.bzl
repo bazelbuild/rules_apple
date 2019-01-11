@@ -19,12 +19,12 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
-    "AppleEntitlementsInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
+    "AppleEntitlementsInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",

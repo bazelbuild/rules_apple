@@ -47,14 +47,12 @@ load(
     "paths",
 )
 
-def _plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
+def plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
     """Registers an action that invokes `plisttool`.
 
     This function is a low-level helper that simply invokes `plisttool` with the
     given arguments. It is intended to be called by other functions that register
-    actions for more specific resources, like Info.plist files or entitlements
-    (which is why it is in a `plist_support.bzl` rather than
-    `plist_actions.bzl`).
+    actions for more specific resources, like Info.plist files or entitlements.
 
     Args:
       ctx: The Skylark context.
@@ -143,7 +141,7 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
         content = control.to_json(),
     )
 
-    _plisttool_action(
+    plisttool_action(
         ctx,
         inputs = input_files,
         outputs = [output_plist],
@@ -340,7 +338,7 @@ def merge_root_infoplists(
         content = control.to_json(),
     )
 
-    _plisttool_action(
+    plisttool_action(
         ctx,
         inputs = input_files,
         outputs = output_files,
