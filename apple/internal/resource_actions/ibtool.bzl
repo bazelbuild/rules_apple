@@ -15,16 +15,16 @@
 """IBTool related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
+    "xctoolrunner",
 )
 load(
     "@bazel_skylib//lib:collections.bzl",
@@ -70,7 +70,7 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
     args = [
         "ibtool",
         "--compilation-directory",
-        file_support.xctoolrunner_path(output_dir.dirname),
+        xctoolrunner.prefixed_path(output_dir.dirname),
     ]
 
     min_os = platform_support.minimum_os(ctx)
@@ -79,7 +79,7 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
     args.extend([
         "--module",
         swift_module,
-        file_support.xctoolrunner_path(input_file.path),
+        xctoolrunner.prefixed_path(input_file.path),
     ])
 
     legacy_actions.run(
@@ -112,11 +112,11 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
     args = [
         "ibtool",
         "--link",
-        file_support.xctoolrunner_path(output_dir.path),
+        xctoolrunner.prefixed_path(output_dir.path),
     ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
-        file_support.xctoolrunner_path(f.path)
+        xctoolrunner.prefixed_path(f.path)
         for f in storyboardc_dirs
     ])
 
@@ -149,13 +149,13 @@ def compile_xib(ctx, swift_module, input_file, output_dir):
     args = [
         "ibtool",
         "--compile",
-        file_support.xctoolrunner_path(paths.join(output_dir.path, nib_name)),
+        xctoolrunner.prefixed_path(paths.join(output_dir.path, nib_name)),
     ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
         "--module",
         swift_module,
-        file_support.xctoolrunner_path(input_file.path),
+        xctoolrunner.prefixed_path(input_file.path),
     ])
 
     legacy_actions.run(

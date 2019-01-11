@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,25 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Support for action specific files."""
+"""Support for the xctoolrunner tool."""
 
-def _xctoolrunner_path(path):
-    """Prefix paths with a token.
+def _prefixed_path(path):
+    """Prefix paths with a token used in the xctoolrunner tool.
 
-    We prefix paths with a token to indicate that certain arguments are paths,
-    so they can be processed accordingly. This prefix must match the prefix
-    used here: rules_apple/tools/xctoolrunner/xctoolrunner.py
+    Prefix paths with a token to indicate that certain arguments are paths, so they can be
+    processed accordingly. This prefix must match the prefix used here in
+    tools/xctoolrunner/xctoolrunner.py
 
     Args:
-      path: A string of the path to be prefixed.
+        path: Path to the resource to be prefixed.
 
     Returns:
-      A string of the path with the prefix added to the front.
+        The path prefixed for xctoolrunner.
     """
     prefix = "[ABSOLUTE]"
     return prefix + path
 
 # Define the loadable module that lists the exported symbols in this file.
-file_support = struct(
-    xctoolrunner_path = _xctoolrunner_path,
+xctoolrunner = struct(
+    prefixed_path = _prefixed_path,
 )

@@ -44,8 +44,8 @@ import time
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
-# This prefix is set for the Bazel rules in:
-# rules_apple/apple/bundling/file_support.bzl:xctoolrunner_path
+# This prefix is set for rules_apple rules in:
+# apple/internal/utils/xctoolrunner.bzl
 _PATH_PREFIX = "[ABSOLUTE]"
 _PATH_PREFIX_LEN = len(_PATH_PREFIX)
 

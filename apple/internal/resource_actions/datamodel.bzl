@@ -15,16 +15,16 @@
 """Datamodel related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
+    "xctoolrunner",
 )
 
 def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_file):
@@ -48,8 +48,8 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
         min_os,
         "--module",
         module_name,
-        file_support.xctoolrunner_path(datamodel_path),
-        file_support.xctoolrunner_path(output_file.path),
+        xctoolrunner.prefixed_path(datamodel_path),
+        xctoolrunner.prefixed_path(output_file.path),
     ]
 
     legacy_actions.run(
@@ -72,8 +72,8 @@ def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
     """
     args = [
         "mapc",
-        file_support.xctoolrunner_path(mappingmodel_path),
-        file_support.xctoolrunner_path(output_file.path),
+        xctoolrunner.prefixed_path(mappingmodel_path),
+        xctoolrunner.prefixed_path(output_file.path),
     ]
 
     legacy_actions.run(
