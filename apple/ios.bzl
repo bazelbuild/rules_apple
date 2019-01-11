@@ -19,7 +19,7 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:entitlements.bzl",
+    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
     "entitlements",
 )
 load(

@@ -34,6 +34,7 @@ load(
     _compile_plist = "compile_plist",
     _merge_resource_infoplists = "merge_resource_infoplists",
     _merge_root_infoplists = "merge_root_infoplists",
+    _plisttool_action = "plisttool_action",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:png.bzl",
@@ -60,5 +61,6 @@ resource_actions = struct(
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
     merge_root_infoplists = _merge_root_infoplists,
+    plisttool_action = _plisttool_action,
     unzip = _unzip,
 )

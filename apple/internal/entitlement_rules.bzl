@@ -31,16 +31,16 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:plist_support.bzl",
-    "plist_support",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple:common.bzl",
     "entitlements_validation_mode",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
 )
 
 AppleEntitlementsInfo = provider(
@@ -270,7 +270,7 @@ def _entitlements_impl(ctx):
         content = control.to_json(),
     )
 
-    plist_support.plisttool_action(
+    resource_actions.plisttool_action(
         ctx,
         inputs = inputs,
         outputs = [final_entitlements],
