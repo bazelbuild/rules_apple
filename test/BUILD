@@ -37,16 +37,12 @@ config_setting(
     },
 )
 
-# Export shell test utilities so that they can be referenced from
-# other packages.
-filegroup(
-    name = "test_utils",
-    srcs = ["apple_shell_testutils.sh"],
-)
+# Export shell test utilities so can can be pulled in as data to the tests.
+exports_files(["apple_shell_testutils.sh"])
 
-# Gather external dependencies into a target that can be injected
-# into the tests. The test runner will then mock out the BUILD files
-# required to make these proper WORKSPACES that can be used in tests.
+# Gather external dependencies into a target that can be injected into the
+# integration tests. The test script will then mock out the files required
+# to make these proper WORKSPACES that can be used in tests.
 # This enables us to:
 #   1. Reuse the download of the external dependencies across all tests.
 #   2. Remove the need to update dependency versions in the repo's
