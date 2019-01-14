@@ -109,7 +109,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     elif ctx.rule.kind == "swift_library":
         bucketize_args["swift_module"] = target[SwiftInfo].module_name
-        collect_args["res_attrs"] = ["data", "resources"]
+        collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
     elif ctx.rule.kind == "apple_binary" or ctx.rule.kind == "apple_stub_binary":
