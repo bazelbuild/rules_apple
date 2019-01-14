@@ -454,8 +454,8 @@ EOF
   assert_zip_contains "test-bin/app/app.zip" "app with space.app/"
 }
 
-# Tests that a prebuilt dynamic framework (i.e., objc_framework with is_dynamic
-# set to True) is bundled properly with the application.
+# Tests that a prebuilt dynamic framework is bundled properly with the
+# application.
 function test_prebuilt_dynamic_framework_dependency() {
   create_common_files
   create_minimal_macos_application_with_framework_import

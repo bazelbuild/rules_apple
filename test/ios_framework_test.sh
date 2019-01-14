@@ -1055,14 +1055,16 @@ EOF
       "Payload/app.app/basic.bundle"
 }
 
-# Test that if an ios_framework target depends on a prebuilt framework (i.e.,
-# objc_framework), that the inner framework is propagated up to the application
-# and not nested in the outer framework.
+# Test that if an ios_framework target depends on a prebuilt framework, that
+# the inner framework is propagated up to the application and not nested in
+# the outer framework.
 #
 # NOTE: This does not use xibs, storyboards, xcassets to avoid flake from
 # ibtool/actool. See the note in the BUILD file.
 function test_framework_depends_on_prebuilt_framework() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_dynamic_framework_import")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_framework"
@@ -1107,10 +1109,9 @@ objc_library(
     alwayslink = 1,
 )
 
-objc_framework(
+apple_dynamic_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
-    is_dynamic = True,
 )
 EOF
 
@@ -1684,10 +1685,12 @@ EOF
 }
 
 # Test that if an ios_framework target depends on a prebuilt static library
-# framework (i.e., objc_framework), that the inner framework is propagated up
-# to the application and not nested in the outer framework.
+# framework, that the inner framework is propagated up to the application and
+# not nested in the outer framework.
 function test_framework_depends_on_prebuilt_static_framework() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_static_framework_import")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_framework"
@@ -1747,7 +1750,7 @@ genrule(
     cmd = "cp \$< \$@",
 )
 
-objc_framework(
+apple_static_framework_import(
     name = "inner_framework",
     framework_imports = glob(["InnerFramework.framework/**"]) + ["InnerFramework.framework/InnerFramework"],
 )

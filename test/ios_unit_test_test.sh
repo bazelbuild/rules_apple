@@ -373,16 +373,17 @@ function test_dsyms_generated() {
   done
 }
 
-function test_logic_unit_test_packages_objc_framework_targets {
+function test_logic_unit_test_packages_dynamic_framework_targets {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_dynamic_framework_import")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_unit_test",
     )
 
-objc_framework(
+apple_dynamic_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
-    is_dynamic = 1,
 )
 
 objc_library(
@@ -513,17 +514,18 @@ EOF
 
 }
 
-function test_hosted_unit_test_doesnt_package_objc_framework_targets {
+function test_hosted_unit_test_doesnt_package_dynamic_framework_targets {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple.bzl",
+     "apple_dynamic_framework_import")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_unit_test",
      "ios_application",
     )
 
-objc_framework(
+apple_dynamic_framework_import(
     name = "my_framework",
     framework_imports = ["my_framework.framework/my_framework"],
-    is_dynamic = 1,
 )
 
 objc_library(
