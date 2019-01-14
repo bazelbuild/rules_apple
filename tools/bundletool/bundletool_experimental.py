@@ -246,7 +246,8 @@ class Bundler(object):
       post_processor: The path to the tool or script that should be executed on
           the bundle before it is signed.
     """
-    exit_code = os.system('%s "%s"' % (post_processor, bundle_root))
+    work_dir = os.path.dirname(bundle_root)
+    exit_code = os.system('%s "%s"' % (post_processor, work_dir))
     if exit_code:
       raise PostProcessorError(exit_code)
 
