@@ -12,8 +12,6 @@ load(
     "apple_shell_test",
 )
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 # To enable sharding of the apple_shell_test rules, invoke bazel with
@@ -23,6 +21,7 @@ config_setting(
     values = {
         "define": "bazel_rules_apple.shell_test_sharding=1",
     },
+    visibility = ["//visibility:public"],
 )
 
 # To disable sharding of the apple_shell_test rules, invoke bazel with
@@ -35,6 +34,7 @@ config_setting(
     values = {
         "define": "bazel_rules_apple.shell_test_sharding=0",
     },
+    visibility = ["//visibility:public"],
 )
 
 # Export shell test utilities so can can be pulled in as data to the tests.
@@ -54,7 +54,6 @@ filegroup(
         "@bazel_skylib//:test_deps",
         "@xctestrunner//file",
     ],
-    visibility = ["//visibility:private"],
 )
 
 # ----------------------------------------------------------------------------
