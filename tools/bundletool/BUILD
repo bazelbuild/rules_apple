@@ -3,14 +3,18 @@ licenses(["notice"])
 py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
-    # Used by the rule implementations, so it needs to be public.
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
     visibility = ["//visibility:public"],
 )
 
 py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
-    # Used by the rule implementations, so it needs to be public.
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
     visibility = ["//visibility:public"],
 )
 
@@ -26,7 +30,9 @@ py_test(
 filegroup(
     name = "process_and_sign_template",
     srcs = ["process_and_sign.sh.template"],
-    # Used by the rule implementations, so it needs to be public.
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
     visibility = ["//visibility:public"],
 )
 
