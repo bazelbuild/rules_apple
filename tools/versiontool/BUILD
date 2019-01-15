@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_binary(
     name = "versiontool",
     srcs = ["versiontool.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 py_test(

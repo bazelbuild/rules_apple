@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 sh_binary(
     name = "environment_plist",
     srcs = ["environment_plist.sh"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_library(
     name = "execute",
     srcs = ["execute.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 py_test(

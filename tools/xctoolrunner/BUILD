@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
     deps = ["//tools/wrapper_common:execute"],
 )
 
