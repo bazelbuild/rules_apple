@@ -394,8 +394,7 @@ def ios_unit_test(name, **kwargs):
     Args:
       name: The name of the target.
       test_host: The ios_application target that contains the code to be
-          tested. Optional. Defaults to
-          "@build_bazel_rules_apple//apple/testing/default_host/ios".
+          tested. Optional.
       bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
           test bundle. Optional. Defaults to the test_host's postfixed with
           "Tests".
@@ -418,8 +417,7 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
     Args:
       name: The name of the target.
       test_host: The ios_application target that contains the code to be
-          tested. Optional. Defaults to
-          "@build_bazel_rules_apple//apple/testing/default_host/ios".
+          tested. Optional.
       bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
           test bundle. Optional. Defaults to the test_host's postfixed with
           "Tests".
