@@ -347,7 +347,7 @@ EOF
 filegroup(
     name = "filegroup",
     srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
+    visibility = ["//app:__pkg__"],
 )
 EOF
 
