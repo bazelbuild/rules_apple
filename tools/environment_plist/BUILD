@@ -3,7 +3,9 @@ licenses(["notice"])
 sh_binary(
     name = "environment_plist",
     srcs = ["environment_plist.sh"],
-    # Used by the rule implementations, so it needs to be public.
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
     visibility = ["//visibility:public"],
 )
 
