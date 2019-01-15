@@ -100,7 +100,7 @@ def ios_application(name, **kwargs):
       provisioning_profile: The provisioning profile (`.mobileprovision` file) to
           use when bundling the application. This value is optional (and unused)
           for simulator builds but **required** for device builds.
-      settings_bundle: An `objc_bundle` target that contains the files that make
+      settings_bundle: A resource bundle target that contains the files that make
           up the application's settings bundle. These files will be copied into
           the root of the final application bundle in a directory named
           `Settings.bundle`.

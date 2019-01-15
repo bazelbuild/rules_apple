@@ -186,7 +186,7 @@ Builds and bundles an iOS application.
       <td><code>settings_bundle</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>An <code>objc_bundle</code> target that contains the files that make up
+        <p>A resource bundle target that contains the files that make up
         the application's settings bundle. These files will be copied into the
         root of the final application bundle in a directory named
         <code>Settings.bundle</code>.</p>
