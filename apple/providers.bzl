@@ -72,7 +72,6 @@ number like "9.0") that this bundle was built to support.
 `string`. The dot-separated product type identifier associated
 with the bundle (for example, `com.apple.product-type.application`).
 """,
-        "propagated_framework_files": "Unused, will be removed.",
         "uses_swift": """
 Boolean. True if Swift is used by the target propagating this
 provider. This does not consider embedded bundles; for example, an
@@ -326,33 +325,6 @@ a "marker" to indicate that a target is specifically a macOS .xctest bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
-""",
-)
-
-SwiftInfo = provider(
-    doc = """
-Provides information about a Swift library.
-
-Fields:
-  direct_lib: `File`. The single static library that was produced by compiling
-      the propagating target. (Contrast with `transitive_libs`.)
-  direct_module: `File`. The single `.swiftmodule` file that was produced by
-      compiling the propagating target. (Contrast with `transitive_modules`.)
-  direct_doc: `File`. The single `.swiftdoc` file that was produced by
-      compiling the propagating target.  (Contrast with `transitive_docs`.)
-  swift_version: `string`. The version of the Swift language that was used when
-      compiling the propagating target; that is, the value passed via the
-      `-swift-version` compiler flag. This will be `None` if the flag was not
-      set.
-  transitive_defines: `depset` of `string`s. The set of conditional compilation
-      flags defined by the propagating target and all of its transitive
-      dependencies.
-  transitive_libs: `depset` of `File`s. The set of static library files output
-      by the propagating target and all of its transitive dependencies.
-  transitive_modules: `depset` of `File`s. The set of `.swiftmodule` files
-      output by the propagating target and all of its transitive dependencies.
-  transitive_docs: `depset` of `File`s. The set of `.swiftdoc` files
-      output by the propagating target and all of its transitive dependencies.
 """,
 )
 
