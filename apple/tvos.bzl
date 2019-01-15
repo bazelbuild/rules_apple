@@ -70,7 +70,7 @@ def tvos_application(name, **kwargs):
       provisioning_profile: The provisioning profile (`.mobileprovision` file) to
           use when bundling the application. This is only used for non-simulator
           builds.
-      settings_bundle: An `objc_bundle` target that contains the files that make
+      settings_bundle: A resource bundle target that contains the files that make
           up the application's settings bundle. These files will be copied into
           the application in a directory named `Settings.bundle`.
       strings: A list of files that are plists of strings, often localizable.

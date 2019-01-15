@@ -48,9 +48,9 @@ resource.
 In some cases the value for certain keys in `owners` may be None. This value is used to signal that
 the target referencing the resource should not be considered the owner, and that the next target in
 the dependency chain that can own resources should set itself as the owner. A good example of this
-is is the objc_bundle rule. This rule doesn't contain any code, so the resources represented by
-these targets should not be bound to the objc_bundle target, as they should be marked as being owned
-by the objc_library or swift_library targets that reference them.
+is is the apple_bundle_import rule. This rule doesn't contain any code, so the resources represented
+by these targets should not be bound to the apple_bundle_import target, as they should be marked as
+being owned by the objc_library or swift_library targets that reference them.
 
 The None values in the `owners` dictionary are then replaced with a default owner in the
 `merge_providers` method, which should be called to merge a list of providers into a single
