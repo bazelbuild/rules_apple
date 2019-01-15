@@ -1,15 +1,17 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 py_test(
@@ -24,6 +26,8 @@ py_test(
 filegroup(
     name = "process_and_sign_template",
     srcs = ["process_and_sign.sh.template"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

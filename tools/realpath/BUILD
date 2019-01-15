@@ -3,8 +3,6 @@ load(
     "apple_genrule",
 )
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 # This target will only build on a Mac.
@@ -13,6 +11,8 @@ apple_genrule(
     srcs = ["realpath.c"],
     outs = ["realpath"],
     cmd = "/usr/bin/xcrun clang -o $@ $<",
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_binary(
     name = "provisioning_profile_tool",
     srcs = ["provisioning_profile_tool.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

@@ -1,12 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 py_binary(
     name = "plisttool",
-    srcs = [
-        "plisttool.py",
-    ],
+    srcs = ["plisttool.py"],
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 py_test(
