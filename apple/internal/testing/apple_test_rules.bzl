@@ -115,6 +115,12 @@ coverage insfrastructure. The sources are provided in the `coverage_files` field
 and the binaries in the `covered_binaries` field. This provider is only available
 if when coverage collecting is enabled.
 """,
+    fields = {
+        "coverage_files": "`depset` of files required to be present during a coverage run.",
+        "covered_binaries": """
+`depset` of files representing the binaries that are being tested under a coverage run.
+""",
+    },
 )
 
 def _coverage_files_aspect_impl(target, ctx):
