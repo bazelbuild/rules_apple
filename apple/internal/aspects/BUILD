@@ -3,10 +3,6 @@
 # This file exists to create a package under which to load the aspect
 # bzl files.
 
-package(default_visibility = [
-    "//apple/internal:__pkg__",
-])
-
 licenses(["notice"])
 
 # Consumed by bazel tests.

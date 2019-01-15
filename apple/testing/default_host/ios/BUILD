@@ -1,5 +1,7 @@
 load("//apple:ios.bzl", "ios_application")
 
+# TODO(thomasvl): Remove this whole subpackage.
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])

@@ -3,10 +3,6 @@
 # This file exists to create a package under which to load the processor
 # partials support bzl files.
 
-package(default_visibility = [
-    "//apple/internal/partials:__pkg__",
-])
-
 licenses(["notice"])
 
 # Consumed by bazel tests.
