@@ -1,12 +1,12 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
+# TODO(thomasvl): Remove this.
 filegroup(
     name = "DefaultTestBundlePlist",
     srcs = [
         "DefaultTestBundle.plist",
     ],
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

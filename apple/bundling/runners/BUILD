@@ -3,6 +3,7 @@ licenses(["notice"])
 filegroup(
     name = "ios_sim_template",
     srcs = ["ios_sim.template.sh"],
+    # Used by the rule implementations, so it needs to be public.
     visibility = ["//visibility:public"],
 )
 

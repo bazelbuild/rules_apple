@@ -7,8 +7,6 @@ load(
     "macos_test_runner",
 )
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 exports_files([
@@ -19,10 +17,14 @@ exports_files([
 
 ios_test_runner(
     name = "ios_default_runner",
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 macos_test_runner(
     name = "macos_default_runner",
+    # Used by the rule implementations, so it needs to be public.
+    visibility = ["//visibility:public"],
 )
 
 # Consumed by bazel tests.

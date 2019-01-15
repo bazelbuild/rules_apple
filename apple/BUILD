@@ -1,11 +1,11 @@
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
+# Create a set of public config_settings that can be used in select()s.
 [
     config_setting(
         name = arch,
         values = {"cpu": arch},
+        visibility = ["//visibility:public"],
     )
     for arch in [
         "darwin_x86_64",

@@ -1,12 +1,9 @@
-package(default_visibility = [
-    "//apple:__subpackages__",
-])
-
 licenses(["notice"])
 
 filegroup(
     name = "dsym_info_plist_template",
     srcs = ["dSYM-Info.plist.template"],
+    # Used by the rule implementations, so it needs to be public.
     visibility = ["//visibility:public"],
 )
 
