@@ -74,6 +74,7 @@ def _create_swift_runtime_linkopts_target(
 def _add_entitlements_and_swift_linkopts(
         name,
         platform_type,
+        include_entitlements = True,
         is_stub = False,
         link_swift_statically = False,
         **kwargs):
@@ -90,10 +91,12 @@ def _add_entitlements_and_swift_linkopts(
       name: The name of the bundle target, from which the targets' names
           will be derived.
       platform_type: The platform type of the bundle.
-      is_stub: True/False, indicates whether the function is being called for a
-          bundle that uses a stub executable.
-      link_swift_statically: True/False, indicates whether the static versions of
-          the Swift standard libraries should be used during linking.
+      include_entitlements: True/False, indicates whether to include an entitlements target.
+          Defaults to True.
+      is_stub: True/False, indicates whether the function is being called for a bundle that uses a
+          stub executable.
+      link_swift_statically: True/False, indicates whether the static versions of the Swift standard
+          libraries should be used during linking. Only used if include_swift_linkopts is True.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
@@ -102,43 +105,46 @@ def _add_entitlements_and_swift_linkopts(
     bundling_args = dict(kwargs)
     testonly = bundling_args.get("testonly", None)
 
-    entitlements_value = kwargs.get("entitlements")
-    provisioning_profile = kwargs.get("provisioning_profile")
-    entitlements_name = "%s_entitlements" % name
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
-        entitlements = entitlements_value,
-        platform_type = platform_type,
-        provisioning_profile = provisioning_profile,
-        testonly = testonly,
-        validation_mode = kwargs.get("entitlements_validation"),
-    )
-    bundling_args["entitlements"] = ":" + entitlements_name
+    additional_deps = []
+    if include_entitlements:
+        entitlements_value = bundling_args.get("entitlements")
+        provisioning_profile = bundling_args.get("provisioning_profile")
+        entitlements_name = "%s_entitlements" % name
+        entitlements(
+            name = entitlements_name,
+            bundle_id = bundling_args.get("bundle_id"),
+            entitlements = entitlements_value,
+            platform_type = platform_type,
+            provisioning_profile = provisioning_profile,
+            testonly = testonly,
+            validation_mode = bundling_args.get("entitlements_validation"),
+        )
 
-    entitlements_deps = [] if is_stub else [":" + entitlements_name]
+        # Replace the `entitlements` attribute with the preprocessed entitlements.
+        bundling_args["entitlements"] = ":" + entitlements_name
 
-    # This is required by the configuration transition on the 'deps' attribute
-    # of the bundling rule.
-    bundling_args["platform_type"] = platform_type
+        if not is_stub:
+            # Also add the target as a dependency if the target is not a stub, since it may
+            # propagate linkopts.
+            additional_deps.append(":{}".format(entitlements_name))
 
-    # Propagate the linker flags that dynamically link the Swift runtime, if
-    # Swift was used. If it wasn't, this target propagates no linkopts.
     deps = bundling_args.get("deps", [])
 
-    if is_stub:
-        swift_linkopts_deps = []
-    else:
-        swift_linkopts_deps = [
+    if not is_stub:
+        # Propagate the linker flags that dynamically link the Swift runtime, if Swift was used. If
+        # it wasn't, this target propagates no linkopts.
+        additional_deps.append(
             _create_swift_runtime_linkopts_target(
                 name,
                 deps,
                 link_swift_statically,
                 testonly = testonly,
             ),
-        ]
+        )
 
-    bundling_args["deps"] = deps + entitlements_deps + swift_linkopts_deps
+    all_deps = deps + additional_deps
+    if all_deps:
+        bundling_args["deps"] = all_deps
 
     return bundling_args
 

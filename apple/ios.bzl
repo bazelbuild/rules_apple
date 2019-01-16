@@ -449,39 +449,31 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_imessage_application(name, **kwargs):
     """Macro to preprocess entitlements for iMessage applications."""
-    entitlements_name = "{}_entitlements".format(name)
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
         platform_type = str(apple_common.platform_type.ios),
-        provisioning_profile = kwargs.get("provisioning_profile"),
-        testonly = kwargs.get("testonly", None),
-        validation_mode = kwargs.get("entitlements_validation"),
+        is_stub = True,
+        **kwargs
     )
 
     _ios_imessage_application(
         name = name,
-        entitlements = ":{}".format(entitlements_name),
-        **kwargs
+        **bundling_args
     )
 
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_sticker_pack_extension(name, **kwargs):
     """Macro to preprocess entitlements for Sticker Pack extensions."""
-    entitlements_name = "{}_entitlements".format(name)
-    entitlements(
-        name = entitlements_name,
-        bundle_id = kwargs.get("bundle_id"),
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
         platform_type = str(apple_common.platform_type.ios),
-        provisioning_profile = kwargs.get("provisioning_profile"),
-        testonly = kwargs.get("testonly", None),
-        validation_mode = kwargs.get("entitlements_validation"),
+        is_stub = True,
+        **kwargs
     )
 
     _ios_sticker_pack_extension(
         name = name,
-        entitlements = ":{}".format(entitlements_name),
-        **kwargs
+        **bundling_args
     )
 
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
