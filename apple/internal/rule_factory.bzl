@@ -144,15 +144,6 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
             executable = True,
         ),
-        # TODO(b/117932394): Remove uses of this private attribute and migrate them to the _xctoolrunner
-        # tool instead.
-        # - and/or -
-        # TODO(b/118264452): Remove this once all apple actions are migrated to apple_support
-        "_xcrunwrapper": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-        ),
         "_xctoolrunner": attr.label(
             cfg = "host",
             executable = True,
@@ -227,6 +218,14 @@ bundle.
         "_protobuf_well_known_types": attr.label(
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
+        ),
+        # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
+        # apple_common.link_multi_arch_binary requires this attribute.
+        # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
+        "_xcrunwrapper": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
         ),
     }
 
