@@ -31,6 +31,10 @@ load(
     "intermediates",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -47,8 +51,9 @@ def _codesigning_command(ctx, entitlements, frameworks_path, bundle_path = ""):
     Returns:
         A string containing the codesigning commands.
     """
+    rule_descriptor = rule_support.rule_descriptor(ctx)
     signing_command_lines = ""
-    if not ctx.attr._skip_signing:
+    if not rule_descriptor.skip_signing:
         paths_to_sign = [
             codesigning_support.path_to_sign(
                 paths.join("$WORK_DIR", frameworks_path) + "/",

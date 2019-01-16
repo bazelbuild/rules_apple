@@ -45,6 +45,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleResourceInfo",
@@ -73,8 +77,9 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """
     files = [out_infoplist]
 
+    rule_descriptor = rule_support.rule_descriptor(ctx)
     out_pkginfo = None
-    if ctx.attr._needs_pkginfo:
+    if rule_descriptor.requires_pkginfo:
         out_pkginfo = intermediates.file(
             ctx.actions,
             ctx.label.name,

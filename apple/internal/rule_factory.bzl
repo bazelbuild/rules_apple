@@ -230,23 +230,6 @@ bundle.
         ),
     }
 
-def _get_legacy_attributes(rule_descriptor):
-    """Returns a dictionary with legacy attributes that should get replaced by rule descriptors."""
-
-    # TODO(b/117933005): Remove these attributes once the uses of these are migrated to retrieving
-    # these configs from the rule descriptors.
-    return {
-        "_allowed_families": attr.string_list(default = rule_descriptor.allowed_device_families),
-        "_needs_pkginfo": attr.bool(default = rule_descriptor.requires_pkginfo),
-        "_requires_signing_for_device": attr.bool(
-            default = rule_descriptor.requires_signing_for_device,
-        ),
-        "_skip_signing": attr.bool(default = rule_descriptor.skip_signing),
-        "_skip_simulator_signing_allowed": attr.bool(
-            default = rule_descriptor.skip_simulator_signing_allowed,
-        ),
-    }
-
 def _get_common_bundling_attributes(rule_descriptor):
     """Returns a list of dictionaries with attributes common to all bundling rules."""
 
@@ -735,7 +718,6 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
 
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
     rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
-    rule_attrs.append(_get_legacy_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
@@ -765,7 +747,6 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
 
     rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
-    rule_attrs.append(_get_legacy_attributes(rule_descriptor))
     rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:

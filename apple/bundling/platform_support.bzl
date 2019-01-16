@@ -14,6 +14,11 @@
 
 """Support functions for working with Apple platforms and device families."""
 
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items
@@ -43,7 +48,8 @@ def _families(ctx):
     Returns:
       The list of device families that apply to the target being built.
     """
-    return getattr(ctx.attr, "families", ctx.attr._allowed_families)
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    return getattr(ctx.attr, "families", rule_descriptor.allowed_device_families)
 
 def _ui_device_family_plist_value(ctx):
     """Returns the value to use for `UIDeviceFamily` in an info.plist.
