@@ -112,8 +112,6 @@ macos_binary_infoplist = rule(
                 default = str(apple_common.platform_type.macos),
             ),
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),
-            "_allowed_families": attr.string_list(default = ["mac"]),
-            "_needs_pkginfo": attr.bool(default = False),
             "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),

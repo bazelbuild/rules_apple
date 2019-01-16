@@ -23,6 +23,10 @@ load(
     "defines",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@bazel_skylib//lib:shell.bzl",
     "shell",
 )
@@ -166,8 +170,9 @@ def _signing_command_lines(
     # platforms that require it.
     is_device = platform_support.is_device_build(ctx)
     provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+    rule_descriptor = rule_support.rule_descriptor(ctx)
     if (is_device and
-        ctx.attr._requires_signing_for_device and
+        rule_descriptor.requires_signing_for_device and
         not provisioning_profile):
         fail("The provisioning_profile attribute must be set for device " +
              "builds on this platform (%s)." %
@@ -211,7 +216,8 @@ def _should_sign_simulator_bundles(ctx):
       True/False for if the bundle should be signed.
 
     """
-    if not ctx.attr._skip_simulator_signing_allowed:
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    if not rule_descriptor.skip_simulator_signing_allowed:
         return True
 
     # Default is to sign.

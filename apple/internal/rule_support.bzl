@@ -22,10 +22,6 @@ parameters that affect both the attributes and the implementation logic of the r
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -431,7 +427,10 @@ def _rule_descriptor_no_ctx(platform_type, product_type):
 
 def _rule_descriptor(ctx):
     """Returns the rule descriptor for platform and product types derived from the rule context."""
-    platform_type = platform_support.platform_type(ctx)
+
+    # Check the attribute explicitly instead of using platform_support, since that creates a
+    # cyclical dependency on this file.
+    platform_type = getattr(apple_common.platform_type, ctx.attr.platform_type)
     product_type = ctx.attr._product_type
     return _rule_descriptor_no_ctx(str(platform_type), product_type)
 
