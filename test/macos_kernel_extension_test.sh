@@ -153,8 +153,11 @@ EOF
 
   assert_zip_contains "test-bin/kext/kext-builder.zip" "kext-builder.kext/"
   unzip "test-bin/kext/kext-builder.zip" -d $TEST_TMPDIR
-  file $TEST_TMPDIR/kext-builder.kext/Contents/MacOS/kext-builder > $TEST_TMPDIR/file.out
-  assert_contains "kext bundle" $TEST_TMPDIR/file.out
+  file $TEST_TMPDIR/kext-builder.kext/Contents/MacOS/kext-builder > $TEST_TMPDIR/bundle_file.out
+  assert_contains "kext bundle" $TEST_TMPDIR/bundle_file.out
+
+  file -b $TEST_TMPDIR/kext-builder.kext/Contents/Info.plist > $TEST_TMPDIR/infoplist_type.out
+  assert_contains "XML 1.0 document text" $TEST_TMPDIR/infoplist_type.out
 }
 
 run_suite "macos_kernel_extension bundling tests"
