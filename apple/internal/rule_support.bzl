@@ -57,6 +57,7 @@ def _describe_rule_type(
         app_icon_extension = None,
         app_icon_parent_extension = None,
         archive_extension = ".zip",
+        binary_infoplist = True,
         bundle_extension = None,
         bundle_locations = None,
         deps_cfg = None,
@@ -86,6 +87,7 @@ def _describe_rule_type(
         app_icon_parent_extension: For rules that require icons, the extension of the asset catalog
             that should hold the icon sets (e.g. .xcassets or .xcstickers).
         archive_extension: Extension for the archive output of the rule.
+        binary_infoplist: Whether the Info.plist output should be in binary form.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
@@ -127,6 +129,7 @@ def _describe_rule_type(
         app_icon_extension = app_icon_extension,
         app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
+        binary_infoplist = binary_infoplist,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
         deps_cfg = deps_cfg,
@@ -309,6 +312,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_kernel_extension
         apple_product_type.kernel_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
+            binary_infoplist = False,
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,

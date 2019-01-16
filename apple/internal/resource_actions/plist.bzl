@@ -319,7 +319,7 @@ def merge_root_infoplists(
         output_files.append(output_pkginfo)
 
     control = struct(
-        binary = True,
+        binary = rule_descriptor.binary_infoplist,
         forced_plists = forced_plists,
         info_plist_options = struct(**info_plist_options),
         output = output_plist.path,
