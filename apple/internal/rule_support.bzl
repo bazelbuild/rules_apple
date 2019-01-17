@@ -300,6 +300,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.app_extension,
             provisioning_profile_extension = ".provisioningprofile",
             requires_signing_for_device = False,

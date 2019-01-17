@@ -35,6 +35,9 @@ objc_library(
     resources = [
         "ExtResources/TodayViewController.xib",
     ],
+    sdk_frameworks = [
+        "NotificationCenter",
+    ],
 )
 
 apple_bundle_version(
@@ -61,9 +64,6 @@ macos_extension(
     entitlements = ":Ext-Entitlements.entitlements",
     infoplists = [":Ext-Info.plist"],
     minimum_os_version = "10.11",
-    sdk_frameworks = [
-        "NotificationCenter",
-    ],
     version = ":HelloTodayVersion",
     deps = [":ExtSources"],
 )

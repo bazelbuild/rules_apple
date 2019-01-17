@@ -177,13 +177,10 @@ def _macos_bundle_impl(ctx):
 
 def _macos_extension_impl(ctx):
     """Experimental implementation of macos_extension."""
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
-
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
 
     bundle_id = ctx.attr.bundle_id
 
@@ -191,9 +188,7 @@ def _macos_extension_impl(ctx):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
+        partials.debug_symbols_partial(debug_outputs_provider = debug_outputs_provider),
         partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
