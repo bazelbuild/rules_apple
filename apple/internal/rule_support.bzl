@@ -54,6 +54,7 @@ def _describe_rule_type(
         app_icon_parent_extension = None,
         archive_extension = ".zip",
         binary_infoplist = True,
+        binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
         deps_cfg = None,
@@ -84,6 +85,9 @@ def _describe_rule_type(
             that should hold the icon sets (e.g. .xcassets or .xcstickers).
         archive_extension: Extension for the archive output of the rule.
         binary_infoplist: Whether the Info.plist output should be in binary form.
+        binary_type: Binary type to use for the binary_type attribute in the bundling rules. This
+            attribute is read by apple_common.link_multi_arch_binary, so rules that use apple_binary
+            underneath are not affected.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
@@ -126,6 +130,7 @@ def _describe_rule_type(
         app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
         binary_infoplist = binary_infoplist,
+        binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
         deps_cfg = deps_cfg,
@@ -238,7 +243,9 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
             skip_simulator_signing_allowed = False,
@@ -246,7 +253,9 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
             skip_simulator_signing_allowed = False,
@@ -279,6 +288,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
             allowed_device_families = ["mac"],
+            binary_type = "dylib",
             bundle_extension = "",
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
@@ -299,6 +309,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
+            binary_type = "loadable_bundle",
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             product_type = apple_product_type.bundle,
@@ -343,16 +354,20 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
+            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
         ),
         # macos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
+            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
         ),

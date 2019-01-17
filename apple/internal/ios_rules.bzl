@@ -164,6 +164,9 @@ def _ios_application_impl(ctx):
                 ),
             ),
             IosApplicationBundleInfo(),
+            # Propagate the binary provider so that this target can be used as bundle_loader in test
+            # rules.
+            binary_target[apple_common.AppleExecutableBinary],
         ] + processor_result.providers,
     )
 

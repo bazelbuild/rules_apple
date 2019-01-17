@@ -73,12 +73,10 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
              "same as the test host's bundle identifier. Please change one of " +
              "them.")
 
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleLoadableBundleBinary].binary
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
 
     test_host_list = []
     product_type = ctx.attr._product_type
@@ -89,9 +87,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-        ),
+        partials.debug_symbols_partial(debug_outputs_provider = debug_outputs_provider),
         partials.framework_import_partial(
             targets = ctx.attr.deps,
             targets_to_avoid = test_host_list,
@@ -169,47 +165,41 @@ def _assemble_test_targets(
     test_bundle_name = name + "_test_bundle"
 
     linkopts = kwargs.pop("linkopts", [])
-    linkopts += extra_linkopts
+    linkopts += extra_linkopts + ["-framework", "XCTest"]
 
-    # Back door to support tags on the apple_binary for systems that
-    # collect binaries from a package as they see this (and tag
-    # can control that collection).
-    binary_tags = kwargs.pop("binary_tags", [])
+    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
+    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
+    kwargs.pop("binary_tags", [])
 
-    deps = kwargs.pop("deps", [])
-
-    bundling_args = binary_support.create_linked_binary_target(
-        name = name,
-        deps = deps,
-        sdk_frameworks = ["XCTest"],
-        binary_type = "loadable_bundle",
-        bundle_loader = bundle_loader,
-        minimum_os_version = kwargs.pop("minimum_os_version", None),
-        platform_type = platform_type,
-        visibility = ["//visibility:private"],
-        linkopts = linkopts,
-        testonly = 1,
-        tags = binary_tags,
-        suppress_entitlements = True,
-        target_name_template = "%s_test_binary",
-    )
-
-    if uses_provisioning_profile:
-        bundling_args["provisioning_profile"] = kwargs.pop("provisioning_profile", None)
-
+    # Extract bundle specific arguments so that they are not forwarded to the test rule target.
+    bundle_id = kwargs.pop("bundle_id", None)
+    deps = kwargs.pop("deps", None)
+    minimum_os_version = kwargs.pop("minimum_os_version", None)
+    test_host = kwargs.pop("test_host", None)
     infoplists = kwargs.pop(
         "infoplists",
         ["@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"],
     )
 
-    bundle_id = kwargs.pop("bundle_id", None)
-    test_host = kwargs.get("test_host")
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = platform_type,
+        bundle_id = bundle_id,
+        include_entitlements = False,
+        testonly = True,
+        deps = deps,
+    )
+
+    if uses_provisioning_profile:
+        bundling_args["provisioning_profile"] = kwargs.pop("provisioning_profile", None)
 
     bundling_rule(
         name = test_bundle_name,
+        bundle_loader = bundle_loader,
         bundle_name = name,
-        bundle_id = bundle_id,
         infoplists = infoplists,
+        linkopts = linkopts,
+        minimum_os_version = minimum_os_version,
         test_host = test_host,
         **bundling_args
     )
@@ -221,6 +211,7 @@ def _assemble_test_targets(
         platform_type = platform_type,
         runner = runner,
         test_bundle = test_bundle_name,
+        test_host = test_host,
         **kwargs
     )
 
