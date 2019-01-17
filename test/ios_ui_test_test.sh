@@ -248,7 +248,7 @@ function test_bundle_id_same_as_test_host_error() {
 }
 
 # Tests that the tests can't be built without a test host.
-function test_builds_with_default_host() {
+function test_build_fails_without_host() {
   create_common_files
   create_ios_ui_test_without_test_host
   ! do_build ios //app:ui_tests || fail "Should should not build"

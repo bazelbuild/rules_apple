@@ -259,18 +259,12 @@ function test_bundle_id_same_as_test_host_error() {
   expect_log "can't be the same as the test host's bundle identifier"
 }
 
-# Tests that the tests can be built with a default host.
-function test_builds_with_default_host() {
-  if [[ "$TEST_BINARY" = *.simulator ]]; then
-    # The default test host does not work for device builds as it needs a
-    # provisioning profile.
-    create_common_files
-    create_minimal_ios_unit_test
+# Tests that the tests can be built without a host.
+function test_builds_with_no_host() {
+  create_common_files
+  create_minimal_ios_unit_test
 
-    do_build ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
-  else
-    echo "Skipping: non simulator testing needs a signed test host."
-  fi
+  do_build ios --ios_minimum_os=9.0 //app:unit_tests || fail "Should build"
 }
 
 # Tests that the output contains a valid signed test bundle.
