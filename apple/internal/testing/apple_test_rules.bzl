@@ -203,10 +203,6 @@ def _test_info_aspect_impl(target, ctx):
 
     rule_attr = ctx.rule.attr
 
-    # Forward the AppleTestInfo directly if the target is a test bundle.
-    if AppleBundleInfo in target:
-        return [rule_attr.binary[AppleTestInfo]]
-
     sources = depset()
     non_arc_sources = depset()
     includes = depset()
@@ -226,8 +222,8 @@ def _test_info_aspect_impl(target, ctx):
         module_maps = _merge_depsets(test_info.module_maps, module_maps)
         swift_modules = _merge_depsets(test_info.swift_modules, swift_modules)
 
-    # Combine the AppleTestInfo sources info from deps into one for apple_binary.
-    if ctx.rule.kind == "apple_binary":
+    # Combine the AppleTestInfo sources info from deps into one for the test bundle.
+    if AppleBundleInfo in target:
         swift_infos = []
         for dep in deps:
             dep_labels.append(str(dep.label))
@@ -283,7 +279,6 @@ def _test_info_aspect_impl(target, ctx):
 
 test_info_aspect = aspect(
     attr_aspects = [
-        "binary",
         "deps",
     ],
     doc = """

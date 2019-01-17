@@ -75,7 +75,7 @@ def macos_unit_test(
         **kwargs):
     bundle_loader = None
     if test_host:
-        bundle_loader = full_label(test_host) + ".apple_binary"
+        bundle_loader = test_host
     apple_test_bundle_support.assemble_test_targets(
         name = name,
         platform_type = "macos",

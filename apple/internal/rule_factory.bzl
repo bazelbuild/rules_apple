@@ -155,13 +155,14 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
 
 def _common_binary_linking_attrs(rule_descriptor):
     return {
-        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API.
+        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API. Check that Tulsi
+        # isn't using this for some reason.
         "binary": attr.label(
             allow_single_file = True,
             mandatory = False,
         ),
         "binary_type": attr.string(
-            default = "executable",
+            default = rule_descriptor.binary_type,
             doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
@@ -169,6 +170,7 @@ Do not change its value.
         ),
         "bundle_loader": attr.label(
             aspects = [apple_common.objc_proto_aspect],
+            providers = [[apple_common.AppleExecutableBinary]],
             doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
@@ -207,6 +209,11 @@ bundle.
             cfg = apple_common.multi_arch_split,
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
+        # Needed for the J2ObjC processing code that already exists in the implementation of
+        # apple_common.link_multi_arch_binary.
+        "_dummy_lib": attr.label(
+            default = Label("@bazel_tools//tools/objc:dummy_lib"),
+        ),
         "_googlemac_proto_compiler": attr.label(
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
@@ -214,6 +221,11 @@ bundle.
         "_googlemac_proto_compiler_support": attr.label(
             cfg = "host",
             default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
+        ),
+        # Needed for the J2ObjC processing code that already exists in the implementation of
+        # apple_common.link_multi_arch_binary.
+        "_j2objc_dead_code_pruner": attr.label(
+            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
         ),
         "_protobuf_well_known_types": attr.label(
             cfg = "host",
