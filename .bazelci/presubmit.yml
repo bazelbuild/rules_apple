@@ -12,10 +12,14 @@ platforms:
     test_flags:
     - "--spawn_strategy=local"
     - "--test_env=PATH"
+    # `bazel test` tries to build everything also by default, so skip that so the
+    # *_library targets in examples/... aren't built (and fail since they are
+    # platform specific).
+    - "--build_tests_only"
     # Disable remote cache until https://github.com/bazelbuild/bazel/issues/6260
     # is fixed.
     - "--noremote_accept_cached"
     test_targets:
     - "tools/..."
     - "test/..."
-    - "examples:ci_test_targets"
+    - "examples/..."
