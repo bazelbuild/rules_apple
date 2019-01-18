@@ -40,10 +40,10 @@ matrix:
 
 
 before_install:
-  - ./.travis_install.sh
+  - ./.travis/install.sh
 
 script:
-  - ./.travis_build.sh
+  - ./.travis/build.sh
 
 notifications:
   email: false
