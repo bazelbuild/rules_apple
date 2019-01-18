@@ -38,7 +38,12 @@ if [[ -n "${BAZEL:-}" ]]; then
     --test_env=PATH
   )
   if [[ -n "${TAGS:-}" ]]; then
-    TEST_ARGS+=( "--test_tag_filters=${TAGS}")
+    TEST_ARGS+=("--test_tag_filters=${TAGS}")
+  fi
+  # If there was a separate BUILD_TARGET, then only build the tests on the
+  # test action.
+  if [[ -n "${BUILD_TARGET:-}" ]]; then
+    TEST_ARGS+=("--build_tests_only")
   fi
   bazel "${TEST_ARGS[@]}" "${TARGET}"
   set +x

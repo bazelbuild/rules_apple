@@ -4,7 +4,7 @@ From within the `rules_apple` workspace, use the following command to run all
 the tests:
 
 ```bash
-bazel test //test/... //tools/... //examples:ci_test_targets
+bazel test //test/... //tools/...
 ```
 
 When using Xcode 10 to run the tests, you may also be required to run the tests
