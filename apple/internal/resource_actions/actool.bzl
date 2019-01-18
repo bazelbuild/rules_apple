@@ -15,12 +15,12 @@
 """ACTool related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
+    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "xcode_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:xcode_support.bzl",
-    "xcode_support",
+    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
