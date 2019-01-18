@@ -71,7 +71,7 @@ def _macos_application_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_dependencies = embedded_targets,
+            debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
@@ -142,6 +142,7 @@ def _macos_bundle_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
@@ -188,7 +189,10 @@ def _macos_extension_impl(ctx):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(debug_outputs_provider = debug_outputs_provider),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
+            debug_outputs_provider = debug_outputs_provider,
+        ),
         partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
@@ -232,6 +236,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
@@ -275,6 +280,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
@@ -318,6 +324,7 @@ def _macos_xpc_service_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
