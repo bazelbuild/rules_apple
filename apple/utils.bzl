@@ -117,22 +117,3 @@ def group_files_by_directory(files, extensions, attr):
              "%r, but found: %s" % (extensions, formatted_files), attr)
 
     return {k: depset(v) for k, v in grouped_files.items()}
-
-def is_xcode_at_least_version(xcode_config, desired_version):
-    """Returns True if we are building with at least the given Xcode version.
-
-    Args:
-        xcode_config: the `apple_common.XcodeVersionConfig` provider.
-        desired_version: The minimum desired Xcode version, as a dotted version string.
-
-    Returns:
-        True if the current target is being built with a version of Xcode at least as high as the
-        given version.
-    """
-    current_version = xcode_config.xcode_version()
-    if not current_version:
-        fail("Could not determine Xcode version at all. This likely means Xcode isn't " +
-             "available; if you think this is a mistake, please file an issue.")
-
-    desired_version_value = apple_common.dotted_version(desired_version)
-    return current_version >= desired_version_value

@@ -15,12 +15,12 @@
 """Sample Apple test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunner",
+    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "xcode_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "is_xcode_at_least_version",
+    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
+    "AppleTestRunner",
 )
 
 def _get_xctestrun_template_substitutions(ctx):
@@ -31,7 +31,7 @@ def _get_xctestrun_template_substitutions(ctx):
     # provide different values in the xctestrun file that describes the test.
     # TODO(kaipi): Revisit this when Nitro has support for macOS. Nitro should be the one detecting
     #              Xcode version and configuring it appropriately.
-    if is_xcode_at_least_version(xcode_version, "10.0"):
+    if xcode_support.is_xcode_at_least_version(xcode_version, "10.0"):
         xctestrun_insert_libraries = [
             "__PLATFORMS__/MacOSX.platform/Developer/usr/lib/libXCTestBundleInject.dylib",
             "__DEVELOPERUSRLIB__/libMainThreadChecker.dylib",
