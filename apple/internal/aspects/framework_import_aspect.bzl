@@ -17,7 +17,6 @@
 load(
     "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
     "AppleFrameworkImportInfo",
-    "filter_framework_imports_for_bundling",
 )
 
 # List of attributes through which the aspect propagates. We include `runtime_deps` here as
@@ -39,16 +38,6 @@ def _framework_import_aspect_impl(target, ctx):
             if AppleFrameworkImportInfo in dep_target:
                 if hasattr(dep_target[AppleFrameworkImportInfo], "framework_imports"):
                     transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
-
-    # TODO(b/117496841): Remove this if once objc_framework is removed from Bazel.
-    if (ctx.rule.kind == "objc_framework" and
-        ctx.rule.attr.is_dynamic and
-        ctx.rule.attr.framework_imports):
-        filtered_framework_imports = filter_framework_imports_for_bundling(
-            ctx.rule.files.framework_imports,
-        )
-        if filtered_framework_imports:
-            transitive_sets.append(depset(filtered_framework_imports))
 
     if not transitive_sets:
         return []

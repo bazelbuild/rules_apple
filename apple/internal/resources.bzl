@@ -424,9 +424,9 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
     """Nests resources in a AppleResourceInfo provider under a new parent bundle directory.
 
     This method is mostly used by rules that create resource bundles in order to nest other resource
-    bundle targets within themselves. For instance, objc_bundle_library supports the bundles
-    attribute, through which other objc_bundle_library or objc_bundle targets can be added. In these
-    use cases, the dependency bundles are added as nested bundles into the dependent bundle.
+    bundle targets within themselves. For instance, apple_resource_bundle supports nesting other
+    bundles through the resources attribute. In these use cases, the dependency bundles are added as
+    nested bundles into the dependent bundle.
 
     This method prepends the parent_dir field in the buckets with the given
     nesting_bundle_dir argument.
