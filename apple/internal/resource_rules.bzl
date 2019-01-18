@@ -49,8 +49,8 @@ def _apple_bundle_import_impl(ctx):
         parent_dir_param = parent_dir_param,
     )
     return [
-        # TODO(b/120904073): Remove the objc provider. It's here only because objc_bundle provided
-        # it and there are use cases that require it.
+        # TODO(b/120904073): Remove the objc provider. It's here only because objc_library's bundles
+        # attribute requires it for now.
         apple_common.new_objc_provider(),
         AppleResourceBundleInfo(),
         resource_provider,

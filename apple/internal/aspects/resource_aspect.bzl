@@ -61,39 +61,7 @@ def _apple_resource_aspect_impl(target, ctx):
     # Owner to attach to the resources as they're being bucketed.
     owner = None
 
-    # TODO(b/33618143): Remove the objc_bundle and objc_bundle_library cases when they are removed
-    # from native bazel.
-    if ctx.rule.kind == "objc_bundle":
-        bucketize_args["parent_dir_param"] = partial.make(
-            resources.bundle_relative_parent_dir,
-            extension = "bundle",
-        )
-        collect_args["res_attrs"] = ["bundle_imports"]
-
-    elif ctx.rule.kind == "objc_bundle_library":
-        parent_dir_param = "%s.bundle" % ctx.label.name
-        bucketize_args["parent_dir_param"] = parent_dir_param
-        collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
-
-        # Collect the specified infoplists that should be merged together. The replacement for
-        # objc_bundle_library should handle it within its implementation.
-        plists = resources.collect(ctx.rule.attr, res_attrs = ["infoplist", "infoplists"])
-        plist_provider = resources.bucketize_typed(
-            plists,
-            bucket_type = "infoplists",
-            parent_dir_param = parent_dir_param,
-        )
-        providers.append(plist_provider)
-
-        # Nest bundles added through the bundles attribute in objc_bundle_library.
-        if ctx.rule.attr.bundles:
-            bundle_merged_provider = resources.merge_providers(
-                [x[AppleResourceInfo] for x in ctx.rule.attr.bundles],
-            )
-
-            providers.append(resources.nest_in_bundle(bundle_merged_provider, parent_dir_param))
-
-    elif ctx.rule.kind == "objc_library":
+    if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
 
         # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
@@ -112,7 +80,7 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
-    elif ctx.rule.kind == "apple_binary" or ctx.rule.kind == "apple_stub_binary":
+    elif ctx.rule.kind == "apple_binary":
         # Set the binary targets as the default_owner to avoid losing ownership information when
         # aggregating dependencies resources that have an owners on one branch, and that don't have
         # an owner on another branch. When rules_apple stops using apple_binary intermediaries this
@@ -148,13 +116,6 @@ def _apple_resource_aspect_impl(target, ctx):
                 res_attrs = ["structured_resources"],
             )
 
-            if ctx.rule.kind == "objc_bundle_library":
-                # TODO(kaipi): Once we remove the native objc_bundle_library, there won't be a need
-                # for repeating the bundle name here.
-                structured_parent_dir = "%s.bundle" % ctx.label.name
-            else:
-                structured_parent_dir = None
-
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
             providers.append(
@@ -163,7 +124,7 @@ def _apple_resource_aspect_impl(target, ctx):
                     owner = owner,
                     parent_dir_param = partial.make(
                         resources.structured_resources_parent_dir,
-                        parent_dir = structured_parent_dir,
+                        parent_dir = None,
                     ),
                     avoid_buckets = ["pngs"],
                 ),

@@ -41,9 +41,7 @@ application bundle under the Frameworks directory.
     },
 )
 
-# TODO(kaipi): Once objc_framework is gone, make this method private, as outside of this file, it
-# should only be used in the framework_import aspect.
-def filter_framework_imports_for_bundling(framework_imports):
+def _filter_framework_imports_for_bundling(framework_imports):
     """Returns the list of files that should be bundled for dynamic framework bundles."""
 
     # Filter headers and module maps so that they are not propagated to be bundled with the rest
@@ -118,7 +116,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     providers = []
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
-    filtered_framework_imports = filter_framework_imports_for_bundling(ctx.files.framework_imports)
+    filtered_framework_imports = _filter_framework_imports_for_bundling(ctx.files.framework_imports)
     if filtered_framework_imports:
         transitive_sets.append(depset(filtered_framework_imports))
     providers.append(_framework_import_info(transitive_sets))
