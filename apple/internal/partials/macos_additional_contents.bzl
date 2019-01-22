@@ -20,6 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfo",
     "AppleBundleInfo",
 )
 load(
@@ -50,6 +51,14 @@ def _macos_additional_contents_partial_impl(ctx):
                     processor.location.content,
                     subdirectory,
                     depset([target[AppleBundleInfo].archive]),
+                ),
+            )
+        elif AppleBinaryInfo in target:
+            bundle_files.append(
+                (
+                    processor.location.content,
+                    subdirectory,
+                    depset([target[AppleBinaryInfo].binary]),
                 ),
             )
         else:
