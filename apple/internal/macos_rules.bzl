@@ -40,6 +40,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfo",
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
@@ -376,6 +377,10 @@ def _macos_command_line_application_impl(ctx):
     codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
+        AppleBinaryInfo(
+            binary = output_file,
+            product_type = ctx.attr._product_type,
+        ),
         DefaultInfo(
             executable = output_file,
             files = depset(transitive = outputs),
@@ -404,6 +409,10 @@ def _macos_dylib_impl(ctx):
     codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
+        AppleBinaryInfo(
+            binary = output_file,
+            product_type = ctx.attr._product_type,
+        ),
         DefaultInfo(files = depset(transitive = outputs)),
     ] + providers
 
