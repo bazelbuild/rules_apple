@@ -81,6 +81,24 @@ set to true for the extension but false for the application.
     },
 )
 
+AppleBinaryInfo = provider(
+    doc = """
+Provides information about an Apple binary target.
+
+This provider propagates general information about an Apple binary that is not
+specific to any particular binary type.
+""",
+    fields = {
+        "binary": """
+`File`. The binary (executable, dynamic library, etc.) file that the target represents.
+""",
+        "product_type": """
+`string`. The dot-separated product type identifier associated with the binary (for example,
+`com.apple.product-type.tool`).
+""",
+    },
+)
+
 AppleBundleVersionInfo = provider(
     doc = "Provides versioning information for an Apple bundle.",
     fields = {
