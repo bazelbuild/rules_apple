@@ -118,7 +118,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     ]
 
     return struct(
-        instrumented_files = struct(dependency_attributes = ["binary", "test_host"]),
+        instrumented_files = struct(dependency_attributes = ["deps", "test_host"]),
         providers = processor_result.providers + extra_providers + [
             # TODO(kaipi): Remove this provider when apple_*_test is merged with the bundle and binary
             # rules.
