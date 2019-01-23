@@ -168,7 +168,6 @@ def _coverage_files_aspect_impl(target, ctx):
 
 coverage_files_aspect = aspect(
     attr_aspects = [
-        "binary",
         "deps",
         "test_host",
     ],
