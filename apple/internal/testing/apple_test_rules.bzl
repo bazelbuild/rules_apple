@@ -137,10 +137,6 @@ def _coverage_files_aspect_impl(target, ctx):
         for files in [x.files for x in getattr(ctx.rule.attr, attr, [])]:
             coverage_files = _merge_depsets(files, coverage_files)
 
-    # Collect dependencies coverage files.
-    for dep in getattr(ctx.rule.attr, "deps", []):
-        coverage_files = _merge_depsets(dep[CoverageFiles].coverage_files, coverage_files)
-
     # Collect the binaries themselves from the various bundles involved in the test. These will be
     # passed through the test environment so that `llvm-cov` can access the coverage mapping data
     # embedded in them.
@@ -149,12 +145,17 @@ def _coverage_files_aspect_impl(target, ctx):
     if AppleBundleInfo in target:
         direct_binaries.append(target[AppleBundleInfo].binary)
 
-    for attr in ["binary", "test_host"]:
-        if hasattr(ctx.rule.attr, attr):
-            attr_value = getattr(ctx.rule.attr, attr)
-            if attr_value:
-                coverage_files = _merge_depsets(attr_value[CoverageFiles].coverage_files, coverage_files)
-                transitive_binaries_sets.append(attr_value[CoverageFiles].covered_binaries)
+    # Collect dependencies coverage files.
+    for dep in getattr(ctx.rule.attr, "deps", []):
+        coverage_files = _merge_depsets(dep[CoverageFiles].coverage_files, coverage_files)
+
+    test_host_target = getattr(ctx.rule.attr, "test_host", None)
+    if test_host_target:
+        coverage_files = _merge_depsets(
+            test_host_target[CoverageFiles].coverage_files,
+            coverage_files,
+        )
+        transitive_binaries_sets.append(test_host_target[CoverageFiles].covered_binaries)
 
     return struct(providers = [
         CoverageFiles(
@@ -172,7 +173,7 @@ coverage_files_aspect = aspect(
         "test_host",
     ],
     doc = """
-This aspect walks the dependency graph through the `binary`, `deps` and
+This aspect walks the dependency graph through the `deps` and
 `test_host` attributes and collects all the sources and headers that are
 depended upon transitively. These files are needed to calculate test coverage on
 a test run.
