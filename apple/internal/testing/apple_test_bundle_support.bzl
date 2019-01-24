@@ -200,6 +200,7 @@ def _assemble_test_targets(
         infoplists = infoplists,
         linkopts = linkopts,
         minimum_os_version = minimum_os_version,
+        tags = kwargs.get("tags"),
         test_host = test_host,
         **bundling_args
     )
