@@ -50,6 +50,7 @@ load(
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
+    "IosImessageApplicationBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
     "MacosApplicationBundleInfo",
@@ -514,12 +515,17 @@ the application bundle.
             ),
         })
     elif _is_test_product_type(rule_descriptor.product_type):
-        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
+        required_providers = [[AppleBundleInfo, IosApplicationBundleInfo]]
+        test_host_mandatory = False
+        if rule_descriptor.product_type == apple_product_type.ui_test_bundle:
+            required_providers.append([AppleBundleInfo, IosImessageApplicationBundleInfo])
+            test_host_mandatory = True
+
         attrs.append({
             "test_host": attr.label(
                 aspects = [framework_import_aspect],
                 mandatory = test_host_mandatory,
-                providers = [AppleBundleInfo, IosApplicationBundleInfo],
+                providers = required_providers,
             ),
         })
 
