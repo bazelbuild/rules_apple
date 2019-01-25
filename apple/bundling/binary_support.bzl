@@ -49,6 +49,7 @@ def _create_swift_runtime_linkopts_target(
         name,
         deps,
         is_static,
+        tags = None,
         testonly = None):
     """Creates a build target to propagate Swift runtime linker flags.
 
@@ -67,6 +68,7 @@ def _create_swift_runtime_linkopts_target(
         name = swift_runtime_linkopts_name,
         is_static = is_static,
         testonly = testonly,
+        tags = tags,
         deps = deps,
     )
     return ":" + swift_runtime_linkopts_name
@@ -103,6 +105,7 @@ def _add_entitlements_and_swift_linkopts(
       A modified copy of `**kwargs` that should be passed to the bundling rule.
     """
     bundling_args = dict(kwargs)
+    tags = bundling_args.get("tags", None)
     testonly = bundling_args.get("testonly", None)
 
     additional_deps = []
@@ -116,6 +119,7 @@ def _add_entitlements_and_swift_linkopts(
             entitlements = entitlements_value,
             platform_type = platform_type,
             provisioning_profile = provisioning_profile,
+            tags = tags,
             testonly = testonly,
             validation_mode = bundling_args.get("entitlements_validation"),
         )
@@ -138,6 +142,7 @@ def _add_entitlements_and_swift_linkopts(
                 name,
                 deps,
                 link_swift_statically,
+                tags = tags,
                 testonly = testonly,
             ),
         )
@@ -198,6 +203,7 @@ def _create_linked_binary_target(
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")
+    tags = bundling_args.get("tags", None)
     testonly = bundling_args.get("testonly", None)
 
     if suppress_entitlements:
@@ -228,6 +234,7 @@ def _create_linked_binary_target(
             name,
             deps,
             link_swift_statically,
+            tags = tags,
             testonly = testonly,
         ),
     ]
