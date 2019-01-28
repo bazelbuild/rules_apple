@@ -63,9 +63,9 @@ def _parse_mobileprovision_file(mobileprovision_file):
 
 def _certificate_fingerprint(identity):
     """Extracts a fingerprint given identity in a mobileprovision file."""
-    fingerprint, stderr = _check_output([
+    fingerprint= _check_output([
         "openssl", "x509", "-inform", "DER", "-noout", "-fingerprint",
-    ], inputstr=identity).decode("utf-8").strip()
+    ], inputstr=identity)[0].decode("utf-8").strip()
     fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
     fingerprint = fingerprint.replace(":", "")
     return fingerprint
@@ -80,9 +80,9 @@ def _get_identities_from_provisioning_profile(mpf):
 def _find_codesign_identities():
     """Finds code signing identities on the current system."""
     ids = []
-    output, stderr = _check_output([
+    output = _check_output([
         "security", "find-identity", "-v", "-p", "codesigning",
-    ]).decode("utf-8").strip()
+    ])[0].decode("utf-8").strip()
     for line in output.splitlines():
         m = re.search(r"([A-F0-9]{40})", line)
         if m:
