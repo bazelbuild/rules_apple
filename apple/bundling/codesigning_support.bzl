@@ -31,23 +31,6 @@ load(
     "shell",
 )
 
-def _embedded_provisioning_profile_name(ctx):
-    """Returns the name of the embedded provisioning profile for the target.
-
-    On macOS, the name of the provisioning profile that is placed in the bundle is
-    named `embedded.provisionprofile`. On all other Apple platforms, it is named
-    `embedded.mobileprovision`.
-
-    Args:
-      ctx: The Skylark context.
-
-    Returns:
-      The name of the embedded provisioning profile in the bundle.
-    """
-    if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
-        return "embedded.provisionprofile"
-    return "embedded.mobileprovision"
-
 def _codesign_command(ctx, path_to_sign, provisioning_profile, entitlements_file):
     """Returns a single `codesign` command invocation.
 
@@ -229,7 +212,6 @@ def _should_sign_simulator_bundles(ctx):
 
 # Define the loadable module that lists the exported symbols in this file.
 codesigning_support = struct(
-    embedded_provisioning_profile_name = _embedded_provisioning_profile_name,
     path_to_sign = _path_to_sign,
     should_sign_simulator_bundles = _should_sign_simulator_bundles,
     signing_command_lines = _signing_command_lines,
