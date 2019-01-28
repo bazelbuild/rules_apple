@@ -23,28 +23,6 @@ load(
     "entitlements",
 )
 
-def _get_binary_provider(deps, provider_key):
-    """Returns the provider from a rule's binary dependency.
-
-    Bundling rules depend on binary rules via the "deps" attribute, which
-    canonically supports a label list. This function validates that the
-    "deps" attribute has only a single value, as is expected for bundling
-    rules, before extracting and returning the provider of the given key.
-
-    Args:
-      deps: The list of the target's dependencies.
-      provider_key: The key of the provider to return.
-
-    Returns:
-      The provider propagated by the single "deps" target of the current rule.
-    """
-    matching_providers = [x[provider_key] for x in deps if provider_key in x]
-    if matching_providers:
-        if len(matching_providers) > 1:
-            fail("Expected only one binary provider")
-        return matching_providers[0]
-    return None
-
 def _create_swift_runtime_linkopts_target(
         name,
         deps,
@@ -327,5 +305,4 @@ binary_support = struct(
     add_entitlements_and_swift_linkopts = _add_entitlements_and_swift_linkopts,
     create_binary = _create_binary,
     create_linked_binary_target = _create_linked_binary_target,
-    get_binary_provider = _get_binary_provider,
 )
