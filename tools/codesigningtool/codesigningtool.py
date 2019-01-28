@@ -65,7 +65,8 @@ def _certificate_fingerprint(identity):
     """Extracts a fingerprint given identity in a mobileprovision file."""
     fingerprint, stderr = _check_output([
         "openssl", "x509", "-inform", "DER", "-noout", "-fingerprint",
-    ], inputstr=identity).decode("utf-8").strip()
+    ], inputstr=identity)
+    fingerprint = fingerprint.decode("utf-8").strip()
     fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
     fingerprint = fingerprint.replace(":", "")
     return fingerprint
@@ -82,8 +83,8 @@ def _find_codesign_identities():
     ids = []
     output, stderr = _check_output([
         "security", "find-identity", "-v", "-p", "codesigning",
-    ]).decode("utf-8").strip()
-    for line in output.splitlines():
+    ])
+    for line in output.decode("utf-8").strip().splitlines():
         m = re.search(r"([A-F0-9]{40})", line)
         if m:
             ids.append(m.group(0))
