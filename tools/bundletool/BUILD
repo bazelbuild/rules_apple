@@ -7,6 +7,12 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = [":bundletool_lib"],
+)
+
+py_library(
+    name = "bundletool_lib",
+    srcs = ["bundletool.py"],
 )
 
 py_binary(
@@ -22,7 +28,7 @@ py_test(
     name = "bundletool_unittest",
     srcs = ["bundletool_unittest.py"],
     deps = [
-        ":bundletool",
+        ":bundletool_lib",
         "//:py_init_shim",
     ],
 )
