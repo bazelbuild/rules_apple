@@ -7,6 +7,12 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = [":xctoolrunner_lib"],
+)
+
+py_library(
+    name = "xctoolrunner_lib",
+    srcs = ["xctoolrunner.py"],
     deps = ["//tools/wrapper_common:execute"],
 )
 
@@ -14,7 +20,7 @@ py_test(
     name = "xctoolrunner_test",
     srcs = ["xctoolrunner_test.py"],
     deps = [
-        ":xctoolrunner",
+        ":xctoolrunner_lib",
         "//:py_init_shim",
     ],
 )

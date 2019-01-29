@@ -7,13 +7,19 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = [":versiontool_lib"],
+)
+
+py_library(
+    name = "versiontool_lib",
+    srcs = ["versiontool.py"],
 )
 
 py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
     deps = [
-        ":versiontool",
+        ":versiontool_lib",
         "//:py_init_shim",
     ],
 )

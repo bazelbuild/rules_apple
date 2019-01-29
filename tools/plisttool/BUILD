@@ -7,13 +7,21 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = [":plisttool_lib"],
+)
+
+py_library(
+    name = "plisttool_lib",
+    srcs = [
+        "plisttool.py",
+    ],
 )
 
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
     deps = [
-        ":plisttool",
+        ":plisttool_lib",
         "//:py_init_shim",
     ],
 )
