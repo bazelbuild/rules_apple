@@ -46,11 +46,11 @@ function MissingRuntimeError() {
       "$(xcrun simctl list runtimes)"
 }
 
-# Note: the sim_device and sdk_version might contain spaces, but they are already
-# provided in quoted form in the template variables, so we should not quote them
-# again here.
+# Note: the sim_device might contain spaces, but they are already provided in
+# quoted form in the template variables, so we should not quote them again here.
 trap "MissingRuntimeError" ERR
-TEST_DEVICE_ID=$(xcrun simctl create TestDevice %sim_device% %sdk_version%)
+sdk_version="%sdk_version%"
+TEST_DEVICE_ID=$(xcrun simctl create TestDevice %sim_device% com.apple.CoreSimulator.SimRuntime.iOS-${sdk_version//./-})
 trap - ERR
 
 function KillAllDevices() {
