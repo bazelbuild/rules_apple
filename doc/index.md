@@ -94,7 +94,7 @@ below.
       <td valign="top"><code><a href="rules-general.md#apple_static_framework_import">apple_static_framework_import</a></code><br/></td>
     </tr>
     <tr>
-      <th align="left" valign="top" rowspan="2">Resources</th>
+      <th align="left" valign="top" rowspan="3">Resources</th>
       <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
       <td valign="top"><code><a href="rules-resources.md#apple_bundle_import">apple_bundle_import</a></code><br/></td>
     </tr>
