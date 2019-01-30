@@ -155,14 +155,12 @@ import sys
 
 # Python 2/3 compatibility setup.
 # We don't want to depend on `six`, so we recreate the bits we need here.
-_PY3 = sys.version_info[0] == 3
-
-if _PY3:
-  _string_types = str
-  _integer_types = int
-else:
+try:
   _string_types = basestring
   _integer_types = int, long
+except NameError:
+  _string_types = str
+  _integer_types = int
 
 # Format strings for errors that are raised, exposed here to the tests
 # can validate against them.
@@ -389,9 +387,9 @@ CF_BUNDLE_SHORT_VERSION_RE = re.compile(
 )
 
 def plist_from_bytes(byte_content):
-  if _PY3:
+  try:
     return plistlib.loads(byte_content)
-  else:
+  except AttributeError:
     return plistlib.readPlistFromString(byte_content)
 
 
