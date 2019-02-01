@@ -697,6 +697,19 @@ function test_prebuilt_static_apple_framework_import_dependency() {
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
+# Tests that the resources in the bundle of the static framework are copied to
+# the final ipa, and that they are not re-processed
+function test_prebuilt_static_apple_static_framework_import_resources() {
+  create_common_files
+  create_minimal_ios_application_with_framework_import static apple_static_framework_import
+
+  do_build ios //app:app || fail "Should build"
+
+  # Verify that it's not bundled.
+  assert_plist_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/fmwk.bundle/Some.plist"
+}
+
 # Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
 # is bundled properly with the application.
 function test_prebuilt_dynamic_apple_framework_import_dependency() {
