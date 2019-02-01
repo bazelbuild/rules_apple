@@ -149,6 +149,11 @@ EOF
 Dummy resource
 EOF
 
+  mkdir -p app/fmwk.framework/fmwk.bundle
+  cat > app/fmwk.framework/fmwk.bundle/Some.plist <<EOF
+Dummy plist
+EOF
+
   mkdir -p app/fmwk.framework/Headers
   cat > app/fmwk.framework/Headers/fmwk.h <<EOF
 This shouldn't get included
