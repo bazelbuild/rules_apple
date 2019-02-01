@@ -188,6 +188,7 @@ def _assemble_test_targets(
         include_entitlements = False,
         testonly = True,
         deps = deps,
+        tags = kwargs.get("tags"),
     )
 
     if uses_provisioning_profile:
@@ -200,7 +201,6 @@ def _assemble_test_targets(
         infoplists = infoplists,
         linkopts = linkopts,
         minimum_os_version = minimum_os_version,
-        tags = kwargs.get("tags"),
         test_host = test_host,
         **bundling_args
     )
