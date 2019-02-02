@@ -27,8 +27,8 @@ def _create_swift_runtime_linkopts_target(
         name,
         deps,
         is_static,
-        tags = None,
-        testonly = None):
+        tags,
+        testonly):
     """Creates a build target to propagate Swift runtime linker flags.
 
     Args:
