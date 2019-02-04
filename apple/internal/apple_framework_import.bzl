@@ -168,10 +168,8 @@ def _apple_static_framework_import_impl(ctx):
             resources.bundle_relative_parent_dir,
             extension = "bundle",
         )
-        resource_provider = resources.bucketize_typed(
+        resource_provider = resources.bucketize(
             bundle_files,
-            owner = str(ctx.label),
-            bucket_type = "unprocessed",
             parent_dir_param = parent_dir_param,
         )
         providers.append(resource_provider)
