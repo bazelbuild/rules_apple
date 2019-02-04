@@ -79,13 +79,17 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
 
 def _get_attr_as_list(attr, attribute):
     """Helper method to always get an attribute as a list."""
     value = getattr(attr, attribute)
     if not value:
         return []
-    if type(value) == type([]):
+    if types.is_list(value):
         return value
     return [value]
 

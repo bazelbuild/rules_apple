@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
     "platform_support",
 )
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
 
 def _add_dicts(*dictionaries):
     """Adds a list of dictionaries into a single dictionary."""
@@ -107,7 +111,7 @@ def _run_shell(ctx, **kwargs):
     # so work around that case by faking it as a list of strings that forces
     # the shell correctly.
     command = kwargs.get("command")
-    if command and type(command) == type(""):
+    if command and types.is_string(command):
         processed_args = dict(kwargs)
         processed_args["command"] = ["/bin/sh", "-c", command]
         kwargs = processed_args
