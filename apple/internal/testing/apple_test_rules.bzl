@@ -35,6 +35,10 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
 
 AppleTestInfo = provider(
     doc = """
@@ -191,7 +195,7 @@ def _collect_files(rule_attr, attr_name):
     if not attr_val:
         return depset()
 
-    attr_val_as_list = attr_val if type(attr_val) == type([]) else [attr_val]
+    attr_val_as_list = attr_val if types.is_list(attr_val) else [attr_val]
     return depset(transitive = [f.files for f in attr_val_as_list])
 
 def _merge_depsets(a, b):
