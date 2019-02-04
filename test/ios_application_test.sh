@@ -151,7 +151,14 @@ EOF
 
   mkdir -p app/fmwk.framework/fmwk.bundle
   cat > app/fmwk.framework/fmwk.bundle/Some.plist <<EOF
-Dummy plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Foo</key>
+    <string>Bar</string>
+  </dict>
+</plist>
 EOF
 
   mkdir -p app/fmwk.framework/Headers
