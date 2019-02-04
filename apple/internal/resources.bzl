@@ -123,9 +123,9 @@ def _bucketize(
         swift_module: The Swift module name to associate to these resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
-            each resource. If it is a struct, it will be considered a partial context, and will be
-            invoked with partial.call().
+        parent_dir_param: Either a string/None or a struct used to calculate the value of
+            parent_dir for each resource. If it is a struct, it will be considered a partial
+            context, and will be invoked with partial.call().
         avoid_buckets: List of buckets to avoid when bucketing. Used to mark certain file types to
             avoid being processed, as they will fall into the "unprocessed" bucket.
 
@@ -228,9 +228,9 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
         bucket_type: The AppleResourceInfo field under which to collect the resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string or a struct used to calculate the value of parent_dir for
-            each resource. If it is a struct, it will be considered a partial context, and will be
-            invoked with partial.call().
+        parent_dir_param: Either a string/None or a struct used to calculate the value of
+            parent_dir for each resource. If it is a struct, it will be considered a partial
+            context, and will be invoked with partial.call().
 
     Returns:
         A AppleResourceInfo provider with resources in the given bucket.
