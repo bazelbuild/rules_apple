@@ -136,7 +136,7 @@ def _deduplicate(resources_provider, avoid_provider, field):
         # Dictionary used as a set to mark files as processed by short_path to deduplicate generated
         # files that may appear more than once if multiple architectures are being built.
         multi_architecture_deduplication_set = {}
-        deduped_files = depset([])
+        deduped_files = []
         for to_bundle_file in files.to_list():
             short_path = to_bundle_file.short_path
             if short_path in multi_architecture_deduplication_set:
@@ -155,15 +155,12 @@ def _deduplicate(resources_provider, avoid_provider, field):
                     if o not in avoid_provider.owners[short_path]
                 ]
                 if deduped_owners:
-                    deduped_files = depset(
-                        direct = [to_bundle_file],
-                        transitive = [deduped_files],
-                    )
+                    deduped_files.append(to_bundle_file)
             else:
-                deduped_files = depset(direct = [to_bundle_file], transitive = [deduped_files])
+                deduped_files.append(to_bundle_file)
 
         if deduped_files:
-            deduped_tuples.append((parent_dir, swift_module, deduped_files))
+            deduped_tuples.append((parent_dir, swift_module, depset(deduped_files)))
 
     return deduped_tuples
 

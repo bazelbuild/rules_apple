@@ -209,9 +209,6 @@ def _test_info_aspect_impl(target, ctx):
 
     sources = depset()
     non_arc_sources = depset()
-    includes = depset()
-    module_maps = depset()
-    swift_modules = depset()
     dep_labels = []
     module_name = None
 
@@ -220,11 +217,18 @@ def _test_info_aspect_impl(target, ctx):
     deps = [x for x in getattr(rule_attr, "deps", []) if AppleTestInfo in x]
 
     # Collect transitive information from deps.
+    test_info_includes = []
+    test_info_module_maps = []
+    test_info_swift_modules = []
     for dep in deps:
         test_info = dep[AppleTestInfo]
-        includes = _merge_depsets(test_info.includes, includes)
-        module_maps = _merge_depsets(test_info.module_maps, module_maps)
-        swift_modules = _merge_depsets(test_info.swift_modules, swift_modules)
+        test_info_includes.append(test_info.includes)
+        test_info_module_maps.append(test_info.module_maps)
+        test_info_swift_modules.append(test_info.swift_modules)
+
+    includes = depset(transitive = test_info_includes)
+    module_maps = depset(transitive = test_info_module_maps)
+    swift_modules = depset(transitive = test_info_swift_modules)
 
     # Combine the AppleTestInfo sources info from deps into one for the test bundle.
     if AppleBundleInfo in target:
