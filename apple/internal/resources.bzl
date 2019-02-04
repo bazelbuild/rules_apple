@@ -150,10 +150,10 @@ def _bucketize(
         resource_short_path = resource.short_path
 
         owners[resource_short_path] = owner_depset
-        if str(type(parent_dir_param)) == "struct":
-            parent = partial.call(parent_dir_param, resource)
-        else:
+        if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
+        else:
+            parent = partial.call(parent_dir_param, resource)
 
         # Special case for localized. If .lproj/ is in the path of the resource (and the parent
         # doesn't already have it) append the lproj component to the current parent.
@@ -245,10 +245,10 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
     for resource in resources:
         resource_short_path = resource.short_path
         owners[resource_short_path] = owner_depset
-        if str(type(parent_dir_param)) == "struct":
-            parent = partial.call(parent_dir_param, resource)
-        else:
+        if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
+        else:
+            parent = partial.call(parent_dir_param, resource)
 
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
             lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
