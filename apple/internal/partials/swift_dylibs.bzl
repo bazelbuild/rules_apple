@@ -102,17 +102,19 @@ def _swift_dylibs_partial_impl(
         provider = dependency[_AppleSwiftDylibsInfo]
         transitive_binary_sets.append(provider.binary)
         transitive_swift_support_files.extend(provider.swift_support_files)
-    transitive_binaries = depset(transitive = transitive_binary_sets)
 
+    direct_binaries = []
     if binary_artifact and swift_support.uses_swift(ctx.attr.deps):
-        transitive_binaries = depset(
-            direct = [binary_artifact],
-            transitive = [transitive_binaries],
-        )
+        direct_binaries.append(binary_artifact)
+
+    transitive_binaries = depset(
+        direct = direct_binaries,
+        transitive = transitive_binary_sets,
+    )
 
     bundle_files = []
-    propagated_binaries = depset([])
     if bundle_dylibs:
+        propagated_binaries = depset()
         binaries_to_check = transitive_binaries.to_list()
         if binaries_to_check:
             platform_name = platform_support.platform(ctx).name_in_plist.lower()
