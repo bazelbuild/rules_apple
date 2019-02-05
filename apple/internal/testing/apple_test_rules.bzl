@@ -134,12 +134,12 @@ def _coverage_files_aspect_impl(target, ctx):
     if not ctx.configuration.coverage_enabled:
         return struct()
 
-    coverage_files = depset()
+    coverage_files = []
 
     # Collect this target's coverage files.
     for attr in ["srcs", "hdrs", "non_arc_srcs"]:
         for files in [x.files for x in getattr(ctx.rule.attr, attr, [])]:
-            coverage_files = _merge_depsets(files, coverage_files)
+            coverage_files.append(files)
 
     # Collect the binaries themselves from the various bundles involved in the test. These will be
     # passed through the test environment so that `llvm-cov` can access the coverage mapping data
@@ -151,19 +151,16 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Collect dependencies coverage files.
     for dep in getattr(ctx.rule.attr, "deps", []):
-        coverage_files = _merge_depsets(dep[CoverageFiles].coverage_files, coverage_files)
+        coverage_files.append(dep[CoverageFiles].coverage_files)
 
     test_host_target = getattr(ctx.rule.attr, "test_host", None)
     if test_host_target:
-        coverage_files = _merge_depsets(
-            test_host_target[CoverageFiles].coverage_files,
-            coverage_files,
-        )
+        coverage_files.append(test_host_target[CoverageFiles].coverage_files)
         transitive_binaries_sets.append(test_host_target[CoverageFiles].covered_binaries)
 
     return struct(providers = [
         CoverageFiles(
-            coverage_files = coverage_files,
+            coverage_files = depset(transitive = coverage_files),
             covered_binaries = depset(
                 direct = direct_binaries,
                 transitive = transitive_binaries_sets,
@@ -198,40 +195,33 @@ def _collect_files(rule_attr, attr_name):
     attr_val_as_list = attr_val if types.is_list(attr_val) else [attr_val]
     return depset(transitive = [f.files for f in attr_val_as_list])
 
-def _merge_depsets(a, b):
-    """Combines two depsets into one."""
-    return depset(transitive = [a, b])
-
 def _test_info_aspect_impl(target, ctx):
     """See `test_info_aspect` for full documentation."""
 
     rule_attr = ctx.rule.attr
 
-    sources = depset()
-    non_arc_sources = depset()
     dep_labels = []
     module_name = None
+
+    includes = []
+    module_maps = []
+    swift_modules = []
 
     # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
     # dep doesn't, just filter it out.
     deps = [x for x in getattr(rule_attr, "deps", []) if AppleTestInfo in x]
 
     # Collect transitive information from deps.
-    test_info_includes = []
-    test_info_module_maps = []
-    test_info_swift_modules = []
     for dep in deps:
         test_info = dep[AppleTestInfo]
-        test_info_includes.append(test_info.includes)
-        test_info_module_maps.append(test_info.module_maps)
-        test_info_swift_modules.append(test_info.swift_modules)
-
-    includes = depset(transitive = test_info_includes)
-    module_maps = depset(transitive = test_info_module_maps)
-    swift_modules = depset(transitive = test_info_swift_modules)
+        includes.append(test_info.includes)
+        module_maps.append(test_info.module_maps)
+        swift_modules.append(test_info.swift_modules)
 
     # Combine the AppleTestInfo sources info from deps into one for the test bundle.
     if AppleBundleInfo in target:
+        sources_list = []
+        non_arc_sources_list = []
         swift_infos = []
         for dep in deps:
             dep_labels.append(str(dep.label))
@@ -240,11 +230,11 @@ def _test_info_aspect_impl(target, ctx):
                 swift_infos.append(dep[SwiftInfo])
 
             test_info = dep[AppleTestInfo]
-            sources = _merge_depsets(test_info.sources, sources)
-            non_arc_sources = _merge_depsets(
-                test_info.non_arc_sources,
-                non_arc_sources,
-            )
+            sources_list.append(test_info.sources)
+            non_arc_sources_list.append(test_info.non_arc_sources)
+
+        sources = depset(transitive = sources_list)
+        non_arc_sources = depset(transitive = non_arc_sources_list)
 
         # Set module_name only for test targets with a single Swift dependency.
         # This is not used if there are multiple Swift dependencies, as it will
@@ -262,25 +252,22 @@ def _test_info_aspect_impl(target, ctx):
 
         if apple_common.Objc in target:
             objc_provider = target[apple_common.Objc]
-            includes = _merge_depsets(objc_provider.include, includes)
+            includes.append(objc_provider.include)
 
             # Module maps should only be used by Swift targets.
             if SwiftInfo in target:
-                module_maps = _merge_depsets(objc_provider.module_map, module_maps)
+                module_maps.append(objc_provider.module_map)
 
         if (SwiftInfo in target and
             hasattr(target[SwiftInfo], "transitive_swiftmodules")):
-            swift_modules = _merge_depsets(
-                target[SwiftInfo].transitive_swiftmodules,
-                swift_modules,
-            )
+            swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
 
     return [AppleTestInfo(
         sources = sources,
         non_arc_sources = non_arc_sources,
-        includes = includes,
-        module_maps = module_maps,
-        swift_modules = swift_modules,
+        includes = depset(transitive = includes),
+        module_maps = depset(transitive = module_maps),
+        swift_modules = depset(transitive = swift_modules),
         deps = depset(dep_labels),
         module_name = module_name,
     )]
@@ -470,11 +457,15 @@ def _apple_test_impl(ctx, test_type):
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
 
-    outputs = depset([ctx.outputs.test_bundle, executable])
-
+    transitive_outputs = []
     extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
     if extra_outputs_provider:
-        outputs = _merge_depsets(extra_outputs_provider.files, outputs)
+        transitive_outputs.append(extra_outputs_provider.files)
+
+    outputs = depset(
+        direct = [ctx.outputs.test_bundle, executable],
+        transitive = transitive_outputs,
+    )
 
     extra_providers = []
 

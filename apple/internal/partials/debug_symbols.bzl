@@ -155,10 +155,11 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
         False,
     )
 
+    transitive_output_files = []
+    direct_output_files = []
+
     if propagate_embedded_extra_outputs:
-        output_files = depset(transitive = [x.files for x in deps_providers])
-    else:
-        output_files = depset([])
+        transitive_output_files.extend([x.files for x in deps_providers])
 
     output_providers = []
 
@@ -175,10 +176,7 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
                 bundle_name,
                 bundle_extension,
             )
-            output_files = depset(
-                dsym_files,
-                transitive = [output_files],
-            )
+            direct_output_files.extend(dsym_files)
 
             absolute_dsym_bundle_path = paths.join(
                 ctx.bin_dir.path,
@@ -192,10 +190,12 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
         if ctx.fragments.objc.generate_linkmap:
             linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
-            output_files = depset(
-                linkmaps,
-                transitive = [output_files],
-            )
+            direct_output_files.extend(linkmaps)
+
+    output_files = depset(
+        direct = direct_output_files,
+        transitive = transitive_output_files,
+    )
 
     output_providers.append(
         _AppleDebugInfo(
