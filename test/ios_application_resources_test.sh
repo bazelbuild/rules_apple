@@ -452,15 +452,15 @@ EOF
       "Payload/app.app/basic.bundle/basic_bundle.txt"
 
   # Verify strings and plists are in binary format.
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_text "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/should_be_binary.strings"
 
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_text "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/should_be_binary.plist"
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_text "test-bin/app/app.ipa" \
       "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
 }
 
@@ -689,10 +689,10 @@ EOF
   do_build ios //app:app || fail "Should build"
 
   # Verify that the files exist.
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_text "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/Root.plist"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_text "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
 }
 
