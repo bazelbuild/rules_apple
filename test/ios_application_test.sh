@@ -149,6 +149,18 @@ EOF
 Dummy resource
 EOF
 
+  mkdir -p app/fmwk.framework/fmwk.bundle
+  cat > app/fmwk.framework/fmwk.bundle/Some.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Foo</key>
+    <string>Bar</string>
+  </dict>
+</plist>
+EOF
+
   mkdir -p app/fmwk.framework/Headers
   cat > app/fmwk.framework/Headers/fmwk.h <<EOF
 This shouldn't get included
@@ -695,6 +707,19 @@ function test_prebuilt_static_apple_framework_import_dependency() {
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+}
+
+# Tests that the resources in the bundle of the static framework are copied to
+# the final ipa, and that they are not re-processed
+function test_prebuilt_static_apple_static_framework_import_resources() {
+  create_common_files
+  create_minimal_ios_application_with_framework_import static apple_static_framework_import
+
+  do_build ios //app:app || fail "Should build"
+
+  # Verify that it's not converted to binary.
+  assert_plist_is_text "test-bin/app/app.ipa" \
+      "Payload/app.app/fmwk.bundle/Some.plist"
 }
 
 # Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)

@@ -288,15 +288,15 @@ EOF
       "app.app/Contents/Resources/basic.bundle/basic_bundle.txt"
 
   # Verify strings and plists.
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_text "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.strings"
 
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_text "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.plist"
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_text "test-bin/app/app.zip" \
       "app.app/Contents/Resources/basic.bundle/nested/should_be_nested.strings"
 }
 

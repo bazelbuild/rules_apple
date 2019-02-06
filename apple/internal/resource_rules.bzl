@@ -44,8 +44,9 @@ def _apple_bundle_import_impl(ctx):
         resources.bundle_relative_parent_dir,
         extension = "bundle",
     )
-    resource_provider = resources.bucketize(
+    resource_provider = resources.bucketize_typed(
         ctx.files.bundle_imports,
+        bucket_type = "unprocessed",
         parent_dir_param = parent_dir_param,
     )
     return [
