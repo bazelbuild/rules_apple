@@ -188,7 +188,7 @@ def _sign_binary_action(ctx, input_binary, output_binary):
             "/bin/bash",
             "-c",
             "cp {input_binary} {output_binary}".format(
-                input_binary = ctx.file.binary.path,
+                input_binary = input_binary.path,
                 output_binary = output_binary.path,
             ) + "\n" + signing_commands,
         ],
