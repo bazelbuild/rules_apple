@@ -1182,13 +1182,12 @@ class EntitlementsTask(PlistToolTask):
               **report_extras)
 
     beta_reports_active = entitlements.get('beta-reports-active')
-    if beta_reports_active is not None or profile_entitlements:
-      profile_key = (profile_entitlements or {}).get('beta-reports-active')
-      if profile_key != beta_reports_active:
-        self._report(
-            ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
-                self.target, beta_reports_active, profile_key),
-            **report_extras)
+    profile_key = (profile_entitlements or {}).get('beta-reports-active')
+    if profile_key != beta_reports_active:
+      self._report(
+          ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
+              self.target, beta_reports_active, profile_key),
+          **report_extras)
 
     # keychain-access-groups
     self._check_entitlements_array(
