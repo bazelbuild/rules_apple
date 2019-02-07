@@ -19,10 +19,6 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
-    "entitlements",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
