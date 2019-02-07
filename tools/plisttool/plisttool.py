@@ -297,6 +297,11 @@ ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH = (
     'match the value in the provisioning profile ("%s").'
 )
 
+ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
+    'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
+    'match the value in the provisioning profile ("%s").'
+)
+
 ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
     'Target "%s" uses entitlements "%s" value of "%s", but the profile does '
     'not support it (["%s"]).'
@@ -1175,6 +1180,15 @@ class EntitlementsTask(PlistToolTask):
               ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
                 self.target, aps_environment, profile_aps_environment),
               **report_extras)
+
+    beta_reports_active = entitlements.get('beta-reports-active')
+    if beta_reports_active is not None or profile_entitlements:
+      profile_key = (profile_entitlements or {}).get('beta-reports-active')
+      if profile_key != beta_reports_active:
+        self._report(
+            ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
+                self.target, beta_reports_active, profile_key),
+            **report_extras)
 
     # keychain-access-groups
     self._check_entitlements_array(
