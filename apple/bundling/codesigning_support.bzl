@@ -81,7 +81,7 @@ def _codesign_command(ctx, path_to_sign, provisioning_profile, entitlements_file
         cmd_codesigning.extend(["--identity", shell.quote(identity)])
 
     if is_device:
-        if entitlements_file:
+        if path_to_sign.use_entitlements and entitlements_file:
             cmd_codesigning.extend([
                 "--entitlements",
                 shell.quote(entitlements_file.path),
