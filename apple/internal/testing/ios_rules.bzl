@@ -35,10 +35,6 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "IosXcTestBundleInfo",
 )
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "full_label",
-)
 
 # TODO(b/38350264): Remove these linkopts once bazel adds the
 # @loader_path/Frameworks rpath by default.
