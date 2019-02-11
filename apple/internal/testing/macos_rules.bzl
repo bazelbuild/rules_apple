@@ -35,10 +35,6 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "MacosXcTestBundleInfo",
 )
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "full_label",
-)
 
 # TODO(b/62481675): Move these rpath flags into crosstool features.
 _EXTRA_TEST_LINKOPTS = [
