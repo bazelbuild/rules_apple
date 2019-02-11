@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:macos.bzl",
     "macos_command_line_application",
@@ -6,8 +7,6 @@ load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
-
-package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
@@ -28,4 +27,11 @@ macos_command_line_application(
     minimum_os_version = "10.11",
     version = ":CommandLineVersion",
     deps = [":Sources"],
+)
+
+# Not normally needed, just done for rules_apple's examples so a
+# 'bazel test examples/...' ensures all Examples still build.
+build_test(
+    name = "ExamplesBuildTest",
+    targets = [":CommandLine"],
 )

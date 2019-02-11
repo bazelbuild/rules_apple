@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:macos.bzl",
     "macos_application",
@@ -11,8 +12,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
-
-package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
@@ -57,4 +56,11 @@ macos_application(
     version = ":XPCServiceAppVersion",
     xpc_services = [":XPCService"],
     deps = [":XPCServiceAppLib"],
+)
+
+# Not normally needed, just done for rules_apple's examples so a
+# 'bazel test examples/...' ensures all Examples still build.
+build_test(
+    name = "ExamplesBuildTest",
+    targets = [":XPCServiceApp"],
 )
