@@ -1,7 +1,5 @@
 load("//apple:ios.bzl", "ios_unit_test")
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 objc_library(

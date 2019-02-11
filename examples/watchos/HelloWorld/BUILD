@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:ios.bzl",
     "ios_application",
@@ -11,8 +12,6 @@ load(
     "watchos_application",
     "watchos_extension",
 )
-
-package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
@@ -88,4 +87,15 @@ watchos_extension(
     minimum_os_version = "2.0",
     version = ":HelloWorldVersion",
     deps = [":WatchSources"],
+)
+
+# Not normally needed, just done for rules_apple's examples so a
+# 'bazel test examples/...' ensures all Examples still build.
+build_test(
+    name = "ExamplesBuildTest",
+    targets = [
+        ":HelloWorld",
+        ":HelloWorld-WatchApplication",
+        ":HelloWorld-WatchExtension",
+    ],
 )

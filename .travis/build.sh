@@ -24,12 +24,6 @@ if [[ -n "${BAZEL:-}" ]]; then
   # - "--test_output=errors" causes failures to report more completely since
   #   just getting the log file info isn't that useful on CI.
   set -x
-  if [[ -n "${BUILD_TARGET:-}" ]]; then
-    bazel \
-      build \
-      --show_progress_rate_limit=30.0 \
-      "${BUILD_TARGET}"
-  fi
   TEST_ARGS=(
     test
     --show_progress_rate_limit=30.0
@@ -40,9 +34,7 @@ if [[ -n "${BAZEL:-}" ]]; then
   if [[ -n "${TAGS:-}" ]]; then
     TEST_ARGS+=("--test_tag_filters=${TAGS}")
   fi
-  # If there was a separate BUILD_TARGET, then only build the tests on the
-  # test action.
-  if [[ -n "${BUILD_TARGET:-}" ]]; then
+  if [[ -n "${BUILD_TESTS_ONLY:-}" ]]; then
     TEST_ARGS+=("--build_tests_only")
   fi
   bazel "${TEST_ARGS[@]}" "${TARGET}"

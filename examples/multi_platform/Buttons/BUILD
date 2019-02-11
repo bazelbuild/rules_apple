@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:ios.bzl",
     "ios_application",
@@ -25,10 +26,6 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
-)
-
-package(
-    default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])
@@ -321,4 +318,18 @@ test_suite(
 filegroup(
     name = "all_files",
     srcs = glob(["**"]),
+)
+
+# Not normally needed, just done for rules_apple's examples so a
+# 'bazel test examples/...' ensures all Examples still build.
+build_test(
+    name = "ExamplesBuildTest",
+    targets = [
+        ":Buttons",
+        ":ButtonsMac",
+        ":ButtonsTV",
+        ":ButtonsTVExtension",
+        ":ButtonsWatch",
+        ":ButtonsWatchExtension",
+    ],
 )
