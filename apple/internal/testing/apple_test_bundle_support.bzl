@@ -87,7 +87,10 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(debug_outputs_provider = debug_outputs_provider),
+        partials.debug_symbols_partial(
+            debug_dependencies = test_host_list,
+            debug_outputs_provider = debug_outputs_provider,
+        ),
         partials.framework_import_partial(
             targets = ctx.attr.deps,
             targets_to_avoid = test_host_list,
