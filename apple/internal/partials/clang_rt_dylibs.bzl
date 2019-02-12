@@ -15,10 +15,6 @@
 """Partial implementation for Clang runtime libraries processing."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:clang_support.bzl",
-    "clang_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -27,23 +23,52 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 
+def _should_package_clang_runtime(ctx):
+    """Returns whether the Clang runtime should be bundled."""
+
+    # List of crosstool sanitizer features that require packaging some clang
+    # runtime libraries.
+    features_requiring_clang_runtime = {
+        "asan": True,
+        "tsan": True,
+        "ubsan": True,
+    }
+
+    for feature in ctx.features:
+        if feature in features_requiring_clang_runtime:
+            return True
+    return False
+
 def _clang_rt_dylibs_partial_impl(ctx, binary_artifact):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
-    if clang_support.should_package_clang_runtime(ctx):
+    if _should_package_clang_runtime(ctx):
         clang_rt_zip = intermediates.file(
             ctx.actions,
             ctx.label.name,
             "clang_rt.zip",
         )
-        clang_support.register_runtime_lib_actions(
+
+        legacy_actions.run(
             ctx,
-            binary_artifact,
-            clang_rt_zip,
+            inputs = [binary_artifact],
+            outputs = [clang_rt_zip],
+            executable = ctx.executable._clangrttool,
+            arguments = [
+                binary_artifact.path,
+                clang_rt_zip.path,
+            ],
+            mnemonic = "ClangRuntimeLibsCopy",
+            # This action needs to read the contents of the Xcode bundle.
+            execution_requirements = {"no-sandbox": "1"},
         )
 
         bundle_zips.append(
