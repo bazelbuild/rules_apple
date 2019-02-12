@@ -68,8 +68,8 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_actions.bzl",
-    "codesigning_actions",
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
@@ -351,7 +351,7 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
         if provisioning_profile:
             extra_input_files.append(provisioning_profile)
 
-        codesigning_command = codesigning_actions.codesigning_command(
+        codesigning_command = codesigning_support.codesigning_command(
             ctx,
             entitlements = entitlements,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
@@ -384,7 +384,7 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
         frameworks_path = archive_paths[_LOCATION_ENUM.framework]
 
         output_archive_root_path = outputs.archive_root_path(ctx)
-        codesigning_actions.post_process_and_sign_archive_action(
+        codesigning_support.post_process_and_sign_archive_action(
             ctx,
             archive_codesigning_path,
             frameworks_path,
