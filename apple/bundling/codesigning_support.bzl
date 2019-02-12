@@ -161,10 +161,6 @@ def _signing_command_lines(
              "builds on this platform (%s)." %
              platform_support.platform_type(ctx))
 
-    # First, try to use the identity passed on the command line, if any. If it's
-    # a simulator build, use an ad hoc identity.
-    identity = ctx.fragments.objc.signing_certificate_name if is_device else "-"
-
     # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
     # version. DEVELOPER_DIR will already be set on the action that invokes
     # the script. Without this, codesign should already be using DEVELOPER_DIR
