@@ -19,8 +19,8 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_actions.bzl",
-    "codesigning_actions",
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
@@ -374,7 +374,7 @@ def _macos_command_line_application_impl(ctx):
     outputs.append(result.output_files)
     providers.extend(result.providers)
 
-    codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
         AppleBinaryInfo(
@@ -406,7 +406,7 @@ def _macos_dylib_impl(ctx):
     outputs.append(result.output_files)
     providers.extend(result.providers)
 
-    codesigning_actions.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
         AppleBinaryInfo(
