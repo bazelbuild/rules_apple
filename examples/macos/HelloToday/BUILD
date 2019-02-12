@@ -20,7 +20,7 @@ objc_library(
         "AppSources/ViewController.m",
         "AppSources/main.m",
     ],
-    resources = [
+    data = [
         "AppResources/Main.storyboard",
     ],
 )
@@ -31,7 +31,7 @@ objc_library(
         "ExtSources/TodayViewController.h",
         "ExtSources/TodayViewController.m",
     ],
-    resources = [
+    data = [
         "ExtResources/TodayViewController.xib",
     ],
     sdk_frameworks = [

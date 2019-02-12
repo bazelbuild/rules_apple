@@ -64,7 +64,7 @@ swift_library(
 
 objc_library(
     name = "ButtonsResources",
-    storyboards = ["Buttons/Base.lproj/Main.storyboard"],
+    data = ["Buttons/Base.lproj/Main.storyboard"],
 )
 
 ## Packaging
@@ -142,7 +142,7 @@ swift_library(
 
 objc_library(
     name = "ButtonsWatchResources",
-    storyboards = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
+    data = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
 )
 
 ## Packaging
@@ -207,7 +207,7 @@ swift_library(
 
 objc_library(
     name = "ButtonsTVResources",
-    storyboards = ["ButtonsTV/Base.lproj/Main.storyboard"],
+    data = ["ButtonsTV/Base.lproj/Main.storyboard"],
 )
 
 ## Packaging
@@ -266,7 +266,7 @@ swift_library(
 
 objc_library(
     name = "ButtonsMacResources",
-    storyboards = ["ButtonsMac/Base.lproj/Main.storyboard"],
+    data = ["ButtonsMac/Base.lproj/Main.storyboard"],
 )
 
 ## Packaging

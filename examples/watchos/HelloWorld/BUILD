@@ -24,7 +24,7 @@ objc_library(
         "PhoneSources/ViewController.m",
         "PhoneSources/main.m",
     ],
-    resources = [
+    data = [
         "PhoneResources/Main.storyboard",
     ],
     sdk_frameworks = [
