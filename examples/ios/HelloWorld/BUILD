@@ -14,7 +14,7 @@ objc_library(
         "Sources/AppDelegate.m",
         "Sources/main.m",
     ],
-    resources = [
+    data = [
         "Resources/Main.storyboard",
     ],
 )

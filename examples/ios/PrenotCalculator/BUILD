@@ -45,9 +45,9 @@ objc_library(
         "main.m",
     ],
     hdrs = glob(["**/*.h"]),
-    bundles = [":PrenotCalculatorResources"],
-    resources = glob(["DataModel.xcdatamodeld/**"]) + [
+    data = glob(["DataModel.xcdatamodeld/**"]) + [
         "CalculatorViewController.xib",
+        ":PrenotCalculatorResources",
     ],
     sdk_frameworks = ["CoreData"],
 )
