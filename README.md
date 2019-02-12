@@ -57,20 +57,6 @@ load(
 apple_support_dependencies()
 ```
 
-If you're going to use `ios_unit_test` or `ios_ui_test`, you'll also need to add
-the following to your `WORKSPACE`, which is an external dependency needed to run
-the tests.
-
-```python
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
-
-http_file(
-    name = "xctestrunner",
-    executable = 1,
-    urls = ["https://github.com/google/xctestrunner/releases/download/0.2.6/ios_test_runner.par"],
-)
-```
-
 ## Examples
 
 Minimal example:
