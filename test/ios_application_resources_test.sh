@@ -30,6 +30,7 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
@@ -63,25 +64,16 @@ function test_nonlocalized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    asset_catalogs = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
-    ],
-    datamodels = [
+
         "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
         "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
-    ],
-    resources = [
         "@build_bazel_rules_apple//test/testdata/resources:mapping_model",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
-    ],
-    storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
-    ],
-    strings = [
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
-    ],
-    xibs = [
         "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
     ],
 )
@@ -179,7 +171,7 @@ function test_empty_strings_files() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    strings = [
+    data = [
         "empty.strings",
     ],
 )
@@ -212,9 +204,16 @@ function test_invalid_top_level_directory() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    structured_resources = [
-        "Resources/some.file",
+    data = [
+        ":structured_resources",
     ],
+)
+
+apple_resource_group(
+  name = "structured_resources",
+  structured_resources = [
+      "Resources/some.file",
+  ],
 )
 
 ios_application(
@@ -241,16 +240,10 @@ function test_localized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_plists",
-    ],
-    storyboards = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_storyboards_ios",
-    ],
-    strings = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
-    ],
-    xibs = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_xibs_ios",
     ],
 )
@@ -291,7 +284,7 @@ function create_with_localized_unprocessed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
     ],
 )
@@ -637,6 +630,11 @@ genrule(
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
     structured_resources = glob(["structured/**"]) + [":generate_structured_strings"],
 )
 
@@ -712,7 +710,7 @@ genrule(
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    strings = [
+    data = [
         ":generated_resource",
     ],
 )
@@ -788,11 +786,9 @@ function test_compilation_mode_on_strings_and_plist_files() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
       "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
-    ],
-    strings = [
-        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+      "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
     ],
 )
 
@@ -840,16 +836,16 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_framework")
 objc_library(
     name = "framework_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
       "framework_res/foo.txt",
     ],
 )
 objc_library(
     name = "app_lib",
-    resources = [
+    deps = [":lib", ":framework_lib"],
+    data = [
       "app_res/foo.txt",
     ],
-    deps = [":lib", ":framework_lib"],
 )
 ios_framework(
     name = "framework",
@@ -892,16 +888,16 @@ function test_different_files_mapped_to_the_same_target_path_fails() {
 objc_library(
     name = "shared_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
       "shared_res/foo.txt",
     ],
 )
 objc_library(
     name = "app_lib",
-    resources = [
+    deps = [":lib", ":shared_lib"],
+    data = [
       "app_res/foo.txt",
     ],
-    deps = [":lib", ":shared_lib"],
 )
 ios_application(
     name = "app",
@@ -935,7 +931,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 objc_library(
     name = "lib",
     srcs = ["main.m"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:star_atlas_files",
     ],
 )

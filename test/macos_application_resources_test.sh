@@ -30,6 +30,7 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
@@ -63,21 +64,15 @@ function test_nonlocalized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    # TODO: asset_catalogs
-    datamodels = [
+    # TODO: asset_catalogs, storyboards, xibs
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
         "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
-    ],
-    resources = [
         "@build_bazel_rules_apple//test/testdata/resources:mapping_model",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
-    ],
-    # TODO: storyboards
-    strings = [
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
     ],
-    # TODO: xibs
 )
 
 macos_application(
@@ -131,7 +126,7 @@ function test_empty_strings_files() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    strings = [
+    data = [
         "empty.strings",
     ],
 )
@@ -161,14 +156,11 @@ function test_localized_processed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    # TODO: storyboards, xibs
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_plists",
-    ],
-    # TODO: storyboards
-    strings = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
     ],
-    # TODO: xibs
 )
 
 macos_application(
@@ -201,7 +193,7 @@ function create_with_localized_unprocessed_resources() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
     ],
 )
@@ -458,6 +450,11 @@ genrule(
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
     structured_resources = glob(["structured/**"]) + [":generate_structured_strings"],
 )
 
@@ -504,7 +501,7 @@ genrule(
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    strings = [
+    data = [
         ":generated_resource",
     ],
 )
@@ -532,10 +529,8 @@ function test_compilation_mode_on_strings_and_plist_files() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
-      "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
-    ],
-   strings = [
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
     ],
 )

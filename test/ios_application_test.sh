@@ -656,7 +656,7 @@ ios_application(
 objc_library(
     name = "resLib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    bundles = [":appResources"],
+    data = [":appResources"],
 )
 
 apple_resource_bundle(

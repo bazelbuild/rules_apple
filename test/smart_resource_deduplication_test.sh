@@ -64,27 +64,21 @@ genrule(
 
 objc_library(
     name = "resource_only_lib",
-    resources = ["resource_only_lib.txt"]
+    data = ["resource_only_lib.txt"]
 )
 
 objc_library(
     name = "shared_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    asset_catalogs = [
+    deps = [":resource_only_lib"],
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
-    ],
-    bundles = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
-    ],
-    resources = [
         "gen_file.txt",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
-    ],
-    strings = [
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
     ],
-    deps = [":resource_only_lib"],
 )
 
 objc_library(
@@ -96,16 +90,12 @@ objc_library(
 objc_library(
     name = "app_lib",
     srcs = ["main.m"],
-    asset_catalogs = [
+    deps = [":shared_lib", ":resource_only_lib"],
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
-    ],
-    bundles = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
-    ],
-    resources = [
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],
-    deps = [":shared_lib", ":resource_only_lib"],
 )
 
 objc_library(

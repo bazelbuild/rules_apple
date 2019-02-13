@@ -58,24 +58,30 @@ apple_bundle_import(
 objc_library(
     name = "shared_lib",
     srcs = ["shared.m"],
-    bundles = [":shared_bundle"],
-    resources = ["shared_unbundled.txt"],
+    data = [
+        ":shared_bundle",
+        "shared_unbundled.txt",
+    ],
 )
 
 objc_library(
     name = "app_lib",
     srcs = ["app.m"],
-    bundles = [":app_bundle"],
-    resources = ["app_unbundled.txt"],
     deps = [":shared_lib"],
+    data = [
+        ":app_bundle",
+        "app_unbundled.txt",
+    ],
 )
 
 objc_library(
     name = "test_lib",
     srcs = ["test.m"],
-    bundles = [":test_bundle"],
-    resources = ["test_unbundled.txt"],
     deps = [":app_lib"],
+    data = [
+        ":test_bundle",
+        "test_unbundled.txt",
+    ],
 )
 
 objc_library(
