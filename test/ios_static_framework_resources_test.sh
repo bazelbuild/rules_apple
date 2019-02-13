@@ -53,30 +53,22 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    asset_catalogs = [
-        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
-    ],
-    datamodels = [
-        "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
-        "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
-    ],
-    storyboards = [
-        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
-    ],
-    strings = [
-        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
-    ],
-    xibs = [
-        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
-    ],
     deps = [":framework_dependent_lib"],
     alwayslink = 1,
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:unversioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:versioned_datamodel",
+        "@build_bazel_rules_apple//test/testdata/resources:storyboard_ios.storyboard",
+        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
+        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
+    ],
 )
 
 objc_library(
     name = "framework_dependent_lib",
     srcs = ["FrameworkDependent.m"],
-    xibs = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
     ],
 )

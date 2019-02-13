@@ -36,10 +36,18 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_extension",
      "ios_framework"
     )
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
     srcs = ["main.m"],
+    data = [
+        ":lib_structured_resources",
+    ],
+)
+
+apple_resource_group(
+    name = "lib_structured_resources",
     structured_resources = [
         ":AppResources",
         ":FrameworkResources",
@@ -91,8 +99,13 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    structured_resources = [":FrameworkResources"],
+    data = [":framework_structured_resources"],
     alwayslink = 1,
+)
+
+apple_resource_group(
+    name = "framework_structured_resources",
+    structured_resources = [":FrameworkResources"],
 )
 
 filegroup(
@@ -178,6 +191,7 @@ function create_minimal_ios_framework_with_params() {
 package(default_visibility = ["//app:__pkg__"])
 
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_framework")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
     name = "framework",
@@ -197,8 +211,13 @@ objc_library(
         "Framework.m",
     ],
     deps = [":framework_dependent_lib"],
-    structured_resources = [":Resources"],
     alwayslink = 1,
+    data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
+    structured_resources = [":Resources"],
 )
 
 objc_library(
@@ -378,7 +397,7 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    bundles = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
         "@build_bazel_rules_apple//test/testdata/resources:simple_bundle_library",
     ],
@@ -462,6 +481,7 @@ function test_framework_has_correct_rpath() {
 package(default_visibility = ["//app:__pkg__"])
 
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_framework")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
   name = "framework",
@@ -482,8 +502,13 @@ objc_library(
       "Framework.m",
   ],
   deps = [":framework_dependent_lib"],
-  structured_resources = [":Resources"],
   alwayslink = 1,
+  data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
+    structured_resources = [":Resources"],
 )
 
 objc_library(
@@ -580,6 +605,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_framework"
     )
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
@@ -622,6 +648,11 @@ objc_library(
 objc_library(
     name = "lib_with_resources",
     srcs = ["foo.m"],
+    data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
     structured_resources = [":Resources"],
 )
 
@@ -810,13 +841,19 @@ function test_common_root_level_resource_name() {
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
     )
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
     srcs = ["main.m"],
-    structured_resources = [
-        ":AppResources",
+    data = [
+        ":lib_structured_resources",
     ],
+)
+
+apple_resource_group(
+    name = "lib_structured_resources",
+    structured_resources = [":AppResources"],
 )
 
 filegroup(
@@ -842,6 +879,7 @@ package(default_visibility = ["//app:__pkg__"])
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_framework"
     )
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
     name = "framework",
@@ -860,8 +898,13 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    structured_resources = [":FrameworkResources"],
     alwayslink = 1,
+    data = [":framework_structured_resources"],
+)
+
+apple_resource_group(
+    name = "framework_structured_resources",
+    structured_resources = [":FrameworkResources"],
 )
 
 filegroup(
@@ -981,7 +1024,7 @@ objc_library(
         "Framework.h",
         "Framework.m",
     ],
-    bundles = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
         "@build_bazel_rules_apple//test/testdata/resources:simple_bundle_library",
     ],
@@ -1400,6 +1443,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_framework",
     )
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 objc_library(
     name = "lib",
@@ -1465,8 +1509,13 @@ objc_library(
 objc_library(
     name = "framework_dependent_lib",
     srcs = ["FrameworkDependent.m"],
-    structured_resources = [":Resources"],
     alwayslink = 1,
+    data = [":structured_resources"],
+)
+
+apple_resource_group(
+    name = "structured_resources",
+    structured_resources = [":Resources"],
 )
 
 filegroup(
