@@ -81,6 +81,12 @@ function copy_swift_stdlibs {
 # copied to the output path without stripping.
 function strip_dylibs {
   local any_dylib=$(find "$1" -name *.dylib | head -n 1)
+
+  if [[ -z "$any_dylib" ]]; then
+    # Exit early if there are no dylibs to process.
+    return 0
+  fi
+
   local dylibs_archs=($(get_binary_archs "$any_dylib"))
 
   # If the dylib contains only 1 architecture, copy them as is, otherwise lipo
