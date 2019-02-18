@@ -493,7 +493,7 @@ Targets created with `macos_command_line_application` can be executed using
 </table>
 
 <a name="macos_dylib"></a>
-## macos_command_line_application
+## macos_dylib
 
 ```python
 macos_dylib(name, bundle_id, infoplists, linkopts, minimum_os_version, version,
