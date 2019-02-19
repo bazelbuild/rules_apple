@@ -1,11 +1,5 @@
 # Build rules for macOS
 
-:warning: The macOS rules should be considered **early alpha and experimental.**
-Please feel free to use them and give us feedback, but be aware that there may
-be parts that are broken and/or missing.
-
----
-
 <a name="macos_application"></a>
 ## macos_application
 
