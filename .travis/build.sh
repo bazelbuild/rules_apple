@@ -60,43 +60,30 @@ if [[ -n "${BUILDIFIER:-}" ]]; then
 
   # Check for format issues?
   if [[ "${FORMAT:-yes}" == "yes" ]] ; then
-    # bazelbuild/buildtools/issues/220 - diff doesn't include the file that needs updating
-    if ! find . "${FIND_ARGS[@]}" -print | xargs buildifier -d > /dev/null 2>&1 ; then
-      if [[ "${FOUND_ISSUES}" != "no" ]] ; then
-        echo ""
-      fi
-      echo "ERROR: BUILD/.bzl file formatting issue(s):"
-      echo ""
-      # bazelbuild/buildtools/issues/329 - sed out the exit status lines.
-      find . "${FIND_ARGS[@]}" -print -exec buildifier -v -d {} \; \
-          2>&1 | sed -E -e '/^exit status 1$/d'
+    echo "buildifier: validating formatting..."
+    if ! find . "${FIND_ARGS[@]}" -print | xargs buildifier -d ; then
       echo ""
       echo "Please download the latest buildifier"
       echo "   https://github.com/bazelbuild/buildtools/releases"
       echo "and run it over the changed BUILD/.bzl files."
+      echo ""
       FOUND_ISSUES="yes"
     fi
   fi
 
   # Check for lint issues?
   if [[ "${LINT:-yes}" == "yes" ]] ; then
+    echo "buildifier: running lint checks..."
     # NOTE: buildifier defaults to --mode=fix, so these lint runs also
     # reformat the files. But since this is on travis, that is fine.
     # https://github.com/bazelbuild/buildtools/issues/453
-    if ! find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn > /dev/null 2>&1 ; then
-      if [[ "${FOUND_ISSUES}" != "no" ]] ; then
-        echo ""
-      fi
-      echo "ERROR: BUILD/.bzl lint issue(s):"
-      echo ""
-      # buildifier now exits with error if there are issues, so use `|| true`
-      # to keep the script running.
-      find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn || true
+    if ! find . "${FIND_ARGS[@]}" -print | xargs buildifier --lint=warn ; then
       echo ""
       echo "Please download the latest buildifier"
       echo "   https://github.com/bazelbuild/buildtools/releases"
       echo "and run it with --lint=(warn|fix) over the changed BUILD/.bzl files"
       echo "and make the edits as needed."
+      echo ""
       FOUND_ISSUES="yes"
     fi
   fi
