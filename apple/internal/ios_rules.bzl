@@ -127,9 +127,7 @@ def _ios_application_impl(ctx):
             binary_artifact = binary_artifact,
             dependency_targets = embeddable_targets,
             bundle_dylibs = True,
-            # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
-            # least only for device builds.
-            package_swift_support = True,
+            package_swift_support = platform_support.is_device_build(ctx),
         ),
     ]
 
@@ -360,9 +358,7 @@ def _ios_imessage_application_impl(ctx):
             binary_artifact = None,
             dependency_targets = [ctx.attr.extension],
             bundle_dylibs = True,
-            # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
-            # least only for device builds.
-            package_swift_support = True,
+            package_swift_support = platform_support.is_device_build(ctx),
         ),
     ]
 
