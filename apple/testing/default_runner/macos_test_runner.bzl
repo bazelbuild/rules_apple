@@ -55,14 +55,14 @@ def _get_template_substitutions(xctestrun_template):
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_test_environment(ctx):
-    """Returns the test environment for this runner."""
-    test_environment = dict(ctx.configuration.test_env)
+def _get_execution_environment(ctx):
+    """Returns environment variables the test runner requires"""
+    execution_environment = {}
     xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
     if xcode_version:
-        test_environment["XCODE_VERSION"] = xcode_version
+        execution_environment["XCODE_VERSION"] = xcode_version
 
-    return test_environment
+    return execution_environment
 
 def _macos_test_runner_impl(ctx):
     """Implementation for the macos_runner rule."""
@@ -86,7 +86,7 @@ def _macos_test_runner_impl(ctx):
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {"requires-darwin": ""},
-            test_environment = _get_test_environment(ctx),
+            execution_environment = _get_execution_environment(ctx),
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
@@ -126,8 +126,7 @@ Provides:
         with which the tests will be performed.
     execution_requirements: Dictionary that represents the specific hardware
         requirements for this test.
-    test_environment: Dictionary with the environment variables required for the
-        test.
+    execution_environment: Dictionary with the environment variables the test runner requires
   Runfiles:
     files: The files needed during runtime for the test to be performed.
 """,
