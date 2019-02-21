@@ -43,6 +43,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
@@ -66,6 +70,7 @@ def _tvos_application_impl(ctx):
 
     embeddable_targets = ctx.attr.extensions
     swift_dylib_dependencies = ctx.attr.extensions
+    package_swift_support = defines.bool_value(ctx, "apple.package_swift_support", True)
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -102,7 +107,7 @@ def _tvos_application_impl(ctx):
             bundle_dylibs = True,
             # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
             # builds, or at least only for device builds.
-            package_swift_support = True,
+            package_swift_support = package_swift_support,
         ),
     ]
 

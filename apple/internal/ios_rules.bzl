@@ -51,6 +51,10 @@ load(
     "stub_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
@@ -89,6 +93,8 @@ def _ios_application_impl(ctx):
                 parent_bundle_id_reference = ["WKCompanionAppBundleIdentifier"],
             ),
         )
+
+    package_swift_support = defines.bool_value(ctx, "apple.package_swift_support", True)
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -129,7 +135,7 @@ def _ios_application_impl(ctx):
             bundle_dylibs = True,
             # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
             # least only for device builds.
-            package_swift_support = True,
+            package_swift_support = package_swift_support,
         ),
     ]
 
@@ -334,6 +340,7 @@ def _ios_imessage_application_impl(ctx):
 
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
     embeddable_targets = [ctx.attr.extension]
+    package_swift_support = defines.bool_value(ctx, "apple.package_swift_support", True)
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -362,7 +369,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_dylibs = True,
             # TODO(kaipi): Revisit if we can add this only for AppStore optimized builds, or at
             # least only for device builds.
-            package_swift_support = True,
+            package_swift_support = package_swift_support,
         ),
     ]
 
