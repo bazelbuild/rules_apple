@@ -19,10 +19,6 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
-    "run_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -41,6 +37,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:run_support.bzl",
+    "run_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -113,11 +113,18 @@ def _tvos_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
+    executable = outputs.executable(ctx)
+    run_support.register_simulator_executable(ctx, executable)
+
     return [
         DefaultInfo(
+            executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = run_actions.start_simulator(ctx),
+                files = [
+                    outputs.archive(ctx),
+                    ctx.file._std_redirect_dylib,
+                ],
             ),
         ),
         TvosApplicationBundleInfo(),

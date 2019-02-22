@@ -133,7 +133,7 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
         "_runner_template": attr.label(
             cfg = "host",
             allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//apple/bundling/runners:ios_sim_template"),
+            default = Label("@build_bazel_rules_apple//apple/internal/runners:ios_sim_template"),
         ),
         "_std_redirect_dylib": attr.label(
             cfg = "host",

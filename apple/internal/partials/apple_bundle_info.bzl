@@ -27,12 +27,12 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",

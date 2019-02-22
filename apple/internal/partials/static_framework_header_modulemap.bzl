@@ -19,10 +19,6 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:framework_support.bzl",
-    "framework_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -35,6 +31,90 @@ load(
     "partial",
 )
 
+def _get_link_declarations(dylibs = [], frameworks = []):
+    """Returns the module map lines that link to the given dylibs and frameworks.
+
+    Args:
+      dylibs: A sequence of library names (which must begin with "lib") that will
+          be referenced in the module map.
+      frameworks: A sequence of framework names that will be referenced in the
+          module map.
+
+    Returns:
+      A list of "link" and "link framework" lines that reference the given
+      libraries and frameworks.
+    """
+    link_lines = []
+
+    for dylib in dylibs:
+        if not dylib.startswith("lib"):
+            fail("Linked libraries must start with 'lib' but found %s", dylib)
+        link_lines.append('link "%s"' % dylib[3:])
+    for framework in frameworks:
+        link_lines.append('link framework "%s"' % framework)
+
+    return link_lines
+
+def _get_umbrella_header_declaration(basename):
+    """Returns the module map line that references an umbrella header.
+
+    Args:
+      basename: The basename of the umbrella header file to be referenced in the
+          module map.
+
+    Returns:
+      The module map line that references the umbrella header.
+    """
+    return 'umbrella header "%s"' % basename
+
+def _create_modulemap(
+        actions,
+        output,
+        module_name,
+        umbrella_header_name,
+        sdk_dylibs,
+        sdk_frameworks):
+    """Creates a modulemap for a framework.
+
+    Args:
+      actions: The actions module from a rule or aspect context.
+      output: A declared `File` to which the module map will be written.
+      module_name: The name of the module to declare in the module map file.
+      umbrella_header_name: The basename of the umbrella header file, or None if
+          there is no umbrella header.
+      sdk_dylibs: A list of system dylibs to list in the module.
+      sdk_frameworks: A list of system frameworks to list in the module.
+    """
+    declarations = []
+    if umbrella_header_name:
+        declarations.append(
+            _get_umbrella_header_declaration(umbrella_header_name),
+        )
+    declarations.extend([
+        "export *",
+        "module * { export *}",
+    ])
+    declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
+
+    content = (
+        ("framework module %s {\n" % module_name) +
+        "\n".join(["  " + decl for decl in declarations]) +
+        "}\n"
+    )
+    actions.write(output = output, content = content)
+
+def _create_umbrella_header(actions, output, headers):
+    """Creates an umbrella header that imports a list of other headers.
+
+    Args:
+      actions: The `actions` module from a rule or aspect context.
+      output: A declared `File` to which the umbrella header will be written.
+      headers: A list of header files to be imported by the umbrella header.
+    """
+    import_lines = ['#import "%s"' % f.basename for f in headers]
+    content = "\n".join(import_lines) + "\n"
+    actions.write(output = output, content = content)
+
 def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provider):
     """Implementation for the static framework headers and modulemaps partial."""
     bundle_name = bundling_support.bundle_name(ctx)
@@ -45,7 +125,7 @@ def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provi
     if hdrs:
         umbrella_header_name = "{}.h".format(bundle_name)
         umbrella_header_file = intermediates.file(ctx.actions, ctx.label.name, umbrella_header_name)
-        framework_support.create_umbrella_header(
+        _create_umbrella_header(
             ctx.actions,
             umbrella_header_file,
             sorted(hdrs),
@@ -64,7 +144,7 @@ def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provi
     # headers or if there are dylibs/frameworks that the target depends on).
     if any([sdk_dylibs, sdk_dylibs, umbrella_header_name]):
         modulemap_file = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")
-        framework_support.create_modulemap(
+        _create_modulemap(
             ctx.actions,
             modulemap_file,
             bundle_name,
