@@ -19,20 +19,20 @@ load(
     "xcode_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",

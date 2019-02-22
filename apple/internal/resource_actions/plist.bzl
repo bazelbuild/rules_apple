@@ -19,20 +19,20 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
-    "bundling_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",

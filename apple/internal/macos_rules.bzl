@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Experimental implementation of macOS rules."""
+"""Implementation of macOS rules."""
 
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",

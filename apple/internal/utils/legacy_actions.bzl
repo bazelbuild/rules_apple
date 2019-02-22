@@ -19,7 +19,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(

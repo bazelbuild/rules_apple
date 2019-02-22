@@ -19,8 +19,8 @@ These are internal rules not to be used outside of the
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
+    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
+    "file_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -439,7 +439,7 @@ def _apple_test_impl(ctx, test_type):
         transitive_runfiles.append(ctx.attr._mcov.files)
         transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
 
-    file_actions.symlink(
+    file_support.symlink(
         ctx,
         ctx.attr.test_bundle[AppleBundleInfo].archive,
         ctx.outputs.test_bundle,

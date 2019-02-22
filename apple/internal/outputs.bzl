@@ -19,7 +19,7 @@ registered to generate these files.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(

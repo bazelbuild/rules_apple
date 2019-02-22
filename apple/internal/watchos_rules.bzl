@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Experimental implementation of watchOS rules."""
+"""Implementation of watchOS rules."""
 
-load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
@@ -29,6 +25,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",

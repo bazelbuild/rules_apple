@@ -60,12 +60,8 @@ rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
@@ -82,6 +78,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",

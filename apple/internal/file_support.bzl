@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Actions for basic file system operations."""
+"""Support for basic file system operations."""
 
 def _symlink(ctx, source, target):
     """Creates a symlink.
@@ -49,6 +49,6 @@ def _symlink(ctx, source, target):
     )
 
 # Define the loadable module that lists the exported symbols in this file.
-file_actions = struct(
+file_support = struct(
     symlink = _symlink,
 )
