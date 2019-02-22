@@ -108,9 +108,7 @@ def _tvos_application_impl(ctx):
             binary_artifact = binary_artifact,
             dependency_targets = swift_dylib_dependencies,
             bundle_dylibs = True,
-            # TODO(kaipi): Revisit if we can add this only for non enterprise optimized
-            # builds, or at least only for device builds.
-            package_swift_support = True,
+            package_swift_support_if_needed = True,
         ),
     ]
 

@@ -127,6 +127,13 @@ can pass `--define=apple.propagate_embedded_extra_outputs=(yes|true|1)` to
 bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 ```
 
+### Disable `SwiftSupport` in ipas
+
+The SwiftSupport directory in a final ipa is only necessary if you're
+shipping the build to Apple. If you want to disable bundling
+SwiftSupport in your ipa for other device or enterprise builds, you can
+pass `--define=apple.package_swift_support=no` to `bazel build`
+
 ### Codesign Bundles for the Simulator {#apple.codesign_simulator_bundles}
 
 The simulators are far more lax about a lot of things compared to working on
