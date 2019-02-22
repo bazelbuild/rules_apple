@@ -15,15 +15,15 @@
 """Partial implementation for the AppleBundleInfo provider."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
+    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
+    "file_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
@@ -54,7 +54,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
         # rare format for the name because the file is being generated in the clients package
         # directory, which may conflict with genrules that generate APPNAME-Info.plist files.
         infoplist = ctx.actions.declare_file("_{}-Private-Info.plist".format(ctx.label.name))
-        file_actions.symlink(ctx, outputs.infoplist(ctx), infoplist)
+        file_support.symlink(ctx, outputs.infoplist(ctx), infoplist)
 
     uses_swift = False
     if hasattr(ctx.attr, "deps"):

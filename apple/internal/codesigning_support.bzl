@@ -15,10 +15,6 @@
 """Actions related to codesigning."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -29,6 +25,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",

@@ -15,8 +15,8 @@
 """Partial implementation for placing the messages support stub file in the archive."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
+    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
+    "file_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -58,11 +58,10 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
                 for x in ctx.attr.extensions
                 if _AppleMessagesStubInfo in x
             ]
-        elif hasattr(ctx.attr, "extension"):
-            if _AppleMessagesStubInfo in ctx.attr.extension:
-                extension_binaries = [ctx.attr.extension[_AppleMessagesStubInfo].binary]
-            else:
-                extension_binaries = []
+        elif hasattr(ctx.attr, "extension") and _AppleMessagesStubInfo in ctx.attr.extension:
+            extension_binaries = [ctx.attr.extension[_AppleMessagesStubInfo].binary]
+        else:
+            extension_binaries = []
 
         if extension_binaries:
             bundle_files.append(
@@ -79,7 +78,7 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
                 ctx.label.name,
                 "MessagesApplicationSupportStub",
             )
-            file_actions.symlink(ctx, binary_artifact, intermediate_file)
+            file_support.symlink(ctx, binary_artifact, intermediate_file)
 
             bundle_files.append(
                 (
@@ -95,7 +94,7 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
             ctx.label.name,
             "MessagesApplicationExtensionSupportStub",
         )
-        file_actions.symlink(ctx, binary_artifact, intermediate_file)
+        file_support.symlink(ctx, binary_artifact, intermediate_file)
         providers.append(_AppleMessagesStubInfo(binary = intermediate_file))
 
     return struct(

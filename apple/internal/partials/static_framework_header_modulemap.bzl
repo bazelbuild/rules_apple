@@ -15,7 +15,7 @@
 """Partial implementation for bundling header and modulemaps for static frameworks."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(

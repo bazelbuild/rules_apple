@@ -15,12 +15,12 @@
 """Partial implementation for AppleDynamicFrameworkInfo configuration."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:bundling_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:file_actions.bzl",
-    "file_actions",
+    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
+    "file_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -46,7 +46,7 @@ def _framework_provider_partial_impl(ctx):
     framework_file = ctx.actions.declare_file(
         paths.join(framework_dir, bundle_name),
     )
-    file_actions.symlink(ctx, binary_file, framework_file)
+    file_support.symlink(ctx, binary_file, framework_file)
 
     absolute_framework_dir = paths.join(
         ctx.bin_dir.path,
