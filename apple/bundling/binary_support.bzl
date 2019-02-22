@@ -15,12 +15,12 @@
 """Binary creation support functions."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
-    "swift_runtime_linkopts",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
     "entitlements",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_runtime_linkopts",
 )
 
 def _create_swift_runtime_linkopts_target(
@@ -36,6 +36,7 @@ def _create_swift_runtime_linkopts_target(
       deps: The list of dependencies of the base target.
       is_static: True to use the static Swift runtime, or False to use the
           dynamic Swift runtime.
+      tags: Tags to add to the created targets.
       testonly: Whether the target should be testonly.
 
     Returns:

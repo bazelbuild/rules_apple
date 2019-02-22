@@ -23,16 +23,16 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",

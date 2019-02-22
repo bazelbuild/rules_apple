@@ -19,10 +19,6 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:run_actions.bzl",
-    "run_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -45,6 +41,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:run_support.bzl",
+    "run_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
@@ -153,14 +153,21 @@ def _ios_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
+    executable = outputs.executable(ctx)
+    run_support.register_simulator_executable(ctx, executable)
+
     return struct(
         # TODO(b/121155041): Should we do the same for ios_framework and ios_extension?
         instrumented_files = struct(dependency_attributes = ["binary"]),
         providers = [
             DefaultInfo(
+                executable = executable,
                 files = processor_result.output_files,
                 runfiles = ctx.runfiles(
-                    files = run_actions.start_simulator(ctx),
+                    files = [
+                        outputs.archive(ctx),
+                        ctx.file._std_redirect_dylib,
+                    ],
                 ),
             ),
             IosApplicationBundleInfo(),
