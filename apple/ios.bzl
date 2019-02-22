@@ -15,13 +15,13 @@
 """Bazel rules for creating iOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
+    "binary_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",

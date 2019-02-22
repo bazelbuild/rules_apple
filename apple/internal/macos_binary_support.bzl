@@ -15,16 +15,16 @@
 """Internal helper definitions used by macOS command line rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:linker_support.bzl",
-    "linker_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:linker_support.bzl",
+    "linker_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
