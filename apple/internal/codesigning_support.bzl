@@ -303,9 +303,10 @@ def _post_process_and_sign_archive_action(
         processing_tools.append(ipa_post_processor)
         ipa_post_processor_path = ipa_post_processor.path
 
-    # Only compress the IPA for optimized (release) builds. For debug builds,
-    # zip without compression, which will speed up the build.
-    should_compress = (ctx.var["COMPILATION_MODE"] == "opt")
+    # Only compress the IPA for optimized (release) builds or when requested.
+    # For debug builds, zip without compression, which will speed up the build.
+    compression_requested = defines.bool_value(ctx, "apple.compress_ipa", False)
+    should_compress = (ctx.var["COMPILATION_MODE"] == "opt") or compression_requested
 
     process_and_sign_template = intermediates.file(
         ctx.actions,

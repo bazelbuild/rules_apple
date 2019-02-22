@@ -111,6 +111,14 @@ have added it):
 bazel build --define=apple.add_debugger_entitlement=no //your/target
 ```
 
+### Force ipa compression {#apple.compress_ipa}
+
+By default the final `App.ipa` produced from building an app is
+uncompressed, unless you're building with `--compilation_mode=opt`. This
+flag allows you to force compression if the size is more important than
+the CPU time for your build. To use this pass
+`--define=apple.compress_ipa=(yes|true|1)` to `bazel build`.
+
 ### Include Embedded Bundles in Rule Output {#apple.propagate_embedded_extra_outputs}
 
 Some Apple bundles include other bundles within them (for example, an
