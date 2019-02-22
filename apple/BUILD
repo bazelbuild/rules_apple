@@ -25,7 +25,6 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]) + [
-        "//apple/bundling:for_bazel_tests",
         "//apple/internal:for_bazel_tests",
         "//apple/testing:for_bazel_tests",
     ],

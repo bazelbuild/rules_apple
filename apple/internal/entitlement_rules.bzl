@@ -19,16 +19,16 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/bundling:linker_support.bzl",
-    "linker_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:linker_support.bzl",
+    "linker_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",

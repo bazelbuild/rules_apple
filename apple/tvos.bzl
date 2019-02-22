@@ -15,7 +15,7 @@
 """Bazel rules for creating tvOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
+    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
 load(

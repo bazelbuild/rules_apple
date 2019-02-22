@@ -15,13 +15,13 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
     _macos_ui_test = "macos_ui_test",
     _macos_unit_test = "macos_unit_test",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
+    "binary_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
