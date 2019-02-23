@@ -7,6 +7,7 @@ licenses(["notice"])
 apple_binary(
     name = "empty_dylib",
     binary_type = "dylib",
+    minimum_os_version = "9.0",
     platform_type = "ios",
     deps = [":dummy_lib"],
 )
