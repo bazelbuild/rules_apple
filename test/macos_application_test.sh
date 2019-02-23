@@ -219,6 +219,7 @@ macos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist", "Another.plist"],
+    minimum_os_version = "10.11",
     deps = [":lib"],
 )
 EOF
