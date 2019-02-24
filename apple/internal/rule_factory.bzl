@@ -57,6 +57,7 @@ load(
     "MacosExtensionBundleInfo",
     "MacosXPCServiceBundleInfo",
     "TvosExtensionBundleInfo",
+    "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
@@ -620,6 +621,41 @@ def _get_tvos_attrs(rule_descriptor):
                     [AppleBundleInfo, TvosExtensionBundleInfo],
                 ],
                 doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.framework:
+        attrs.append({
+            # TODO(kaipi): This attribute is not publicly documented, but it is tested in
+            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
+            # what to do with this.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+        })
+
+    # TODO(kaipi): Once all platforms have framework rules, move this into
+    # _common_binary_linking_attrs().
+    if rule_descriptor.requires_deps:
+        extra_args = {}
+        if rule_descriptor.product_type == apple_product_type.application:
+            extra_args["aspects"] = [framework_import_aspect]
+
+        attrs.append({
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+                **extra_args
             ),
         })
 

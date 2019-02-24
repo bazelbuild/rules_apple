@@ -5,7 +5,7 @@
 
 ```python
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
-entitlements_validation, extensions, infoplists, ipa_post_processor,
+entitlements_validation, extensions, frameworks, infoplists, ipa_post_processor,
 launch_images, linkopts, minimum_os_version, provisioning_profile,
 settings_bundle, strings, version, deps)
 ```
@@ -87,6 +87,14 @@ Builds and bundles a tvOS application.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
         <p>A list of extensions (see <a href="#tvos_extension"><code>tvos_extension</code></a>)
         to include in the final application bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#tvos_framework"><code>tvos_framework</code></a>)
+        that this application depends on.</p>
       </td>
     </tr>
     <tr>
@@ -199,7 +207,7 @@ Builds and bundles a tvOS application.
 
 ```python
 tvos_extension(name, bundle_id, bundle_name, entitlements,
-entitlements_validation, infoplists, ipa_post_processor, linkopts,
+entitlements_validation, frameworks, infoplists, ipa_post_processor, linkopts,
 minimum_os_version, strings, version, deps)
 ```
 
@@ -263,6 +271,14 @@ Builds and bundles a tvOS extension.
         <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
         to control the validation of the requested entitlements against the
         provisioning profile to ensure they are supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#tvos_framework"><code>tvos_framework</code></a>)
+        that this extension depends on.</p>
       </td>
     </tr>
     <tr>
@@ -346,6 +362,145 @@ Builds and bundles a tvOS extension.
         <code>apple_binary</code> rule to be linked. Any resources, such as
         asset catalogs, that are referenced by those targets will also be
         transitively included in the final extension.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## tvos_framework
+
+```python
+tvos_framework(name, bundle_id, bundle_name, extension_safe, frameworks,
+infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, version,
+deps)
+```
+
+Builds and bundles a tvOS dynamic framework. To use this framework for your app
+and extensions, list it in the `frameworks` attributes of those
+`tvos_application` and/or `tvos_extension` rules.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>The bundle ID (reverse-DNS path followed by app name) of the
+        framework.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_name</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The desired name of the bundle (without the <code>.framework</code>
+        extension). If this attribute is not set, then the <code>name</code> of
+        the target will be used instead.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>extension_safe</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>If true, compiles and links this framework with <code>-application-extension</code>,
+        restricting the binary to use only extension-safe APIs. False by default.
+      </td>
+    </tr>
+    <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#tvos_framework"><code>tvos_framework</code></a>)
+        that this framework depends on.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the framework. At least one
+        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>ipa_post_processor</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>A tool that edits this target's archive after it is assembled but
+        before it is signed. The tool is invoked with a single command-line
+        argument that denotes the path to a directory containing the unzipped
+        contents of the archive; the <code>*.framework</code> bundle for the
+        extension will be the directory's only contents.</p>
+        <p>Any changes made by the tool must be made in this directory, and
+        the tool's execution must be hermetic given these inputs to ensure that
+        the result can be safely cached.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkopts</code></td>
+      <td>
+        <p><code>List of strings; optional</code></p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional string indicating the minimum tvOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"9.0"</code>). If this attribute is omitted, then the value specified
+        by the flag <code>--tvos_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>strings</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.strings</code> files, often localizable. These files
+        are converted to binary plists (if they are not already) and placed in the
+        root of the final extension bundle, unless a file's immediate containing
+        directory is named <code>*.lproj</code>, in which case it will be placed
+        under a directory with the same name in the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>version</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>apple_bundle_version</code> target that represents the version
+        for this target. See
+        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final framework.</p>
       </td>
     </tr>
   </tbody>
