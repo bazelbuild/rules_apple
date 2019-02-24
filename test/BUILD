@@ -289,6 +289,18 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "tvos_framework_test",
+    size = "large",
+    src = "tvos_framework_test.sh",
+    configurations = TVOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/binaries:empty_tvos_dylib",
+        "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
+    shard_count = 12,
+)
+
+apple_multi_shell_test(
     name = "watchos_application_test",
     size = "medium",
     src = "watchos_application_test.sh",

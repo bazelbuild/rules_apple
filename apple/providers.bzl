@@ -370,6 +370,18 @@ provider to describe that requirement.
 """,
 )
 
+TvosFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is a tvOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a tvOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a tvOS dynamic framework should use this provider to describe
+that requirement.
+""",
+)
+
 WatchosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is a watchOS application.

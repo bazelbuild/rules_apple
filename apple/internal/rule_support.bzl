@@ -396,6 +396,15 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.app_extension,
         ),
+        # tvos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["tv"],
+            bundle_extension = ".framework",
+            binary_type = "dylib",
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = apple_product_type.framework,
+            skip_signing = True,
+        ),
     },
     "watchos": {
         # watchos_application

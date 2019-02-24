@@ -31,9 +31,8 @@ load(
     "paths",
 )
 
-def _framework_provider_partial_impl(ctx):
+def _framework_provider_partial_impl(ctx, binary_provider):
     """Implementation for the framework provider partial."""
-    binary_provider = ctx.attr.deps[0][apple_common.AppleDylibBinary]
     binary_file = binary_provider.binary
 
     bundle_name = bundling_support.bundle_name(ctx)
@@ -73,7 +72,7 @@ def _framework_provider_partial_impl(ctx):
         providers = [framework_provider],
     )
 
-def framework_provider_partial():
+def framework_provider_partial(binary_provider):
     """Constructor for the framework provider partial.
 
     This partial propagates the AppleDynamicFrameworkInfo provider required by
@@ -81,10 +80,14 @@ def framework_provider_partial():
     the framework can be linked against. This is only required for dynamic
     framework bundles.
 
+    Args:
+      binary_provider: The AppleDylibBinary provider containing this target's binary.
+
     Returns:
       A partial that returns the AppleDynamicFrameworkInfo provider used to link
       this framework into the final binary.
     """
     return partial.make(
         _framework_provider_partial_impl,
+        binary_provider = binary_provider,
     )

@@ -877,8 +877,8 @@ Builds and bundles an iOS Sticker Pack extension.
 
 ```python
 ios_framework(name, bundle_id, bundle_name, extension_safe, families,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, strings,
-version, deps)
+frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version,
+strings, version, deps)
 ```
 
 Builds and bundles an iOS dynamic framework. To use this framework for your

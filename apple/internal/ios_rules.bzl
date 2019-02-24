@@ -211,7 +211,9 @@ def _ios_framework_impl(ctx):
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
-        partials.framework_provider_partial(),
+        partials.framework_provider_partial(
+            binary_provider = binary_target[apple_common.AppleDylibBinary],
+        ),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],

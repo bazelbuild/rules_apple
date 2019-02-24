@@ -46,6 +46,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
+    "TvosFrameworkBundleInfo",
 )
 
 def _tvos_application_impl(ctx):
@@ -64,8 +65,8 @@ def _tvos_application_impl(ctx):
 
     bundle_id = ctx.attr.bundle_id
 
-    embeddable_targets = ctx.attr.extensions
-    swift_dylib_dependencies = ctx.attr.extensions
+    embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
+    swift_dylib_dependencies = ctx.attr.extensions + ctx.attr.frameworks
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -77,22 +78,26 @@ def _tvos_application_impl(ctx):
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
-            dependency_targets = ctx.attr.extensions,
+            dependency_targets = embeddable_targets,
             package_bitcode = True,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_dependencies = ctx.attr.extensions,
+            debug_dependencies = embeddable_targets,
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
         ),
+        partials.framework_import_partial(
+            targets = ctx.attr.deps + embeddable_targets,
+        ),
         partials.resources_partial(
             bundle_id = bundle_id,
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
         partials.settings_bundle_partial(),
@@ -130,6 +135,56 @@ def _tvos_application_impl(ctx):
         TvosApplicationBundleInfo(),
     ] + processor_result.providers
 
+def _tvos_framework_impl(ctx):
+    """Experimental implementation of tvos_framework."""
+    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
+        # the can be skipped.
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [outputs.archive(ctx)],
+            embeddable_targets = ctx.attr.frameworks,
+        ),
+        partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
+        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
+        partials.framework_provider_partial(binary_provider = binary_provider),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
+            version_keys_required = False,
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+    ]
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        TvosFrameworkBundleInfo(),
+    ] + processor_result.providers
+
 def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     top_level_attrs = [
@@ -150,19 +205,27 @@ def _tvos_extension_impl(ctx):
         partials.bitcode_symbols_partial(
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
         ),
-        partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
+        partials.embedded_bundles_partial(
+            plugins = [outputs.archive(ctx)],
+            embeddable_targets = ctx.attr.frameworks,
+        ),
+        partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
         ),
     ]
 
@@ -192,4 +255,11 @@ tvos_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "tvos",
     product_type = apple_product_type.app_extension,
     doc = "Builds and bundles a tvOS Extension.",
+)
+
+tvos_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _tvos_framework_impl,
+    platform_type = "tvos",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles a tvOS Dynamic Framework.",
 )

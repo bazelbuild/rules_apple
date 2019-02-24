@@ -22,6 +22,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_extension = "tvos_extension",
+    _tvos_framework = "tvos_framework",
 )
 
 def tvos_application(name, **kwargs):
@@ -50,6 +51,8 @@ def tvos_application(name, **kwargs):
           profile to ensure they are supported.
       extensions: A list of extensions (see `tvos_extension`) to include in the
           final application.
+      frameworks: A list of framework targets (see `tvos_framework`) that this
+          application depends on.
       infoplists: A list of `.plist` files that will be merged to form the
           Info.plist that represents the application. The merge is only at the
           top level of the plist; so sub-dictionaries are not merged.
@@ -92,6 +95,7 @@ def tvos_application(name, **kwargs):
 
     _tvos_application(
         name = name,
+        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -118,6 +122,8 @@ def tvos_extension(name, **kwargs):
       entitlements_validation: An `entitlements_validation_mode` to control the
           validation of the requested entitlements against the provisioning
           profile to ensure they are supported.
+      frameworks: A list of framework targets (see `tvos_framework`) that this
+          extension depends on.
       infoplists: A list of `.plist` files that will be merged to form the
           `Info.plist` that represents the extension. The merge is only at the
           top level of the plist; so sub-dictionaries are not merged.
@@ -168,5 +174,71 @@ def tvos_extension(name, **kwargs):
 
     _tvos_extension(
         name = name,
+        dylibs = kwargs.get("frameworks", []),
+        **bundling_args
+    )
+
+def tvos_framework(name, **kwargs):
+    """Builds and bundles a tvOS dynamic framework.
+
+    The named target produced by this macro is a ZIP file. This macro also
+    creates a target named "{name}.apple_binary" that represents the
+    linked binary executable inside the framework bundle.
+
+    Args:
+      name: The name of the target.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          framework. If specified, it will override the bundle ID in the plist
+          file. If no bundle ID is specified by either this attribute or in the
+          plist file, the build will fail.
+      extension_safe: If true, compiles and links this framework with
+          `-application-extension` restricting the binary to use only
+          extension-safe APIs. False by default.
+      frameworks: A list of framework targets that this framework depends on.
+      infoplists: A list of `.plist` files that will be merged to form the
+          Info.plist that represents the framework. The merge is only at the
+          top level of the plist; so sub-dictionaries are not merged.
+      ipa_post_processor: A tool that edits this target's archive after it is
+          assembled but before it is (optionally) signed. The tool is invoked
+          with a single positional argument that represents the path to a
+          directory containing the unzipped contents of the archive. The only
+          entry in this directory will be the `.framework` directory for the
+          framework. Any changes made by the tool must be made in this directory,
+          and the tool's execution must be hermetic given these inputs to ensure
+          that the result can be safely cached.
+      linkopts: A list of strings representing extra flags that the underlying
+          `apple_binary` target should pass to the linker.
+      strings: A list of files that are plists of strings, often localizable.
+          These files are converted to binary plists (if they are not already)
+          and placed in the bundle root of the final package. If this file's
+          immediate containing directory is named `*.lproj`, it will be placed
+          under a directory of that name in the final bundle. This allows for
+          localizable strings.
+      deps: A list of dependencies, such as libraries, that are passed into the
+          `apple_binary` rule. Any resources, such as asset catalogs, that are
+          defined by these targets will also be transitively included in the
+          final framework.
+    """
+
+    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
+    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
+    # these workarounds into the rule implementations.
+    linkopts = kwargs.pop("linkopts", [])
+    bundle_name = kwargs.get("bundle_name", name)
+    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
+    kwargs["linkopts"] = linkopts
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.tvos),
+        **kwargs
+    )
+
+    # Remove any kwargs that shouldn't be passed to the underlying rule.
+    bundling_args.pop("entitlements", None)
+
+    _tvos_framework(
+        name = name,
+        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )

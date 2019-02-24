@@ -12,6 +12,13 @@ apple_binary(
     deps = [":dummy_lib"],
 )
 
+apple_binary(
+    name = "empty_tvos_dylib",
+    binary_type = "dylib",
+    platform_type = "tvos",
+    deps = [":dummy_lib"],
+)
+
 apple_static_library(
     name = "empty_staticlib",
     platform_type = "ios",
