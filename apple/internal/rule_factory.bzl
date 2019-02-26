@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ load(
     "MacosApplicationBundleInfo",
     "MacosExtensionBundleInfo",
     "MacosXPCServiceBundleInfo",
+    "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
@@ -637,6 +638,15 @@ def _get_tvos_attrs(rule_descriptor):
 If true, compiles and links this framework with `-application-extension`, restricting the binary to
 use only extension-safe APIs.
 """,
+            ),
+        })
+
+    elif _is_test_product_type(rule_descriptor.product_type):
+        attrs.append({
+            "test_host": attr.label(
+                aspects = [framework_import_aspect],
+                mandatory = False,
+                providers = [AppleBundleInfo, TvosApplicationBundleInfo],
             ),
         })
 

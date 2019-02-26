@@ -4,6 +4,7 @@ load(
     "IOS_TEST_CONFIGURATIONS",
     "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
+    "TVOS_TEST_CONFIGURATIONS",
     "WATCHOS_CONFIGURATIONS",
 )
 load(
@@ -374,6 +375,25 @@ apple_multi_shell_test(
         "//test/testdata/rules:dummy_runner",
     ],
     shard_count = 7,
+)
+
+apple_multi_shell_test(
+    name = "tvos_unit_test_test",
+    size = "medium",
+    src = "tvos_unit_test_test.sh",
+    configurations = TVOS_TEST_CONFIGURATIONS,
+    data = [
+        "//test/testdata/binaries:empty_tvos_dylib",
+        "//test/testdata/rules:dummy_runner",
+    ],
+    shard_count = 8,
+)
+
+apple_multi_shell_test(
+    name = "tvos_unit_test_resources_test",
+    size = "medium",
+    src = "tvos_unit_test_resources_test.sh",
+    configurations = TVOS_TEST_CONFIGURATIONS,
 )
 
 apple_multi_shell_test(

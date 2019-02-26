@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,6 +58,11 @@ TVOS_CONFIGURATIONS = {
     # "device_bitcode": TVOS_DEVICE_OPTIONS + [
     #    "--apple_bitcode=embedded_markers",
     #],
+    "simulator": TVOS_SIMULATOR_OPTIONS,
+}
+
+TVOS_TEST_CONFIGURATIONS = {
+    "device": TVOS_DEVICE_OPTIONS,
     "simulator": TVOS_SIMULATOR_OPTIONS,
 }
 

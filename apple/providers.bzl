@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -379,6 +379,17 @@ a "marker" to indicate that a target is specifically a tvOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS dynamic framework should use this provider to describe
 that requirement.
+""",
+)
+
+TvosXcTestBundleInfo = provider(
+    doc = """
+Denotes a target that is a tvOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a tvOS .xctest bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is a tvOS .xctest bundle should use this provider to describe that requirement.
 """,
 )
 

@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -133,6 +133,9 @@ def _tvos_application_impl(ctx):
             ),
         ),
         TvosApplicationBundleInfo(),
+        # Propagate the binary provider so that this target can be used as bundle_loader in test
+        # rules.
+        binary_provider,
     ] + processor_result.providers
 
 def _tvos_framework_impl(ctx):
