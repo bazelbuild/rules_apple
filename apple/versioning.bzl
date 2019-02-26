@@ -129,10 +129,10 @@ def _apple_bundle_version_impl(ctx):
         mnemonic = "AppleBundleVersion",
     )
 
-    return struct(
-        files = depset([bundle_version_file]),
-        providers = [AppleBundleVersionInfo(version_file = bundle_version_file)],
-    )
+    return [
+        AppleBundleVersionInfo(version_file = bundle_version_file),
+        DefaultInfo(files = depset([bundle_version_file])),
+    ]
 
 apple_bundle_version = rule(
     _apple_bundle_version_impl,

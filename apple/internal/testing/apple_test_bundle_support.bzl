@@ -120,14 +120,15 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         if x != outputs.archive(ctx)
     ]
 
-    return struct(
-        instrumented_files = struct(dependency_attributes = ["deps", "test_host"]),
-        providers = processor_result.providers + extra_providers + [
-            # TODO(kaipi): Remove this provider when apple_*_test is merged with the bundle and binary
-            # rules.
-            AppleExtraOutputsInfo(files = depset(filtered_outputs)),
-        ],
-    )
+    return processor_result.providers + extra_providers + [
+        coverage_common.instrumented_files_info(
+            ctx,
+            dependency_attributes = ["deps", "test_host"],
+        ),
+        # TODO(kaipi): Remove this provider when apple_*_test is merged with the bundle and binary
+        # rules.
+        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
+    ]
 
 def _assemble_test_targets(
         name,
