@@ -136,8 +136,9 @@ simple command line tool as a standalone binary, use
       <td><code>linkopts</code></td>
       <td>
         <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
       </td>
     </tr>
     <tr>
@@ -190,9 +191,10 @@ simple command line tool as a standalone binary, use
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final application.</p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final application.</p>
       </td>
     </tr>
   </tbody>
@@ -333,8 +335,9 @@ Builds and bundles a macOS loadable bundle.
       <td><code>linkopts</code></td>
       <td>
         <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
       </td>
     </tr>
     <tr>
@@ -379,9 +382,10 @@ Builds and bundles a macOS loadable bundle.
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final bundle.</p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final bundle.</p>
       </td>
     </tr>
   </tbody>
@@ -682,8 +686,9 @@ Builds and bundles a macOS extension.
       <td><code>linkopts</code></td>
       <td>
         <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
+        <p>A list of strings representing extra flags that the underlying
+        <code>apple_binary</code> target created by this rule should pass to the
+        linker.</p>
       </td>
     </tr>
     <tr>
@@ -728,9 +733,10 @@ Builds and bundles a macOS extension.
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final extension.</p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final extension.</p>
       </td>
     </tr>
   </tbody>
@@ -1185,9 +1191,10 @@ of the attributes inherited by all test rules, please check the
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final test bundle.</p>
       </td>
     </tr>
   </tbody>
@@ -1300,9 +1307,10 @@ of the attributes inherited by all test rules, please check the
       <td><code>deps</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
+        <p>A list of dependencies targets that are passed into the
+        <code>apple_binary</code> rule to be linked. Any resources, such as
+        asset catalogs, that are referenced by those targets will also be
+        transitively included in the final test bundle.</p>
       </td>
     </tr>
     <tr>
