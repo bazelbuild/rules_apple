@@ -107,7 +107,8 @@ def apple_rules_dependencies(ignore_version_differences = False):
         git_repository,
         name = "build_bazel_apple_support",
         remote = "https://github.com/bazelbuild/apple_support.git",
-        tag = "0.5.0",
+        commit = "dabf718975760b4d45bd7db3e18bc12e7b4ef485",
+        shallow_since = "1551297696 -0500",
         ignore_version_differences = ignore_version_differences,
     )
 
