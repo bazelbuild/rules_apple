@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -404,6 +404,16 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
             skip_signing = True,
+        ),
+        # tvos_unit_test
+        apple_product_type.unit_test_bundle: _describe_rule_type(
+            allowed_device_families = ["tv"],
+            binary_type = "loadable_bundle",
+            bundle_extension = ".xctest",
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = apple_product_type.unit_test_bundle,
+            requires_signing_for_device = False,
+            skip_simulator_signing_allowed = False,
         ),
     },
     "watchos": {
