@@ -82,13 +82,13 @@ def _swift_runtime_linkopts_impl(ctx):
         ))
 
     if linkopts:
-        return struct(
-            objc = apple_common.new_objc_provider(
+        return [
+            apple_common.new_objc_provider(
                 linkopt = depset(linkopts, order = "topological"),
             ),
-        )
+        ]
     else:
-        return struct(objc = apple_common.new_objc_provider())
+        return [apple_common.new_objc_provider()]
 
 swift_runtime_linkopts = rule(
     _swift_runtime_linkopts_impl,
