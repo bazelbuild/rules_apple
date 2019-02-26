@@ -164,7 +164,7 @@ def macos_bundle(name, **kwargs):
     # the attribute with providers.
     bundle_loader = binary_args.pop("bundle_loader", None)
     if bundle_loader:
-        bundle_loader = "%s.__internal__.apple_binary" % bundle_loader
+        bundle_loader = "%s.apple_binary" % bundle_loader
         binary_args["bundle_loader"] = bundle_loader
 
     features = binary_args.pop("features", [])

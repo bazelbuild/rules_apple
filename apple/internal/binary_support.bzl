@@ -142,7 +142,7 @@ def _create_linked_binary_target(
         bundle_loader = None,
         link_swift_statically = False,
         suppress_entitlements = False,
-        target_name_template = "%s.__internal__.apple_binary",
+        target_name_template = "%s.apple_binary",
         **kwargs):
     """Creates a binary target for a bundle by linking user code.
 
@@ -237,9 +237,9 @@ def _create_linked_binary_target(
         platform_type = platform_type,
         sdk_frameworks = sdk_frameworks,
         deps = deps + entitlements_deps + swift_linkopts_deps,
-        tags = ["manual", "notap"] + kwargs.get("tags", []),
+        tags = ["manual"] + kwargs.get("tags", []),
         testonly = testonly,
-        visibility = ["//visibility:private"],
+        visibility = kwargs.get("visibility"),
     )
     bundling_args["binary"] = apple_binary_name
     bundling_args["deps"] = [":" + apple_binary_name]
