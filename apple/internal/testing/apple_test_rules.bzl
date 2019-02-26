@@ -132,7 +132,7 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Skip collecting files if coverage is not enabled.
     if not ctx.configuration.coverage_enabled:
-        return struct()
+        return []
 
     coverage_files = []
 
@@ -158,7 +158,7 @@ def _coverage_files_aspect_impl(target, ctx):
         coverage_files.append(test_host_target[CoverageFiles].coverage_files)
         transitive_binaries_sets.append(test_host_target[CoverageFiles].covered_binaries)
 
-    return struct(providers = [
+    return [
         CoverageFiles(
             coverage_files = depset(transitive = coverage_files),
             covered_binaries = depset(
@@ -166,7 +166,7 @@ def _coverage_files_aspect_impl(target, ctx):
                 transitive = transitive_binaries_sets,
             ),
         ),
-    ])
+    ]
 
 coverage_files_aspect = aspect(
     attr_aspects = [
@@ -477,26 +477,23 @@ def _apple_test_impl(ctx, test_type):
             ctx.attr.test_bundle[apple_common.AppleDebugOutputs],
         )
 
-    return struct(
-        # TODO(b/79527231): Migrate to new style providers.
-        instrumented_files = struct(dependency_attributes = ["test_bundle"]),
-        providers = [
-            ctx.attr.test_bundle[AppleBundleInfo],
-            ctx.attr.test_bundle[AppleTestInfo],
-            testing.ExecutionInfo(execution_requirements),
-            testing.TestEnvironment(test_environment),
-            DefaultInfo(
-                executable = executable,
-                files = outputs,
-                runfiles = ctx.runfiles(
-                    files = direct_runfiles,
-                    transitive_files = depset(transitive = transitive_runfiles),
-                )
-                    .merge(ctx.attr.runner.default_runfiles)
-                    .merge(ctx.attr.runner.data_runfiles),
-            ),
-        ] + extra_providers,
-    )
+    return [
+        coverage_common.instrumented_files_info(ctx, dependency_attributes = ["test_bundle"]),
+        ctx.attr.test_bundle[AppleBundleInfo],
+        ctx.attr.test_bundle[AppleTestInfo],
+        testing.ExecutionInfo(execution_requirements),
+        testing.TestEnvironment(test_environment),
+        DefaultInfo(
+            executable = executable,
+            files = outputs,
+            runfiles = ctx.runfiles(
+                files = direct_runfiles,
+                transitive_files = depset(transitive = transitive_runfiles),
+            )
+                .merge(ctx.attr.runner.default_runfiles)
+                .merge(ctx.attr.runner.data_runfiles),
+        ),
+    ] + extra_providers
 
 def _apple_unit_test_impl(ctx):
     """Implementation for the apple_unit_test rule."""
