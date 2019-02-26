@@ -477,26 +477,26 @@ def _apple_test_impl(ctx, test_type):
             ctx.attr.test_bundle[apple_common.AppleDebugOutputs],
         )
 
-    return struct(
-        # TODO(b/79527231): Migrate to new style providers.
-        instrumented_files = struct(dependency_attributes = ["test_bundle"]),
-        providers = [
-            ctx.attr.test_bundle[AppleBundleInfo],
-            ctx.attr.test_bundle[AppleTestInfo],
-            testing.ExecutionInfo(execution_requirements),
-            testing.TestEnvironment(test_environment),
-            DefaultInfo(
-                executable = executable,
-                files = outputs,
-                runfiles = ctx.runfiles(
-                    files = direct_runfiles,
-                    transitive_files = depset(transitive = transitive_runfiles),
-                )
-                    .merge(ctx.attr.runner.default_runfiles)
-                    .merge(ctx.attr.runner.data_runfiles),
-            ),
-        ] + extra_providers,
-    )
+    return [
+        coverage_common.instrumented_files_info(
+            ctx,
+            dependency_attributes = ["test_bundle"],
+        ),
+        ctx.attr.test_bundle[AppleBundleInfo],
+        ctx.attr.test_bundle[AppleTestInfo],
+        testing.ExecutionInfo(execution_requirements),
+        testing.TestEnvironment(test_environment),
+        DefaultInfo(
+            executable = executable,
+            files = outputs,
+            runfiles = ctx.runfiles(
+                files = direct_runfiles,
+                transitive_files = depset(transitive = transitive_runfiles),
+            )
+                .merge(ctx.attr.runner.default_runfiles)
+                .merge(ctx.attr.runner.data_runfiles),
+        ),
+    ] + extra_providers
 
 def _apple_unit_test_impl(ctx):
     """Implementation for the apple_unit_test rule."""

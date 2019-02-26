@@ -153,22 +153,23 @@ def _ios_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    return struct(
+    return [
         # TODO(b/121155041): Should we do the same for ios_framework and ios_extension?
-        instrumented_files = struct(dependency_attributes = ["binary"]),
-        providers = [
-            DefaultInfo(
-                files = processor_result.output_files,
-                runfiles = ctx.runfiles(
-                    files = run_actions.start_simulator(ctx),
-                ),
+        DefaultInfo(
+            files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = run_actions.start_simulator(ctx),
             ),
-            IosApplicationBundleInfo(),
-            # Propagate the binary provider so that this target can be used as bundle_loader in test
-            # rules.
-            binary_target[apple_common.AppleExecutableBinary],
-        ] + processor_result.providers,
-    )
+        ),
+        coverage_common.instrumented_files_info(
+            ctx,
+            dependency_attributes = ["binary"],
+        ),
+        IosApplicationBundleInfo(),
+        # Propagate the binary provider so that this target can be used as bundle_loader in test
+        # rules.
+        binary_target[apple_common.AppleExecutableBinary],
+    ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
