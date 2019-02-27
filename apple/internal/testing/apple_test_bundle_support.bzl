@@ -23,6 +23,10 @@ load(
     "binary_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "linking_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -73,10 +77,9 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
              "same as the test host's bundle identifier. Please change one of " +
              "them.")
 
-    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
-    binary_provider = binary_provider_struct.binary_provider
-    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
-    binary_artifact = binary_provider.binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     test_host_list = []
     product_type = ctx.attr._product_type
@@ -136,7 +139,6 @@ def _assemble_test_targets(
         platform_type,
         test_rule,
         bundle_loader = None,
-        extra_linkopts = [],
         platform_default_runner = None,
         uses_provisioning_profile = False,
         **kwargs):
@@ -159,7 +161,6 @@ def _assemble_test_targets(
         test_rule: The rule to use for the top level test target.
         bundle_loader: If specified, the apple_binary target to specify as the bundle loader for the
             test binary.
-        extra_linkopts: Extra linkopts to pass to the linker.
         platform_default_runner: The default runner for the platform, in case none is provider by
             the user.
         uses_provisioning_profile: Whether the test rule requires a provisioning profile for running
@@ -168,8 +169,8 @@ def _assemble_test_targets(
     """
     test_bundle_name = name + "_test_bundle"
 
+    # Catch the linkopts to set them into the bundle target.
     linkopts = kwargs.pop("linkopts", [])
-    linkopts += extra_linkopts + ["-framework", "XCTest"]
 
     # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
     # TODO(kaipi): Cleanup binary_tags for tests and remove this.

@@ -475,21 +475,6 @@ def ios_sticker_pack_extension(name, **kwargs):
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_imessage_extension(name, **kwargs):
     """Macro to override the linkopts and preprocess entitlements for iMessage extensions."""
-    frameworks = kwargs.pop("frameworks", [])
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    linkopts = kwargs.pop("linkopts", [])
-    linkopts += [
-        "-application_extension",
-        "-e",
-        "_NSExtensionMain",
-        # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-        "-rpath",
-        "@executable_path/../../Frameworks",
-    ]
-
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.ios),
@@ -498,8 +483,6 @@ def ios_imessage_extension(name, **kwargs):
 
     return _ios_imessage_extension(
         name = name,
-        dylibs = frameworks,
-        frameworks = frameworks,
-        linkopts = linkopts,
+        dylibs = bundling_args.get("frameworks", []),
         **bundling_args
     )

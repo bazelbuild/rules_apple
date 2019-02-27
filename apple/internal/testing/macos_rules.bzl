@@ -36,14 +36,6 @@ load(
     "MacosXcTestBundleInfo",
 )
 
-# TODO(b/62481675): Move these rpath flags into crosstool features.
-_EXTRA_TEST_LINKOPTS = [
-    "-rpath",
-    "@executable_path/../Frameworks",
-    "-rpath",
-    "@loader_path/../Frameworks",
-]
-
 def _macos_test_bundle_impl(ctx):
     """Experimental implementation of macos_application."""
     return apple_test_bundle_support.apple_test_bundle_impl(
@@ -78,7 +70,6 @@ def macos_unit_test(
         platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
         bundle_loader = bundle_loader,
         bundling_rule = _macos_unit_test_bundle,
-        extra_linkopts = _EXTRA_TEST_LINKOPTS,
         test_host = test_host,
         test_rule = apple_unit_test,
         **kwargs
@@ -92,7 +83,6 @@ def macos_ui_test(
         platform_type = "macos",
         platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
         bundling_rule = _macos_ui_test_bundle,
-        extra_linkopts = _EXTRA_TEST_LINKOPTS,
         test_rule = apple_ui_test,
         uses_provisioning_profile = True,
         **kwargs
