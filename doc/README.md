@@ -1,5 +1,10 @@
 # Apple Bazel definitions
 
+## Guides
+
+*   [Frameworks Guide](frameworks.md)
+*   [Resources Guide](resources.md)
+
 ## Platform-specific rules
 
 Each Apple platform has its own rules for building bundles (applications,
