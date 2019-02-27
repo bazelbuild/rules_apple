@@ -1187,7 +1187,7 @@ class EntitlementsTask(PlistToolTask):
               **report_extras)
 
     # If beta-reports-active is in either the profile or the entitlements file
-    # it must be in both or the upload will get rejected by Applejk
+    # it must be in both or the upload will get rejected by Apple
     beta_reports_active = entitlements.get('beta-reports-active')
     profile_key = (profile_entitlements or {}).get('beta-reports-active')
     if beta_reports_active is not None and profile_key != beta_reports_active:
