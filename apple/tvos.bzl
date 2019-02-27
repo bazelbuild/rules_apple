@@ -152,24 +152,6 @@ def tvos_extension(name, **kwargs):
           defined by these targets will also be transitively included in the
           final extension.
     """
-
-    # Add extension-specific linker options. Note that since apple_binary
-    # prepends "-Wl," to each option, we must use the form expected by ld, not
-    # the form expected by clang (i.e., -application_extension, not
-    # -fapplication-extension).
-    # Make sure that TVServices.framework is linked in as well, to ensure that
-    # _TVExtensionMain is found. (Anyone writing a TV extension should already be
-    # importing this framework, anyway.)
-    linkopts = kwargs.get("linkopts", [])
-    linkopts += [
-        "-e",
-        "_TVExtensionMain",
-        "-application_extension",
-        "-framework",
-        "TVServices",
-    ]
-    kwargs["linkopts"] = linkopts
-
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.tvos),

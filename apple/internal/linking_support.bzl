@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Support functions for interacting with the linker."""
+"""Support for linking related actions."""
+
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
 
 def _sectcreate_objc_provider(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
@@ -40,7 +45,42 @@ def _sectcreate_objc_provider(segname, sectname, file):
         link_inputs = depset([file]),
     )
 
-# Define the loadable module that lists the exported symbols in this file.
-linker_support = struct(
+def _register_linking_action(ctx, extra_linkopts = []):
+    """Registers linking actions using the Starlark Linking API for Apple binaries.
+
+    This method will add the linkopts as added on the rule descriptor, in addition to any extra
+    linkopts given when invoking this method.
+
+    Args:
+        ctx: The rule context.
+        extra_linkopts: Extra linkopts to add to the linking action.
+
+    Returns:
+        A descriptor `struct` with the following fields:
+            * `provider`: The binary provider that represents the linked binary.
+            * `debug_outputs_provider`: The provider containing the debug symbols, if any were
+              requested.
+            * `artifact`: The final linked binary `File`.
+    """
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    linkopts = rule_descriptor.extra_linkopts + extra_linkopts
+
+    binary_provider_struct = apple_common.link_multi_arch_binary(
+        ctx = ctx,
+        extra_linkopts = linkopts,
+    )
+    binary_provider = binary_provider_struct.binary_provider
+    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
+    binary_artifact = binary_provider.binary
+
+    return struct(
+        provider = binary_provider,
+        debug_outputs_provider = debug_outputs_provider,
+        artifact = binary_artifact,
+    )
+
+linking_support = struct(
+    register_linking_action = _register_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )

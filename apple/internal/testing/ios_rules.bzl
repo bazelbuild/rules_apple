@@ -36,13 +36,6 @@ load(
     "IosXcTestBundleInfo",
 )
 
-# TODO(b/38350264): Remove these linkopts once bazel adds the
-# @loader_path/Frameworks rpath by default.
-_EXTRA_TEST_LINKOPTS = [
-    "-rpath",
-    "@loader_path/Frameworks",
-]
-
 def _ios_test_bundle_impl(ctx):
     """Experimental implementation of ios_application."""
     return apple_test_bundle_support.apple_test_bundle_impl(
@@ -77,7 +70,6 @@ def ios_unit_test(
         platform_type = "ios",
         platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
         bundling_rule = _ios_unit_test_bundle,
-        extra_linkopts = _EXTRA_TEST_LINKOPTS,
         test_host = test_host,
         test_rule = apple_unit_test,
         **kwargs
@@ -91,7 +83,6 @@ def ios_ui_test(
         platform_type = "ios",
         platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
         bundling_rule = _ios_ui_test_bundle,
-        extra_linkopts = _EXTRA_TEST_LINKOPTS,
         test_rule = apple_ui_test,
         uses_provisioning_profile = True,
         **kwargs

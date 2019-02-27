@@ -19,6 +19,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "linking_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -394,10 +398,9 @@ def _ios_imessage_extension_impl(ctx):
         "strings",
     ]
 
-    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
-    binary_provider = binary_provider_struct.binary_provider
-    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
-    binary_artifact = binary_provider.binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     bundle_id = ctx.attr.bundle_id
 

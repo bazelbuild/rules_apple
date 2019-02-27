@@ -35,13 +35,6 @@ load(
     "TvosXcTestBundleInfo",
 )
 
-# TODO(b/38350264): Remove these linkopts once bazel adds the
-# @loader_path/Frameworks rpath by default.
-_EXTRA_TEST_LINKOPTS = [
-    "-rpath",
-    "@loader_path/Frameworks",
-]
-
 def _tvos_test_bundle_impl(ctx):
     """Experimental implementation of tvos_application."""
     return apple_test_bundle_support.apple_test_bundle_impl(
@@ -69,7 +62,6 @@ def tvos_unit_test(
         platform_type = "tvos",
         platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
         bundling_rule = _tvos_unit_test_bundle,
-        extra_linkopts = _EXTRA_TEST_LINKOPTS,
         test_host = test_host,
         test_rule = apple_unit_test,
         **kwargs

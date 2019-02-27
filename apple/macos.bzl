@@ -223,17 +223,9 @@ def macos_xpc_service(name, **kwargs):
     """Packages a macOS XPC Service Application."""
     binary_args = dict(kwargs)
 
-    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-    linkopts = binary_args.pop("linkopts", [])
-    linkopts += [
-        "-rpath",
-        "@executable_path/../../../../Frameworks",
-    ]
-
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.macos),
-        linkopts = linkopts,
         **binary_args
     )
 
@@ -407,18 +399,6 @@ def macos_extension(name, **kwargs):
     """Packages a macOS Extension Bundle."""
     binary_args = dict(kwargs)
 
-    # Add extension-specific linker options.
-    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-    linkopts = binary_args.pop("linkopts", [])
-    linkopts += [
-        "-e",
-        "_NSExtensionMain",
-        "-rpath",
-        "@executable_path/../Frameworks",
-        "-rpath",
-        "@executable_path/../../../../Frameworks",
-    ]
-
     features = binary_args.pop("features", [])
     features += ["link_cocoa"]
 
@@ -426,7 +406,6 @@ def macos_extension(name, **kwargs):
         name,
         platform_type = str(apple_common.platform_type.macos),
         features = features,
-        linkopts = linkopts,
         **binary_args
     )
 

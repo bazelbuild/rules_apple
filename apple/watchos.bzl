@@ -151,19 +151,6 @@ def watchos_extension(name, **kwargs):
           defined by these targets will also be transitively included in the
           final extension.
     """
-
-    # Add extension-specific linker options. Note that since apple_binary
-    # prepends "-Wl," to each option, we must use the form expected by ld, not
-    # the form expected by clang (i.e., -application_extension, not
-    # -fapplication-extension).
-    linkopts = kwargs.get("linkopts", [])
-    linkopts += [
-        "-application_extension",
-        "-rpath",
-        "@executable_path/../../Frameworks",
-    ]
-    kwargs["linkopts"] = linkopts
-
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.watchos),
