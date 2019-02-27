@@ -1761,23 +1761,18 @@ class PlistToolTest(unittest.TestCase):
       }, plist)
 
   def test_entitlements_missing_beta_reports_active(self):
-    with self.assertRaisesRegexp(
-        plisttool.PlistToolError,
-        re.escape(
-            plisttool.ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_ENTITLEMENTS % (
-                _testing_target, 'True'))):
-      plist = {}
-      self._assert_plisttool_result({
-          'plists': [plist],
-          'entitlements_options': {
-              'profile_metadata_file': {
-                  'Entitlements': {
-                      'beta-reports-active': True,
-                  },
-                  'Version': 1,
-              },
-          },
-      }, plist)
+    plist = {}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'beta-reports-active': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
 
   def test_entitlements_beta_reports_active_mismatch(self):
     with self.assertRaisesRegexp(

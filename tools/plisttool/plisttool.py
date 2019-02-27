@@ -302,11 +302,6 @@ ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'match the value in the provisioning profile ("%s").'
 )
 
-ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_ENTITLEMENTS = (
-    'In target "%s"; the profile has "beta-reports-active" ("%s") so it must '
-    'also exist in the entitlements file.'
-)
-
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE = (
     'In target "%s"; the entitlements file has "beta-reports-active" ("%s") '
     'but it does not exist in the profile.'
@@ -1195,15 +1190,12 @@ class EntitlementsTask(PlistToolTask):
     # it must be in both or the upload will get rejected by Applejk
     beta_reports_active = entitlements.get('beta-reports-active')
     profile_key = (profile_entitlements or {}).get('beta-reports-active')
-    if profile_key != beta_reports_active:
+    if beta_reports_active is not None and profile_key != beta_reports_active:
       error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
         self.target, beta_reports_active, profile_key)
       if profile_key is None:
         error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE % (
           self.target, beta_reports_active)
-      elif beta_reports_active is None:
-        error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_ENTITLEMENTS % (
-          self.target, profile_key)
       self._report(error_msg, **report_extras)
 
     # keychain-access-groups
