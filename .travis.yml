@@ -31,12 +31,6 @@ matrix:
       # Lint is disabled because of github.com/bazelbuild/buildtools/issues/458
       # and there is one file that needs that at the moment.
       env: BUILDIFIER=RELEASE LINT=no
-    # The normal macOS builds.
-    - env: BAZEL=HEAD TARGET=//tools/...
-    # //test/... is split because it takes too long and times out on travis.
-    - env: BAZEL=HEAD TARGET=//test/... TAGS=config_device,config_device_bitcode
-    - env: BAZEL=HEAD TARGET=//test/... TAGS=-config_device,-config_device_bitcode
-    - env: BAZEL=HEAD TARGET=//examples/... BUILD_TESTS_ONLY=1
 
 
 before_install:

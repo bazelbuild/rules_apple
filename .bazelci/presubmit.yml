@@ -1,6 +1,9 @@
 ---
-platforms:
-  macos:
+tasks:
+  macos_latest:
+    name: "Latest Bazel"
+    platform: macos
+    bazel: latest
     build_targets:
     - "tools/..."
     - "test/..."
@@ -15,3 +18,25 @@ platforms:
     - "tools/..."
     - "test/..."
     - "examples/..."
+
+  macos_last_green:
+    name: "Last Green Bazel"
+    platform: macos
+    bazel: last_green
+    build_targets:
+    - "tools/..."
+    - "test/..."
+    test_flags:
+    - "--spawn_strategy=local"
+    - "--test_env=PATH"
+    # `bazel test` tries to build everything also by default, so skip that so the
+    # *_library targets in examples/... aren't built (and fail since they are
+    # platform specific).
+    - "--build_tests_only"
+    test_targets:
+    - "tools/..."
+    - "test/..."
+    - "examples/..."
+
+# Need to check the state of the code
+#buildifier: true
