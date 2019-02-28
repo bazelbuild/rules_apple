@@ -474,6 +474,24 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             skip_signing = True,
         ),
+        # tvos_ui_test
+        apple_product_type.ui_test_bundle: _describe_rule_type(
+            allowed_device_families = ["tv"],
+            binary_type = "loadable_bundle",
+            bundle_extension = ".xctest",
+            deps_cfg = apple_common.multi_arch_split,
+            extra_linkopts = [
+                "-rpath",
+                "@executable_path/Frameworks",
+                "-rpath",
+                "@loader_path/Frameworks",
+                "-framework",
+                "XCTest",
+            ],
+            product_type = apple_product_type.ui_test_bundle,
+            requires_signing_for_device = False,
+            skip_simulator_signing_allowed = False,
+        ),
         # tvos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["tv"],
