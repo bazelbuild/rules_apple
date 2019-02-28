@@ -347,8 +347,8 @@ def ios_ui_test(name, **kwargs):
       minimum_os_version: The minimum OS version that this target and its
           dependencies should be built for. Optional.
       runner: The runner target that contains the logic of how the tests should
-          be executed. This target needs to provide an AppleTestRunner provider.
-          Optional.
+          be executed. This target needs to provide an AppleTestRunnerInfo
+          provider. Optional.
       deps: A list of dependencies that contain the test code and dependencies
           needed to run the tests.
     """
@@ -360,7 +360,7 @@ def ios_ui_test_suite(name, runners = [], tags = [], **kwargs):
     Args:
       name: The name of the target.
       runners: The list of runner targets that contain the logic of how the tests
-          should be executed. This target needs to provide an AppleTestRunner
+          should be executed. This target needs to provide an AppleTestRunnerInfo
           provider. Required (minimum of 2 runners).
       tags: List of arbitrary text tags to be added to the test_suite. Tags may be
           any valid string. Optional. Defaults to an empty list.
@@ -400,8 +400,8 @@ def ios_unit_test(name, **kwargs):
       minimum_os_version: The minimum OS version that this target and its
           dependencies should be built for. Optional.
       runner: The runner target that contains the logic of how the tests should
-          be executed. This target needs to provide an AppleTestRunner provider.
-          Optional.
+          be executed. This target needs to provide an AppleTestRunnerInfo
+          provider. Optional.
       deps: A list of dependencies that contain the test code and dependencies
           needed to run the tests.
     """
@@ -421,7 +421,7 @@ def ios_unit_test_suite(name, runners = [], tags = [], **kwargs):
           Info.plist that represents the test bundle. The merge is only at the
           top level of the plist; so sub-dictionaries are not merged.
       runners: The list of runner targets that contain the logic of how the tests
-          should be executed. This target needs to provide an AppleTestRunner
+          should be executed. This target needs to provide an AppleTestRunnerInfo
           provider. Required (minimum of 2 runners).
       deps: A list of dependencies that contain the test code and dependencies
           needed to run the tests.

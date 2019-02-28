@@ -435,8 +435,8 @@ def macos_ui_test(
       minimum_os_version: The minimum OS version that this target and its
           dependencies should be built for. Optional.
       runner: The runner target that contains the logic of how the tests should
-          be executed. This target needs to provide an AppleTestRunner provider.
-          Optional.
+          be executed. This target needs to provide an AppleTestRunnerInfo
+          provider. Optional.
       deps: A list of dependencies that contain the test code and resources
           needed to run the tests.
     """
@@ -467,8 +467,8 @@ def macos_unit_test(
       minimum_os_version: The minimum OS version that this target and its
           dependencies should be built for. Optional.
       runner: The runner target that contains the logic of how the tests should
-          be executed. This target needs to provide an AppleTestRunner provider.
-          Optional.
+          be executed. This target needs to provide an AppleTestRunnerInfo
+          provider. Optional.
       deps: A list of dependencies that contain the test code and resources
           needed to run the tests.
     """

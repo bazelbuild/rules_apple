@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunner",
+    "AppleTestRunnerInfo",
 )
 
 def _get_xctestrun_template_substitutions(ctx):
@@ -83,7 +83,7 @@ def _macos_test_runner_impl(ctx):
     )
 
     return [
-        AppleTestRunner(
+        AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {"requires-darwin": ""},
             test_environment = _get_test_environment(ctx),
@@ -121,7 +121,7 @@ macos_test_runner = rule(
 Rule to identify an macOS runner that runs tests for macOS.
 
 Provides:
-  AppleTestRunner:
+  AppleTestRunnerInfo:
     test_runner_template: Template file that contains the specific mechanism
         with which the tests will be performed.
     execution_requirements: Dictionary that represents the specific hardware
