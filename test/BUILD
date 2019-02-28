@@ -397,6 +397,17 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "tvos_ui_test_test",
+    size = "medium",
+    src = "tvos_ui_test_test.sh",
+    configurations = TVOS_TEST_CONFIGURATIONS,
+    data = [
+        "//test/testdata/rules:dummy_runner",
+    ],
+    shard_count = 7,
+)
+
+apple_multi_shell_test(
     name = "dtrace_test",
     size = "medium",
     src = "dtrace_test.sh",

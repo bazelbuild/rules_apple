@@ -20,6 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rules.bzl",
+    "apple_ui_test",
     "apple_unit_test",
 )
 load(
@@ -41,6 +42,13 @@ def _tvos_test_bundle_impl(ctx):
         ctx,
         extra_providers = [TvosXcTestBundleInfo()],
     )
+
+_tvos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+    implementation = _tvos_test_bundle_impl,
+    platform_type = "tvos",
+    product_type = apple_product_type.ui_test_bundle,
+    doc = "Builds and bundles a tvOS UI Test Bundle.",
+)
 
 _tvos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_test_bundle_impl,
@@ -64,5 +72,18 @@ def tvos_unit_test(
         bundling_rule = _tvos_unit_test_bundle,
         test_host = test_host,
         test_rule = apple_unit_test,
+        **kwargs
+    )
+
+def tvos_ui_test(
+        name,
+        **kwargs):
+    apple_test_bundle_support.assemble_test_targets(
+        name = name,
+        platform_type = "tvos",
+        platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
+        bundling_rule = _tvos_ui_test_bundle,
+        test_rule = apple_ui_test,
+        uses_provisioning_profile = True,
         **kwargs
     )

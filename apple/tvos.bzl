@@ -16,6 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple/internal/testing:tvos_rules.bzl",
+    _tvos_ui_test = "tvos_ui_test",
     _tvos_unit_test = "tvos_unit_test",
 )
 load(
@@ -228,6 +229,32 @@ def tvos_framework(name, **kwargs):
         dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
+
+def tvos_ui_test(name, **kwargs):
+    """Builds an XCUITest test bundle and tests it using the provided runner.
+
+    The named target produced by this macro is a test target that can be executed
+    with the `bazel test` command.
+
+    Args:
+      name: The name of the target.
+      test_host: The tvos_application target that contains the code to be
+          tested. Required.
+      bundle_id: The bundle ID (reverse-DNS path followed by app name) of the
+          test bundle. Optional. Defaults to the test_host's postfixed with
+          "Tests".
+      infoplists: A list of plist files that will be merged to form the
+          Info.plist that represents the test bundle. The merge is only at the
+          top level of the plist; so sub-dictionaries are not merged.
+      minimum_os_version: The minimum OS version that this target and its
+          dependencies should be built for. Optional.
+      runner: The runner target that contains the logic of how the tests should
+          be executed. This target needs to provide an AppleTestRunner provider.
+          Optional.
+      deps: A list of dependencies that contain the test code and dependencies
+          needed to run the tests.
+    """
+    _tvos_ui_test(name = name, **kwargs)
 
 def tvos_unit_test(name, **kwargs):
     """Builds an XCTest unit test bundle and tests it using the provided runner.
