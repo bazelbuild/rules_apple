@@ -84,7 +84,7 @@ source files of the immediate deps.
     },
 )
 
-AppleTestRunner = provider(
+AppleTestRunnerInfo = provider(
     doc = """
 Provider that runner targets must propagate.
 
@@ -310,9 +310,9 @@ The Apple platform that this test is targeting. Required. Possible values are
         "runner": attr.label(
             doc = """
 The runner target that will provide the logic on how to run the tests. Needs to
-provide the AppleTestRunner provider. Required.
+provide the AppleTestRunnerInfo provider. Required.
 """,
-            providers = [AppleTestRunner],
+            providers = [AppleTestRunnerInfo],
             mandatory = True,
         ),
         "test_bundle": attr.label(
@@ -408,7 +408,7 @@ def _get_coverage_test_environment(ctx):
 
 def _apple_test_impl(ctx, test_type):
     """Common implementation for the apple test rules."""
-    runner = ctx.attr.runner[AppleTestRunner]
+    runner = ctx.attr.runner[AppleTestRunnerInfo]
     execution_requirements = runner.execution_requirements
 
     # TODO(b/120222745): Standardize the setup of the environment variables passed on the env

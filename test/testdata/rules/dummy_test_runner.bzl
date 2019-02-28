@@ -16,7 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunner",
+    "AppleTestRunnerInfo",
 )
 
 def _dummy_test_runner_impl(ctx):
@@ -27,7 +27,7 @@ def _dummy_test_runner_impl(ctx):
     )
 
     return [
-        AppleTestRunner(
+        AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {},
             test_environment = {},

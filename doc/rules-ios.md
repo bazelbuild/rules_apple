@@ -1240,8 +1240,8 @@ of the attributes inherited by all test rules, please check the
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
-        provider.</p>
+        needs to be defined using a rule that provides the
+        <code>AppleTestRunnerInfo</code> provider.</p>
       </td>
     </tr>
     <tr>
@@ -1369,8 +1369,8 @@ Builds an XCUITest test suite with the given runners.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunner</code> provider. This attribute is required and
-        must contain at least 2 runners.</p>
+        <code>AppleTestRunnerInfo</code> provider. This attribute is required
+        and must contain at least 2 runners.</p>
       </td>
     </tr>
     <tr>
@@ -1510,7 +1510,7 @@ of the attributes inherited by all test rules, please check the
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the <code>AppleTestRunner</code>
+        needs to be defined using a rule that provides the <code>AppleTestRunnerInfo</code>
         provider. The default runner can only run logic-based tests (i.e. tests
         that do not rely on running a test host application). This is not the
         case when running the tests from a Tulsi generated project, and both
@@ -1631,8 +1631,8 @@ Builds an XCTest unit test suite with the given runners.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunner</code> provider. This attribute is required and
-        must contain at least 2 runners.</p>
+        <code>AppleTestRunnerInfo</code> provider. This attribute is required
+        and must contain at least 2 runners.</p>
       </td>
     </tr>
     <tr>

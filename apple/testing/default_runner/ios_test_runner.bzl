@@ -16,7 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunner",
+    "AppleTestRunnerInfo",
 )
 
 def _get_template_substitutions(ctx):
@@ -47,7 +47,7 @@ def _ios_test_runner_impl(ctx):
         substitutions = _get_template_substitutions(ctx),
     )
     return [
-        AppleTestRunner(
+        AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
             test_environment = _get_test_environment(ctx),
@@ -100,7 +100,7 @@ By default, it is the latest supported version of the device type.'
             executable = True,
             cfg = "host",
             doc = """
-It is the rule that needs to provide the AppleTestRunner provider. This
+It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.
 """,
         ),
@@ -122,7 +122,7 @@ The runner will create a new simulator according to the given arguments to run
 tests.
 
 Outputs:
-  AppleTestRunner:
+  AppleTestRunnerInfo:
     test_runner_template: Template file that contains the specific mechanism
         with which the tests will be performed.
     execution_requirements: Dictionary that represents the specific hardware
