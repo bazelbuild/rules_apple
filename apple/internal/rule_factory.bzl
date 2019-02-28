@@ -158,12 +158,6 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
 
 def _common_binary_linking_attrs(rule_descriptor):
     return {
-        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API. Check that Tulsi
-        # isn't using this for some reason.
-        "binary": attr.label(
-            allow_single_file = True,
-            mandatory = False,
-        ),
         "binary_type": attr.string(
             default = rule_descriptor.binary_type,
             doc = """
@@ -731,11 +725,6 @@ required for device builds.
         })
 
     attrs.append({
-        # TODO(kaipi): Remove when all rules use the internal/rule_factory.bzl API.
-        "binary": attr.label(
-            allow_single_file = True,
-            mandatory = True,
-        ),
         "bundle_id": attr.string(
             doc = """
 The bundle ID (reverse-DNS path followed by app name) of the command line application. If present,

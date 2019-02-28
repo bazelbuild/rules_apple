@@ -745,28 +745,6 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that the build fails if the user tries to provide their own value for
-# the "binary" attribute.
-function test_build_fails_if_binary_attribute_used() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    binary = ":ThisShouldNotBeAllowed",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "Do not provide your own binary"
-}
-
 # Helper for empty segment build id failures.
 function verify_build_fails_bundle_id_empty_segment_with_param() {
   bundle_id_to_test="$1"; shift

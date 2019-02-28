@@ -241,7 +241,6 @@ def _create_linked_binary_target(
         testonly = testonly,
         visibility = kwargs.get("visibility"),
     )
-    bundling_args["binary"] = apple_binary_name
     bundling_args["deps"] = [":" + apple_binary_name]
 
     return bundling_args
@@ -278,15 +277,6 @@ def _create_binary(
     sdk_frameworks = args_copy.pop("sdk_frameworks", [])
     extension_safe = args_copy.pop("extension_safe", False)
     bundle_loader = args_copy.pop("bundle_loader", None)
-
-    # If a user provides a "binary" attribute of their own, it is ignored and
-    # silently overwritten below. Instead of allowing this, we should fail fast
-    # to prevent confusion.
-    if "binary" in args_copy:
-        fail(
-            "Do not provide your own binary; one will be linked from your deps.",
-            attr = "binary",
-        )
 
     return _create_linked_binary_target(
         name,
