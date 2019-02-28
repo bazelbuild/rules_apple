@@ -15,6 +15,7 @@
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -115,5 +116,14 @@ def apple_rules_dependencies(ignore_version_differences = False):
         name = "build_bazel_rules_swift",
         remote = "https://github.com/bazelbuild/rules_swift.git",
         tag = "0.7.0",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_file,
+        name = "xctestrunner",
+        executable = 1,
+        sha256 = "15fc7d09315a230f3d8ee2913eef8699456366e44b37a9266e36b28517003628",
+        urls = ["https://github.com/google/xctestrunner/releases/download/0.2.6/ios_test_runner.par"],
         ignore_version_differences = ignore_version_differences,
     )
