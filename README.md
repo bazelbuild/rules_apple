@@ -16,7 +16,7 @@ available from [rules_swift](https://github.com/bazelbuild/rules_swift).
 
 ## Reference documentation
 
-[Click here](https://github.com/bazelbuild/rules_apple/tree/master/doc/index.md)
+[Click here](https://github.com/bazelbuild/rules_apple/tree/master/doc)
 for the reference documentation for the rules and other definitions in this
 repository.
 
