@@ -94,6 +94,7 @@ def _describe_rule_type(
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
             the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
             that use the Starlark linking API.
+        extra_linkopts: Extra options to pass to the linker.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.

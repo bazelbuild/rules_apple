@@ -14,22 +14,23 @@
 
 """Utility functions for working with strings, lists, and files in Skylark."""
 
-def full_label(l):
+def full_label(lbl):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 
     If the label is already in full format, it returns it as it is, otherwise
     appends the folder name as the target name.
 
     Args:
-      l: The label to convert to full format.
+      lbl: The label to convert to full format.
+
     Returns:
       The label in full format, or the original input if it was already in full
       format.
     """
-    if l.find(":") != -1:
-        return l
-    target_name = l.rpartition("/")[-1]
-    return l + ":" + target_name
+    if lbl.find(":") != -1:
+        return lbl
+    target_name = lbl.rpartition("/")[-1]
+    return lbl + ":" + target_name
 
 def group_files_by_directory(files, extensions, attr):
     """Groups files based on their containing directories.

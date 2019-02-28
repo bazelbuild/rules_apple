@@ -59,6 +59,7 @@ def _actool_args_for_special_file_types(ctx, asset_files):
     Args:
       ctx: The target's rule context.
       asset_files: The asset catalog files.
+
     Returns:
       An array of extra arguments to pass to `actool`, which may be empty.
     """
