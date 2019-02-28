@@ -1760,6 +1760,54 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_entitlements_missing_beta_reports_active(self):
+    plist = {}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'beta-reports-active': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
+  def test_entitlements_beta_reports_active_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
+            _testing_target, 'False', 'True'))):
+      plist = {'beta-reports-active': False}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'beta-reports-active': True,
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_profile_missing_beta_reports_active(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(
+            plisttool.ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE % (
+                _testing_target, 'True'))):
+      plist = {'beta-reports-active': True}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
   def test_entitlements_associated_domains_match(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {
