@@ -73,7 +73,7 @@ EOF
 #
 # We look for three dylibs based on what is used in the scratch AppDelegate
 # class above: Core, Foundation, and UIKit.
-function assert_ipa_contains_swift_dylibs() {
+function assert_ipa_contains_swift_dylibs_for_device() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -81,17 +81,22 @@ function assert_ipa_contains_swift_dylibs() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
-  # Ignore the following checks for simulator builds.
-  # Support bundles are only present on device builds, since those are
-  # configured for opt compilation model.
-  is_device_build tvos || return 0
+  if is_device_build tvos; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftCore.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftFoundation.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftUIKit.dylib"
+  else
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvsimulator/libswiftCore.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvsimulator/libswiftFoundation.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvsimulator/libswiftUIKit.dylib"
+  fi
 
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/appletvos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/appletvos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/appletvos/libswiftUIKit.dylib"
 }
 
 # Tests that the bundler includes the Swift dylibs both in the application
@@ -107,7 +112,37 @@ swift_library(
 EOF
 
   do_build tvos //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs
+  assert_ipa_contains_swift_dylibs_for_device
+}
+
+# Tests that if the Swift dylib feature is set to false, they don't exist
+# in final device build ipas
+function test_swift_dylibs_not_present_for_feature() {
+  if is_device_build tvos; then
+    create_minimal_tvos_application
+
+    cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+    do_build tvos //app:app --define=apple.package_swift_support=no \
+      || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftCore.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftFoundation.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftUIKit.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftCore.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftFoundation.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/appletvos/libswiftUIKit.dylib"
+  fi
 }
 
 # Tests that the bundler includes the Swift dylibs even when Swift is an
@@ -135,7 +170,7 @@ swift_library(
 EOF
 
   do_build tvos //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs
+  assert_ipa_contains_swift_dylibs_for_device
 }
 
 run_suite "tvos_application with Swift bundling tests"

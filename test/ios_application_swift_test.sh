@@ -69,11 +69,12 @@ EOF
 }
 
 # Asserts that app.ipa contains the Swift dylibs in both the application
-# bundle and in the top-level support directory.
+# bundle and in the top-level support directory if the build was for device,
+# otherwise assert they're not in the top level SwiftSupport directory.
 #
 # We look for three dylibs based on what is used in the scratch AppDelegate
 # class above: Core, Foundation, and UIKit.
-function assert_ipa_contains_swift_dylibs() {
+function assert_ipa_contains_swift_dylibs_for_device() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -81,17 +82,21 @@ function assert_ipa_contains_swift_dylibs() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
-  # Ignore the following checks for simulator builds.
-  # Support bundles are only present on device builds, since those are
-  # configured for opt compilation model.
-  is_device_build ios || return 0
-
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/iphoneos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "SwiftSupport/iphoneos/libswiftUIKit.dylib"
+  if is_device_build ios; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftCore.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftFoundation.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftUIKit.dylib"
+  else
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphonesimulator/libswiftCore.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphonesimulator/libswiftFoundation.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphonesimulator/libswiftUIKit.dylib"
+  fi
 }
 
 # Tests that the bundler includes the Swift dylibs both in the application
@@ -107,7 +112,37 @@ swift_library(
 EOF
 
   do_build ios //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs
+  assert_ipa_contains_swift_dylibs_for_device
+}
+
+# Tests that if the Swift dylib feature is set to false, they don't exist
+# in final device build ipas
+function test_swift_dylibs_not_present_for_feature() {
+  if is_device_build ios; then
+    create_minimal_ios_application
+
+    cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+    do_build ios //app:app --define=apple.package_swift_support=no \
+      || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftCore.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftFoundation.dylib"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libswiftUIKit.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftCore.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftFoundation.dylib"
+    assert_zip_not_contains "test-bin/app/app.ipa" \
+        "SwiftSupport/iphoneos/libswiftUIKit.dylib"
+  fi
 }
 
 # Tests that the bundler includes the Swift dylibs even when Swift is an
@@ -135,7 +170,7 @@ swift_library(
 EOF
 
   do_build ios //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs
+  assert_ipa_contains_swift_dylibs_for_device
 }
 
 # Tests that swift_library build with ASAN enabled and that the ASAN
