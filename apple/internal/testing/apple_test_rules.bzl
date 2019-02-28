@@ -110,7 +110,7 @@ will substitute the following values:
     },
 )
 
-CoverageFiles = provider(
+CoverageFilesInfo = provider(
     doc = """
 Provider used by the `coverage_files_aspect` aspect to propagate the
 transitive closure of sources and binaries that a test depends on. These files
@@ -151,15 +151,15 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Collect dependencies coverage files.
     for dep in getattr(ctx.rule.attr, "deps", []):
-        coverage_files.append(dep[CoverageFiles].coverage_files)
+        coverage_files.append(dep[CoverageFilesInfo].coverage_files)
 
     test_host_target = getattr(ctx.rule.attr, "test_host", None)
     if test_host_target:
-        coverage_files.append(test_host_target[CoverageFiles].coverage_files)
-        transitive_binaries_sets.append(test_host_target[CoverageFiles].covered_binaries)
+        coverage_files.append(test_host_target[CoverageFilesInfo].coverage_files)
+        transitive_binaries_sets.append(test_host_target[CoverageFilesInfo].covered_binaries)
 
     return [
-        CoverageFiles(
+        CoverageFilesInfo(
             coverage_files = depset(transitive = coverage_files),
             covered_binaries = depset(
                 direct = direct_binaries,
@@ -179,7 +179,7 @@ This aspect walks the dependency graph through the `deps` and
 depended upon transitively. These files are needed to calculate test coverage on
 a test run.
 
-This aspect propagates a `CoverageFiles` provider which is just a set that
+This aspect propagates a `CoverageFilesInfo` provider which is just a set that
 contains all the `srcs` and `hdrs` files.
 """,
     implementation = _coverage_files_aspect_impl,
@@ -392,7 +392,7 @@ def _get_template_substitutions(ctx, test_type):
 def _get_coverage_test_environment(ctx):
     """Returns environment variables required for test coverage support."""
     gcov_files = ctx.attr._gcov.files.to_list()
-    coverage_files = ctx.attr.test_bundle[CoverageFiles]
+    coverage_files = ctx.attr.test_bundle[CoverageFilesInfo]
     covered_binary_paths = [f.short_path for f in coverage_files.covered_binaries.to_list()]
 
     return {
@@ -430,10 +430,10 @@ def _apple_test_impl(ctx, test_type):
             _get_coverage_test_environment(ctx),
         )
         transitive_runfiles.append(
-            ctx.attr.test_bundle[CoverageFiles].coverage_files,
+            ctx.attr.test_bundle[CoverageFilesInfo].coverage_files,
         )
         transitive_runfiles.append(
-            ctx.attr.test_bundle[CoverageFiles].covered_binaries,
+            ctx.attr.test_bundle[CoverageFilesInfo].covered_binaries,
         )
         transitive_runfiles.append(ctx.attr._gcov.files)
         transitive_runfiles.append(ctx.attr._mcov.files)
