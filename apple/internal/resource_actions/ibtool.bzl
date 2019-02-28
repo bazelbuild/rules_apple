@@ -45,6 +45,7 @@ def _ibtool_arguments(min_os, families):
     Args:
       min_os: The minimum OS version to use when compiling interface files.
       families: The families that should be supported by the compiled interfaces.
+
     Returns:
       An array of command-line arguments to pass to ibtool.
     """

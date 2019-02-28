@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Rules related to Apple bundle versioning."""
+
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
@@ -24,6 +26,7 @@ def _collect_group_names(s):
 
     Args:
       s: The string that potentially contains placeholders.
+
     Returns:
       A list of placeholder names found in the string, if any.
     """
