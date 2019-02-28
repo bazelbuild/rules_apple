@@ -310,10 +310,10 @@ hermetic given these inputs to ensure that the result can be safely cached.
 """,
         ),
         "minimum_os_version": attr.string(
+            mandatory = True,
             doc = """
-An optional string indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "9.0"). If this attribute is omitted, then the value specified
-by the flag `--ios_minimum_os` will be used instead.
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "9.0").
 """,
         ),
         "strings": attr.label_list(
@@ -751,10 +751,10 @@ for what is supported.
 """,
         ),
         "minimum_os_version": attr.string(
+            mandatory = True,
             doc = """
-An optional string indicating the minimum macOS version supported by the target, represented as a
-dotted version number (for example, "10.11"). If this attribute is omitted, then the value specified
-by the flag --macos_minimum_os will be used instead.
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "10.11").
 """,
         ),
         "version": attr.label(
