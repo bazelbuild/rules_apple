@@ -1,26 +1,6 @@
-os: osx
 # Not really swift, but stops travis from saying it is ruby.
 language: swift
 
-# Travis does not use osx_image when it computes the matrix itself, if we want
-# to test on multiple versions, then it required manually building the matrix
-# to set a different osx_image for each configuration.
-osx_image: xcode10.1
-
-# Build out the matrix ourselves so we can set multiple variables.
-# - `BAZEL`: Used in `before_install` to pick the version of bazel to use,
-#    "RELEASE" extracts from https://github.com/bazelbuild/bazel/releases/latest,
-#    otherwise it is the tag to fetch.
-# - `TARGET` & `BUILD_TARGET`: Are used in the `script` to issue a build
-#   `script` phase will be used for an optional `bazel build` and then
-#   `bazel test`.
-#
-# NOTE: The different testing targets are currently split because //test/...
-# takes a long time (>25min), and this will allow other things to pass/fail
-# independently and provide a shorter log file to look at when things do fail,
-# but if getting all to run take too long it might make sense to merge
-# things back together, potentially all the way down to just two configs for
-# the two different bazel versions.
 matrix:
   include:
     # One build on linux to run buildifier since linux agents are faster on travis.
