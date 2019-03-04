@@ -71,6 +71,7 @@ def _describe_rule_type(
         requires_pkginfo = False,
         requires_provisioning_profile = True,
         requires_signing_for_device = True,
+        rpaths = [],
         skip_signing = False,
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
@@ -112,6 +113,7 @@ def _describe_rule_type(
             building for devices.
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
+        rpaths: List of rpaths to add to the linker.
         skip_signing: Whether this rule skips the signing step.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
@@ -149,6 +151,7 @@ def _describe_rule_type(
         requires_pkginfo = requires_pkginfo,
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
+        rpaths = rpaths,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         skip_signing = skip_signing,
         stub_binary_path = stub_binary_path,
@@ -178,6 +181,11 @@ _RULE_TYPE_DESCRIPTORS = {
             mandatory_families = True,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
         ),
         # ios_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -188,11 +196,14 @@ _RULE_TYPE_DESCRIPTORS = {
             extra_linkopts = [
                 "-e",
                 "_NSExtensionMain",
-                "-rpath",
-                "@executable_path/../../Frameworks",
             ],
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
         ),
         # ios_framework
         apple_product_type.framework: _describe_rule_type(
@@ -200,6 +211,12 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             mandatory_families = True,
             product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
             skip_signing = True,
         ),
         # ios_imessage_application
@@ -228,11 +245,14 @@ _RULE_TYPE_DESCRIPTORS = {
                 "-application_extension",
                 "-e",
                 "_NSExtensionMain",
-                "-rpath",
-                "@executable_path/../../Frameworks",
             ],
             mandatory_families = True,
             product_type = apple_product_type.messages_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
         ),
         # ios_stickerpack_extension
         apple_product_type.messages_sticker_pack_extension: _describe_rule_type(
@@ -264,15 +284,18 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/Frameworks",
-                "-rpath",
-                "@loader_path/Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
             skip_simulator_signing_allowed = False,
         ),
         # ios_unit_test
@@ -282,15 +305,18 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/Frameworks",
-                "-rpath",
-                "@loader_path/Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
             skip_simulator_signing_allowed = False,
         ),
     },
@@ -302,12 +328,16 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            extra_linkopts = ["-rpath", "@executable_path/../Frameworks"],
             is_executable = True,
             product_type = apple_product_type.application,
             provisioning_profile_extension = ".provisionprofile",
             requires_pkginfo = True,
             requires_signing_for_device = False,
+            rpaths = [
+                # Application binaries live in Application.app/Contents/MacOS/Application
+                # Frameworks are packaged in Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
+            ],
         ),
         # macos_command_line_application
         apple_product_type.tool: _describe_rule_type(
@@ -338,14 +368,16 @@ _RULE_TYPE_DESCRIPTORS = {
             extra_linkopts = [
                 "-e",
                 "_NSExtensionMain",
-                "-rpath",
-                "@executable_path/../Frameworks",
-                "-rpath",
-                "@executable_path/../../../../Frameworks",
             ],
             product_type = apple_product_type.app_extension,
             provisioning_profile_extension = ".provisionprofile",
             requires_signing_for_device = False,
+            rpaths = [
+                # Extension binaries live in
+                # Application.app/Contents/PlugIns/Extension.appex/Contents/MacOS/Extension
+                # Frameworks are packaged in Application.app/Contents/Frameworks
+                "@executable_path/../../../../Frameworks",
+            ],
         ),
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
@@ -355,10 +387,15 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            extra_linkopts = ["-rpath", "@executable_path/../Frameworks"],
             product_type = apple_product_type.bundle,
             provisioning_profile_extension = ".provisionprofile",
             requires_signing_for_device = False,
+            rpaths = [
+                # Bundle binaries are loaded from the executable location and application binaries
+                # live in Application.app/Contents/MacOS/Application
+                # Frameworks are packaged in Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
+            ],
         ),
         # macos_kernel_extension
         apple_product_type.kernel_extension: _describe_rule_type(
@@ -389,12 +426,17 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xpc",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
-            extra_linkopts = ["-rpath", "@executable_path/../../../../Frameworks"],
             product_type = apple_product_type.xpc_service,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
             requires_pkginfo = True,
+            rpaths = [
+                # XPC Application binaries live in
+                # Application.app/Contents/XCPServices/XPCService.xpc/Contents/MacOS/XPCService
+                # Frameworks are packaged in Application.app/Contents/Frameworks
+                "@executable_path/../../../../Frameworks",
+            ],
         ),
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -404,15 +446,19 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/../Frameworks",
-                "-rpath",
-                "@loader_path/../Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in
+                # Application.app/Contents/PlugIns/Test.xctest/Contents/MacOS/Test
+                # Frameworks are packaged in Application.app/Contents/Frameworks and in
+                # Application.app/Contents/PlugIns/Test.xctest/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                "@loader_path/../Frameworks",
+            ],
         ),
         # macos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -422,15 +468,19 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/../Frameworks",
-                "-rpath",
-                "@loader_path/../Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in
+                # Application.app/Contents/PlugIns/Test.xctest/Contents/MacOS/Test
+                # Frameworks are packaged in Application.app/Contents/Frameworks and in
+                # Application.app/Contents/PlugIns/Test.xctest/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                "@loader_path/../Frameworks",
+            ],
         ),
     },
     "tvos": {
@@ -448,6 +498,11 @@ _RULE_TYPE_DESCRIPTORS = {
             is_executable = True,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
         ),
         # tvos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -460,10 +515,13 @@ _RULE_TYPE_DESCRIPTORS = {
                 "-application_extension",
                 "-framework",
                 "TVServices",
-                "-rpath",
-                "@executable_path/../../Frameworks",
             ],
             product_type = apple_product_type.app_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
         ),
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
@@ -472,6 +530,12 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "dylib",
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
             skip_signing = True,
         ),
         # tvos_ui_test
@@ -481,15 +545,18 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/Frameworks",
-                "-rpath",
-                "@loader_path/Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
             skip_simulator_signing_allowed = False,
         ),
         # tvos_unit_test
@@ -499,15 +566,18 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-rpath",
-                "@executable_path/Frameworks",
-                "-rpath",
-                "@loader_path/Frameworks",
                 "-framework",
                 "XCTest",
             ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
             skip_simulator_signing_allowed = False,
         ),
     },
@@ -530,10 +600,13 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-application_extension",
-                "-rpath",
-                "@executable_path/../../Frameworks",
             ],
             product_type = apple_product_type.watch2_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
         ),
     },
 }

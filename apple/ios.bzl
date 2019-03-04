@@ -20,6 +20,10 @@ load(
     _ios_unit_test = "ios_unit_test",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -116,6 +120,7 @@ def ios_application(name, **kwargs):
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.ios),
+        apple_product_type.application,
         **kwargs
     )
 
@@ -178,18 +183,10 @@ def ios_extension(name, **kwargs):
           defined by these targets will also be transitively included in the
           final extension.
     """
-
-    # Add extension-specific linker options. Note that since apple_binary
-    # prepends "-Wl," to each option, we must use the form expected by ld, not
-    # the form expected by clang (i.e., -application_extension, not
-    # -fapplication-extension).
-    linkopts = kwargs.get("linkopts", [])
-    linkopts += ["-e", "_NSExtensionMain"]
-    kwargs["linkopts"] = linkopts
-
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.ios),
+        apple_product_type.app_extension,
         extension_safe = True,
         **kwargs
     )
@@ -242,16 +239,23 @@ def ios_framework(name, **kwargs):
           defined by these targets will also be transitively included in the
           final framework.
     """
-    linkopts = kwargs.pop("linkopts", [])
+    linkopts = kwargs.get("linkopts", [])
+
+    # Can't read this from the descriptor, since it requires the bundle name as argument. Once this
+    # is migrated to be a rule, we can move this to the rule implementation.
     bundle_name = kwargs.get("bundle_name", name)
-    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
+    linkopts += [
+        "-install_name",
+        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
+    kwargs["linkopts"] = linkopts
 
     # Link the executable from any library deps and sources provided.
-    bundling_args = binary_support.create_linked_binary_target(
+    bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.ios),
+        apple_product_type.framework,
         binary_type = "dylib",
-        linkopts = linkopts,
         suppress_entitlements = True,
         **kwargs
     )
