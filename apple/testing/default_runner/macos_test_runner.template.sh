@@ -44,25 +44,39 @@ BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
 trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
 
+TEST_BUNDLE_PATH="%(test_bundle_path)s"
+TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
+
+if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
+  cp -R "$TEST_BUNDLE_PATH" "$TEST_TMP_DIR"
+  # Need to modify permissions as Bazel will set all files to non-writable, and
+  # Xcode's test runner requires the files to be writable.
+  chmod -R 777 "$TEST_TMP_DIR/$TEST_BUNDLE_NAME.xctest"
+else
+  unzip -qq -d "${TEST_TMP_DIR}" "${TEST_BUNDLE_PATH}"
+fi
+
 # In case there is no test host, TEST_HOST_PATH will be empty. TEST_BUNDLE_PATH
 # will always be populated.
 TEST_HOST_PATH="%(test_host_path)s"
-TEST_BUNDLE_PATH="%(test_bundle_path)s"
 
-# This is the equivalent of retrieving the test and test host's target name,
-# as the target name is set for the bundle and binary names.
-TEST_HOST_NAME=$(basename_without_extension "$TEST_HOST_PATH")
-TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
+if [[ -n "$TEST_HOST_PATH" ]]; then
+  TEST_HOST_NAME=$(basename_without_extension "$TEST_HOST_PATH")
 
-# Extract the test bundle into the temporary directory.
-unzip -qq -d "${TEST_TMP_DIR}" "${TEST_BUNDLE_PATH}"
+  if [[ "$TEST_HOST_PATH" == *.app ]]; then
+    cp -R "$TEST_HOST_PATH" "$TEST_TMP_DIR"
+    # Need to modify permissions as Bazel will set all files to non-writable,
+    # and Xcode's test runner requires the files to be writable.
+    chmod -R 777 "$TEST_TMP_DIR/$TEST_HOST_NAME.app"
+  else
+    unzip -qq -d "${TEST_TMP_DIR}" "${TEST_HOST_PATH}"
+  fi
+fi
 
 # List of substitutions for the xctestrun template. This list is different
 # depending on whether the test is running with or without a test host.
 XCTESTRUN_TEST_BUNDLE_PATH="__TESTROOT__/$TEST_BUNDLE_NAME.xctest"
-if [[ -n "$TEST_HOST_NAME" ]]; then
-  # If there's a test host, unpack it.
-  unzip -qq -d "$TEST_TMP_DIR" "$TEST_HOST_PATH"
+if [[ -n "$TEST_HOST_PATH" ]]; then
   XCTESTRUN_TEST_HOST_PATH="__TESTROOT__/$TEST_HOST_NAME.app"
   XCTESTRUN_TEST_HOST_BASED=true
   XCTESTRUN_TEST_HOST_BINARY="__TESTHOST__/Contents/MacOS/$TEST_HOST_NAME"

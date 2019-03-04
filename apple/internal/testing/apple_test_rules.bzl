@@ -19,6 +19,10 @@ These are internal rules not to be used outside of the
 """
 
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:file_support.bzl",
     "file_support",
 )
@@ -376,15 +380,15 @@ def _apple_ui_test_attributes():
         },
     )
 
-def _get_template_substitutions(ctx, test_type):
+def _get_template_substitutions(test_type, test_bundle, test_host = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
-    if ctx.attr.test_host:
-        subs["test_host_path"] = ctx.attr.test_host[AppleBundleInfo].archive.short_path
+    if test_host:
+        subs["test_host_path"] = test_host.short_path
     else:
         subs["test_host_path"] = ""
-    subs["test_bundle_path"] = ctx.outputs.test_bundle.short_path
+    subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
 
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -418,11 +422,11 @@ def _apple_test_impl(ctx, test_type):
         runner.test_environment,
     )
 
-    direct_runfiles = [ctx.outputs.test_bundle]
+    direct_runfiles = []
     transitive_runfiles = []
-    test_host = ctx.attr.test_host
-    if test_host:
-        direct_runfiles.append(test_host[AppleBundleInfo].archive)
+
+    direct_outputs = []
+    transitive_outputs = []
 
     if ctx.configuration.coverage_enabled:
         test_environment = dicts.add(
@@ -439,33 +443,49 @@ def _apple_test_impl(ctx, test_type):
         transitive_runfiles.append(ctx.attr._mcov.files)
         transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
 
-    file_support.symlink(
-        ctx,
-        ctx.attr.test_bundle[AppleBundleInfo].archive,
-        ctx.outputs.test_bundle,
-    )
+    if is_experimental_tree_artifact_enabled(ctx):
+        ctx.actions.write(
+            output = ctx.outputs.test_bundle,
+            content = "test",
+        )
+        test_bundle = ctx.attr.test_bundle[AppleBundleInfo].archive
+    else:
+        file_support.symlink(
+            ctx,
+            ctx.attr.test_bundle[AppleBundleInfo].archive,
+            ctx.outputs.test_bundle,
+        )
+        test_bundle = ctx.outputs.test_bundle
+
+    direct_outputs.append(test_bundle)
+    direct_runfiles.append(test_bundle)
+
+    test_host = ctx.attr.test_host
+    test_host_archive = None
+    if test_host:
+        test_host_archive = test_host[AppleBundleInfo].archive
+        direct_runfiles.append(test_host_archive)
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
     ctx.actions.expand_template(
         template = runner.test_runner_template,
         output = executable,
-        substitutions = _get_template_substitutions(ctx, test_type),
+        substitutions = _get_template_substitutions(
+            test_type,
+            test_bundle,
+            test_host = test_host_archive,
+        ),
     )
+    direct_outputs.append(executable)
 
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
 
-    transitive_outputs = []
     extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
     if extra_outputs_provider:
         transitive_outputs.append(extra_outputs_provider.files)
-
-    outputs = depset(
-        direct = [ctx.outputs.test_bundle, executable],
-        transitive = transitive_outputs,
-    )
 
     extra_providers = []
 
@@ -485,7 +505,7 @@ def _apple_test_impl(ctx, test_type):
         testing.TestEnvironment(test_environment),
         DefaultInfo(
             executable = executable,
-            files = outputs,
+            files = depset(direct_outputs, transitive = transitive_outputs),
             runfiles = ctx.runfiles(
                 files = direct_runfiles,
                 transitive_files = depset(transitive = transitive_runfiles),
