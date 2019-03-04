@@ -30,17 +30,38 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
 runner_flags+=("--work_dir=${TMP_DIR}")
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
-TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
-TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
-unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
-runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
+
+if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
+  # Need to copy the bundle outside of the Bazel execroot since the test runner
+  # needs to make some modifications to its contents.
+  # TODO(kaipi): Improve xctestrunner to account for Bazel permissions.
+  cp -R "$TEST_BUNDLE_PATH" "$TMP_DIR"
+  chmod -R 777 "${TMP_DIR}/$(basename "$TEST_BUNDLE_PATH")"
+  runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
+else
+  TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
+  TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
+  unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
+  runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
+fi
+
 
 TEST_HOST_PATH="%(test_host_path)s"
+
 if [[ -n "$TEST_HOST_PATH" ]]; then
-  TEST_HOST_NAME=$(basename_without_extension "${TEST_HOST_PATH}")
-  TEST_HOST_TMP_DIR="${TMP_DIR}/${TEST_HOST_NAME}"
-  unzip -qq -d "${TEST_HOST_TMP_DIR}" "${TEST_HOST_PATH}"
-  runner_flags+=("--app_under_test_path=${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_NAME}.app")
+  if [[ "$TEST_HOST_PATH" == *.app ]]; then
+    # Need to copy the bundle outside of the Bazel execroot since the test
+    # runner needs to make some modifications to its contents.
+    # TODO(kaipi): Improve xctestrunner to account for Bazel permissions.
+    cp -R "$TEST_HOST_PATH" "$TMP_DIR"
+    chmod -R 777 "${TMP_DIR}/$(basename "$TEST_HOST_PATH")"
+    runner_flags+=("--app_under_test_path=${TMP_DIR}/$(basename "$TEST_HOST_PATH")")
+  else
+    TEST_HOST_NAME=$(basename_without_extension "${TEST_HOST_PATH}")
+    TEST_HOST_TMP_DIR="${TMP_DIR}/${TEST_HOST_NAME}"
+    unzip -qq -d "${TEST_HOST_TMP_DIR}" "${TEST_HOST_PATH}"
+    runner_flags+=("--app_under_test_path=${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_NAME}.app")
+  fi
 fi
 
 if [[ -n "${TEST_UNDECLARED_OUTPUTS_DIR}" ]]; then
