@@ -18,6 +18,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
 
 def _sectcreate_objc_provider(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
@@ -64,7 +68,13 @@ def _register_linking_action(ctx, extra_linkopts = []):
     """
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    linkopts = rule_descriptor.extra_linkopts + extra_linkopts
+    rpaths = rule_descriptor.rpaths
+
+    linkopts = []
+    if rpaths:
+        linkopts.extend(collections.before_each("-rpath", rpaths))
+
+    linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
 
     binary_provider_struct = apple_common.link_multi_arch_binary(
         ctx = ctx,

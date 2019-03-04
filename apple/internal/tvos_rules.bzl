@@ -141,10 +141,10 @@ def _tvos_application_impl(ctx):
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
-    binary_provider_struct = apple_common.link_multi_arch_binary(ctx = ctx)
-    binary_provider = binary_provider_struct.binary_provider
-    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
-    binary_artifact = binary_provider.binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    binary_provider = binary_descriptor.provider
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     bundle_id = ctx.attr.bundle_id
 

@@ -19,8 +19,16 @@ load(
     "entitlements",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_runtime_linkopts",
+)
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
 )
 
 def _create_swift_runtime_linkopts_target(
@@ -132,15 +140,15 @@ def _add_entitlements_and_swift_linkopts(
 
     return bundling_args
 
-def _create_linked_binary_target(
+def _create_binary(
         name,
         platform_type,
-        linkopts,
+        product_type,
         binary_type = "executable",
-        sdk_frameworks = [],
-        extension_safe = False,
         bundle_loader = None,
+        extension_safe = False,
         link_swift_statically = False,
+        sdk_frameworks = [],
         suppress_entitlements = False,
         target_name_template = "%s.__internal__.apple_binary",
         **kwargs):
@@ -155,19 +163,19 @@ def _create_linked_binary_target(
       name: The name of the bundle target, from which the binary target's name
           will be derived.
       platform_type: The platform type for which the binary should be built.
-      linkopts: Extra linking options to be passed to the binary target.
+      product_type: The product type of the bundle for which the binary will be built.
       binary_type: The type of binary to create. Can be "executable",
           "loadable_bundle" or "dylib".
-      sdk_frameworks: Additional SDK frameworks that should be linked with the
-          final binary.
-      extension_safe: If true, compiles and links this framework with
-          '-application-extension', restricting the binary to use only
-          extension-safe APIs. False by default.
       bundle_loader: Label to an apple_binary target that will act as the
           bundle_loader for this apple_binary. Can only be set if binary_type is
           "loadable_bundle".
+      extension_safe: If true, compiles and links this framework with
+          '-application-extension', restricting the binary to use only
+          extension-safe APIs. False by default.
       link_swift_statically: True/False, indicates whether the static versions of
           the Swift standard libraries should be used during linking.
+      sdk_frameworks: Additional SDK frameworks that should be linked with the
+          final binary.
       suppress_entitlements: True/False, indicates that the entitlements() should
           be suppressed.
       target_name_template: A string that will be used to derive the name of the
@@ -179,6 +187,12 @@ def _create_linked_binary_target(
       A modified copy of `**kwargs` that should be passed to the bundling rule.
     """
     bundling_args = dict(kwargs)
+
+    rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
+
+    linkopts = kwargs.pop("linkopts", [])
+    linkopts = linkopts + collections.before_each("-rpath", rule_descriptor.rpaths)
+    linkopts = linkopts + rule_descriptor.extra_linkopts
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")
@@ -218,9 +232,6 @@ def _create_linked_binary_target(
         ),
     ]
 
-    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-    additional_linkopts = ["-rpath", "@executable_path/../../Frameworks"]
-
     # Link the executable from any library deps provided. Pass the entitlements
     # target as an extra dependency to the binary rule to pick up the extra
     # linkopts (if any) propagated by it.
@@ -232,7 +243,7 @@ def _create_linked_binary_target(
         dylibs = kwargs.get("frameworks"),
         extension_safe = extension_safe,
         features = kwargs.get("features"),
-        linkopts = linkopts + additional_linkopts,
+        linkopts = linkopts,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         sdk_frameworks = sdk_frameworks,
@@ -245,55 +256,8 @@ def _create_linked_binary_target(
 
     return bundling_args
 
-def _create_binary(
-        name,
-        platform_type,
-        link_swift_statically = False,
-        suppress_entitlements = False,
-        **kwargs):
-    """Creates a binary target for a bundle.
-
-    This function creates either an `apple_binary`. It must be called from one of the top-level
-    application or extension macros, because it invokes a rule to create a target. As such, it
-    cannot be called within rule implementation functions.
-
-    Args:
-      name: The name of the bundle target, from which the binary target's name
-          will be derived.
-      platform_type: The platform type for which the binary should be built.
-      link_swift_statically: True/False, indicates whether the static versions of
-          the Swift standard libraries should be used during linking.
-      suppress_entitlements: True/False, indicates that the entitlements() should
-          be suppressed.
-      **kwargs: The arguments that were passed into the top-level macro.
-
-    Returns:
-      A modified copy of `**kwargs` that should be passed to the bundling rule.
-    """
-    args_copy = dict(kwargs)
-
-    binary_type = args_copy.pop("binary_type", "executable")
-    linkopts = args_copy.pop("linkopts", [])
-    sdk_frameworks = args_copy.pop("sdk_frameworks", [])
-    extension_safe = args_copy.pop("extension_safe", False)
-    bundle_loader = args_copy.pop("bundle_loader", None)
-
-    return _create_linked_binary_target(
-        name,
-        platform_type,
-        linkopts,
-        binary_type,
-        sdk_frameworks,
-        extension_safe,
-        bundle_loader,
-        link_swift_statically = link_swift_statically,
-        suppress_entitlements = suppress_entitlements,
-        **args_copy
-    )
-
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
     add_entitlements_and_swift_linkopts = _add_entitlements_and_swift_linkopts,
     create_binary = _create_binary,
-    create_linked_binary_target = _create_linked_binary_target,
 )

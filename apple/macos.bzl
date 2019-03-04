@@ -20,6 +20,10 @@ load(
     _macos_unit_test = "macos_unit_test",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -87,18 +91,12 @@ def macos_application(name, **kwargs):
           defined by these targets will also be transitively included in the
           final application.
     """
-    binary_args = dict(kwargs)
-
-    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-    linkopts = binary_args.get("linkopts", [])
-    linkopts += ["-rpath", "@executable_path/../Frameworks"]
-    binary_args["linkopts"] = linkopts
-
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
+        apple_product_type.application,
         features = ["link_cocoa"],
-        **binary_args
+        **kwargs
     )
 
     _macos_application(
@@ -170,16 +168,12 @@ def macos_bundle(name, **kwargs):
     features = binary_args.pop("features", [])
     features += ["link_cocoa"]
 
-    # TODO(b/62481675): Move these linkopts to CROSSTOOL features.
-    linkopts = binary_args.pop("linkopts", [])
-    linkopts += ["-rpath", "@executable_path/../Frameworks"]
-
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
+        apple_product_type.bundle,
         binary_type = "loadable_bundle",
         features = features,
-        linkopts = linkopts,
         **binary_args
     )
 
@@ -310,6 +304,7 @@ def macos_command_line_application(name, **kwargs):
     cmd_line_app_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
+        apple_product_type.tool,
         deps = binary_deps,
         link_swift_statically = True,
         suppress_entitlements = True,
@@ -383,6 +378,7 @@ def macos_dylib(name, **kwargs):
     dylib_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.macos),
+        apple_product_type.dylib,
         binary_type = "dylib",
         deps = binary_deps,
         link_swift_statically = True,
