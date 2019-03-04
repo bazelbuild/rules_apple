@@ -15,6 +15,10 @@
 """Support functions for working with Swift."""
 
 load(
+    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "xcode_support",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftUsageInfo",
     "swift_common",
@@ -81,6 +85,18 @@ def _swift_runtime_linkopts_impl(ctx):
             toolchain = swift_usage_info.toolchain,
         ))
 
+        if xcode_support.is_xcode_at_least_version(
+            ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+            "10.2",
+        ):
+            # Add the /usr/lib/swift Swift dylib location so that apps that need to bundle the swift
+            # dylibs, still find the system one when present. Because Bazel adds provider linkopts
+            # before other linkopts, this path will appear first in the LC_RPATH list, ensuring the
+            # expected result.
+            # Once all rules migrate from macros to rules, there won't be a need to use this
+            # workaround and all rpaths will be ordered as required.
+            linkopts.extend(["-rpath", "/usr/lib/swift"])
+
     if linkopts:
         return [apple_common.new_objc_provider(linkopt = depset(linkopts, order = "topological"))]
     else:
@@ -93,6 +109,12 @@ swift_runtime_linkopts = rule(
         "deps": attr.label_list(
             aspects = [swift_usage_aspect],
             mandatory = True,
+        ),
+        "_xcode_config": attr.label(
+            default = configuration_field(
+                name = "xcode_config_label",
+                fragment = "apple",
+            ),
         ),
     },
     fragments = ["apple", "objc"],
