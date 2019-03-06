@@ -56,6 +56,9 @@ type of rule being created and thus its descriptor to control behaviors.
 # * `messages_sticker_pack_extension`: An extension that defines custom sticker
 #   packs for the Messages app. This product type does not contain a
 #   user-provided binary.
+# * `quicklook_plugin`: A macOS Quick Look generator plug-in. This is the default
+#   product type for `macos_quick_look_plugin` targets; it does not need to be set
+#   explicitly (and cannot be changed).
 # * `spotlight_importer`: A macOS Spotlight importer plug-in. This product type
 #   should be used with a `macos_bundle` target to create such a plug-in; the
 #   built bundle will have the extension `.mdimporter`.
@@ -92,6 +95,7 @@ apple_product_type = struct(
     messages_sticker_pack_extension = (
         "com.apple.product-type.app-extension.messages-sticker-pack"
     ),
+    quicklook_plugin = "com.apple.product-type.quicklook-plugin",
     spotlight_importer = "com.apple.product-type.spotlight-importer",
     static_framework = "com.apple.product-type.framework.static",
     tool = "com.apple.product-type.tool",

@@ -379,6 +379,18 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../../../Frameworks",
             ],
         ),
+        # macos_quick_look_plugin
+        apple_product_type.quicklook_plugin: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            binary_type = "dylib",
+            bundle_extension = ".qlgenerator",
+            bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = apple_product_type.quicklook_plugin,
+            provisioning_profile_extension = ".provisionprofile",
+            requires_deps = True,
+            requires_signing_for_device = False,
+        ),
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
