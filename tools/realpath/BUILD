@@ -10,7 +10,9 @@ apple_genrule(
     name = "realpath_genrule",
     srcs = ["realpath.c"],
     outs = ["realpath"],
-    cmd = "/usr/bin/xcrun clang -o $@ $<",
+    cmd = """
+    /usr/bin/xcrun --sdk macosx clang -mmacosx-version-min=10.9 -o $@ $<
+    """,
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
