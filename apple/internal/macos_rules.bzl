@@ -49,6 +49,7 @@ load(
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
     "MacosKernelExtensionBundleInfo",
+    "MacosQuickLookPluginBundleInfo",
     "MacosSpotlightImporterBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
@@ -224,6 +225,56 @@ def _macos_extension_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosExtensionBundleInfo(),
+    ] + processor_result.providers
+
+def _macos_quick_look_plugin_impl(ctx):
+    """Experimental implementation of macos_quick_look_plugin."""
+    extra_linkopts = [
+        "-install_name",
+        "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
+    ]
+    binary_descriptor = linking_support.register_linking_action(ctx, extra_linkopts)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+
+    bundle_id = ctx.attr.bundle_id
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        # TODO(kaipi): Check if clang_rt dylibs are needed in Quick Look plugins, or if
+        # they can be skipped.
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.additional_contents.keys(),
+            debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [outputs.archive(ctx)],
+        ),
+        partials.macos_additional_contents_partial(),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            top_level_attrs = [
+                "strings",
+            ],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+        ),
+    ]
+
+    if ctx.file.provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+        )
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        MacosQuickLookPluginBundleInfo(),
     ] + processor_result.providers
 
 def _macos_kernel_extension_impl(ctx):
@@ -435,6 +486,13 @@ macos_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "macos",
     product_type = apple_product_type.app_extension,
     doc = "Builds and bundles a macOS Application Extension.",
+)
+
+macos_quick_look_plugin = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_quick_look_plugin_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.quicklook_plugin,
+    doc = "Builds and bundles a macOS Quick Look Plugin.",
 )
 
 macos_kernel_extension = rule_factory.create_apple_bundling_rule(

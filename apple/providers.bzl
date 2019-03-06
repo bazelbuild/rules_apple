@@ -310,6 +310,18 @@ requirement.
 """,
 )
 
+MacosQuickLookPluginBundleInfo = provider(
+    doc = """
+Denotes that a target is a macOS Quick Look Generator bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS Quick Look generator
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a macOS Quick Look generator should use this provider to describe
+that requirement.
+""",
+)
+
 MacosSpotlightImporterBundleInfo = provider(
     doc = """
 Denotes that a target is a macOS Spotlight Importer bundle.

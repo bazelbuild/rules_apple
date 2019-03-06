@@ -40,6 +40,7 @@ load(
     _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
     _macos_kernel_extension = "macos_kernel_extension",
+    _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
     _macos_xpc_service = "macos_xpc_service",
 )
@@ -84,6 +85,20 @@ def macos_bundle(name, **kwargs):
     )
 
     _macos_bundle(
+        name = name,
+        **bundling_args
+    )
+
+def macos_quick_look_plugin(name, **kwargs):
+    """Builds and bundles an macOS Quick Look plugin."""
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.macos),
+        include_entitlements = False,
+        **kwargs
+    )
+
+    _macos_quick_look_plugin(
         name = name,
         **bundling_args
     )
