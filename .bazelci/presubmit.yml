@@ -39,4 +39,4 @@ tasks:
     - "examples/..."
 
 # Need to check the state of the code
-#buildifier: true
+#buildifier: latest
