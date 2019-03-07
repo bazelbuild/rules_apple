@@ -259,7 +259,7 @@ EOF
 }
 
 # Tests that no rpaths were added at link-time to the binary.
-function test_binary_has_no_rpaths() {
+function disabled_test_binary_has_no_rpaths() {  # Blocked on b/127807024
   create_common_files
   create_minimal_macos_quick_look_plugin
   do_build macos //app:app || fail "Should build"
