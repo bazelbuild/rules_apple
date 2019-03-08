@@ -92,14 +92,14 @@ def _create_modulemap(
         )
     declarations.extend([
         "export *",
-        "module * { export *}",
+        "module * { export * }",
     ])
     declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
 
     content = (
         ("framework module %s {\n" % module_name) +
         "\n".join(["  " + decl for decl in declarations]) +
-        "}\n"
+        "\n}\n"
     )
     actions.write(output = output, content = content)
 
