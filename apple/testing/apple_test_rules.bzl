@@ -29,7 +29,3 @@ AppleTestInfo = _AppleTestInfo
 AppleTestRunnerInfo = _AppleTestRunnerInfo
 CoverageFilesInfo = _CoverageFilesInfo
 coverage_files_aspect = _coverage_files_aspect
-
-# Provide the old name to migrate thru one release.
-# Remove after a release has been made (b/126712872).
-AppleTestRunner = _AppleTestRunnerInfo
