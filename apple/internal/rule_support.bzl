@@ -416,6 +416,14 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
+            # This was added for b/122473338, and should be removed eventually once symbol
+            # stripping is better-handled. It's redundant with an option added in the CROSSTOOL
+            # for the "kernel_extension" feature, but for now it's necessary to detect kext
+            # linking so CompilationSupport.java can apply the correct type of symbol stripping.
+            extra_linkopts = [
+                "-Xlinker",
+                "-kext",
+            ],
             product_type = apple_product_type.kernel_extension,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
