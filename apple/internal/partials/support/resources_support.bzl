@@ -222,6 +222,41 @@ def _infoplists(ctx, parent_dir, files):
     else:
         return struct(files = [], infoplists = files.to_list())
 
+def _mlmodels(ctx, parent_dir, files):
+    """Processes mlmodel files."""
+
+    mlmodel_bundles = []
+    infoplists = []
+    for file in files.to_list():
+        basename = file.basename
+
+        output_bundle = intermediates.directory(
+            ctx.actions,
+            ctx.label.name,
+            paths.join(parent_dir or "", paths.replace_extension(basename, ".mlmodelc")),
+        )
+        output_plist = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            paths.join(parent_dir or "", paths.replace_extension(basename, ".plist")),
+        )
+
+        resource_actions.compile_mlmodel(ctx, file, output_bundle, output_plist)
+
+        mlmodel_bundles.append(
+            (
+                processor.location.resource,
+                paths.join(parent_dir or "", output_bundle.basename),
+                depset(direct = [output_bundle]),
+            ),
+        )
+        infoplists.append(output_plist)
+
+    return struct(
+        files = mlmodel_bundles,
+        infoplists = infoplists,
+    )
+
 def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
     """Processes plists and string files.
 
@@ -412,6 +447,7 @@ resources_support = struct(
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,
+    mlmodels = _mlmodels,
     noop = _noop,
     plists_and_strings = _plists_and_strings,
     pngs = _pngs,

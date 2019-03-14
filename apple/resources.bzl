@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple/internal:resource_rules.bzl",
     _apple_bundle_import = "apple_bundle_import",
+    _apple_core_ml_library = "apple_core_ml_library",
     _apple_resource_bundle = "apple_resource_bundle",
     _apple_resource_group = "apple_resource_group",
 )
@@ -24,3 +25,47 @@ load(
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
+
+# TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
+# TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
+def apple_core_ml_library(name, mlmodel, **kwargs):
+    """Macro to orchestrate an objc_library with generated sources for mlmodel files."""
+
+    # List of allowed attributes for the apple_core_ml_library rule. Do not want to expose the
+    # underlying objc_library attributes which might slow down migration once we're able to create a
+    # proper rule.
+    allowed_attributes = [
+        "tags",
+        "testonly",
+        "visibility",
+    ]
+
+    for attr, _ in kwargs.items():
+        if attr not in allowed_attributes:
+            fail("Unknown attribute '{}' in rule 'apple_core_ml_library'".format(attr))
+
+    core_ml_name = "{}.CoreML".format(name)
+
+    # Remove visibility from the internal target, to avoid misuse.
+    core_ml_args = dict(kwargs)
+    core_ml_args.pop("visibility", None)
+
+    # This target creates an implicit <core_ml_name>.m file that can be referenced in the srcs of
+    # the objc_library target below. Since this rule's outputs are the headers, we can set the hdrs
+    # attribute to be this target and propagate the headers correctly upstream.
+    _apple_core_ml_library(
+        name = core_ml_name,
+        mlmodel = mlmodel,
+        header_name = name,
+        visibility = ["//visibility:private"],
+        **core_ml_args
+    )
+
+    native.objc_library(
+        name = name,
+        srcs = [":{}.m".format(core_ml_name)],
+        hdrs = [":{}".format(core_ml_name)],
+        sdk_frameworks = ["CoreML"],
+        data = [mlmodel],
+        **kwargs
+    )

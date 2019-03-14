@@ -23,6 +23,8 @@ Usage:
 Subcommands:
   actool [<args>...]
 
+  coremlc [<args>...]
+
   ibtool [<args>...]
 
   mapc [<args>...]
@@ -227,6 +229,14 @@ def actool(_, toolargs):
       trim_paths=True,
       filtering=actool_filtering)
 
+def coremlc(_, toolargs):
+  """Assemble the call to "xcrun coremlc"."""
+  xcrunargs = ["xcrun", "coremlc"]
+  _apply_realpath(toolargs)
+  xcrunargs += toolargs
+
+  return execute.execute_and_filter_output(xcrunargs)
+
 
 def _zip_directory(directory, output):
   """Zip the contents of the specified directory to the output file."""
@@ -294,6 +304,10 @@ def main(argv):
   # ACTOOL Argument Parser
   actool_parser = subparsers.add_parser("actool")
   actool_parser.set_defaults(func=actool)
+
+  # COREMLC Argument Parser
+  mapc_parser = subparsers.add_parser("coremlc")
+  mapc_parser.set_defaults(func=coremlc)
 
   # SWIFT-STDLIB-TOOL Argument Parser
   swiftlib_parser = subparsers.add_parser("swift-stdlib-tool")

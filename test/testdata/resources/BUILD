@@ -16,10 +16,21 @@ exports_files([
     "nonlocalized.plist",
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
+    "sample.mlmodel",
     "sample.png",
     "storyboard_ios.storyboard",
     "view_ios.xib",
 ])
+
+# A convenience target that can be passed into the data attribute of an Apple
+# shell test to make the mlmodel file available to builds under test.
+filegroup(
+    name = "mlmodel_srcs",
+    srcs = [
+        "BUILD",
+        "sample.mlmodel",
+    ],
+)
 
 # A convenience target that can be passed into the data attribute of an Apple
 # shell test to make the iOS-compatible resources available to builds under
