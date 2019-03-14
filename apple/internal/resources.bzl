@@ -205,6 +205,11 @@ def _bucketize(
                 "plists",
                 default = [],
             ).append((parent, None, depset(direct = [resource])))
+        elif resource_short_path.endswith(".mlmodel"):
+            buckets.setdefault(
+                "mlmodels",
+                default = [],
+            ).append((parent, None, depset(direct = [resource])))
         else:
             buckets.setdefault(
                 "unprocessed",

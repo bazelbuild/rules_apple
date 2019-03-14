@@ -39,7 +39,58 @@ targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
         propagated to the top-level bundling target.</p>
       </td>
     </tr>
+  </tbody>
+</table>
 
+
+<a name="apple_core_ml_library"></a>
+## apple_core_ml_library
+
+```python
+apple_core_ml_library(name, mlmodel)
+```
+
+This rule supports the integration of CoreML `mlmodel` files into Apple rules.
+`apple_core_ml_library` targets are added directly into `deps` for both
+`objc_library` and `swift_library` targets.
+
+For Swift, import the `apple_core_ml_library` the same way you'd import an
+`objc_library` or `swift_library` target. For `objc_library` targets,
+`apple_core_ml_library` creates a header file named after the target.
+
+For example, if the `apple_core_ml_library` target's label is
+`//my/package:MyModel`, then to import this module in Swift you need to use
+`import my_package_MyModel`. From Objective-C sources, you'd import the header
+as `#import my/package/MyModel.h`.
+
+This rule will also compile the `mlmodel` into an `mlmodelc` and propagate it
+upstream so that it is packaged as a resource inside the top level bundle.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_imports</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>Reference to the <code>.mlmodel</code> file to process.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 

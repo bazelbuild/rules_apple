@@ -77,6 +77,15 @@ apple_shell_test(
     shard_count = 8,
 )
 
+apple_shell_test(
+    name = "apple_core_ml_library_test",
+    size = "medium",
+    src = "apple_core_ml_library_test.sh",
+    data = [
+        "//test/testdata/resources:mlmodel_srcs",
+    ],
+)
+
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",
