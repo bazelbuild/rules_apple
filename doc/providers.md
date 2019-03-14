@@ -17,7 +17,6 @@ rules, then you will use these providers to communicate between them.
 * [IosXcTestBundleInfo](#IosXcTestBundleInfo)
 * [MacosApplicationBundleInfo](#MacosApplicationBundleInfo)
 * [MacosExtensionBundleInfo](#MacosExtensionBundleInfo)
-* [SwiftInfo](#SwiftInfo)
 * [TvosApplicationBundleInfo](#TvosApplicationBundleInfo)
 * [TvosExtensionBundleInfo](#TvosExtensionBundleInfo)
 * [WatchosApplicationBundleInfo](#WatchosApplicationBundleInfo)
