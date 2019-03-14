@@ -470,6 +470,13 @@ framework-relative imports, and if non-empty, an umbrella header named `%{bundle
 be generated that imports all of the headers listed here.
 """,
             ),
+            "umbrella_header_name": attr.string(
+                mandatory = False,
+                doc = """
+The basename of the umbrella header file, default is `%{bundle_name}.h` is not specified.
+Mandatory if your framework has a public header that has the same name with its bundle name.
+""",
+            ),
             "avoid_deps": attr.label_list(
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive

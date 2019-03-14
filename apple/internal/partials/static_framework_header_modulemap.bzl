@@ -121,9 +121,10 @@ def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provi
 
     bundle_files = []
 
-    umbrella_header_name = None
+    umbrella_header_name = ctx.attr.umbrella_header_name
     if hdrs:
-        umbrella_header_name = "{}.h".format(bundle_name)
+        if not umbrella_header_name:
+            umbrella_header_name = "{}.h".format(bundle_name)
         umbrella_header_file = intermediates.file(ctx.actions, ctx.label.name, umbrella_header_name)
         _create_umbrella_header(
             ctx.actions,
