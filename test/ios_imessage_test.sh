@@ -152,7 +152,7 @@ EOF
 function test_sticker_pack_extension() {
   create_common_files
   create_minimal_ios_application_with_stickerpack
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/stickerpack.appex/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/PlugIns/stickerpack.appex/Info.plist" \
       LSApplicationIsStickerProvider
 
   do_build ios //app:dump_plist || fail "Should build"
@@ -162,7 +162,9 @@ function test_sticker_pack_extension() {
   # Ignore the check for simulator builds.
   is_device_build ios || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "MessagesApplicationExtensionSupport/MessagesApplicationExtensionSupportStub"
 }
 
@@ -175,12 +177,14 @@ function test_sticker_pack_builds_with_stickersiconset() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # TODO(b/120618397): Reenable these assertions.
-  # assert_zip_contains "test-bin/app/app.ipa" \
+  # assert_zip_contains "$output_artifact" \
   #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/Info.plist"
-  # assert_zip_contains "test-bin/app/app.ipa" \
+  # assert_zip_contains "$output_artifact" \
   #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sequence.png"
-  # assert_zip_contains "test-bin/app/app.ipa" \
+  # assert_zip_contains "$output_artifact" \
   #     "Payload/app.app/PlugIns/stickerpack.appex/sticker_pack.stickerpack/sticker.png"
 }
 
@@ -287,17 +291,19 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Spot check that a few icons end up correctly there.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/PlugIns/imessage_ext.appex/app_icon27x20@2x.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/PlugIns/imessage_ext.appex/app_icon32x24@2x.png"
 }
 
 function test_message_application() {
   create_common_files
   create_minimal_ios_imessage_application_with_stickerpack
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       LSApplicationLaunchProhibited
 
   do_build ios //app:dump_plist || fail "Should build"
@@ -305,7 +311,9 @@ function test_message_application() {
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "MessagesApplicationSupport/MessagesApplicationSupportStub"
   assert_equals "true" "$(cat "test-genfiles/app/LSApplicationLaunchProhibited")"
 }

@@ -61,8 +61,10 @@ EOF
 
   do_build macos //dylib:dylib || fail "Should build"
 
+  local output_artifact="$(find_output_artifact dylib/dylib.dylib)"
+
   # Make sure that an Info.plist did *not* get embedded in this case.
-  otool -s __TEXT __info_plist test-bin/dylib/dylib.dylib \
+  otool -s __TEXT __info_plist "$output_artifact" \
       > $TEST_TMPDIR/otool.out
   assert_not_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
 }
@@ -98,8 +100,10 @@ EOF
 
   do_build macos //dylib:dylib || fail "Should build"
 
+  local output_artifact="$(find_output_artifact dylib/dylib.dylib)"
+
   # Make sure that an Info.plist did get embedded.
-  otool -s __TEXT __info_plist test-bin/dylib/dylib.dylib \
+  otool -s __TEXT __info_plist "$output_artifact" \
       > $TEST_TMPDIR/otool.out
   assert_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
 }
@@ -121,12 +125,12 @@ EOF
       //dylib:dylib || fail "Should build"
 
   # Make sure that a dSYM bundle was generated.
-  assert_exists "test-bin/dylib/dylib.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact dylib/dylib.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/dylib/dylib.dSYM/Contents/Resources/DWARF/dylib_${arch}"
+        "$(find_output_artifact "dylib/dylib.dSYM/Contents/Resources/DWARF/dylib_${arch}")"
   done
 }
 

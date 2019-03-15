@@ -145,6 +145,7 @@ function create_dump_plist() {
 genrule(
     name = "dump_plist${SUFFIX}",
     srcs = ["${ipa_label}"],
+    testonly = 1,
     outs = [
 EOF
 
@@ -214,6 +215,7 @@ function create_whole_dump_plist() {
 genrule(
     name = "dump_whole_plist${SUFFIX}",
     srcs = ["${ipa_label}"],
+    testonly = 1,
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "set -e && " +
@@ -253,6 +255,7 @@ function create_dump_codesign() {
 genrule(
     name = "dump_codesign",
     srcs = ["${ipa_label}"],
+    testonly = 1,
     outs = ["codesign_output"],
     cmd =
         "set -e && " +
@@ -307,6 +310,13 @@ function do_build() {
   do_action build "$@"
 }
 
+# Usage: do_clean
+#
+# Helper function to invoke `bazel clean`.
+function do_clean() {
+  echo "Executing: bazel clean" > "$TEST_log"
+  bazel clean > "$TEST_log" 2>&1
+}
 
 # Usage: do_test <platform> <other options...>
 #
@@ -598,4 +608,15 @@ function assert_strings_is_text() {
   archive="$1"
   path_in_archive="$2"
   assert_plist_is_text "$archive" "$path_in_archive"
+}
+
+function find_output_artifact() {
+  partial_path="$1"
+  output="$(find bazel-out -path "*/$partial_path" -and -not -path "*.runfiles*" -follow)"
+  num_lines=$(echo "$output" | wc -l | tr -d ' ')
+  if [[ -n "$num_lines" ]]; then
+    echo "$output" | head -n 1
+  else
+    echo "Not found"
+  fi
 }

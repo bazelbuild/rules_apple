@@ -178,7 +178,7 @@ function assert_common_watch_app_and_extension_plist_values() {
 # content.
 function test_watch_app_plist_contents() {
   create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/Watch/watch_app.app/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
@@ -209,7 +209,7 @@ function test_watch_app_plist_contents() {
 # content.
 function test_watch_ext_plist_contents() {
   create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
@@ -335,7 +335,7 @@ EOF
 # Tests that the watch application is signed correctly.
 function test_watch_application_is_signed() {
   create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:app.ipa" \
+  create_dump_codesign "//app:app" \
       "Payload/app.app/Watch/watch_app.app" -vv
   do_build watchos //app:dump_codesign || fail "Should build"
 
@@ -346,7 +346,7 @@ function test_watch_application_is_signed() {
 # Tests that the watch extension is signed correctly.
 function test_watch_extension_is_signed() {
   create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:app.ipa" \
+  create_dump_codesign "//app:app" \
       "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" -vv
   do_build watchos //app:dump_codesign || fail "Should build"
 
@@ -362,8 +362,10 @@ function test_contains_provisioning_profile() {
   create_minimal_watchos_application_with_companion
   do_build watchos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/embedded.mobileprovision"
 }
 
@@ -373,14 +375,16 @@ function test_contains_stub_executable() {
   create_minimal_watchos_application_with_companion
   do_build watchos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Watch/watch_app.app/_WatchKitStub/WK"
 
   # Ignore the check for simulator builds.
   is_device_build watchos || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
     "WatchKitSupport2/WK"
 }
 
@@ -393,6 +397,8 @@ function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/7354695
 
   do_build watchos //app:app \
       --apple_bitcode=embedded || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
 
   assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
       "Payload/app.app/app"
@@ -409,7 +415,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 
   declare -a archs=( $(current_archs watchos) )
   for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/watch_ext_${arch}.linkmap"
+    assert_exists "$(find_output_artifact "app/watch_ext_${arch}.linkmap")"
   done
 }
 
@@ -422,7 +428,7 @@ function test_watch_application_entitlements() {
   create_minimal_watchos_application_with_companion
 
   if is_device_build watchos ; then
-    create_dump_codesign "//app:app.ipa" \
+    create_dump_codesign "//app:app" \
         "Payload/app.app/Watch/watch_app.app" -d --entitlements :-
     do_build watchos //app:dump_codesign || fail "Should build"
 
@@ -440,7 +446,7 @@ function test_watch_extension_entitlements() {
   if is_device_build watchos ; then
     # For device builds, we verify that the entitlements are in the codesign
     # output.
-    create_dump_codesign "//app:app.ipa" \
+    create_dump_codesign "//app:app" \
         "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" \
         -d --entitlements :-
     do_build watchos //app:dump_codesign || fail "Should build"
@@ -452,7 +458,9 @@ function test_watch_extension_entitlements() {
     # the binary.
     do_build watchos //app:app || fail "Should build"
 
-    unzip_single_file "test-bin/app/app.ipa" \
+    local output_artifact="$(find_output_artifact "app/app.ipa")"
+
+    unzip_single_file "$output_artifact" \
         "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext" | \
         print_debug_entitlements - | \
         grep -sq "<key>test-an-entitlement</key>" || \

@@ -108,56 +108,58 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that nonlocalized processed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" "Payload/app.app/Assets.car"
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+  assert_zip_contains "$output_artifact" "Payload/app.app/view_ios.nib"
 
   # Verify nonlocalized unprocessed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/nonlocalized_resource.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/structured/nested.txt"
 
   # Verify localized resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/view_ios.nib"
 
   # Verify localized unprocessed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.txt"
 
   # Verify that the module name is mentioned in the file. We can predict the
   # name of the .nib file inside the compiled storyboard based on its object
   # identifier and the fact that we're compiling with a particular minimum
   # iOS version.
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
+  unzip_single_file "$output_artifact" "Payload/app.app/view_ios.nib" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/unversioned_datamodel.mom" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom" \
       | grep "$module_name" > /dev/null
 }
@@ -203,62 +205,64 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that nonlocalized processed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  assert_zip_contains "$output_artifact" "Payload/app.app/Assets.car"
   # Verify that one of the image names shows up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in Assets.car"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+  assert_zip_contains "$output_artifact" "Payload/app.app/view_ios.nib"
 
   # Verify nonlocalized unprocessed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/nonlocalized_resource.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/structured/nested.txt"
 
   # Verify localized resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/view_ios.nib"
 
   # Verify localized unprocessed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.txt"
 
   # Verify that the module name is mentioned in the file. We can predict the
   # name of the .nib file inside the compiled storyboard based on its object
   # identifier and the fact that we're compiling with a particular minimum
   # iOS version.
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
+  unzip_single_file "$output_artifact" "Payload/app.app/view_ios.nib" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/unversioned_datamodel.mom" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom" \
       | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom" \
       | grep "$module_name" > /dev/null
 }
@@ -294,10 +298,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that nonlocalized processed resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
 }
 
@@ -331,16 +337,18 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that a single Assets.car file is present.
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
+  assert_zip_contains "$output_artifact" "Payload/app.app/Assets.car"
 
   # Verify that both image set names show up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in Assets.car"
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
       grep "star2_iphone" > /dev/null || \
       fail "Did not find star2_iphone in Assets.car"
 }

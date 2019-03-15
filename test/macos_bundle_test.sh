@@ -75,7 +75,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_macos_bundle
-  create_dump_plist "//app:app.zip" "app.bundle/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.bundle/Contents/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -178,7 +178,7 @@ EOF
 }
 EOF
 
-  create_dump_plist "//app:app.zip" "app.bundle/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.bundle/Contents/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
   do_build macos //app:dump_plist || fail "Should build"
@@ -212,7 +212,10 @@ EOF
   chmod +x app/post_processor.sh
 
   do_build macos //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.zip" \
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_equals "foo" "$(unzip_single_file "$output_artifact" \
       "app.bundle/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
@@ -226,12 +229,12 @@ function DISABLED__test_dsyms_generated() {
   create_minimal_macos_bundle
   do_build macos --apple_generate_dsym //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.app.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.bundle.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.bundle.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 
@@ -252,7 +255,9 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" |
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  unzip_single_file "$output_artifact" "app.bundle/Contents/MacOS/app" |
       nm -j - | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
@@ -264,7 +269,10 @@ function test_binary_has_correct_rpaths() {
   create_minimal_macos_bundle
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" \
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  unzip_single_file "$output_artifact" "app.bundle/Contents/MacOS/app" \
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
@@ -314,11 +322,14 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_equals "simple" "$(unzip_single_file "$output_artifact" \
       "app.bundle/Contents/Simple/simple.txt")"
-  assert_equals "1" "$(unzip_single_file "test-bin/app/app.zip" \
+  assert_equals "1" "$(unzip_single_file "$output_artifact" \
       "app.bundle/Contents/Filegroup/1.txt")"
-  assert_equals "2" "$(unzip_single_file "test-bin/app/app.zip" \
+  assert_equals "2" "$(unzip_single_file "$output_artifact" \
       "app.bundle/Contents/Filegroup/nested/2.txt")"
 }
 
@@ -339,8 +350,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_not_contains "test-bin/app/app.zip" "app.bundle/"
-  assert_zip_contains "test-bin/app/app.zip" "app.prefPane/"
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_not_contains "$output_artifact" "app.bundle/"
+  assert_zip_contains "$output_artifact" "app.prefPane/"
 }
 
 function test_bundle_loader_macos_application_symbols_deduped() {
@@ -403,11 +416,14 @@ EOF
 
   do_build macos //app:bundle //app:app || fail "Should build"
 
-  assert_binary_not_contains macos "test-bin/app/bundle.zip" \
+  local output_bundle="$(find_output_artifact app/bundle.zip)"
+  local output_app="$(find_output_artifact app/app.zip)"
+
+  assert_binary_not_contains macos "$output_bundle" \
       "bundle.bundle/Contents/MacOS/bundle" "RAShared"
-  assert_binary_contains macos "test-bin/app/bundle.zip" \
+  assert_binary_contains macos "$output_bundle" \
       "bundle.bundle/Contents/MacOS/bundle" "RABundle"
-  assert_binary_contains macos "test-bin/app/app.zip" \
+  assert_binary_contains macos "$output_app" \
       "app.app/Contents/MacOS/app" "RAShared"
 }
 
@@ -474,11 +490,14 @@ EOF
 
   do_build macos //app:bundle //app:app || fail "Should build"
 
-  assert_binary_not_contains macos "test-bin/app/bundle.zip" \
+  local output_bundle="$(find_output_artifact app/bundle.zip)"
+  local output_app="$(find_output_artifact app/app)"
+
+  assert_binary_not_contains macos "$output_bundle" \
       "bundle.bundle/Contents/MacOS/bundle" "RAShared"
-  assert_binary_contains macos "test-bin/app/bundle.zip" \
+  assert_binary_contains macos "$output_bundle" \
       "bundle.bundle/Contents/MacOS/bundle" "RABundle"
-  nm -jU test-bin/app/app | grep RAShared > /dev/null \
+  nm -jU "$output_app" | grep RAShared > /dev/null \
       || fail "Could not find RAShared on app binary"
 }
 

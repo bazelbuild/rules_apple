@@ -180,7 +180,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle" "unit_tests.xctest/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -240,7 +240,7 @@ function test_plist_contents() {
 function test_bundle_id_override() {
   create_common_files
   create_minimal_ios_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -252,7 +252,7 @@ function test_bundle_id_override() {
 function test_bundle_id_same_as_test_host_error() {
   create_common_files
   create_minimal_ios_application_with_tests "my.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests_test_bundle" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   ! do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -271,7 +271,7 @@ function test_builds_with_no_host() {
 function test_bundle_is_signed() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_codesign "//app:unit_tests_test_bundle.zip" "unit_tests.xctest" -vv
+  create_dump_codesign "//app:unit_tests_test_bundle" "unit_tests.xctest" -vv
   do_build ios --ios_minimum_os=9.0 //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -358,12 +358,12 @@ function test_dsyms_generated() {
   create_minimal_ios_application_with_tests
   do_build ios --apple_generate_dsym //app:unit_tests || fail "Should build"
 
-  assert_exists "test-bin/app/unit_tests.xctest.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/unit_tests.xctest.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/unit_tests.xctest.dSYM/Contents/Resources/DWARF/unit_tests_${arch}"
+        "$(find_output_artifact "app/unit_tests.xctest.dSYM/Contents/Resources/DWARF/unit_tests_${arch}")"
   done
 }
 
@@ -432,7 +432,9 @@ EOF
 
   do_build ios //app:test || fail "Should build"
 
-  assert_zip_contains "test-bin/app/test.zip" \
+  local output_artifact="$(find_output_artifact app/test.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 
 }
@@ -503,7 +505,9 @@ EOF
 
   do_build ios //app:test || fail "Should build"
 
-  assert_zip_contains "test-bin/app/test.zip" \
+  local output_artifact="$(find_output_artifact app/test.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 
 }
@@ -597,9 +601,12 @@ EOF
 
   do_build ios //app:test || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_app="$(find_output_artifact app/app.ipa)"
+  local output_test="$(find_output_artifact app/test.zip)"
+
+  assert_zip_contains "$output_app" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
-  assert_zip_not_contains "test-bin/app/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 
 }
@@ -694,9 +701,12 @@ EOF
 
   do_build ios //app:test || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_app="$(find_output_artifact app/app.ipa)"
+  local output_test="$(find_output_artifact app/test.zip)"
+
+  assert_zip_contains "$output_app" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
-  assert_zip_not_contains "test-bin/app/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 }
 

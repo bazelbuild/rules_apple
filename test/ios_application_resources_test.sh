@@ -91,45 +91,47 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that at least one name shows up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/Assets.car"
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  assert_zip_contains "$output_artifact" "Payload/app.app/Assets.car"
+  unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in Assets.car"
 
   # Verify Core Data models.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/versioned_datamodel.momd/VersionInfo.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/mapping_model.cdm"
 
   # Verify compiled storyboards.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/storyboard_ios.storyboardc/"
 
   # Verify png copied.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/sample.png"
 
   # Verify strings and plists.
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_binary "$output_artifact" \
       "Payload/app.app/nonlocalized.plist"
 
   # Verify compiled NIBs. Note that NIB folders might have different structures
   # depending on the minimum OS version passed to ibtool (in fact, they can
   # vary between directories to simple files). In this case, we verify the
   # format for a minimum OS version of 9.0, as passed above.
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+  assert_zip_contains "$output_artifact" "Payload/app.app/view_ios.nib"
 }
 
 # Tests that various xib files can be used as launch_storyboards, specifically
@@ -152,12 +154,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  unzip -l test-bin/app/app.ipa
+  local output_artifact="$(find_output_artifact app/app.ipa)"
 
   # Verify nib files created.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/launch_screen_ios~iphone.nib/runtime.nib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/launch_screen_ios~ipad.nib/runtime.nib"
 }
 
@@ -189,7 +191,9 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/empty.strings"
 }
 
@@ -261,19 +265,21 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify compiled storyboards.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/storyboard_ios.storyboardc/"
 
   # Verify strings and plists.
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/it.lproj/localized.strings"
 
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_binary "$output_artifact" \
       "Payload/app.app/it.lproj/localized.plist"
 
   # Verify compiled NIBs.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/view_ios.nib"
 }
 
@@ -310,8 +316,11 @@ function test_localized_unprocessed_resources() {
 
   # Basic build, no filter
   do_build ios //app:app || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   expect_not_log "Please verify apple.locales_to_include is defined properly"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.txt"
 }
 
@@ -322,9 +331,12 @@ function test_localized_unprocessed_resources_filter_all() {
 
   do_build ios //app:app --define "apple.locales_to_include=fr" || \
       fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   expect_log_once "Please verify apple.locales_to_include is defined properly"
   expect_log_once "\[\"fr\"\]"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.txt"
 }
 
@@ -335,8 +347,11 @@ function test_localized_unprocessed_resources_filter_mixed() {
 
   do_build ios //app:app --define "apple.locales_to_include=fr,it" \
       || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   expect_not_log "Please verify apple.locales_to_include is defined properly"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/it.lproj/localized.txt"
 }
 
@@ -347,7 +362,7 @@ function test_app_icons_and_launch_images() {
   create_common_files
 
   # For brevity, we only check a subset of the app icon and launch image keys.
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 \
       UILaunchImages:0:UILaunchImageName \
       UILaunchImages:0:UILaunchImageOrientation \
@@ -369,11 +384,13 @@ EOF
 
   do_build ios //app:dump_plist || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Note that the names have been transformed by actool so they are no longer
   # the original filename.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/app_icon29x29@2x.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/launch_image-800-Portrait-736h@3x.png"
 
   assert_equals "app_icon29x29" \
@@ -390,7 +407,7 @@ EOF
 # the bundler inserts the correct key/value into Info.plist.
 function test_launch_storyboard() {
   create_common_files
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       UILaunchStoryboardName
 
   cat >> app/BUILD <<EOF
@@ -408,7 +425,9 @@ EOF
 
   do_build ios //app:dump_plist || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/launch_screen_ios.storyboardc/"
   assert_equals "launch_screen_ios" \
       "$(cat "test-genfiles/app/UILaunchStoryboardName")"
@@ -441,19 +460,21 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/basic.bundle/basic_bundle.txt"
 
   # Verify strings and plists are in binary format.
-  assert_strings_is_text "test-bin/app/app.ipa" \
+  assert_strings_is_text "$output_artifact" \
       "Payload/app.app/basic.bundle/should_be_binary.strings"
 
-  assert_plist_is_text "test-bin/app/app.ipa" \
+  assert_plist_is_text "$output_artifact" \
       "Payload/app.app/basic.bundle/should_be_binary.plist"
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_strings_is_text "test-bin/app/app.ipa" \
+  assert_strings_is_text "$output_artifact" \
       "Payload/app.app/basic.bundle/nested/should_be_nested.strings"
 }
 
@@ -500,9 +521,11 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Bar.bundle/baz.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/foo/Bar.bundle/baz.txt"
 }
 
@@ -532,10 +555,12 @@ ios_application(
 )
 EOF
 
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName TargetName
   do_build ios //app:dump_plist || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist.
@@ -546,56 +571,56 @@ EOF
   assert_equals "bundle_library_ios" \
       "$(cat "test-genfiles/app/TargetName")"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/Assets.car"
   # Verify that one of the image names shows up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
-  unzip_single_file "test-bin/app/app.ipa" \
+  unzip_single_file "$output_artifact" \
         "Payload/app.app/bundle_library_ios.bundle/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in bundle_library_ios.bundle/Assets.car"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt"
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/localized.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/it.lproj/view_ios.nib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/mapping_model.cdm"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/nonlocalized_resource.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/storyboard_ios.storyboardc/"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/structured/nested.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/versioned_datamodel.momd/VersionInfo.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/view_ios.nib"
 
   # Verify that the processed structured resources are present and compiled (if
   # required).
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/structured/nested.txt"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/structured/generated.strings"
 
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_binary "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.plist"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings"
 }
 
@@ -651,19 +676,21 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the unprocessed structured resources are present.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/structured/nested.txt"
 
   # Verify that the processed structured resources are present and compiled.
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/structured/nested.strings"
 
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_binary "$output_artifact" \
       "Payload/app.app/structured/nested.plist"
 
   # And the generated one...
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/structured/generated.strings"
 }
 
@@ -686,11 +713,13 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the files exist.
-  assert_plist_is_text "test-bin/app/app.ipa" \
+  assert_plist_is_text "$output_artifact" \
       "Payload/app.app/Settings.bundle/Root.plist"
 
-  assert_strings_is_text "test-bin/app/app.ipa" \
+  assert_strings_is_text "$output_artifact" \
       "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
 }
 
@@ -728,7 +757,9 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/generated_resource.strings"
 }
 
@@ -761,19 +792,21 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the asset catalog exists.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Assets.car"
 
   # Verify that both names show up in the asset catalog. (The file format is a
   # black box to us, but we can at a minimum grep the name out because it's
   # visible in the raw bytes).
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in Assets.car"
   # TODO: b/77633270 the check the sticker packs are showing up, they don't
   # appear to be.
-  #unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Assets.car" | \
+  #unzip_single_file "$output_artifact" "Payload/app.app/Assets.car" | \
   #    grep "sequence" > /dev/null || \
   #    fail "Did not find sequence sticker in Assets.car"
 }
@@ -805,24 +838,37 @@ EOF
 
   do_build ios --compilation_mode=opt //app:app || fail "Should build"
 
-  assert_strings_is_binary "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_strings_is_binary "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_plist_is_binary "test-bin/app/app.ipa" \
+  assert_plist_is_binary "$output_artifact" \
       "Payload/app.app/nonlocalized.plist"
 
+  # Clean to clear the cache of output files to avoid finding multiple copies of the output under
+  # different configurations.
+  do_clean
 
   do_build ios --compilation_mode=fastbuild //app:app || fail "Should build"
 
-  assert_strings_is_text "test-bin/app/app.ipa" \
+  output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_strings_is_text "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_plist_is_text "test-bin/app/app.ipa" \
+  assert_plist_is_text "$output_artifact" \
       "Payload/app.app/nonlocalized.plist"
+
+  # Clean to clear the cache of output files to avoid finding multiple copies of the output under
+  # different configurations.
+  do_clean
 
   do_build ios --compilation_mode=dbg //app:app || fail "Should build"
 
-  assert_strings_is_text "test-bin/app/app.ipa" \
+  output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_strings_is_text "$output_artifact" \
       "Payload/app.app/nonlocalized.strings"
-  assert_plist_is_text "test-bin/app/app.ipa" \
+  assert_plist_is_text "$output_artifact" \
       "Payload/app.app/nonlocalized.plist"
 }
 
@@ -874,10 +920,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/foo.txt" | \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  unzip_single_file "$output_artifact" "Payload/app.app/foo.txt" | \
       grep "app_res" > /dev/null || \
       fail "Did not find app_res in app.app/foo.txt"
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/Frameworks/framework.framework/foo.txt" | \
+  unzip_single_file "$output_artifact" "Payload/app.app/Frameworks/framework.framework/foo.txt" | \
       grep "framework_res" > /dev/null || \
       fail "Did not find framework_res in app.app/Frameworks/framework.framework/foo.txt"
 }
@@ -949,13 +997,15 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/star.atlasc/star.1.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/star.atlasc/star.plist"
 
   # Make sure those were the only files in the .atlasc.
-  atlasc_count="$(zipinfo -1 "test-bin/app/app.ipa" | \
+  atlasc_count="$(zipinfo -1 "$output_artifact" | \
       grep "^Payload/app\.app/star\.atlasc/..*$" | wc -l | tr -d ' ')"
   assert_equals "2" "$atlasc_count"
 }

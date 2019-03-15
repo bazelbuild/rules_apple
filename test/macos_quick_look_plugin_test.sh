@@ -75,7 +75,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_macos_quick_look_plugin
-  create_dump_plist "//app:app.zip" "app.qlgenerator/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.qlgenerator/Contents/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -178,7 +178,7 @@ EOF
 }
 EOF
 
-  create_dump_plist "//app:app.zip" "app.qlgenerator/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.qlgenerator/Contents/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
   do_build macos //app:dump_plist || fail "Should build"
@@ -212,7 +212,8 @@ EOF
   chmod +x app/post_processor.sh
 
   do_build macos //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+  assert_equals "foo" "$(unzip_single_file "$output_artifact" \
       "app.qlgenerator/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
@@ -226,12 +227,12 @@ function DISABLED__test_dsyms_generated() {
   create_minimal_macos_quick_look_plugin
   do_build macos --apple_generate_dsym //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.qlgenerator.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact /app/app.qlgenerator.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.qlgenerator.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.qlgenerator.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 
@@ -252,7 +253,8 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.qlgenerator/Contents/MacOS/app" |
+  local output_artifact="$(find_output_artifact app/app.zip)"
+  unzip_single_file "$output_artifact" "app.qlgenerator/Contents/MacOS/app" |
       nm -j - | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
@@ -264,7 +266,8 @@ function disabled_test_binary_has_no_rpaths() {  # Blocked on b/127807024
   create_minimal_macos_quick_look_plugin
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.qlgenerator/Contents/MacOS/app" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+  unzip_single_file "$output_artifact" "app.qlgenerator/Contents/MacOS/app" \
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_not_contains "cmd LC_RPATH" "$TEST_TMPDIR/otool_output"

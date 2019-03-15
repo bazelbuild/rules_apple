@@ -212,31 +212,33 @@ function test_swift_dylibs_present() {
   create_minimal_ios_application_with_swift_extension
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
   # And to be safe, verify that they *aren't* packaged with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftFoundation.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftUIKit.dylib"
 
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftUIKit.dylib"
 }
 
@@ -249,25 +251,27 @@ function test_union_of_swift_dylibs_present_for_app_and_extension() {
   create_minimal_swift_ios_application_with_swift_extension
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftAVFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCoreLocation.dylib"
 
   # And to be safe, verify that they *aren't* packaged with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftAVFoundation.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftCoreLocation.dylib"
 
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftAVFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftCoreLocation.dylib"
 }
 

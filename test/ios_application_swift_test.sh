@@ -75,26 +75,28 @@ EOF
 # We look for three dylibs based on what is used in the scratch AppDelegate
 # class above: Core, Foundation, and UIKit.
 function assert_ipa_contains_swift_dylibs_for_device() {
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
   if is_device_build ios; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftUIKit.dylib"
   else
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphonesimulator/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphonesimulator/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphonesimulator/libswiftUIKit.dylib"
   fi
 }
@@ -130,17 +132,20 @@ EOF
 
     do_build ios //app:app --define=apple.package_swift_support=no \
       || fail "Should build"
-    assert_zip_contains "test-bin/app/app.ipa" \
+
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftUIKit.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/iphoneos/libswiftUIKit.dylib"
   fi
 }
@@ -187,11 +192,13 @@ EOF
 
   do_build ios //app:app --features=asan || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   if is_device_build ios ; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.asan_ios_dynamic.dylib"
   else
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.asan_iossim_dynamic.dylib"
   fi
 }
@@ -214,7 +221,10 @@ EOF
     # is not supported.
     do_build ios //app:app --features=tsan --ios_multi_cpus=x86_64\
         || fail "Should build"
-    assert_zip_contains "test-bin/app/app.ipa" \
+
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
   fi
 }

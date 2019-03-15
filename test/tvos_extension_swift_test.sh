@@ -209,31 +209,33 @@ function test_swift_dylibs_present() {
   create_minimal_tvos_application_with_swift_extension
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
   # And to be safe, verify that they *aren't* packaged with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftFoundation.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftUIKit.dylib"
 
   # Ignore the following checks for simulator builds.
   is_device_build tvos || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/appletvos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/appletvos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/appletvos/libswiftUIKit.dylib"
 }
 
@@ -246,25 +248,27 @@ function test_union_of_swift_dylibs_present_for_app_and_extension() {
   create_minimal_swift_tvos_application_with_swift_extension
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the Swift dylibs are packaged with the *application*, not with
   # the extension, as Xcode would do.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftAVFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCoreLocation.dylib"
 
   # And to be safe, verify that they *aren't* packaged with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftAVFoundation.dylib"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/libswiftCoreLocation.dylib"
 
   # Ignore the following checks for simulator builds.
   is_device_build tvos || return 0
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/appletvos/libswiftAVFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/appletvos/libswiftCoreLocation.dylib"
 }
 

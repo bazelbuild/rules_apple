@@ -105,34 +105,36 @@ function test_sdk_contains_expected_files() {
   create_minimal_ios_static_framework True True
   do_build ios //sdk:sdk || fail "Should build"
 
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
+  local output_artifact="$(find_output_artifact sdk/sdk.zip)"
+
+  assert_zip_contains "$output_artifact" "sdk.framework/sdk"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Info.plist"
+  assert_zip_contains "$output_artifact" "sdk.framework/Headers/Framework.h"
+  assert_zip_contains "$output_artifact" "sdk.framework/Modules/module.modulemap"
 
   # Verify asset catalogs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Assets.car"
 
   # Verify Core Data models.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
 
   # Verify compiled storyboards.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/storyboard_ios.storyboardc/"
 
   # Verify strings.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/nonlocalized.strings"
 
   # Verify compiled NIBs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/view_ios~iphone.nib/"
 }
 
@@ -141,34 +143,36 @@ function test_sdk_does_not_contain_headers() {
   create_minimal_ios_static_framework True False
   do_build ios //sdk:sdk || fail "Should build"
 
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
+  local output_artifact="$(find_output_artifact sdk/sdk.zip)"
+
+  assert_zip_contains "$output_artifact" "sdk.framework/sdk"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Info.plist"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Headers/Framework.h"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Modules/module.modulemap"
 
   # Verify asset catalogs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Assets.car"
 
   # Verify Core Data models.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
 
   # Verify compiled storyboards.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/storyboard_ios.storyboardc/"
 
   # Verify strings.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/nonlocalized.strings"
 
   # Verify compiled NIBs.
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "sdk.framework/view_ios~iphone.nib/"
 }
 
@@ -180,40 +184,42 @@ function test_sdk_contains_expected_files_without_excluding_resources() {
   create_minimal_ios_static_framework False True
   do_build ios //sdk:sdk || fail "Should build"
 
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/sdk"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" "sdk.framework/Info.plist"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Headers/Framework.h"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Modules/module.modulemap"
+  local output_artifact="$(find_output_artifact sdk/sdk.zip)"
+
+  assert_zip_contains "$output_artifact" "sdk.framework/sdk"
+  assert_zip_not_contains "$output_artifact" "sdk.framework/Info.plist"
+  assert_zip_contains "$output_artifact" "sdk.framework/Headers/Framework.h"
+  assert_zip_contains "$output_artifact" "sdk.framework/Modules/module.modulemap"
 
   # Verify asset catalogs.
-  assert_zip_contains "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car"
+  assert_zip_contains "$output_artifact" "sdk.framework/Assets.car"
   # Verify that one of the image names shows up in the asset catalog. (The file
   # format is a black box to us, but we can at a minimum grep the name out
   # because it's visible in the raw bytes).
-  unzip_single_file "test-bin/sdk/sdk.zip" "sdk.framework/Assets.car" | \
+  unzip_single_file "$output_artifact" "sdk.framework/Assets.car" | \
       grep "star_iphone" > /dev/null || \
       fail "Did not find star_iphone in Assets.car"
 
   # Verify Core Data models.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/versioned_datamodel.momd/VersionInfo.plist"
 
   # Verify compiled storyboards.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/storyboard_ios.storyboardc/"
 
   # Verify strings.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/nonlocalized.strings"
 
   # Verify compiled NIBs.
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/view_ios~iphone.nib/"
 }
 

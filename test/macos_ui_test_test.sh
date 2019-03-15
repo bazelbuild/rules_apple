@@ -164,7 +164,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_macos_application_with_tests
-  create_dump_plist "//app:ui_tests_test_bundle.zip" "ui_tests.xctest/Contents/Info.plist" \
+  create_dump_plist "//app:ui_tests_test_bundle" "ui_tests.xctest/Contents/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -214,7 +214,7 @@ function test_plist_contents() {
 function test_bundle_id_override() {
   create_common_files
   create_minimal_macos_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:ui_tests_test_bundle.zip" "ui_tests.xctest/Contents/Info.plist" \
+  create_dump_plist "//app:ui_tests_test_bundle" "ui_tests.xctest/Contents/Info.plist" \
       CFBundleIdentifier
 
   do_build macos //app:dump_plist || fail "Should build"
@@ -226,7 +226,7 @@ function test_bundle_id_override() {
 function test_bundle_id_same_as_test_host_error() {
   create_common_files
   create_minimal_macos_application_with_tests "my.bundle.id"
-  create_dump_plist "//app:ui_tests_test_bundle.zip" "ui_tests.xctest/Contents/Info.plist" \
+  create_dump_plist "//app:ui_tests_test_bundle" "ui_tests.xctest/Contents/Info.plist" \
       CFBundleIdentifier
 
   ! do_build macos //app:dump_plist || fail "Should build"
@@ -245,7 +245,7 @@ function test_build_fails_without_host() {
 function test_bundle_is_signed() {
   create_common_files
   create_minimal_macos_application_with_tests
-  create_dump_codesign "//app:ui_tests_test_bundle.zip" "ui_tests.xctest" -vv
+  create_dump_codesign "//app:ui_tests_test_bundle" "ui_tests.xctest" -vv
   do_build macos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -270,12 +270,12 @@ function test_dsyms_generated() {
   create_minimal_macos_application_with_tests
   do_build macos --apple_generate_dsym //app:ui_tests || fail "Should build"
 
-  assert_exists "test-bin/app/ui_tests.xctest.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/ui_tests.xctest.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/ui_tests.xctest.dSYM/Contents/Resources/DWARF/ui_tests_${arch}"
+        "$(find_output_artifact "app/ui_tests.xctest.dSYM/Contents/Resources/DWARF/ui_tests_${arch}")"
   done
 }
 

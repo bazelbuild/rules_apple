@@ -143,14 +143,16 @@ EOF
 
   do_build watchos //app:phone_app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/phone_app.ipa)"
+
   # Make sure we do have Swift dylibs in the iOS application.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Make sure we don't have a Swift dylib in the watchOS extension.
-  assert_zip_not_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/phone_app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/Frameworks/libswiftCore.dylib"
 
   # Ignore the following checks for simulator builds.
@@ -158,9 +160,9 @@ EOF
   # configured for opt compilation model.
   is_device_build watchos || return 0
 
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftFoundation.dylib"
 }
 
@@ -185,14 +187,16 @@ EOF
 
   do_build watchos //app:phone_app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/phone_app.ipa)"
+
   # Make sure we don't have a Swift dylib in the iOS application.
-  assert_zip_not_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/phone_app.app/Frameworks/libswiftCore.dylib"
 
   # Make sure we do have Swift dylibs in the watchOS extension.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Ignore the following checks for simulator builds.
@@ -200,9 +204,9 @@ EOF
   # configured for opt compilation model.
   is_device_build watchos || return 0
 
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/watchos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/watchos/libswiftFoundation.dylib"
 }
 
@@ -227,16 +231,18 @@ EOF
 
   do_build watchos //app:phone_app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/phone_app.ipa)"
+
   # Make sure we do have Swift dylibs in the iOS application.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Make sure we do have Swift dylibs in the watchOS extension.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Ignore the following checks for simulator builds.
@@ -245,13 +251,13 @@ EOF
   is_device_build watchos || return 0
 
   # Make sure iOS and watchOS Swift libraries are in SwiftSupport.
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/watchos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "SwiftSupport/watchos/libswiftFoundation.dylib"
 }
 

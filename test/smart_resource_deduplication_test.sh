@@ -133,44 +133,47 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_framework="$(find_output_artifact app/framework.zip)"
+  local output_app="$(find_output_artifact app/app.ipa)"
+
   # Verify framework has resources
-  assert_assets_contains "test-bin/app/framework.zip" \
+  assert_assets_contains "$output_framework" \
       "framework.framework/Assets.car" "star.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/nonlocalized.plist"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/sample.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/resource_only_lib.txt"
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/gen_file.txt"
 
   # Because app_lib directly references these assets, smart dedupe ensures that
   # they are present in the same bundle as the binary that has app_lib, which
   # in this case it's app.app.
-  assert_assets_contains "test-bin/app/app.ipa" \
+  assert_assets_contains "$output_app" \
       "Payload/app.app/Assets.car" "star.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/sample.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/basic.bundle/basic_bundle.txt"
 
   # These resources are not referenced by app_lib, so they should not appear in
   # the app bundle
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_app" \
       "Payload/app.app/nonlocalized.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_app" \
       "Payload/app.app/nonlocalized.strings"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_app" \
       "Payload/app.app/gen_file.txt"
 
   # This file is added by the top level bundling target, so it should be present
   # at the top level bundle.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/app.strings"
 
   # This resource is only depended on by the :resource_only_lib target, but that
@@ -179,7 +182,7 @@ EOF
   # deduplicated as the :resource_only_lib would be the only owner _and_ present
   # in both the framework and the app. But when accounting for the lack of
   # sources in :resource_only_lib, the resource is bundled in the app as well.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/resource_only_lib.txt"
 }
 
@@ -210,10 +213,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # This is a tricky corner case, in which a resource only lib is depended by
   # dependency chains that contain no other resources. In this very specific
   # scenario, the resource might not be correctly deduplicated.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/resource_only_lib.txt"
 }
 
@@ -248,14 +253,17 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_framework="$(find_output_artifact app/framework.zip)"
+  local output_app="$(find_output_artifact app/app.ipa)"
+
   # Verify that the resource is in the framework.
-  assert_zip_contains "test-bin/app/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/resource_only_lib.txt"
 
   # Even though there is no app specific library that declares ownership of
   # this file (shared_lib is also present in the framework), this file should be
   # present in the app as it is added as a direct dependency on the application.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/resource_only_lib.txt"
 }
 

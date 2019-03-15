@@ -101,7 +101,7 @@ EOF
 # Tests that the Info.plist in the extension has the correct content.
 function test_extension_plist_contents() {
   create_minimal_tvos_application_with_extension
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -205,7 +205,7 @@ EOF
 # Tests that the extension inside the app bundle is properly signed.
 function test_extension_is_signed() {
   create_minimal_tvos_application_with_extension
-  create_dump_codesign "//app:app.ipa" \
+  create_dump_codesign "//app:app" \
       "Payload/app.app/PlugIns/ext.appex" -vv
   do_build tvos //app:dump_codesign || fail "Should build"
 
@@ -221,8 +221,10 @@ function test_contains_provisioning_profile() {
   create_minimal_tvos_application_with_extension
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
 }
 
@@ -234,9 +236,11 @@ function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/7354695
   create_minimal_tvos_application_with_extension
   do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
 
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_ipa_contains_bitcode_maps tvos "$output_artifact" \
       "Payload/app.app/app"
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+  assert_ipa_contains_bitcode_maps tvos "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/ext"
 }
 

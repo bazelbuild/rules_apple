@@ -86,31 +86,33 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # TODO: Assets.car from asset_catalogs
 
   # Verify Core Data models.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/unversioned_datamodel.mom"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/versioned_datamodel.momd/v1.mom"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/versioned_datamodel.momd/v2.mom"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/versioned_datamodel.momd/VersionInfo.plist"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/mapping_model.cdm"
 
   # TODO: storyboards
 
   # Verify png copied.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/sample.png"
 
   # Verify strings and plists.
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.strings"
 
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_binary "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.plist"
 
   # TODO: nibs from xibs.
@@ -142,8 +144,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # Verify strings.
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/empty.strings"
 }
 
@@ -174,13 +178,15 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # TODO: storyboards
 
   # Verify strings and plists.
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/it.lproj/localized.strings"
 
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_binary "$output_artifact" \
       "app.app/Contents/Resources/it.lproj/localized.plist"
 
   # TODO: nibs from xibs.
@@ -215,8 +221,11 @@ function test_localized_unprocessed_resources() {
   create_with_localized_unprocessed_resources
 
   do_build macos //app:app || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   expect_not_log "Please verify apple.locales_to_include is defined properly"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
 
@@ -227,9 +236,12 @@ function test_localized_unprocessed_resources_filter_all() {
 
   do_build macos //app:app --define "apple.locales_to_include=fr" \
       || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   expect_log_once "Please verify apple.locales_to_include is defined properly"
   expect_log_once "\[\"fr\"\]"
-  assert_zip_not_contains "test-bin/app/app.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
 
@@ -240,8 +252,11 @@ function test_localized_unprocessed_resources_filter_mixed() {
 
   do_build macos //app:app --define "apple.locales_to_include=fr,it" \
       || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   expect_not_log "Please verify apple.locales_to_include is defined properly"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
 
@@ -276,19 +291,21 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/basic.bundle/basic_bundle.txt"
 
   # Verify strings and plists.
-  assert_strings_is_text "test-bin/app/app.zip" \
+  assert_strings_is_text "$output_artifact" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.strings"
 
-  assert_plist_is_text "test-bin/app/app.zip" \
+  assert_plist_is_text "$output_artifact" \
       "app.app/Contents/Resources/basic.bundle/should_be_binary.plist"
 
   # Verify that a nested file is still nested (the resource processing
   # didn't flatten it).
-  assert_strings_is_text "test-bin/app/app.zip" \
+  assert_strings_is_text "$output_artifact" \
       "app.app/Contents/Resources/basic.bundle/nested/should_be_nested.strings"
 }
 
@@ -333,9 +350,11 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/Bar.bundle/baz.txt"
-  assert_zip_not_contains "test-bin/app/app.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "app.app/Contents/Resources/foo/Bar.bundle/baz.txt"
 }
 
@@ -363,7 +382,7 @@ macos_application(
 )
 EOF
 
-  create_dump_plist "//app:app.zip" \
+  create_dump_plist "//app:app" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build macos //app:dump_plist || fail "Should build"
@@ -375,47 +394,49 @@ EOF
   assert_equals "bundle_library_macos.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # TODO: Assets.car from asset_catalogs
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/basic.bundle/basic_bundle.txt"
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.strings"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.txt"
   # TODO: localized storyboards.
   # TODO: localized nibs from xibs.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/mapping_model.cdm"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/nonlocalized_resource.txt"
   # TODO: storyboards.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/nested.txt"
   # TODO: See note in testdata/resource/BUILD, objc_bundle_library targeting
   # macOS crashes bazel if given datamodels. Revisit when objc_bundle_library
   # is rewritten in skylark.
-  #assert_zip_contains "test-bin/app/app.zip" \
+  #assert_zip_contains "$output_artifact" \
   #    "app.app/Contents/Resources/bundle_library_macos.bundle/unversioned_datamodel.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
+  #assert_zip_contains "$output_artifact" \
   #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/v1.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
+  #assert_zip_contains "$output_artifact" \
   #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/v2.mom"
-  #assert_zip_contains "test-bin/app/app.zip" \
+  #assert_zip_contains "$output_artifact" \
   #    "app.app/Contents/Resources/bundle_library_macos.bundle/versioned_datamodel.momd/VersionInfo.plist"
   # TODO: nibs from xibs.
 
   # Verify that the processed structured resources are present and compiled (if
   # required).
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/nested.txt"
 
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/generated.strings"
 
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_binary "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.plist"
 
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/structured/should_be_binary.strings"
  }
 
@@ -469,19 +490,21 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # Verify that the unprocessed structured resources are present.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Resources/structured/nested.txt"
 
   # Verify that the processed structured resources are present and compiled.
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/structured/nested.strings"
 
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_binary "$output_artifact" \
       "app.app/Contents/Resources/structured/nested.plist"
 
   # And the generated one...
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/structured/generated.strings"
 }
 
@@ -517,7 +540,9 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/generated_resource.strings"
 }
 
@@ -546,23 +571,37 @@ EOF
 
   do_build macos --compilation_mode=opt //app:app || fail "Should build"
 
-  assert_strings_is_binary "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_strings_is_binary "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.strings"
-  assert_plist_is_binary "test-bin/app/app.zip" \
+  assert_plist_is_binary "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.plist"
 
- do_build macos --compilation_mode=fastbuild //app:app || fail "Should build"
+  # Clean to clear the cache of output files to avoid finding multiple copies of the output under
+  # different configurations.
+  do_clean
 
-  assert_strings_is_text "test-bin/app/app.zip" \
+  do_build macos --compilation_mode=fastbuild //app:app || fail "Should build"
+
+  output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_strings_is_text "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.strings"
-  assert_plist_is_text "test-bin/app/app.zip" \
+  assert_plist_is_text "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.plist"
 
- do_build macos --compilation_mode=dbg //app:app || fail "Should build"
+  # Clean to clear the cache of output files to avoid finding multiple copies of the output under
+  # different configurations.
+  do_clean
 
-  assert_strings_is_text "test-bin/app/app.zip" \
+  do_build macos --compilation_mode=dbg //app:app || fail "Should build"
+
+  output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_strings_is_text "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.strings"
-  assert_plist_is_text "test-bin/app/app.zip" \
+  assert_plist_is_text "$output_artifact" \
       "app.app/Contents/Resources/nonlocalized.plist"
 }
 

@@ -83,11 +83,13 @@ function disabled_test_asan_bundle() {  # Blocked on b/73547309
   do_build ios --features=asan \
       //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   if is_device_build ios ; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.asan_ios_dynamic.dylib"
   else
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.asan_iossim_dynamic.dylib"
   fi
 }
@@ -102,7 +104,10 @@ function disabled_test_tsan_bundle() {  # Blocked on b/73547309
     # is not supported.
     do_build ios --features=tsan --ios_multi_cpus=x86_64\
         //app:app || fail "Should build"
-    assert_zip_contains "test-bin/app/app.ipa" \
+
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
   fi
 }
@@ -114,11 +119,13 @@ function disabled_test_ubsan_bundle() {  # Blocked on b/73547309
   do_build ios --features=ubsan \
       //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   if is_device_build ios ; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.ubsan_ios_dynamic.dylib"
   else
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libclang_rt.ubsan_iossim_dynamic.dylib"
   fi
 }

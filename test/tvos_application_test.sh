@@ -76,7 +76,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_tvos_application
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -177,12 +177,12 @@ function test_dsyms_generated() {
   create_minimal_tvos_application
   do_build tvos --apple_generate_dsym //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.app.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs tvos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 
@@ -195,7 +195,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 
   declare -a archs=( $(current_archs tvos) )
   for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/app_${arch}.linkmap"
+    assert_exists  "$(find_output_artifact "app/app_${arch}.linkmap")"
   done
 }
 
@@ -203,7 +203,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 function test_application_is_signed() {
   create_common_files
   create_minimal_tvos_application
-  create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
+  create_dump_codesign "//app:app" "Payload/app.app" -vv
   do_build tvos //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -219,8 +219,10 @@ function test_contains_provisioning_profile() {
   create_minimal_tvos_application
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/embedded.mobileprovision"
 }
 
@@ -256,7 +258,7 @@ EOF
   if is_device_build tvos ; then
     # For device builds, we verify that the entitlements are in the codesign
     # output.
-    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
+    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build tvos //app:dump_codesign || fail "Should build"
 
     assert_contains "<key>test-an-entitlement</key>" \
@@ -266,7 +268,9 @@ EOF
     # the binary.
     do_build tvos //app:app || fail "Should build"
 
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    unzip_single_file "$output_artifact" "Payload/app.app/app" | \
         print_debug_entitlements - | \
         grep -sq "<key>test-an-entitlement</key>" || \
         fail "Failed to find custom entitlement"
@@ -308,7 +312,9 @@ function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/7354695
   create_minimal_tvos_application
   do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
 
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_ipa_contains_bitcode_maps tvos "$output_artifact" \
       "Payload/app.app/app"
 }
 

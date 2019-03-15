@@ -225,33 +225,36 @@ function test_resource_are_deduplicated_if_present_in_dependency() {
 
   do_build ios //ios:{app,framework,test} || fail "Should build"
 
-  assert_zip_contains "test-bin/ios/framework.zip" \
+  local output_framework="$(find_output_artifact ios/framework.zip)"
+  local output_app="$(find_output_artifact ios/app.ipa)"
+  local output_test="$(find_output_artifact ios/test.zip)"
+
+  assert_zip_contains "$output_framework" \
       "framework.framework/shared.bundle/shared_bundled.txt"
-  assert_zip_contains "test-bin/ios/framework.zip" \
+  assert_zip_contains "$output_framework" \
       "framework.framework/shared_unbundled.txt"
 
-  assert_zip_contains "test-bin/ios/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/app.bundle/app_bundled.txt"
-  assert_zip_contains "test-bin/ios/app.ipa" \
+  assert_zip_contains "$output_app" \
       "Payload/app.app/app_unbundled.txt"
-  assert_zip_not_contains "test-bin/ios/app.ipa" \
+  assert_zip_not_contains "$output_app" \
       "Payload/app.app/shared.bundle/shared_bundled.txt"
-  assert_zip_not_contains "test-bin/ios/app.ipa" \
+  assert_zip_not_contains "$output_app" \
       "Payload/app.app/shared_unbundled.txt"
 
-  assert_zip_contains "test-bin/ios/test.zip" \
+  assert_zip_contains "$output_test" \
       "test.xctest/test.bundle/test_bundled.txt"
-  assert_zip_contains "test-bin/ios/test.zip" \
+  assert_zip_contains "$output_test" \
       "test.xctest/test_unbundled.txt"
-  assert_zip_not_contains "test-bin/ios/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/app.bundle/app_bundled.txt"
-  assert_zip_not_contains "test-bin/ios/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/app_unbundled.txt"
-  assert_zip_not_contains "test-bin/ios/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/shared.bundle/shared_bundled.txt"
-  assert_zip_not_contains "test-bin/ios/test.zip" \
+  assert_zip_not_contains "$output_test" \
       "test.xctest/shared_unbundled.txt"
 }
-
 
 run_suite "ios unit test resources deduplication tests"

@@ -64,8 +64,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app)"
+
   # Make sure that an Info.plist did *not* get embedded in this case.
-  otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __info_plist "$output_artifact" > $TEST_TMPDIR/otool.out
   assert_not_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
 }
 
@@ -84,9 +86,11 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app)"
+
   # The symbol should be labeled "T" for text section if statically linked, not
   # "U" (which would indicate dynamic linkage).
-  nm test-bin/app/app | grep "T _swift_slowAlloc" > /dev/null \
+  nm "$output_artifact" | grep "T _swift_slowAlloc" > /dev/null \
       || fail "Should have found _swift_slowAlloc in TEXT section, but did not"
 }
 

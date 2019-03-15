@@ -176,7 +176,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_ios_application
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -294,7 +294,7 @@ EOF
 }
 EOF
 
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
   do_build ios //app:dump_plist || fail "Should build"
@@ -311,12 +311,12 @@ function test_dsyms_generated() {
   create_minimal_ios_application
   do_build ios --apple_generate_dsym //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.app.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 
@@ -329,7 +329,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/app_${arch}.linkmap"
+    assert_exists "$(find_output_artifact "app/app_${arch}.linkmap")"
   done
 }
 
@@ -337,7 +337,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 function test_application_is_signed() {
   create_common_files
   create_minimal_ios_application
-  create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
+  create_dump_codesign "//app:app" "Payload/app.app" -vv
   do_build ios //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \
@@ -353,8 +353,10 @@ function test_contains_provisioning_profile() {
   create_minimal_ios_application
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/embedded.mobileprovision"
 }
 
@@ -383,7 +385,10 @@ EOF
   chmod +x app/post_processor.sh
 
   do_build ios //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.ipa" \
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_equals "foo" "$(unzip_single_file "$output_artifact" \
       "Payload/app.app/inserted_by_post_processor.txt")"
 }
 
@@ -411,7 +416,9 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  unzip_single_file "$output_artifact" "Payload/app.app/app" |
       nm -j - | grep _linkopts_test_main  > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
@@ -424,7 +431,9 @@ function test_pkginfo_contents() {
   create_minimal_ios_application
   do_build ios //app:app || fail "Should build"
 
-  assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_equals "APPL????" "$(unzip_single_file "$output_artifact" \
       "Payload/app.app/PkgInfo")"
 }
 
@@ -461,7 +470,7 @@ EOF
   if is_device_build ios ; then
     # For device builds, we verify that the entitlements are in the codesign
     # output.
-    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
+    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios //app:dump_codesign || fail "Should build"
 
     assert_contains "<key>test-an-entitlement</key>" \
@@ -471,7 +480,9 @@ EOF
     # the binary.
     do_build ios //app:app || fail "Should build"
 
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    unzip_single_file "$output_artifact" "Payload/app.app/app" | \
         print_debug_entitlements - | \
         grep -sq "<key>test-an-entitlement</key>" || \
         fail "Failed to find custom entitlement"
@@ -518,7 +529,7 @@ EOF
 
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
-    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
+    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
     readonly FILE_TO_CHECK="test-genfiles/app/codesign_output"
@@ -527,7 +538,10 @@ EOF
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
     do_build ios "$@" //app:app || fail "Should build"
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
+
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    unzip_single_file "$output_artifact" "Payload/app.app/app" | \
         print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
@@ -598,7 +612,9 @@ EOF
   if ! is_device_build ios ; then
     do_build ios //app:app-with-hyphen || fail "Should build"
 
-    unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
+    local output_artifact="$(find_output_artifact app/app-with-hyphen.ipa)"
+
+    unzip_single_file "$output_artifact" \
         "Payload/app-with-hyphen.app/app-with-hyphen" | \
         print_debug_entitlements - | \
         grep -sq "<key>test-an-entitlement</key>" || \
@@ -679,11 +695,13 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   if is_device_build ios ; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/appResources.bundle/foo_device.txt"
   else
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/appResources.bundle/foo_sim.txt"
   fi
 }
@@ -696,16 +714,18 @@ function test_prebuilt_static_apple_framework_import_dependency() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that it's not bundled.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
@@ -717,8 +737,10 @@ function test_prebuilt_static_apple_static_framework_import_resources() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that it's not converted to binary.
-  assert_plist_is_text "test-bin/app/app.ipa" \
+  assert_plist_is_text "$output_artifact" \
       "Payload/app.app/fmwk.bundle/Some.plist"
 }
 
@@ -730,18 +752,20 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
 
   # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
@@ -817,7 +841,9 @@ function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/7354695
   do_build ios -s --apple_bitcode=embedded \
        //app:app || fail "Should build"
 
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_ipa_contains_bitcode_maps ios "$output_artifact" \
       "Payload/app.app/app"
 }
 
@@ -840,10 +866,12 @@ EOF
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Both the bundle name and the executable name should correspond to
   # bundle_name.
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/"
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/different.app/different"
+  assert_zip_contains "$output_artifact" "Payload/different.app/"
+  assert_zip_contains "$output_artifact" "Payload/different.app/different"
 }
 
 # Tests that the label passed to the version attribute overwrites the version
@@ -874,7 +902,7 @@ apple_bundle_version(
 )
 EOF
 
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       CFBundleVersion \
       CFBundleShortVersionString
   do_build ios //app:dump_plist || fail "Should build"

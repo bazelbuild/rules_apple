@@ -112,10 +112,12 @@ EOF
 
   do_build ios //sdk:sdk || fail "Should build"
 
+  local output_artifact="$(find_output_artifact sdk/sdk.zip)"
+
   # Both the bundle name and the executable name should correspond to
   # bundle_name.
-  assert_zip_contains "test-bin/sdk/sdk.zip" "different.framework/"
-  assert_zip_contains "test-bin/sdk/sdk.zip" "different.framework/different"
+  assert_zip_contains "$output_artifact" "different.framework/"
+  assert_zip_contains "$output_artifact" "different.framework/different"
 }
 
 # Tests sdk_dylib and sdk_framework attributes are captured into the modulemap.
@@ -160,12 +162,14 @@ EOF
 
   do_build ios //sdk:sdk || fail "Should build"
 
-  assert_zip_contains "test-bin/sdk/sdk.zip" \
+  local output_artifact="$(find_output_artifact sdk/sdk.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "sdk.framework/Modules/module.modulemap"
-  unzip_single_file "test-bin/sdk/sdk.zip" \
+  unzip_single_file "$output_artifact" \
       "sdk.framework/Modules/module.modulemap" \
     | grep -sq 'link "z"' || fail "Should have said to link libz"
-  unzip_single_file "test-bin/sdk/sdk.zip" \
+  unzip_single_file "$output_artifact" \
       "sdk.framework/Modules/module.modulemap" \
     | grep -sq 'link framework "CFNetwork"' \
     || fail "Should have said to link CFNetwork.framework"

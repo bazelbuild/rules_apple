@@ -74,26 +74,28 @@ EOF
 # We look for three dylibs based on what is used in the scratch AppDelegate
 # class above: Core, Foundation, and UIKit.
 function assert_ipa_contains_swift_dylibs_for_device() {
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
   if is_device_build tvos; then
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftUIKit.dylib"
   else
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvsimulator/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvsimulator/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvsimulator/libswiftUIKit.dylib"
   fi
 
@@ -130,17 +132,20 @@ EOF
 
     do_build tvos //app:app --define=apple.package_swift_support=no \
       || fail "Should build"
-    assert_zip_contains "test-bin/app/app.ipa" \
+
+    local output_artifact="$(find_output_artifact app/app.ipa)"
+
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
+    assert_zip_contains "$output_artifact" \
         "Payload/app.app/Frameworks/libswiftUIKit.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
+    assert_zip_not_contains "$output_artifact" \
         "SwiftSupport/appletvos/libswiftUIKit.dylib"
   fi
 }

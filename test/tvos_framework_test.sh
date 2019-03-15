@@ -455,15 +455,18 @@ void doStuff() {
 EOF
 
   do_build tvos //app:app || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Assert that the framework contains the bundled files...
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/generated.strings"
   # ...and that the application doesn't.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/simple_bundle_library.bundle"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/basic.bundle"
 }
 
@@ -472,11 +475,13 @@ function test_framework_contains_expected_files() {
   create_minimal_tvos_framework
   do_build tvos //framework:framework || fail "Should build"
 
-  assert_zip_contains "test-bin/framework/framework.zip" \
+  local output_artifact="$(find_output_artifact framework/framework.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "framework.framework/framework"
-  assert_zip_contains "test-bin/framework/framework.zip" \
+  assert_zip_contains "$output_artifact" \
       "framework.framework/Info.plist"
-  assert_zip_contains "test-bin/framework/framework.zip" \
+  assert_zip_contains "$output_artifact" \
       "framework.framework/Headers/Framework.h"
 }
 
@@ -491,7 +496,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl", "tvos_framework")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 tvos_framework(
-  name = "framework",
+  name = "framework_rpath",
   hdrs = ["Framework.h"],
   bundle_id = "my.framework.id",
   bundle_name = "FrameworkBundleName",
@@ -528,9 +533,12 @@ filegroup(
 )
 EOF
 
-  do_build tvos //framework:framework || fail "Should build"
+  do_build tvos //framework:framework_rpath || fail "Should build"
+
+  local output_artifact="$(find_output_artifact framework/framework_rpath.zip)"
+
   # Extracts binary from framework zip.
-  unzip_single_file "test-bin/framework/framework.zip" "FrameworkBundleName.framework/FrameworkBundleName" \
+  unzip_single_file "$output_artifact" "FrameworkBundleName.framework/FrameworkBundleName" \
       > "$TEST_TMPDIR/framework_binary"
   # Ensures binary contains correct rpath.
   otool -l "$TEST_TMPDIR/framework_binary" > "$TEST_TMPDIR/otool_output"
@@ -569,14 +577,16 @@ function test_application_contains_expected_files() {
 
   expect_not_log "not marked extension-safe"
 
-  assert_zip_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
 
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/extension.appex/Frameworks/"
 }
 
@@ -584,7 +594,7 @@ function test_application_contains_expected_files() {
 function test_framework_bundle_codesigning() {
   create_minimal_tvos_framework
   create_minimal_tvos_application_and_extension
-  create_dump_codesign "//app:app.ipa" \
+  create_dump_codesign "//app:app" \
       "Payload/app.app/Frameworks/framework.framework" -vv
 
   do_build tvos //app:dump_codesign || fail "Should build"
@@ -596,7 +606,7 @@ function test_framework_bundle_codesigning() {
 function test_app_with_framework_bundle_codesigning() {
   create_minimal_tvos_framework
   create_minimal_tvos_application_and_extension
-  create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
+  create_dump_codesign "//app:app" "Payload/app.app" -vv
   do_build tvos //app:dump_codesign || fail "Should build"
   assert_contains "satisfies its Designated Requirement" \
       "test-genfiles/app/codesign_output"
@@ -725,13 +735,16 @@ EOF
 EOF
 
   do_build tvos //app:app || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_not_contains tvos "$output_artifact" \
       "Payload/app.app/app" "fooFunction"
-  assert_binary_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_contains tvos "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework" "fooFunction"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
 }
 
@@ -804,17 +817,20 @@ EOF
 EOF
 
   do_build tvos //app:app || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # The main bundle should contain the framework...
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
   # The extension bundle should be intact, but have no inner framework.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/ext"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/framework.framework/framework"
 }
 
@@ -826,13 +842,16 @@ function test_root_level_resource_smart_dedupe_keeps_resources() {
   create_app_and_framework_with_common_resources
 
   do_build tvos //app:app || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Images/framework.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Images/framework.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/Images/framework.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Images/app.png"
 }
 
@@ -972,12 +991,14 @@ void doStuff() {
 EOF
 
   do_build tvos //app:app || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Images/common.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Images/common.png"
 }
-
 
 function test_resource_bundle_is_in_framework_same_min_os() {
   verify_resource_bundle_deduping "9.0" "9.0"
@@ -1080,10 +1101,12 @@ void doStuff() {
 }
 EOF
 
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build tvos //app:dump_plist || fail "Should build"
+
+  local output_artifact="$(find_output_artifact app/app.ipa)"
 
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
@@ -1093,14 +1116,14 @@ EOF
       "$(cat "test-genfiles/app/CFBundleName")"
 
   # Assert that the framework contains the bundled files...
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/generated.strings"
   # ...and that the application doesn't.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/simple_bundle_library.bundle"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/basic.bundle"
 }
 
@@ -1245,16 +1268,18 @@ EOF
 
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Assert that the inner framework was propagated to the application...
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/inner_framework.framework/inner_framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/inner_framework.framework/resource.txt"
 
   # ...and they aren't in the outer framework.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/outer_framework.framework/Frameworks/inner_framework.framework/inner_framework"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/outer_framework.framework/Frameworks/inner_framework.framework/resource.txt"
 }
 
@@ -1267,17 +1292,19 @@ function test_extension_depends_on_unsafe_framework() {
   create_minimal_tvos_application_and_extension
   do_build tvos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   expect_log "not marked extension-safe"
 
   # Verify the application still builds, however.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
 
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/PlugIns/extension.appex/Frameworks/"
 }
 
@@ -1453,33 +1480,35 @@ void frameworkDependent() {
   NSLog(@"frameworkDependent() called");
 }
 EOF
-  create_dump_plist --suffix app "//app:app.ipa" \
+  create_dump_plist --suffix app "//app:app" \
       "Payload/app.app/Info.plist" \
       CFBundleIdentifier CommonKey
-  create_dump_plist --suffix framework "//app:app.ipa" \
+  create_dump_plist --suffix framework "//app:app" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist" \
       CFBundleIdentifier CommonKey
-  create_dump_plist --suffix depframework "//app:app.ipa" \
+  create_dump_plist --suffix depframework "//app:app" \
       "Payload/app.app/Frameworks/depframework.framework/Info.plist" \
       CFBundleIdentifier CommonKey
 
   do_build tvos //app:dump_plist_app //app:dump_plist_framework \
       //app:dump_plist_depframework || fail "Should build"
 
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Images/foo.png"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/Images/foo.png"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/depframework.framework/Images/foo.png"
 
-  assert_binary_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_contains tvos "$output_artifact" \
       "Payload/app.app/Frameworks/depframework.framework/depframework" \
       "frameworkDependent"
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_not_contains tvos "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework" \
       "frameworkDependent"
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_not_contains tvos "$output_artifact" \
       "Payload/app.app/app" "frameworkDependent"
 
   # They all have Info.plists with the right bundle ids (even though the
@@ -1580,9 +1609,11 @@ EOF
 
   do_build tvos //app:app || fail "Should build"
 
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_binary_not_contains tvos "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/ext" "doStuff"
-  assert_binary_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_contains tvos "$output_artifact" \
       "Payload/app.app/Frameworks/framework.framework/framework" "doStuff"
 }
 
@@ -1758,9 +1789,11 @@ EOF
 
   do_build tvos //app:app -s || fail "Should build"
 
-  assert_binary_contains tvos "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_binary_contains tvos "$output_artifact" \
       "Payload/app.app/Frameworks/outer_framework.framework/outer_framework" "doStuff"
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
+  assert_binary_not_contains tvos "$output_artifact" \
       "Payload/app.app/app" "doStuff"
 }
 

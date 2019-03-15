@@ -61,9 +61,11 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app)"
+
   # Make sure that an Info.plist did *not* get embedded in this case.
-  otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
-  otool -s __TEXT __launchd_plist test-bin/app/app >> $TEST_TMPDIR/otool.out
+  otool -s __TEXT __info_plist "$output_artifact" > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __launchd_plist "$output_artifact" >> $TEST_TMPDIR/otool.out
   assert_not_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
   assert_not_contains "__TEXT,__launchd_plist" $TEST_TMPDIR/otool.out
 }
@@ -99,8 +101,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app)"
+
   # Make sure that an Info.plist did get embedded.
-  otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __info_plist "$output_artifact" > $TEST_TMPDIR/otool.out
   assert_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
 }
 
@@ -147,9 +151,11 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app)"
+
   # Make sure that an Info.plist and launchd.plist did get embedded.
-  otool -s __TEXT __info_plist test-bin/app/app > $TEST_TMPDIR/otool.out
-  otool -s __TEXT __launchd_plist test-bin/app/app >> $TEST_TMPDIR/otool.out
+  otool -s __TEXT __info_plist "$output_artifact" > $TEST_TMPDIR/otool.out
+  otool -s __TEXT __launchd_plist "$output_artifact" >> $TEST_TMPDIR/otool.out
   assert_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
   assert_contains "__TEXT,__launchd_plist" $TEST_TMPDIR/otool.out
 }
@@ -174,7 +180,9 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  nm -j test-bin/app/app | grep _linkopts_test_main > /dev/null \
+  local output_artifact="$(find_output_artifact app/app)"
+
+  nm -j "$output_artifact" | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
 }
@@ -196,12 +204,12 @@ EOF
       //app:app || fail "Should build"
 
   # Make sure that a dSYM bundle was generated.
-  assert_exists "test-bin/app/app.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 

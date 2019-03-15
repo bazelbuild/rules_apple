@@ -76,17 +76,20 @@ function test_swift_dylibs_present() {
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/libswiftAppKit.dylib"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/libswiftFoundation.dylib"
 
   # This should be implied by the previous check, but we also check that Swift
   # symbols are not found in the TEXT section (which would imply static
   # linkage).
-  nm test-bin/app/app | grep "T _swift_slowAlloc" > /dev/null \
+  # TODO(kaipi): This check is not testing what it means to check.
+  nm "$(find_output_artifact app/app)" | grep "T _swift_slowAlloc" > /dev/null \
       && fail "Should not have found _swift_slowAlloc in TEXT section but did" \
       || :
 }

@@ -39,6 +39,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple:common.bzl",
     "entitlements_validation_mode",
 )
@@ -781,6 +785,7 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
@@ -820,6 +825,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],

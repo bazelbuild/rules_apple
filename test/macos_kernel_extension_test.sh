@@ -151,8 +151,10 @@ EOF
 
   do_build macos //kext:kext-builder || fail "Should build"
 
-  assert_zip_contains "test-bin/kext/kext-builder.zip" "kext-builder.kext/"
-  unzip "test-bin/kext/kext-builder.zip" -d $TEST_TMPDIR
+  local output_artifact="$(find_output_artifact kext/kext-builder.zip)"
+
+  assert_zip_contains "$output_artifact" "kext-builder.kext/"
+  unzip "$output_artifact" -d $TEST_TMPDIR
   file $TEST_TMPDIR/kext-builder.kext/Contents/MacOS/kext-builder > $TEST_TMPDIR/bundle_file.out
   assert_contains "kext bundle" $TEST_TMPDIR/bundle_file.out
 

@@ -26,6 +26,10 @@
 
 test_script="$1"; shift
 
+function bazel() {
+  HOME=/Users/kaipi USE_BAZEL_VERSION=0.24.0rc6 bazelisk "$@"
+}
+
 # Use the image's default Xcode version when running tests to avoid flakes
 # because of multiple Xcodes running at the same time.
 export XCODE_VERSION_FOR_TESTS="$(xcodebuild -version | sed -nE 's/Xcode (.+)/\1/p')"
@@ -171,6 +175,24 @@ if [[ -z "$XCODE_QUERY" ]]; then
 fi
 
 setup_clean_workspace
+
+function set_up() {
+  per_test_set_up
+}
+
+function tear_down() {
+  per_test_tear_down
+}
+
+# Hook that test programs can override to define common set-up code.
+function per_test_set_up() {
+  :
+}
+
+# Hook that test programs can override to define common tear-down code.
+function per_test_tear_down() {
+  :
+}
 
 source "$(rlocation build_bazel_rules_apple/test/apple_shell_testutils.sh)"
 source "$(rlocation build_bazel_rules_apple/test/${test_script})"

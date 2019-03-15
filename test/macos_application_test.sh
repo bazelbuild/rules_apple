@@ -127,7 +127,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_macos_application
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.app/Contents/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -230,7 +230,7 @@ EOF
 }
 EOF
 
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
+  create_dump_plist "//app:app" "app.app/Contents/Info.plist" \
       CFBundleIdentifier \
       AnotherKey
   do_build macos //app:dump_plist || fail "Should build"
@@ -264,7 +264,10 @@ EOF
   chmod +x app/post_processor.sh
 
   do_build macos //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.zip" \
+
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_equals "foo" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
@@ -278,12 +281,12 @@ function DISABLED__test_dsyms_generated() {
   create_minimal_macos_application
   do_build macos --apple_generate_dsym //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.app.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}")"
   done
 }
 
@@ -304,7 +307,9 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" |
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  unzip_single_file "$output_artifact" "app.app/Contents/MacOS/app" |
       nm -j - | grep _linkopts_test_main > /dev/null \
       || fail "Could not find -alias symbol in binary; " \
               "linkopts may have not propagated"
@@ -317,7 +322,9 @@ function test_pkginfo_contents() {
   create_minimal_macos_application
   do_build macos //app:app || fail "Should build"
 
-  assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_equals "APPL????" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/PkgInfo")"
 }
 
@@ -327,7 +334,9 @@ function test_binary_has_correct_rpaths() {
   create_minimal_macos_application
   do_build macos //app:app || fail "Should build"
 
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  unzip_single_file "$output_artifact" "app.app/Contents/MacOS/app" \
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
@@ -401,16 +410,18 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_equals "simple" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/Simple/simple.txt")"
-  assert_equals "1" "$(unzip_single_file "test-bin/app/app.zip" \
+  assert_equals "1" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/Filegroup/1.txt")"
-  assert_equals "2" "$(unzip_single_file "test-bin/app/app.zip" \
+  assert_equals "2" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/Filegroup/nested/2.txt")"
-  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Simple/simple.txt"
-  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/1.txt"
-  assert_zip_contains "test-bin/app/app.zip" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/nested/2.txt"
-  assert_equals "simple" "$(unzip_single_file "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" "app.app/Contents/Embedded/subbundle.bundle/Contents/Simple/simple.txt"
+  assert_zip_contains "$output_artifact" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/1.txt"
+  assert_zip_contains "$output_artifact" "app.app/Contents/Embedded/subbundle.bundle/Contents/Filegroup/nested/2.txt"
+  assert_equals "simple" "$(unzip_single_file "$output_artifact" \
       "app.app/Contents/Embedded/subbundle.bundle/Contents/Simple/simple.txt")"
 }
 
@@ -431,8 +442,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_not_contains "test-bin/app/app.zip" "app.app/"
-  assert_zip_contains "test-bin/app/app.zip" "app.xpc/"
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_not_contains "$output_artifact" "app.app/"
+  assert_zip_contains "$output_artifact" "app.xpc/"
 }
 
 function test_space_in_bundle_name() {
@@ -451,8 +464,10 @@ EOF
 
   do_build macos //app:app || fail "Should build"
 
-  assert_zip_not_contains "test-bin/app/app.zip" "app.app"
-  assert_zip_contains "test-bin/app/app.zip" "app with space.app/"
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
+  assert_zip_not_contains "$output_artifact" "app.app"
+  assert_zip_contains "$output_artifact" "app with space.app/"
 }
 
 # Tests that a prebuilt dynamic framework is bundled properly with the
@@ -463,18 +478,20 @@ function test_prebuilt_dynamic_framework_dependency() {
 
   do_build macos //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.zip)"
+
   # Verify that the binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.zip" \
+  assert_zip_contains "$output_artifact" \
       "app.app/Contents/Frameworks/fmwk.framework/resource.txt"
 
   # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "app.app/Contents/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.zip" \
+  assert_zip_not_contains "$output_artifact" \
       "app.app/Contents/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 

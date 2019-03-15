@@ -380,7 +380,7 @@ def _apple_ui_test_attributes():
         },
     )
 
-def _get_template_substitutions(test_type, test_bundle, test_host = None):
+def _get_template_substitutions(ctx, test_type, test_bundle, test_host = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -457,7 +457,6 @@ def _apple_test_impl(ctx, test_type):
         )
         test_bundle = ctx.outputs.test_bundle
 
-    direct_outputs.append(test_bundle)
     direct_runfiles.append(test_bundle)
 
     test_host = ctx.attr.test_host
@@ -471,6 +470,7 @@ def _apple_test_impl(ctx, test_type):
         template = runner.test_runner_template,
         output = executable,
         substitutions = _get_template_substitutions(
+            ctx,
             test_type,
             test_bundle,
             test_host = test_host_archive,
@@ -486,6 +486,8 @@ def _apple_test_impl(ctx, test_type):
     extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
     if extra_outputs_provider:
         transitive_outputs.append(extra_outputs_provider.files)
+
+    outputs = depset([test_bundle, executable], transitive = transitive_outputs)
 
     extra_providers = []
 

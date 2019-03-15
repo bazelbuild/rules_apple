@@ -205,7 +205,7 @@ EOF
 function test_extension_plist_contents() {
   create_common_files
   create_minimal_ios_application_with_extension
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -264,7 +264,7 @@ function test_extension_plist_contents() {
 function test_extension_is_signed() {
   create_common_files
   create_minimal_ios_application_with_extension
-  create_dump_codesign "//app:app.ipa" \
+  create_dump_codesign "//app:app" \
       "Payload/app.app/PlugIns/ext.appex" -vv
   do_build ios //app:dump_codesign || fail "Should build"
 
@@ -282,7 +282,7 @@ function test_contains_provisioning_profile() {
   do_build ios //app:app || fail "Should build"
 
   # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "test-bin/app/app" \
       "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
 }
 
@@ -554,26 +554,28 @@ function test_prebuilt_static_apple_framework_import_dependency() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that it's not bundled.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
@@ -585,31 +587,33 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
 
   do_build ios //app:app || fail "Should build"
 
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
   # Verify that the framework is bundled with the application and that the
   # binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
+  assert_zip_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
 
   # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 
   # Verify that the framework is not bundled with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
+  assert_zip_not_contains "$output_artifact" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
@@ -624,9 +628,11 @@ function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/7354695
   do_build ios --apple_bitcode=embedded \
        //app:app || fail "Should build"
 
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_ipa_contains_bitcode_maps ios "$output_artifact" \
       "Payload/app.app/app"
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
+  assert_ipa_contains_bitcode_maps ios "$output_artifact" \
       "Payload/app.app/PlugIns/ext.appex/ext"
 }
 
@@ -640,7 +646,7 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/ext_${arch}.linkmap"
+    assert_exists "$(find_output_artifact "app/ext_${arch}.linkmap")"
   done
 }
 
@@ -739,15 +745,15 @@ function test_all_dsyms_propagated() {
       --define=apple.propagate_embedded_extra_outputs=1 \
       //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
-  assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
+  assert_exists "$(find_output_artifact app/app.app.dSYM/Contents/Info.plist)"
+  assert_exists "$(find_output_artifact app/ext.appex.dSYM/Contents/Info.plist)"
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "$(find_output_artifact "app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}")"
     assert_exists \
-        "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}"
+        "$(find_output_artifact "app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}")"
   done
 }
 

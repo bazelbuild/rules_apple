@@ -115,7 +115,9 @@ function test_mlmodel_builds() {
 
   do_build ios //app:app || fail "Should build"
 
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/sample.mlmodelc/"
+  local output_artifact="$(find_output_artifact app/app.ipa)"
+
+  assert_zip_contains "$output_artifact" "Payload/app.app/sample.mlmodelc/"
 }
 
 run_suite "apple_core_ml_library tests"
