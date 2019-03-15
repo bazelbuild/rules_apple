@@ -473,7 +473,7 @@ be generated that imports all of the headers listed here.
             "umbrella_header_name": attr.string(
                 mandatory = False,
                 doc = """
-The basename of the umbrella header file, default is `%{bundle_name}.h` is not specified.
+The basename of the umbrella header file, default is `%{bundle_name}.h` if not specified.
 Mandatory if your framework has a public header that has the same name with its bundle name.
 """,
             ),
