@@ -37,7 +37,25 @@ def _register_simulator_executable(ctx, output):
         },
     )
 
+def _register_macos_executable(ctx, output):
+    """Registers an action that runs the bundled macOS app.
+
+    Args:
+      ctx: The Skylark context.
+      output: The `File` representing where the executable should be generated.
+    """
+    ctx.actions.expand_template(
+        output = output,
+        is_executable = True,
+        template = ctx.file._macos_runner_template,
+        substitutions = {
+            "%app_name%": ctx.label.name,
+            "%app_path%": outputs.archive(ctx).short_path,
+        },
+    )
+
 # Define the loadable module that lists the exported symbols in this file.
 run_support = struct(
     register_simulator_executable = _register_simulator_executable,
+    register_macos_executable = _register_macos_executable,
 )
