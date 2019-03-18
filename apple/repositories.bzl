@@ -14,8 +14,7 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -43,7 +42,7 @@ def _maybe(repo_rule, name, ignore_version_differences, **kwargs):
 
     Args:
       repo_rule: The repository rule to be executed (e.g.,
-          `native.git_repository`.)
+          `http_archive`.)
       name: The name of the repository to be defined by the rule.
       ignore_version_differences: If `True`, warnings about potentially
           incompatible versions of depended-upon repositories will be silenced.
@@ -96,34 +95,37 @@ def apple_rules_dependencies(ignore_version_differences = False):
           incompatible versions of depended-upon repositories will be silenced.
     """
     _maybe(
-        git_repository,
+        http_archive,
         name = "bazel_skylib",
-        remote = "https://github.com/bazelbuild/bazel-skylib.git",
-        tag = "0.7.0",
         ignore_version_differences = ignore_version_differences,
+        sha256 = "2c62d8cd4ab1e65c08647eb4afe38f51591f43f7f0885e7769832fa137633dcb",
+        strip_prefix = "bazel-skylib-0.7.0",
+        urls = ["https://github.com/bazelbuild/bazel-skylib/archive/0.7.0.tar.gz"],
     )
 
     _maybe(
-        git_repository,
+        http_archive,
         name = "build_bazel_apple_support",
-        remote = "https://github.com/bazelbuild/apple_support.git",
-        tag = "0.5.0",
         ignore_version_differences = ignore_version_differences,
+        sha256 = "835663c4bb02f4bf01dce8a2a176df7fa682dbb867d3698ae12258c1628bb8f0",
+        strip_prefix = "apple_support-0.5.0",
+        urls = ["https://github.com/bazelbuild/apple_support/archive/0.5.0.tar.gz"],
     )
 
     _maybe(
-        git_repository,
+        http_archive,
         name = "build_bazel_rules_swift",
-        remote = "https://github.com/bazelbuild/rules_swift.git",
-        tag = "0.7.0",
         ignore_version_differences = ignore_version_differences,
+        sha256 = "32d124878cd49775d84f59ba90440c8b23b7c775aec8fec1978f751c76ddee8a",
+        strip_prefix = "rules_swift-0.7.0",
+        urls = ["https://github.com/bazelbuild/rules_swift/archive/0.7.0.tar.gz"],
     )
 
     _maybe(
         http_file,
         name = "xctestrunner",
         executable = 1,
+        ignore_version_differences = ignore_version_differences,
         sha256 = "15fc7d09315a230f3d8ee2913eef8699456366e44b37a9266e36b28517003628",
         urls = ["https://github.com/google/xctestrunner/releases/download/0.2.6/ios_test_runner.par"],
-        ignore_version_differences = ignore_version_differences,
     )
