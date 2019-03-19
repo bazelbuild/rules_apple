@@ -167,6 +167,7 @@ def _ios_application_impl(ctx):
             runfiles = ctx.runfiles(
                 files = [
                     outputs.archive(ctx),
+                    ctx.file._realpath,
                     ctx.file._std_redirect_dylib,
                 ],
             ),

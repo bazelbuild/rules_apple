@@ -152,7 +152,7 @@ mkdir -p "$APP_PARENT_DIR"
 if [[ -d '%ipa_file%' ]]; then
   # App bundles are directories with the .app extension
   # simctl won't install symlinks so follow where the symlink points 
-  readonly APP_DIR=$(realpath '%ipa_file%')
+  readonly APP_DIR=$('%realpath%' '%ipa_file%')
   # The permissions of the application need to be adjusted for simctl to install the app. This is similar to the logic we have for installing test bundles in the test runner template
   chmod -R 777 "${APP_DIR}"
 else
