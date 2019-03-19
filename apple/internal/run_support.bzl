@@ -34,7 +34,6 @@ def _register_simulator_executable(ctx, output):
             "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
             "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
             "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
-            "%realpath%": ctx.file._realpath.short_path,
         },
     )
 
