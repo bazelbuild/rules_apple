@@ -1,0 +1,53 @@
+genrule(
+    name = "zipconf",
+    srcs = [
+        "@build_bazel_rules_apple//third_party/org_libzip:zipconf.h",
+    ],
+    outs = [
+        "lib/zipconf.h",
+    ],
+    cmd = "cp $< $@",
+)
+
+genrule(
+    name = "config",
+    srcs = [
+        "@build_bazel_rules_apple//third_party/org_libzip:config.h",
+    ],
+    outs = [
+        "config.h",
+    ],
+    cmd = "cp $< $@",
+)
+
+cc_library(
+    name = "libzip",
+    srcs = glob(
+        include = [
+            "lib/*.c",
+            "lib/*.h",
+        ],
+        exclude = [
+            "lib/*win32*",
+            "lib/zip_random_uwp.c",
+            "lib/*crypto*",
+            "lib/*aes*",
+            "lib/*bzip2*",
+        ],
+    ) + [
+        ":config",
+        ":zipconf",
+    ],
+    hdrs = [
+        "lib/zip.h",
+        "lib/zipconf.h",
+    ],
+    copts = [
+        "-DHAVE_CONFIG_H",
+    ],
+    includes = ["lib"],
+    deps = [
+        "@net_zlib//:zlib",
+    ],
+    visibility = ["//visibility:public"],
+)

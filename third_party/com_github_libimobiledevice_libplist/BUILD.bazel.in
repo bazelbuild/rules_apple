@@ -1,0 +1,24 @@
+cc_library(
+    name = "libcnary",
+    srcs = glob(["libcnary/*.c"]),
+    hdrs = glob(["libcnary/include/*.h"]),
+    includes = ["libcnary/include"],
+)
+
+cc_library(
+    name = "libplist",
+    srcs = glob([
+        "src/*.c",
+        "src/*.cpp",
+    ]),
+    hdrs = glob([
+        "src/*.h",
+        "src/*.hpp",
+        "include/**/*.h",
+    ]),
+    includes = ["include", "src"],
+    deps = [
+        ":libcnary",
+    ],
+    visibility = ["//visibility:public"],
+)

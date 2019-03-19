@@ -1,0 +1,25 @@
+From 5da26d9ecd95ce859aa1b7e09225c86cfb8f09db Mon Sep 17 00:00:00 2001
+From: Steeve Morin <steeve@zen.ly>
+Date: Fri, 7 Sep 2018 23:41:55 +0200
+Subject: [PATCH] Add decrepit x509 helpers
+
+Signed-off-by: Steeve Morin <steeve@zen.ly>
+---
+ BUILD.generated.bzl | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/BUILD.generated.bzl b/BUILD.generated.bzl
+index 5e434495..b0f7bf3a 100644
+--- a/BUILD.generated.bzl
++++ b/BUILD.generated.bzl
+@@ -458,6 +458,7 @@ crypto_sources = [
+     "src/crypto/x509v3/v3_skey.c",
+     "src/crypto/x509v3/v3_sxnet.c",
+     "src/crypto/x509v3/v3_utl.c",
++    "src/decrepit/x509/x509_decrepit.c",
+     "src/third_party/fiat/curve25519.c",
+ ]
+ 
+-- 
+2.18.0
+

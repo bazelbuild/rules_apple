@@ -1,0 +1,3 @@
+exports_files([
+    "src/ideviceinstaller.c"
+], visibility = ["//visibility:public"])

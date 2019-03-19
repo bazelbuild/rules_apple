@@ -1,0 +1,145 @@
+CONFIG = [
+    "HAVE_ASPRINTF=1",
+    "HAVE_DLFCN_H=1",
+    "HAVE_FSEEKO=1",
+    "HAVE_FVISIBILITY=1",
+    "HAVE_INTTYPES_H=1",
+    "HAVE_MEMORY_H=1",
+    "HAVE_OPENSSL=1",
+    "HAVE_STDINT_H=1",
+    "HAVE_STDLIB_H=1",
+    "HAVE_STPCPY=1",
+    "HAVE_STRCASECMP=1",
+    "HAVE_STRDUP=1",
+    "HAVE_STRERROR=1",
+    "HAVE_STRINGS_H=1",
+    "HAVE_STRING_H=1",
+    "HAVE_STRNDUP=1",
+    "HAVE_SYS_STAT_H=1",
+    "HAVE_SYS_TYPES_H=1",
+    "HAVE_UNISTD_H=1",
+    "HAVE_VASPRINTF=1",
+    "'LT_OBJDIR=\".libs/\"'",
+    "'PACKAGE=\"libimobiledevice\"'",
+    "'PACKAGE_BUGREPORT=\"https://github.com/libimobiledevice/libimobiledevice/issues\"'",
+    "'PACKAGE_NAME=\"libimobiledevice\"'",
+    "'PACKAGE_STRING=\"libimobiledevice 1.2.1\"'",
+    "'PACKAGE_TARNAME=\"libimobiledevice\"'",
+    "'PACKAGE_URL=\"http://libimobiledevice.org\"'",
+    "'PACKAGE_VERSION=\"1.2.1\"'",
+    "STDC_HEADERS=1",
+    "STRIP_DEBUG_CODE=1",
+    "'VERSION=\"1.2.1\"'",
+]
+
+TOOLS = [
+    "idevice_id",
+    "idevicebackup",
+    "idevicebackup2",
+    "idevicecrashreport",
+    "idevicedate",
+    "idevicedebug",
+    "idevicedebugserverproxy",
+    "idevicediagnostics",
+    "ideviceenterrecovery",
+    "ideviceimagemounter",
+    "ideviceinfo",
+    "idevicename",
+    "idevicenotificationproxy",
+    "idevicepair",
+    "ideviceprovision",
+    "idevicescreenshot",
+    "idevicesyslog",
+]
+
+genrule(
+    name = "config_h",
+    outs = ["libimobiledevice/config.h"],
+    cmd = "touch $@",
+)
+
+cc_library(
+    name = "libcommon1",
+    copts = ["-D" + d for d in CONFIG],
+    srcs = [
+        "common/debug.c",
+        "common/userpref.c",
+    ],
+    hdrs = glob([
+        "common/debug.h",
+        "common/userpref.h",
+    ]),
+    includes = ["."],
+    deps = [
+        "@com_github_libimobiledevice_libusbmuxd//:libusbmuxd",
+        "@com_github_libimobiledevice_libplist//:libplist",
+        "@boringssl//:ssl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "libcommon",
+    copts = ["-D" + d for d in CONFIG],
+    hdrs = glob([
+        "common/*.h",
+    ]),
+    includes = ["."],
+    deps = [
+        "@com_github_libimobiledevice_libusbmuxd//:libusbmuxd",
+        "@com_github_libimobiledevice_libplist//:libplist",
+        "@boringssl//:ssl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "libimobiledevice",
+    srcs = [":config_h"] + glob([
+        "src/*.c",
+        "common/*.c",
+    ]),
+    hdrs = glob([
+        "src/*.h",
+        "include/**/*.h",
+    ]),
+    copts = ["-D" + d for d in CONFIG],
+    includes = ["include", "src"],
+    deps = [
+        ":libcommon",
+        "@com_github_libimobiledevice_libusbmuxd//:libusbmuxd",
+        "@com_github_libimobiledevice_libplist//:libplist",
+        "@boringssl//:ssl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+[
+    cc_binary(
+        name = tool,
+        copts = ["-D" + d for d in CONFIG],
+        srcs = [
+            "tools/%s.c" % tool,
+        ],
+        deps = [
+            ":libimobiledevice",
+            "@boringssl//:ssl",
+        ],
+        visibility = ["//visibility:public"],
+    )
+    for tool in TOOLS
+]
+
+cc_binary(
+    name = "ideviceinstaller",
+    copts = ["-D" + d for d in CONFIG],
+    srcs = [
+        "@com_github_libimobiledevice_ideviceinstaller//:src/ideviceinstaller.c",
+    ],
+    deps = [
+        ":libimobiledevice",
+        "@boringssl//:ssl",
+        "@org_libzip//:libzip",
+    ],
+    visibility = ["//visibility:public"],
+)

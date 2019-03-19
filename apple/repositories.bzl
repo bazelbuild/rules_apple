@@ -14,6 +14,7 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 def _colorize(text, color):
@@ -130,5 +131,82 @@ def apple_rules_dependencies(ignore_version_differences = False):
         executable = 1,
         sha256 = "126cb383a02d2f4f6991d6094c3d7e004a8a1f3a9d0b77760cd1cfeabbba6fef",
         urls = ["https://github.com/google/xctestrunner/releases/download/0.2.7/ios_test_runner.par"],
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        new_git_repository,
+        name = "com_github_libusb_libusb",
+        commit = "c14ab5fc4d22749aab9e3534d56012718a0b0f67",
+        remote = "git@github.com:libusb/libusb.git",
+        build_file = "@build_bazel_rules_apple//:third_party/com_github_libusb_libusb/BUILD.bazel.in",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        git_repository,
+        name = "boringssl",
+        commit = "96666abbe1604161201e18f2704b8db1774107d8",
+        remote = "https://boringssl.googlesource.com/boringssl",
+        patches = [
+            "@build_bazel_rules_apple//:third_party/boringssl/0001-Add-decrepit-x509-helpers.patch",
+        ],
+        patch_args = ["-p1"],
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        new_git_repository,
+        name = "com_github_libimobiledevice_libusbmuxd",
+        commit = "c75605d862cd1c312494f6c715246febc26b2e05",
+        remote = "git@github.com:libimobiledevice/libusbmuxd.git",
+        build_file = "@build_bazel_rules_apple//:third_party/com_github_libimobiledevice_libusbmuxd/BUILD.bazel.in",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        new_git_repository,
+        name = "com_github_libimobiledevice_libimobiledevice",
+        commit = "0584aa90c93ff6ce46927b8d67887cb987ab9545",
+        remote = "git@github.com:libimobiledevice/libimobiledevice.git",
+        build_file = "@build_bazel_rules_apple//:third_party/com_github_libimobiledevice_libimobiledevice/BUILD.bazel.in",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        new_git_repository,
+        name = "com_github_libimobiledevice_libplist",
+        commit = "bec850fe399639f3b8582a39386216970dea15ed",
+        remote = "git@github.com:libimobiledevice/libplist.git",
+        build_file = "@build_bazel_rules_apple//:third_party/com_github_libimobiledevice_libplist/BUILD.bazel.in",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        new_git_repository,
+        name = "com_github_libimobiledevice_ideviceinstaller",
+        commit = "f14def7cd9303a0fe622732fae9830ae702fdd7c",
+        remote = "git@github.com:libimobiledevice/ideviceinstaller.git",
+        build_file = "@build_bazel_rules_apple//:third_party/com_github_libimobiledevice_ideviceinstaller/BUILD.bazel.in",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
+        name = "org_libzip",
+        urls = ["https://libzip.org/download/libzip-1.5.2.tar.gz"],
+        strip_prefix = "libzip-1.5.2",
+        build_file = "@build_bazel_rules_apple//:third_party/org_libzip/BUILD.bazel.in",
+        sha256 = "be694a4abb2ffe5ec02074146757c8b56084dbcebf329123c84b205417435e15",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
+        name = "net_zlib",
+        urls = ["https://zlib.net/zlib-1.2.11.tar.gz"],
+        strip_prefix = "zlib-1.2.11",
+        sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
+        build_file = "@build_bazel_rules_apple//:third_party/net_zlib/BUILD.bazel.in",
         ignore_version_differences = ignore_version_differences,
     )
