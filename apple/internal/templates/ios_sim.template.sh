@@ -146,13 +146,16 @@ touch "${RUN_LOG}"
 export SIMCTL_CHILD_GSTDERR="${RUN_LOG}"
 export SIMCTL_CHILD_GSTDOUT="${RUN_LOG}"
 
+readonly APP_PARENT_DIR="${TEMP_DIR}/extracted_app"
+mkdir -p "$APP_PARENT_DIR"
 
 if [[ -d '%ipa_file%' ]]; then
   # App bundles are directories with the .app extension
-  readonly APP_DIR="%ipa_file%"
+  # simctl won't install symlinks so follow where the symlink points 
+  readonly APP_DIR=$(realpath '%ipa_file%')
+  # The permissions of the application need to be adjusted for simctl to install the app. This is similar to the logic we have for installing test bundles in the test runner template
+  chmod -R 777 "${APP_DIR}"
 else
-  readonly APP_PARENT_DIR="${TEMP_DIR}/extracted_app"
-  mkdir -p "$APP_PARENT_DIR"
   # The app bundle is contained within an compressed archive (zip)
   # Unpack the archive
   unzip -qq '%ipa_file%' -d "${APP_PARENT_DIR}"
