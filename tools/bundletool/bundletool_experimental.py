@@ -247,7 +247,11 @@ class Bundler(object):
           the bundle before it is signed.
     """
     work_dir = os.path.dirname(bundle_root)
-    exit_code = os.system('%s "%s"' % (post_processor, work_dir))
+    # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
+    # bundle, but keep the work_dir for compatibility with the bundletool post
+    # processing.
+    exit_code = os.system('TREE_ARTIFACT_OUTPUT=%s %s "%s"' %
+                          (bundle_root, post_processor, work_dir))
     if exit_code:
       raise PostProcessorError(exit_code)
 
