@@ -14,6 +14,7 @@
 
 """Common definitions used to make runnable Apple bundling rules."""
 
+load("@build_bazel_rules_apple//apple/internal:bundling_support.bzl", "bundling_support")
 load("@build_bazel_rules_apple//apple/internal:outputs.bzl", "outputs")
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
@@ -49,7 +50,7 @@ def _register_macos_executable(ctx, output):
         is_executable = True,
         template = ctx.file._macos_runner_template,
         substitutions = {
-            "%app_name%": ctx.label.name,
+            "%app_name%": bundling_support.bundle_name(ctx),
             "%app_path%": outputs.archive(ctx).short_path,
         },
     )
