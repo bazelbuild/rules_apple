@@ -151,8 +151,8 @@ def _deduplicate(resources_provider, avoid_provider, field):
                 # add the resource to be bundled in the bundle represented by resource_provider.
                 deduped_owners = [
                     o
-                    for o in resources_provider.owners[short_path]
-                    if o not in avoid_provider.owners[short_path]
+                    for o in resources_provider.owners[short_path].to_list()
+                    if o not in avoid_provider.owners[short_path].to_list()
                 ]
                 if deduped_owners:
                     deduped_files.append(to_bundle_file)
