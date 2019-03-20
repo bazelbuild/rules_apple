@@ -22,7 +22,7 @@ function set_up() {
   mkdir -p pkg
 
   cat > pkg/saver.bzl <<EOF
-load("@build_bazel_rules_apple//apple:versioning.bzl",
+load("@build_bazel_rules_apple//apple:providers.bzl",
      "AppleBundleVersionInfo")
 
 def _saver_impl(ctx):
