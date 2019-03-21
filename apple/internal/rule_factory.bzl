@@ -137,6 +137,11 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             allow_single_file = True,
             default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
         ),
+        "_macos_runner_template": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
+        ),
         "_std_redirect_dylib": attr.label(
             cfg = "host",
             allow_single_file = True,

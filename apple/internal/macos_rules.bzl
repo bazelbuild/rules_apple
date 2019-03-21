@@ -43,6 +43,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:run_support.bzl",
+    "run_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "MacosApplicationBundleInfo",
@@ -111,18 +115,17 @@ def _macos_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # TODO(kaipi): Add support for `bazel run` for macos_application.
-    executable = ctx.actions.declare_file(ctx.label.name)
-    ctx.actions.write(
-        executable,
-        "#!/bin/bash\necho Unimplemented",
-        is_executable = True,
-    )
-
+    executable = outputs.executable(ctx)
+    run_support.register_macos_executable(ctx, executable)
     return [
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = [
+                    outputs.archive(ctx),
+                ],
+            ),
         ),
         MacosApplicationBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
