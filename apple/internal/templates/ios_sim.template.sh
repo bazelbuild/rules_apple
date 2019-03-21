@@ -115,9 +115,6 @@ readonly TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/bazel_temp.XXXXXX")
 
 trap 'rm -rf "${TEMP_DIR}"; CleanupSimulator ${TEST_DEVICE_ID}' ERR EXIT
 
-readonly APP_DIR="${TEMP_DIR}/extracted_app"
-mkdir "${APP_DIR}"
-
 KillAllDevices
 
 # Get the developer path, like: /Applications/Xcode.app/Contents/Developer
@@ -149,12 +146,28 @@ touch "${RUN_LOG}"
 export SIMCTL_CHILD_GSTDERR="${RUN_LOG}"
 export SIMCTL_CHILD_GSTDOUT="${RUN_LOG}"
 
-unzip -qq '%ipa_file%' -d "${APP_DIR}"
+readonly APP_PARENT_DIR="${TEMP_DIR}/extracted_app"
+mkdir -p "$APP_PARENT_DIR"
 
-xcrun simctl install "$TEST_DEVICE_ID" "${APP_DIR}/Payload/%app_name%.app"
+if [[ -d '%ipa_file%' ]]; then
+  # App bundles are directories with the .app extension
+  # simctl won't install symlinks so rsync to resolve them
+  rsync -rL '%ipa_file%' "${APP_PARENT_DIR}"
+  readonly APP_DIR="${APP_PARENT_DIR}/$(basename '%ipa_file%')"
+else
+  # The app bundle is contained within an compressed archive (zip)
+  # Unpack the archive
+  # TODO(kaipi): Remove this branch once tree artifacts are the default and only
+  # option.
+  unzip -qq '%ipa_file%' -d "${APP_PARENT_DIR}"
+  # The zip file contains a Payload directory that is the parent of the .app directory.
+  readonly APP_DIR="${APP_PARENT_DIR}/Payload/%app_name%.app"
+fi
+
+xcrun simctl install "$TEST_DEVICE_ID" "${APP_DIR}"
 
 # Get the bundle ID of the app.
-readonly BUNDLE_INFO_PLIST="${APP_DIR}/Payload/%app_name%.app/Info.plist"
+readonly BUNDLE_INFO_PLIST="${APP_DIR}/Info.plist"
 readonly BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${BUNDLE_INFO_PLIST}")
 
 USER_NAME=${USER:-"$(logname)"}
