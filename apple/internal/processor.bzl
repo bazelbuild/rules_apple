@@ -212,8 +212,7 @@ def _bundle_partial_outputs_files(
         partial_outputs,
         output_file,
         codesigning_command = None,
-        extra_input_files = [],
-        post_processor_path = None):
+        extra_input_files = []):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
     Args:
@@ -281,12 +280,18 @@ def _bundle_partial_outputs_files(
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
                 control_zips.append(struct(src = source.path, dest = target_path))
 
+    post_processor = ctx.executable.ipa_post_processor
+    post_processor_path = ""
+
+    if post_processor:
+        post_processor_path = post_processor.path
+
     control = struct(
         bundle_merge_files = control_files,
         bundle_merge_zips = control_zips,
         output = output_file.path,
         code_signing_commands = codesigning_command or "",
-        post_processor = post_processor_path or "",
+        post_processor = post_processor_path,
     )
 
     control_file = intermediates.file(
@@ -308,12 +313,17 @@ def _bundle_partial_outputs_files(
     if is_experimental_tree_artifact_enabled(ctx):
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
+
+        bundling_tools = [ctx.executable._codesigningtool]
+        if post_processor:
+            bundling_tools.append(post_processor)
+
         apple_support.run(
             ctx,
             executable = ctx.executable._bundletool_experimental,
             mnemonic = "BundleTreeApp",
             progress_message = "Bundling, processing and signing %s" % ctx.label.name,
-            tools = [ctx.executable._codesigningtool],
+            tools = bundling_tools,
             **action_args
         )
     else:
@@ -338,12 +348,6 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
     if is_experimental_tree_artifact_enabled(ctx):
         extra_input_files = []
 
-        post_processor = ctx.executable.ipa_post_processor
-        post_processor_path = ""
-        if post_processor:
-            extra_input_files.append(post_processor)
-            post_processor_path = post_processor.path
-
         if entitlements:
             extra_input_files.append(entitlements)
 
@@ -363,7 +367,6 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
             output_archive,
             codesigning_command = codesigning_command,
             extra_input_files = extra_input_files,
-            post_processor_path = post_processor_path,
         )
 
         ctx.actions.write(
