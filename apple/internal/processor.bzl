@@ -223,8 +223,6 @@ def _bundle_partial_outputs_files(
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
       extra_input_files: Extra files to include in the bundling action.
-      post_processor_path: When building tree artifact outputs, the path to the post processor
-          script.
     """
     control_files = []
     control_zips = []
