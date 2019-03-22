@@ -742,7 +742,7 @@ function test_bundle_can_contain_xcassets_and_xcstickers() {
 objc_library(
     name = "resources",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    resources = [
+    data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
         "@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios",
     ],
