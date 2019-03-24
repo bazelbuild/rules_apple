@@ -100,6 +100,7 @@ def _macos_application_impl(ctx):
                 "app_icons",
                 "strings",
             ],
+            requires_pkginfo = True,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -303,6 +304,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
+            binary_infoplist = False,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -389,6 +391,7 @@ def _macos_xpc_service_impl(ctx):
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
+            requires_pkginfo = True,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,

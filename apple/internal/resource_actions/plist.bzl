@@ -35,10 +35,6 @@ load(
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
@@ -179,7 +175,9 @@ def merge_root_infoplists(
         child_plists = [],
         child_required_values = [],
         include_executable_name = True,
-        version_keys_required = False):
+        version_keys_required = False,
+        additional_infoplist_values = None,
+        binary_infoplist = True):
     """Creates an action that merges Info.plists and converts them to binary.
 
     This action merges multiple plists by shelling out to plisttool, then
@@ -204,6 +202,8 @@ def merge_root_infoplists(
           plists embedded in a command line tool which don't need this value.
       version_keys_required: If True, the merged Info.plist file must include
           entries for CFBundleShortVersionString and CFBundleVersion.
+      additional_infoplist_values: Dictionary of additional values to set into the rule's Info.plist.
+      binary_infoplist: Whether the Info.plist output should be in binary form.
     """
     input_files = list(input_plists + child_plists)
 
@@ -280,10 +280,9 @@ def merge_root_infoplists(
 
     # Collect any values for special product types that we have to manually put
     # in (duplicating what Xcode apparently does under the hood).
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-    if rule_descriptor.additional_infoplist_values:
+    if additional_infoplist_values:
         forced_plists.append(
-            struct(**rule_descriptor.additional_infoplist_values),
+            struct(**additional_infoplist_values),
         )
 
     environment_plist = intermediates.file(
@@ -319,7 +318,7 @@ def merge_root_infoplists(
         output_files.append(output_pkginfo)
 
     control = struct(
-        binary = rule_descriptor.binary_infoplist,
+        binary = binary_infoplist,
         forced_plists = forced_plists,
         info_plist_options = struct(**info_plist_options),
         output = output_plist.path,

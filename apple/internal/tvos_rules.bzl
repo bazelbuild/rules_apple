@@ -102,6 +102,7 @@ def _tvos_application_impl(ctx):
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
+            requires_pkginfo = True,
         ),
         partials.settings_bundle_partial(),
         partials.swift_dylibs_partial(

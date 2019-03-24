@@ -125,6 +125,7 @@ def _ios_application_impl(ctx):
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
+            requires_pkginfo = True,
         ),
         partials.settings_bundle_partial(),
         partials.swift_dylibs_partial(
@@ -364,6 +365,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
+            additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
         ),
         partials.swift_dylibs_partial(
             binary_artifact = None,
@@ -481,6 +483,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
+            additional_infoplist_values = {"LSApplicationIsStickerProvider": "YES"},
         ),
         partials.messages_stub_partial(binary_artifact = binary_artifact),
     ]

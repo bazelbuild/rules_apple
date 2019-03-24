@@ -100,6 +100,7 @@ def _watchos_application_impl(ctx):
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
+            requires_pkginfo = True,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,

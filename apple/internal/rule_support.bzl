@@ -48,12 +48,10 @@ def _describe_bundle_locations(
     )
 
 def _describe_rule_type(
-        additional_infoplist_values = None,
         allowed_device_families = None,
         app_icon_extension = None,
         app_icon_parent_extension = None,
         archive_extension = ".zip",
-        binary_infoplist = True,
         binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
@@ -68,7 +66,6 @@ def _describe_rule_type(
         provisioning_profile_extension = ".mobileprovision",
         requires_bundle_id = True,
         requires_deps = True,
-        requires_pkginfo = False,
         requires_provisioning_profile = True,
         requires_signing_for_device = True,
         rpaths = [],
@@ -78,15 +75,12 @@ def _describe_rule_type(
     """Creates a rule descriptor struct containing all the platform and product specific configs.
 
     Args:
-        additional_infoplist_values: Dictionary of additional values to set into the rule's
-            Info.plist.
         allowed_device_families: If given, the list of device families that this rule supports.
         app_icon_extension: For rules that require icons, the extension of the directory that should
             hold the icons (e.g. .appiconset).
         app_icon_parent_extension: For rules that require icons, the extension of the asset catalog
             that should hold the icon sets (e.g. .xcassets or .xcstickers).
         archive_extension: Extension for the archive output of the rule.
-        binary_infoplist: Whether the Info.plist output should be in binary form.
         binary_type: Binary type to use for the binary_type attribute in the bundling rules. This
             attribute is read by apple_common.link_multi_arch_binary, so rules that use apple_binary
             underneath are not affected.
@@ -108,7 +102,6 @@ def _describe_rule_type(
         requires_bundle_id: Whether the rule requires a bundle ID.
         requires_deps: Whether this rule has a user linked binary and accepts dependencies to be
             linked into the binary.
-        requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
         requires_provisioning_profile: Whether the rule requires a provisioning profile when
             building for devices.
         requires_signing_for_device: Whether signing is required when building for devices (as
@@ -128,12 +121,10 @@ def _describe_rule_type(
         bundle_locations = _describe_bundle_locations()
 
     return struct(
-        additional_infoplist_values = additional_infoplist_values,
         allowed_device_families = allowed_device_families,
         app_icon_extension = app_icon_extension,
         app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
-        binary_infoplist = binary_infoplist,
         binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
@@ -148,7 +139,6 @@ def _describe_rule_type(
         provisioning_profile_extension = provisioning_profile_extension,
         requires_bundle_id = requires_bundle_id,
         requires_deps = requires_deps,
-        requires_pkginfo = requires_pkginfo,
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
@@ -180,7 +170,6 @@ _RULE_TYPE_DESCRIPTORS = {
             is_executable = True,
             mandatory_families = True,
             product_type = apple_product_type.application,
-            requires_pkginfo = True,
             rpaths = [
                 # Application binaries live in Application.app/Application
                 # Frameworks are packaged in Application.app/Frameworks
@@ -221,7 +210,6 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # ios_imessage_application
         apple_product_type.messages_application: _describe_rule_type(
-            additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
             allowed_device_families = ["iphone", "ipad"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
@@ -256,7 +244,6 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # ios_stickerpack_extension
         apple_product_type.messages_sticker_pack_extension: _describe_rule_type(
-            additional_infoplist_values = {"LSApplicationIsStickerProvider": "YES"},
             allowed_device_families = ["iphone", "ipad"],
             app_icon_parent_extension = ".xcstickers",
             app_icon_extension = ".stickersiconset",
@@ -331,7 +318,6 @@ _RULE_TYPE_DESCRIPTORS = {
             is_executable = True,
             product_type = apple_product_type.application,
             provisioning_profile_extension = ".provisionprofile",
-            requires_pkginfo = True,
             requires_signing_for_device = False,
             rpaths = [
                 # Application binaries live in Application.app/Contents/MacOS/Application
@@ -412,7 +398,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_kernel_extension
         apple_product_type.kernel_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
-            binary_infoplist = False,
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
@@ -450,7 +435,6 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
-            requires_pkginfo = True,
             rpaths = [
                 # XPC Application binaries live in
                 # Application.app/Contents/XCPServices/XPCService.xpc/Contents/MacOS/XPCService
@@ -517,7 +501,6 @@ _RULE_TYPE_DESCRIPTORS = {
             has_settings_bundle = True,
             is_executable = True,
             product_type = apple_product_type.application,
-            requires_pkginfo = True,
             rpaths = [
                 # Application binaries live in Application.app/Application
                 # Frameworks are packaged in Application.app/Frameworks
@@ -610,7 +593,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             product_type = apple_product_type.watch2_application,
             requires_deps = False,
-            requires_pkginfo = True,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
         # watchos_extension

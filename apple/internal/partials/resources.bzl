@@ -45,10 +45,6 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleResourceInfo",
@@ -62,13 +58,14 @@ load(
     "partial",
 )
 
-def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
+def _merge_root_infoplists(ctx, infoplists, out_infoplist, requires_pkginfo, **kwargs):
     """Registers the root Info.plist generation action.
 
     Args:
       ctx: The target's rule context.
       infoplists: List of plists that should be merged into the root Info.plist.
       out_infoplist: Reference to the output Info plist.
+      requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
@@ -77,9 +74,8 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """
     files = [out_infoplist]
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     out_pkginfo = None
-    if rule_descriptor.requires_pkginfo:
+    if requires_pkginfo:
         out_pkginfo = intermediates.file(
             ctx.actions,
             ctx.label.name,
@@ -220,7 +216,10 @@ def _resources_partial_impl(
         plist_attrs,
         targets_to_avoid,
         top_level_attrs,
-        version_keys_required):
+        version_keys_required,
+        requires_pkginfo,
+        additional_infoplist_values,
+        binary_infoplist):
     """Implementation for the resource processing partial."""
     providers = []
     if hasattr(ctx.attr, "deps"):
@@ -346,10 +345,13 @@ def _resources_partial_impl(
                 ctx,
                 infoplists,
                 out_infoplist,
+                requires_pkginfo = requires_pkginfo,
                 bundle_id = bundle_id,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 version_keys_required = version_keys_required,
+                additional_infoplist_values = additional_infoplist_values,
+                binary_infoplist = binary_infoplist,
             ),
         )
 
@@ -361,7 +363,10 @@ def resources_partial(
         plist_attrs = [],
         targets_to_avoid = [],
         top_level_attrs = [],
-        version_keys_required = True):
+        version_keys_required = True,
+        requires_pkginfo = False,
+        additional_infoplist_values = None,
+        binary_infoplist = True):
     """Constructor for the resources processing partial.
 
     This partial collects and propagates all resources that should be bundled in the target being
@@ -384,6 +389,9 @@ def resources_partial(
             target being processed.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.
+        requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
+        additional_infoplist_values: Dictionary of additional values to set into the rule's Info.plist.
+        binary_infoplist: Whether the Info.plist output should be in binary form.
 
     Returns:
         A partial that returns the bundle location of the resources and the resources provider.
@@ -396,4 +404,7 @@ def resources_partial(
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,
         version_keys_required = version_keys_required,
+        requires_pkginfo = requires_pkginfo,
+        additional_infoplist_values = additional_infoplist_values,
+        binary_infoplist = binary_infoplist,
     )
