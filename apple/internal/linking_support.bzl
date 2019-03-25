@@ -15,16 +15,8 @@
 """Support for linking related actions."""
 
 load(
-    "@build_bazel_apple_support//lib:xcode_support.bzl",
-    "xcode_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
 )
 load(
     "@bazel_skylib//lib:collections.bzl",
@@ -77,17 +69,6 @@ def _register_linking_action(ctx, extra_linkopts = []):
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
     rpaths = rule_descriptor.rpaths
-
-    if swift_support.uses_swift(ctx.attr.deps):
-        if xcode_support.is_xcode_at_least_version(
-            ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-            "10.2",
-        ):
-            # If this target uses Swift and is built with Xcode >= 10.2, include the /usr/lib/swift
-            # location at the beginning of the rpaths, since it needs to be the first one to be
-            # found.
-            rpaths = ["/usr/lib/swift"] + rpaths
-
     linkopts = []
     if rpaths:
         linkopts.extend(collections.before_each("-rpath", rpaths))
