@@ -48,13 +48,8 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
 
     infoplist = None
     if bundle_id:
-        # If there's no bundle ID, don't add the Info.plist file into AppleBundleInfo.
-
-        # TODO(b/73349137): Revert to using the outputs.infoplist artifact directly. This uses a
-        # rare format for the name because the file is being generated in the clients package
-        # directory, which may conflict with genrules that generate APPNAME-Info.plist files.
-        infoplist = ctx.actions.declare_file("_{}-Private-Info.plist".format(ctx.label.name))
-        file_support.symlink(ctx, outputs.infoplist(ctx), infoplist)
+        # Only add the infoplist if there is a bundle ID, otherwise, do not create the output file.
+        infoplist = outputs.infoplist(ctx)
 
     uses_swift = False
     if hasattr(ctx.attr, "deps"):
