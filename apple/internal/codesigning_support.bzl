@@ -58,17 +58,14 @@ def _codesign_command_for_path(ctx, path_to_sign, provisioning_profile, entitlem
       The codesign command invocation for the given directory.
     """
 
-    # Because the path will include environment # variables which need to be
-    # expanded, path has to be quoted using double quote, this means that path
-    # can't be quoted using shell.quote.
+    # Because the path will include environment variables which need to be expanded, path has to be
+    # quoted using double quote, this means that path can't be quoted using shell.quote.
     path = "\"" + path_to_sign.path.replace("\"", "\\\"") + "\""
     if path_to_sign.glob:
         # The glob must be appended outside of the quotes in order to be expanded.
-        path += path_to_sign.glob
-    cmd_prefix = ""
-
-    if path_to_sign.optional:
-        cmd_prefix += "ls %s >& /dev/null && " % path
+        full_path_to_sign = path + path_to_sign.glob
+    else:
+        full_path_to_sign = path
 
     cmd_codesigning = [
         ctx.executable._codesigningtool.path,
@@ -101,20 +98,29 @@ def _codesign_command_for_path(ctx, path_to_sign, provisioning_profile, entitlem
             ])
         cmd_codesigning.extend([
             "--force",
-            path,
+            full_path_to_sign,
         ])
     else:
         cmd_codesigning.extend([
             "--force",
             "--timestamp=none",
-            path,
+            full_path_to_sign,
         ])
 
-    # The command returned by this function is executed as part of the final
-    # bundling shell script. Each directory to be signed must be prefixed by
-    # $WORK_DIR, which is the variable in that script that contains the path
-    # to the directory where the bundle is being built.
-    return (cmd_prefix + " ".join(cmd_codesigning))
+    final_command = " ".join(cmd_codesigning)
+
+    # If the path is optional, wrap it inside an `if` that checks whether that path exists. This way
+    # the command will not return a non-zero exit code if the directory not exists.
+    if path_to_sign.optional:
+        final_command = "if [[ -e {path_to_sign} ]]; then\n  {codesign_command}\nfi".format(
+            path_to_sign = path,
+            codesign_command = final_command,
+        )
+
+    # The command returned by this function is executed as part of the final bundling shell script.
+    # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
+    # script that contains the path to the directory where the bundle is being built.
+    return final_command
 
 def _path_to_sign(path, optional = False, glob = None, use_entitlements = True):
     """Returns a "path to sign" value to be passed to `_signing_command_lines`.

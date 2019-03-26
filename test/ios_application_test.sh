@@ -883,4 +883,13 @@ EOF
   assert_equals "6.5" "$(cat "test-genfiles/app/CFBundleShortVersionString")"
 }
 
+# Tests tree artifacts builds and disable codesigning for simulator play along.
+function test_tree_artifacts_and_disable_simulator_codesigning() {
+  create_common_files
+  create_minimal_ios_application
+  do_build ios //app:app \
+      --define=apple.experimental.tree_artifact_outputs=yes \
+      --define=apple.codesign_simulator_bundles=no || fail "Should build"
+}
+
 run_suite "ios_application bundling tests"
