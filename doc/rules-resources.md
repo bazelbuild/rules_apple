@@ -85,7 +85,7 @@ upstream so that it is packaged as a resource inside the top level bundle.
       </td>
     </tr>
     <tr>
-      <td><code>bundle_imports</code></td>
+      <td><code>mlmodel</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
         <p>Reference to the <code>.mlmodel</code> file to process.</p>
