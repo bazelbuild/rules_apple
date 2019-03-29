@@ -23,6 +23,10 @@ load(
     "file_support",
 )
 load(
+    "@build_bazel_apple_support//lib:framework_migration.bzl",
+    "framework_migration",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -55,11 +59,17 @@ def _framework_provider_partial_impl(ctx, binary_provider):
 
     # TODO(cparsons): These will no longer be necessary once apple_binary
     # uses the values in the dynamic framework provider.
-    legacy_objc_provider = apple_common.new_objc_provider(
-        dynamic_framework_dir = depset([absolute_framework_dir]),
-        dynamic_framework_file = depset([framework_file]),
-        providers = [binary_provider.objc],
-    )
+    if framework_migration.is_post_framework_migration():
+        legacy_objc_provider = apple_common.new_objc_provider(
+            dynamic_framework_file = depset([framework_file]),
+            providers = [binary_provider.objc],
+        )
+    else:
+        legacy_objc_provider = apple_common.new_objc_provider(
+            dynamic_framework_dir = depset([absolute_framework_dir]),
+            dynamic_framework_file = depset([framework_file]),
+            providers = [binary_provider.objc],
+        )
 
     framework_provider = apple_common.new_dynamic_framework_provider(
         binary = binary_file,

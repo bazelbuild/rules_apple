@@ -27,6 +27,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_apple_support//lib:framework_migration.bzl",
+    "framework_migration",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -41,43 +45,50 @@ application bundle under the Frameworks directory.
     },
 )
 
-def _filter_framework_imports_for_bundling(framework_imports):
-    """Returns the list of files that should be bundled for dynamic framework bundles."""
+def _classify_framework_imports(framework_imports):
+    """Classify a list of framework files into bundling, header, or module_map."""
 
-    # Filter headers and module maps so that they are not propagated to be bundled with the rest
-    # of the framework.
-    filtered_imports = []
+    bundling_imports = []
+    header_imports = []
+    module_map_imports = []
     for file in framework_imports:
         file_short_path = file.short_path
         if file_short_path.endswith(".h"):
+            header_imports.append(file)
             continue
         if file_short_path.endswith(".modulemap"):
+            module_map_imports.append(file)
             continue
         if "Headers/" in file_short_path:
             # This matches /Headers/ and /PrivateHeaders/
+            header_imports.append(file)
             continue
         if "/Modules/" in file_short_path:
+            module_map_imports.append(file)
             continue
-        filtered_imports.append(file)
+        bundling_imports.append(file)
 
-    return filtered_imports
+    return bundling_imports, header_imports, module_map_imports
 
 def _all_framework_binaries(frameworks_groups):
     """Returns a list of Files of all imported binaries."""
-    return [
-        _get_framework_binary_file(framework_dir, framework_imports.to_list())
-        for framework_dir, framework_imports in frameworks_groups.items()
-    ]
+    binaries = []
+    for framework_dir, framework_imports in frameworks_groups.items():
+        binary = _get_framework_binary_file(framework_dir, framework_imports.to_list())
+        if binary != None:
+            binaries.append(binary)
+
+    return binaries
 
 def _get_framework_binary_file(framework_dir, framework_imports):
     """Returns the File that is the framework's binary."""
     framework_name = paths.split_extension(paths.basename(framework_dir))[0]
-    framework_short_path = paths.join(framework_dir, framework_name)
+    framework_path = paths.join(framework_dir, framework_name)
     for framework_import in framework_imports:
-        if framework_import.short_path == framework_short_path:
+        if framework_import.path == framework_path:
             return framework_import
 
-    fail("ERROR: There has to be a binary file in the imported framework.")
+    return None
 
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
@@ -111,27 +122,62 @@ def _framework_import_info(transitive_sets):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     return AppleFrameworkImportInfo(**provider_fields)
 
+def _framework_objc_provider_fields(
+        framework_binary_field,
+        header_imports,
+        module_map_imports,
+        framework_binaries):
+    """Return an objc_provider initializer dictionary with information for a given framework."""
+
+    objc_provider_fields = {}
+    if header_imports:
+        header_groups = _grouped_framework_files(header_imports)
+        objc_provider_fields["framework_search_paths"] = depset(header_groups.keys())
+        objc_provider_fields["header"] = depset(header_imports)
+
+    if module_map_imports:
+        objc_provider_fields["module_map"] = depset(module_map_imports)
+
+    if framework_binaries:
+        objc_provider_fields[framework_binary_field] = depset(framework_binaries)
+
+    return objc_provider_fields
+
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     providers = []
 
+    framework_imports = ctx.files.framework_imports
+    bundling_imports, header_imports, module_map_imports = (
+        _classify_framework_imports(framework_imports)
+    )
+
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
-    filtered_framework_imports = _filter_framework_imports_for_bundling(ctx.files.framework_imports)
-    if filtered_framework_imports:
-        transitive_sets.append(depset(filtered_framework_imports))
+    if bundling_imports:
+        transitive_sets.append(depset(bundling_imports))
     providers.append(_framework_import_info(transitive_sets))
 
-    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
+    framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    objc_provider = _objc_provider_with_dependencies(ctx, {
-        "dynamic_framework_dir": framework_dirs_set,
-        "dynamic_framework_file": depset(ctx.files.framework_imports),
-    })
+    if framework_migration.is_post_framework_migration():
+        objc_provider_fields = _framework_objc_provider_fields(
+            "dynamic_framework_file",
+            header_imports,
+            module_map_imports,
+            _all_framework_binaries(framework_groups),
+        )
+    else:
+        objc_provider_fields = {
+            "dynamic_framework_dir": framework_dirs_set,
+            "dynamic_framework_file": depset(framework_imports),
+        }
+
+    objc_provider = _objc_provider_with_dependencies(ctx, objc_provider_fields)
     providers.append(objc_provider)
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
-        framework_files = depset(ctx.files.framework_imports),
+        framework_files = depset(framework_imports),
     ))
 
     return providers
@@ -140,19 +186,31 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     providers = []
 
+    framework_imports = ctx.files.framework_imports
+    _, header_imports, module_map_imports = _classify_framework_imports(framework_imports)
+
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
     providers.append(_framework_import_info(transitive_sets))
 
-    framework_imports = ctx.files.framework_imports
-    objc_provider_fields = {
-        "static_framework_file": depset(framework_imports),
-    }
+    framework_groups = _grouped_framework_files(framework_imports)
+    framework_binaries = _all_framework_binaries(framework_groups)
 
-    framework_groups = _grouped_framework_files(ctx.files.framework_imports)
-    if ctx.attr.alwayslink:
-        objc_provider_fields["force_load_library"] = depset(
-            _all_framework_binaries(framework_groups),
+    if framework_migration.is_post_framework_migration():
+        objc_provider_fields = _framework_objc_provider_fields(
+            "static_framework_file",
+            header_imports,
+            module_map_imports,
+            framework_binaries,
         )
+    else:
+        objc_provider_fields = {
+            "static_framework_file": depset(framework_imports),
+        }
+
+    if ctx.attr.alwayslink:
+        if not framework_binaries:
+            fail("ERROR: There has to be a binary file in the imported framework.")
+        objc_provider_fields["force_load_library"] = depset(framework_binaries)
     if ctx.attr.sdk_dylibs:
         objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
     if ctx.attr.sdk_frameworks:
