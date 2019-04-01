@@ -15,7 +15,7 @@
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -96,10 +96,12 @@ def apple_rules_dependencies(ignore_version_differences = False):
           incompatible versions of depended-upon repositories will be silenced.
     """
     _maybe(
-        git_repository,
+        http_archive,
         name = "bazel_skylib",
-        remote = "https://github.com/bazelbuild/bazel-skylib.git",
-        tag = "0.7.0",
+        urls = [
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/0.8.0/bazel-skylib.0.8.0.tar.gz",
+        ],
+        sha256 = "2ef429f5d7ce7111263289644d233707dba35e39696377ebab8b0bc701f7818e",
         ignore_version_differences = ignore_version_differences,
     )
 
