@@ -14,7 +14,6 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 def _colorize(text, color):
@@ -43,7 +42,7 @@ def _maybe(repo_rule, name, ignore_version_differences, **kwargs):
 
     Args:
       repo_rule: The repository rule to be executed (e.g.,
-          `native.git_repository`.)
+          `http_archive`.)
       name: The name of the repository to be defined by the rule.
       ignore_version_differences: If `True`, warnings about potentially
           incompatible versions of depended-upon repositories will be silenced.
@@ -116,10 +115,12 @@ def apple_rules_dependencies(ignore_version_differences = False):
     )
 
     _maybe(
-        git_repository,
+        http_archive,
         name = "build_bazel_rules_swift",
-        remote = "https://github.com/bazelbuild/rules_swift.git",
-        tag = "0.7.0",
+        urls = [
+            "https://github.com/bazelbuild/rules_swift/releases/download/0.8.0/rules_swift.0.8.0.tar.gz",
+        ],
+        sha256 = "31aad005a9c4e56b256125844ad05eb27c88303502d74138186f9083479f93a6",
         ignore_version_differences = ignore_version_differences,
     )
 
