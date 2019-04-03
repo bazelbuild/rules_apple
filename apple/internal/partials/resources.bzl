@@ -245,6 +245,15 @@ def _resources_partial_impl(
         )
         providers.append(plist_provider)
 
+    if not providers:
+        # If there are no resource providers, return early, since there is nothing to process.
+        # Most rules will always have at least one resource since they have a mandatory infoplists
+        # attribute, but not ios_static_framework. This rule can be perfectly valid without any
+        # resource.
+        return struct()
+
+    final_provider = resources.merge_providers(providers, default_owner = str(ctx.label))
+
     avoid_providers = [
         x[AppleResourceInfo]
         for x in targets_to_avoid
@@ -259,8 +268,6 @@ def _resources_partial_impl(
             avoid_providers,
             validate_all_resources_owned = True,
         )
-
-    final_provider = resources.merge_providers(providers, default_owner = str(ctx.label))
 
     # Map of resource provider fields to a tuple that contains the method to use to process those
     # resources and a boolean indicating whether the Swift module is required for that processing.

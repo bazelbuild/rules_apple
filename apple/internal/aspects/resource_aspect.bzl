@@ -90,8 +90,9 @@ def _apple_resource_aspect_impl(target, ctx):
     elif apple_common.Objc in target:
         # TODO(kaipi): Clean up usages of the ObjcProvider as means to propagate resources, then
         # remove this case.
-        if hasattr(target[apple_common.Objc], "merge_zip"):
-            merge_zips = target[apple_common.Objc].merge_zip.to_list()
+        resource_zips = getattr(target[apple_common.Objc], "merge_zip", None)
+        if resource_zips:
+            merge_zips = resource_zips.to_list()
             merge_zips_provider = resources.bucketize_typed(
                 merge_zips,
                 bucket_type = "resource_zips",
