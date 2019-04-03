@@ -100,8 +100,8 @@ added to the test rules runfiles.
 Dictionary that represents the specific hardware
 requirements for this test.
 """,
-        "test_environment": """
-Dictionary with the environment variables required for the test.
+        "execution_environment": """
+Dictionary with the environment variables the test runner requires
 """,
         "test_runner_template": """
 Template file that contains the specific mechanism with
@@ -110,6 +110,7 @@ will substitute the following values:
     * %(test_host_path)s:   Path to the app being tested.
     * %(test_bundle_path)s: Path to the test bundle that contains the tests.
     * %(test_type)s:        The test type, whether it is unit or UI.
+    * %(test_env)s:         Environment variables to pass to the tests, ex: FOO=BAR,BAZ=QUX
 """,
     },
 )
@@ -380,7 +381,7 @@ def _apple_ui_test_attributes():
         },
     )
 
-def _get_template_substitutions(test_type, test_bundle, test_host = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -390,6 +391,7 @@ def _get_template_substitutions(test_type, test_bundle, test_host = None):
         subs["test_host_path"] = ""
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
+    subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -418,8 +420,9 @@ def _apple_test_impl(ctx, test_type):
     # TODO(b/120222745): Standardize the setup of the environment variables passed on the env
     # attribute.
     test_environment = dicts.add(
+        dict(ctx.configuration.test_env),
         ctx.attr.env,
-        runner.test_environment,
+        runner.execution_environment,
     )
 
     direct_runfiles = []
@@ -473,6 +476,7 @@ def _apple_test_impl(ctx, test_type):
         substitutions = _get_template_substitutions(
             test_type,
             test_bundle,
+            test_environment,
             test_host = test_host_archive,
         ),
     )

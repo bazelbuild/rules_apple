@@ -30,7 +30,7 @@ def _dummy_test_runner_impl(ctx):
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {},
-            test_environment = {},
+            execution_environment = {},
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(files = []),

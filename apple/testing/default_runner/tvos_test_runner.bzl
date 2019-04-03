@@ -21,23 +21,21 @@ load(
 
 def _get_template_substitutions(ctx):
     """Returns the template substitutions for this runner."""
-    test_env = ctx.configuration.test_env
     subs = {
         "device_type": ctx.attr.device_type,
         "os_version": ctx.attr.os_version,
-        "test_env": ",".join([k + "=" + v for (k, v) in test_env.items()]),
         "testrunner_binary": ctx.executable._testrunner.short_path,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_test_environment(ctx):
-    """Returns the test environment for this runner."""
-    test_environment = dict(ctx.configuration.test_env)
+def _get_execution_environment(ctx):
+    """Returns environment variables the test runner requires"""
+    execution_environment = {}
     xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
     if xcode_version:
-        test_environment["XCODE_VERSION"] = xcode_version
+        execution_environment["XCODE_VERSION"] = xcode_version
 
-    return test_environment
+    return execution_environment
 
 def _tvos_test_runner_impl(ctx):
     """Implementation for the tvos_test_runner rule."""
@@ -50,7 +48,7 @@ def _tvos_test_runner_impl(ctx):
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
-            test_environment = _get_test_environment(ctx),
+            execution_environment = _get_execution_environment(ctx),
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
