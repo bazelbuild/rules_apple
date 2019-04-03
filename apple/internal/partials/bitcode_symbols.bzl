@@ -62,8 +62,8 @@ def _bitcode_symbols_partial_impl(
             # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
             copy_commands.append(
                 ("cp {bitcode_file} " +
-                 "${{OUTPUT_DIR}}/$(dwarfdump -u -arch {arch} {binary} " +
-                 "| cut -d' ' -f2).bcsymbolmap").format(
+                 "${{OUTPUT_DIR}}/$(dwarfdump -u {binary} " +
+                 "| grep \"({arch})\" | cut -d' ' -f2).bcsymbolmap").format(
                     arch = arch,
                     binary = binary_artifact.path,
                     bitcode_file = bitcode_file.path,
