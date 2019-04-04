@@ -1301,7 +1301,7 @@ class EntitlementsTask(PlistToolTask):
       return
 
     if not profile_entitlements:
-      return  # backdoor for tests to not have to have the metadata.
+      return  # Allow no profile_entitlements just for the plisttool_unittests.
 
     if report_extras is None:
       report_extras = dict()
