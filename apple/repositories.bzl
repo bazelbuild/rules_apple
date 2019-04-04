@@ -48,7 +48,7 @@ def _maybe(repo_rule, name, ignore_version_differences, **kwargs):
           incompatible versions of depended-upon repositories will be silenced.
       **kwargs: Additional arguments passed directly to the repository rule.
     """
-    if name in native.existing_rules():
+    if native.existing_rule(name):
         if not ignore_version_differences:
             # Verify that the repository is being loaded from the same URL and tag
             # that we asked for, and warn if they differ.
