@@ -38,5 +38,11 @@ tasks:
     - "test/..."
     - "examples/..."
 
-# Need to check the state of the code
-#buildifier: latest
+buildifier:
+  version: latest
+  # Until there is a release with the fixes, a few warnings have to be shut off.
+  # - https://github.com/bazelbuild/buildtools/issues/549
+  # - https://github.com/bazelbuild/buildtools/issues/550
+  # - https://github.com/bazelbuild/buildtools/issues/576
+  # - https://github.com/bazelbuild/buildtools/issues/577
+  warnings: -duplicated-name,-uninitialized,-function-docstring
