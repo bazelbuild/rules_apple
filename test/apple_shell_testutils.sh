@@ -363,6 +363,9 @@ function do_action() {
       "--announce_rc"
       "--symlink_prefix=test-"
       "--verbose_failures"
+      # See the comment in rules_swift/tools/worker/BUILD for why this
+      # workaround is necessary.
+      "--define=RULES_SWIFT_BUILD_DUMMY_WORKER=1"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
