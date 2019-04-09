@@ -29,8 +29,6 @@ def _dummy_test_runner_impl(ctx):
     return [
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
-            execution_requirements = {},
-            execution_environment = {},
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(files = []),

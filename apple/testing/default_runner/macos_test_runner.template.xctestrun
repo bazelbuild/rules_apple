@@ -20,6 +20,7 @@
 			<string>%(xctestrun_insert_libraries)s</string>
 			<key>XCInjectBundleInto</key>
 			<string>BAZEL_TEST_HOST_BINARY</string>
+			BAZEL_TEST_ENVIRONMENT
 		</dict>
 	</dict>
 </dict>

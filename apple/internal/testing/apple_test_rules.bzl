@@ -92,25 +92,30 @@ AppleTestRunnerInfo = provider(
     doc = """
 Provider that runner targets must propagate.
 
-In addition to the fields, all the runfiles that the runner target declares will be
-added to the test rules runfiles.
+In addition to the fields, all the runfiles that the runner target declares will be added to the
+test rules runfiles.
 """,
     fields = {
         "execution_requirements": """
-Dictionary that represents the specific hardware
-requirements for this test.
+Optional dictionary that represents the specific hardware requirements for this test.
 """,
         "execution_environment": """
-Dictionary with the environment variables the test runner requires
+Optional dictionary with the environment variables that are to be set in the test action, and are
+not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s
+substitution, but will be set in the test action.
+""",
+        "test_environment": """
+Optional dictionary with the environment variables that are to be propagated into the XCTest
+invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in
+the test action.
 """,
         "test_runner_template": """
-Template file that contains the specific mechanism with
-which the tests will be run. The apple_ui_test and apple_unit_test rules
-will substitute the following values:
+Required template file that contains the specific mechanism with which the tests will be run. The
+apple_ui_test and apple_unit_test rules will substitute the following values:
     * %(test_host_path)s:   Path to the app being tested.
     * %(test_bundle_path)s: Path to the test bundle that contains the tests.
+    * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).
     * %(test_type)s:        The test type, whether it is unit or UI.
-    * %(test_env)s:         Environment variables to pass to the tests, ex: FOO=BAR,BAZ=QUX
 """,
     },
 )
@@ -395,7 +400,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_coverage_test_environment(ctx):
+def _get_coverage_execution_environment(ctx):
     """Returns environment variables required for test coverage support."""
     gcov_files = ctx.attr._gcov.files.to_list()
     coverage_files = ctx.attr.test_bundle[CoverageFilesInfo]
@@ -415,15 +420,18 @@ def _get_coverage_test_environment(ctx):
 def _apple_test_impl(ctx, test_type):
     """Common implementation for the apple test rules."""
     runner = ctx.attr.runner[AppleTestRunnerInfo]
-    execution_requirements = runner.execution_requirements
+    execution_requirements = getattr(runner, "execution_requirements", {})
 
-    # TODO(b/120222745): Standardize the setup of the environment variables passed on the env
-    # attribute.
+    # Environment variables to be set as the %(test_env)s substitution, which includes the
+    # --test_env and env attribute values, but not the execution environment variables.
     test_environment = dicts.add(
         dict(ctx.configuration.test_env),
         ctx.attr.env,
-        runner.execution_environment,
+        getattr(runner, "test_environment", {}),
     )
+
+    # Environment variables for the Bazel test action itself.
+    execution_environment = dict(getattr(runner, "execution_environment", {}))
 
     direct_runfiles = []
     transitive_runfiles = []
@@ -432,9 +440,9 @@ def _apple_test_impl(ctx, test_type):
     transitive_outputs = []
 
     if ctx.configuration.coverage_enabled:
-        test_environment = dicts.add(
-            test_environment,
-            _get_coverage_test_environment(ctx),
+        execution_environment = dicts.add(
+            execution_environment,
+            _get_coverage_execution_environment(ctx),
         )
         transitive_runfiles.append(
             ctx.attr.test_bundle[CoverageFilesInfo].coverage_files,
@@ -506,7 +514,7 @@ def _apple_test_impl(ctx, test_type):
         ctx.attr.test_bundle[AppleBundleInfo],
         ctx.attr.test_bundle[AppleTestInfo],
         testing.ExecutionInfo(execution_requirements),
-        testing.TestEnvironment(test_environment),
+        testing.TestEnvironment(execution_environment),
         DefaultInfo(
             executable = executable,
             files = depset(direct_outputs, transitive = transitive_outputs),

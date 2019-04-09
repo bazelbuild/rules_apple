@@ -92,11 +92,30 @@ fi
 XCTESTRUN="$TEST_TMP_DIR/tests.xctestrun"
 cp -f "$BAZEL_XCTESTRUN_TEMPLATE" "$XCTESTRUN"
 
+# Basic XML character escaping for environment variable substitution.
+function escape() {
+  escaped=${1//&/&amp;}
+  escaped=${escaped//</&lt;}
+  escaped=${escaped//>/&gt;}
+  escaped=${escaped//'"'/&quot;}
+  echo $escaped
+}
+
+# Add the test environment variables into the xctestrun file to propagate them
+# to the test runner
+TEST_ENV="%(test_env)s"
+XCTESTRUN_ENV=""
+for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
+  IFS== read key value <<< "$SINGLE_TEST_ENV"
+  XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
+done
+
 # Replace the substitution values into the xctestrun file.
 /usr/bin/sed -i '' 's@BAZEL_TEST_BUNDLE_PATH@'"$XCTESTRUN_TEST_BUNDLE_PATH"'@g' "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
 /usr/bin/sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
+/usr/bin/sed -i '' 's@BAZEL_TEST_ENVIRONMENT@'"$XCTESTRUN_ENV"'@g' "$XCTESTRUN"
 
 # If XML_OUTPUT_FILE is not an absolute path, make it absolute with regards of
 # where this script is being run.
