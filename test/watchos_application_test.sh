@@ -385,7 +385,7 @@ function test_contains_stub_executable() {
 }
 
 # Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
+function test_bitcode_symbol_maps_packaging() {
   # Bitcode is only availabe on device. Ignore the test for simulator builds.
   is_device_build watchos || return 0
 
