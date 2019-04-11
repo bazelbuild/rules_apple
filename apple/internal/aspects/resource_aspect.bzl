@@ -69,11 +69,12 @@ def _apple_resource_aspect_impl(target, ctx):
         if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
 
-        # Collect objc_library's bundles dependencies and propagate them.
-        providers.extend([
-            x[AppleResourceInfo]
-            for x in ctx.rule.attr.bundles
-        ])
+        if hasattr(ctx.rule.attr, "bundles"):
+            # Collect objc_library's bundles dependencies and propagate them.
+            providers.extend([
+                x[AppleResourceInfo]
+                for x in ctx.rule.attr.bundles
+            ])
 
     elif ctx.rule.kind == "swift_library":
         bucketize_args["swift_module"] = target[SwiftInfo].module_name
