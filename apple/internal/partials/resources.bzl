@@ -202,16 +202,16 @@ def _locale_for_path(resource_path):
 
     return resource_path[locale_start + 1:loc]
 
-def _validate_processed_locales(locales_requested, locales_included, locales_dropped):
+def _validate_processed_locales(label, locales_requested, locales_included, locales_dropped):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
     if sets.length(locales_dropped):
         # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
         # could mean that the user made a mistake in defining the locales they want to keep.
         if not sets.is_equal(locales_requested, locales_included):
             unused_locales = sets.difference(locales_requested, locales_included)
-            print("Warning: Did not have resources that matched " + sets.str(unused_locales) +
-                  " in locale filter. Please verify apple.locales_to_include is defined" +
-                  " properly.")
+            print("Warning: " + str(label) + " did not have resources that matched " +
+                  sets.str(unused_locales) + " in locale filter. Please verify " +
+                  "apple.locales_to_include is defined properly.")
 
 def _resources_partial_impl(
         ctx,
@@ -328,7 +328,7 @@ def _resources_partial_impl(
                 infoplists.extend(result.infoplists)
 
     if locales_requested:
-        _validate_processed_locales(locales_requested, locales_included, locales_dropped)
+        _validate_processed_locales(ctx.label, locales_requested, locales_included, locales_dropped)
 
     if bundle_id:
         # If no bundle ID was given, do not process the root Info.plist and do not validate embedded
