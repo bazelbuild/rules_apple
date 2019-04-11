@@ -69,25 +69,4 @@ EOF
   assert_not_contains "__TEXT,__info_plist" $TEST_TMPDIR/otool.out
 }
 
-# Tests that the Swift runtime got statically linked into the binary by
-# checking the linkage of a symbol from the runtime.
-function test_swift_is_statically_linked() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_command_line_application(
-    name = "app",
-    minimum_os_version = "10.11",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  # The symbol should be labeled "T" for text section if statically linked, not
-  # "U" (which would indicate dynamic linkage).
-  nm test-bin/app/app | grep "T _swift_slowAlloc" > /dev/null \
-      || fail "Should have found _swift_slowAlloc in TEXT section, but did not"
-}
-
 run_suite "macos_command_line_application with Swift tests"
