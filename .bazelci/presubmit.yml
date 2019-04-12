@@ -3,6 +3,9 @@ tasks:
   macos_latest:
     name: "Latest Bazel"
     platform: macos
+    # TODO(b/130360213): Remove this default to use whatever the default in
+    # BuildKite is.
+    xcode_version: "10.1"
     bazel: latest
     build_targets:
     - "tools/..."
@@ -22,6 +25,9 @@ tasks:
   macos_last_green:
     name: "Last Green Bazel"
     platform: macos
+    # TODO(b/130360213): Remove this default to use whatever the default in
+    # BuildKite is.
+    xcode_version: "10.1"
     bazel: last_green
     build_targets:
     - "tools/..."

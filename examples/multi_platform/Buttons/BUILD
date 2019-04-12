@@ -3,6 +3,7 @@ load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_static_framework",
+    "ios_ui_test",
     "ios_unit_test",
 )
 load(
@@ -93,14 +94,12 @@ ios_static_framework(
 
 ## Tests
 
-# TODO(b/130360213): Enable these tests when Bazel 0.25 is available in
-# BuildKite.
-# ios_unit_test(
-#     name = "ButtonsTests",
-#     minimum_os_version = "9.0",
-#     test_host = ":Buttons",
-#     deps = [":ButtonsTestsLib"],
-# )
+ios_unit_test(
+    name = "ButtonsTests",
+    minimum_os_version = "9.0",
+    test_host = ":Buttons",
+    deps = [":ButtonsTestsLib"],
+)
 
 ios_unit_test(
     name = "ButtonsLogicTests",
@@ -108,22 +107,19 @@ ios_unit_test(
     deps = [":ButtonsTestsLib"],
 )
 
-# TODO(b/130360213): Enable these tests when Bazel 0.25 is available in
-# BuildKite.
-# ios_ui_test(
-#     name = "ButtonsUITests",
-#     minimum_os_version = "9.0",
-#     test_host = ":Buttons",
-#     deps = [":ButtonsUITestsLib"],
-# )
+ios_ui_test(
+    name = "ButtonsUITests",
+    minimum_os_version = "9.0",
+    test_host = ":Buttons",
+    deps = [":ButtonsUITestsLib"],
+)
 
 test_suite(
     name = "iOSButtonsTestSuite",
     tests = [
         ":ButtonsLogicTests",
-        # TODO(b/130360213): Enable these tests when Bazel 0.25 is available in BuildKite.
-        # ":ButtonsTests",
-        # ":ButtonsUITests",
+        ":ButtonsTests",
+        ":ButtonsUITests",
     ],
 )
 
