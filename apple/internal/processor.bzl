@@ -241,9 +241,10 @@ def _bundle_partial_outputs_files(
                 continue
             if (invalid_top_level_dirs and
                 not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
+                file_paths = "\n".join([f.path for f in files.to_list()])
                 fail(("Error: For %s bundles, the following top level " +
-                      "directories are invalid: %s") %
-                     (platform_type, ", ".join(invalid_top_level_dirs)))
+                      "directories are invalid: %s, check input files:\n%s") %
+                     (platform_type, ", ".join(invalid_top_level_dirs), file_paths))
 
             sources = files.to_list()
             input_files.extend(sources)
@@ -256,7 +257,7 @@ def _bundle_partial_outputs_files(
                     if target_path in processed_file_target_paths:
                         fail(
                             ("Multiple files would be placed at \"%s\" in the bundle, which " +
-                             "is not allowed") % target_path,
+                             "is not allowed. check input file:\n%s") % (target_path, source.path),
                         )
                     processed_file_target_paths[target_path] = None
                 control_files.append(struct(src = source.path, dest = target_path))
