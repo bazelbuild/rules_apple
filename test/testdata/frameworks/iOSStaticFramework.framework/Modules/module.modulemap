@@ -1,0 +1,6 @@
+framework module iOSStaticFramework {
+  umbrella header "iOSStaticFramework.h"
+
+  export *
+  module * { export * }
+}
