@@ -457,7 +457,7 @@ def _apple_test_impl(ctx, test_type):
     if is_experimental_tree_artifact_enabled(ctx):
         ctx.actions.write(
             output = ctx.outputs.test_bundle,
-            content = "test",
+            content = "This is dummy file because tree artifacts are enabled",
         )
         test_bundle = ctx.attr.test_bundle[AppleBundleInfo].archive
     else:

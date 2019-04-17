@@ -370,7 +370,7 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
 
         ctx.actions.write(
             output = ctx.outputs.archive,
-            content = "test",
+            content = "This is dummy file because tree artifacts are enabled",
         )
     else:
         # This output, while an intermediate artifact not exposed through the AppleBundleInfo
