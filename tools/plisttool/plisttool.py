@@ -377,7 +377,7 @@ _RFC1034_RE = re.compile(r'[^0-9A-Za-z.]')
 #     value that is >= 1. That is *not* going to be enforced since using 0.x.y
 #     very early in a project is common and at this level there is no way to
 #     really tell if this is a Release/AppStore build or not.
-#   - NOTE: While the docs all say 3 segments, enterprise builsd (and
+#   - NOTE: While the docs all say 3 segments, enterprise builds (and
 #     TestFlight?) are perfectly happy with 4 segment, so 4 is allowed.
 # - TechNote also lists an 18 characters max
 CF_BUNDLE_VERSION_RE = re.compile(

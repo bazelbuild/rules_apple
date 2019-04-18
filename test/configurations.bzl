@@ -36,6 +36,18 @@ IOS_CONFIGURATIONS = {
     "simulator": IOS_SIMULATOR_OPTIONS,
 }
 
+# Configuration for 64 bit simulators and fat devices. Useful for testing sanitizers since thread
+# sanitizer is only supported in 64 bit simulator. It's easier to skip device tests than a specific
+# simulator architecture test, so instead create a special configuration for the sanitizer tests.
+IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS = {
+    "device": IOS_DEVICE_OPTIONS,
+    # Blocked on b/73546952
+    # "device_bitcode": IOS_DEVICE_OPTIONS + [
+    #    "--apple_bitcode=embedded_markers",
+    #],
+    "simulator": COMPILATION_MODE_OPTIONS + ["--ios_multi_cpus=x86_64"],
+}
+
 IOS_TEST_CONFIGURATIONS = {
     "device": IOS_DEVICE_OPTIONS,
     "simulator": IOS_SIMULATOR_OPTIONS,

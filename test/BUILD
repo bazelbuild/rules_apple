@@ -1,5 +1,6 @@
 load(
     "//test:configurations.bzl",
+    "IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS",
     "IOS_CONFIGURATIONS",
     "IOS_TEST_CONFIGURATIONS",
     "MACOS_CONFIGURATIONS",
@@ -378,7 +379,7 @@ apple_multi_shell_test(
     name = "ios_application_clang_rt_test",
     size = "medium",
     src = "ios_application_clang_rt_test.sh",
-    configurations = IOS_CONFIGURATIONS,
+    configurations = IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS,
     shard_count = 4,
 )
 

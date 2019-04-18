@@ -29,7 +29,7 @@ class ButtonsTVUITests: XCTestCase {
 
     for tapCount in 1...3 {
       XCTAssert(clickButton.hasFocus)
-      XCUIRemote.shared().press(.select)
+      XCUIRemote.shared.press(.select)
       XCTAssertEqual(clickCountLabel.label, String(tapCount))
     }
   }
