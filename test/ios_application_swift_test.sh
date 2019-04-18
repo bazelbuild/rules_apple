@@ -210,9 +210,7 @@ swift_library(
 )
 EOF
 
-    # Override --ios_multi_cpus to only contain the 64 bit simulator, as 32 bit
-    # is not supported.
-    do_build ios //app:app --features=tsan --ios_multi_cpus=x86_64\
+    do_build ios //app:app --features=tsan \
         || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
