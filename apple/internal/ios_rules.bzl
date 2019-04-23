@@ -156,7 +156,11 @@ def _ios_application_impl(ctx):
     processor_result = processor.process(ctx, processor_partials)
 
     executable = outputs.executable(ctx)
-    run_support.register_simulator_executable(ctx, executable)
+
+    if platform_support.is_device_build(ctx):
+        run_support.register_device_executable(ctx, executable)
+    else:
+        run_support.register_simulator_executable(ctx, executable)
 
     return [
         # TODO(b/121155041): Should we do the same for ios_framework and ios_extension?
@@ -167,7 +171,14 @@ def _ios_application_impl(ctx):
             runfiles = ctx.runfiles(
                 files = [
                     outputs.archive(ctx),
+                    ctx.file.provisioning_profile,
                     ctx.file._std_redirect_dylib,
+                    ctx.file._containerpathtool,
+                    ctx.file._idevicedebugserverproxy,
+                    ctx.file._ideviceimagemounter,
+                    ctx.file._ideviceinfo,
+                    ctx.file._ideviceprovision,
+                    ctx.file._ideviceinstaller,
                 ],
             ),
         ),

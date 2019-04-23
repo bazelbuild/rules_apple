@@ -137,6 +137,11 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             allow_single_file = True,
             default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
         ),
+        "_device_runner_template": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_device_template"),
+        ),
         "_macos_runner_template": attr.label(
             cfg = "host",
             allow_single_file = True,
@@ -146,6 +151,42 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             cfg = "host",
             allow_single_file = True,
             default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
+        ),
+        "_containerpathtool": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//tools/containerpathtool:containerpathtool"),
+            executable = True,
+        ),
+        "_ideviceinfo": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@com_github_libimobiledevice_libimobiledevice//:ideviceinfo"),
+            executable = True,
+        ),
+        "_ideviceprovision": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@com_github_libimobiledevice_libimobiledevice//:ideviceprovision"),
+            executable = True,
+        ),
+        "_ideviceimagemounter": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@com_github_libimobiledevice_libimobiledevice//:ideviceimagemounter"),
+            executable = True,
+        ),
+        "_idevicedebugserverproxy": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@com_github_libimobiledevice_libimobiledevice//:idevicedebugserverproxy"),
+            executable = True,
+        ),
+        "_ideviceinstaller": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            default = Label("@com_github_libimobiledevice_libimobiledevice//:ideviceinstaller"),
+            executable = True,
         ),
         "_swift_stdlib_tool": attr.label(
             cfg = "host",

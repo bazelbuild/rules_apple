@@ -38,6 +38,32 @@ def _register_simulator_executable(ctx, output):
         },
     )
 
+def _register_device_executable(ctx, output):
+    """Registers an action that runs the bundled app in the iOS simulator.
+
+    Args:
+      ctx: The Skylark context.
+      output: The `File` representing where the executable should be generated.
+    """
+    ctx.actions.expand_template(
+        output = output,
+        is_executable = True,
+        template = ctx.file._device_runner_template,
+        substitutions = {
+            "%app_name%": ctx.label.name,
+            "%bundle_id%": ctx.attr.bundle_id,
+            "%ipa_file%": outputs.archive(ctx).short_path,
+            "%provisioning_profile%": ctx.file.provisioning_profile.short_path,
+            "%containerpathtool%": ctx.executable._containerpathtool.short_path,
+            "%ideviceinfo%": ctx.executable._ideviceinfo.short_path,
+            "%ideviceinstaller%": ctx.executable._ideviceinstaller.short_path,
+            "%ideviceprovision%": ctx.executable._ideviceprovision.short_path,
+            "%ideviceimagemounter%": ctx.executable._ideviceimagemounter.short_path,
+            "%idevicedebugserverproxy%": ctx.executable._idevicedebugserverproxy.short_path,
+        },
+    )
+
+
 def _register_macos_executable(ctx, output):
     """Registers an action that runs the bundled macOS app.
 
@@ -58,5 +84,6 @@ def _register_macos_executable(ctx, output):
 # Define the loadable module that lists the exported symbols in this file.
 run_support = struct(
     register_simulator_executable = _register_simulator_executable,
+    register_device_executable = _register_device_executable,
     register_macos_executable = _register_macos_executable,
 )
