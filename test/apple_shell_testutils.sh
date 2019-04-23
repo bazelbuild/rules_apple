@@ -550,7 +550,7 @@ function assert_ipa_contains_bitcode_maps() {
   unzip_single_file "$archive" "$binary" > $TEST_TMPDIR/tmp_bin
   declare -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    BIN_UUID=$(dwarfdump -u "$TEST_TMPDIR"/tmp_bin -arch "${arch}" | cut -d' ' -f2)
+    BIN_UUID=$(dwarfdump -u "$TEST_TMPDIR"/tmp_bin | grep "${arch}" | cut -d' ' -f2)
     assert_zip_contains "$archive" \
       "BCSymbolMaps/${BIN_UUID}.bcsymbolmap"
   done

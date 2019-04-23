@@ -84,7 +84,7 @@ TVOS_TEST_CONFIGURATIONS = {
 # well.
 WATCHOS_DEVICE_OPTIONS = COMPILATION_MODE_OPTIONS + [
     "--ios_multi_cpus=arm64,armv7",
-    "--watchos_cpus=armv7k",
+    "--watchos_cpus=armv7k,arm64_32",
 ]
 WATCHOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
     "--ios_multi_cpus=i386,x86_64",
