@@ -19,7 +19,7 @@ set -eu
 # Integration tests for Clang runtime support in iOS apps.
 
 function set_up() {
-  mkdir -p app
+  mkdir -p  app
 }
 
 function tear_down() {
