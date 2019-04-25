@@ -1,3 +1,4 @@
+# TEST
 workspace(name = "build_bazel_rules_apple")
 
 load("//apple:repositories.bzl", "apple_rules_dependencies")
