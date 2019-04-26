@@ -101,11 +101,14 @@ if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
   runner_flags+=("--launch_options_json_path=${LAUNCH_OPTIONS_JSON_PATH}")
 fi
 
+extra_args=( %(extra_args)s )
+
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   simulator_test
   "--device_type=%(device_type)s"
   "--os_version=%(os_version)s"
+  "${extra_args[@]}"
   "$@")
 "${cmd[@]}" 2>&1
 status=$?

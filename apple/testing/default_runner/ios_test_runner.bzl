@@ -24,9 +24,13 @@ def _get_template_substitutions(ctx):
     subs = {
         "device_type": ctx.attr.device_type,
         "os_version": ctx.attr.os_version,
-        "testrunner_binary": ctx.executable._testrunner.short_path,
+        "testrunner_binary": ctx.executable.testrunner.short_path,
     }
-    return {"%(" + k + ")s": subs[k] for k in subs}
+    ret = {"%(" + k + ")s": subs[k] for k in subs}
+    if len(ctx.attr.extra_args) > 0:
+        extra_args = " ".join(["'" + arg + "'" for arg in ctx.attr.extra_args])
+        ret["%(extra_args)s"] = extra_args
+    return ret
 
 def _get_execution_environment(ctx):
     """Returns environment variables the test runner requires"""
@@ -52,7 +56,7 @@ def _ios_test_runner_impl(ctx):
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
-                files = [ctx.file._testrunner],
+                files = [ctx.file.testrunner],
             ),
         ),
     ]
@@ -84,13 +88,20 @@ correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
 """,
         ),
+        "extra_args": attr.string_list(
+            default = [],
+            mandatory = False,
+            doc = """
+Extra arguments to pass to the test runner.
+""",
+        ),
         "_test_template": attr.label(
             default = Label(
                 "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),
-        "_testrunner": attr.label(
+        "testrunner": attr.label(
             default = Label(
                 "@xctestrunner//file",
             ),
