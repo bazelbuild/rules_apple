@@ -33,7 +33,7 @@ _testing_target = '//plisttool:tests'
 
 
 def _xml_plist(content):
-  """Returns a StringIO for a plist with the given content.
+  """Returns a BytesIO for a plist with the given content.
 
   This helper function wraps plist XML (key/value pairs) in the necessary XML
   boilerplate for a plist with a root dictionary.
@@ -42,7 +42,7 @@ def _xml_plist(content):
     content: The XML content of the plist, which will be inserted into a
         dictionary underneath the root |plist| element.
   Returns:
-    A StringIO object containing the full XML text of the plist.
+    A BytesIO object containing the full XML text of the plist.
   """
   xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
          '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
@@ -59,9 +59,9 @@ def _xml_plist(content):
 def _plisttool_result(control):
   """Helper function that runs PlistTool with the given control struct.
 
-  This function inserts a StringIO object as the control's "output" key and
+  This function inserts a BytesIO object as the control's "output" key and
   returns the dictionary containing the result of the tool after parsing it
-  from that StringIO.
+  from that BytesIO.
 
   Args:
     control: The control struct to pass to PlistTool. See the module doc for

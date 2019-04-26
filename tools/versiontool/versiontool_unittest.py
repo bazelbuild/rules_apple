@@ -14,12 +14,23 @@
 
 """Tests for VersionTool."""
 
+import io
 import json
-import StringIO
 import unittest
+
+try:
+  import StringIO  # Doesn't exist in Python 3
+except ImportError:
+  StringIO = None
 
 from build_bazel_rules_apple.tools.versiontool import versiontool
 
+
+def _str_io(*args, **kwargs):
+  """Helper for PY2/Py3 StringIO"""
+  if StringIO:
+    return StringIO.StringIO(*args, **kwargs)
+  return io.StringIO(*args, **kwargs)
 
 class VersionToolTest(unittest.TestCase):
 
@@ -55,7 +66,7 @@ class VersionToolTest(unittest.TestCase):
 
   def test_build_label_substitution(self):
     self._assert_versiontool_result({
-        'build_info_path': StringIO.StringIO(
+        'build_info_path': _str_io(
             'BUILD_EMBED_LABEL app_3.1_RC41'
         ),
         'build_label_pattern': 'app_{version}_RC{candidate}',
@@ -72,7 +83,7 @@ class VersionToolTest(unittest.TestCase):
 
   def test_build_label_substitution_multiline_input(self):
     self._assert_versiontool_result({
-        'build_info_path': StringIO.StringIO(
+        'build_info_path': _str_io(
             '\n'.join([
               'FOO BAR',
               'BUILD_EMBED_LABEL app_3.1_RC41',
@@ -93,7 +104,7 @@ class VersionToolTest(unittest.TestCase):
 
   def test_result_is_empty_if_label_is_missing_but_pattern_was_provided(self):
     self._assert_versiontool_result({
-        'build_info_path': StringIO.StringIO(),
+        'build_info_path': _str_io(),
         'build_label_pattern': 'app_{version}_RC{candidate}',
         'build_version_pattern': '{version}.{candidate}',
         'capture_groups': {
@@ -105,7 +116,7 @@ class VersionToolTest(unittest.TestCase):
 
   def test_build_label_substitution_from_fallback_label(self):
     self._assert_versiontool_result({
-        'build_info_path': StringIO.StringIO(
+        'build_info_path': _str_io(
             "FOO 123"
         ),
         'fallback_build_label': 'app_99.99_RC99',
@@ -123,7 +134,7 @@ class VersionToolTest(unittest.TestCase):
 
   def test_build_label_substitution_uses_file_over_fallback_label(self):
     self._assert_versiontool_result({
-        'build_info_path': StringIO.StringIO(
+        'build_info_path': _str_io(
             'BUILD_EMBED_LABEL app_3.1_RC41',
         ),
         'fallback_build_label': 'app_99.99_RC99',
@@ -142,7 +153,7 @@ class VersionToolTest(unittest.TestCase):
   def test_raises_if_label_is_present_but_does_not_match(self):
     with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
-          'build_info_path': StringIO.StringIO(
+          'build_info_path': _str_io(
               'BUILD_EMBED_LABEL app_3.1_RC41',
           ),
           'build_label_pattern': 'app_{version}_RC{candidate}',
@@ -157,7 +168,7 @@ class VersionToolTest(unittest.TestCase):
   def test_raises_if_fallback_label_is_present_but_does_not_match(self):
     with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
-          'build_info_path': StringIO.StringIO(
+          'build_info_path': _str_io(
               "FOO 123"
           ),
           'fallback_build_label': 'app_3.1_RC41',

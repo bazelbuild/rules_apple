@@ -12,7 +12,6 @@ py_library(
 py_test(
     name = "execute_test",
     srcs = ["execute_test.py"],
-    python_version = "PY2",
     deps = [
         ":execute",
         "//:py_init_shim",

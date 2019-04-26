@@ -65,12 +65,12 @@ class ExecuteTest(unittest.TestCase):
 
     # io.StringIO() only accepts unicode in Py2, so use the older
     # StringIO.StringIO for Py2, which accepts str/unicode
-    if _PY3:
-      mock_stdout = io.StringIO()
-      mock_stderr = io.StringIO()
-    else:
+    if StringIO:
       mock_stdout = StringIO.StringIO()
       mock_stderr = StringIO.StringIO()
+    else:
+      mock_stdout = io.StringIO()
+      mock_stderr = io.StringIO()
 
     try:
       sys.stdout = mock_stdout

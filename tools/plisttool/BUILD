@@ -3,7 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "plisttool",
     srcs = ["plisttool.py"],
-    python_version = "PY2",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -21,7 +20,6 @@ py_library(
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
-    python_version = "PY2",
     deps = [
         ":plisttool_lib",
         "//:py_init_shim",

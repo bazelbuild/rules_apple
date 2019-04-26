@@ -3,7 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "versiontool",
     srcs = ["versiontool.py"],
-    python_version = "PY2",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -19,7 +18,6 @@ py_library(
 py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
-    python_version = "PY2",
     deps = [
         ":versiontool_lib",
         "//:py_init_shim",

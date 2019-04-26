@@ -3,7 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
-    python_version = "PY2",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -20,7 +19,6 @@ py_library(
 py_test(
     name = "xctoolrunner_test",
     srcs = ["xctoolrunner_test.py"],
-    python_version = "PY2",
     deps = [
         ":xctoolrunner_lib",
         "//:py_init_shim",
