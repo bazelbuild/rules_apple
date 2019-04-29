@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of macOS test bundle rules."""
+"""Implementation of macOS test rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rules.bzl",
-    "apple_ui_test",
-    "apple_unit_test",
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
+    "apple_test_rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -36,54 +31,32 @@ load(
     "MacosXcTestBundleInfo",
 )
 
-def _macos_test_bundle_impl(ctx):
-    """Experimental implementation of macos_application."""
-    return apple_test_bundle_support.apple_test_bundle_impl(
+def _macos_ui_test_impl(ctx):
+    """Implementation of macos_ui_test."""
+    return apple_test_rule_support.apple_test_impl(
         ctx,
+        "xcuitest",
         extra_providers = [MacosXcTestBundleInfo()],
     )
 
-_macos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
-    implementation = _macos_test_bundle_impl,
-    platform_type = "macos",
+def _macos_unit_test_impl(ctx):
+    """Implementation of macos_unit_test."""
+    return apple_test_rule_support.apple_test_impl(
+        ctx,
+        "xctest",
+        extra_providers = [MacosXcTestBundleInfo()],
+    )
+
+macos_ui_test = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_ui_test_impl,
+    platform_type = str(apple_common.platform_type.macos),
     product_type = apple_product_type.ui_test_bundle,
-    doc = "Builds and bundles an iOS UI Test Bundle.",
+    doc = "Builds and bundles a macOS UI Test Bundle.",
 )
 
-_macos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
-    implementation = _macos_test_bundle_impl,
-    platform_type = "macos",
+macos_unit_test = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_unit_test_impl,
+    platform_type = str(apple_common.platform_type.macos),
     product_type = apple_product_type.unit_test_bundle,
-    doc = "Builds and bundles an iOS Unit Test Bundle.",
+    doc = "Builds and bundles a macOS Unit Test Bundle.",
 )
-
-def macos_unit_test(
-        name,
-        test_host = None,
-        **kwargs):
-    bundle_loader = None
-    if test_host:
-        bundle_loader = test_host
-    apple_test_bundle_support.assemble_test_targets(
-        name = name,
-        platform_type = "macos",
-        platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-        bundle_loader = bundle_loader,
-        bundling_rule = _macos_unit_test_bundle,
-        test_host = test_host,
-        test_rule = apple_unit_test,
-        **kwargs
-    )
-
-def macos_ui_test(
-        name,
-        **kwargs):
-    apple_test_bundle_support.assemble_test_targets(
-        name = name,
-        platform_type = "macos",
-        platform_default_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-        bundling_rule = _macos_ui_test_bundle,
-        test_rule = apple_ui_test,
-        uses_provisioning_profile = True,
-        **kwargs
-    )

@@ -180,7 +180,7 @@ EOF
 function test_plist_contents() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests.zip" "unit_tests.xctest/Info.plist" \
       BuildMachineOSBuild \
       CFBundleExecutable \
       CFBundleIdentifier \
@@ -240,7 +240,7 @@ function test_plist_contents() {
 function test_bundle_id_override() {
   create_common_files
   create_minimal_ios_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests.zip" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -252,7 +252,7 @@ function test_bundle_id_override() {
 function test_bundle_id_same_as_test_host_error() {
   create_common_files
   create_minimal_ios_application_with_tests "my.bundle.id"
-  create_dump_plist "//app:unit_tests_test_bundle.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests.zip" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   ! do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -271,7 +271,7 @@ function test_builds_with_no_host() {
 function test_bundle_is_signed() {
   create_common_files
   create_minimal_ios_application_with_tests
-  create_dump_codesign "//app:unit_tests_test_bundle.zip" "unit_tests.xctest" -vv
+  create_dump_codesign "//app:unit_tests.zip" "unit_tests.xctest" -vv
   do_build ios --ios_minimum_os=9.0 //app:dump_codesign || fail "Should build"
 
   assert_contains "satisfies its Designated Requirement" \

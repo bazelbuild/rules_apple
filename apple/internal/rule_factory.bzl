@@ -35,6 +35,12 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
+    "AppleTestRunnerInfo",
+    "coverage_files_aspect",
+    "test_info_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -161,7 +167,53 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
+def _common_test_attributes(rule_descriptor):
+    return {
+        "data": attr.label_list(
+            allow_files = True,
+            default = [],
+            doc = "Files to be made available to the test during its execution.",
+        ),
+        "env": attr.string_dict(
+            doc = """
+Dictionary of environment variables that should be set during the test execution.
+""",
+        ),
+        "runner": attr.label(
+            doc = """
+The runner target that will provide the logic on how to run the tests. Needs to provide the
+AppleTestRunnerInfo provider.
+    """,
+            default = Label(rule_descriptor.default_test_runner),
+            providers = [AppleTestRunnerInfo],
+        ),
+        "_apple_coverage_support": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_apple_support//tools:coverage_support"),
+        ),
+        # gcov and mcov are binary files required to calculate test coverage.
+        "_gcov": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:gcov"),
+            allow_single_file = True,
+        ),
+        "_mcov": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:mcov"),
+            allow_single_file = True,
+        ),
+    }
+
 def _common_binary_linking_attrs(rule_descriptor):
+    deps_aspects = [
+        apple_common.objc_proto_aspect,
+        apple_resource_aspect,
+        framework_import_aspect,
+        swift_usage_aspect,
+    ]
+    if _is_test_product_type(rule_descriptor.product_type):
+        deps_aspects.extend([coverage_files_aspect, test_info_aspect])
+
     return {
         "binary_type": attr.string(
             default = rule_descriptor.binary_type,
@@ -191,12 +243,7 @@ A list of strings representing extra flags that should be passed to the linker.
     """,
         ),
         "deps": attr.label_list(
-            aspects = [
-                apple_common.objc_proto_aspect,
-                apple_resource_aspect,
-                framework_import_aspect,
-                swift_usage_aspect,
-            ],
+            aspects = deps_aspects,
             cfg = rule_descriptor.deps_cfg,
             doc = """
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
@@ -260,17 +307,22 @@ def _get_common_bundling_attributes(rule_descriptor):
         })
 
     if rule_descriptor.has_infoplist:
+        attr_args = {}
+        if rule_descriptor.default_infoplist:
+            attr_args["default"] = [Label(rule_descriptor.default_infoplist)]
+        else:
+            attr_args["mandatory"] = True
         attrs.append({
             "infoplists": attr.label_list(
                 allow_empty = False,
                 allow_files = [".plist"],
-                mandatory = True,
                 doc = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
 [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
+                **attr_args
             ),
         })
 
@@ -524,7 +576,7 @@ the application bundle.
 
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = required_providers,
             ),
@@ -602,7 +654,7 @@ set, then the default extension is determined by the application's product_type.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, MacosApplicationBundleInfo],
             ),
@@ -644,7 +696,7 @@ use only extension-safe APIs.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, TvosApplicationBundleInfo],
             ),
@@ -810,6 +862,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
 
+    is_test_product_type = _is_test_product_type(rule_descriptor.product_type)
+    if is_test_product_type:
+        rule_attrs.append(_common_test_attributes(rule_descriptor))
+
     # TODO(kaipi): Add support for all platforms.
     if platform_type == "ios":
         rule_attrs.extend(_get_ios_attrs(rule_descriptor))
@@ -830,6 +886,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
+        test = is_test_product_type,
     )
 
 rule_factory = struct(

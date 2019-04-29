@@ -19,10 +19,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -41,7 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given
@@ -65,7 +60,7 @@ def _test_host_bundle_id(test_host):
     return test_host_bundle_info.bundle_id
 
 def _apple_test_bundle_impl(ctx, extra_providers = []):
-    """Experimental implementation of Apple test bundles."""
+    """Implementation for bundling XCTest bundles."""
     test_host_bundle_id = _test_host_bundle_id(ctx.attr.test_host)
     if ctx.attr.bundle_id:
         bundle_id = ctx.attr.bundle_id
@@ -123,105 +118,11 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         if x != outputs.archive(ctx)
     ]
 
-    return processor_result.providers + extra_providers + [
-        coverage_common.instrumented_files_info(
-            ctx,
-            dependency_attributes = ["deps", "test_host"],
-        ),
-        # TODO(kaipi): Remove this provider when apple_*_test is merged with the bundle and binary
-        # rules.
-        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
-    ]
+    providers = processor_result.providers
+    output_files = processor_result.output_files
 
-def _assemble_test_targets(
-        name,
-        bundling_rule,
-        platform_type,
-        test_rule,
-        bundle_loader = None,
-        platform_default_runner = None,
-        uses_provisioning_profile = False,
-        **kwargs):
-    """Macro that routes the external macro arguments into the correct targets.
-
-    This macro creates 3 targets:
-
-    * name + ".apple_binary": Represents the binary that contains the test code. It
-        captures the deps and test_host arguments.
-    * name + "_test_bundle": Represents the xctest bundle that contains the binary
-        along with the test resources. It captures the bundle_id and infoplists
-        arguments.
-    * name: The actual test target that can be invoked with `bazel test`. This
-        target takes all the remaining arguments passed.
-
-    Args:
-        name: The name for the top level test target.
-        bundling_rule: The rule to use when bundling the test bundle.
-        platform_type: The platform type for the targets being created.
-        test_rule: The rule to use for the top level test target.
-        bundle_loader: If specified, the apple_binary target to specify as the bundle loader for the
-            test binary.
-        platform_default_runner: The default runner for the platform, in case none is provider by
-            the user.
-        uses_provisioning_profile: Whether the test rule requires a provisioning profile for running
-            tests on devices. Used for UI tests.
-        **kwargs: Extra test attributes to proxy through.
-    """
-    test_bundle_name = name + "_test_bundle"
-
-    # Catch the linkopts to set them into the bundle target.
-    linkopts = kwargs.pop("linkopts", [])
-
-    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
-    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
-    kwargs.pop("binary_tags", [])
-
-    # Extract bundle specific arguments so that they are not forwarded to the test rule target.
-    bundle_id = kwargs.pop("bundle_id", None)
-    deps = kwargs.pop("deps", None)
-    minimum_os_version = kwargs.pop("minimum_os_version", None)
-    test_host = kwargs.pop("test_host", None)
-    infoplists = kwargs.pop(
-        "infoplists",
-        ["@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"],
-    )
-
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
-        name,
-        platform_type = platform_type,
-        bundle_id = bundle_id,
-        include_entitlements = False,
-        testonly = True,
-        deps = deps,
-        tags = kwargs.get("tags"),
-    )
-
-    if uses_provisioning_profile:
-        bundling_args["provisioning_profile"] = kwargs.pop("provisioning_profile", None)
-
-    bundling_rule(
-        name = test_bundle_name,
-        bundle_loader = bundle_loader,
-        bundle_name = name,
-        infoplists = infoplists,
-        linkopts = linkopts,
-        minimum_os_version = minimum_os_version,
-        test_host = test_host,
-        **bundling_args
-    )
-
-    runner = kwargs.pop("runner", platform_default_runner)
-
-    test_rule(
-        name = name,
-        platform_type = platform_type,
-        runner = runner,
-        test_bundle = test_bundle_name,
-        test_host = test_host,
-        **kwargs
-    )
+    return providers, output_files
 
 apple_test_bundle_support = struct(
     apple_test_bundle_impl = _apple_test_bundle_impl,
-    assemble_test_targets = _assemble_test_targets,
 )

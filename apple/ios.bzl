@@ -126,9 +126,30 @@ def ios_static_framework(name, **kwargs):
         **passthrough_args
     )
 
-def ios_ui_test(name, **kwargs):
-    """Builds an XCUITest test bundle and tests it using the provided runner."""
-    _ios_ui_test(name = name, **kwargs)
+def ios_ui_test(
+        name,
+        **kwargs):
+    """Builds an iOS XCUITest test target."""
+
+    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
+    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
+    kwargs.pop("binary_tags", None)
+
+    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
+    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
+    # to have testonly to True since it's always going to be a dependency of a test target. This can
+    # be removed when we migrate the swift linkopts targets into the rule implementations.
+    testonly = kwargs.pop("testonly", None)
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.ios),
+        include_entitlements = False,
+        testonly = True,
+        **kwargs
+    )
+
+    _ios_ui_test(name = name, **bundling_args)
 
 def ios_ui_test_suite(name, runners = [], **kwargs):
     """Builds an XCUITest test suite with the given runners.
@@ -155,9 +176,39 @@ def ios_ui_test_suite(name, runners = [], **kwargs):
         visibility = kwargs.get("visibility"),
     )
 
-def ios_unit_test(name, **kwargs):
-    """Builds an XCTest unit test bundle and tests it using the provided runner."""
-    _ios_unit_test(name = name, **kwargs)
+def ios_unit_test(
+        name,
+        test_host = None,
+        **kwargs):
+    """Builds an iOS XCTest test target."""
+
+    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
+    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
+    kwargs.pop("binary_tags", None)
+
+    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
+    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
+    # to have testonly to True since it's always going to be a dependency of a test target. This can
+    # be removed when we migrate the swift linkopts targets into the rule implementations.
+    testonly = kwargs.pop("testonly", None)
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.ios),
+        include_entitlements = False,
+        testonly = True,
+        **kwargs
+    )
+
+    bundle_loader = None
+    if test_host:
+        bundle_loader = test_host
+    _ios_unit_test(
+        name = name,
+        bundle_loader = bundle_loader,
+        test_host = test_host,
+        **bundling_args
+    )
 
 def ios_unit_test_suite(name, runners = [], **kwargs):
     """Builds an XCTest unit test suite with the given runners.

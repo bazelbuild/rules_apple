@@ -15,7 +15,7 @@
 """Proxy for exporting test symbols."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rules.bzl",
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     _AppleTestInfo = "AppleTestInfo",
     _AppleTestRunnerInfo = "AppleTestRunnerInfo",
     _CoverageFilesInfo = "CoverageFilesInfo",

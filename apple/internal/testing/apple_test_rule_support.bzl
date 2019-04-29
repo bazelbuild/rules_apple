@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,24 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Generic test rules for running tests against Apple platforms.
-
-These are internal rules not to be used outside of the
-@build_bazel_rules_apple//apple package.
-"""
+"""Helper methods for implementing test rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
+    "apple_test_bundle_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -207,79 +202,49 @@ def _collect_files(rule_attr, attr_name):
 
 def _test_info_aspect_impl(target, ctx):
     """See `test_info_aspect` for full documentation."""
-
-    rule_attr = ctx.rule.attr
-
-    dep_labels = []
-    module_name = None
-
     includes = []
     module_maps = []
     swift_modules = []
 
     # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
     # dep doesn't, just filter it out.
-    deps = [x for x in getattr(rule_attr, "deps", []) if AppleTestInfo in x]
+    test_infos = [
+        x[AppleTestInfo]
+        for x in getattr(ctx.rule.attr, "deps", [])
+        if AppleTestInfo in x
+    ]
 
     # Collect transitive information from deps.
-    for dep in deps:
-        test_info = dep[AppleTestInfo]
+    for test_info in test_infos:
         includes.append(test_info.includes)
         module_maps.append(test_info.module_maps)
         swift_modules.append(test_info.swift_modules)
 
-    # Combine the AppleTestInfo sources info from deps into one for the test bundle.
-    if AppleBundleInfo in target:
-        sources_list = []
-        non_arc_sources_list = []
-        swift_infos = []
-        for dep in deps:
-            dep_labels.append(str(dep.label))
+    if apple_common.Objc in target:
+        objc_provider = target[apple_common.Objc]
+        includes.append(objc_provider.include)
 
-            if SwiftInfo in dep:
-                swift_infos.append(dep[SwiftInfo])
+        # Module maps should only be used by Swift targets.
+        if SwiftInfo in target:
+            module_maps.append(objc_provider.module_map)
 
-            test_info = dep[AppleTestInfo]
-            sources_list.append(test_info.sources)
-            non_arc_sources_list.append(test_info.non_arc_sources)
+    if (SwiftInfo in target and
+        hasattr(target[SwiftInfo], "transitive_swiftmodules")):
+        swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
 
-        sources = depset(transitive = sources_list)
-        non_arc_sources = depset(transitive = non_arc_sources_list)
-
-        # Set module_name only for test targets with a single Swift dependency.
-        # This is not used if there are multiple Swift dependencies, as it will
-        # not be possible to reduce them into a single Swift module and picking
-        # an arbitrary one is fragile.
-        if len(swift_infos) == 1:
-            module_name = getattr(swift_infos[0], "module_name", None)
-    else:
-        # Collect sources from the current target and add any relevant transitive
-        # information. Note that we do not propagate sources transitively as we
-        # intentionally only show test sources from the test's first-level of
-        # dependencies instead of all transitive dependencies.
-        sources = _collect_files(rule_attr, "srcs")
-        non_arc_sources = _collect_files(rule_attr, "non_arc_srcs")
-
-        if apple_common.Objc in target:
-            objc_provider = target[apple_common.Objc]
-            includes.append(objc_provider.include)
-
-            # Module maps should only be used by Swift targets.
-            if SwiftInfo in target:
-                module_maps.append(objc_provider.module_map)
-
-        if (SwiftInfo in target and
-            hasattr(target[SwiftInfo], "transitive_swiftmodules")):
-            swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
+    # Collect sources from the current target and add any relevant transitive
+    # information. Note that we do not propagate sources transitively as we
+    # intentionally only show test sources from the test's first-level of
+    # dependencies instead of all transitive dependencies.
+    non_arc_sources = _collect_files(ctx.rule.attr, "non_arc_srcs")
+    sources = _collect_files(ctx.rule.attr, "srcs")
 
     return [AppleTestInfo(
-        sources = sources,
-        non_arc_sources = non_arc_sources,
         includes = depset(transitive = includes),
         module_maps = depset(transitive = module_maps),
+        non_arc_sources = non_arc_sources,
+        sources = sources,
         swift_modules = depset(transitive = swift_modules),
-        deps = depset(dep_labels),
-        module_name = module_name,
     )]
 
 test_info_aspect = aspect(
@@ -287,104 +252,13 @@ test_info_aspect = aspect(
         "deps",
     ],
     doc = """
-This aspect walks the dependency graph through the `binary` and `deps`
-attributes and collects sources, transitive includes, transitive module maps,
-and transitive Swift modules.
+This aspect walks the dependency graph through the `deps` attribute and collects sources, transitive
+includes, transitive module maps, and transitive Swift modules.
 
 This aspect propagates an `AppleTestInfo` provider.
 """,
     implementation = _test_info_aspect_impl,
 )
-
-def _apple_test_common_attributes():
-    """Returns the attribute that are common for all apple test rules."""
-    return {
-        "data": attr.label_list(
-            allow_files = True,
-            default = [],
-            doc = "Files to be made available to the test during its execution.",
-        ),
-        "env": attr.string_dict(
-            doc = """
-Dictionary of environment variables that should be set during the test execution.
-""",
-        ),
-        "platform_type": attr.string(
-            doc = """
-The Apple platform that this test is targeting. Required. Possible values are
-'ios', 'macos' and 'tvos'.
-""",
-            mandatory = True,
-            values = ["ios", "macos", "tvos"],
-        ),
-        "runner": attr.label(
-            doc = """
-The runner target that will provide the logic on how to run the tests. Needs to
-provide the AppleTestRunnerInfo provider. Required.
-""",
-            providers = [AppleTestRunnerInfo],
-            mandatory = True,
-        ),
-        "test_bundle": attr.label(
-            aspects = [coverage_files_aspect, test_info_aspect],
-            doc = """
-The xctest bundle that contains the test code and resources. Required.
-""",
-            mandatory = True,
-            providers = [AppleBundleInfo],
-        ),
-        "_apple_coverage_support": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_apple_support//tools:coverage_support"),
-        ),
-        # gcov and mcov are binary files required to calculate test coverage.
-        "_gcov": attr.label(
-            cfg = "host",
-            default = Label("@bazel_tools//tools/objc:gcov"),
-            allow_single_file = True,
-        ),
-        "_mcov": attr.label(
-            cfg = "host",
-            default = Label("@bazel_tools//tools/objc:mcov"),
-            allow_single_file = True,
-        ),
-        # The realpath binary needed for symlinking.
-        "_realpath": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/realpath"),
-            allow_single_file = True,
-        ),
-    }
-
-def _apple_unit_test_attributes():
-    """Returns the attributes for the apple_unit_test rule."""
-    return dicts.add(
-        _apple_test_common_attributes(),
-        {
-            "test_host": attr.label(
-                doc = "The test app that will host the tests. Optional.",
-                mandatory = False,
-                providers = [AppleBundleInfo],
-            ),
-        },
-    )
-
-def _apple_ui_test_attributes():
-    """Returns the attributes for the apple_ui_test rule."""
-    return dicts.add(
-        _apple_test_common_attributes(),
-        {
-            "provisioning_profile": attr.label(
-                doc = "The provisioning_profile for signing .xctest",
-                allow_single_file = [".mobileprovision", ".provisionprofile"],
-            ),
-            "test_host": attr.label(
-                doc = "The app to be tested. Required.",
-                mandatory = True,
-                providers = [AppleBundleInfo],
-            ),
-        },
-    )
 
 def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
     """Dictionary with the substitutions to be applied to the template script."""
@@ -400,11 +274,10 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_coverage_execution_environment(ctx):
+def _get_coverage_execution_environment(ctx, covered_binaries):
     """Returns environment variables required for test coverage support."""
     gcov_files = ctx.attr._gcov.files.to_list()
-    coverage_files = ctx.attr.test_bundle[CoverageFilesInfo]
-    covered_binary_paths = [f.short_path for f in coverage_files.covered_binaries.to_list()]
+    covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
         "APPLE_COVERAGE": "1",
@@ -417,15 +290,58 @@ def _get_coverage_execution_environment(ctx):
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
-def _apple_test_impl(ctx, test_type):
-    """Common implementation for the apple test rules."""
+def _apple_test_info_provider(deps):
+    """Returns an AppleTestInfo provider by collecting the relevant data from dependencies."""
+    dep_labels = []
+    swift_infos = []
+
+    transitive_includes = []
+    transitive_module_maps = []
+    transitive_non_arc_sources = []
+    transitive_sources = []
+    transitive_swift_modules = []
+
+    for dep in deps:
+        dep_labels.append(str(dep.label))
+
+        if SwiftInfo in dep:
+            swift_infos.append(dep[SwiftInfo])
+
+        test_info = dep[AppleTestInfo]
+
+        transitive_includes.append(test_info.includes)
+        transitive_module_maps.append(test_info.module_maps)
+        transitive_non_arc_sources.append(test_info.non_arc_sources)
+        transitive_sources.append(test_info.sources)
+        transitive_swift_modules.append(test_info.swift_modules)
+
+    # Set module_name only for test targets with a single Swift dependency.
+    # This is not used if there are multiple Swift dependencies, as it will
+    # not be possible to reduce them into a single Swift module and picking
+    # an arbitrary one is fragile.
+    module_name = None
+    if len(swift_infos) == 1:
+        module_name = getattr(swift_infos[0], "module_name", None)
+
+    return AppleTestInfo(
+        deps = depset(dep_labels),
+        includes = depset(transitive = transitive_includes),
+        module_maps = depset(transitive = transitive_module_maps),
+        module_name = module_name,
+        non_arc_sources = depset(transitive = transitive_non_arc_sources),
+        sources = depset(transitive = transitive_sources),
+        swift_modules = depset(transitive = transitive_swift_modules),
+    )
+
+def _apple_test_rule_impl(ctx, test_type, extra_output_files = None):
+    """Implementation for the Apple test rules."""
     runner = ctx.attr.runner[AppleTestRunnerInfo]
     execution_requirements = getattr(runner, "execution_requirements", {})
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
     test_environment = dicts.add(
-        dict(ctx.configuration.test_env),
+        ctx.configuration.test_env,
         ctx.attr.env,
         getattr(runner, "test_environment", {}),
     )
@@ -438,44 +354,44 @@ def _apple_test_impl(ctx, test_type):
 
     direct_outputs = []
     transitive_outputs = []
-
-    if ctx.configuration.coverage_enabled:
-        execution_environment = dicts.add(
-            execution_environment,
-            _get_coverage_execution_environment(ctx),
-        )
-        transitive_runfiles.append(
-            ctx.attr.test_bundle[CoverageFilesInfo].coverage_files,
-        )
-        transitive_runfiles.append(
-            ctx.attr.test_bundle[CoverageFilesInfo].covered_binaries,
-        )
-        transitive_runfiles.append(ctx.attr._gcov.files)
-        transitive_runfiles.append(ctx.attr._mcov.files)
-        transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
-
-    if is_experimental_tree_artifact_enabled(ctx):
-        ctx.actions.write(
-            output = ctx.outputs.test_bundle,
-            content = "This is dummy file because tree artifacts are enabled",
-        )
-        test_bundle = ctx.attr.test_bundle[AppleBundleInfo].archive
-    else:
-        file_support.symlink(
-            ctx,
-            ctx.attr.test_bundle[AppleBundleInfo].archive,
-            ctx.outputs.test_bundle,
-        )
-        test_bundle = ctx.outputs.test_bundle
-
-    direct_outputs.append(test_bundle)
-    direct_runfiles.append(test_bundle)
+    if extra_output_files:
+        transitive_outputs.append(extra_output_files)
 
     test_host = ctx.attr.test_host
     test_host_archive = None
     if test_host:
         test_host_archive = test_host[AppleBundleInfo].archive
         direct_runfiles.append(test_host_archive)
+
+    test_bundle = outputs.archive(ctx)
+    direct_runfiles.append(test_bundle)
+
+    if ctx.configuration.coverage_enabled:
+        transitive_covered_binaries = []
+        transitive_coverage_files = []
+
+        for dep in ctx.attr.deps:
+            transitive_covered_binaries.append(dep[CoverageFilesInfo].covered_binaries)
+            transitive_coverage_files.append(dep[CoverageFilesInfo].coverage_files)
+
+        if test_host:
+            transitive_covered_binaries.append(test_host[CoverageFilesInfo].covered_binaries)
+            transitive_coverage_files.append(test_host[CoverageFilesInfo].coverage_files)
+
+        execution_environment = dicts.add(
+            execution_environment,
+            _get_coverage_execution_environment(
+                ctx,
+                depset(transitive = transitive_covered_binaries),
+            ),
+        )
+
+        transitive_runfiles.extend(transitive_covered_binaries)
+        transitive_runfiles.extend(transitive_coverage_files)
+
+        transitive_runfiles.append(ctx.attr._gcov.files)
+        transitive_runfiles.append(ctx.attr._mcov.files)
+        transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
     ctx.actions.expand_template(
@@ -495,24 +411,12 @@ def _apple_test_impl(ctx, test_type):
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
 
-    extra_outputs_provider = ctx.attr.test_bundle[AppleExtraOutputsInfo]
-    if extra_outputs_provider:
-        transitive_outputs.append(extra_outputs_provider.files)
-
-    extra_providers = []
-
-    # TODO(b/110264170): Repropagate the provider that makes the dSYM bundle
-    # available as opposed to AppleDebugOutputs which propagates the standalone
-    # binaries.
-    if apple_common.AppleDebugOutputs in ctx.attr.test_bundle:
-        extra_providers.append(
-            ctx.attr.test_bundle[apple_common.AppleDebugOutputs],
-        )
-
     return [
-        coverage_common.instrumented_files_info(ctx, dependency_attributes = ["test_bundle"]),
-        ctx.attr.test_bundle[AppleBundleInfo],
-        ctx.attr.test_bundle[AppleTestInfo],
+        _apple_test_info_provider(ctx.attr.deps),
+        coverage_common.instrumented_files_info(
+            ctx,
+            dependency_attributes = ["deps", "test_host"],
+        ),
         testing.ExecutionInfo(execution_requirements),
         testing.TestEnvironment(execution_environment),
         DefaultInfo(
@@ -525,56 +429,18 @@ def _apple_test_impl(ctx, test_type):
                 .merge(ctx.attr.runner.default_runfiles)
                 .merge(ctx.attr.runner.data_runfiles),
         ),
-    ] + extra_providers
+    ]
 
-def _apple_unit_test_impl(ctx):
-    """Implementation for the apple_unit_test rule."""
-    return _apple_test_impl(ctx, "xctest")
+def _apple_test_impl(ctx, test_type, extra_providers = []):
+    """Common implementation for the Apple bundle and test rules."""
+    bundle_providers, bundle_outputs = apple_test_bundle_support.apple_test_bundle_impl(ctx)
+    test_providers = _apple_test_rule_impl(
+        ctx,
+        test_type,
+        extra_output_files = bundle_outputs,
+    )
+    return bundle_providers + test_providers + extra_providers
 
-def _apple_ui_test_impl(ctx):
-    """Implementation for the apple_ui_test rule."""
-    return _apple_test_impl(ctx, "xcuitest")
-
-apple_ui_test = rule(
-    attrs = _apple_ui_test_attributes(),
-    doc = """
-Rule to execute UI (XCUITest) tests for a generic Apple platform.
-
-Outputs:
-  test_bundle: The xctest bundle being tested. This is returned here as a
-      symlink to the bundle target in order to make it available for inspection
-      when executing `bazel build` on this target.
-  executable: The test script to be executed to run the tests.
-""",
-    fragments = [
-        "apple",
-        "objc",
-    ],
-    outputs = {
-        "test_bundle": "%{name}.zip",
-    },
-    test = True,
-    implementation = _apple_ui_test_impl,
-)
-
-apple_unit_test = rule(
-    _apple_unit_test_impl,
-    attrs = _apple_unit_test_attributes(),
-    doc = """
-Rule to execute unit (XCTest) tests for a generic Apple platform.
-
-Outputs:
-  test_bundle: The xctest bundle being tested. This is returned here as a
-      symlink to the bundle target in order to make it available for inspection
-      when executing `bazel build` on this target.
-  executable: The test script to be executed to run the tests.
-""",
-    fragments = [
-        "apple",
-        "objc",
-    ],
-    outputs = {
-        "test_bundle": "%{name}.zip",
-    },
-    test = True,
+apple_test_rule_support = struct(
+    apple_test_impl = _apple_test_impl,
 )

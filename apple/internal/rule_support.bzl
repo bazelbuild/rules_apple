@@ -57,6 +57,8 @@ def _describe_rule_type(
         binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
+        default_infoplist = None,
+        default_test_runner = None,
         deps_cfg = None,
         extra_linkopts = [],
         has_infoplist = True,
@@ -92,6 +94,10 @@ def _describe_rule_type(
             underneath are not affected.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
+        default_infoplist: Default Info.plist to set in the infoplists attribute. Only used for
+            tests.
+        default_test_runner: Default test runner to set in the runner attribute. Only used for
+            tests.
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
             the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
             that use the Starlark linking API.
@@ -137,6 +143,8 @@ def _describe_rule_type(
         binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
+        default_infoplist = default_infoplist,
+        default_test_runner = default_test_runner,
         deps_cfg = deps_cfg,
         extra_linkopts = extra_linkopts,
         has_infoplist = has_infoplist,
@@ -282,6 +290,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
@@ -303,6 +313,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
@@ -464,6 +476,8 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
@@ -486,6 +500,8 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
@@ -563,6 +579,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
@@ -584,6 +602,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-framework",
