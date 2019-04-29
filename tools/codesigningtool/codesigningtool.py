@@ -78,17 +78,26 @@ def _get_identities_from_provisioning_profile(mpf):
         yield _certificate_fingerprint(identity.data)
 
 
-def _find_codesign_identities():
+def _find_codesign_identities(identity=None):
     """Finds code signing identities on the current system."""
     ids = []
     output, stderr = _check_output([
         "security", "find-identity", "-v", "-p", "codesigning",
     ])
     output = output.decode("utf-8").strip()
+    pattern = "(?P<hash>[A-F0-9]{40})"
+    if identity:
+        pattern += r'\s+"(?P<full_name>.*?{}.*?)"'.format(identity)
+    regex = re.compile(pattern)
     for line in output.splitlines():
-        m = re.search(r"([A-F0-9]{40})", line)
+        # CSSMERR_TP_CERT_REVOKED comes from Security.framework/cssmerr.h
+        if "CSSMERR_TP_CERT_REVOKED" in line:
+            continue
+        m = regex.search(line)
         if m:
-            ids.append(m.group(0))
+            groups = m.groupdict()
+            id = groups.get("full_name") or groups["hash"]
+            ids.append(id)
     return ids
 
 
@@ -121,6 +130,16 @@ def main(argv):
     identity = args.identity
     if identity is None:
         identity = _find_codesign_identity(args.mobileprovision)
+    elif identity != "-":
+        matching_identities = _find_codesign_identities(identity)
+        if matching_identities:
+            identity = matching_identities[0]
+        else:
+            print(
+                "ERROR: No signing identity found for '{}'".format(identity),
+                file=sys.stderr
+            )
+            return -1
     # No identity was found, fail
     if identity == None:
         print("ERROR: Unable to find an identity on the system matching the "\
