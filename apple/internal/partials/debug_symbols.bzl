@@ -46,9 +46,11 @@ Private provider to propagate transitive debug symbol information.
 Paths to dSYM bundles that this target provides. This includes the paths to dSYM bundles generated
 for dependencies of this target (e.g. frameworks and extensions).
 """,
-        "files": """
-Depset of `File` references to all debug symbol files. This may include dSYM and linkmap files, if
-requested through --apple_generate_dsym and/or --objc_generate_linkmap.
+        "dsyms": """
+Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
+""",
+        "linkmaps": """
+Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
 """,
     },
 )
@@ -148,18 +150,11 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
     dsym_bundles = depset(transitive = [x.dsym_bundles for x in deps_providers])
 
-    # Only output dependency debug files if requested.
-    propagate_embedded_extra_outputs = defines.bool_value(
-        ctx,
-        "apple.propagate_embedded_extra_outputs",
-        False,
-    )
+    direct_dsyms = []
+    transitive_dsyms = [x.dsyms for x in deps_providers]
 
-    transitive_output_files = []
-    direct_output_files = []
-
-    if propagate_embedded_extra_outputs:
-        transitive_output_files.extend([x.files for x in deps_providers])
+    direct_linkmaps = []
+    transitive_linkmaps = [x.linkmaps for x in deps_providers]
 
     output_providers = []
 
@@ -176,7 +171,7 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
                 bundle_name,
                 bundle_extension,
             )
-            direct_output_files.extend(dsym_files)
+            direct_dsyms.extend(dsym_files)
 
             absolute_dsym_bundle_path = paths.join(
                 ctx.bin_dir.path,
@@ -190,23 +185,39 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
         if ctx.fragments.objc.generate_linkmap:
             linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
-            direct_output_files.extend(linkmaps)
+            direct_linkmaps.extend(linkmaps)
 
-    output_files = depset(
-        direct = direct_output_files,
-        transitive = transitive_output_files,
+    # Only output dependency debug files if requested.
+    # TODO(b/131699846): Remove this.
+    propagate_embedded_extra_outputs = defines.bool_value(
+        ctx,
+        "apple.propagate_embedded_extra_outputs",
+        False,
     )
+
+    dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
+    linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
+
+    if propagate_embedded_extra_outputs:
+        output_files = depset(transitive = [dsyms_group, linkmaps_group])
+    else:
+        output_files = depset(direct_dsyms + direct_linkmaps)
 
     output_providers.append(
         _AppleDebugInfo(
             dsym_bundles = dsym_bundles,
-            files = output_files,
+            dsyms = dsyms_group,
+            linkmaps = linkmaps_group,
         ),
     )
 
     return struct(
         output_files = output_files,
         providers = output_providers,
+        output_groups = {
+            "dsyms": dsyms_group,
+            "linkmaps": linkmaps_group,
+        },
     )
 
 def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None):

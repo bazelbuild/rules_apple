@@ -3,9 +3,28 @@
 ## Controlling Builds
 
 Most aspect of your builds should be controlled via the attributes you set on
-the rules. However there are some things where bazel and/or the rules allow you
+the rules. However there are some things where Bazel and/or the rules allow you
 to opt in/out of something on a per-build basis without the need to express it
 in a BUILD file.
+
+### Output Groups {#output_groups}
+
+[Output groups](https://docs.bazel.build/versions/master/skylark/rules.html#requesting-output-files)
+are an interface provided by Bazel to signal which files are to be built. By
+default, Bazel will build all files in the `default` output group. In addition
+to this, rules_apple supports other output groups that can be used to control
+which files are requested:
+
+*   `dsyms`: This output group contains all dSYM files generated during the
+    build, for the top level target **and** its embedded dependencies. To
+    request this output group to be built, use the `--output_groups=+dsyms`
+    flag. In order to generate the dSYM files you still need to pass the
+    `--apple_generate_dsym` flag.
+*   `linkmaps`: This output group contains all linkmap files generated during
+    the build, for the top level target **and** its embedded dependencies. To
+    request this output group to be built, use the `--output_groups=+linkmaps`
+    flag. In order to generate the linkmap files you still need to pass the
+    `--objc_generate_linkmap` flag.
 
 ### dSYMs Generation {#apple_generate_dsym}
 
@@ -16,6 +35,10 @@ generating a dSYM bundle via `--apple_generate_dsym` when doing a `bazel build`.
 ```shell
 bazel build --apple_generate_dsym //your/target
 ```
+
+By default, only the top level dSYM bundles is built when this flag is
+specified. If you require the dSYM bundles of the top level target dependencies,
+you'll need to specify the `--output_groups=+dsyms` flag.
 
 <!-- Begin-External -->
 
@@ -84,6 +107,10 @@ when linking by adding `--objc_generate_linkmap` to a `bazel build`.
 bazel build --objc_generate_linkmap //your/target
 ```
 
+By default, only the top level linkmap file is built when this flag is
+specified. If you require the linkmap file of the top level target dependencies,
+you'll need to specify the `--output_groups=+linkmaps` flag.
+
 -->
 
 ### Debugging Entitlement Support {#apple.add_debugger_entitlement}
@@ -113,13 +140,15 @@ bazel build --define=apple.add_debugger_entitlement=no //your/target
 
 ### Force ipa compression {#apple.compress_ipa}
 
-By default the final `App.ipa` produced from building an app is
-uncompressed, unless you're building with `--compilation_mode=opt`. This
-flag allows you to force compression if the size is more important than
-the CPU time for your build. To use this pass
-`--define=apple.compress_ipa=(yes|true|1)` to `bazel build`.
+By default the final `App.ipa` produced from building an app is uncompressed,
+unless you're building with `--compilation_mode=opt`. This flag allows you to
+force compression if the size is more important than the CPU time for your
+build. To use this pass `--define=apple.compress_ipa=(yes|true|1)` to `bazel
+build`.
 
 ### Include Embedded Bundles in Rule Output {#apple.propagate_embedded_extra_outputs}
+
+**Deprecated: Please see the [Output Groups](#output_groups) section.**
 
 Some Apple bundles include other bundles within them (for example, an
 application extension inside an iOS application). When you build a top-level
@@ -137,10 +166,10 @@ bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 
 ### Disable `SwiftSupport` in ipas
 
-The SwiftSupport directory in a final ipa is only necessary if you're
-shipping the build to Apple. If you want to disable bundling
-SwiftSupport in your ipa for other device or enterprise builds, you can
-pass `--define=apple.package_swift_support=no` to `bazel build`
+The SwiftSupport directory in a final ipa is only necessary if you're shipping
+the build to Apple. If you want to disable bundling SwiftSupport in your ipa for
+other device or enterprise builds, you can pass
+`--define=apple.package_swift_support=no` to `bazel build`
 
 ### Codesign Bundles for the Simulator {#apple.codesign_simulator_bundles}
 
@@ -153,17 +182,17 @@ the main bundle does *not* appear to need to be signed.
 However, if the binary makes use of entitlement-protected APIs, they may not
 work. The entitlements for a simulator build are added as a Mach-O segment, so
 they are still provided; but for some entitlements (at a minimum, Shared App
-Groups), the simulator appears to also require the bundle be signed for the
-APIs to work.
+Groups), the simulator appears to also require the bundle be signed for the APIs
+to work.
 
-By default, the rules will do what Xcode would otherwise do and *will* sign
-the main bundle (with an adhoc signature) when targeting the Simulator.
-However, this `--define` can be used to opt out of this if you are more
-concerned with build speed vs. potential correctness.
+By default, the rules will do what Xcode would otherwise do and *will* sign the
+main bundle (with an adhoc signature) when targeting the Simulator. However,
+this `--define` can be used to opt out of this if you are more concerned with
+build speed vs. potential correctness.
 
 Remember, at any time, Apple could do a macOS point release and/or an Xcode
-release that changes this and opting out of could mean your binary doesn't
-run under the simulator.
+release that changes this and opting out of could mean your binary doesn't run
+under the simulator.
 
 The rules support direct control over this signing via
 `--define=apple.codesign_simulator_bundles=(yes|true|1|no|false|0)`.
@@ -174,9 +203,9 @@ Disable the signing of simulator bundles:
 bazel build --define=apple.codesign_simulator_bundles=no //your/target
 ```
 
-One exception is XCTest bundles, those do need to be signed for the
-simulators to load them. The above `--define` does not change the
-behavior around signing of these bundles as a result.
+One exception is XCTest bundles, those do need to be signed for the simulators
+to load them. The above `--define` does not change the behavior around signing
+of these bundles as a result.
 
 <!--
  Define not currently documented:
@@ -201,12 +230,12 @@ Without this flag, all locales are copied.
 
 This can be used in a few interesting ways:
 
-- It can be used to improve compile/debug/test cycles because most developers
-  only work/test in one language.
-- If a product is pulling in some other component(s) that support more
-  localizations that the product does, it can be used to strip away those
-  extra localizations thereby shrinking the final product sent to the
-  end users.
+-   It can be used to improve compile/debug/test cycles because most developers
+    only work/test in one language.
+-   If a product is pulling in some other component(s) that support more
+    localizations that the product does, it can be used to strip away those
+    extra localizations thereby shrinking the final product sent to the end
+    users.
 
 ## Info.plist Handling
 

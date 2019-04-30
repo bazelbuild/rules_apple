@@ -33,6 +33,8 @@ All partials handled by this processor must follow this API:
       ZIPs are then placed at the given location in the output bundle.
     * output_files: Depset of `File`s that should be returned as outputs of the
       target.
+    * output_groups: Dictionary of output group names to depset of Files that should be returned in
+      the OutputGroupInfo provider.
     * providers: Providers that will be collected and returned by the rule.
 
 Location types can be 7:
@@ -94,6 +96,10 @@ load(
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -415,11 +421,20 @@ def _process(ctx, partials):
 
     providers = []
     transitive_output_files = [depset([output_archive])]
+    output_group_dicts = []
     for partial_output in partial_outputs:
         if hasattr(partial_output, "providers"):
             providers.extend(partial_output.providers)
         if hasattr(partial_output, "output_files"):
             transitive_output_files.append(partial_output.output_files)
+        if hasattr(partial_output, "output_groups"):
+            output_group_dicts.append(partial_output.output_groups)
+
+    if output_group_dicts:
+        # TODO(kaipi): Add support for merging keys. Currently the last one wins, but because
+        # there's only one partial that supports this, it's ok.
+        merged_output_groups = dicts.add(*output_group_dicts)
+        providers.append(OutputGroupInfo(**merged_output_groups))
 
     return struct(
         output_files = depset(transitive = transitive_output_files),
