@@ -76,27 +76,30 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
-    test_host_list = []
+    debug_dependencies = []
+    targets_to_avoid = []
     product_type = ctx.attr._product_type
-    if ctx.attr.test_host and product_type == apple_product_type.unit_test_bundle:
-        test_host_list.append(ctx.attr.test_host)
+    if ctx.attr.test_host:
+        debug_dependencies.append(ctx.attr.test_host)
+        if product_type == apple_product_type.unit_test_bundle:
+            targets_to_avoid.append(ctx.attr.test_host)
 
     processor_partials = [
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
-            debug_dependencies = test_host_list,
+            debug_dependencies = debug_dependencies,
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.framework_import_partial(
             targets = ctx.attr.deps,
-            targets_to_avoid = test_host_list,
+            targets_to_avoid = targets_to_avoid,
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
-            targets_to_avoid = test_host_list,
+            targets_to_avoid = targets_to_avoid,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
