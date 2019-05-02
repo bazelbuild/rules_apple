@@ -46,9 +46,8 @@ tasks:
 
 buildifier:
   version: latest
-  # Until there is a release with the fixes, a few warnings have to be shut off.
-  # - https://github.com/bazelbuild/buildtools/issues/549
-  # - https://github.com/bazelbuild/buildtools/issues/550
-  # - https://github.com/bazelbuild/buildtools/issues/576
-  # - https://github.com/bazelbuild/buildtools/issues/577
-  warnings: -duplicated-name,-uninitialized,-function-docstring
+  # Function doc string requirements are a little hard to follow, they did get
+  # split into multiple warnings, so there is now just one left that causes
+  # warnings. For the history of some of the issues, see:
+  #  https://github.com/bazelbuild/buildtools/issues/576
+  warnings: -function-docstring-args
