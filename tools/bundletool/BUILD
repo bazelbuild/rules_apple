@@ -3,6 +3,7 @@ licenses(["notice"])
 py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
+    launcher = "//devtools/python/launcher:no_launcher",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -18,6 +19,7 @@ py_library(
 py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
+    launcher = "//devtools/python/launcher:no_launcher",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
