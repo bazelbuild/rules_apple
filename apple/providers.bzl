@@ -68,6 +68,9 @@ extension-safe APIs only.
 `string`. The minimum OS version (as a dotted version
 number like "9.0") that this bundle was built to support.
 """,
+        "platform_type": """
+`string`. The platform type for the bundle (i.e. `ios` for iOS bundles).
+""",
         "product_type": """
 `string`. The dot-separated product type identifier associated
 with the bundle (for example, `com.apple.product-type.application`).

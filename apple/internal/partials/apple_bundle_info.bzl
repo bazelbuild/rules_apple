@@ -65,6 +65,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
                 entitlements = getattr(ctx.attr, "entitlements", None),
                 infoplist = infoplist,
                 minimum_os_version = platform_support.minimum_os(ctx),
+                platform_type = str(platform_support.platform_type(ctx)),
                 product_type = ctx.attr._product_type,
                 uses_swift = uses_swift,
             ),
