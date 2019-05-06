@@ -3,7 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
-    launcher = "//devtools/python/launcher:no_launcher",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
