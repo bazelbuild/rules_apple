@@ -100,8 +100,6 @@ def apple_shell_test(
     #   '--define bazel_rules_apple.shell_test_sharding=0'
     requested_shard_count = kwargs.pop("shard_count", 0)
 
-    # bazelbuild/buildtools#480 will remove this need for this next directive.
-    # @unsorted-dict-items
     shard_count = select({
         "//test:apple_shell_test_disable_sharding": 0,
         "//test:apple_shell_test_enable_sharding": requested_shard_count,
