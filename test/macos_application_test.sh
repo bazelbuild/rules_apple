@@ -123,51 +123,6 @@ This shouldn't get included
 EOF
 }
 
-# Tests that the Info.plist in the packaged application has the correct content.
-function test_plist_contents() {
-  create_common_files
-  create_minimal_macos_application
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      LSMinimumSystemVersion
-  do_build macos //app:dump_plist || fail "Should build"
-
-  # Verify the values injected by the Skylark rule.
-  assert_equals "app" "$(cat "test-genfiles/app/CFBundleExecutable")"
-  assert_equals "my.bundle.id" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "app" "$(cat "test-genfiles/app/CFBundleName")"
-  assert_equals "10.11" "$(cat "test-genfiles/app/LSMinimumSystemVersion")"
-
-  assert_equals "MacOSX" \
-      "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-  assert_contains "macosx.*" "test-genfiles/app/DTSDKName"
-
-  # Verify the values injected by the environment_plist script. Some of these
-  # are dependent on the version of Xcode being used, and since we don't want to
-  # force a particular version to always be present, we just make sure that
-  # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcodeBuild")"
-  assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-genfiles/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_common_files
@@ -208,36 +163,6 @@ EOF
     || fail "Should fail build"
 
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
-}
-
-# Tests that multiple infoplists are merged properly.
-function test_multiple_plist_merging() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist", "Another.plist"],
-    minimum_os_version = "10.11",
-    deps = [":lib"],
-)
-EOF
-
-  cat > app/Another.plist <<EOF
-{
-  AnotherKey = "AnotherValue";
-}
-EOF
-
-  create_dump_plist "//app:app.zip" "app.app/Contents/Info.plist" \
-      CFBundleIdentifier \
-      AnotherKey
-  do_build macos //app:dump_plist || fail "Should build"
-
-  # Verify that we have keys from both plists.
-  assert_equals "my.bundle.id" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "AnotherValue" "$(cat "test-genfiles/app/AnotherKey")"
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.

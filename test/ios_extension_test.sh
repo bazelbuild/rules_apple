@@ -201,65 +201,6 @@ This shouldn't get included
 EOF
 }
 
-# Tests that the Info.plist in the extension has the correct content.
-function test_extension_plist_contents() {
-  create_common_files
-  create_minimal_ios_application_with_extension
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      MinimumOSVersion \
-      UIDeviceFamily:0
-  do_build ios //app:dump_plist \
-      || fail "Should build"
-
-  # Verify the values injected by the Skylark rule.
-  assert_equals "ext" "$(cat "test-genfiles/app/CFBundleExecutable")"
-  assert_equals "my.bundle.id.extension" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "ext" "$(cat "test-genfiles/app/CFBundleName")"
-  assert_equals "10.0" "$(cat "test-genfiles/app/MinimumOSVersion")"
-  assert_equals "1" "$(cat "test-genfiles/app/UIDeviceFamily.0")"
-
-  if is_device_build ios ; then
-    assert_equals "iPhoneOS" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "iphoneos" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "iphoneos.*" \
-        "test-genfiles/app/DTSDKName"
-  else
-    assert_equals "iPhoneSimulator" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "iphonesimulator" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "iphonesimulator.*" "test-genfiles/app/DTSDKName"
-  fi
-
-  # Verify the values injected by the environment_plist script. Some of these
-  # are dependent on the version of Xcode being used, and since we don't want to
-  # force a particular version to always be present, we just make sure that
-  # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcodeBuild")"
-  assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-genfiles/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
-}
-
 # Tests that the extension inside the app bundle is properly signed.
 function test_extension_is_signed() {
   create_common_files

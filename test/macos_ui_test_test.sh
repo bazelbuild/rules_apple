@@ -160,56 +160,6 @@ macos_ui_test(
 EOF
 }
 
-# Tests that the Info.plist in the packaged test has the correct content.
-function test_plist_contents() {
-  create_common_files
-  create_minimal_macos_application_with_tests
-  create_dump_plist "//app:ui_tests.zip" "ui_tests.xctest/Contents/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      LSMinimumSystemVersion
-  do_build macos //app:dump_plist || fail "Should build"
-
-  # Verify the values injected by the Skylark rule.
-  assert_equals "ui_tests" "$(cat "test-genfiles/app/CFBundleExecutable")"
-
-  # When not providing a bundle_id, it uses the test host's and appends "Tests"
-  assert_equals "my.bundle.idTests" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "ui_tests" "$(cat "test-genfiles/app/CFBundleName")"
-  assert_equals "10.11" "$(cat "test-genfiles/app/LSMinimumSystemVersion")"
-
-  assert_equals "MacOSX" \
-      "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-  assert_equals "macosx" \
-      "$(cat "test-genfiles/app/DTPlatformName")"
-  assert_contains "macosx.*" \
-      "test-genfiles/app/DTSDKName"
-
-  # Verify the values injected by the environment_plist script. Some of these
-  # are dependent on the version of Xcode being used, and since we don't want to
-  # force a particular version to always be present, we just make sure that
-  # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcodeBuild")"
-  assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-genfiles/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
-}
-
 # Tests that tests can override the bundle id.
 function test_bundle_id_override() {
   create_common_files
@@ -226,10 +176,8 @@ function test_bundle_id_override() {
 function test_bundle_id_same_as_test_host_error() {
   create_common_files
   create_minimal_macos_application_with_tests "my.bundle.id"
-  create_dump_plist "//app:ui_tests.zip" "ui_tests.xctest/Contents/Info.plist" \
-      CFBundleIdentifier
 
-  ! do_build macos //app:dump_plist || fail "Should build"
+  ! do_build macos //app:ui_tests || fail "Should build"
   expect_log "can't be the same as the test host's bundle identifier"
 }
 

@@ -98,64 +98,6 @@ EOF
 EOF
 }
 
-# Tests that the Info.plist in the extension has the correct content.
-function test_extension_plist_contents() {
-  create_minimal_tvos_application_with_extension
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/ext.appex/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      MinimumOSVersion \
-      UIDeviceFamily:0
-  do_build tvos //app:dump_plist \
-      || fail "Should build"
-
-  # Verify the values injected by the Skylark rule.
-  assert_equals "ext" "$(cat "test-genfiles/app/CFBundleExecutable")"
-  assert_equals "my.bundle.id.extension" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "ext" "$(cat "test-genfiles/app/CFBundleName")"
-  assert_equals "10.0" "$(cat "test-genfiles/app/MinimumOSVersion")"
-  assert_equals "3" "$(cat "test-genfiles/app/UIDeviceFamily.0")"
-
-  if is_device_build tvos ; then
-    assert_equals "AppleTVOS" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "appletvos" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "appletvos.*" \
-        "test-genfiles/app/DTSDKName"
-  else
-    assert_equals "AppleTVSimulator" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "appletvsimulator" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "appletvsimulator.*" "test-genfiles/app/DTSDKName"
-  fi
-
-  # Verify the values injected by the environment_plist script. Some of these
-  # are dependent on the version of Xcode being used, and since we don't want to
-  # force a particular version to always be present, we just make sure that
-  # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcodeBuild")"
-  assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-genfiles/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_minimal_tvos_application_with_extension

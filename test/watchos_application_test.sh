@@ -174,68 +174,6 @@ function assert_common_watch_app_and_extension_plist_values() {
   assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
 }
 
-# Tests that the Info.plist in the embedded watch application has the correct
-# content.
-function test_watch_app_plist_contents() {
-  create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      MinimumOSVersion \
-      UIDeviceFamily:0
-  do_build watchos --watchos_minimum_os=2.0 //app:dump_plist \
-      || fail "Should build"
-
-  assert_equals "my.bundle.id.watch-app" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "watch_app" "$(cat "test-genfiles/app/CFBundleExecutable")"
-  assert_equals "watch_app" "$(cat "test-genfiles/app/CFBundleName")"
-
-  assert_common_watch_app_and_extension_plist_values
-}
-
-# Tests that the Info.plist in the embedded watch extension has the correct
-# content.
-function test_watch_ext_plist_contents() {
-  create_minimal_watchos_application_with_companion
-  create_dump_plist "//app:app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/Info.plist" \
-      BuildMachineOSBuild \
-      CFBundleExecutable \
-      CFBundleIdentifier \
-      CFBundleName \
-      CFBundleSupportedPlatforms:0 \
-      DTCompiler \
-      DTPlatformBuild \
-      DTPlatformName \
-      DTPlatformVersion \
-      DTSDKBuild \
-      DTSDKName \
-      DTXcode \
-      DTXcodeBuild \
-      MinimumOSVersion \
-      UIDeviceFamily:0
-  do_build watchos //app:dump_plist \
-      || fail "Should build"
-
-  assert_equals "my.bundle.id.watch-app.watch-ext" "$(cat "test-genfiles/app/CFBundleIdentifier")"
-  assert_equals "watch_ext" "$(cat "test-genfiles/app/CFBundleExecutable")"
-  assert_equals "watch_ext" "$(cat "test-genfiles/app/CFBundleName")"
-
-  assert_common_watch_app_and_extension_plist_values
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_watch_app_missing_version_fails() {
   create_minimal_watchos_application_with_companion

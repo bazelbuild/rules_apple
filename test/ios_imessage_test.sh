@@ -152,12 +152,8 @@ EOF
 function test_sticker_pack_extension() {
   create_common_files
   create_minimal_ios_application_with_stickerpack
-  create_dump_plist "//app:app.ipa" "Payload/app.app/PlugIns/stickerpack.appex/Info.plist" \
-      LSApplicationIsStickerProvider
 
-  do_build ios //app:dump_plist || fail "Should build"
-
-  assert_equals "YES" "$(cat "test-genfiles/app/LSApplicationIsStickerProvider")"
+  do_build ios //app:app || fail "Should build"
 
   # Ignore the check for simulator builds.
   is_device_build ios || return 0
@@ -297,17 +293,14 @@ EOF
 function test_message_application() {
   create_common_files
   create_minimal_ios_imessage_application_with_stickerpack
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
-      LSApplicationLaunchProhibited
 
-  do_build ios //app:dump_plist || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Ignore the following checks for simulator builds.
   is_device_build ios || return 0
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "MessagesApplicationSupport/MessagesApplicationSupportStub"
-  assert_equals "true" "$(cat "test-genfiles/app/LSApplicationLaunchProhibited")"
 }
 
 run_suite "imessage bundling resource tests"
