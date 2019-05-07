@@ -36,3 +36,17 @@ watchos_extension(
         "notap",
     ],
 )
+
+watchos_extension(
+    name = "ext_multiple_infoplists",
+    bundle_id = "com.google.example.ext",
+    infoplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "3.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+)

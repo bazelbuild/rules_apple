@@ -27,6 +27,20 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_multiple_infoplists",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_application(

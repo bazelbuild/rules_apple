@@ -39,8 +39,8 @@ ios_application(
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
     tags = [
