@@ -7,13 +7,6 @@ tasks:
     build_targets:
     - "tools/..."
     - "test/..."
-    test_flags:
-    - "--spawn_strategy=local"
-    - "--test_env=PATH"
-    # `bazel test` tries to build everything also by default, so skip that so the
-    # *_library targets in examples/... aren't built (and fail since they are
-    # platform specific).
-    - "--build_tests_only"
     test_targets:
     - "tools/..."
     - "test/..."
@@ -26,13 +19,6 @@ tasks:
     build_targets:
     - "tools/..."
     - "test/..."
-    test_flags:
-    - "--spawn_strategy=local"
-    - "--test_env=PATH"
-    # `bazel test` tries to build everything also by default, so skip that so the
-    # *_library targets in examples/... aren't built (and fail since they are
-    # platform specific).
-    - "--build_tests_only"
     test_targets:
     - "tools/..."
     - "test/..."
@@ -49,13 +35,6 @@ tasks:
     build_targets:
     - "tools/..."
     - "test/..."
-    test_flags:
-    - "--spawn_strategy=local"
-    - "--test_env=PATH"
-    # `bazel test` tries to build everything also by default, so skip that so the
-    # *_library targets in examples/... aren't built (and fail since they are
-    # platform specific).
-    - "--build_tests_only"
     test_targets:
     - "tools/..."
     - "test/..."

@@ -1,0 +1,12 @@
+# Force the tests to not run in sandboxed mode, since it can introduce
+# errors and flakes.
+test --spawn_strategy=local
+
+# Add the PATH to the test environment so that common macOS tools can be found
+# during a test run.
+test --test_env=PATH
+
+# `bazel test` tries to build everything also by default, so skip that so the
+# *_library targets in examples/... aren't built (and fail since they are
+# platform specific).
+test --build_tests_only
