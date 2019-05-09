@@ -4,6 +4,9 @@ tasks:
     name: "Latest Bazel"
     platform: macos
     bazel: latest
+    build_flags:
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -14,6 +17,8 @@ tasks:
     # *_library targets in examples/... aren't built (and fail since they are
     # platform specific).
     - "--build_tests_only"
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     test_targets:
     - "tools/..."
     - "test/..."
@@ -23,6 +28,9 @@ tasks:
     name: "Last Green Bazel"
     platform: macos
     bazel: last_green
+    build_flags:
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -33,6 +41,8 @@ tasks:
     # *_library targets in examples/... aren't built (and fail since they are
     # platform specific).
     - "--build_tests_only"
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     test_targets:
     - "tools/..."
     - "test/..."
@@ -46,6 +56,9 @@ tasks:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
+    build_flags:
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -56,6 +69,8 @@ tasks:
     # *_library targets in examples/... aren't built (and fail since they are
     # platform specific).
     - "--build_tests_only"
+    # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag.
+    - "--incompatible_remap_main_repo"
     test_targets:
     - "tools/..."
     - "test/..."
