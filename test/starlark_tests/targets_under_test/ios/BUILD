@@ -32,6 +32,9 @@ ios_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 ios_application(
@@ -46,6 +49,9 @@ ios_application(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -67,6 +73,9 @@ ios_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 ios_extension(
@@ -83,6 +92,9 @@ ios_extension(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -101,6 +113,9 @@ ios_extension(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -122,6 +137,9 @@ ios_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 ios_framework(
@@ -138,6 +156,9 @@ ios_framework(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
@@ -156,6 +177,9 @@ ios_framework(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
@@ -214,6 +238,9 @@ ios_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_ui_test(
@@ -232,6 +259,9 @@ ios_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_ui_test(
@@ -250,6 +280,9 @@ ios_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -269,6 +302,9 @@ ios_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_unit_test(
@@ -287,6 +323,9 @@ ios_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_unit_test(
@@ -305,6 +344,9 @@ ios_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_unit_test(
@@ -322,4 +364,7 @@ ios_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )

@@ -15,6 +15,10 @@
 """macos_quick_look_plugin Starlark tests."""
 
 load(
+    ":rules/apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -22,6 +26,12 @@ load(
 def macos_quick_look_plugin_test_suite():
     """Test suite for macos_quick_look_plugin."""
     name = "macos_quick_look_plugin"
+
+    apple_verification_test(
+        name = "{}_codesign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+    )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),

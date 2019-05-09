@@ -35,6 +35,9 @@ watchos_extension(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 watchos_extension(

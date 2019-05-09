@@ -15,6 +15,10 @@
 """watchos_extension Starlark tests."""
 
 load(
+    ":rules/apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -22,6 +26,12 @@ load(
 def watchos_extension_test_suite():
     """Test suite for watchos_extension."""
     name = "watchos_extension"
+
+    apple_verification_test(
+        name = "{}_codesign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+    )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),

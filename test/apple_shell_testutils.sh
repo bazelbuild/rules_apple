@@ -266,6 +266,22 @@ EOF
 }
 
 
+# Usage assert_is_codesigned <path>
+#
+# Asserts that the given bundle path is properly codesigned.
+function assert_is_codesigned() {
+  bundle="$1"
+  CODESIGN_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+
+  codesign -vvvv "$bundle" &> "$CODESIGN_OUTPUT" || echo "Should not fail"
+
+  assert_contains "satisfies its Designated Requirement" "$CODESIGN_OUTPUT"
+  assert_contains "valid on disk" "$CODESIGN_OUTPUT"
+
+  rm -rf "$CODESIGN_OUTPUT"
+}
+
+
 # Usage: current_archs <platform>
 #
 # Prints the architectures for the given platform that were specified in the

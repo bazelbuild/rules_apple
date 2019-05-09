@@ -15,6 +15,10 @@
 """macos_application Starlark tests."""
 
 load(
+    ":rules/apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -22,6 +26,12 @@ load(
 def macos_application_test_suite():
     """Test suite for macos_application."""
     name = "macos_application"
+
+    apple_verification_test(
+        name = "{}_codesign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+    )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),

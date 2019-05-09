@@ -24,6 +24,9 @@ tvos_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 tvos_application(
@@ -37,6 +40,9 @@ tvos_application(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -54,6 +60,9 @@ tvos_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 tvos_extension(
@@ -66,6 +75,9 @@ tvos_extension(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -83,6 +95,9 @@ tvos_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 tvos_framework(
@@ -95,6 +110,9 @@ tvos_framework(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
@@ -111,6 +129,9 @@ tvos_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -126,6 +147,9 @@ tvos_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 tvos_unit_test(
@@ -139,4 +163,7 @@ tvos_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )

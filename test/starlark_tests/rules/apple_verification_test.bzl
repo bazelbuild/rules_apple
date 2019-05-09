@@ -1,0 +1,127 @@
+# Copyright 2019 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Test rule to perform generic bundle verification tests.
+
+This rule is meant to be used only for rules_apple tests and are considered implementation details
+that may change at any time. Please do not depend on this rule.
+"""
+
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+
+def _apple_verification_test_impl(ctx):
+    """Implementation of the apple_verification_test rule."""
+    bundle_info = ctx.attr.target_under_test[AppleBundleInfo]
+    archive = bundle_info.archive
+    verifier_script = ctx.file.verifier_script
+
+    bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
+
+    if bundle_info.platform_type in [
+        "ios",
+        "tvos",
+    ] and bundle_info.product_type in [
+        apple_product_type.application,
+        apple_product_type.messages_application,
+    ]:
+        archive_relative_bundle = paths.join("Payload", bundle_with_extension)
+    else:
+        archive_relative_bundle = bundle_with_extension
+
+    if bundle_info.platform_type == "macos":
+        archive_relative_contents = paths.join(archive_relative_bundle, "Contents")
+        archive_relative_binary = paths.join(archive_relative_contents, "MacOS")
+        archive_relative_resources = paths.join(archive_relative_contents, "Resources")
+    else:
+        archive_relative_contents = archive_relative_bundle
+        archive_relative_binary = archive_relative_bundle
+        archive_relative_resources = archive_relative_bundle
+
+    output_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
+    ctx.actions.expand_template(
+        template = ctx.file._runner_script,
+        output = output_script,
+        substitutions = {
+            "%{archive}s": archive.short_path,
+            "%{archive_relative_binary}s": archive_relative_binary,
+            "%{archive_relative_bundle}s": archive_relative_bundle,
+            "%{archive_relative_contents}s": archive_relative_contents,
+            "%{archive_relative_resources}s": archive_relative_resources,
+            "%{verifier_script}s": ctx.file.verifier_script.short_path,
+        },
+        is_executable = True,
+    )
+
+    return [
+        testing.ExecutionInfo(apple_support.action_required_execution_requirements()),
+        testing.TestEnvironment(apple_support.action_required_env(ctx)),
+        DefaultInfo(
+            executable = output_script,
+            runfiles = ctx.runfiles(
+                files = [archive, ctx.file.verifier_script] + ctx.attr._test_deps.files.to_list(),
+            ),
+        ),
+    ]
+
+apple_verification_test = rule(
+    implementation = _apple_verification_test_impl,
+    attrs = dicts.add(apple_support.action_required_attrs(), {
+        "target_under_test": attr.label(
+            mandatory = True,
+            providers = [AppleBundleInfo],
+            doc = "The Apple bundle target whose contents are to be verified.",
+        ),
+        "verifier_script": attr.label(
+            mandatory = True,
+            allow_single_file = [".sh"],
+            doc = """
+Shell script containing the verification code. This script can expect the following environment
+variables to exist:
+
+* BINARY_ROOT: The directory where the bundle binaries are located.
+* BUNDLE_ROOT: The directory where the bundle is located.
+* CONTENT_ROOT: The directory where the bundle contents are located.
+* RESOURCE_ROOT: The directory where the resource files are located.
+""",
+        ),
+        "_runner_script": attr.label(
+            allow_single_file = True,
+            default = Label("@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh"),
+        ),
+        "_test_deps": attr.label(
+            default = Label("@build_bazel_rules_apple//test:apple_verification_test_deps"),
+        ),
+    }),
+    test = True,
+    fragments = ["apple"],
+)

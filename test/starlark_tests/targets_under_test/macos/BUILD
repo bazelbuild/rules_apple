@@ -25,6 +25,9 @@ macos_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 macos_application(
@@ -38,6 +41,9 @@ macos_application(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -55,6 +61,9 @@ macos_application(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 macos_extension(
@@ -67,6 +76,9 @@ macos_extension(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -83,6 +95,9 @@ macos_bundle(
         "manual",
         "notap",
     ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -97,6 +112,9 @@ macos_quick_look_plugin(
     tags = [
         "manual",
         "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -113,6 +131,9 @@ macos_ui_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -128,4 +149,7 @@ macos_unit_test(
         "notap",
     ],
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )

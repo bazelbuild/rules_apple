@@ -10,3 +10,7 @@ test --test_env=PATH
 # *_library targets in examples/... aren't built (and fail since they are
 # platform specific).
 test --build_tests_only
+
+# TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag when
+# visibility and symbol import issues are resolved.
+build --nocheck_visibility
