@@ -270,28 +270,6 @@ EOF
   expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the watch application is signed correctly.
-function test_watch_application_is_signed() {
-  create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:app.ipa" \
-      "Payload/app.app/Watch/watch_app.app" -vv
-  do_build watchos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
-# Tests that the watch extension is signed correctly.
-function test_watch_extension_is_signed() {
-  create_minimal_watchos_application_with_companion
-  create_dump_codesign "//app:app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" -vv
-  do_build watchos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that the provisioning profile is present when built for device.
 function test_contains_provisioning_profile() {
   # Ignore the test for simulator builds.

@@ -144,17 +144,6 @@ EOF
   expect_log 'Target "//app:ext" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the extension inside the app bundle is properly signed.
-function test_extension_is_signed() {
-  create_minimal_tvos_application_with_extension
-  create_dump_codesign "//app:app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex" -vv
-  do_build tvos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that the provisioning profile is present when built for device.
 function test_contains_provisioning_profile() {
   # Ignore the test for simulator builds.

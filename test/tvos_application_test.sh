@@ -141,17 +141,6 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
   done
 }
 
-# Tests that the IPA contains a valid signed application.
-function test_application_is_signed() {
-  create_common_files
-  create_minimal_tvos_application
-  create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
-  do_build tvos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that the provisioning profile is present when built for device.
 function test_contains_provisioning_profile() {
   # Ignore the test for simulator builds.

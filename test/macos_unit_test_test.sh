@@ -192,17 +192,6 @@ function test_builds_with_no_host() {
   do_build macos //app:unit_tests || fail "Should build"
 }
 
-# Tests that the output contains a valid signed test bundle.
-function test_bundle_is_signed() {
-  create_common_files
-  create_minimal_macos_application_with_tests
-  create_dump_codesign "//app:unit_tests.zip" "unit_tests.xctest" -vv
-  do_build macos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that the test runner script gets created correctly.
 function test_runner_script_contains_expected_values() {
   create_common_files

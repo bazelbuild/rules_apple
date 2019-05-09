@@ -189,17 +189,6 @@ function test_build_fails_without_host() {
   expect_log "missing value for mandatory attribute 'test_host'"
 }
 
-# Tests that the output contains a valid signed test bundle.
-function test_bundle_is_signed() {
-  create_common_files
-  create_minimal_macos_application_with_tests
-  create_dump_codesign "//app:ui_tests.zip" "ui_tests.xctest" -vv
-  do_build macos //app:dump_codesign || fail "Should build"
-
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that the test runner script gets created correctly.
 function test_runner_script_contains_expected_values() {
   create_common_files
