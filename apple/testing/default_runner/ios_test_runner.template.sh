@@ -35,7 +35,7 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
   # Need to copy the bundle outside of the Bazel execroot since the test runner
   # needs to make some modifications to its contents.
   # TODO(kaipi): Improve xctestrunner to account for Bazel permissions.
-  cp -R "$TEST_BUNDLE_PATH" "$TMP_DIR"
+  cp -RL "$TEST_BUNDLE_PATH" "$TMP_DIR"
   chmod -R 777 "${TMP_DIR}/$(basename "$TEST_BUNDLE_PATH")"
   runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
 else
@@ -53,7 +53,7 @@ if [[ -n "$TEST_HOST_PATH" ]]; then
     # Need to copy the bundle outside of the Bazel execroot since the test
     # runner needs to make some modifications to its contents.
     # TODO(kaipi): Improve xctestrunner to account for Bazel permissions.
-    cp -R "$TEST_HOST_PATH" "$TMP_DIR"
+    cp -RL "$TEST_HOST_PATH" "$TMP_DIR"
     chmod -R 777 "${TMP_DIR}/$(basename "$TEST_HOST_PATH")"
     runner_flags+=("--app_under_test_path=${TMP_DIR}/$(basename "$TEST_HOST_PATH")")
   else
