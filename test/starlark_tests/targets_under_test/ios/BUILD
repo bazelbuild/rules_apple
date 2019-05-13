@@ -1,6 +1,7 @@
 licenses(["notice"])
 
 package(
+    default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -23,11 +24,13 @@ load(
 ios_application(
     name = "app",
     bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",
@@ -81,6 +84,7 @@ ios_application(
 ios_extension(
     name = "ext",
     bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     families = [
         "iphone",
         "ipad",
@@ -89,6 +93,7 @@ ios_extension(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",

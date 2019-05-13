@@ -39,9 +39,40 @@ load(
     "paths",
 )
 
+def _apple_verification_transition_impl(settings, attr):
+    """Implementation of the apple_verification_transition transition."""
+    if attr.build_type == "simulator":
+        return {
+            "//command_line_option:ios_signing_cert_name": "-",
+            "//command_line_option:ios_multi_cpus": "x86_64",
+            "//command_line_option:macos_cpus": "x86_64",
+            "//command_line_option:tvos_cpus": "x86_64",
+            "//command_line_option:watchos_cpus": "i386",
+        }
+    else:
+        return {
+            "//command_line_option:ios_signing_cert_name": "-",
+            "//command_line_option:ios_multi_cpus": "arm64,armv7",
+            "//command_line_option:macos_cpus": "x86_64",
+            "//command_line_option:tvos_cpus": "arm64",
+            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+        }
+
+apple_verification_transition = transition(
+    implementation = _apple_verification_transition_impl,
+    inputs = [],
+    outputs = [
+        "//command_line_option:ios_signing_cert_name",
+        "//command_line_option:ios_multi_cpus",
+        "//command_line_option:macos_cpus",
+        "//command_line_option:tvos_cpus",
+        "//command_line_option:watchos_cpus",
+    ],
+)
+
 def _apple_verification_test_impl(ctx):
     """Implementation of the apple_verification_test rule."""
-    bundle_info = ctx.attr.target_under_test[AppleBundleInfo]
+    bundle_info = ctx.split_attr.target_under_test.values()[0][AppleBundleInfo]
     archive = bundle_info.archive
     verifier_script = ctx.file.verifier_script
 
@@ -60,11 +91,15 @@ def _apple_verification_test_impl(ctx):
 
     if bundle_info.platform_type == "macos":
         archive_relative_contents = paths.join(archive_relative_bundle, "Contents")
-        archive_relative_binary = paths.join(archive_relative_contents, "MacOS")
+        archive_relative_binary = paths.join(
+            archive_relative_contents,
+            "MacOS",
+            bundle_info.bundle_name,
+        )
         archive_relative_resources = paths.join(archive_relative_contents, "Resources")
     else:
         archive_relative_contents = archive_relative_bundle
-        archive_relative_binary = archive_relative_bundle
+        archive_relative_binary = paths.join(archive_relative_bundle, bundle_info.bundle_name)
         archive_relative_resources = archive_relative_bundle
 
     output_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
@@ -82,9 +117,14 @@ def _apple_verification_test_impl(ctx):
         is_executable = True,
     )
 
+    # Extra test environment to set during the test.
+    test_env = {
+        "BUILD_TYPE": ctx.attr.build_type,
+    }
+
     return [
         testing.ExecutionInfo(apple_support.action_required_execution_requirements()),
-        testing.TestEnvironment(apple_support.action_required_env(ctx)),
+        testing.TestEnvironment(dicts.add(apple_support.action_required_env(ctx), test_env)),
         DefaultInfo(
             executable = output_script,
             runfiles = ctx.runfiles(
@@ -96,10 +136,18 @@ def _apple_verification_test_impl(ctx):
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
+        "build_type": attr.string(
+            mandatory = True,
+            values = ["simulator", "device"],
+            doc = """
+Type of build for the target under test. Possible values are `simulator` and `device`.
+""",
+        ),
         "target_under_test": attr.label(
             mandatory = True,
             providers = [AppleBundleInfo],
             doc = "The Apple bundle target whose contents are to be verified.",
+            cfg = apple_verification_transition,
         ),
         "verifier_script": attr.label(
             mandatory = True,
@@ -108,7 +156,8 @@ apple_verification_test = rule(
 Shell script containing the verification code. This script can expect the following environment
 variables to exist:
 
-* BINARY_ROOT: The directory where the bundle binaries are located.
+* BINARY: The path to the main bundle binary.
+* BUILD_TYPE: The type of build for the target under test. Can be `simulator` or `device`.
 * BUNDLE_ROOT: The directory where the bundle is located.
 * CONTENT_ROOT: The directory where the bundle contents are located.
 * RESOURCE_ROOT: The directory where the resource files are located.
@@ -116,10 +165,13 @@ variables to exist:
         ),
         "_runner_script": attr.label(
             allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh"),
+            default = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh",
         ),
         "_test_deps": attr.label(
-            default = Label("@build_bazel_rules_apple//test:apple_verification_test_deps"),
+            default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
+        ),
+        "_whitelist_function_transition": attr.label(
+            default = "//tools/whitelists/function_transition_whitelist",
         ),
     }),
     test = True,

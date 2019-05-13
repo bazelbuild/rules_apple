@@ -29,6 +29,7 @@ def macos_quick_look_plugin_test_suite():
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
+        build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
     )

@@ -26,7 +26,7 @@ trap 'rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 unzip -qq "%{archive}s" -d "$ARCHIVE_ROOT"
 
 # Define common bundle locations to be used by the verifier scripts.
-BINARY_ROOT="$ARCHIVE_ROOT/%{archive_relative_binary}s"
+BINARY="$ARCHIVE_ROOT/%{archive_relative_binary}s"
 BUNDLE_ROOT="$ARCHIVE_ROOT/%{archive_relative_bundle}s"
 CONTENT_ROOT="$ARCHIVE_ROOT/%{archive_relative_contents}s"
 RESOURCE_ROOT="$ARCHIVE_ROOT/%{archive_relative_resources}s"

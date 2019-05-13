@@ -29,6 +29,7 @@ def macos_ui_test_test_suite():
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
+        build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
     )

@@ -29,6 +29,7 @@ def tvos_unit_test_test_suite():
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
+        build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
     )

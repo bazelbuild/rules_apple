@@ -1,6 +1,7 @@
 licenses(["notice"])
 
 package(
+    default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -17,6 +18,7 @@ load(
 macos_application(
     name = "app",
     bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

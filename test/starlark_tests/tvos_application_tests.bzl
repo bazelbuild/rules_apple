@@ -29,8 +29,23 @@ def tvos_application_test_suite():
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
+        build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+    )
+
+    apple_verification_test(
+        name = "{}_entitlements_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+    )
+
+    apple_verification_test(
+        name = "{}_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
     )
 
     infoplist_contents_test(

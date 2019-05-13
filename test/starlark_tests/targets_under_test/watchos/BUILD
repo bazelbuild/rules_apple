@@ -1,6 +1,7 @@
 licenses(["notice"])
 
 package(
+    default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -27,10 +28,12 @@ watchos_application(
 watchos_extension(
     name = "ext",
     bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
     minimum_os_version = "3.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",
