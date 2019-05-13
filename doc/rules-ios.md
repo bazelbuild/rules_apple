@@ -1070,6 +1070,11 @@ build a single framework artifact that works for all architectures by specifying
         framework. These headers should have framework-relative imports, and if
         non-empty, an umbrella header named <code>%{bundle_name}.h</code> will
         also be generated that imports all of the headers listed here.</p>
+        <p>Note that none of these headers should have the name of the bundle,
+        otherwise conflicts will occur during the generation process. There is
+        one exception that, if this list contains only one header, and it has
+        the name of the bundle, then that header will be bundled into the
+        framework and no umbrella header will be generated.</p>
       </td>
     </tr>
     <tr>

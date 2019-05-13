@@ -131,9 +131,16 @@ def _static_framework_header_modulemap_partial_impl(ctx, hdrs, binary_objc_provi
             sorted(hdrs),
         )
 
-        bundle_files.append(
-            (processor.location.bundle, "Headers", depset(hdrs + [umbrella_header_file])),
-        )
+        # Don't bundle the umbrella header if there is only one public header
+        # which has the same name
+        if len(hdrs) == 1 and hdrs[0].basename == umbrella_header_name:
+            bundle_files.append(
+                (processor.location.bundle, "Headers", depset(hdrs)),
+            )
+        else:
+            bundle_files.append(
+                (processor.location.bundle, "Headers", depset(hdrs + [umbrella_header_file])),
+            )
     else:
         umbrella_header_name = None
 
