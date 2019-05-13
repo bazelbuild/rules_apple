@@ -84,7 +84,7 @@ ios_extension(
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.bundle.id.framework",
     extension_safe = 1,
     families = ["iphone"],
@@ -96,7 +96,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     data = [":framework_structured_resources"],
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 }
 EOF
 
-  cat > app/Framework.h <<EOF
+  cat > app/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -195,7 +195,7 @@ load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.framework.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
@@ -207,7 +207,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     deps = [":framework_dependent_lib"],
@@ -245,7 +245,7 @@ EOF
 }
 EOF
 
-  cat > framework/Framework.h <<EOF
+  cat > framework/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -382,7 +382,7 @@ ios_application(
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.bundle.id.framework",
     families = ["iphone"],
     infoplists = ["Info-Framework.plist"],
@@ -394,7 +394,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     data = [
@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
 }
 EOF
 
-  cat > app/Framework.h <<EOF
+  cat > app/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -470,7 +470,7 @@ function test_framework_contains_expected_files() {
   assert_zip_contains "test-bin/framework/framework.zip" \
       "framework.framework/Info.plist"
   assert_zip_contains "test-bin/framework/framework.zip" \
-      "framework.framework/Headers/Framework.h"
+      "framework.framework/Headers/MyFramework.h"
 }
 
 # Tests that the correct rpath was added at link-time to the framework's binary.
@@ -485,7 +485,7 @@ load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
   name = "framework",
-  hdrs = ["Framework.h"],
+  hdrs = ["MyFramework.h"],
   bundle_id = "my.framework.id",
   bundle_name = "FrameworkBundleName",
   families = ["iphone"],
@@ -498,7 +498,7 @@ ios_framework(
 objc_library(
   name = "framework_lib",
   srcs = [
-      "Framework.h",
+      "MyFramework.h",
       "Framework.m",
   ],
   deps = [":framework_dependent_lib"],
@@ -568,7 +568,7 @@ function test_application_contains_expected_files() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
+      "Payload/app.app/Frameworks/framework.framework/Headers/MyFramework.h"
 
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/extension.appex/Frameworks/"
@@ -604,7 +604,7 @@ ios_application(
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.bundle.id.framework",
     families = ["iphone"],
     infoplists = ["Info-Framework.plist"],
@@ -616,7 +616,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     deps = [":lib_with_resources"],
@@ -669,7 +669,7 @@ int main(int argc, char **argv) {
 }
 EOF
 
-  cat > app/Framework.h <<EOF
+  cat > app/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -786,7 +786,7 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
+      "Payload/app.app/Frameworks/framework.framework/Headers/MyFramework.h"
   # The extension bundle should be intact, but have no inner framework.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appex/ext"
@@ -861,7 +861,7 @@ load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.bundle.id.framework",
     families = ["iphone"],
     infoplists = ["Info-Framework.plist"],
@@ -873,7 +873,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     alwayslink = 1,
@@ -924,7 +924,7 @@ int main(int argc, char **argv) {
 }
 EOF
 
-  cat > framework/Framework.h <<EOF
+  cat > framework/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -987,7 +987,7 @@ ios_application(
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.bundle.id.framework",
     families = ["iphone"],
     infoplists = ["Info-Framework.plist"],
@@ -999,7 +999,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     data = [
@@ -1035,7 +1035,7 @@ int main(int argc, char **argv) {
 }
 EOF
 
-  cat > app/Framework.h <<EOF
+  cat > app/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -1406,7 +1406,7 @@ function test_extension_depends_on_unsafe_framework() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
+      "Payload/app.app/Frameworks/framework.framework/Headers/MyFramework.h"
 
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/extension.appex/Frameworks/"
@@ -1445,7 +1445,7 @@ ios_application(
 
 ios_framework(
     name = "framework",
-    hdrs = ["Framework.h"],
+    hdrs = ["MyFramework.h"],
     bundle_id = "my.framework.id",
     frameworks = [":depframework"],
     families = ["iphone"],
@@ -1456,7 +1456,7 @@ ios_framework(
 
 ios_framework(
     name = "depframework",
-    hdrs = ["DepFramework.h"],
+    hdrs = ["MyDepFramework.h"],
     bundle_id = "my.depframework.id",
     families = ["iphone"],
     infoplists = ["Framework-Info.plist", "Info-Common.plist"],
@@ -1467,7 +1467,7 @@ ios_framework(
 objc_library(
     name = "framework_lib",
     srcs = [
-        "Framework.h",
+        "MyFramework.h",
         "Framework.m",
     ],
     deps = [":framework_dependent_lib"],
@@ -1477,7 +1477,7 @@ objc_library(
 objc_library(
     name = "dep_framework_lib",
     srcs = [
-        "DepFramework.h",
+        "MyDepFramework.h",
         "DepFramework.m",
     ],
     deps = [":framework_dependent_lib"],
@@ -1538,7 +1538,7 @@ EOF
 }
 EOF
 
-  cat > app/Framework.h <<EOF
+  cat > app/MyFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
@@ -1555,7 +1555,7 @@ void doStuff() {
 }
 EOF
 
-  cat > app/DepFramework.h <<EOF
+  cat > app/MyDepFramework.h <<EOF
 #ifndef FRAMEWORK_FRAMEWORK_H_
 #define FRAMEWORK_FRAMEWORK_H_
 
