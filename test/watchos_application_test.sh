@@ -329,53 +329,6 @@ function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
   done
 }
 
-# Tests that entitlements are added to the application correctly. This appears
-# to matter only for device builds, where the stub binary is signed with the
-# entitlements. For simulator builds, which would normally inject the
-# entitlements using the linker for traditional apps, Xcode appears to simply
-# ignore them.
-function test_watch_application_entitlements() {
-  create_minimal_watchos_application_with_companion
-
-  if is_device_build watchos ; then
-    create_dump_codesign "//app:app.ipa" \
-        "Payload/app.app/Watch/watch_app.app" -d --entitlements :-
-    do_build watchos //app:dump_codesign || fail "Should build"
-
-    assert_contains "<key>test-an-entitlement</key>" \
-        "test-genfiles/app/codesign_output"
-  fi
-}
-
-# Tests that entitlements are added to the watch extension correctly. For debug
-# builds, we make sure that the appropriate Mach-O section is present; for
-# release builds, we check the code signing.
-function test_watch_extension_entitlements() {
-  create_minimal_watchos_application_with_companion
-
-  if is_device_build watchos ; then
-    # For device builds, we verify that the entitlements are in the codesign
-    # output.
-    create_dump_codesign "//app:app.ipa" \
-        "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex" \
-        -d --entitlements :-
-    do_build watchos //app:dump_codesign || fail "Should build"
-
-    assert_contains "<key>test-an-entitlement</key>" \
-        "test-genfiles/app/codesign_output"
-  else
-    # For simulator builds, the entitlements are added as a Mach-O section in
-    # the binary.
-    do_build watchos //app:app || fail "Should build"
-
-    unzip_single_file "test-bin/app/app.ipa" \
-        "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext" | \
-        print_debug_entitlements - | \
-        grep -sq "<key>test-an-entitlement</key>" || \
-        fail "Failed to find custom entitlement"
-  fi
-}
-
 # Tests that failures to extract from a provisioning profile are propertly
 # reported (from watchOS application profile).
 function test_provisioning_profile_extraction_failure_watch_application() {

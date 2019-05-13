@@ -580,16 +580,6 @@ function test_application_contains_expected_files() {
       "Payload/app.app/PlugIns/extension.appex/Frameworks/"
 }
 
-# Verifies that apps with frameworks are still signed at the root.
-function test_app_with_framework_bundle_codesigning() {
-  create_minimal_tvos_framework
-  create_minimal_tvos_application_and_extension
-  create_dump_codesign "//app:app.ipa" "Payload/app.app" -vv
-  do_build tvos //app:dump_codesign || fail "Should build"
-  assert_contains "satisfies its Designated Requirement" \
-      "test-genfiles/app/codesign_output"
-}
-
 # Tests that resources that both apps and frameworks depend on are present
 # in the .framework directory and that the symbols are only present in the
 # framework binary.

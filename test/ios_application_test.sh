@@ -327,56 +327,6 @@ function test_pkginfo_contents() {
       "Payload/app.app/PkgInfo")"
 }
 
-# Tests that entitlements are added to the application correctly. For simulator
-# builds, we make sure that the appropriate Mach-O section is present; for
-# device builds, we check the code signing.
-function test_entitlements() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    entitlements = "entitlements.plist",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  cat > app/entitlements.plist <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>test-an-entitlement</key>
-  <false/>
-</dict>
-</plist>
-EOF
-
-  if is_device_build ios ; then
-    # For device builds, we verify that the entitlements are in the codesign
-    # output.
-    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
-    do_build ios //app:dump_codesign || fail "Should build"
-
-    assert_contains "<key>test-an-entitlement</key>" \
-        "test-genfiles/app/codesign_output"
-  else
-    # For simulator builds, the entitlements are added as a Mach-O section in
-    # the binary.
-    do_build ios //app:app || fail "Should build"
-
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
-        print_debug_entitlements - | \
-        grep -sq "<key>test-an-entitlement</key>" || \
-        fail "Failed to find custom entitlement"
-  fi
-}
-
 # Helper to test different values if a build adds the debugger entitlement.
 # First arg is "y|n" for if it was expected for device builds
 # Second arg is "y|n" for if it was expected for simulator builds.
