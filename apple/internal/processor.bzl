@@ -329,6 +329,14 @@ def _bundle_partial_outputs_files(
             mnemonic = "BundleTreeApp",
             progress_message = "Bundling, processing and signing %s" % ctx.label.name,
             tools = bundling_tools,
+            execution_requirements = {
+                # Added so that the output of this action is not cached remotely, in case multiple
+                # developers sign the same artifact with different identities.
+                "no-cache": "1",
+                # Unsure, but may be needed for keychain access, especially for files that live in
+                # $HOME.
+                "no-sandbox": "1",
+            },
             **action_args
         )
     else:
