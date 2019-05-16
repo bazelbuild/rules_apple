@@ -527,6 +527,15 @@ framework-relative imports, and if non-empty, an umbrella header named `%{bundle
 be generated that imports all of the headers listed here.
 """,
             ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+A single .h file to use as the umbrella header for this framework. Usually, this header will have the
+same name as this target, so that clients can load the header using the #import <MyFramework/MyFramework.h>
+format. If this attribute is not specified, an umbrella header will be generated under the same name as this
+target.
+""",
+            ),
             "avoid_deps": attr.label_list(
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
