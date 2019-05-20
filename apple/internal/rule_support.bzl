@@ -202,6 +202,9 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             extra_linkopts = [
+                # Migrate to -fapplication-extension, like the other rules, once ios_extension is
+                # migrated to a proper rule and not a macro with an apple_binary.
+                "-application_extension",
                 "-e",
                 "_NSExtensionMain",
             ],
@@ -250,7 +253,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-application_extension",
+                "-fapplication-extension",
                 "-e",
                 "_NSExtensionMain",
             ],
@@ -548,7 +551,7 @@ _RULE_TYPE_DESCRIPTORS = {
             extra_linkopts = [
                 "-e",
                 "_TVExtensionMain",
-                "-application_extension",
+                "-fapplication-extension",
                 "-framework",
                 "TVServices",
             ],
@@ -639,7 +642,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                "-application_extension",
+                "-fapplication-extension",
             ],
             product_type = apple_product_type.watch2_extension,
             rpaths = [
