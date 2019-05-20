@@ -47,6 +47,28 @@
   }
 }
 
+#pragma mark - WCSessionDelegate
+
+- (void)session:(WCSession *)session
+    activationDidCompleteWithState:(WCSessionActivationState)activationState
+                             error:(NSError *)error {
+  if (activationState != WCSessionActivationStateActivated) {
+    NSString *msg =
+      [NSString stringWithFormat:@"Failed to activate: %@", error];
+    [self showAlert:msg];
+    return;
+  }
+}
+
+- (void)sessionDidBecomeInactive:(WCSession *)session {
+  // No state to update.
+}
+
+- (void)sessionDidDeactivate:(WCSession *)session {
+   // Begin the activation process for the new Apple Watch.
+   [[WCSession defaultSession] activateSession];
+}
+
 #pragma mark - Private methods
 
 - (void)showAlert:(NSString *)message {
