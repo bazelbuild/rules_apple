@@ -1,4 +1,6 @@
 ---
+# NOTE: To avoid listing the same things for build_flags/test_flags for each
+# of these tasks, they are listed in the .bazelrc instead.
 tasks:
   macos_latest:
     name: "Latest Bazel"
