@@ -14,3 +14,5 @@ test --build_tests_only
 # TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag when
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
+
+build --experimental_starlark_config_transitions

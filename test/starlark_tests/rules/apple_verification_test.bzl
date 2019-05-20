@@ -171,7 +171,7 @@ variables to exist:
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
         ),
         "_whitelist_function_transition": attr.label(
-            default = "//tools/whitelists/function_transition_whitelist",
+            default = Label("//tools/whitelists/function_transition_whitelist"),
         ),
     }),
     test = True,
