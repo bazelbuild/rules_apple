@@ -144,6 +144,11 @@ function setup_clean_workspace() {
 # Any remaining arguments are passed to every `bazel build` invocation in the
 # subsequent tests (see `do_build` in apple_shell_testutils.sh).
 export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
+
+# Disable Swift workers until they work with Bazel@HEAD.
+# TODO(b/133166891): Remove this.
+EXTRA_BUILD_OPTIONS+=( "--strategy=SwiftCompile=local" )
+
 echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
 
 # Try to find the desired version of Xcode installed on the system. If it's not
