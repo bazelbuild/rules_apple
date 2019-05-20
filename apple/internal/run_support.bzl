@@ -30,7 +30,7 @@ def _register_simulator_executable(ctx, output):
         is_executable = True,
         template = ctx.file._runner_template,
         substitutions = {
-            "%app_name%": ctx.label.name,
+            "%app_name%": bundling_support.bundle_name(ctx),
             "%ipa_file%": outputs.archive(ctx).short_path,
             "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
             "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
