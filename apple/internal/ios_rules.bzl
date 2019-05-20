@@ -311,6 +311,7 @@ def _ios_static_framework_impl(ctx):
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.static_framework_header_modulemap_partial(
             hdrs = ctx.files.hdrs,
+            umbrella_header = ctx.file.umbrella_header,
             binary_objc_provider = binary_target[apple_common.Objc],
         ),
     ]
