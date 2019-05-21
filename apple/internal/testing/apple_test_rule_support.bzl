@@ -158,10 +158,9 @@ def _coverage_files_aspect_impl(target, ctx):
     for dep in getattr(ctx.rule.attr, "deps", []):
         coverage_files.append(dep[CoverageFilesInfo].coverage_files)
 
-    test_host_target = getattr(ctx.rule.attr, "test_host", None)
-    if test_host_target:
-        coverage_files.append(test_host_target[CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(test_host_target[CoverageFilesInfo].covered_binaries)
+    for fmwk in getattr(ctx.rule.attr, "frameworks", []):
+        coverage_files.append(fmwk[CoverageFilesInfo].coverage_files)
+        transitive_binaries_sets.append(fmwk[CoverageFilesInfo].covered_binaries)
 
     return [
         CoverageFilesInfo(
@@ -174,18 +173,13 @@ def _coverage_files_aspect_impl(target, ctx):
     ]
 
 coverage_files_aspect = aspect(
-    attr_aspects = [
-        "deps",
-        "test_host",
-    ],
+    attr_aspects = ["deps", "frameworks"],
     doc = """
-This aspect walks the dependency graph through the `deps` and
-`test_host` attributes and collects all the sources and headers that are
-depended upon transitively. These files are needed to calculate test coverage on
-a test run.
+This aspect walks the dependency graph through the `deps` and `frameworks` attributes and collects
+all the sources and headers that are depended upon transitively. These files are needed to calculate
+test coverage on a test run.
 
-This aspect propagates a `CoverageFilesInfo` provider which is just a set that
-contains all the `srcs` and `hdrs` files.
+This aspect propagates a `CoverageFilesInfo` provider.
 """,
     implementation = _coverage_files_aspect_impl,
 )
@@ -378,15 +372,16 @@ def _apple_test_rule_impl(ctx, test_type, extra_output_files = None):
             transitive_covered_binaries.append(test_host[CoverageFilesInfo].covered_binaries)
             transitive_coverage_files.append(test_host[CoverageFilesInfo].coverage_files)
 
+        covered_binaries = depset([outputs.binary(ctx)], transitive = transitive_covered_binaries)
         execution_environment = dicts.add(
             execution_environment,
             _get_coverage_execution_environment(
                 ctx,
-                depset(transitive = transitive_covered_binaries),
+                covered_binaries,
             ),
         )
 
-        transitive_runfiles.extend(transitive_covered_binaries)
+        transitive_runfiles.append(covered_binaries)
         transitive_runfiles.extend(transitive_coverage_files)
 
         transitive_runfiles.append(ctx.attr._gcov.files)
