@@ -28,7 +28,7 @@ load("@build_bazel_rules_apple//apple:providers.bzl",
 def _saver_impl(ctx):
   infile = ctx.attr.bundle_version[AppleBundleVersionInfo].version_file
   outfile = ctx.outputs.version_file
-  ctx.action(
+  ctx.actions.run_shell(
       inputs=[infile],
       outputs=[outfile],
       command="cp %s %s" % (infile.path, outfile.path),
