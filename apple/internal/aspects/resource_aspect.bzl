@@ -26,25 +26,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-
-# List of native resource attributes to use to collect by default. This list should dissapear in the
-# long term; objc_library will remove the resource specific attributes and the native rules (that
-# have these attributes) will dissapear. The new resource rules will either have specific attributes
-# or use data, but in any of those cases, this list won't be used as if there are specific
-# attributes, we will not merge them to split them again.
-_NATIVE_RESOURCE_ATTRS = [
-    "asset_catalogs",
-    "data",
-    "datamodels",
-    "resources",
-    "storyboards",
-    "strings",
-    "xibs",
-]
 
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
@@ -62,19 +43,12 @@ def _apple_resource_aspect_impl(target, ctx):
     owner = None
 
     if ctx.rule.kind == "objc_library":
-        collect_args["res_attrs"] = _NATIVE_RESOURCE_ATTRS
+        collect_args["res_attrs"] = ["data"]
 
         # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
         # treats objc_library targets without sources as resource aggregators.
         if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
-
-        if hasattr(ctx.rule.attr, "bundles"):
-            # Collect objc_library's bundles dependencies and propagate them.
-            providers.extend([
-                x[AppleResourceInfo]
-                for x in ctx.rule.attr.bundles
-            ])
 
     elif ctx.rule.kind == "swift_library":
         bucketize_args["swift_module"] = target[SwiftInfo].module_name
@@ -106,31 +80,6 @@ def _apple_resource_aspect_impl(target, ctx):
         providers.append(
             resources.bucketize(files, owner = owner, **bucketize_args),
         )
-
-    # If the target has structured_resources, we need to process them with a different
-    # parent_dir_param
-    if hasattr(ctx.rule.attr, "structured_resources"):
-        if ctx.rule.attr.structured_resources:
-            # TODO(kaipi): Validate that structured_resources doesn't have processable resources,
-            # e.g. we shouldn't accept xib files that should be compiled before bundling.
-            structured_files = resources.collect(
-                ctx.rule.attr,
-                res_attrs = ["structured_resources"],
-            )
-
-            # Avoid processing PNG files that are referenced through the structured_resources
-            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-            providers.append(
-                resources.bucketize(
-                    structured_files,
-                    owner = owner,
-                    parent_dir_param = partial.make(
-                        resources.structured_resources_parent_dir,
-                        parent_dir = None,
-                    ),
-                    avoid_buckets = ["pngs"],
-                ),
-            )
 
     # Get the providers from dependencies.
     for attr in ["deps", "data"]:
