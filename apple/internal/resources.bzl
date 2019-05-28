@@ -98,7 +98,7 @@ def _bucketize(
         swift_module = None,
         owner = None,
         parent_dir_param = None,
-        avoid_buckets = None):
+        allowed_buckets = None):
     """Separates the given resources into resource bucket types.
 
     This method takes a list of resources and constructs a tuple object for each, placing it inside
@@ -126,8 +126,9 @@ def _bucketize(
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
-        avoid_buckets: List of buckets to avoid when bucketing. Used to mark certain file types to
-            avoid being processed, as they will fall into the "unprocessed" bucket.
+        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
+            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
+            means all buckets are allowed.
 
     Returns:
         A AppleResourceInfo provider with resources bucketized according to type.
@@ -137,9 +138,9 @@ def _bucketize(
     owner_depset = None
 
     # Transform the list of buckets to avoid into a set for faster lookup.
-    avoid_bucket_set = {}
-    if avoid_buckets:
-        avoid_bucket_set = {k: None for k in avoid_buckets}
+    allowed_bucket_set = {}
+    if allowed_buckets:
+        allowed_bucket_set = {k: None for k in allowed_buckets}
 
     if owner:
         # By using one depset reference, we can save memory for the cases where multiple resources
@@ -161,60 +162,46 @@ def _bucketize(
             lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
+        resource_swift_module = None
+        resource_depset = depset([resource])
+
         # For each type of resource, place in appropriate bucket.
         if resource_short_path.endswith(".strings"):
-            buckets.setdefault(
-                "strings",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "strings"
         elif resource_short_path.endswith(".storyboard"):
-            buckets.setdefault(
-                "storyboards",
-                default = [],
-            ).append((parent, swift_module, depset(direct = [resource])))
+            bucket_name = "storyboards"
+            resource_swift_module = swift_module
         elif resource_short_path.endswith(".xib"):
-            buckets.setdefault(
-                "xibs",
-                default = [],
-            ).append((parent, swift_module, depset(direct = [resource])))
+            bucket_name = "xibs"
+            resource_swift_module = swift_module
         elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
-            buckets.setdefault(
-                "asset_catalogs",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "asset_catalogs"
         elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
-            buckets.setdefault(
-                "datamodels",
-                default = [],
-            ).append((parent, swift_module, depset(direct = [resource])))
+            bucket_name = "datamodels"
+            resource_swift_module = swift_module
         elif ".atlas" in resource_short_path:
-            buckets.setdefault(
-                "texture_atlases",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
-        elif not "pngs" in avoid_bucket_set and resource_short_path.endswith(".png"):
-            # Process standalone pngs last so that special resource types that use png can be
+            bucket_name = "texture_atlases"
+        elif resource_short_path.endswith(".png"):
+            # Process standalone pngs after asset_catalogs and texture_atlases so the latter can
             # bucketed correctly.
-
-            buckets.setdefault(
-                "pngs",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "pngs"
         elif resource_short_path.endswith(".plist"):
-            buckets.setdefault(
-                "plists",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "plists"
         elif resource_short_path.endswith(".mlmodel"):
-            buckets.setdefault(
-                "mlmodels",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "mlmodels"
         else:
-            buckets.setdefault(
-                "unprocessed",
-                default = [],
-            ).append((parent, None, depset(direct = [resource])))
+            bucket_name = "unprocessed"
+
+        # If the allowed bucket list is not empty, and the bucket is not allowed, change the bucket
+        # to unprocessed instead.
+        if allowed_bucket_set and bucket_name not in allowed_bucket_set:
+            bucket_name = "unprocessed"
+            resource_swift_module = None
+
+        buckets.setdefault(
+            bucket_name,
+            default = [],
+        ).append((parent, resource_swift_module, resource_depset))
 
     return AppleResourceInfo(
         owners = owners,

@@ -130,7 +130,7 @@ def _apple_resource_bundle_impl(ctx):
                     resources.structured_resources_parent_dir,
                     parent_dir = bundle_name,
                 ),
-                avoid_buckets = ["pngs"],
+                allowed_buckets = ["strings", "plists"],
             ),
         )
 
@@ -246,7 +246,7 @@ def _apple_resource_group_impl(ctx):
                 parent_dir_param = partial.make(
                     resources.structured_resources_parent_dir,
                 ),
-                avoid_buckets = ["pngs"],
+                allowed_buckets = ["strings", "plists"],
             ),
         )
 
