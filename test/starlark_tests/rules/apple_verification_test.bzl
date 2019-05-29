@@ -55,7 +55,7 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:ios_multi_cpus": "arm64,armv7",
             "//command_line_option:macos_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+            "//command_line_option:watchos_cpus": "armv7k",
         }
 
 apple_verification_transition = transition(
@@ -171,7 +171,7 @@ variables to exist:
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
         ),
         "_whitelist_function_transition": attr.label(
-            default = "//tools/whitelists/function_transition_whitelist",
+            default = "@//tools/whitelists/function_transition_whitelist",
         ),
     }),
     test = True,
