@@ -247,7 +247,8 @@ def _main(control_path, output_path):
     sys.exit(1)
 
   with open(output_path, 'w') as output_file:
-    json.dump(version_data, output_file)
+    # Sort the keys to get deterministic ordering of the output JSON.
+    json.dump(version_data, output_file, sort_keys=True)
 
 
 if __name__ == '__main__':
