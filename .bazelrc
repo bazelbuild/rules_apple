@@ -24,3 +24,13 @@ build --nocheck_visibility
 # .bazelci/presubmit.yml).
 # TODO(b/133755914): Remove this flag once it is flipped to true by default.
 build --experimental_starlark_config_transitions
+
+# Disable the Swift compilation worker when running integration tests, since it
+# requires the protobuf dependency, and because Bazel dependency management is
+# awful/non-existent, we can get away with not declaring protobuf's transitive
+# dependencies. This is very much a hack and leaves rules_apple (and dependents)
+# in a very brittle state, but until Bazel provides a better dependency management
+# solution, this is the path of least resistance to get integration tests working.
+# TODO(b/134144964): Formality to track removing this, but we all know it'll be
+# here forever.
+build --define=RULES_SWIFT_BUILD_DUMMY_WORKER=1
