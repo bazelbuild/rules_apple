@@ -18,9 +18,15 @@ tasks:
     name: "Last Green Bazel"
     platform: macos
     bazel: last_green
+    build_flags:
+    # Stop gap for https://github.com/bazelbuild/rules_apple/issues/456
+    - "--host_force_python=PY2"
     build_targets:
     - "tools/..."
     - "test/..."
+    test_flags:
+    # Stop gap
+    - "--host_force_python=PY2"
     test_targets:
     - "tools/..."
     - "test/..."
