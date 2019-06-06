@@ -382,6 +382,10 @@ function do_action() {
       # See the comment in rules_swift/tools/worker/BUILD for why this
       # workaround is necessary.
       "--define=RULES_SWIFT_BUILD_DUMMY_WORKER=1"
+      # Stop gap for https://github.com/bazelbuild/rules_apple/issues/456
+      # Really only needed (at the moment) for the 'last green' bazel
+      # build, but no good way to inject for just that case.
+      "--host_force_python=PY2"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
