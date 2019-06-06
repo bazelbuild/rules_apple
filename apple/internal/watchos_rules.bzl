@@ -15,6 +15,10 @@
 """Implementation of watchOS rules."""
 
 load(
+    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "xcode_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -130,7 +134,19 @@ def _watchos_extension_impl(ctx):
         "strings",
     ]
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
+    # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
+    # versions.
+    # TODO(min(Xcode) >= 11): Remove this when the minimum supported Xcode is Xcode 11.
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
+        extra_linkopts = ["-e", "_WKExtensionMain"]
+    else:
+        extra_linkopts = []
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
