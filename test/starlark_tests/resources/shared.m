@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-static int unused = 1;
+static int unused __attribute__((unused,used)) = 1;
