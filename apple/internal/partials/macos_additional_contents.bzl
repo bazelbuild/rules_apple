@@ -62,7 +62,7 @@ def _macos_additional_contents_partial_impl(ctx):
                 ),
             )
         else:
-            for file in target.files:
+            for file in target.files.to_list():
                 package_relative = bundle_paths.owner_relative_path(file)
                 nested_path = paths.dirname(package_relative).rstrip("/")
                 bundle_files.append(
