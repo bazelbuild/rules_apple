@@ -161,8 +161,8 @@ def _static_framework_header_modulemap_partial_impl(ctx, hdrs, umbrella_header, 
             modulemap_file,
             bundle_name,
             umbrella_header_name,
-            sorted(sdk_dylibs and sdk_dylibs.to_list()),
-            sorted(sdk_frameworks and sdk_frameworks.to_list()),
+            sorted(sdk_dylibs.to_list()) if sdk_dylibs else [],
+            sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
         )
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
 
