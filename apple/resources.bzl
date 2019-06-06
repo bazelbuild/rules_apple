@@ -15,10 +15,19 @@
 """Rules related to Apple resources and resource bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:resource_rules.bzl",
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_bundle_import.bzl",
     _apple_bundle_import = "apple_bundle_import",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_ml_library.bzl",
     _apple_core_ml_library = "apple_core_ml_library",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
     _apple_resource_bundle = "apple_resource_bundle",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
 
