@@ -258,25 +258,15 @@ ios_ui_test(
 EOF
 }
 
-function do_test() {
-  declare -a bazel_options=(
-    "--test_output=all"
-    "--verbose_failures"
-    "--ios_minimum_os=8.0"
-    "--spawn_strategy=local"
-  )
-  if [[ -n "${EXTRA_BUILD_OPTIONS[@]-}" ]]; then
-    bazel_options+=( "${EXTRA_BUILD_OPTIONS[@]}" )
-  fi
-  bazel_options+=( "$@" )
-  bazel test "${bazel_options[@]}" > "$TEST_log" 2>&1
+function do_ios_test() {
+  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=8.0" "$@"
 }
 
 function test_ios_ui_test_pass() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_test //ios:PassingUiTest >"$TEST_log" 2>&1 || fail "should pass"
+  do_ios_test //ios:PassingUiTest || fail "should pass"
 
   expect_log "Test Suite 'PassingUiTest' passed"
   expect_log "Test Suite 'PassingUiTest.xctest' passed"
@@ -287,7 +277,7 @@ function test_ios_ui_test_fail() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  ! do_test //ios:FailingUiTest >"$TEST_log" 2>&1 || fail "should fail"
+  ! do_ios_test //ios:FailingUiTest || fail "should fail"
 
   expect_log "Test Suite 'FailingUiTest' failed"
   expect_log "Test Suite 'FailingUiTest.xctest' failed"
@@ -298,7 +288,7 @@ function test_ios_ui_test_with_filter() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiTest >"$TEST_log" 2>&1 || fail "should pass"
+  do_ios_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiTest || fail "should pass"
 
   expect_log "Test Case '-\[PassingUiTest testPass2\]' passed"
   expect_log "Test Suite 'PassingUiTest' passed"
@@ -310,7 +300,7 @@ function test_ios_ui_test_with_env() {
   create_sim_runners
   create_ios_app
   create_ios_ui_envtest ENV_KEY1 ENV_VALUE2
-  do_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUiTest >"$TEST_log" 2>&1 || fail "should pass"
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUiTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUiTest' passed"
 }
