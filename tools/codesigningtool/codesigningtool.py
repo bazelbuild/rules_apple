@@ -22,6 +22,8 @@ import re
 import subprocess
 import sys
 
+_PY3 = sys.version_info[0] == 3
+
 
 # Regex with benign codesign messages that can be safely ignored.
 # It matches the following bening outputs:
@@ -42,6 +44,18 @@ def _check_output(args, inputstr=None):
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE)
   stdout, stderr = proc.communicate(input=inputstr)
+
+  # Only decode the output for Py3 so that the output type matches
+  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
+  # in Py2.
+  if _PY3:
+    # The invoked tools don't specify what encoding they use, so for lack of a
+    # better option, just use utf8 with error replacement. This will replace
+    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
+    # from raising.
+    stdout = stdout.decode('utf8', 'replace')
+    stderr = stderr.decode('utf8', 'replace')
+
   if proc.returncode != 0:
     # print the stdout and stderr, as the exception won't print it.
     print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
@@ -79,7 +93,7 @@ def _certificate_fingerprint(identity):
       "-fingerprint",
   ],
                                       inputstr=identity)
-  fingerprint = fingerprint.decode("utf-8").strip()
+  fingerprint = fingerprint.strip()
   fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
   fingerprint = fingerprint.replace(":", "")
   return fingerprint
@@ -101,7 +115,7 @@ def _find_codesign_identities(identity=None):
       "-p",
       "codesigning",
   ])
-  output = output.decode("utf-8").strip()
+  output = output.strip()
   pattern = "(?P<hash>[A-F0-9]{40})"
   if identity:
     pattern += r'\s+"(?P<full_name>.*?{}.*?)"'.format(re.escape(identity))
