@@ -130,7 +130,7 @@ def _find_codesign_identity(mobileprovision):
 def _filter_codesign_output(codesign_output):
   """Filters the codesign output which can be extra verbose."""
   filtered_lines = []
-  for line in codesign_output.split("\n"):
+  for line in codesign_output.splitlines():
     if line and not _BENIGN_CODESIGN_OUTPUT_REGEX.search(line):
       filtered_lines.append(line)
   return "\n".join(filtered_lines)
