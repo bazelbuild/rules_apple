@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,22 +116,21 @@ class VersionToolTest(unittest.TestCase):
     }, {})
 
   def test_build_label_substitution_from_fallback_label(self):
-    self._assert_versiontool_result({
-        'build_info_path': _str_io(
-            "FOO 123"
-        ),
-        'fallback_build_label': 'app_99.99_RC99',
-        'build_label_pattern': 'app_{version}_RC{candidate}',
-        'build_version_pattern': '{version}.{candidate}',
-        'capture_groups': {
-            'version': r'\d+\.\d+',
-            'candidate': r'\d+',
-        },
-        'short_version_string_pattern': '{version}',
-    }, {
-        'build_version': '99.99.99',
-        'short_version_string': '99.99',
-    })
+    self._assert_versiontool_result(
+        {
+            'build_info_path': _str_io('FOO 123'),
+            'fallback_build_label': 'app_99.99_RC99',
+            'build_label_pattern': 'app_{version}_RC{candidate}',
+            'build_version_pattern': '{version}.{candidate}',
+            'capture_groups': {
+                'version': r'\d+\.\d+',
+                'candidate': r'\d+',
+            },
+            'short_version_string_pattern': '{version}',
+        }, {
+            'build_version': '99.99.99',
+            'short_version_string': '99.99',
+        })
 
   def test_build_label_substitution_uses_file_over_fallback_label(self):
     self._assert_versiontool_result({
@@ -168,9 +168,7 @@ class VersionToolTest(unittest.TestCase):
   def test_raises_if_fallback_label_is_present_but_does_not_match(self):
     with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
-          'build_info_path': _str_io(
-              "FOO 123"
-          ),
+          'build_info_path': _str_io('FOO 123'),
           'fallback_build_label': 'app_3.1_RC41',
           'build_label_pattern': 'app_{version}_RC{candidate}',
           'build_version_pattern': '{version}.{candidate}',

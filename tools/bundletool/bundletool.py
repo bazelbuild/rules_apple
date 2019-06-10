@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,8 +53,8 @@ following keys:
       Apple at the root of the archive as well as within the bundle itself.
 """
 
-import json
 import hashlib
+import json
 import os
 import sys
 import zipfile

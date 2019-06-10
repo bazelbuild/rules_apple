@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # coding=utf-8
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
@@ -16,14 +17,15 @@
 """Tests for PlistTool."""
 
 from __future__ import absolute_import
+
 import datetime
+import io
 import json
 import os
 import plistlib
 import random
 import re
 import tempfile
-import io
 import unittest
 
 from build_bazel_rules_apple.tools.plisttool import plisttool
@@ -342,7 +344,7 @@ class PlistToolGetWithKeyPath(unittest.TestCase):
     self.assertEqual(plisttool.GetWithKeyPath(d, ['b']), 2)
     self.assertEqual(plisttool.GetWithKeyPath(d, [3]), 'c')
     self.assertEqual(plisttool.GetWithKeyPath(d, ['list']), ['x', 'y'])
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict']), {1:2, 3:4})
+    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict']), {1: 2, 3: 4})
 
   def test_two_level(self):
     d = { 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }

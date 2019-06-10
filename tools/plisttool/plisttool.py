@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -1175,16 +1176,15 @@ class EntitlementsTask(PlistToolTask):
 
     aps_environment = entitlements.get('aps-environment')
     if aps_environment and profile_entitlements:
-        profile_aps_environment = profile_entitlements.get('aps-environment')
-        if not profile_aps_environment:
-          self._report(
-              ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target,
-              **report_extras)
-        elif aps_environment != profile_aps_environment:
-          self._report(
-              ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
-                self.target, aps_environment, profile_aps_environment),
-              **report_extras)
+      profile_aps_environment = profile_entitlements.get('aps-environment')
+      if not profile_aps_environment:
+        self._report(ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target,
+                     **report_extras)
+      elif aps_environment != profile_aps_environment:
+        self._report(
+            ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH %
+            (self.target, aps_environment, profile_aps_environment),
+            **report_extras)
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
@@ -1315,9 +1315,9 @@ class EntitlementsTask(PlistToolTask):
 
     for src_grp in src_grps:
       if '*' in src_grp and not allow_wildcards_in_entitlements:
-       self._report(
-          ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp),
-          **report_extras)
+        self._report(
+            ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp),
+            **report_extras)
 
       if not self._does_id_match_list(src_grp, profile_grps,
           allowed_supports_wildcards=supports_wildcards):

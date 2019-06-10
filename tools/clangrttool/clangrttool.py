@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +28,9 @@ import sys
 import zipfile
 
 # Third party imports
-from macholib.MachO import MachO
+
 from macholib import mach_o
+from macholib.MachO import MachO
 from macholib.ptypes import sizeof
 
 
@@ -150,4 +152,3 @@ if __name__ == "__main__":
     # Log tools errors cleanly for build output.
     sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
-

@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,9 +81,10 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     A tuple of the filtered stdout and strerr.
   """
 
-  spurious_patterns = list(map(re.compile, [
-      r"WARNING: Unhandled destination metrics: \(null\)"
-  ]))
+  spurious_patterns = [
+      re.compile(x)
+      for x in [r"WARNING: Unhandled destination metrics: \(null\)"]
+  ]
 
   def is_spurious_message(line):
     for pattern in spurious_patterns:
@@ -151,11 +153,14 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   excluded_sections = ["com.apple.actool.compilation-results"]
 
-  spurious_patterns = list(map(re.compile, [
-      r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
-      r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app icons"
-      r" only apply to iPad apps targeting releases of iOS prior to 10\.0\.",
-  ]))
+  spurious_patterns = [
+      re.compile(x) for x in [
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app "
+          r"icons only apply to iPad apps targeting releases of iOS prior to "
+          r"10\.0\.",
+      ]
+  ]
 
   def is_spurious_message(line):
     for pattern in spurious_patterns:

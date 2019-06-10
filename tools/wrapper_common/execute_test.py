@@ -1,3 +1,4 @@
+# Lint as: python2, python3
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +19,11 @@ from __future__ import division
 from __future__ import print_function
 
 import contextlib
-import sys
-import os
-import unittest
 import io
+import os
+import sys
+import unittest
+
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
 try:
@@ -34,9 +36,10 @@ _PY3 = sys.version_info[0] == 3
 _INVALID_UTF8 = b'\xa0\xa1'
 
 def _cmd_filter(cmd_result, stdout, stderr):
-    # Concat the input to a native string literal, to make sure
-    # it doesn't trigger a unicode encode/decode error
-    return stdout + ' filtered', stderr + ' filtered'
+  # Concat the input to a native string literal, to make sure
+  # it doesn't trigger a unicode encode/decode error
+  return stdout + ' filtered', stderr + ' filtered'
+
 
 class ExecuteTest(unittest.TestCase):
 
