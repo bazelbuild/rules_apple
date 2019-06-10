@@ -34,11 +34,3 @@ build --experimental_starlark_config_transitions
 # TODO(b/134144964): Formality to track removing this, but we all know it'll be
 # here forever.
 build --define=RULES_SWIFT_BUILD_DUMMY_WORKER=1
-
-# Stop gap for https://github.com/bazelbuild/rules_apple/issues/456
-# This sucks, this is really only wanted when testing against the head bazel,
-# that could be hooked within our config when making that config, but then
-# things still fail on https://buildkite.com/bazel/bazel-at-head-plus-downstream
-# because there is no way to add the flag there so it has to be blindly add to
-# all configs here, hoping it doesn't have any side effects.
-build "--host_force_python=PY2"
