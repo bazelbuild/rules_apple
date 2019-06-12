@@ -287,6 +287,13 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
       </td>
     </tr>
     <tr>
+      <td><code>DEVELOPMENT_LANGUAGE</code></td>
+      <td>
+        <p>This is currently hardcoded to <code>en</code> if exists. This is
+        done to support the default Info.plists come from Xcode.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>EXECUTABLE_NAME</code></td>
       <td>
         <p>This is an alias for the same value as <code>PRODUCT_NAME</code>.
