@@ -180,7 +180,7 @@ EOF
 function test_bundle_id_override() {
   create_common_files
   create_minimal_ios_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:unit_tests.zip" "unit_tests.xctest/Info.plist" \
+  create_dump_plist "//app:unit_tests" "unit_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   do_build ios --ios_minimum_os=9.0 //app:dump_plist || fail "Should build"
@@ -522,10 +522,13 @@ EOF
 @end
 EOF
 
-  do_build ios //app:test || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
+
+  do_build ios //app:test || fail "Should build"
+
   assert_zip_not_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 
@@ -619,10 +622,13 @@ EOF
 @end
 EOF
 
-  do_build ios //app:test || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
+
+  do_build ios //app:test || fail "Should build"
+
   assert_zip_not_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
 }

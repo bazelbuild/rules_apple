@@ -347,7 +347,7 @@ function test_app_icons_and_launch_images() {
   create_common_files
 
   # For brevity, we only check a subset of the app icon and launch image keys.
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 \
       UILaunchImages:0:UILaunchImageName \
       UILaunchImages:0:UILaunchImageOrientation \
@@ -367,7 +367,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:dump_plist || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   # Note that the names have been transformed by actool so they are no longer
   # the original filename.
@@ -375,6 +375,8 @@ EOF
       "Payload/app.app/app_icon29x29@2x.png"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/launch_image-800-Portrait-736h@3x.png"
+
+  do_build ios //app:dump_plist || fail "Should build"
 
   assert_equals "app_icon29x29" \
       "$(cat "test-genfiles/app/CFBundleIcons.CFBundlePrimaryIcon.CFBundleIconFiles.0")"
@@ -390,7 +392,7 @@ EOF
 # the bundler inserts the correct key/value into Info.plist.
 function test_launch_storyboard() {
   create_common_files
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       UILaunchStoryboardName
 
   cat >> app/BUILD <<EOF
@@ -406,10 +408,13 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:dump_plist || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/launch_screen_ios.storyboardc/"
+
+  do_build ios //app:dump_plist || fail "Should build"
+
   assert_equals "launch_screen_ios" \
       "$(cat "test-genfiles/app/UILaunchStoryboardName")"
 }
@@ -532,7 +537,7 @@ ios_application(
 )
 EOF
 
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/bundle_library_ios.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName TargetName
   do_build ios //app:dump_plist || fail "Should build"
@@ -545,6 +550,8 @@ EOF
       "$(cat "test-genfiles/app/CFBundleName")"
   assert_equals "bundle_library_ios" \
       "$(cat "test-genfiles/app/TargetName")"
+
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/bundle_library_ios.bundle/Assets.car"

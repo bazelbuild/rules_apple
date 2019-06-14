@@ -1052,7 +1052,7 @@ void doStuff() {
 }
 EOF
 
-  create_dump_plist "//app:app.ipa" \
+  create_dump_plist "//app:app" \
       "Payload/app.app/Frameworks/framework.framework/simple_bundle_library.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build ios //app:dump_plist || fail "Should build"
@@ -1063,6 +1063,8 @@ EOF
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "simple_bundle_library.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
+
+  do_build ios //app:app || fail "Should build"
 
   # Assert that the framework contains the bundled files...
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -1584,18 +1586,17 @@ void frameworkDependent() {
   NSLog(@"frameworkDependent() called");
 }
 EOF
-  create_dump_plist --suffix app "//app:app.ipa" \
+  create_dump_plist --suffix app "//app:app" \
       "Payload/app.app/Info.plist" \
       CFBundleIdentifier CommonKey
-  create_dump_plist --suffix framework "//app:app.ipa" \
+  create_dump_plist --suffix framework "//app:app" \
       "Payload/app.app/Frameworks/framework.framework/Info.plist" \
       CFBundleIdentifier CommonKey
-  create_dump_plist --suffix depframework "//app:app.ipa" \
+  create_dump_plist --suffix depframework "//app:app" \
       "Payload/app.app/Frameworks/depframework.framework/Info.plist" \
       CFBundleIdentifier CommonKey
 
-  do_build ios //app:dump_plist_app //app:dump_plist_framework \
-      //app:dump_plist_depframework || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Images/foo.png"
@@ -1613,21 +1614,28 @@ EOF
   assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/app" "frameworkDependent"
 
+  do_build ios //app:dump_plist_app || fail "Should build"
+
   # They all have Info.plists with the right bundle ids (even though the
   # frameworks share a comment infoplists entry for it).
-  assert_equals "my.bundle.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_app")"
-  assert_equals "my.framework.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_framework")"
-  assert_equals "my.depframework.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_depframework")"
-
   # They also all share a common file to add a custom key, ensure that
   # isn't duped away because of the overlap.
+  assert_equals "my.bundle.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_app")"
   assert_equals "CommonValue" \
       "$(cat "test-genfiles/app/CommonKey_app")"
+
+  do_build ios //app:dump_plist_framework || fail "Should build"
+
+  assert_equals "my.framework.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_framework")"
   assert_equals "CommonValue" \
       "$(cat "test-genfiles/app/CommonKey_framework")"
+
+  do_build ios //app:dump_plist_depframework || fail "Should build"
+
+  assert_equals "my.depframework.id" \
+      "$(cat "test-genfiles/app/CFBundleIdentifier_depframework")"
   assert_equals "CommonValue" \
       "$(cat "test-genfiles/app/CommonKey_depframework")"
 }

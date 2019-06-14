@@ -367,7 +367,7 @@ EOF
 
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
-    create_dump_codesign "//app:app.ipa" "Payload/app.app" -d --entitlements :-
+    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
     readonly FILE_TO_CHECK="test-genfiles/app/codesign_output"
@@ -723,7 +723,7 @@ apple_bundle_version(
 )
 EOF
 
-  create_dump_plist "//app:app.ipa" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
       CFBundleVersion \
       CFBundleShortVersionString
   do_build ios //app:dump_plist || fail "Should build"

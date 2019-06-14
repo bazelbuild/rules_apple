@@ -164,7 +164,7 @@ EOF
 function test_bundle_id_override() {
   create_common_files
   create_minimal_macos_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:ui_tests.zip" "ui_tests.xctest/Contents/Info.plist" \
+  create_dump_plist "//app:ui_tests" "ui_tests.xctest/Contents/Info.plist" \
       CFBundleIdentifier
 
   do_build macos //app:dump_plist || fail "Should build"

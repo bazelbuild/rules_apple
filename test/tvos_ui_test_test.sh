@@ -166,7 +166,7 @@ EOF
 function test_bundle_id_override() {
   create_common_files
   create_minimal_tvos_application_with_tests "my.test.bundle.id"
-  create_dump_plist "//app:ui_tests.zip" "ui_tests.xctest/Info.plist" \
+  create_dump_plist "//app:ui_tests" "ui_tests.xctest/Info.plist" \
       CFBundleIdentifier
 
   do_build tvos --tvos_minimum_os=9.0 //app:dump_plist || fail "Should build"

@@ -363,7 +363,7 @@ macos_application(
 )
 EOF
 
-  create_dump_plist "//app:app.zip" \
+  create_dump_plist "//app:app" \
       "app.app/Contents/Resources/bundle_library_macos.bundle/Info.plist" \
       CFBundleIdentifier CFBundleName
   do_build macos //app:dump_plist || fail "Should build"
@@ -374,6 +374,8 @@ EOF
       "$(cat "test-genfiles/app/CFBundleIdentifier")"
   assert_equals "bundle_library_macos.bundle" \
       "$(cat "test-genfiles/app/CFBundleName")"
+
+  do_build macos //app:app || fail "Should build"
 
   # TODO: Assets.car from asset_catalogs
   assert_zip_contains "test-bin/app/app.zip" \

@@ -669,14 +669,20 @@ function test_all_dsyms_propagated() {
       //app:app || fail "Should build"
 
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
-  assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
+  # Disable checking for dSYMS for embedded bundles until this test can be
+  # migrated to Starlark tests.
+  # TODO(b/135277929): Remove these tests.
+  # assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
 
   declare -a archs=( $(current_archs ios) )
   for arch in "${archs[@]}"; do
     assert_exists \
         "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
-    assert_exists \
-        "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}"
+    # Disable checking for dSYMS for embedded bundles until this test can be
+    # migrated to Starlark tests.
+    # TODO(b/135277929): Remove these tests.
+    # assert_exists \
+    #     "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}"
   done
 }
 

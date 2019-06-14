@@ -134,20 +134,20 @@ EOF
   do_build ios //app:app || fail "Should build"
 
   # Verify framework has resources
-  assert_assets_contains "test-bin/app/framework.zip" \
-      "framework.framework/Assets.car" "star.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/nonlocalized.plist"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/sample.png"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/basic.bundle/basic_bundle.txt"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/resource_only_lib.txt"
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/gen_file.txt"
+  assert_assets_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/Assets.car" "star.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/nonlocalized.plist"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/nonlocalized.strings"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/sample.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/basic.bundle/basic_bundle.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/resource_only_lib.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/gen_file.txt"
 
   # Because app_lib directly references these assets, smart dedupe ensures that
   # they are present in the same bundle as the binary that has app_lib, which
@@ -249,8 +249,8 @@ EOF
   do_build ios //app:app || fail "Should build"
 
   # Verify that the resource is in the framework.
-  assert_zip_contains "test-bin/app/framework.zip" \
-      "framework.framework/resource_only_lib.txt"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/framework.framework/resource_only_lib.txt"
 
   # Even though there is no app specific library that declares ownership of
   # this file (shared_lib is also present in the framework), this file should be
