@@ -72,7 +72,10 @@ apple_verification_transition = transition(
 
 def _apple_verification_test_impl(ctx):
     """Implementation of the apple_verification_test rule."""
-    bundle_info = ctx.split_attr.target_under_test.values()[0][AppleBundleInfo]
+
+    # Should be using split_attr instead, but it has been disabled due to
+    # https://github.com/bazelbuild/bazel/issues/8633
+    bundle_info = ctx.attr.target_under_test[0][AppleBundleInfo]
     archive = bundle_info.archive
     verifier_script = ctx.file.verifier_script
 
