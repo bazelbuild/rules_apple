@@ -63,8 +63,13 @@ def _classify_framework_imports(framework_imports):
             # This matches /Headers/ and /PrivateHeaders/
             header_imports.append(file)
             continue
-        if "/Modules/" in file_short_path:
-            module_map_imports.append(file)
+        if file_short_path.endswith(".swiftmodule") or file_short_path.endswith(".swiftinterface"):
+            # Add Swift's module files to header_imports so that they are correctly included in the build
+            # by Bazel but they aren't processed in any way
+            header_imports.append(file)
+            continue
+        if file_short_path.endswith(".swiftdoc"):
+            # Ignore swiftdoc files, they don't matter in the build, only for IDEs
             continue
         bundling_imports.append(file)
 
