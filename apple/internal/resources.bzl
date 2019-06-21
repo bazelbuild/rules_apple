@@ -330,7 +330,9 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
         return providers[0]
 
     buckets = {}
-    owners = {}
+
+    # owners is a map of resource paths to a list of depsets of transitive owners.
+    owners_lists = {}
     default_owner_depset = None
     if default_owner:
         # By using one depset reference, we can save memory for the cases where multiple resources
@@ -346,33 +348,30 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
                 default = [],
             ).extend(getattr(provider, field))
         for resource_path, resource_owners in provider.owners.items():
-            collected_owners = owners.get(resource_path)
-            transitive = []
-            if collected_owners:
-                transitive.append(collected_owners)
+            owners_list = owners_lists.setdefault(resource_path, [])
 
             # If there is no owner marked for this resource, use the default_owner as an owner, if
             # it exists.
             if resource_owners:
-                transitive.append(resource_owners)
-            elif default_owner_depset:
-                transitive.append(default_owner_depset)
+                owners_list.append(resource_owners)
+            elif default_owner:
+                owners_list.append(default_owner_depset)
             elif validate_all_resources_owned:
                 fail(
                     "The given providers have a resource that doesn't have an owner, and " +
                     "validate_all_resources_owned was set. This is most likely a bug in " +
                     "rules_apple, please file a bug with reproduction steps.",
                 )
-            if transitive:
-                # If there is only one transitive depset, avoid creating a new depset, just
-                # propagate it.
-                if len(transitive) == 1:
-                    final_depset = transitive[0]
-                else:
-                    final_depset = depset(transitive = transitive)
-            else:
-                final_depset = None
-            owners[resource_path] = final_depset
+
+    # owners is a map of resource paths to a depset of owner identifiers.
+    owners = {}
+    for resource_path, owner_list in owners_lists.items():
+        if len(owner_list) == 1:
+            # If there is only one transitive depset, avoid creating a new depset, just
+            # propagate it.
+            owners[resource_path] = owner_list[0]
+        else:
+            owners[resource_path] = depset(transitive = owner_list)
 
     return AppleResourceInfo(
         owners = owners,
