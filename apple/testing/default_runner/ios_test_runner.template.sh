@@ -23,6 +23,38 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
+# Returns a space-separated list of simulator IDs matching the provided name
+# prefix.
+# Name prefix is the first parameter.
+# Example: get_simulator_ids "Bazel" will return space-separated list of IDs
+# for all simulators that begin with "Bazel".
+function get_simulator_ids() {
+  SED_CMD="/${1}/s/.* (\\(.*\\)) (.*)/\\1/p"
+  # sort will dedup and xargs will convert output to space-separated values.
+  xcrun simctl list devices | sed -n "${SED_CMD}"
+}
+
+# Cleans up the simulators which are created more than 1 day and match the
+# provided name prefix.
+# Name prefix is the first parameter.
+function cleanup_bazel_sims() {
+  USERID=$(whoami)
+  for SIM_ID in $(get_simulator_ids ${1})
+  do
+    SIM_DIR="/Users/${USERID}/Library/Developer/CoreSimulator/Devices/${SIM_ID}"
+    echo "${SIM_DIR}"
+    if [[ -n $(find ${SIM_DIR} -type d -maxdepth 0 -ctime +1) ]]; then
+      xcrun simctl delete ${SIM_ID} || true
+      rm -rf "/Users/${USERID}/Library/Logs/CoreSimulator/${SIM_ID}"
+    fi
+  done
+}
+
+# Perform simulator cleanup in a forked process so that it's not counted
+# towards the overall test execution time.
+SIM_NAME_PREFIX="Bazel"
+cleanup_bazel_sims "${SIM_NAME_PREFIX}" > /dev/null 2>&1 &
+
 # Enable verbose output in test runner.
 runner_flags=("-v")
 
@@ -106,6 +138,7 @@ cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   simulator_test
   "--device_type=%(device_type)s"
+  "--new_simulator_name_prefix=$SIM_NAME_PREFIX"
   "--os_version=%(os_version)s"
   "$@")
 "${cmd[@]}" 2>&1
