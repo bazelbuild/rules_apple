@@ -26,12 +26,14 @@ replacing the version number in the `tag` attribute with the version of the
 rules you wish to depend on:
 
 ```python
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-git_repository(
+http_archive(
     name = "build_bazel_rules_apple",
-    remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.14.0",
+    sha256 = "6efdde60c91724a2be7f89b0c0a64f01138a45e63ba5add2dca2645d981d23a1",
+    urls = [
+        "https://github.com/bazelbuild/rules_apple/releases/download/0.17.2/rules_apple.0.17.2.tar.gz",
+    ],
 )
 
 load(
