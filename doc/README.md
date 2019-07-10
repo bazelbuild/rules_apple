@@ -59,7 +59,8 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-tvos.md#tvos_extension">tvos_extension</a></code><br/>
       </td>
       <td valign="top">
-        Coming soon.
+        <code><a href="rules-tvos.md#tvos_ui_test">tvos_ui_test</a></code><br/>
+        <code><a href="rules-tvos.md#tvos_unit_test">tvos_unit_test</a></code><br/>
       </td>
     </tr>
     <tr>
