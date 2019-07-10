@@ -211,6 +211,12 @@ def _common_binary_linking_attrs(rule_descriptor):
         framework_import_aspect,
         swift_usage_aspect,
     ]
+
+    # TODO(markrowe): j2objc_providers_aspect should be included unconditionally
+    # once it is generally available.
+    if hasattr(apple_common, "j2objc_providers_aspect"):
+        deps_aspects.append(apple_common.j2objc_providers_aspect)
+
     if _is_test_product_type(rule_descriptor.product_type):
         deps_aspects.extend([coverage_files_aspect, test_info_aspect])
 
