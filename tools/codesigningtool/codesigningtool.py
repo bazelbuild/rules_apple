@@ -127,7 +127,7 @@ def _find_codesign_identities(identity=None):
     m = regex.search(line)
     if m:
       groups = m.groupdict()
-      id = groups.get("full_name") or groups["hash"]
+      id = (groups["hash"], groups.get("full_name"))
       ids.append(id)
   return ids
 
@@ -135,10 +135,10 @@ def _find_codesign_identities(identity=None):
 def _find_codesign_identity(mobileprovision):
   """Finds a valid identity on the system given a mobileprovision file."""
   mpf = _parse_mobileprovision_file(mobileprovision)
-  ids_codesign = set(_find_codesign_identities())
+  ids_codesign = dict(_find_codesign_identities())
   for id_mpf in _get_identities_from_provisioning_profile(mpf):
     if id_mpf in ids_codesign:
-      return id_mpf
+      return (id_mpf, ids_codesign[id_mpf])
 
 
 def _filter_codesign_output(codesign_output):
@@ -148,6 +148,21 @@ def _filter_codesign_output(codesign_output):
     if line and not _BENIGN_CODESIGN_OUTPUT_REGEX.search(line):
       filtered_lines.append(line)
   return "\n".join(filtered_lines)
+
+def _sign_flags(identity):
+  """Produce codesign --sign flags for an identity"""
+  if isinstance(identity, tuple):
+    hash_id, name_id = identity
+    # Include both name and hash of the signing identity. The name is for
+    # debuggability, and the hash avoids a codesign error when given an
+    # ambiguous name. The name goes first, the hash overrides the name.
+    flags = []
+    if name_id:
+      flags.extend(["--sign", name_id])
+    flags.extend(["--sign", hash_id])
+    return flags
+  else:
+    return ["--sign", identity]
 
 def main(argv):
   parser = argparse.ArgumentParser(description="codesign wrapper")
@@ -171,12 +186,13 @@ def main(argv):
           file=sys.stderr)
       return -1
   # No identity was found, fail
-  if identity == None:
+  if identity is None:
     print("ERROR: Unable to find an identity on the system matching the "\
         "ones in %s" % args.mobileprovision, file=sys.stderr)
     return 1
-  stdout, stderr = _check_output([args.codesign, "-v", "--sign", identity] +
-                                 codesign_args,)
+  sign_args = _sign_flags(identity)
+  stdout, stderr = _check_output([args.codesign, "-v"] + sign_args
+                                  + codesign_args)
   if stdout:
     filtered_stdout = _filter_codesign_output(stdout)
     if filtered_stdout:
