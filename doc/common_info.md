@@ -46,7 +46,7 @@ you'll need to specify the `--output_groups=+dsyms` flag.
 
 When building for devices, by default the codesigning step will use the first
 codesigning identity present in the given provisioning profile. This should
-accomodate most cases, but there are certain scenarios when the provisioning
+accommodate most cases, but there are certain scenarios when the provisioning
 profile will have more than one allowed signing identity, and developers may
 have different development certificates installed on their devices. For these
 cases you can use the `--ios_signing_cert_name` flag to force the signing
@@ -65,6 +65,7 @@ build --ios_signing_cert_name="iPhone Developer: [CERT OWNER NAME]"
 ```
 
 <!-- End-External -->
+
 <!-- Blocked on b/73547309
 
 ### Sanitizers {#sanitizers}
@@ -280,7 +281,7 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
       <td>
         <p>This is the same value as <code>PRODUCT_NAME</code>, but with the
         an extension appended. If the target supports a
-        <code>bundle_extension</code></p> attribute, that is used. If it does
+        <code>bundle_extension</code> attribute, that is used. If it does
         not, or it is not set, then the Apple default is used based on the
         target's product type (i.e., <code>.app</code>, <code>.appex</code>,
         <code>.bundle</code>, etc.).</p>
