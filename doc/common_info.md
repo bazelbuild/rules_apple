@@ -363,3 +363,48 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
     </tr>
   </tbody>
 </table>
+
+## Tests
+
+### Runfiles location for test data
+
+Most likely, test related resources will be bundled within the `.xctest` bundle
+itself, but there may be use cases where the test resources are not wanted in
+the bundle, but instead are needed in the Bazel runfiles location. These
+resources should be placed into the `data` attribute of the
+`<platform>_unit_test` or `<platform>_ui_test` targets.
+
+Within the tests you can retrieve the runfiles resources through the
+`TEST_SRCDIR` environment variable following this template:
+
+```
+$TEST_SRCDIR/<workspace_name>/<workspace_relative_path_to_resource>
+```
+
+Take for example this `BUILD` file:
+
+```
+# my/package/BUILD
+
+...
+ios_unit_test(
+    name = "MyTest",
+    ...
+    data = ["my_test_resource.txt"],
+    ...
+)
+```
+
+To read this file from, for example, a Swift test, you'd get the path with
+something similar to:
+
+```
+// MyTest.swift
+
+...
+  if let runfilesPath = ProcessInfo.processInfo.environment["TEST_SRCDIR"] {
+    let resourceFullPath = "\(runfilesPath)/\(workspaceName)/\(resourcePath)"
+  }
+...
+
+```
