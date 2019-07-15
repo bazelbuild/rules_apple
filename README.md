@@ -49,6 +49,13 @@ load(
 swift_rules_dependencies()
 
 load(
+    "@com_google_protobuf//:protobuf_deps.bzl",
+    "protobuf_deps",
+)
+
+protobuf_deps()
+
+load(
     "@build_bazel_apple_support//lib:repositories.bzl",
     "apple_support_dependencies",
 )
