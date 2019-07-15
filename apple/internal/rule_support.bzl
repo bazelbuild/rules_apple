@@ -74,6 +74,7 @@ def _describe_rule_type(
         requires_provisioning_profile = True,
         requires_signing_for_device = True,
         rpaths = [],
+        rule_transition = None,
         skip_signing = False,
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
@@ -120,6 +121,7 @@ def _describe_rule_type(
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
         rpaths: List of rpaths to add to the linker.
+        rule_transition: Starlark transition to apply to the rule.
         skip_signing: Whether this rule skips the signing step.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
@@ -160,6 +162,7 @@ def _describe_rule_type(
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
+        rule_transition = rule_transition,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         skip_signing = skip_signing,
         stub_binary_path = stub_binary_path,
