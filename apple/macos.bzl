@@ -28,11 +28,6 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
-    "macos_binary_infoplist",
-    "macos_command_line_launchdplist",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
@@ -161,56 +156,17 @@ def macos_command_line_application(name, **kwargs):
         fail("macos_command_line_application does not support entitlements or " +
              "provisioning profiles at this time")
 
-    binary_args = dict(kwargs)
-
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    launchdplists = binary_args.get("launchdplists")
-    version = binary_args.get("version")
-
-    if bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            bundle_id = bundle_id,
-            infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
-            version = version,
-        )
-        binary_deps.extend([":" + merged_infoplist_name])
-
-    if launchdplists:
-        merged_launchdplists_name = name + ".merged_launchdplists"
-
-        macos_command_line_launchdplist(
-            name = merged_launchdplists_name,
-            launchdplists = launchdplists,
-        )
-        binary_deps.extend([":" + merged_launchdplists_name])
-
-    # Create the unsigned binary, then run the command line application rule that
-    # signs it.
-    cmd_line_app_args = binary_support.create_binary(
+    binary_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.tool,
-        deps = binary_deps,
+        include_entitlements = False,
         link_swift_statically = True,
-        suppress_entitlements = True,
-        **binary_args
+        platform_type = str(apple_common.platform_type.macos),
+        **kwargs
     )
 
     _macos_command_line_application(
         name = name,
-        **cmd_line_app_args
+        **binary_args
     )
 
 def macos_dylib(name, **kwargs):
@@ -225,45 +181,17 @@ def macos_dylib(name, **kwargs):
         fail("macos_dylib does not support entitlements or provisioning " +
              "profiles at this time")
 
-    binary_args = dict(kwargs)
-
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    version = binary_args.get("version")
-
-    if bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            bundle_id = bundle_id,
-            infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
-            version = version,
-        )
-        binary_deps.extend([":" + merged_infoplist_name])
-
-    dylib_args = binary_support.create_binary(
+    binary_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.dylib,
-        binary_type = "dylib",
-        deps = binary_deps,
+        include_entitlements = False,
         link_swift_statically = True,
-        suppress_entitlements = True,
-        **binary_args
+        platform_type = str(apple_common.platform_type.macos),
+        **kwargs
     )
 
     _macos_dylib(
         name = name,
-        **dylib_args
+        **binary_args
     )
 
 def macos_extension(name, **kwargs):

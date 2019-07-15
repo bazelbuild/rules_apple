@@ -27,10 +27,6 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
-    "linking_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -282,10 +278,19 @@ def _entitlements_impl(ctx):
     # the binary; for device builds, the entitlements are applied during signing.
     if not is_device:
         return [
-            linking_support.sectcreate_objc_provider(
-                "__TEXT",
-                "__entitlements",
-                final_entitlements,
+            # TODO(kaipi): Remove this provider once the entitlements rule is no longer needed.
+            apple_common.new_objc_provider(
+                linkopt = depset(
+                    [
+                        "-Wl,-sectcreate,{0},{1},{2}".format(
+                            "__TEXT",
+                            "__entitlements",
+                            final_entitlements.path,
+                        ),
+                    ],
+                    order = "topological",
+                ),
+                link_inputs = depset([final_entitlements]),
             ),
             AppleEntitlementsInfo(final_entitlements = final_entitlements),
         ]

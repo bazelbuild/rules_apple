@@ -25,6 +25,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
 
 def _describe_bundle_locations(
         archive_relative = "",
@@ -361,19 +365,23 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.tool: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
+            deps_cfg = apple_common.multi_arch_split,
             is_executable = True,
             product_type = apple_product_type.tool,
             provisioning_profile_extension = ".provisionprofile",
             requires_provisioning_profile = True,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
             allowed_device_families = ["mac"],
             binary_type = "dylib",
             bundle_extension = "",
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(

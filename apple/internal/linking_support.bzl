@@ -23,7 +23,7 @@ load(
     "collections",
 )
 
-def _sectcreate_objc_provider(segname, sectname, file):
+def _sectcreate_link_flag(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
     This function creates a new objc provider that contains the necessary linkopts
@@ -43,11 +43,7 @@ def _sectcreate_objc_provider(segname, sectname, file):
 
     # linkopts get deduped, so use a single option to pass then through as a
     # set.
-    linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
-    return apple_common.new_objc_provider(
-        linkopt = depset(linkopts, order = "topological"),
-        link_inputs = depset([file]),
-    )
+    return "-Wl,-sectcreate,{0},{1},{2}".format(segname, sectname, file.path)
 
 def _register_linking_action(ctx, extra_linkopts = []):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
@@ -91,5 +87,5 @@ def _register_linking_action(ctx, extra_linkopts = []):
 
 linking_support = struct(
     register_linking_action = _register_linking_action,
-    sectcreate_objc_provider = _sectcreate_objc_provider,
+    sectcreate_link_flag = _sectcreate_link_flag,
 )

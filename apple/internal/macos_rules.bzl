@@ -27,6 +27,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
+    "macos_binary_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -416,9 +420,31 @@ def _macos_command_line_application_impl(ctx):
     providers = []
     outputs = [depset([output_file])]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
-    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+    extra_linkopts = []
+    extra_link_inputs = []
+    if ctx.attr.infoplists or ctx.attr.bundle_id or ctx.attr.version:
+        extra_linkopts.append(
+            macos_binary_support.macos_binary_infoplist_link_flag(
+                ctx,
+                ctx.attr.bundle_id,
+                ctx.files.infoplists,
+            ),
+        )
+
+    if ctx.attr.launchdplists:
+        extra_linkopts.append(
+            macos_binary_support.macos_binary_launchdplist_link_flag(
+                ctx,
+                ctx.files.launchdplists,
+            ),
+        )
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     debug_outputs_partial = partials.debug_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
@@ -448,9 +474,22 @@ def _macos_dylib_impl(ctx):
     providers = []
     outputs = [depset([output_file])]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
-    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+    extra_linkopts = []
+    if ctx.attr.infoplists or ctx.attr.bundle_id or ctx.attr.version:
+        extra_linkopts.append(
+            macos_binary_support.macos_binary_infoplist_link_flag(
+                ctx,
+                ctx.attr.bundle_id,
+                ctx.files.infoplists,
+            ),
+        )
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     debug_outputs_partial = partials.debug_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
