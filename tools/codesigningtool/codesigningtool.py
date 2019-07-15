@@ -118,7 +118,8 @@ def _find_codesign_identities(identity=None):
   output = output.strip()
   pattern = "(?P<hash>[A-F0-9]{40})"
   if identity:
-    pattern += r'\s+"(?P<full_name>.*?{}.*?)"'.format(re.escape(identity))
+    name_requirement = re.escape(identity)
+    pattern += r'\s+".*?{}.*?"'.format(name_requirement)
   regex = re.compile(pattern)
   for line in output.splitlines():
     # CSSMERR_TP_CERT_REVOKED comes from Security.framework/cssmerr.h
@@ -127,7 +128,7 @@ def _find_codesign_identities(identity=None):
     m = regex.search(line)
     if m:
       groups = m.groupdict()
-      id = groups.get("full_name") or groups["hash"]
+      id = groups["hash"]
       ids.append(id)
   return ids
 
@@ -171,7 +172,7 @@ def main(argv):
           file=sys.stderr)
       return -1
   # No identity was found, fail
-  if identity == None:
+  if identity is None:
     print("ERROR: Unable to find an identity on the system matching the "\
         "ones in %s" % args.mobileprovision, file=sys.stderr)
     return 1
