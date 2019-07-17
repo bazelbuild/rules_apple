@@ -272,7 +272,7 @@ EOF
   cat > app/filegroup/BUILD <<EOF
 filegroup(
     name = "filegroup",
-    srcs = glob(["**/*"]),
+    srcs = glob(["**"]),
     visibility = ["//app:__pkg__"],
 )
 EOF

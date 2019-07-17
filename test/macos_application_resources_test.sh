@@ -313,7 +313,7 @@ load(
 
 apple_bundle_import(
     name = "bundle",
-    bundle_imports = glob(["foo/Bar.bundle/**/*"]),
+    bundle_imports = glob(["foo/Bar.bundle/**"]),
 )
 
 objc_library(

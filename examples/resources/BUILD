@@ -10,20 +10,20 @@ exports_files([
 
 filegroup(
     name = "MacAppIcon.xcassets",
-    srcs = glob(["MacAppIcon.xcassets/**/*"]),
+    srcs = glob(["MacAppIcon.xcassets/**"]),
 )
 
 filegroup(
     name = "PhoneAppIcon.xcassets",
-    srcs = glob(["PhoneAppIcon.xcassets/**/*"]),
+    srcs = glob(["PhoneAppIcon.xcassets/**"]),
 )
 
 filegroup(
     name = "TVBrandAssets.xcassets",
-    srcs = glob(["TVBrandAssets.xcassets/**/*"]),
+    srcs = glob(["TVBrandAssets.xcassets/**"]),
 )
 
 filegroup(
     name = "WatchAppIcon.xcassets",
-    srcs = glob(["WatchAppIcon.xcassets/**/*"]),
+    srcs = glob(["WatchAppIcon.xcassets/**"]),
 )
