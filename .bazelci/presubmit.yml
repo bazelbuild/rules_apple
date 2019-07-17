@@ -41,4 +41,6 @@ buildifier:
   # split into multiple warnings, so there is now just one left that causes
   # warnings. For the history of some of the issues, see:
   #  https://github.com/bazelbuild/buildtools/issues/576
-  warnings: -function-docstring-args
+  warnings:
+  - function-docstring-args
+  - print
