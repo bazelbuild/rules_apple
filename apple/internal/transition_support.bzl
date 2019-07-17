@@ -19,21 +19,22 @@ def _cpu_string(platform_type, settings):
     if platform_type == "ios":
         ios_cpus = settings["//command_line_option:ios_multi_cpus"]
         if ios_cpus:
-            return "ios_{}".format(settings["//command_line_option:ios_multi_cpus"][0])
-        if settings["//command_line_option:cpu"].startswith("ios_"):
-            return settings["//command_line_option:cpu"]
+            return "ios_{}".format(ios_cpus[0])
+        cpu_value = settings["//command_line_option:cpu"]
+        if cpu_value.startswith("ios_"):
+            return cpu_value
         return "ios_x86_64"
-    elif platform_type == "macos":
+    if platform_type == "macos":
         macos_cpus = settings["//command_line_option:macos_cpus"]
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
         return "darwin_x86_64"
-    elif platform_type == "tvos":
+    if platform_type == "tvos":
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
         return "tvos_x86_64"
-    elif platform_type == "watchos":
+    if platform_type == "watchos":
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
@@ -65,6 +66,10 @@ def _apple_rule_transition_impl(settings, attr):
         "//command_line_option:watchos_minimum_os": _min_os_version_or_none(attr, "watchos"),
     }
 
+# These flags are a mix of options defined in native Bazel from the following fragments:
+# - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/analysis/config/CoreOptions.java
+# - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/apple/AppleCommandLineOptions.java
+# - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_transition = transition(
     implementation = _apple_rule_transition_impl,
     inputs = [
