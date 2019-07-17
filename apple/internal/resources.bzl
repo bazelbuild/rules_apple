@@ -435,10 +435,14 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
     """
     nested_provider_fields = {}
     for field in _populated_resource_fields(provider_to_nest):
-        nested_provider_fields[field] = [
-            (paths.join(nesting_bundle_dir, parent_dir or ""), swift_module, files)
-            for parent_dir, swift_module, files in getattr(provider_to_nest, field)
-        ]
+        for parent_dir, swift_module, files in getattr(provider_to_nest, field):
+            if parent_dir:
+                nested_parent_dir = paths.join(nesting_bundle_dir, parent_dir)
+            else:
+                nested_parent_dir = nesting_bundle_dir
+            nested_provider_fields.setdefault(field, []).append(
+                (nested_parent_dir, swift_module, files),
+            )
 
     return AppleResourceInfo(
         owners = provider_to_nest.owners,

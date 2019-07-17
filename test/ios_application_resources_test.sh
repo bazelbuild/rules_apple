@@ -606,6 +606,67 @@ EOF
       "Payload/app.app/bundle_library_ios.bundle/structured/should_be_binary.strings"
 }
 
+# Tests that apple_resource_bundle resources are compiled and bundled correctly
+# with the application. This test uses a bundle library with many types of
+# resources, both localized and nonlocalized, and also a nested bundle.
+function test_apple_resource_bundle_depending_on_AppleResourceInfo_and_DefaultInfo_rule() {
+  create_common_files
+
+  cat > app/custom_rule.bzl <<EOF
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleResourceInfo",
+)
+def _impl(ctx):
+    output = ctx.actions.declare_file("{}.out".format(ctx.label.name))
+    ctx.actions.write(output, "dummy file")
+    outputs = depset([output])
+    return [
+        DefaultInfo(files = outputs),
+        AppleResourceInfo(unprocessed = [(None, None, outputs)], owners = {}),
+    ]
+
+custom_rule = rule(_impl)
+EOF
+
+  cat >> app/BUILD <<EOF
+load(
+    "@build_bazel_rules_apple//apple:resources.bzl",
+    "apple_resource_bundle",
+)
+load(":custom_rule.bzl", "custom_rule")
+
+custom_rule(name = "custom_resource")
+
+apple_resource_bundle(
+    name = "resource_bundle",
+    resources = [":custom_resource"],
+)
+
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [":resource_bundle",],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    minimum_os_version = "9.0",
+    infoplists = ["Info.plist"],
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/resource_bundle.bundle/custom_resource.out"
+
+}
+
 # Tests that structured resources (both unprocessed ones, and processed ones
 # like .strings/.plist) have their paths preserved in the final bundle.
 function test_structured_resources() {
