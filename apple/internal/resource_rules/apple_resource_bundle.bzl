@@ -83,7 +83,10 @@ def _apple_resource_bundle_impl(ctx):
     else:
         # If there were no resources to bundle, propagate an empty provider to signal that this
         # target has already been processed anyways.
-        complete_resource_provider = AppleResourceInfo(owners = {})
+        complete_resource_provider = AppleResourceInfo(
+            owners = depset(),
+            unowned_resources = depset(),
+        )
 
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.

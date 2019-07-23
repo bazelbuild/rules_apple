@@ -97,7 +97,19 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _deduplicate(resources_provider, avoid_provider, field):
+def _expand_owners(owners):
+    """Converts a depset of (path, owner) to a dict of paths to dict of owners.
+
+    Args:
+      owners: A depset of (path, owner) pairs.
+    """
+    dict = {}
+    for resource, owner in owners.to_list():
+        if owner:
+            dict.setdefault(resource, default = {})[owner] = None
+    return dict
+
+def _deduplicate(resources_provider, avoid_provider, owners, avoid_owners, field):
     """Deduplicates and returns resources between 2 providers for a given field.
 
     Deduplication happens by comparing the target path of a file and the files
@@ -112,6 +124,8 @@ def _deduplicate(resources_provider, avoid_provider, field):
     Args:
       resources_provider: The provider with the resources to be bundled.
       avoid_provider: The provider with the resources to avoid bundling.
+      owners: The owners map for resources_provider computed by _expand_owners.
+      avoid_owners: The owners map for avoid_provider computed by _expand_owners.
       field: The field to deduplicate resources on.
 
     Returns:
@@ -119,7 +133,6 @@ def _deduplicate(resources_provider, avoid_provider, field):
       resources_providers.
     """
 
-    # Build a dictionary with the file paths under each key for the avoided resources.
     avoid_dict = {}
     if avoid_provider and hasattr(avoid_provider, field):
         for parent_dir, swift_module, files in getattr(avoid_provider, field):
@@ -151,8 +164,8 @@ def _deduplicate(resources_provider, avoid_provider, field):
                 # add the resource to be bundled in the bundle represented by resource_provider.
                 deduped_owners = [
                     o
-                    for o in resources_provider.owners[short_path].to_list()
-                    if o not in avoid_provider.owners[short_path].to_list()
+                    for o in owners[short_path]
+                    if o not in avoid_owners[short_path]
                 ]
                 if deduped_owners:
                     deduped_files.append(to_bundle_file)
@@ -299,9 +312,16 @@ def _resources_partial_impl(
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
+    # Precompute owners and avoid_owners to avoid duplicate work in _deduplicate.
+    # Build a dictionary with the file paths under each key for the avoided resources.
+    avoid_owners = {}
+    if avoid_provider:
+        avoid_owners = _expand_owners(avoid_provider.owners)
+    owners = _expand_owners(final_provider.owners)
+
     for field in fields:
         processing_func, requires_swift_module = provider_field_to_action[field]
-        deduplicated = _deduplicate(final_provider, avoid_provider, field)
+        deduplicated = _deduplicate(final_provider, avoid_provider, owners, avoid_owners, field)
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
                 locale = _locale_for_path(parent_dir)

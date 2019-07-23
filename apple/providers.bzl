@@ -154,8 +154,8 @@ only be bucketed with the `bucketize_typed` method.""",
         "texture_atlases": "Texture atlas files.",
         "unprocessed": "Generic resources not mapped to the other types.",
         "xibs": "XIB Interface files.",
-        "owners": """Map of resource short paths to a depset of strings that represent targets that
-declare ownership of that resource.""",
+        "owners": """Depset of (resource, owner) pairs.""",
+        "unowned_resources": """Depset of unowned resources.""",
     },
 )
 

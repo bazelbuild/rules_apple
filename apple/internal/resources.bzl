@@ -134,23 +134,23 @@ def _bucketize(
         A AppleResourceInfo provider with resources bucketized according to type.
     """
     buckets = {}
-    owners = {}
-    owner_depset = None
+    owners = []
+    unowned_resources = []
 
     # Transform the list of buckets to avoid into a set for faster lookup.
     allowed_bucket_set = {}
     if allowed_buckets:
         allowed_bucket_set = {k: None for k in allowed_buckets}
 
-    if owner:
-        # By using one depset reference, we can save memory for the cases where multiple resources
-        # only have one owner.
-        owner_depset = depset(direct = [owner])
     for resource in resources:
         # Local cache of the resource short path since it gets used quite a bit below.
         resource_short_path = resource.short_path
 
-        owners[resource_short_path] = owner_depset
+        if owner:
+            owners.append((resource_short_path, owner))
+        else:
+            unowned_resources.append(resource_short_path)
+
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
         else:
@@ -204,7 +204,8 @@ def _bucketize(
         ).append((parent, resource_swift_module, resource_depset))
 
     return AppleResourceInfo(
-        owners = owners,
+        owners = depset(owners),
+        unowned_resources = depset(unowned_resources),
         **dict([(k, _minimize(b)) for k, b in buckets.items()])
     )
 
@@ -228,15 +229,16 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
         A AppleResourceInfo provider with resources in the given bucket.
     """
     typed_bucket = []
-    owners = {}
-    owner_depset = None
-    if owner:
-        # By using one depset reference, we can save memory for the cases where multiple resources
-        # only have one owner.
-        owner_depset = depset(direct = [owner])
+    owners = []
+    unowned_resources = []
+
     for resource in resources:
         resource_short_path = resource.short_path
-        owners[resource_short_path] = owner_depset
+        if owner:
+            owners.append((resource_short_path, owner))
+        else:
+            unowned_resources.append(resource_short_path)
+
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
         else:
@@ -247,7 +249,12 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
             parent = paths.join(parent or "", paths.basename(lproj_path))
 
         typed_bucket.append((parent, None, depset(direct = [resource])))
-    return AppleResourceInfo(owners = owners, **{bucket_type: _minimize(typed_bucket)})
+
+    return AppleResourceInfo(
+        owners = depset(owners),
+        unowned_resources = depset(unowned_resources),
+        **{bucket_type: _minimize(typed_bucket)}
+    )
 
 def _bundle_relative_parent_dir(resource, extension):
     """Returns the bundle relative path to the resource rooted at the bundle.
@@ -331,13 +338,6 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
 
     buckets = {}
 
-    # owners is a map of resource paths to a list of depsets of transitive owners.
-    owners_lists = {}
-    default_owner_depset = None
-    if default_owner:
-        # By using one depset reference, we can save memory for the cases where multiple resources
-        # only have one owner.
-        default_owner_depset = depset(direct = [default_owner])
     for provider in providers:
         # Get the initialized fields in the provider, with the exception of to_json and to_proto,
         # which are not desireable for our use case.
@@ -347,34 +347,30 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
                 field,
                 default = [],
             ).extend(getattr(provider, field))
-        for resource_path, resource_owners in provider.owners.items():
-            owners_list = owners_lists.setdefault(resource_path, [])
 
-            # If there is no owner marked for this resource, use the default_owner as an owner, if
-            # it exists.
-            if resource_owners:
-                owners_list.append(resource_owners)
-            elif default_owner:
-                owners_list.append(default_owner_depset)
-            elif validate_all_resources_owned:
-                fail(
-                    "The given providers have a resource that doesn't have an owner, and " +
-                    "validate_all_resources_owned was set. This is most likely a bug in " +
-                    "rules_apple, please file a bug with reproduction steps.",
-                )
+    # unowned_resources is a depset of resource paths.
+    unowned_resources = depset(transitive = [provider.unowned_resources for provider in providers])
 
-    # owners is a map of resource paths to a depset of owner identifiers.
-    owners = {}
-    for resource_path, owner_list in owners_lists.items():
-        if len(owner_list) == 1:
-            # If there is only one transitive depset, avoid creating a new depset, just
-            # propagate it.
-            owners[resource_path] = owner_list[0]
-        else:
-            owners[resource_path] = depset(transitive = owner_list)
+    # owners is a depset of (resource_path, owner) pairs.
+    transitive_owners = [provider.owners for provider in providers]
+
+    # If owner is set, this rule now owns all previously unowned resources.
+    if default_owner:
+        transitive_owners.append(
+            depset([(resource, default_owner) for resource in unowned_resources.to_list()]),
+        )
+        unowned_resources = depset()
+    elif validate_all_resources_owned:
+        if unowned_resources.to_list():
+            fail(
+                "The given providers have a resource that doesn't have an owner, and " +
+                "validate_all_resources_owned was set. This is most likely a bug in " +
+                "rules_apple, please file a bug with reproduction steps.",
+            )
 
     return AppleResourceInfo(
-        owners = owners,
+        owners = depset(transitive = transitive_owners),
+        unowned_resources = unowned_resources,
         **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
     )
 
@@ -446,6 +442,7 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
 
     return AppleResourceInfo(
         owners = provider_to_nest.owners,
+        unowned_resources = provider_to_nest.unowned_resources,
         **nested_provider_fields
     )
 
@@ -453,7 +450,11 @@ def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
 
     # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
-    return [f for f in dir(provider) if f not in ["owners", "to_json", "to_proto"]]
+    return [
+        f
+        for f in dir(provider)
+        if f not in ["owners", "unowned_resources", "to_json", "to_proto"]
+    ]
 
 def _structured_resources_parent_dir(resource, parent_dir = None):
     """Returns the package relative path for the parent directory of a resource.

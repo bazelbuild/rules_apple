@@ -623,7 +623,11 @@ def _impl(ctx):
     outputs = depset([output])
     return [
         DefaultInfo(files = outputs),
-        AppleResourceInfo(unprocessed = [(None, None, outputs)], owners = {}),
+        AppleResourceInfo(
+            unprocessed = [(None, None, outputs)],
+            owners = depset(),
+            unowned_resources = depset(),
+        ),
     ]
 
 custom_rule = rule(_impl)
