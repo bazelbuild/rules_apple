@@ -238,12 +238,12 @@ only work/test in one language.
 
 #### Automatically Trimming Locales
 
-Use `--define "apple.trim_lproj_locales=1"` to strip any `.lproj` folders that
-don't have a matching `.lproj` folder in the base of the resource folder(e.g.
-bundles from Frameworks that are localized).
+Use `--define "apple.trim_lproj_locales=(yes|true|1)"` to strip any `.lproj`
+folders that don't have a matching `.lproj` folder in the base of the resource
+folder(e.g. bundles from Frameworks that are localized).
 
 If a product is pulling in some other component(s) that support more
-localizations that the product does, this can be used to strip away those extra
+localizations than the product does, this can be used to strip away those extra
 localizations thereby shrinking the final product sent to the end users.
 
 ## Info.plist Handling
