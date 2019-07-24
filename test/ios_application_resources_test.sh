@@ -315,15 +315,15 @@ function test_localized_unprocessed_resources() {
       "Payload/app.app/it.lproj/localized.txt"
 }
 
-# Should generate a warning because 'fr' doesn't match anything, but things
+# Should generate a warning because 'sw' doesn't match anything, but things
 # were filtered, so it could have been a typo.
 function test_localized_unprocessed_resources_filter_all() {
   create_with_localized_unprocessed_resources
 
-  do_build ios //app:app --define "apple.locales_to_include=fr" || \
+  do_build ios //app:app --define "apple.locales_to_include=sw" || \
       fail "Should build"
   expect_log_once "Please verify apple.locales_to_include is defined properly"
-  expect_log_once "\[\"fr\"\]"
+  expect_log_once "\[\"sw\"\]"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
 }
@@ -338,6 +338,34 @@ function test_localized_unprocessed_resources_filter_mixed() {
   expect_not_log "Please verify apple.locales_to_include is defined properly"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
+}
+
+# Tests that the localizations in the Settings.bundle that are not in the base
+# of the app are not included in the output when apple.trim_lproj_locales=1.
+function test_settings_bundle_localization_strip() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    settings_bundle = "@build_bazel_rules_apple//test/testdata/resources:settings_bundle_ios",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app --define "apple.trim_lproj_locales=1" \
+      || fail "Should build"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Settings.bundle/fr.lproj/Root.strings"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Settings.bundle/Base.lproj/Root.strings"
 }
 
 # Tests that the app icons and launch images are bundled with the application

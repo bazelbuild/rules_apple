@@ -84,8 +84,29 @@ def _owner_relative_path(f):
     else:
         return paths.relativize(f.short_path, f.owner.package)
 
+def _locale_for_path(resource_path):
+    """Returns the detected locale for the given resource path."""
+    if not resource_path:
+        return None
+
+    loc = resource_path.find(".lproj")
+    if loc == -1:
+        return None
+
+    # If there was more after '.lproj', then it has to be a directory, otherwise
+    # it was part of some other extension.
+    if (loc + 6) > len(resource_path) and resource_path[loc + 6] != "/":
+        return None
+
+    locale_start = resource_path.rfind("/", end = loc)
+    if locale_start < 0:
+        return resource_path[0:loc]
+
+    return resource_path[locale_start + 1:loc]
+
 # Define the loadable module that lists the exported symbols in this file.
 bundle_paths = struct(
     farthest_parent = _farthest_parent,
     owner_relative_path = _owner_relative_path,
+    locale_for_path = _locale_for_path,
 )

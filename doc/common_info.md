@@ -219,24 +219,32 @@ of these bundles as a result.
 
 ### Localization Handling
 
-The Apple bundling rules now have support for limiting which \*.lproj
-directories are copied as part of your build using `--define
-"apple.locales_to_include=foo,bar,bam"` where `foo,bar,bam` are the exact names
-of the locales to be included. For example `pt` may not be sufficient as `pt_BR`
-or `pt_PT` is likely the name of the lproj folder.
+The Apple bundling rules have two flags for limiting which \*.lproj directories
+are copied as part of your build. Without specifying either the
+`apple.locales_to_include` flag or the `apple.trim_lproj_locales` flag, all
+locales are copied.
 
-Note that `Base.lproj` is always included if it exists.
+Locale names are explicitly matched; for example `pt` may not be sufficient as
+`pt_BR` or `pt_PT` is likely the name of the lproj folder. Note that
+`Base.lproj` is always included if it exists.
 
-Without this flag, all locales are copied.
+#### Explicitly Listing Locales
 
-This can be used in a few interesting ways:
+Use `--define "apple.locales_to_include=foo,bar,bam"` where `foo,bar,bam` are
+the exact names of the locales to be included.
 
--   It can be used to improve compile/debug/test cycles because most developers
-    only work/test in one language.
--   If a product is pulling in some other component(s) that support more
-    localizations that the product does, it can be used to strip away those
-    extra localizations thereby shrinking the final product sent to the end
-    users.
+This can be used to improve compile/debug/test cycles because most developers
+only work/test in one language.
+
+#### Automatically Trimming Locales
+
+Use `--define "apple.trim_lproj_locales=1"` to strip any `.lproj` folders that
+don't have a matching `.lproj` folder in the base of the resource folder(e.g.
+bundles from Frameworks that are localized).
+
+If a product is pulling in some other component(s) that support more
+localizations that the product does, this can be used to strip away those extra
+localizations thereby shrinking the final product sent to the end users.
 
 ## Info.plist Handling
 

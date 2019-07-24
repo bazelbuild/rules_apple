@@ -50,6 +50,7 @@ def _describe_bundle_locations(
 def _describe_rule_type(
         additional_infoplist_values = None,
         allowed_device_families = None,
+        allows_locale_trimming = False,
         app_icon_extension = None,
         app_icon_parent_extension = None,
         archive_extension = ".zip",
@@ -84,6 +85,7 @@ def _describe_rule_type(
         additional_infoplist_values: Dictionary of additional values to set into the rule's
             Info.plist.
         allowed_device_families: If given, the list of device families that this rule supports.
+        allows_locale_trimming: Whether the rule supports trimming `.lproj` localizations.
         app_icon_extension: For rules that require icons, the extension of the directory that should
             hold the icons (e.g. .appiconset).
         app_icon_parent_extension: For rules that require icons, the extension of the asset catalog
@@ -138,6 +140,7 @@ def _describe_rule_type(
     return struct(
         additional_infoplist_values = additional_infoplist_values,
         allowed_device_families = allowed_device_families,
+        allows_locale_trimming = allows_locale_trimming,
         app_icon_extension = app_icon_extension,
         app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
@@ -181,6 +184,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             archive_extension = ".ipa",
@@ -201,6 +205,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
@@ -236,6 +241,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_imessage_application
         apple_product_type.messages_application: _describe_rule_type(
             additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
+            allows_locale_trimming = True,
             allowed_device_families = ["iphone", "ipad"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
@@ -251,6 +257,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_imessage_extension
         apple_product_type.messages_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
@@ -342,6 +349,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["mac"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
@@ -378,6 +386,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
@@ -529,6 +538,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["tv"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             archive_extension = ".ipa",
@@ -549,6 +559,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["tv"],
+            allows_locale_trimming = True,
             bundle_extension = ".appex",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
@@ -631,6 +642,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_application
         apple_product_type.watch2_application: _describe_rule_type(
             allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
@@ -642,6 +654,7 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_extension
         apple_product_type.watch2_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
             bundle_extension = ".appex",
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [

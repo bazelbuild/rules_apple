@@ -25,6 +25,10 @@ load(
     "resources_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -195,26 +199,6 @@ def _locales_requested(ctx):
     else:
         return None
 
-def _locale_for_path(resource_path):
-    """Returns the detected locale for the given resource path."""
-    if not resource_path:
-        return None
-
-    loc = resource_path.find(".lproj")
-    if loc == -1:
-        return None
-
-    # If there was more after '.lproj', then it has to be a directory, otherwise
-    # it was part of some other extension.
-    if (loc + 6) > len(resource_path) and resource_path[loc + 6] != "/":
-        return None
-
-    locale_start = resource_path.rfind("/", end = loc)
-    if locale_start < 0:
-        return resource_path[0:loc]
-
-    return resource_path[locale_start + 1:loc]
-
 def _validate_processed_locales(label, locales_requested, locales_included, locales_dropped):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
     if sets.length(locales_dropped):
@@ -324,7 +308,7 @@ def _resources_partial_impl(
         deduplicated = _deduplicate(final_provider, avoid_provider, owners, avoid_owners, field)
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
-                locale = _locale_for_path(parent_dir)
+                locale = bundle_paths.locale_for_path(parent_dir)
                 if sets.contains(locales_requested, locale):
                     sets.insert(locales_included, locale)
                 elif locale != None:

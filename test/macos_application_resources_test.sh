@@ -220,15 +220,15 @@ function test_localized_unprocessed_resources() {
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
 
-# Should generate a warning because 'fr' doesn't match anything, but things
-# were filtered, so it could have been a typo.
+# Should generate a warning because 'sw'/Swahili doesn't match anything, but
+# that things were filtered, so it could have been a typo.
 function test_localized_unprocessed_resources_filter_all() {
   create_with_localized_unprocessed_resources
 
-  do_build macos //app:app --define "apple.locales_to_include=fr" \
+  do_build macos //app:app --define "apple.locales_to_include=sw" \
       || fail "Should build"
   expect_log_once "Please verify apple.locales_to_include is defined properly"
-  expect_log_once "\[\"fr\"\]"
+  expect_log_once "\[\"sw\"\]"
   assert_zip_not_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }
@@ -566,6 +566,49 @@ EOF
       "app.app/Contents/Resources/nonlocalized.strings"
   assert_plist_is_text "test-bin/app/app.zip" \
       "app.app/Contents/Resources/nonlocalized.plist"
+}
+
+# Tests that the localizations from the base of the Resource folder are used to
+# strip subfolder localizations with apple.trim_lproj_locales=1.
+function test_bundle_localization_strip() {
+  create_common_files
+
+  mkdir -p app/fr.lproj
+  touch app/fr.lproj/localized.strings
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:bundle_library_macos",
+        "fr.lproj/localized.strings",
+    ],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.10",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build macos //app:app --define "apple.trim_lproj_locales=1" \
+      || fail "Should build"
+
+  # Verify the app has a `fr` localization and not an `it` localization.
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/fr.lproj/localized.strings"
+  assert_zip_not_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/it.lproj/localized.strings"
+
+  # Verify the `it` localization from the bundle is removed.
+  assert_zip_not_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/bundle_library_macos.bundle/it.lproj/localized.strings"
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/bundle_library_macos.bundle/fr.lproj/localized.strings"
 }
 
 run_suite "macos_application bundling with resources tests"
