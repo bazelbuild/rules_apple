@@ -77,7 +77,10 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     debug_dependencies = []
-    targets_to_avoid = []
+    if hasattr(ctx.attr, "frameworks"):
+        targets_to_avoid = list(ctx.attr.frameworks)
+    else:
+        targets_to_avoid = []
     product_type = ctx.attr._product_type
     if ctx.attr.test_host:
         debug_dependencies.append(ctx.attr.test_host)
@@ -91,6 +94,10 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.debug_symbols_partial(
             debug_dependencies = debug_dependencies,
             debug_outputs_provider = debug_outputs_provider,
+        ),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = getattr(ctx.attr, "frameworks", default = []),
         ),
         partials.framework_import_partial(
             targets = ctx.attr.deps,

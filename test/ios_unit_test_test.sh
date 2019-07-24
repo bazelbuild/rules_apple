@@ -33,6 +33,7 @@ function create_common_files() {
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_unit_test",
+     "ios_framework",
     )
 load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library"
@@ -44,8 +45,15 @@ objc_library(
 )
 
 objc_library(
+    name = "shared_test_lib",
+    hdrs = ["TestShared.h"],
+    srcs = ["TestShared.m"],
+)
+
+objc_library(
     name = "unit_test_lib",
     srcs = ["UnitTest.m"],
+    deps = [":shared_test_lib"],
 )
 EOF
 
@@ -57,11 +65,32 @@ EOF
 
   cat > app/UnitTest.m <<EOF
 #import <XCTest/XCTest.h>
+#import "app/TestShared.h"
 @interface UnitTest: XCTestCase
 @end
 
 @implementation UnitTest
-- (void)testAssertNil { XCTAssertNil(nil); }
+- (void)testAssertNil {
+  // Call the shared method to ensure it is properly linked.
+  [[[TestShared alloc] init] doSomething];
+  XCTAssertNil(nil);
+}
+@end
+EOF
+
+    cat > app/TestShared.h <<EOF
+#import <Foundation/Foundation.h>
+
+@interface TestShared: NSObject
+- (void)doSomething;
+@end
+EOF
+
+  cat > app/TestShared.m <<EOF
+#import "app/TestShared.h"
+
+@implementation TestShared
+- (void)doSomething { }
 @end
 EOF
 
@@ -259,7 +288,7 @@ ios_application(
 objc_library(
     name = "unit_test_lib_with_swift",
     srcs = ["UnitTest.m"],
-    deps = [":swiftlib"],
+    deps = [":swiftlib", ":shared_test_lib"],
 )
 
 swift_library(
@@ -638,6 +667,45 @@ function test_select_on_linkopts() {
   create_common_files
   create_minimal_ios_application_with_tests "my.test_bundle.id" 'select({"//conditions:default":[]})'
   do_build ios //app:unit_tests || fail "Should build"
+}
+
+# Tests that test bundles can depend on ios_frameworks.
+function test_target_can_depend_on_ios_framework() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+
+ios_framework(
+    name = "test_framework",
+    bundle_id = "my.test.shared.framework",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "9.0",
+    families = ["iphone", "ipad"],
+    deps = [":shared_test_lib"],
+)
+
+ios_unit_test(
+    name = "unit_tests",
+    deps = [":unit_test_lib"],
+    frameworks = [":test_framework"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+)
+EOF
+
+  do_build ios //app:unit_tests || fail "Should build"
+
+  assert_zip_contains "test-bin/app/unit_tests.zip" \
+      "unit_tests.xctest/Frameworks/test_framework.framework/test_framework"
 }
 
 run_suite "ios_unit_test bundling tests"

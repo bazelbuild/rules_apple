@@ -1218,6 +1218,16 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
+        that this test depends on. Frameworks can be used for consolidating code
+        and resources that might be shared across multiple tests, so that they
+        do not get processed once per test target.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -1343,6 +1353,16 @@ Builds an XCUITest test suite with the given runners.
         <p><code>Dictionary of strings; optional</code></p>
         <p>Dictionary of environment variables that should be set during the
         test execution.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
+        that this test depends on. Frameworks can be used for consolidating code
+        and resources that might be shared across multiple tests, so that they
+        do not get processed once per test target.</p>
       </td>
     </tr>
     <tr>
@@ -1488,6 +1508,16 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
+        that this test depends on. Frameworks can be used for consolidating code
+        and resources that might be shared across multiple tests, so that they
+        do not get processed once per test target.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -1605,6 +1635,16 @@ Builds an XCTest unit test suite with the given runners.
         <p><code>Dictionary of strings; optional</code></p>
         <p>Dictionary of environment variables that should be set during the
         test execution.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>frameworks</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
+        that this test depends on. Frameworks can be used for consolidating code
+        and resources that might be shared across multiple tests, so that they
+        do not get processed once per test target.</p>
       </td>
     </tr>
     <tr>

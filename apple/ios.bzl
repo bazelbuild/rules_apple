@@ -149,7 +149,11 @@ def ios_ui_test(
         **kwargs
     )
 
-    _ios_ui_test(name = name, **bundling_args)
+    _ios_ui_test(
+        name = name,
+        dylibs = kwargs.get("frameworks"),
+        **bundling_args
+    )
 
 def ios_ui_test_suite(name, runners = [], **kwargs):
     """Builds an XCUITest test suite with the given runners.
@@ -205,6 +209,7 @@ def ios_unit_test(
         bundle_loader = test_host
     _ios_unit_test(
         name = name,
+        dylibs = kwargs.get("frameworks"),
         bundle_loader = bundle_loader,
         test_host = test_host,
         **bundling_args
