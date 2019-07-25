@@ -172,6 +172,13 @@ the build to Apple. If you want to disable bundling SwiftSupport in your ipa for
 other device or enterprise builds, you can pass
 `--define=apple.package_swift_support=no` to `bazel build`
 
+### Disable environment plist generation
+
+For App Store builds Apple requires your plist contains contains version
+entries of the tools used to build your app. In order to save time
+generating this plist for non App Store builds you can pass
+`--define=apple.add_environment_plist=no` to `bazel build`
+
 ### Codesign Bundles for the Simulator {#apple.codesign_simulator_bundles}
 
 The simulators are far more lax about a lot of things compared to working on
