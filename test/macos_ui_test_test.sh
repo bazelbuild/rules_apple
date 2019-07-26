@@ -216,4 +216,41 @@ function test_dsyms_generated() {
   done
 }
 
+# Tests that files passed in via the additional_contents attribute get placed at
+# the correct locations in the xctest bundle.
+function test_additional_contents() {
+  create_common_files
+
+  cat > app/simple.txt <<EOF
+simple
+EOF
+
+  cat >> app/BUILD <<EOF
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.11",
+    deps = [":lib"],
+)
+
+macos_ui_test(
+    name = "ui_tests",
+    additional_contents = {
+        ":simple.txt": "Thing",
+    },
+    minimum_os_version = "10.11",
+    deps = [":ui_test_lib"],
+    test_host = ":app",
+)
+EOF
+
+  do_build macos //app:ui_tests || fail "Should build"
+
+  assert_zip_contains "test-bin/app/ui_tests.zip" \
+      "ui_tests.xctest/Contents/Thing/simple.txt"
+  assert_equals "simple" "$(unzip_single_file "test-bin/app/ui_tests.zip" \
+      "ui_tests.xctest/Contents/Thing/simple.txt")"
+}
+
 run_suite "macos_ui_test bundling tests"

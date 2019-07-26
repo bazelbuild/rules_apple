@@ -1074,7 +1074,7 @@ Builds and bundles a macOS Spotlight Importer.
 ## macos_unit_test
 
 ```python
-macos_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
+macos_unit_test(name, additional_contents, bundle_id, infoplists, minimum_os_version, runner,
 test_host, data, deps)
 ```
 
@@ -1109,6 +1109,21 @@ of the attributes inherited by all test rules, please check the
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
         <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>additional_contents</code></td>
+      <td>
+        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
+        <p>Files that should be copied into specific subdirectories of the
+        <code>Contents</code> folder in the xctest. The keys of this
+        dictionary are labels pointing to single files,
+        <code>filegroup</code>s, or targets; the corresponding value is the
+        name of the subdirectory of <code>Contents</code> where they should
+        be placed.</p>
+        <p>The relative directory structure of <code>filegroup</code>
+        contents is preserved when they are copied into the desired
+        <code>Contents</code> subdirectory.</p>
       </td>
     </tr>
     <tr>
@@ -1197,7 +1212,7 @@ of the attributes inherited by all test rules, please check the
 ## macos_ui_test
 
 ```python
-macos_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
+macos_ui_test(name, additional_contents, bundle_id, infoplists, minimum_os_version, runner,
 test_host, data, deps, [test specific attributes])
 ```
 
@@ -1224,6 +1239,21 @@ of the attributes inherited by all test rules, please check the
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
         <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>additional_contents</code></td>
+      <td>
+        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
+        <p>Files that should be copied into specific subdirectories of the
+        <code>Contents</code> folder in the xctest. The keys of this
+        dictionary are labels pointing to single files,
+        <code>filegroup</code>s, or targets; the corresponding value is the
+        name of the subdirectory of <code>Contents</code> where they should
+        be placed.</p>
+        <p>The relative directory structure of <code>filegroup</code>
+        contents is preserved when they are copied into the desired
+        <code>Contents</code> subdirectory.</p>
       </td>
     </tr>
     <tr>

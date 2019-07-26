@@ -31,6 +31,10 @@ load(
     "partials",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -76,7 +80,11 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
-    debug_dependencies = []
+    if hasattr(ctx.attr, "additional_contents"):
+        debug_dependencies = ctx.attr.additional_contents.keys()
+    else:
+        debug_dependencies = []
+
     if hasattr(ctx.attr, "frameworks"):
         targets_to_avoid = list(ctx.attr.frameworks)
     else:
@@ -114,6 +122,11 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             bundle_dylibs = True,
         ),
     ]
+
+    if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
+        processor_partials.append(
+            partials.macos_additional_contents_partial(),
+        )
 
     processor_result = processor.process(ctx, processor_partials)
 
