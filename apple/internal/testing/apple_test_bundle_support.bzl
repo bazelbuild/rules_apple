@@ -105,7 +105,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = getattr(ctx.attr, "frameworks", default = []),
+            embeddable_targets = getattr(ctx.attr, "frameworks", []),
         ),
         partials.framework_import_partial(
             targets = ctx.attr.deps,
