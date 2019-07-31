@@ -25,6 +25,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
 
 def _describe_bundle_locations(
         archive_relative = "",
@@ -649,6 +653,7 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_application,
             requires_deps = False,
             requires_pkginfo = True,
+            rule_transition = transition_support.apple_rule_transition,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
         # watchos_extension
@@ -666,6 +671,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
     },
 }
