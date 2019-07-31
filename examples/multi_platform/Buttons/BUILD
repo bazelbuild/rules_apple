@@ -294,6 +294,7 @@ macos_unit_test(
 macos_unit_test(
     name = "ButtonsMacTests",
     minimum_os_version = "10.10",
+    tags = ["manual"],
     test_host = ":ButtonsMac",
     deps = [":ButtonsMacTestsLib"],
 )
