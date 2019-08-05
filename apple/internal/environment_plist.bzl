@@ -20,25 +20,19 @@ load(
 )
 
 def _environment_plist(ctx):
-    environment_plist = ctx.actions.declare_file(
-        paths.join("{}-intermediates".format(ctx.label.name), "Environment-Info.plist"),
-    )
-
     platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
     legacy_actions.run(
         ctx,
-        outputs = [environment_plist],
+        outputs = [ctx.outputs.plist],
         executable = ctx.executable._environment_plist,
         arguments = [
             "--platform",
             platform_with_version,
             "--output",
-            environment_plist.path,
+            ctx.outputs.plist.path,
         ],
     )
-
-    return [DefaultInfo(files = depset([environment_plist]))]
 
 environment_plist = rule(
     attrs = dicts.add(
@@ -49,9 +43,10 @@ environment_plist = rule(
                 executable = True,
                 default = Label("@build_bazel_rules_apple//tools/environment_plist"),
             ),
-            "platform_type": attr.string(default = str(apple_common.platform_type.ios)),
+            "platform_type": attr.string(mandatory = True),
         },
     ),
     fragments = ["apple"],
+    outputs = {"plist": "%{name}.plist"},
     implementation = _environment_plist,
 )

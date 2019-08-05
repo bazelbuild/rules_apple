@@ -29,7 +29,32 @@ filegroup(
 )
 
 environment_plist(
-    name = "environment_plist",
+    name = "environment_plist_ios",
+    platform_type = "ios",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_macos",
+    platform_type = "macos",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_watchos",
+    platform_type = "watchos",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_tvos",
+    platform_type = "tvos",
     visibility = [
         "//visibility:public",
     ],

@@ -378,13 +378,6 @@ An `apple_bundle_version` target that represents the version for this target. Se
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
         ),
-        "_environment_plist": attr.label(
-            default = "@build_bazel_rules_apple//apple/internal:environment_plist",
-            doc = """
-A generated Info.plist containing environment information required for uploading
-builds to Apple.
-""",
-        ),
     })
 
     if len(rule_descriptor.allowed_device_families) > 1:
@@ -834,6 +827,10 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
             # API.
             "platform_type": attr.string(default = platform_type),
             "_product_type": attr.string(default = product_type),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
+            ),
         },
     ]
 
@@ -870,6 +867,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
             # API.
             "platform_type": attr.string(default = platform_type),
             "_product_type": attr.string(default = product_type),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
+            ),
         },
     ]
 

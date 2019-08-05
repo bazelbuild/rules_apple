@@ -276,20 +276,18 @@ def merge_root_infoplists(
     else:
         plist_key = "MinimumOSVersion"
 
-    if hasattr(ctx.attr, "_environment_plist"):
-        input_files.extend(ctx.attr._environment_plist.files.to_list())
-        forced_plists.extend([x.path for x in ctx.attr._environment_plist.files.to_list()])
-
+    input_files.append(ctx.file._environment_plist)
     platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-    forced_plists.append(
+    forced_plists.extend([
+        ctx.file._environment_plist.path,
         struct(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),
             DTSDKName = platform_with_version,
             **{plist_key: platform_support.minimum_os(ctx)}
         ),
-    )
+    ])
 
     output_files = [output_plist]
     if output_pkginfo:
