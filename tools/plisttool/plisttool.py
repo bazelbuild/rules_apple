@@ -754,7 +754,14 @@ class PlistIO(object):
       binary: If True and path_or_file was a file name, reformat the file
           in binary form.
     """
-    plistlib.writePlist(plist, path_or_file)
+    if hasattr(plistlib, 'dump'):
+      if isinstance(path_or_file, _string_types):
+        with open(path_or_file, 'wb') as fp:
+          plistlib.dump(plist, fp)
+      else:
+        plistlib.dump(plist, path_or_file)
+    else:
+      plistlib.writePlist(plist, path_or_file)
 
     if binary and isinstance(path_or_file, _string_types):
       subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
