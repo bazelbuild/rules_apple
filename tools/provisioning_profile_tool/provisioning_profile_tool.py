@@ -139,7 +139,11 @@ class ProvisioningProfileTool(object):
       provisioning_profile: The provisioning profile.
     """
     entitlements = provisioning_profile['Entitlements']
-    plistlib.writePlist(entitlements, output_path)
+    if hasattr(plistlib, 'dump'):
+      with open(output_path, 'wb') as fp:
+        plistlib.dump(entitlements, fp)
+    else:
+      plistlib.writePlist(entitlements, output_path)
 
   @classmethod
   def _write_metadata(self, output_path, provisioning_profile):
@@ -161,7 +165,11 @@ class ProvisioningProfileTool(object):
         'TimeToLive', 'UUID', 'Version',
     )
     output_data = {k: provisioning_profile[k] for k in keys}
-    plistlib.writePlist(output_data, output_path)
+    if hasattr(plistlib, 'dump'):
+      with open(output_path, 'wb') as fp:
+        plistlib.dump(output_data, fp)
+    else:
+      plistlib.writePlist(output_data, output_path)
 
   @classmethod
   def _extract_raw_plist(self, target, profile_path):
