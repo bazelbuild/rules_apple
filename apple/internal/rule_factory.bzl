@@ -114,11 +114,6 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
                 "@build_bazel_rules_apple//apple/internal/templates:dsym_info_plist_template",
             ),
         ),
-        "_environment_plist": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/environment_plist"),
-        ),
         "_plisttool": attr.label(
             cfg = "host",
             default = Label("@build_bazel_rules_apple//tools/plisttool"),
@@ -381,6 +376,13 @@ in the bundle.
             doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+""",
+        ),
+        "_environment_plist": attr.label(
+            default = "@build_bazel_rules_apple//apple/internal:environment_plist",
+            doc = """
+A generated Info.plist containing environment information required for uploading
+builds to Apple.
 """,
         ),
     })

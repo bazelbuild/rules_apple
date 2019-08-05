@@ -5,6 +5,11 @@
 
 licenses(["notice"])
 
+load(
+    "@build_bazel_rules_apple//apple/internal:environment_plist.bzl",
+    "environment_plist",
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
@@ -20,5 +25,12 @@ filegroup(
     ],
     visibility = [
         "//apple:__subpackages__",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist",
+    visibility = [
+        "//visibility:public",
     ],
 )
