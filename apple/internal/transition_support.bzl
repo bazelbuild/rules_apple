@@ -99,5 +99,5 @@ _apple_rule_transition = transition(
 )
 
 transition_support = struct(
-    apple_rule_transition = _apple_rule_transition,
+    apple_rule_transition = None,
 )
