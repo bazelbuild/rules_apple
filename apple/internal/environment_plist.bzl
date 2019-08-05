@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+A rule for generating the environment plist
+"""
+
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
@@ -27,10 +31,6 @@ load(
 load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 def _environment_plist(ctx):
