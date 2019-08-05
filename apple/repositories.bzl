@@ -118,9 +118,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "build_bazel_rules_swift",
         urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/0.11.1/rules_swift.0.11.1.tar.gz",
+            "https://github.com/bazelbuild/rules_swift/releases/download/0.12.0/rules_swift.0.12.0.tar.gz",
         ],
-        sha256 = "96a86afcbdab215f8363e65a10cf023b752e90b23abf02272c4fc668fcb70311",
+        sha256 = "adba48e9e7659c6838c4b500c6c66763bce6e0ca0b6510ed11cd3dceea9cf645",
         ignore_version_differences = ignore_version_differences,
     )
 
