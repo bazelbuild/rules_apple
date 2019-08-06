@@ -111,6 +111,10 @@ macos_binary_infoplist = rule(
             "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),
             ),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_macos",
+            ),
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),
             "_product_type": attr.string(default = apple_product_type.tool),
         },

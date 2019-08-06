@@ -114,11 +114,6 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
                 "@build_bazel_rules_apple//apple/internal/templates:dsym_info_plist_template",
             ),
         ),
-        "_environment_plist": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/environment_plist"),
-        ),
         "_plisttool": attr.label(
             cfg = "host",
             default = Label("@build_bazel_rules_apple//tools/plisttool"),
@@ -832,6 +827,10 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
             # API.
             "platform_type": attr.string(default = platform_type),
             "_product_type": attr.string(default = product_type),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
+            ),
         },
     ]
 
@@ -868,6 +867,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
             # API.
             "platform_type": attr.string(default = platform_type),
             "_product_type": attr.string(default = product_type),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
+            ),
         },
     ]
 

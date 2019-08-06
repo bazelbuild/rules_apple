@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -149,27 +145,6 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
         mnemonic = "CompileInfoPlist",
     )
 
-def _generate_environment_plist(ctx, environment_plist, platform_with_version):
-    """Registers an action that generates an Xcode environment plist.
-
-    Args:
-      ctx: The target's rule context.
-      environment_plist: The file reference for the environment plist.
-      platform_with_version: A string containing the platform and version of the
-        target.
-    """
-    legacy_actions.run(
-        ctx,
-        outputs = [environment_plist],
-        executable = ctx.executable._environment_plist,
-        arguments = [
-            "--platform",
-            platform_with_version,
-            "--output",
-            environment_plist.path,
-        ],
-    )
-
 def merge_root_infoplists(
         ctx,
         input_plists,
@@ -292,25 +267,16 @@ def merge_root_infoplists(
             struct(**rule_descriptor.additional_infoplist_values),
         )
 
-    environment_plist = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
-        "environment.plist",
-    )
-
-    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
-    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-
-    _generate_environment_plist(ctx, environment_plist, platform_with_version)
-    input_files.append(environment_plist)
-
     if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
         plist_key = "LSMinimumSystemVersion"
     else:
         plist_key = "MinimumOSVersion"
 
+    input_files.append(ctx.file._environment_plist)
+    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
+    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
     forced_plists.extend([
-        environment_plist.path,
+        ctx.file._environment_plist.path,
         struct(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),

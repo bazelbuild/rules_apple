@@ -5,6 +5,11 @@
 
 licenses(["notice"])
 
+load(
+    "@build_bazel_rules_apple//apple/internal:environment_plist.bzl",
+    "environment_plist",
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
@@ -20,5 +25,37 @@ filegroup(
     ],
     visibility = [
         "//apple:__subpackages__",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_ios",
+    platform_type = "ios",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_macos",
+    platform_type = "macos",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_watchos",
+    platform_type = "watchos",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+environment_plist(
+    name = "environment_plist_tvos",
+    platform_type = "tvos",
+    visibility = [
+        "//visibility:public",
     ],
 )
