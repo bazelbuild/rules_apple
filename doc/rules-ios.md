@@ -973,7 +973,7 @@ app and extensions, list it in the `frameworks` attributes of those
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
+        <p><code>String; required</code></p>
         <p>An optional string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>). If this attribute is omitted, then the value specified
