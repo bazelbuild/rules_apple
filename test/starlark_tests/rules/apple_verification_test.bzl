@@ -121,9 +121,8 @@ def _apple_verification_test_impl(ctx):
     )
 
     # Extra test environment to set during the test.
-    test_env = {
-        "BUILD_TYPE": ctx.attr.build_type,
-    }
+    test_env = dict(ctx.attr.env)
+    test_env["BUILD_TYPE"] = ctx.attr.build_type
 
     return [
         testing.ExecutionInfo(apple_support.action_required_execution_requirements()),
@@ -166,9 +165,14 @@ variables to exist:
 * RESOURCE_ROOT: The directory where the resource files are located.
 """,
         ),
+        "env": attr.string_dict(
+            doc = """
+The environmental variables to pass to the verifier script.
+""",
+        ),
         "_runner_script": attr.label(
             allow_single_file = True,
-            default = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh",
+            default = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh.template",
         ),
         "_test_deps": attr.label(
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
