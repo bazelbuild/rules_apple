@@ -1185,6 +1185,9 @@ test_host, data, deps, provisioning_profile, [test specific attributes])
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
+To run the same test on multiple simulators/devices see
+[ios_ui_test_suite](#ios_ui_test_suite).
+
 The following is a list of the `ios_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
@@ -1318,7 +1321,11 @@ minimum_os_version, runners, test_host, data, deps, provisioning_profile,
 [test specific attributes])
 ```
 
-Builds an XCUITest test suite with the given runners.
+Generates a
+[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
+containing an [ios_ui_test](ios_ui_test) for each of the given `runners`.
+`ios_ui_test_suite` takes the same parameters as [ios_ui_test](ios_ui_test),
+except `runner` is replaced by `runners`.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -1468,6 +1475,9 @@ certain functionalities might not be present (e.g. UI layout, NSUserDefaults).
 You can find more information about app and library testing for Apple platforms
 [here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
 
+To run the same test on multiple simulators/devices see
+[ios_unit_test_suite](#ios_unit_test_suite).
+
 The following is a list of the `ios_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
@@ -1600,7 +1610,11 @@ ios_unit_test_suite(name, bundle_id, env, frameworks, infoplists,
 minimum_os_version, runners, test_host, deps, [test specific attributes])
 ```
 
-Builds an XCTest unit test suite with the given runners.
+Generates a
+[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
+containing an [ios_unit_test](#ios_unit_test) for each of the given `runners`.
+`ios_unit_test_suite` takes the same parameters as
+[ios_unit_test](#ios_unit_test), except `runner` is replaced by `runners`.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
