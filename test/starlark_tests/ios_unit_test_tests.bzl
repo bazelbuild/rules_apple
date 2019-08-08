@@ -34,6 +34,13 @@ def ios_unit_test_test_suite():
         verifier_script = "verifier_scripts/codesign_verifier.sh",
     )
 
+    apple_verification_test(
+        name = "{}_resources_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        verifier_script = "verifier_scripts/resources_verifier.sh",
+    )
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",

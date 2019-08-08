@@ -7,7 +7,7 @@
 tvos_application(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, extensions, frameworks, infoplists, ipa_post_processor,
 launch_images, linkopts, minimum_os_version, provisioning_profile,
-settings_bundle, strings, version, deps)
+resources, settings_bundle, strings, version, deps)
 ```
 
 Builds and bundles a tvOS application.
@@ -159,6 +159,14 @@ Builds and bundles a tvOS application.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>settings_bundle</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -206,7 +214,7 @@ Builds and bundles a tvOS application.
 ```python
 tvos_extension(name, bundle_id, bundle_name, entitlements,
 entitlements_validation, frameworks, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, strings, version, deps)
+minimum_os_version, resources, strings, version, deps)
 ```
 
 Builds and bundles a tvOS extension.
@@ -332,6 +340,14 @@ Builds and bundles a tvOS extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -367,7 +383,7 @@ Builds and bundles a tvOS extension.
 
 ```python
 tvos_framework(name, bundle_id, bundle_name, extension_safe, frameworks,
-infoplists, ipa_post_processor, linkopts, minimum_os_version, strings, version,
+infoplists, ipa_post_processor, linkopts, minimum_os_version, resources, strings, version,
 deps)
 ```
 
@@ -469,6 +485,14 @@ and extensions, list it in the `frameworks` attributes of those
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final application.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -503,7 +527,7 @@ and extensions, list it in the `frameworks` attributes of those
 ## tvos_ui_test
 
 ```python
-tvos_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
+tvos_ui_test(name, bundle_id, infoplists, minimum_os_version, resources, runner,
 test_host, data, deps, provisioning_profile, [test specific attributes])
 ```
 
@@ -566,6 +590,14 @@ the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -591,7 +623,10 @@ the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the `*.runfiles`
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+        a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>
@@ -627,7 +662,7 @@ the attributes inherited by all test rules, please check the
 ## tvos_unit_test
 
 ```python
-tvos_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
+tvos_unit_test(name, bundle_id, infoplists, minimum_os_version, resources, runner,
 test_host, data, deps, [test specific attributes])
 ```
 
@@ -706,6 +741,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -730,7 +773,10 @@ of the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the `*.runfiles`
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+        a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>

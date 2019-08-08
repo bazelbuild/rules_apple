@@ -68,6 +68,7 @@ def _watchos_application_impl(ctx):
         "app_icons",
         "storyboards",
         "strings",
+        "resources",
     ]
 
     binary_artifact = stub_support.create_stub_binary(
@@ -132,6 +133,7 @@ def _watchos_extension_impl(ctx):
     top_level_attrs = [
         "app_icons",
         "strings",
+        "resources",
     ]
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier

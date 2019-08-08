@@ -6,7 +6,7 @@
 ```python
 watchos_application(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, extension, infoplists, ipa_post_processor,
-minimum_os_version, provisioning_profile, storyboards, strings, version, deps)
+minimum_os_version, provisioning_profile, resources, storyboards, strings, version, deps)
 ```
 
 Builds and bundles a watchOS application.
@@ -142,6 +142,14 @@ rule.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>storyboards</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -190,7 +198,7 @@ rule.
 ```python
 watchos_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, strings, version, deps)
+minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles a watchOS extension.
@@ -318,6 +326,14 @@ do not support that version of the platform.
         when bundling the extension. This value is optional for simulator
         builds as the simulator doesn't fully enforce entitlements, but is
         <strong>required for device builds.</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
       </td>
     </tr>
     <tr>

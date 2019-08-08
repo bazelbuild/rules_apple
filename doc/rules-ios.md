@@ -7,7 +7,7 @@
 ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, extensions, families, frameworks, infoplists,
 ipa_post_processor, launch_images, launch_storyboard, linkopts,
-minimum_os_version, provisioning_profile, settings_bundle, strings, version,
+minimum_os_version, provisioning_profile, resources, settings_bundle, strings, version,
 watch_application, deps)
 ```
 
@@ -182,6 +182,14 @@ Builds and bundles an iOS application.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>settings_bundle</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -237,7 +245,7 @@ Builds and bundles an iOS application.
 ```python
 ios_imessage_application(name, app_icons, bundle_id, bundle_name, extension,
 families, infoplists, ipa_post_processor, minimum_os_version,
-provisioning_profile, strings, version)
+provisioning_profile, resources, strings, version)
 ```
 
 Builds and bundles an iOS iMessage application. iOS iMessage applications do not
@@ -350,6 +358,14 @@ iMessage extension or a Sticker Pack extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -378,7 +394,7 @@ iMessage extension or a Sticker Pack extension.
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, strings, version, deps)
+linkopts, minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles an iOS application extension.
@@ -522,6 +538,14 @@ Builds and bundles an iOS application extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -559,7 +583,7 @@ Builds and bundles an iOS application extension.
 ```python
 ios_imessage_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, strings, version, deps)
+linkopts, minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles an iOS iMessage extension.
@@ -703,6 +727,14 @@ Builds and bundles an iOS iMessage extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -740,7 +772,7 @@ Builds and bundles an iOS iMessage extension.
 ```python
 ios_sticker_pack_extension(name, sticker_assets, bundle_id, bundle_name,
 families, infoplists, ipa_post_processor, minimum_os_version,
-provisioning_profile, strings, version)
+provisioning_profile, resources, strings, version)
 ```
 
 Builds and bundles an iOS Sticker Pack extension.
@@ -844,6 +876,14 @@ Builds and bundles an iOS Sticker Pack extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -871,7 +911,7 @@ Builds and bundles an iOS Sticker Pack extension.
 
 ```python
 ios_framework(name, bundle_id, bundle_name, extension_safe, families,
-frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version,
+frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version, resources,
 strings, version, deps)
 ```
 
@@ -978,6 +1018,14 @@ app and extensions, list it in the `frameworks` attributes of those
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>). If this attribute is omitted, then the value specified
         by the flag <code>--ios_minimum_os</code> will be used instead.
+      </td>
+    </tr>
+    <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
       </td>
     </tr>
     <tr>
@@ -1178,8 +1226,9 @@ build a single framework artifact that works for all architectures by specifying
 ## ios_ui_test
 
 ```python
-ios_ui_test(name, bundle_id, infoplists, frameworks, minimum_os_version, runner,
-test_host, data, deps, provisioning_profile, [test specific attributes])
+ios_ui_test(name, bundle_id, infoplists, frameworks, minimum_os_version,
+resources, runner, test_host, data, deps, provisioning_profile,
+[test specific attributes])
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -1254,6 +1303,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -1279,7 +1336,10 @@ of the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the `*.runfiles`
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+          a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>
@@ -1461,7 +1521,7 @@ except `runner` is replaced by `runners`.
 
 ```python
 ios_unit_test(name, bundle_id, env, frameworks, infoplists, minimum_os_version,
-runner, test_host, data, deps, [test specific attributes])
+resources, runner, test_host, data, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
@@ -1552,6 +1612,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -1579,7 +1647,10 @@ of the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the `*.runfiles`
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+        a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>

@@ -99,6 +99,7 @@ def _macos_application_impl(ctx):
             top_level_attrs = [
                 "app_icons",
                 "strings",
+                "resources",
             ],
         ),
         partials.swift_dylibs_partial(
@@ -164,6 +165,7 @@ def _macos_bundle_impl(ctx):
             top_level_attrs = [
                 "app_icons",
                 "strings",
+                "resources",
             ],
         ),
         partials.swift_dylibs_partial(
@@ -209,6 +211,7 @@ def _macos_extension_impl(ctx):
             top_level_attrs = [
                 "app_icons",
                 "strings",
+                "resources",
             ],
         ),
         partials.swift_dylibs_partial(
@@ -261,6 +264,7 @@ def _macos_quick_look_plugin_impl(ctx):
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "strings",
+                "resources",
             ],
         ),
         partials.swift_dylibs_partial(
@@ -303,6 +307,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],
+            top_level_attrs = ["resources"],
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,

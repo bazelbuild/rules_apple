@@ -6,7 +6,7 @@
 ```python
 macos_application(name, additional_contents, app_icons, bundle_id, bundle_name,
 entitlements, entitlements_validation, extensions, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, provisioning_profile, strings,
+ipa_post_processor, linkopts, minimum_os_version, provisioning_profile, resources, strings,
 version, deps)
 ```
 
@@ -159,6 +159,14 @@ simple command line tool as a standalone binary, use
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -204,7 +212,7 @@ simple command line tool as a standalone binary, use
 ```python
 macos_bundle(name, additional_contents, app_icons, bundle_id, bundle_name,
 entitlements, entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, strings, version, deps)
+minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
@@ -353,6 +361,14 @@ Builds and bundles a macOS loadable bundle.
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.provisionprofile</code> file) to use
         when bundling the bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
       </td>
     </tr>
     <tr>
@@ -574,7 +590,7 @@ Builds a macOS dylib.
 ```python
 macos_extension(name, additional_contents, bundle_id, bundle_name,
 entitlements, entitlements_validation, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, strings, version, deps)
+linkopts, minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles a macOS extension.
@@ -705,6 +721,14 @@ Builds and bundles a macOS extension.
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>strings</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
@@ -742,7 +766,7 @@ Builds and bundles a macOS extension.
 ```python
 macos_bundle(name, additional_contents, bundle_id, bundle_name, entitlements,
 entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, strings, version, deps)
+minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles a macOS Kernel Extension.
@@ -869,6 +893,14 @@ Builds and bundles a macOS Kernel Extension.
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>The provisioning profile (<code>.provisionprofile</code> file) to use
         when bundling the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
       </td>
     </tr>
     <tr>
@@ -1074,8 +1106,8 @@ Builds and bundles a macOS Spotlight Importer.
 ## macos_unit_test
 
 ```python
-macos_unit_test(name, additional_contents, bundle_id, infoplists, minimum_os_version, runner,
-test_host, data, deps)
+macos_unit_test(name, additional_contents, bundle_id, infoplists,
+minimum_os_version, resources, runner, test_host, data, deps)
 ```
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
@@ -1168,6 +1200,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -1193,7 +1233,10 @@ of the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the <code>*.runfiles</code>
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+        a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>
@@ -1212,8 +1255,9 @@ of the attributes inherited by all test rules, please check the
 ## macos_ui_test
 
 ```python
-macos_ui_test(name, additional_contents, bundle_id, infoplists, minimum_os_version, runner,
-test_host, data, deps, [test specific attributes])
+macos_ui_test(name, additional_contents, bundle_id, infoplists,
+minimum_os_version, resources, runner, test_host, data, deps,
+[test specific attributes])
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -1298,6 +1342,14 @@ of the attributes inherited by all test rules, please check the
       </td>
     </tr>
     <tr>
+      <td><code>resources</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
+        </p>
+      </td>
+    </tr>
+    <tr>
       <td><code>runner</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
@@ -1323,7 +1375,10 @@ of the attributes inherited by all test rules, please check the
         <p>The list of files needed by this rule at runtime.</p>
         <p>Targets named in the data attribute will appear in the `*.runfiles`
         area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
+        a binary or library, or other programs needed by it.
+        <strong>NOTE</strong>: Files will be made available to the test runner,
+        but will not be bundled into the resulting <code>.xctest</code>
+        bundle.</p>
       </td>
     </tr>
     <tr>

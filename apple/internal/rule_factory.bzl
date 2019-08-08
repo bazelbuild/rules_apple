@@ -371,6 +371,13 @@ directory is named `*.lproj`, in which case it will be placed under a directory 
 in the bundle.
 """,
         ),
+        "resources": attr.label_list(
+            allow_files = True,
+            doc = """
+A list of resources or files bundled with the bundle. The resources will be stored in the
+appropriate resources location within the bundle.
+""",
+        ),
         "version": attr.label(
             providers = [[AppleBundleVersionInfo]],
             doc = """

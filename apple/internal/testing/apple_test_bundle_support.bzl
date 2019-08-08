@@ -116,6 +116,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             plist_attrs = ["infoplists"],
             targets_to_avoid = targets_to_avoid,
             version_keys_required = False,
+            top_level_attrs = ["resources"],
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,

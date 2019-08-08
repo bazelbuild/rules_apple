@@ -220,12 +220,13 @@ def _resources_partial_impl(
         version_keys_required):
     """Implementation for the resource processing partial."""
     providers = []
-    if hasattr(ctx.attr, "deps"):
-        providers.extend([
-            x[AppleResourceInfo]
-            for x in ctx.attr.deps
-            if AppleResourceInfo in x
-        ])
+    for attr in ["deps", "resources"]:
+        if hasattr(ctx.attr, attr):
+            providers.extend([
+                x[AppleResourceInfo]
+                for x in getattr(ctx.attr, attr)
+                if AppleResourceInfo in x
+            ])
 
     # TODO(kaipi): Bucket top_level_attrs directly instead of collecting and
     # splitting.

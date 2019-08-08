@@ -60,6 +60,7 @@ def _tvos_application_impl(ctx):
         "app_icons",
         "launch_images",
         "strings",
+        "resources",
     ]
 
     binary_descriptor = linking_support.register_linking_action(ctx)
@@ -175,6 +176,7 @@ def _tvos_framework_impl(ctx):
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             version_keys_required = False,
+            top_level_attrs = ["resources"],
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -194,6 +196,7 @@ def _tvos_extension_impl(ctx):
     top_level_attrs = [
         "app_icons",
         "strings",
+        "resources",
     ]
 
     binary_descriptor = linking_support.register_linking_action(ctx)

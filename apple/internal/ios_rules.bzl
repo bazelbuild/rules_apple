@@ -72,6 +72,7 @@ def _ios_application_impl(ctx):
         "launch_images",
         "launch_storyboard",
         "strings",
+        "resources",
     ]
 
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
@@ -219,6 +220,7 @@ def _ios_framework_impl(ctx):
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             version_keys_required = False,
+            top_level_attrs = ["resources"],
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -333,6 +335,7 @@ def _ios_imessage_application_impl(ctx):
     top_level_attrs = [
         "app_icons",
         "strings",
+        "resources",
     ]
 
     binary_artifact = stub_support.create_stub_binary(
@@ -393,6 +396,7 @@ def _ios_imessage_extension_impl(ctx):
     top_level_attrs = [
         "app_icons",
         "strings",
+        "resources",
     ]
 
     binary_descriptor = linking_support.register_linking_action(ctx)
@@ -458,6 +462,7 @@ def _ios_sticker_pack_extension_impl(ctx):
     top_level_attrs = [
         "sticker_assets",
         "strings",
+        "resources",
     ]
 
     binary_artifact = stub_support.create_stub_binary(
