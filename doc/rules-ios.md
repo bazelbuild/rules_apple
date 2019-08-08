@@ -1178,7 +1178,7 @@ build a single framework artifact that works for all architectures by specifying
 ## ios_ui_test
 
 ```python
-ios_ui_test(name, bundle_id, infoplists, minimum_os_version, runner,
+ios_ui_test(name, bundle_id, infoplists, frameworks, minimum_os_version, runner,
 test_host, data, deps, provisioning_profile, [test specific attributes])
 ```
 
@@ -1313,8 +1313,9 @@ of the attributes inherited by all test rules, please check the
 ## ios_ui_test_suite
 
 ```python
-ios_ui_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
-test_host, deps, provisioning_profile, [test specific attributes])
+ios_ui_test_suite(name, bundle_id, env, frameworks, infoplists,
+minimum_os_version, runners, test_host, data, deps, provisioning_profile,
+[test specific attributes])
 ```
 
 Builds an XCUITest test suite with the given runners.
@@ -1452,8 +1453,8 @@ Builds an XCUITest test suite with the given runners.
 ## ios_unit_test
 
 ```python
-ios_unit_test(name, bundle_id, infoplists, minimum_os_version, runner,
-test_host, data, deps, [test specific attributes])
+ios_unit_test(name, bundle_id, env, frameworks, infoplists, minimum_os_version,
+runner, test_host, data, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
@@ -1595,8 +1596,8 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test_suite
 
 ```python
-ios_unit_test_suite(name, bundle_id, infoplists, minimum_os_version, runners,
-test_host, deps, [test specific attributes])
+ios_unit_test_suite(name, bundle_id, env, frameworks, infoplists,
+minimum_os_version, runners, test_host, deps, [test specific attributes])
 ```
 
 Builds an XCTest unit test suite with the given runners.
