@@ -175,7 +175,7 @@ EOF
 
 # Tests that swift_library build with ASAN enabled and that the ASAN
 # library is packaged into the IPA when enabled.
-function disabled_test_swift_builds_with_asan() {  # Blocked on b/73547309
+function test_swift_builds_with_asan() {
   create_minimal_ios_application
 
   cat >> app/BUILD <<EOF
@@ -198,7 +198,7 @@ EOF
 
 # Tests that swift_library build with TSAN enabled and that the TSAN
 # library is packaged into the IPA when enabled.
-function disabled_test_swift_builds_with_tsan() {  # Blocked on b/73547309
+function test_swift_builds_with_tsan() {
   # Skip the device version as tsan is not supported on devices.
   if ! is_device_build ios ; then
     create_minimal_ios_application
