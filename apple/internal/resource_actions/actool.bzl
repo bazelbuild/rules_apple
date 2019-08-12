@@ -212,7 +212,7 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend(xcassets)
+    args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
     legacy_actions.run(
         ctx,
