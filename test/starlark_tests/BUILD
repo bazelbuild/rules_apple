@@ -1,5 +1,6 @@
 licenses(["notice"])
 
+load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
@@ -19,6 +20,8 @@ load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
 load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
+
+apple_bundle_version_test_suite()
 
 ios_application_test_suite()
 
