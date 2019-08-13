@@ -368,6 +368,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_command_line_application
         apple_product_type.tool: _describe_rule_type(
@@ -378,6 +379,7 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_provisioning_profile = True,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
@@ -386,6 +388,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = "",
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -409,6 +412,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_quick_look_plugin
         apple_product_type.quicklook_plugin: _describe_rule_type(
@@ -421,6 +425,7 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
@@ -439,6 +444,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_kernel_extension
         apple_product_type.kernel_extension: _describe_rule_type(
@@ -459,6 +465,7 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_spotlight_importer
         apple_product_type.spotlight_importer: _describe_rule_type(
@@ -470,6 +477,7 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_xpc_service
         apple_product_type.xpc_service: _describe_rule_type(
@@ -488,6 +496,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -512,6 +521,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
                 "@loader_path/../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -536,6 +546,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
                 "@loader_path/../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
     },
     "tvos": {
