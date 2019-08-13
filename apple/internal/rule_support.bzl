@@ -559,6 +559,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -579,6 +580,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
@@ -594,6 +596,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
             skip_signing = True,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -617,6 +620,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -640,6 +644,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
+            rule_transition = transition_support.apple_rule_transition,
         ),
     },
     "watchos": {
