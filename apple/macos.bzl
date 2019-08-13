@@ -291,10 +291,6 @@ def macos_unit_test(
         **kwargs):
     """Builds macOS XCTest test target."""
 
-    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
-    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
-    kwargs.pop("binary_tags", None)
-
     # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
     # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
     # to have testonly to True since it's always going to be a dependency of a test target. This can
@@ -323,10 +319,6 @@ def macos_ui_test(
         name,
         **kwargs):
     """Builds an macOS XCUITest test target."""
-
-    # Discard binary_tags for now, as there is no apple_binary target any more to apply them to.
-    # TODO(kaipi): Cleanup binary_tags for tests and remove this.
-    kwargs.pop("binary_tags", None)
 
     # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
     # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
