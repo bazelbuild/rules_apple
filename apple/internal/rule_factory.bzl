@@ -35,12 +35,10 @@ load(
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_info_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
+    "AppleTestRunnerInfo",
     "coverage_files_aspect",
+    "test_info_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
@@ -55,7 +53,6 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleResourceBundleInfo",
-    "AppleTestRunnerInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
@@ -165,53 +162,42 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
-_COMMON_TEST_ATTRS = {
-    "data": attr.label_list(
-        allow_files = True,
-        default = [],
-        doc = "Files to be made available to the test during its execution.",
-    ),
-    "env": attr.string_dict(
-        doc = """
+def _common_test_attributes(rule_descriptor):
+    return {
+        "data": attr.label_list(
+            allow_files = True,
+            default = [],
+            doc = "Files to be made available to the test during its execution.",
+        ),
+        "env": attr.string_dict(
+            doc = """
 Dictionary of environment variables that should be set during the test execution.
 """,
-    ),
-    "runner": attr.label(
-        doc = """
+        ),
+        "runner": attr.label(
+            doc = """
 The runner target that will provide the logic on how to run the tests. Needs to provide the
 AppleTestRunnerInfo provider.
-""",
-        mandatory = True,
-        providers = [AppleTestRunnerInfo],
-    ),
-    # This is an implementation detail attribute, so it's not documented on purpose.
-    "deps": attr.label_list(
-        mandatory = True,
-        aspects = [coverage_files_aspect],
-        providers = [AppleBundleInfo],
-    ),
-    # TODO(b/139430318): This attribute exists to apease the Tulsi gods and is not actually used by
-    # the test rule implementation, and should be removed.
-    # This is an implementation detail attribute, so it's not documented on purpose.
-    "test_host": attr.label(
-        providers = [AppleBundleInfo],
-    ),
-    "_apple_coverage_support": attr.label(
-        cfg = "host",
-        default = Label("@build_bazel_apple_support//tools:coverage_support"),
-    ),
-    # gcov and mcov are binary files required to calculate test coverage.
-    "_gcov": attr.label(
-        cfg = "host",
-        default = Label("@bazel_tools//tools/objc:gcov"),
-        allow_single_file = True,
-    ),
-    "_mcov": attr.label(
-        cfg = "host",
-        default = Label("@bazel_tools//tools/objc:mcov"),
-        allow_single_file = True,
-    ),
-}
+    """,
+            default = Label(rule_descriptor.default_test_runner),
+            providers = [AppleTestRunnerInfo],
+        ),
+        "_apple_coverage_support": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_apple_support//tools:coverage_support"),
+        ),
+        # gcov and mcov are binary files required to calculate test coverage.
+        "_gcov": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:gcov"),
+            allow_single_file = True,
+        ),
+        "_mcov": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:mcov"),
+            allow_single_file = True,
+        ),
+    }
 
 def _common_binary_linking_attrs(rule_descriptor):
     deps_aspects = [
@@ -221,7 +207,7 @@ def _common_binary_linking_attrs(rule_descriptor):
         swift_usage_aspect,
     ]
     if _is_test_product_type(rule_descriptor.product_type):
-        deps_aspects.extend([apple_test_info_aspect])
+        deps_aspects.extend([coverage_files_aspect, test_info_aspect])
 
     return {
         "binary_type": attr.string(
@@ -601,7 +587,7 @@ the application bundle.
 
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = required_providers,
             ),
@@ -679,7 +665,7 @@ set, then the default extension is determined by the application's product_type.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, MacosApplicationBundleInfo],
             ),
@@ -721,7 +707,7 @@ use only extension-safe APIs.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [coverage_files_aspect, framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, TvosApplicationBundleInfo],
             ),
@@ -904,6 +890,8 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
 
     is_test_product_type = _is_test_product_type(rule_descriptor.product_type)
+    if is_test_product_type:
+        rule_attrs.append(_common_test_attributes(rule_descriptor))
 
     # TODO(kaipi): Add support for all platforms.
     if platform_type == "ios":
@@ -933,38 +921,11 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
-    )
-
-def _create_apple_test_rule(implementation, doc, platform_type, cfg = None):
-    """Creates an Apple test rule."""
-
-    # Add the platform_type and minimum_os_version attribute to this rule so that we can apply the
-    # same configuration transition as the bundling rules. This is to ensure that the built
-    # artifacts from the test rules and bundling rules are placed in the same configuration-specific
-    # output.
-    extra_attrs = [{
-        "platform_type": attr.string(default = platform_type),
-        "minimum_os_version": attr.string(mandatory = True),
-    }]
-    if cfg:
-        extra_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
-            ),
-        })
-
-    return rule(
-        implementation = implementation,
-        attrs = dicts.add(_COMMON_PRIVATE_TOOL_ATTRS, _COMMON_TEST_ATTRS, *extra_attrs),
-        cfg = cfg,
-        doc = doc,
-        outputs = {"archive": "%{name}.zip"},
-        test = True,
+        test = is_test_product_type,
     )
 
 rule_factory = struct(
     common_tool_attributes = _COMMON_PRIVATE_TOOL_ATTRS,
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,
-    create_apple_test_rule = _create_apple_test_rule,
 )

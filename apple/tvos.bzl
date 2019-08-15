@@ -15,15 +15,9 @@
 """Bazel rules for creating tvOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
-    "apple_test_assembler",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:tvos_rules.bzl",
     _tvos_ui_test = "tvos_ui_test",
-    _tvos_ui_test_bundle = "tvos_ui_test_bundle",
     _tvos_unit_test = "tvos_unit_test",
-    _tvos_unit_test_bundle = "tvos_unit_test_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
@@ -90,26 +84,53 @@ def tvos_framework(name, **kwargs):
         **bundling_args
     )
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner"
+def tvos_unit_test(
+        name,
+        test_host = None,
+        **kwargs):
+    """Builds an tvOS XCTest test target."""
 
-def tvos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
-    apple_test_assembler.assemble(
-        name = name,
-        bundle_rule = _tvos_unit_test_bundle,
-        test_rule = _tvos_unit_test,
-        runner = runner,
-        bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
+    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
+    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
+    # to have testonly to True since it's always going to be a dependency of a test target. This can
+    # be removed when we migrate the swift linkopts targets into the rule implementations.
+    testonly = kwargs.pop("testonly", None)
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.tvos),
+        include_entitlements = False,
+        testonly = True,
         **kwargs
     )
 
-def tvos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
-    apple_test_assembler.assemble(
+    bundle_loader = None
+    if test_host:
+        bundle_loader = test_host
+    _tvos_unit_test(
         name = name,
-        bundle_rule = _tvos_ui_test_bundle,
-        test_rule = _tvos_ui_test,
-        runner = runner,
+        bundle_loader = bundle_loader,
+        test_host = test_host,
+        **bundling_args
+    )
+
+def tvos_ui_test(
+        name,
+        **kwargs):
+    """Builds an tvOS XCUITest test target."""
+
+    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
+    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
+    # to have testonly to True since it's always going to be a dependency of a test target. This can
+    # be removed when we migrate the swift linkopts targets into the rule implementations.
+    testonly = kwargs.pop("testonly", None)
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.tvos),
+        include_entitlements = False,
+        testonly = True,
         **kwargs
     )
+
+    _tvos_ui_test(name = name, **bundling_args)

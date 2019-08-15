@@ -19,10 +19,6 @@ load(
     "apple_test_rule_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -35,52 +31,32 @@ load(
     "IosXcTestBundleInfo",
 )
 
-def _ios_ui_test_bundle_impl(ctx):
-    """Implementation of ios_ui_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        IosXcTestBundleInfo(),
-    ]
-
-def _ios_unit_test_bundle_impl(ctx):
-    """Implementation of ios_unit_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        IosXcTestBundleInfo(),
-    ]
-
 def _ios_ui_test_impl(ctx):
     """Implementation of ios_ui_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        IosXcTestBundleInfo(),
-    ]
+    return apple_test_rule_support.apple_test_impl(
+        ctx,
+        "xcuitest",
+        extra_providers = [IosXcTestBundleInfo()],
+    )
 
 def _ios_unit_test_impl(ctx):
     """Implementation of ios_unit_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        IosXcTestBundleInfo(),
-    ]
+    return apple_test_rule_support.apple_test_impl(
+        ctx,
+        "xctest",
+        extra_providers = [IosXcTestBundleInfo()],
+    )
 
-ios_ui_test_bundle = rule_factory.create_apple_bundling_rule(
-    implementation = _ios_ui_test_bundle_impl,
+ios_ui_test = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_ui_test_impl,
     platform_type = str(apple_common.platform_type.ios),
     product_type = apple_product_type.ui_test_bundle,
-    doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
+    doc = "Builds and bundles a iOS UI Test Bundle.",
 )
 
-ios_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _ios_ui_test_impl,
-    doc = "iOS UI Test rule.",
-    platform_type = "ios",
-)
-
-ios_unit_test_bundle = rule_factory.create_apple_bundling_rule(
-    implementation = _ios_unit_test_bundle_impl,
+ios_unit_test = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_unit_test_impl,
     platform_type = str(apple_common.platform_type.ios),
     product_type = apple_product_type.unit_test_bundle,
-    doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
-)
-
-ios_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _ios_unit_test_impl,
-    doc = "iOS Unit Test rule.",
-    platform_type = "ios",
+    doc = "Builds and bundles a iOS Unit Test Bundle.",
 )
