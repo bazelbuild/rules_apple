@@ -69,7 +69,6 @@ ios_ui_test_bundle = rule_factory.create_apple_bundling_rule(
 ios_ui_test = rule_factory.create_apple_test_rule(
     implementation = _ios_ui_test_impl,
     doc = "iOS UI Test rule.",
-    platform_type = "ios",
 )
 
 ios_unit_test_bundle = rule_factory.create_apple_bundling_rule(
@@ -82,5 +81,4 @@ ios_unit_test_bundle = rule_factory.create_apple_bundling_rule(
 ios_unit_test = rule_factory.create_apple_test_rule(
     implementation = _ios_unit_test_impl,
     doc = "iOS Unit Test rule.",
-    platform_type = "ios",
 )

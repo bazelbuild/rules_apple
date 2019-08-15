@@ -199,6 +199,30 @@ def _apple_test_rule_impl(ctx, test_type):
         test_bundle,
     )
 
+    # Create symlinks for the outputs declared by the test bundle so that they get placed under the
+    # correct configuration. This is not a problem because the test bundle will always exist in a
+    # different configuration, so the outputs will never collide.
+    outputs = [executable, test_bundle]
+    for bundle_output in test_bundle_target[AppleExtraOutputsInfo].files.to_list():
+        # First check if the root output for this target is different from the test bundle's
+        # outputs, and if they're different, make a symlink to bridge over to this target's
+        # configuration. This check is only needed until all test rules have the Apple transition
+        # enabled. Once all test rules have the transition, it will be guaranteed that the outputs
+        # live in different roots, so we can just make the symlinks.
+        # TODO(b/123048937): Remove this conditional and make the symlink inconditionally.
+        if executable.root.path != bundle_output.root.path:
+            configured_output = ctx.actions.declare_file(
+                bundle_output.short_path.split(bundle_output.owner.package + "/")[-1],
+            )
+            file_support.symlink(
+                ctx,
+                bundle_output,
+                configured_output,
+            )
+            outputs.append(configured_output)
+        else:
+            outputs.append(bundle_output)
+
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
@@ -217,10 +241,7 @@ def _apple_test_rule_impl(ctx, test_type):
         testing.TestEnvironment(execution_environment),
         DefaultInfo(
             executable = executable,
-            files = depset(
-                [executable, test_bundle],
-                transitive = [test_bundle_target[AppleExtraOutputsInfo].files],
-            ),
+            files = depset(outputs),
             runfiles = ctx.runfiles(
                 files = direct_runfiles,
                 transitive_files = depset(transitive = transitive_runfiles),

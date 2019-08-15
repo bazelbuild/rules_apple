@@ -69,7 +69,6 @@ macos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
 macos_ui_test = rule_factory.create_apple_test_rule(
     implementation = _macos_ui_test_impl,
     doc = "macOS UI Test rule.",
-    platform_type = "macos",
 )
 
 macos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
@@ -82,5 +81,4 @@ macos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
 macos_unit_test = rule_factory.create_apple_test_rule(
     implementation = _macos_unit_test_impl,
     doc = "macOS Unit Test rule.",
-    platform_type = "macos",
 )

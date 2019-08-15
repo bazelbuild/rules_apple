@@ -935,28 +935,12 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         outputs = {"archive": archive_name},
     )
 
-def _create_apple_test_rule(implementation, doc, platform_type, cfg = None):
+def _create_apple_test_rule(implementation, doc):
     """Creates an Apple test rule."""
-
-    # Add the platform_type and minimum_os_version attribute to this rule so that we can apply the
-    # same configuration transition as the bundling rules. This is to ensure that the built
-    # artifacts from the test rules and bundling rules are placed in the same configuration-specific
-    # output.
-    extra_attrs = [{
-        "platform_type": attr.string(default = platform_type),
-        "minimum_os_version": attr.string(mandatory = True),
-    }]
-    if cfg:
-        extra_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
-            ),
-        })
 
     return rule(
         implementation = implementation,
-        attrs = dicts.add(_COMMON_PRIVATE_TOOL_ATTRS, _COMMON_TEST_ATTRS, *extra_attrs),
-        cfg = cfg,
+        attrs = dicts.add(_COMMON_PRIVATE_TOOL_ATTRS, _COMMON_TEST_ATTRS),
         doc = doc,
         outputs = {"archive": "%{name}.zip"},
         test = True,
