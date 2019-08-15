@@ -41,11 +41,136 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleExtraOutputsInfo",
+    "AppleTestInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
+
+def _collect_files(rule_attr, attr_name):
+    """Collects files from attr_name (if present) into a depset."""
+
+    attr_val = getattr(rule_attr, attr_name, None)
+    if not attr_val:
+        return depset()
+
+    attr_val_as_list = attr_val if types.is_list(attr_val) else [attr_val]
+    return depset(transitive = [f.files for f in attr_val_as_list])
+
+def _apple_test_info_aspect_impl(target, ctx):
+    """See `test_info_aspect` for full documentation."""
+    includes = []
+    module_maps = []
+    swift_modules = []
+
+    # Not all deps (i.e. source files) will have an AppleTestInfo provider. If the
+    # dep doesn't, just filter it out.
+    test_infos = [
+        x[AppleTestInfo]
+        for x in getattr(ctx.rule.attr, "deps", [])
+        if AppleTestInfo in x
+    ]
+
+    # Collect transitive information from deps.
+    for test_info in test_infos:
+        includes.append(test_info.includes)
+        module_maps.append(test_info.module_maps)
+        swift_modules.append(test_info.swift_modules)
+
+    if apple_common.Objc in target:
+        objc_provider = target[apple_common.Objc]
+        includes.append(objc_provider.include)
+
+        # Module maps should only be used by Swift targets.
+        if SwiftInfo in target:
+            module_maps.append(objc_provider.module_map)
+
+    if (SwiftInfo in target and
+        hasattr(target[SwiftInfo], "transitive_swiftmodules")):
+        swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
+
+    # Collect sources from the current target and add any relevant transitive
+    # information. Note that we do not propagate sources transitively as we
+    # intentionally only show test sources from the test's first-level of
+    # dependencies instead of all transitive dependencies.
+    non_arc_sources = _collect_files(ctx.rule.attr, "non_arc_srcs")
+    sources = _collect_files(ctx.rule.attr, "srcs")
+
+    return [AppleTestInfo(
+        includes = depset(transitive = includes),
+        module_maps = depset(transitive = module_maps),
+        non_arc_sources = non_arc_sources,
+        sources = sources,
+        swift_modules = depset(transitive = swift_modules),
+    )]
+
+apple_test_info_aspect = aspect(
+    attr_aspects = [
+        "deps",
+    ],
+    doc = """
+This aspect walks the dependency graph through the `deps` attribute and collects sources, transitive
+includes, transitive module maps, and transitive Swift modules.
+
+This aspect propagates an `AppleTestInfo` provider.
+""",
+    implementation = _apple_test_info_aspect_impl,
+)
+
+def _apple_test_info_provider(deps, test_bundle, test_host):
+    """Returns an AppleTestInfo provider by collecting the relevant data from dependencies."""
+    dep_labels = []
+    swift_infos = []
+
+    transitive_includes = []
+    transitive_module_maps = []
+    transitive_non_arc_sources = []
+    transitive_sources = []
+    transitive_swift_modules = []
+
+    for dep in deps:
+        dep_labels.append(str(dep.label))
+
+        if SwiftInfo in dep:
+            swift_infos.append(dep[SwiftInfo])
+
+        test_info = dep[AppleTestInfo]
+
+        transitive_includes.append(test_info.includes)
+        transitive_module_maps.append(test_info.module_maps)
+        transitive_non_arc_sources.append(test_info.non_arc_sources)
+        transitive_sources.append(test_info.sources)
+        transitive_swift_modules.append(test_info.swift_modules)
+
+    # Set module_name only for test targets with a single Swift dependency.
+    # This is not used if there are multiple Swift dependencies, as it will
+    # not be possible to reduce them into a single Swift module and picking
+    # an arbitrary one is fragile.
+    module_name = None
+    if len(swift_infos) == 1:
+        module_name = getattr(swift_infos[0], "module_name", None)
+
+    return AppleTestInfo(
+        deps = depset(dep_labels),
+        includes = depset(transitive = transitive_includes),
+        module_maps = depset(transitive = transitive_module_maps),
+        module_name = module_name,
+        non_arc_sources = depset(transitive = transitive_non_arc_sources),
+        sources = depset(transitive = transitive_sources),
+        swift_modules = depset(transitive = transitive_swift_modules),
+        test_bundle = test_bundle,
+        test_host = test_host,
+    )
 
 def _computed_test_bundle_id(test_host_bundle_id):
     """Compute a test bundle ID from the test host, or a default if not given."""
@@ -131,11 +256,10 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    # TODO(kaipi): Remove this filtering when apple_*_test is merged with the bundle and binary
-    # rules. The processor outputs has all the extra outputs like dSYM files that we want to
-    # propagate, but it also includes the archive artifact. Because this target is an intermediate
-    # and hidden target, we don't want to expose this artifact directly as an output, as the
-    # apple_*_test rules will copy and rename this archive with the correct name.
+    # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
+    # it also includes the archive artifact. This collects all the files that should be output from
+    # the rule (except the archive) so that they're propagated and can be returned by the test
+    # target.
     filtered_outputs = [
         x
         for x in processor_result.output_files.to_list()
@@ -145,7 +269,25 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     providers = processor_result.providers
     output_files = processor_result.output_files
 
-    return providers, output_files
+    # Append the AppleTestBundleInfo provider with pointers to the test and host bundles.
+    test_host_archive = None
+    if ctx.attr.test_host:
+        test_host_archive = ctx.attr.test_host[AppleBundleInfo].archive
+    providers.extend([
+        _apple_test_info_provider(
+            deps = ctx.attr.deps,
+            test_bundle = outputs.archive(ctx),
+            test_host = test_host_archive,
+        ),
+        coverage_common.instrumented_files_info(
+            ctx,
+            dependency_attributes = ["deps", "test_host"],
+        ),
+        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
+        DefaultInfo(files = output_files),
+    ])
+
+    return providers
 
 apple_test_bundle_support = struct(
     apple_test_bundle_impl = _apple_test_bundle_impl,

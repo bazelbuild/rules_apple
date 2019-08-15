@@ -19,6 +19,10 @@ load(
     "apple_test_rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
+    "apple_test_bundle_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -31,32 +35,52 @@ load(
     "MacosXcTestBundleInfo",
 )
 
+def _macos_ui_test_bundle_impl(ctx):
+    """Implementation of macos_ui_test."""
+    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
+        MacosXcTestBundleInfo(),
+    ]
+
+def _macos_unit_test_bundle_impl(ctx):
+    """Implementation of macos_unit_test."""
+    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
+        MacosXcTestBundleInfo(),
+    ]
+
 def _macos_ui_test_impl(ctx):
     """Implementation of macos_ui_test."""
-    return apple_test_rule_support.apple_test_impl(
-        ctx,
-        "xcuitest",
-        extra_providers = [MacosXcTestBundleInfo()],
-    )
+    return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
+        MacosXcTestBundleInfo(),
+    ]
 
 def _macos_unit_test_impl(ctx):
     """Implementation of macos_unit_test."""
-    return apple_test_rule_support.apple_test_impl(
-        ctx,
-        "xctest",
-        extra_providers = [MacosXcTestBundleInfo()],
-    )
+    return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
+        MacosXcTestBundleInfo(),
+    ]
 
-macos_ui_test = rule_factory.create_apple_bundling_rule(
-    implementation = _macos_ui_test_impl,
+macos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_ui_test_bundle_impl,
     platform_type = str(apple_common.platform_type.macos),
     product_type = apple_product_type.ui_test_bundle,
-    doc = "Builds and bundles a macOS UI Test Bundle.",
+    doc = "Builds and bundles an macOS UI Test Bundle.  Internal target not to be depended upon.",
 )
 
-macos_unit_test = rule_factory.create_apple_bundling_rule(
-    implementation = _macos_unit_test_impl,
+macos_ui_test = rule_factory.create_apple_test_rule(
+    implementation = _macos_ui_test_impl,
+    doc = "macOS UI Test rule.",
+    platform_type = "macos",
+)
+
+macos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_unit_test_bundle_impl,
     platform_type = str(apple_common.platform_type.macos),
     product_type = apple_product_type.unit_test_bundle,
-    doc = "Builds and bundles a macOS Unit Test Bundle.",
+    doc = "Builds and bundles an macOS Unit Test Bundle.  Internal target not to be depended upon.",
+)
+
+macos_unit_test = rule_factory.create_apple_test_rule(
+    implementation = _macos_unit_test_impl,
+    doc = "macOS Unit Test rule.",
+    platform_type = "macos",
 )

@@ -15,9 +15,15 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
     _macos_ui_test = "macos_ui_test",
+    _macos_ui_test_bundle = "macos_ui_test_bundle",
     _macos_unit_test = "macos_unit_test",
+    _macos_unit_test_bundle = "macos_unit_test_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -285,53 +291,27 @@ def macos_extension(name, **kwargs):
         **bundling_args
     )
 
-def macos_unit_test(
-        name,
-        test_host = None,
-        **kwargs):
-    """Builds macOS XCTest test target."""
+_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner"
 
-    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
-    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
-    # to have testonly to True since it's always going to be a dependency of a test target. This can
-    # be removed when we migrate the swift linkopts targets into the rule implementations.
-    testonly = kwargs.pop("testonly", None)
-
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        include_entitlements = False,
-        testonly = True,
-        **kwargs
-    )
-
-    bundle_loader = None
-    if test_host:
-        bundle_loader = test_host
-    _macos_unit_test(
+def macos_unit_test(name, **kwargs):
+    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+    apple_test_assembler.assemble(
         name = name,
-        bundle_loader = bundle_loader,
-        test_host = test_host,
-        **bundling_args
-    )
-
-def macos_ui_test(
-        name,
-        **kwargs):
-    """Builds an macOS XCUITest test target."""
-
-    # Discard any testonly attributes that may have been passed in kwargs. Since this is a test
-    # rule, testonly should be a noop. Instead, force the add_entitlements_and_swift_linkopts method
-    # to have testonly to True since it's always going to be a dependency of a test target. This can
-    # be removed when we migrate the swift linkopts targets into the rule implementations.
-    testonly = kwargs.pop("testonly", None)
-
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        include_entitlements = False,
-        testonly = True,
+        bundle_rule = _macos_unit_test_bundle,
+        test_rule = _macos_unit_test,
+        runner = runner,
+        bundle_loader = kwargs.get("test_host"),
+        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
-    _macos_ui_test(name = name, **bundling_args)
+def macos_ui_test(name, **kwargs):
+    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _macos_ui_test_bundle,
+        test_rule = _macos_ui_test,
+        runner = runner,
+        dylibs = kwargs.get("frameworks"),
+        **kwargs
+    )

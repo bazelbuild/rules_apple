@@ -171,6 +171,86 @@ requirement.
 """,
 )
 
+AppleTestInfo = provider(
+    doc = """
+Provider that test targets propagate to be used for IDE integration.
+
+This includes information regarding test source files, transitive include paths,
+transitive module maps, and transitive Swift modules. Test source files are
+considered to be all of which belong to the first-level dependencies on the test
+target.
+""",
+    fields = {
+        "includes": """
+`depset` of `string`s representing transitive include paths which are needed by
+IDEs to be used for indexing the test sources.
+""",
+        "module_maps": """
+`depset` of `File`s representing module maps which are needed by IDEs to be used
+for indexing the test sources.
+""",
+        "module_name": """
+`string` representing the module name used by the test's sources. This is only
+set if the test only contains a single top-level Swift dependency. This may be
+used by an IDE to identify the Swift module (if any) used by the test's sources.
+""",
+        "non_arc_sources": """
+`depset` of `File`s containing non-ARC sources from the test's immediate
+deps.
+""",
+        "sources": """
+`depset` of `File`s containing sources from the test's immediate deps.
+""",
+        "swift_modules": """
+`depset` of `File`s representing transitive swift modules which are needed by
+IDEs to be used for indexing the test sources.
+""",
+        "test_bundle": "The artifact representing the XCTest bundle for the test target.",
+        "test_host": """
+The artifact representing the test host for the test target, if the test requires a test host.
+""",
+        "deps": """
+`depset` of `string`s representing the labels of all immediate deps of the test.
+Only source files from these deps will be present in `sources`. This may be used
+by IDEs to differentiate a test target's transitive module maps from its direct
+module maps, as including the direct module maps may break indexing for the
+source files of the immediate deps.
+""",
+    },
+)
+
+AppleTestRunnerInfo = provider(
+    doc = """
+Provider that runner targets must propagate.
+
+In addition to the fields, all the runfiles that the runner target declares will be added to the
+test rules runfiles.
+""",
+    fields = {
+        "execution_requirements": """
+Optional dictionary that represents the specific hardware requirements for this test.
+""",
+        "execution_environment": """
+Optional dictionary with the environment variables that are to be set in the test action, and are
+not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s
+substitution, but will be set in the test action.
+""",
+        "test_environment": """
+Optional dictionary with the environment variables that are to be propagated into the XCTest
+invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in
+the test action.
+""",
+        "test_runner_template": """
+Required template file that contains the specific mechanism with which the tests will be run. The
+*_ui_test and *_unit_test rules will substitute the following values:
+    * %(test_host_path)s:   Path to the app being tested.
+    * %(test_bundle_path)s: Path to the test bundle that contains the tests.
+    * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).
+    * %(test_type)s:        The test type, whether it is unit or UI.
+""",
+    },
+)
+
 IosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is an iOS application.
