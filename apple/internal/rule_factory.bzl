@@ -88,22 +88,22 @@ def _is_test_product_type(product_type):
 _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
     {
         "_bundletool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/bundletool"),
         ),
         "_bundletool_experimental": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
         ),
         "_clangrttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/clangrttool"),
         ),
         "_codesigningtool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/codesigningtool"),
         ),
@@ -115,7 +115,7 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             ),
         ),
         "_plisttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("@build_bazel_rules_apple//tools/plisttool"),
             executable = True,
         ),
@@ -154,7 +154,7 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             executable = True,
         ),
         "_xctoolrunner": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
         ),

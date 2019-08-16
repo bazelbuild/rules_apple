@@ -87,7 +87,7 @@ Label to a single mlmodel file from which to generate sources and compile into m
             doc = "Private attribute to configure the ObjC header name to be exported.",
         ),
         "_xctoolrunner": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
         ),

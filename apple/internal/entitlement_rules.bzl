@@ -311,14 +311,14 @@ entitlements = rule(
         ),
         "validation_mode": attr.string(),
         "_plisttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label(
                 "@build_bazel_rules_apple//tools/plisttool",
             ),
             executable = True,
         ),
         "_provisioning_profile_tool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label(
                 "@build_bazel_rules_apple//tools/provisioning_profile_tool",
             ),
