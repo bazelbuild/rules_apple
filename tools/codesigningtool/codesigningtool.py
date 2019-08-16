@@ -102,7 +102,11 @@ def _certificate_fingerprint(identity):
 def _get_identities_from_provisioning_profile(mpf):
   """Iterates through all the identities in a provisioning profile, lazily."""
   for identity in mpf["DeveloperCertificates"]:
-    yield _certificate_fingerprint(identity.data)
+    if not isinstance(identity, bytes):
+      # Old versions of plistlib return the deprecated plistlib.Data type
+      # instead of bytes.
+      identity = identity.data
+    yield _certificate_fingerprint(identity)
 
 
 def _find_codesign_identities(identity=None):
