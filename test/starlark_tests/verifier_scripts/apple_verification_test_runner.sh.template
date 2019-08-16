@@ -31,5 +31,21 @@ BUNDLE_ROOT="$ARCHIVE_ROOT/%{archive_relative_bundle}s"
 CONTENT_ROOT="$ARCHIVE_ROOT/%{archive_relative_contents}s"
 RESOURCE_ROOT="$ARCHIVE_ROOT/%{archive_relative_resources}s"
 
+# Parse any environmental variables passed into bash arrays for use within the
+# sourced verification scripts.
+if [[ -n "${APPLE_TEST_ENV_KEYS-}" ]]; then
+  for key in $APPLE_TEST_ENV_KEYS
+  do
+    eval "declare -a ${key}"
+    eval "${key}=()"
+    i="0"
+    while eval "[[ -n \${APPLE_TEST_ENV_${key}_${i}-} ]]"
+    do
+      eval "${key}+=(\"\${APPLE_TEST_ENV_${key}_${i}}\")"
+      i=$[$i+1]
+    done
+  done
+fi
+
 # Invoke the verifier script.
 source %{verifier_script}s

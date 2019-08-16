@@ -121,8 +121,17 @@ def _apple_verification_test_impl(ctx):
     )
 
     # Extra test environment to set during the test.
-    test_env = dict(ctx.attr.env)
-    test_env["BUILD_TYPE"] = ctx.attr.build_type
+    test_env = {
+        "BUILD_TYPE": ctx.attr.build_type,
+    }
+
+    # Create APPLE_TEST_ENV_# environmental variables for each `env` attribute that are transformed
+    # into bash arrays. This allows us to not need any extra sentinal/delimiter characters in the
+    # values.
+    test_env["APPLE_TEST_ENV_KEYS"] = " ".join(ctx.attr.env.keys())
+    for key in ctx.attr.env:
+        for num, value in enumerate(ctx.attr.env[key]):
+            test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
 
     return [
         testing.ExecutionInfo(apple_support.action_required_execution_requirements()),
@@ -165,9 +174,10 @@ variables to exist:
 * RESOURCE_ROOT: The directory where the resource files are located.
 """,
         ),
-        "env": attr.string_dict(
+        "env": attr.string_list_dict(
             doc = """
-The environmental variables to pass to the verifier script.
+The environmental variables to pass to the verifier script. The list of strings will be transformed
+into a bash array.
 """,
         ),
         "_runner_script": attr.label(
