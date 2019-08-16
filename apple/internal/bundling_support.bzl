@@ -123,7 +123,7 @@ def _path_is_under_fragments(path, path_fragments):
     """
     start_offset = 0
     for suffix in path_fragments:
-        offset = path.find(suffix, start = start_offset)
+        offset = path.find(suffix, start_offset)
         if offset != -1:
             start_offset = offset + len(suffix)
             continue
