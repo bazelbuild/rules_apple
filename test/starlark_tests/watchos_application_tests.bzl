@@ -32,6 +32,7 @@ def watchos_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -39,6 +40,7 @@ def watchos_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
         verifier_script = "verifier_scripts/resources_verifier.sh",
+        tags = [name],
     )
 
     infoplist_contents_test(

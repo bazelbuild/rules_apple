@@ -202,20 +202,4 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_TYPE=XCUITEST" "test-bin/app/ui_tests"
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-function test_dsyms_generated() {
-  create_common_files
-  create_minimal_tvos_application_with_tests
-  do_build tvos --apple_generate_dsym //app:ui_tests || fail "Should build"
-
-  assert_exists "test-bin/app/ui_tests.xctest.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs tvos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/ui_tests.xctest.dSYM/Contents/Resources/DWARF/ui_tests_${arch}"
-  done
-}
-
 run_suite "tvos_ui_test bundling tests"

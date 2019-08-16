@@ -275,22 +275,6 @@ EOF
   do_build tvos --tvos_minimum_os=9.0 //app:unit_tests || fail "Should build"
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-function test_dsyms_generated() {
-  create_common_files
-  create_minimal_tvos_application_with_tests
-  do_build tvos --apple_generate_dsym //app:unit_tests || fail "Should build"
-
-  assert_exists "test-bin/app/unit_tests.xctest.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs tvos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/unit_tests.xctest.dSYM/Contents/Resources/DWARF/unit_tests_${arch}"
-  done
-}
-
 function test_logic_unit_test_packages_dynamic_framework_targets {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:apple.bzl",

@@ -32,6 +32,7 @@ def ios_imessage_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
     )
 
     infoplist_contents_test(

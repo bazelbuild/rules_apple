@@ -32,6 +32,7 @@ def macos_quick_look_plugin_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
     )
 
     infoplist_contents_test(

@@ -112,22 +112,6 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-function test_dsyms_generated() {
-  create_common_files
-  create_minimal_tvos_application
-  do_build tvos --apple_generate_dsym //app:app || fail "Should build"
-
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs tvos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
-  done
-}
-
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
 # present.
 function disabled_test_linkmaps_generated() {  # Blocked on b/73547215

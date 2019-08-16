@@ -78,6 +78,7 @@ def apple_bundle_version_test_suite():
         name = "{}_pattern_referencing_missing_capture_groups_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:pattern_referencing_missing_capture_groups_fail",
         expected_error = "Some groups were not defined in capture_groups",
+        tags = [name],
     )
 
     # Tests that the analysis fails if build_label_pattern is provided but capture_groups
@@ -86,6 +87,7 @@ def apple_bundle_version_test_suite():
         name = "{}_build_label_pattern_requires_capture_groups_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:build_label_pattern_requires_capture_groups_fail",
         expected_error = "If either build_label_pattern or capture_groups is provided, then both must be provided.",
+        tags = [name],
     )
 
     # Tests that the analysis fails if capture_groups is provided but build_label_pattern
@@ -94,6 +96,7 @@ def apple_bundle_version_test_suite():
         name = "{}_capture_groups_requires_build_label_pattern_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:capture_groups_requires_build_label_pattern_fail",
         expected_error = "If either build_label_pattern or capture_groups is provided, then both must be provided.",
+        tags = [name],
     )
 
     # Tests that the analysis fails if fallback_build_label is provided but build_label_pattern
@@ -102,6 +105,7 @@ def apple_bundle_version_test_suite():
         name = "{}_fallback_build_label_requires_build_label_pattern_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:fallback_build_label_requires_build_label_pattern_fail",
         expected_error = "If fallback_build_label is provided, then build_label_pattern and capture_groups must be provided.",
+        tags = [name],
     )
 
     # Test that substitution does not occur if there is a build label pattern but --embed_label

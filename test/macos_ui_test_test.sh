@@ -200,22 +200,6 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_TYPE=XCUITEST" "test-bin/app/ui_tests"
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-function test_dsyms_generated() {
-  create_common_files
-  create_minimal_macos_application_with_tests
-  do_build macos --apple_generate_dsym //app:ui_tests || fail "Should build"
-
-  assert_exists "test-bin/app/ui_tests.xctest.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs macos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/ui_tests.xctest.dSYM/Contents/Resources/DWARF/ui_tests_${arch}"
-  done
-}
-
 # Tests that files passed in via the additional_contents attribute get placed at
 # the correct locations in the xctest bundle.
 function test_additional_contents() {

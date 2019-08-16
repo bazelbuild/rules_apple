@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/dsyms_test.bzl",
+    "dsyms_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -32,6 +36,14 @@ def macos_ui_test_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
+        expected_dsyms = ["ui_test.xctest"],
+        tags = [name],
     )
 
     infoplist_contents_test(

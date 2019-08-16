@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/dsyms_test.bzl",
+    "dsyms_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -32,6 +36,7 @@ def ios_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -39,6 +44,7 @@ def ios_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -46,6 +52,7 @@ def ios_application_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -53,6 +60,7 @@ def ios_application_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/resources_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -60,6 +68,14 @@ def ios_application_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/resources_verifier.sh",
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_dsyms = ["app.app"],
+        tags = [name],
     )
 
     infoplist_contents_test(

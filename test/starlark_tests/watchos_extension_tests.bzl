@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/dsyms_test.bzl",
+    "dsyms_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -32,6 +36,7 @@ def watchos_extension_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -39,6 +44,7 @@ def watchos_extension_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
     )
 
     apple_verification_test(
@@ -46,6 +52,14 @@ def watchos_extension_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        expected_dsyms = ["ext.appex"],
+        tags = [name],
     )
 
     infoplist_contents_test(

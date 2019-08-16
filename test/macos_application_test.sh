@@ -193,25 +193,6 @@ EOF
       "app.app/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
-# Tests that the dSYM outputs are produced when --apple_generate_dsym is
-# present.
-#
-# Enable this test once dSYM support in CROSSTOOL is working in a Bazel release
-# (currently only available in nightly/canary.)
-function DISABLED__test_dsyms_generated() {
-  create_common_files
-  create_minimal_macos_application
-  do_build macos --apple_generate_dsym //app:app || fail "Should build"
-
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
-
-  declare -a archs=( $(current_archs macos) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
-  done
-}
-
 # Tests that linkopts get passed to the underlying apple_binary target.
 function test_linkopts_passed_to_binary() {
   create_common_files
