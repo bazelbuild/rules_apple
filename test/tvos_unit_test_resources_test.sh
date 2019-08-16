@@ -221,7 +221,7 @@ EOF
 function test_resource_are_deduplicated_if_present_in_dependency() {
   create_test_files
 
-  do_build tvos //tvos:{app,framework,test} || fail "Should build"
+  do_build tvos //tvos:{app,framework} || fail "Should build"
 
   assert_zip_contains "test-bin/tvos/framework.zip" \
       "framework.framework/shared.bundle/shared_bundled.txt"
@@ -236,6 +236,8 @@ function test_resource_are_deduplicated_if_present_in_dependency() {
       "Payload/app.app/shared.bundle/shared_bundled.txt"
   assert_zip_not_contains "test-bin/tvos/app.ipa" \
       "Payload/app.app/shared_unbundled.txt"
+
+  do_build tvos //tvos:test.zip || fail "Should build"
 
   assert_zip_contains "test-bin/tvos/test.zip" \
       "test.xctest/test.bundle/test_bundled.txt"

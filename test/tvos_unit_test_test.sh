@@ -338,7 +338,7 @@ EOF
 @end
 EOF
 
-  do_build tvos //app:test || fail "Should build"
+  do_build tvos //app:test.zip || fail "Should build"
 
   assert_zip_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
@@ -409,7 +409,7 @@ EOF
 @end
 EOF
 
-  do_build tvos //app:test || fail "Should build"
+  do_build tvos //app:test.zip || fail "Should build"
 
   assert_zip_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
@@ -507,7 +507,7 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
 
-  do_build tvos //app:test || fail "Should build"
+  do_build tvos //app:test.zip || fail "Should build"
 
   assert_zip_not_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
@@ -606,7 +606,7 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/my_framework.framework/my_framework"
 
-  do_build tvos //app:test || fail "Should build"
+  do_build tvos //app:test.zip || fail "Should build"
 
   assert_zip_not_contains "test-bin/app/test.zip" \
       "test.xctest/Frameworks/my_framework.framework/my_framework"
