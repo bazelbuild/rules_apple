@@ -89,6 +89,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         name = test_bundle_name,
         test_bundle_output = "{}.zip".format(name),
         visibility = test_attrs.get("visibility", None),
+        tags = test_attrs.get("tags", None),
         **bundling_args
     )
 
