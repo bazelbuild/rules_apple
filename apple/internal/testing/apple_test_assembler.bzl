@@ -71,6 +71,11 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     test_attrs = {k: v for (k, v) in kwargs.items() if k not in _BUNDLE_ATTRS}
     bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
 
+    # Args to apply to the test and the bundle.
+    for x in ("visibility", "tags"):
+        if x in test_attrs:
+            bundle_attrs[x] = test_attrs[x]
+
     if "bundle_name" in kwargs:
         fail("bundle_name is not supported in test rules.")
 
@@ -88,8 +93,6 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     bundle_rule(
         name = test_bundle_name,
         test_bundle_output = "{}.zip".format(name),
-        visibility = test_attrs.get("visibility", None),
-        tags = test_attrs.get("tags", None),
         **bundling_args
     )
 
