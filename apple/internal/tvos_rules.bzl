@@ -51,6 +51,10 @@ load(
     "SwiftStaticFrameworkInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:split.bzl",
+    "split",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "TvosApplicationBundleInfo",
@@ -176,7 +180,7 @@ def _tvos_framework_impl(ctx):
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
-        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
+        partials.framework_headers_partial(hdrs = split.files(ctx.attr.hdrs)),
         partials.framework_provider_partial(binary_provider = binary_provider),
         partials.resources_partial(
             bundle_id = bundle_id,

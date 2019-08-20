@@ -542,6 +542,7 @@ Required.
             # what to do with this.
             "hdrs": attr.label_list(
                 allow_files = [".h"],
+                cfg = apple_common.multi_arch_split,
             ),
             "extension_safe": attr.bool(
                 default = False,
@@ -555,6 +556,7 @@ use only extension-safe APIs.
         attrs.append({
             "hdrs": attr.label_list(
                 allow_files = [".h"],
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of `.h` files that will be publicly exposed by this framework. These headers should have
 framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
@@ -563,6 +565,7 @@ be generated that imports all of the headers listed here.
             ),
             "umbrella_header": attr.label(
                 allow_single_file = [".h"],
+                cfg = apple_common.multi_arch_split,
                 doc = """
 An optional single .h file to use as the umbrella header for this framework. Usually, this header
 will have the same name as this target, so that clients can load the header using the #import
@@ -725,6 +728,7 @@ def _get_tvos_attrs(rule_descriptor):
             # what to do with this.
             "hdrs": attr.label_list(
                 allow_files = [".h"],
+                cfg = apple_common.multi_arch_split,
             ),
             "extension_safe": attr.bool(
                 default = False,
