@@ -941,12 +941,17 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         outputs = {"archive": archive_name},
     )
 
-def _create_apple_test_rule(implementation, doc):
+def _create_apple_test_rule(implementation, doc, platform_type):
     """Creates an Apple test rule."""
+
+    # TODO(cl/264421322): Once Tulsi propagates this change, remove this attribute.
+    extra_attrs = [{
+        "platform_type": attr.string(default = platform_type),
+    }]
 
     return rule(
         implementation = implementation,
-        attrs = dicts.add(_COMMON_PRIVATE_TOOL_ATTRS, _COMMON_TEST_ATTRS),
+        attrs = dicts.add(_COMMON_PRIVATE_TOOL_ATTRS, _COMMON_TEST_ATTRS, *extra_attrs),
         doc = doc,
         test = True,
     )

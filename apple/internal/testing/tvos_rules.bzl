@@ -69,6 +69,7 @@ tvos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
 tvos_ui_test = rule_factory.create_apple_test_rule(
     implementation = _tvos_ui_test_impl,
     doc = "tvOS UI Test rule.",
+    platform_type = str(apple_common.platform_type.tvos),
 )
 
 tvos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
@@ -81,4 +82,5 @@ tvos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
 tvos_unit_test = rule_factory.create_apple_test_rule(
     implementation = _tvos_unit_test_impl,
     doc = "tvOS Unit Test rule.",
+    platform_type = str(apple_common.platform_type.tvos),
 )
