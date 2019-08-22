@@ -1126,6 +1126,18 @@ build a single framework artifact that works for all architectures by specifying
       </td>
     </tr>
     <tr>
+      <td><code>umbrella_header</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>An optional single <code>.h</code> file to use as the umbrella
+        header for this framework. Usually, this header will have the same name as this
+        target, so that clients can load the header using the <code>#import
+        <MyFramework/MyFramework.h><code> format. If this attribute is not specified
+        (the common use case), an umbrella header will be generated under the same name
+        as this target.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>bundle_name</code></td>
       <td>
         <p><code>String; optional</code></p>
