@@ -16,7 +16,6 @@
 
 load("@build_bazel_rules_apple//apple/internal:bundling_support.bzl", "bundling_support")
 load("@build_bazel_rules_apple//apple/internal:outputs.bzl", "outputs")
-load("@bazel_skylib//lib:shell.bzl", "shell")
 
 def _register_simulator_executable(ctx, output):
     """Registers an action that runs the bundled app in the iOS simulator.
@@ -25,6 +24,10 @@ def _register_simulator_executable(ctx, output):
       ctx: The Skylark context.
       output: The `File` representing where the executable should be generated.
     """
+
+    sim_device = str(ctx.fragments.objc.ios_simulator_device or "")
+    sim_os_version = str(ctx.fragments.objc.ios_simulator_version or "")
+
     ctx.actions.expand_template(
         output = output,
         is_executable = True,
@@ -32,8 +35,8 @@ def _register_simulator_executable(ctx, output):
         substitutions = {
             "%app_name%": bundling_support.bundle_name(ctx),
             "%ipa_file%": outputs.archive(ctx).short_path,
-            "%sdk_version%": str(ctx.fragments.objc.ios_simulator_version),
-            "%sim_device%": shell.quote(ctx.fragments.objc.ios_simulator_device),
+            "%sim_device%": sim_device,
+            "%sim_os_version%": sim_os_version,
             "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
         },
     )

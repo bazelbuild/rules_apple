@@ -46,11 +46,16 @@ function MissingRuntimeError() {
       "$(xcrun simctl list runtimes)"
 }
 
-# Note: the sim_device might contain spaces, but they are already provided in
-# quoted form in the template variables, so we should not quote them again here.
 trap "MissingRuntimeError" ERR
-sdk_version="%sdk_version%"
-TEST_DEVICE_ID=$(xcrun simctl create TestDevice %sim_device% com.apple.CoreSimulator.SimRuntime.iOS-${sdk_version//./-})
+sim_device="%sim_device%"
+sim_os_version="%sim_os_version%"
+
+if [[ -z "$sim_device" ]] || [[ -z "$sim_os_version" ]]; then
+  echo "No simulator device or version configured. Please use both --ios_simulator_version and --ios_simulator_device to specify them."
+  exit 1
+fi
+
+TEST_DEVICE_ID=$(xcrun simctl create TestDevice "$sim_device" com.apple.CoreSimulator.SimRuntime.iOS-${sim_os_version//./-})
 trap - ERR
 
 function KillAllDevices() {
