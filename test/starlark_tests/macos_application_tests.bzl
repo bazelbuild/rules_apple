@@ -52,6 +52,18 @@ def macos_application_test_suite():
     )
 
     archive_contents_test(
+        name = "{}_additional_contents_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Additional/additional.txt",
+            "$CONTENT_ROOT/Nested/non_nested.txt",
+            "$CONTENT_ROOT/Nested/nested/nested.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_resources_test".format(name),
         build_type = "device",
         contains = [

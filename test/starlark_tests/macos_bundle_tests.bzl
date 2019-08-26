@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -36,6 +40,18 @@ def macos_bundle_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_additional_contents_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Additional/additional.txt",
+            "$CONTENT_ROOT/Nested/non_nested.txt",
+            "$CONTENT_ROOT/Nested/nested/nested.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         tags = [name],
     )
 

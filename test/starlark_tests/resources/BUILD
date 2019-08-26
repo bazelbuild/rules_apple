@@ -40,3 +40,11 @@ filegroup(
         ":Another.plist",
     ],
 )
+
+filegroup(
+    name = "all_nested",
+    srcs = [
+        "nested/nested.txt",
+        "non_nested.txt",
+    ],
+)

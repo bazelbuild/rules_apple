@@ -17,6 +17,10 @@ load(
 
 macos_application(
     name = "app",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
@@ -74,6 +78,10 @@ macos_application(
 
 macos_extension(
     name = "ext",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     bundle_id = "com.google.example.ext",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -92,6 +100,10 @@ macos_extension(
 
 macos_bundle(
     name = "bundle",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -110,6 +122,10 @@ macos_bundle(
 
 macos_quick_look_plugin(
     name = "ql_plugin",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -128,6 +144,10 @@ macos_quick_look_plugin(
 
 macos_ui_test(
     name = "ui_test",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -146,6 +166,10 @@ macos_ui_test(
 
 macos_unit_test(
     name = "unit_test",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

@@ -203,32 +203,4 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_TYPE=XCTEST" "test-bin/app/unit_tests"
 }
 
-# Tests that files passed in via the additional_contents attribute get placed at
-# the correct locations in the xctest bundle.
-function test_additional_contents() {
-  create_common_files
-
-  cat > app/simple.txt <<EOF
-simple
-EOF
-
-  cat >> app/BUILD <<EOF
-macos_unit_test(
-    name = "unit_tests",
-    additional_contents = {
-        ":simple.txt": "Thing",
-    },
-    bundle_id = "my.bundle.idTests",
-    minimum_os_version = "10.11",
-    deps = [":unit_test_lib"],
-)
-EOF
-
-  do_build macos //app:unit_tests || fail "Should build"
-  assert_zip_contains "test-bin/app/unit_tests.zip" \
-      "unit_tests.xctest/Contents/Thing/simple.txt"
-  assert_equals "simple" "$(unzip_single_file "test-bin/app/unit_tests.zip" \
-      "unit_tests.xctest/Contents/Thing/simple.txt")"
-}
-
 run_suite "macos_unit_test bundling tests"
