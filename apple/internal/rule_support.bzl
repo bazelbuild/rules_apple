@@ -25,10 +25,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
-)
 
 def _describe_bundle_locations(
         archive_relative = "",
@@ -79,7 +75,6 @@ def _describe_rule_type(
         requires_provisioning_profile = True,
         requires_signing_for_device = True,
         rpaths = [],
-        rule_transition = None,
         skip_signing = False,
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
@@ -127,7 +122,6 @@ def _describe_rule_type(
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
         rpaths: List of rpaths to add to the linker.
-        rule_transition: Starlark transition to apply to the rule.
         skip_signing: Whether this rule skips the signing step.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
@@ -169,7 +163,6 @@ def _describe_rule_type(
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
-        rule_transition = rule_transition,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         skip_signing = skip_signing,
         stub_binary_path = stub_binary_path,
@@ -559,7 +552,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -580,7 +572,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
@@ -596,7 +587,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
             skip_signing = True,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -620,7 +610,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -644,7 +633,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
     },
     "watchos": {
@@ -658,7 +646,6 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_application,
             requires_deps = False,
             requires_pkginfo = True,
-            rule_transition = transition_support.apple_rule_transition,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
         # watchos_extension
@@ -676,7 +663,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
     },
 }

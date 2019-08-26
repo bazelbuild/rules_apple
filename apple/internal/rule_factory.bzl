@@ -43,6 +43,10 @@ load(
     "coverage_files_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -857,24 +861,22 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
 
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
     rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
+    rule_attrs.append({
+        "_whitelist_function_transition": attr.label(
+            default = "//tools/whitelists/function_transition_whitelist",
+        ),
+    })
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
 
     rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition:
-        rule_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
-            ),
-        })
-
     return rule(
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = rule_descriptor.rule_transition,
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
@@ -899,6 +901,11 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
 
     rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
     rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
+    rule_attrs.append({
+        "_whitelist_function_transition": attr.label(
+            default = "//tools/whitelists/function_transition_whitelist",
+        ),
+    })
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
@@ -921,19 +928,12 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     elif platform_type == "watchos":
         rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition:
-        rule_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
-            ),
-        })
-
     archive_name = "%{name}" + rule_descriptor.archive_extension
     return rule(
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = rule_descriptor.rule_transition,
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
