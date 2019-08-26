@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -35,11 +39,14 @@ def watchos_application_test_suite():
         tags = [name],
     )
 
-    apple_verification_test(
+    archive_contents_test(
         name = "{}_resources_simulator_test".format(name),
         build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
-        verifier_script = "verifier_scripts/resources_verifier.sh",
         tags = [name],
     )
 

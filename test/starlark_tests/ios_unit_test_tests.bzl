@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -39,11 +43,14 @@ def ios_unit_test_test_suite():
         tags = [name],
     )
 
-    apple_verification_test(
+    archive_contents_test(
         name = "{}_resources_test".format(name),
         build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        verifier_script = "verifier_scripts/resources_verifier.sh",
         tags = [name],
     )
 

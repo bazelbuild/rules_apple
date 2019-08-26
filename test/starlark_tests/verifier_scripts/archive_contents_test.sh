@@ -23,15 +23,18 @@ newline=$'\n'
 # variables.
 #
 # Supported operations:
-#  CONTAINS: takes a list of files to test for existance
-#  NOT_CONTAINS: takes a list of files to test for non-existance
+#  CONTAINS: takes a list of files to test for existance. The filename will be
+#      expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
+#  NOT_CONTAINS: takes a list of files to test for non-existance. The filename
+#      will be expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
   for path in "${CONTAINS[@]}"
   do
-    if [[ ! -e "$ARCHIVE_ROOT/$path" ]]; then
-      fail "Archive did not contain \"$path\"" \
+    expanded_path=$(eval echo "$path")
+    if [[ ! -e $expanded_path ]]; then
+      fail "Archive did not contain \"$expanded_path\"" \
         "contents were:$newline$(find $ARCHIVE_ROOT)"
     fi
   done
@@ -41,8 +44,9 @@ fi
 if [[ -n "${NOT_CONTAINS-}" ]]; then
   for path in "${NOT_CONTAINS[@]}"
   do
-    if [[ -e "$ARCHIVE_ROOT/$path" ]]; then
-      fail "Archive did contain \"$path\""
+    expanded_path=$(eval echo "$path")
+    if [[ -e $expanded_path ]]; then
+      fail "Archive did contain \"expanded_path\""
     fi
   done
 fi
