@@ -62,10 +62,8 @@ def ios_application_test_suite():
     archive_contents_test(
         name = "{}_resources_simulator_test".format(name),
         build_type = "simulator",
-        contains = [
-            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
-            "$BUNDLE_ROOT/Another.plist",
-        ],
+        is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
+        is_not_binary_plist = ["$BUNDLE_ROOT/Another.plist"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
     )
@@ -73,10 +71,8 @@ def ios_application_test_suite():
     archive_contents_test(
         name = "{}_resources_device_test".format(name),
         build_type = "device",
-        contains = [
-            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
-            "$BUNDLE_ROOT/Another.plist",
-        ],
+        is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
+        is_not_binary_plist = ["$BUNDLE_ROOT/Another.plist"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
     )

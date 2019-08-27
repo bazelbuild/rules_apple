@@ -25,6 +25,8 @@ def archive_contents_test(
         target_under_test,
         contains = [],
         not_contains = [],
+        is_binary_plist = [],
+        is_not_binary_plist = [],
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -43,6 +45,10 @@ def archive_contents_test(
             will be expanded with bash and can contain environmental variables (e.g. $BUNDLE_ROOT)
         not_contains:  Optional, List of paths to test for non-existance for within the bundle.
             The string will be expanded with bash and can contain env variables (e.g. $BUNDLE_ROOT)
+        is_binary_plist:  Optional, List of paths to files to test for a binary plist format. The
+            paths are expanded with bash. Test will fail if file doesn't exist.
+        is_not_binary_plist:  Optional, List of paths to files to test for the absense of a binary
+            plist format. The paths are expanded with bash. Test will fail if file doesn't exist.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
@@ -52,6 +58,8 @@ def archive_contents_test(
         env = {
             "CONTAINS": contains,
             "NOT_CONTAINS": not_contains,
+            "IS_BINARY_PLIST": is_binary_plist,
+            "IS_NOT_BINARY_PLIST": is_not_binary_plist,
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",

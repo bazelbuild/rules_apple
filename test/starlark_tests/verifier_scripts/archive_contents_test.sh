@@ -27,6 +27,10 @@ newline=$'\n'
 #      expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
 #  NOT_CONTAINS: takes a list of files to test for non-existance. The filename
 #      will be expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
+#  IS_BINARY_PLIST: takes a list of paths to plist files and checks that they
+#      are `binary` format. Filenames are expanded with bash.
+#  IS_NOT_BINARY_PLIST: takes a list of paths to plist files and checks that
+#      they are not `binary` format. Filenames are expanded with bash.
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
@@ -46,7 +50,37 @@ if [[ -n "${NOT_CONTAINS-}" ]]; then
   do
     expanded_path=$(eval echo "$path")
     if [[ -e $expanded_path ]]; then
-      fail "Archive did contain \"expanded_path\""
+      fail "Archive did contain \"$expanded_path\""
+    fi
+  done
+fi
+
+# Test that plist files are in a binary format.
+if [[ -n "${IS_BINARY_PLIST-}" ]]; then
+  for path in "${IS_BINARY_PLIST[@]}"
+  do
+    expanded_path=$(eval echo "$path")
+    if [[ ! -e $expanded_path ]]; then
+      fail "Archive did not contain plist \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
+    fi
+    if ! grep -sq "^bplist00" $expanded_path; then
+      fail "Plist does not have binary format \"$expanded_path\""
+    fi
+  done
+fi
+
+# Test that plist files are not in a binary format.
+if [[ -n "${IS_NOT_BINARY_PLIST-}" ]]; then
+  for path in "${IS_NOT_BINARY_PLIST[@]}"
+  do
+    expanded_path=$(eval echo "$path")
+    if [[ ! -e $expanded_path ]]; then
+      fail "Archive did not contain plist \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
+    fi
+    if grep -sq "^bplist00" $expanded_path; then
+      fail "Plist has binary format \"$expanded_path\""
     fi
   done
 fi
