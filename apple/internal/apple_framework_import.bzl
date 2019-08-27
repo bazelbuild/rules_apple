@@ -55,6 +55,15 @@ def _is_swiftmodule(path):
     """Predicate to identify Swift modules/interfaces."""
     return path.endswith(".swiftmodule") or path.endswith(".swiftinterface")
 
+def _swiftmodules_for_cpu(swiftmodule_files, cpu):
+    """Select the cpu specific swiftmodule."""
+    for swiftmodule in swiftmodule_files:
+        root, _ = paths.split_extension(swiftmodule.basename)
+        if root == cpu:
+            return swiftmodule
+
+    return None
+
 def _classify_framework_imports(framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
 
@@ -222,11 +231,26 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    for f in header_imports:
-        if _is_swiftmodule(f.basename):
-            toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
-            providers.append(SwiftUsageInfo(toolchain = toolchain))
-            break
+    swiftmodule_imports = [
+        header
+        for header in header_imports
+        if _is_swiftmodule(header.basename)
+    ]
+
+    if swiftmodule_imports:
+        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+        providers.append(SwiftUsageInfo(toolchain = toolchain))
+
+    if ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild"):
+        cpu = ctx.fragments.apple.single_arch_cpu
+        swiftmodule = _swiftmodules_for_cpu(swiftmodule_imports, cpu)
+        if swiftmodule:
+            objc_provider_fields.update(
+                link_inputs = depset([swiftmodule]),
+                linkopt = depset(["-Wl,-add_ast_path," + swiftmodule.path]),
+            )
+        elif len(swiftmodule_imports) > 0:
+            fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
@@ -277,6 +301,7 @@ targets through the `deps` attribute.
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
+    fragments = ["apple"],
     attrs = dicts.add(swift_common.toolchain_attrs(), {
         "framework_imports": attr.label_list(
             allow_empty = False,
