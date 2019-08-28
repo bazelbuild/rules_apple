@@ -3,7 +3,8 @@ licenses(["notice"])
 py_binary(
     name = "codesigningtool",
     srcs = ["codesigningtool.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY2",
+    python_version = "PY2",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
