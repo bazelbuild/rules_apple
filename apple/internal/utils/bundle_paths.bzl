@@ -98,7 +98,7 @@ def _locale_for_path(resource_path):
     if (loc + 6) > len(resource_path) and resource_path[loc + 6] != "/":
         return None
 
-    locale_start = resource_path.rfind("/", end = loc)
+    locale_start = resource_path.rfind("/", 0, loc)
     if locale_start < 0:
         return resource_path[0:loc]
 
