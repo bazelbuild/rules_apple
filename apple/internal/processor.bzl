@@ -258,7 +258,7 @@ def _bundle_partial_outputs_files(
         for partial_output in partial_outputs:
             for _, parent_dir, _ in getattr(partial_output, "bundle_files", []):
                 if parent_dir:
-                    top_parent = parent_dir.split("/", maxsplit = 1)[0]
+                    top_parent = parent_dir.split("/", 1)[0]
                     if top_parent:
                         locale = bundle_paths.locale_for_path(top_parent)
                         if locale:
