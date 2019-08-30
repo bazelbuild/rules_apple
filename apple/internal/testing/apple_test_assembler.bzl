@@ -83,6 +83,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         test_bundle_name,
         bundle_name = name,
         platform_type = str(apple_common.platform_type.ios),
+        is_test = True,
         include_entitlements = False,
         testonly = True,
         **bundle_attrs

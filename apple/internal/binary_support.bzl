@@ -35,6 +35,7 @@ def _create_swift_runtime_linkopts_target(
         name,
         deps,
         is_static,
+        is_test,
         tags,
         testonly):
     """Creates a build target to propagate Swift runtime linker flags.
@@ -44,6 +45,7 @@ def _create_swift_runtime_linkopts_target(
       deps: The list of dependencies of the base target.
       is_static: True to use the static Swift runtime, or False to use the
           dynamic Swift runtime.
+      is_test: True to make sure test specific linkopts are propagated.
       tags: Tags to add to the created targets.
       testonly: Whether the target should be testonly.
 
@@ -54,6 +56,7 @@ def _create_swift_runtime_linkopts_target(
     swift_runtime_linkopts(
         name = swift_runtime_linkopts_name,
         is_static = is_static,
+        is_test = is_test,
         testonly = testonly,
         tags = tags,
         deps = deps,
@@ -66,6 +69,7 @@ def _add_entitlements_and_swift_linkopts(
         include_entitlements = True,
         is_stub = False,
         link_swift_statically = False,
+        is_test = False,
         **kwargs):
     """Adds entitlements and Swift linkopts targets for a bundle target.
 
@@ -86,6 +90,7 @@ def _add_entitlements_and_swift_linkopts(
           stub executable.
       link_swift_statically: True/False, indicates whether the static versions of the Swift standard
           libraries should be used during linking. Only used if include_swift_linkopts is True.
+      is_test: True/False, indicates if test specific linker flags should be propagated.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
@@ -129,6 +134,7 @@ def _add_entitlements_and_swift_linkopts(
                 name,
                 deps,
                 link_swift_statically,
+                is_test,
                 tags = tags,
                 testonly = testonly,
             ),
@@ -227,6 +233,7 @@ def _create_binary(
             name,
             deps,
             link_swift_statically,
+            is_test = False,
             tags = tags,
             testonly = testonly,
         ),
