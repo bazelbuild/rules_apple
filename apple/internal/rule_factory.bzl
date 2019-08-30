@@ -117,6 +117,12 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
                 "@build_bazel_rules_apple//apple/internal/templates:dsym_info_plist_template",
             ),
         ),
+        "_grep_includes": attr.label(
+            cfg = "host",
+            allow_single_file = True,
+            executable = True,
+            default = Label("@bazel_tools//tools/cpp:grep-includes"),
+        ),
         "_plisttool": attr.label(
             cfg = "host",
             default = Label("@build_bazel_rules_apple//tools/plisttool"),
