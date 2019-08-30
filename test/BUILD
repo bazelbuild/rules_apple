@@ -86,7 +86,7 @@ apple_shell_test(
     name = "apple_bundle_version_test",
     size = "medium",
     src = "apple_bundle_version_test.sh",
-    shard_count = 8,
+    shard_count = 3,
 )
 
 apple_shell_test(
@@ -277,7 +277,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_command_line_application_swift_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 2,
 )
 
 apple_multi_shell_test(
@@ -293,7 +292,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_quick_look_plugin_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 8,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -301,7 +300,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_application_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 8,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -317,7 +316,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_extension_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 8,
+    shard_count = 7,
 )
 
 apple_multi_shell_test(
@@ -383,7 +382,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 7,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -402,7 +401,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 7,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -413,7 +412,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 7,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -443,7 +442,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 7,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(

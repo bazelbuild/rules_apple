@@ -109,7 +109,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     elif runners:
         tests = []
         for runner in runners:
-            test_name = "{}_{}".format(name, runner.rsplit(":", maxsplit = 1)[-1])
+            test_name = "{}_{}".format(name, runner.rsplit(":", 1)[-1])
             tests.append(":{}".format(test_name))
             test_rule(
                 name = test_name,
