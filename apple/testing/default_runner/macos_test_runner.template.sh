@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # This template uses the `%(key)s` format for values that are
-# substituted by the apple_unit_test and apple_ui_test rules before this script
+# substituted by the ios_unit_test and ios_ui_test rules before this script
 # is executed. Check
 # https://github.com/bazelbuild/rules_apple/blob/master/apple/testing/apple_test_rules.bzl
 # for more info.
