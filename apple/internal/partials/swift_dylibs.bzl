@@ -65,6 +65,16 @@ File object that represents a directory containing the Swift dylibs to package f
     },
 )
 
+# Minimum OS versions after which the Swift StdLib dylibs are packaged with the OS. If the minimum
+# OS version for the current target and platform is equal or above to the versions defined here,
+# then we can skip copying the Swift dylibs into Frameworks and SwiftSupport.
+_MIN_OS_PLATFORM_SWIFT_PRESENCE = {
+    "ios": apple_common.dotted_version("12.2"),
+    "macos": apple_common.dotted_version("10.14.4"),
+    "tvos": apple_common.dotted_version("12.2"),
+    "watchos": apple_common.dotted_version("5.2"),
+}
+
 def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
@@ -109,7 +119,13 @@ def _swift_dylibs_partial_impl(
 
     direct_binaries = []
     if binary_artifact and swift_support.uses_swift(ctx.attr.deps):
-        direct_binaries.append(binary_artifact)
+        target_min_os = apple_common.dotted_version(platform_support.minimum_os(ctx))
+        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_support.platform_type(ctx))]
+
+        # Only check this binary for Swift dylibs if the minimum OS version is lower than the
+        # minimum OS version under which Swift dylibs are already packaged with the OS.
+        if target_min_os < swift_min_os:
+            direct_binaries.append(binary_artifact)
 
     transitive_binaries = depset(
         direct = direct_binaries,
