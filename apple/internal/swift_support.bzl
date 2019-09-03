@@ -72,12 +72,11 @@ def _swift_runtime_linkopts_impl(ctx):
       binary to dynamically or statically link the Swift runtime.
     """
     linkopts = []
-    is_static = ctx.attr.is_static
-
     swift_usage_info = _swift_usage_info(ctx.attr.deps)
     if swift_usage_info:
         linkopts.extend(swift_common.swift_runtime_linkopts(
-            is_static = is_static,
+            is_static = ctx.attr.is_static,
+            is_test = ctx.attr.is_test,
             toolchain = swift_usage_info.toolchain,
         ))
 
@@ -89,7 +88,8 @@ def _swift_runtime_linkopts_impl(ctx):
 swift_runtime_linkopts = rule(
     _swift_runtime_linkopts_impl,
     attrs = {
-        "is_static": attr.bool(),
+        "is_static": attr.bool(mandatory = True),
+        "is_test": attr.bool(mandatory = True),
         "deps": attr.label_list(
             aspects = [swift_usage_aspect],
             mandatory = True,
