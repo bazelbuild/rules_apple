@@ -143,35 +143,35 @@ EOF
 # Asserts that the common OS and environment plist values in the watch
 # application and extension have the correct values.
 function assert_common_watch_app_and_extension_plist_values() {
-  assert_equals "2.0" "$(cat "test-genfiles/app/MinimumOSVersion")"
-  assert_equals "4" "$(cat "test-genfiles/app/UIDeviceFamily.0")"
+  assert_equals "2.0" "$(cat "test-bin/app/MinimumOSVersion")"
+  assert_equals "4" "$(cat "test-bin/app/UIDeviceFamily.0")"
 
   if is_device_build watchos ; then
     assert_equals "WatchOS" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
+        "$(cat "test-bin/app/CFBundleSupportedPlatforms.0")"
     assert_equals "watchos" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "watchos.*" "test-genfiles/app/DTSDKName"
+        "$(cat "test-bin/app/DTPlatformName")"
+    assert_contains "watchos.*" "test-bin/app/DTSDKName"
   else
     assert_equals "WatchSimulator" \
-        "$(cat "test-genfiles/app/CFBundleSupportedPlatforms.0")"
+        "$(cat "test-bin/app/CFBundleSupportedPlatforms.0")"
     assert_equals "watchsimulator" \
-        "$(cat "test-genfiles/app/DTPlatformName")"
-    assert_contains "watchsimulator.*" "test-genfiles/app/DTSDKName"
+        "$(cat "test-bin/app/DTPlatformName")"
+    assert_contains "watchsimulator.*" "test-bin/app/DTSDKName"
   fi
 
   # Verify the values injected by the environment_plist script. Some of these
   # are dependent on the version of Xcode being used, and since we don't want to
   # force a particular version to always be present, we just make sure that
   # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-genfiles/app/DTXcodeBuild")"
+  assert_not_equals "" "$(cat "test-bin/app/DTPlatformBuild")"
+  assert_not_equals "" "$(cat "test-bin/app/DTSDKBuild")"
+  assert_not_equals "" "$(cat "test-bin/app/DTPlatformVersion")"
+  assert_not_equals "" "$(cat "test-bin/app/DTXcode")"
+  assert_not_equals "" "$(cat "test-bin/app/DTXcodeBuild")"
   assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-genfiles/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-genfiles/app/BuildMachineOSBuild")"
+      "$(cat "test-bin/app/DTCompiler")"
+  assert_not_equals "" "$(cat "test-bin/app/BuildMachineOSBuild")"
 }
 
 # Test missing the CFBundleVersion fails the build.

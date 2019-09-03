@@ -354,7 +354,7 @@ EOF
     create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
-    readonly FILE_TO_CHECK="test-genfiles/app/codesign_output"
+    readonly FILE_TO_CHECK="test-bin/app/codesign_output"
     readonly SHOULD_CONTAIN="${FOR_DEVICE}"
   else
     # For simulator builds, entitlements are added as a Mach-O section in
@@ -712,8 +712,8 @@ EOF
       CFBundleShortVersionString
   do_build ios //app:dump_plist || fail "Should build"
 
-  assert_equals "9.8.7" "$(cat "test-genfiles/app/CFBundleVersion")"
-  assert_equals "6.5" "$(cat "test-genfiles/app/CFBundleShortVersionString")"
+  assert_equals "9.8.7" "$(cat "test-bin/app/CFBundleVersion")"
+  assert_equals "6.5" "$(cat "test-bin/app/CFBundleShortVersionString")"
 }
 
 # Tests tree artifacts builds and disable codesigning for simulator play along.

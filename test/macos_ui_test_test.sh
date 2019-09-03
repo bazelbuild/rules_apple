@@ -169,7 +169,7 @@ function test_bundle_id_override() {
 
   do_build macos //app:dump_plist || fail "Should build"
 
-  assert_equals "my.test.bundle.id" "$(cat "test-genfiles/app/CFBundleIdentifier")"
+  assert_equals "my.test.bundle.id" "$(cat "test-bin/app/CFBundleIdentifier")"
 }
 
 # Tests that tests can't reuse the test host's bundle id.

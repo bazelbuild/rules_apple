@@ -125,7 +125,7 @@ function build_path() {
 #         CFBundleIdentifier CFBundleSupportedPlatforms:0
 #     do_build ios //app:dump_plist
 #     assert_equals "my.bundle.id" \
-#         "$(cat "test-genfiles/app/CFBundleIdentifier")"
+#         "$(cat "test-bin/app/CFBundleIdentifier")"
 function create_dump_plist() {
   if [[ "$1" == "--suffix" ]]; then
     shift; SUFFIX="_$1"; shift
@@ -201,7 +201,7 @@ EOF
 #     create_whole_dump_plist //app:app Payload/app.app/Info.plist
 #     do_build ios //app:dump_plist
 #     assert_contains "my.bundle.id" \
-#         "$(cat "test-genfiles/app/dump_whole_plist.txt")"
+#         "$(cat "test-bin/app/dump_whole_plist.txt")"
 function create_whole_dump_plist() {
   if [[ "$1" == "--suffix" ]]; then
     shift; SUFFIX="_$1"; shift
@@ -324,7 +324,7 @@ function current_archs() {
 # the platform required; the remaining arguments are passed directly to bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
-# should expect to find their outputs in "test-bin" and "test-genfiles".
+# should expect to find their outputs in "test-bin".
 #
 # Example:
 #     do_build ios --some_other_flag //foo:bar
@@ -341,7 +341,7 @@ function do_build() {
 # the platform required; the remaining arguments are passed directly to bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
-# should expect to find their outputs in "test-bin" and "test-genfiles".
+# should expect to find their outputs in "test-bin".
 #
 # Example:
 #     do_test ios --some_other_flag //foo:bar_tests
@@ -357,7 +357,7 @@ function do_test() {
 # the platform required; the remaining arguments are passed directly to bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
-# should expect to find their outputs in "test-bin" and "test-genfiles".
+# should expect to find their outputs in "test-bin".
 #
 # Example:
 #     do_coverage ios --some_other_flag //foo:bar_tests
@@ -376,7 +376,7 @@ function do_coverage() {
 # bazel.
 #
 # Test builds use "test-" as the output directory symlink prefix, so tests
-# should expect to find their outputs in "test-bin" and "test-genfiles".
+# should expect to find their outputs in "test-bin".
 #
 # Example:
 #     do_action build ios --some_other_flag //foo:bar
@@ -394,6 +394,9 @@ function do_action() {
       # Used so that if there's a single configuration transition, its output
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
+      # Explicitly pass this flag to ensure the external testing infrastructure
+      # matches the internal one.
+      "--incompatible_merge_genfiles_directory"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then

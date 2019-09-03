@@ -407,13 +407,13 @@ EOF
   do_build ios //app:dump_plist || fail "Should build"
 
   assert_equals "app_icon29x29" \
-      "$(cat "test-genfiles/app/CFBundleIcons.CFBundlePrimaryIcon.CFBundleIconFiles.0")"
+      "$(cat "test-bin/app/CFBundleIcons.CFBundlePrimaryIcon.CFBundleIconFiles.0")"
   assert_equals "launch_image-800-Portrait-736h" \
-      "$(cat "test-genfiles/app/UILaunchImages.0.UILaunchImageName")"
+      "$(cat "test-bin/app/UILaunchImages.0.UILaunchImageName")"
   assert_equals "Portrait" \
-      "$(cat "test-genfiles/app/UILaunchImages.0.UILaunchImageOrientation")"
+      "$(cat "test-bin/app/UILaunchImages.0.UILaunchImageOrientation")"
   assert_equals "{414, 736}" \
-      "$(cat "test-genfiles/app/UILaunchImages.0.UILaunchImageSize")"
+      "$(cat "test-bin/app/UILaunchImages.0.UILaunchImageSize")"
 }
 
 # Tests that the launch storyboard is bundled with the application and that
@@ -444,7 +444,7 @@ EOF
   do_build ios //app:dump_plist || fail "Should build"
 
   assert_equals "launch_screen_ios" \
-      "$(cat "test-genfiles/app/UILaunchStoryboardName")"
+      "$(cat "test-bin/app/UILaunchStoryboardName")"
 }
 
 # Tests that apple_bundle_import files are bundled correctly with the
@@ -573,11 +573,11 @@ EOF
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist.
   assert_equals "org.bazel.bundle-library-ios" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier")"
+      "$(cat "test-bin/app/CFBundleIdentifier")"
   assert_equals "bundle_library_ios.bundle" \
-      "$(cat "test-genfiles/app/CFBundleName")"
+      "$(cat "test-bin/app/CFBundleName")"
   assert_equals "bundle_library_ios" \
-      "$(cat "test-genfiles/app/TargetName")"
+      "$(cat "test-bin/app/TargetName")"
 
   do_build ios //app:app || fail "Should build"
 

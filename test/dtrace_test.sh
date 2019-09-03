@@ -53,9 +53,9 @@ EOF
 
   do_build dtrace //dtrace:CompileTest || fail "should build"
   assert_contains "PROVIDERA_MYFUNC" \
-      test-genfiles/dtrace/CompileTest/folder1/probes.h
+      test-bin/dtrace/CompileTest/folder1/probes.h
   assert_contains "PROVIDERB_MYFUNC" \
-      test-genfiles/dtrace/CompileTest/folder2/probes.h
+      test-bin/dtrace/CompileTest/folder2/probes.h
 }
 
 run_suite "dtrace tests"

@@ -549,9 +549,9 @@ EOF
   do_build ios //framework:dump_whole_plist || fail "Should build"
 
   assert_not_contains "CFBundleVersion" \
-      "test-genfiles/framework/dump_whole_plist.txt"
+      "test-bin/framework/dump_whole_plist.txt"
   assert_not_contains "CFBundleShortVersionString" \
-      "test-genfiles/framework/dump_whole_plist.txt"
+      "test-bin/framework/dump_whole_plist.txt"
 }
 
 # Tests that the bundled application contains the framework but that the
@@ -1060,9 +1060,9 @@ EOF
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
   assert_equals "org.bazel.simple-bundle-library" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier")"
+      "$(cat "test-bin/app/CFBundleIdentifier")"
   assert_equals "simple_bundle_library.bundle" \
-      "$(cat "test-genfiles/app/CFBundleName")"
+      "$(cat "test-bin/app/CFBundleName")"
 
   do_build ios //app:app || fail "Should build"
 
@@ -1621,23 +1621,23 @@ EOF
   # They also all share a common file to add a custom key, ensure that
   # isn't duped away because of the overlap.
   assert_equals "my.bundle.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_app")"
+      "$(cat "test-bin/app/CFBundleIdentifier_app")"
   assert_equals "CommonValue" \
-      "$(cat "test-genfiles/app/CommonKey_app")"
+      "$(cat "test-bin/app/CommonKey_app")"
 
   do_build ios //app:dump_plist_framework || fail "Should build"
 
   assert_equals "my.framework.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_framework")"
+      "$(cat "test-bin/app/CFBundleIdentifier_framework")"
   assert_equals "CommonValue" \
-      "$(cat "test-genfiles/app/CommonKey_framework")"
+      "$(cat "test-bin/app/CommonKey_framework")"
 
   do_build ios //app:dump_plist_depframework || fail "Should build"
 
   assert_equals "my.depframework.id" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier_depframework")"
+      "$(cat "test-bin/app/CFBundleIdentifier_depframework")"
   assert_equals "CommonValue" \
-      "$(cat "test-genfiles/app/CommonKey_depframework")"
+      "$(cat "test-bin/app/CommonKey_depframework")"
 }
 
 # Verifies that, when an extension depends on a framework with different
@@ -1889,7 +1889,7 @@ EOF
   do_build ios //staticlib:gen_staticlib \
       || fail "Should build static lib"
 
-  cp test-genfiles/staticlib/staticlib.a \
+  cp test-bin/staticlib/staticlib.a \
       app/inner_framework_pregen
 
   do_build ios //app:app -s || fail "Should build"
@@ -2070,7 +2070,7 @@ EOF
 
   do_build ios //staticlib:gen_staticlib || fail "Should build static lib"
 
-  cp test-genfiles/staticlib/staticlib.a \
+  cp test-bin/staticlib/staticlib.a \
       app/inner_framework_pregen
 
   do_build ios //app:app -s || fail "Should build"

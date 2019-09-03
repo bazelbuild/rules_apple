@@ -371,9 +371,9 @@ EOF
   # Verify the values injected by the Skylark rule for bundle_library's
   # info.plist
   assert_equals "org.bazel.bundle-library-macos" \
-      "$(cat "test-genfiles/app/CFBundleIdentifier")"
+      "$(cat "test-bin/app/CFBundleIdentifier")"
   assert_equals "bundle_library_macos.bundle" \
-      "$(cat "test-genfiles/app/CFBundleName")"
+      "$(cat "test-bin/app/CFBundleName")"
 
   do_build macos //app:app || fail "Should build"
 
