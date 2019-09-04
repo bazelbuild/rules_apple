@@ -200,7 +200,7 @@ def _apple_test_rule_impl(ctx, test_type):
         test_bundle_target[OutputGroupInfo],
         coverage_common.instrumented_files_info(
             ctx,
-            dependency_attributes = ["test_bundle"],
+            dependency_attributes = ["deps"],
         ),
         testing.ExecutionInfo(execution_requirements),
         testing.TestEnvironment(execution_environment),
