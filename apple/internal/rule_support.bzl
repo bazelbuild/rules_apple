@@ -169,7 +169,7 @@ def _describe_rule_type(
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
-        rule_transition = rule_transition,
+        rule_transition = transition_support.apple_rule_transition,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         skip_signing = skip_signing,
         stub_binary_path = stub_binary_path,

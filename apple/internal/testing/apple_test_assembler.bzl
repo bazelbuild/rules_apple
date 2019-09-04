@@ -97,8 +97,6 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         **bundling_args
     )
 
-    test_bundle_output = "{}.zip".format(name)
-
     if runner:
         test_rule(
             name = name,
