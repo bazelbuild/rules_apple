@@ -41,6 +41,7 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftToolchainInfo",
+    "SwiftUsageInfo",
     "swift_common",
 )
 
@@ -236,16 +237,11 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    imported_swiftmodules = [
-        f
-        for f in header_imports
-        if _is_swiftmodule(f.basename)
-    ]
-
-    if imported_swiftmodules:
-        swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
-        swift_linkopts = swift_common.swift_runtime_linkopts(True, swift_toolchain)
-        objc_provider_fields["linkopt"] = depset(swift_linkopts)
+    for f in header_imports:
+        if _is_swiftmodule(f.basename):
+            toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+            providers.append(SwiftUsageInfo(toolchain = toolchain))
+            break
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
