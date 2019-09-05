@@ -112,6 +112,31 @@ EOF
   do_build ios //app:app || fail "Should build"
 }
 
+function test_objc_library_depends_on_swift_static_import() {
+    create_common_files
+
+    cat >> app/BUILD <<EOF
+objc_library(
+    name = "main",
+    srcs = ["main.m"],
+    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSSwiftStaticFramework"],
+)
+EOF
+
+    cat > app/main.m <<EOF
+#import <iOSSwiftStaticFramework/iOSSwiftStaticFramework.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+
+    do_build ios //app:app || fail "Should build"
+}
+
+
 function test_swift_library_depends_on_dynamic_import() {
   create_common_files
 
@@ -157,6 +182,28 @@ sharedClass.doSomethingShared()
 EOF
 
   do_build ios //app:app || fail "Should build"
+}
+
+function test_swift_library_depends_on_swift_static_import() {
+    create_common_files
+
+    cat >> app/BUILD <<EOF
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+swift_library(
+    name = "main",
+    srcs = ["main.swift"],
+    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSSwiftStaticFramework"],
+)
+EOF
+
+    cat > app/main.swift <<EOF
+import iOSSwiftStaticFramework
+
+let sharedClass = SharedClass()
+sharedClass.doSomethingShared()
+EOF
+
+    do_build ios //app:app || fail "Should build"
 }
 
 run_suite "framework_import tests"
