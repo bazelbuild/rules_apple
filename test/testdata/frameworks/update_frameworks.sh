@@ -26,18 +26,19 @@ xcrun() {
     command xcrun -sdk iphonesimulator "$@"
 }
 
+libtool() {
+    ZERO_AR_DATE=1 xcrun libtool "$@"
+}
+
 # Compile and link the SharedClass.m file into a static and dynamic binaries.
 xcrun clang \
     -mios-simulator-version-min=11 \
     -arch x86_64 \
-    -isysroot "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
     -c "$SRCROOT/SharedClass.m" \
     -o "$INTERMEDIATES_DIR/SharedClass.o"
 
-xcrun libtool \
+libtool \
     -static \
-    -arch_only x86_64 \
-    -syslibroot "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
     -o "$INTERMEDIATES_DIR/iOSStaticFramework" \
     "$INTERMEDIATES_DIR/SharedClass.o"
 
@@ -46,7 +47,6 @@ xcrun clang \
     -arch x86_64 \
     -fobjc-link-runtime \
     -mios-simulator-version-min=11.0 \
-    -isysroot "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
     -install_name @rpath/DynamicFramework.framework/DynamicFramework \
     "$INTERMEDIATES_DIR/SharedClass.o" \
     -o "$INTERMEDIATES_DIR/iOSDynamicFramework"
@@ -81,7 +81,7 @@ swiftc \
     -o "$INTERMEDIATES_DIR/SharedClass.o" \
     "$SRCROOT/SharedClass.swift"
 
-xcrun libtool \
+libtool \
       -static \
       -o "$INTERMEDIATES_DIR/iOSSwiftStaticFramework" \
       "$INTERMEDIATES_DIR/SharedClass.o" \
