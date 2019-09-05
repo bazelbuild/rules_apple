@@ -12,6 +12,7 @@ load(
 
 # To update the binaries and headers for these framework imports, please run
 # `update_frameworks.sh` script in this directory.
+
 apple_dynamic_framework_import(
     name = "iOSDynamicFramework",
     framework_imports = glob(["iOSDynamicFramework.framework/**"]),
@@ -22,12 +23,18 @@ apple_static_framework_import(
     framework_imports = glob(["iOSStaticFramework.framework/**"]),
 )
 
+apple_static_framework_import(
+    name = "iOSSwiftStaticFramework",
+    framework_imports = glob(["iOSSwiftStaticFramework.framework/**"]),
+)
+
 filegroup(
     name = "ios_frameworks",
     srcs = glob(
         [
             "iOSDynamicFramework.framework/**",
             "iOSStaticFramework.framework/**",
+            "iOSSwiftStaticFramework.framework/**",
         ],
     ) + [
         "BUILD",

@@ -22,6 +22,10 @@ set -eu
 SRCROOT="$(dirname "$0")"
 INTERMEDIATES_DIR="$(mktemp -d /tmp/frameworks.XXXXXXXXXXXX)"
 
+xcrun() {
+    command xcrun -sdk iphonesimulator "$@"
+}
+
 # Compile and link the SharedClass.m file into a static and dynamic binaries.
 xcrun clang \
     -mios-simulator-version-min=11 \
@@ -57,3 +61,39 @@ cp -f "$INTERMEDIATES_DIR/iOSDynamicFramework" \
     "$SRCROOT/iOSDynamicFramework.framework/iOSDynamicFramework"
 cp -f "$INTERMEDIATES_DIR/iOSStaticFramework" \
     "$SRCROOT/iOSStaticFramework.framework/iOSStaticFramework"
+
+swiftc() {
+    xcrun swiftc \
+          -target x86_64-apple-ios11.0-simulator \
+          -module-name iOSSwiftStaticFramework \
+          "$@"
+}
+
+swiftc \
+    -emit-objc-header-path \
+    "$INTERMEDIATES_DIR/SharedClass.h" \
+    -emit-module \
+    -o "$INTERMEDIATES_DIR/iOSSwiftStaticFramework.swiftmodule" \
+    "$SRCROOT/SharedClass.swift"
+
+swiftc \
+    -emit-object \
+    -o "$INTERMEDIATES_DIR/SharedClass.o" \
+    "$SRCROOT/SharedClass.swift"
+
+xcrun libtool \
+      -static \
+      -o "$INTERMEDIATES_DIR/iOSSwiftStaticFramework" \
+      "$INTERMEDIATES_DIR/SharedClass.o" \
+
+# Update the headers, modules, and binary in iOSSwiftStaticFramework.
+mkdir -p "$SRCROOT/iOSSwiftStaticFramework.framework/Headers"
+cp -f "$INTERMEDIATES_DIR/SharedClass.h" \
+   "$SRCROOT/iOSSwiftStaticFramework.framework/Headers/SharedClass.h"
+
+mkdir -p "$SRCROOT/iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule"
+cp -f "$INTERMEDIATES_DIR/iOSSwiftStaticFramework.swiftmodule" \
+   "$SRCROOT/iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftmodule"
+
+cp -f "$INTERMEDIATES_DIR/iOSSwiftStaticFramework" \
+   "$SRCROOT/iOSSwiftStaticFramework.framework"
