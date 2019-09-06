@@ -96,12 +96,25 @@ function strip_dylibs {
         -name *.dylib \
         -execdir cp {} "$("$REALPATH" "$2")" \;
   else
-    local binary_archs=($(get_binary_archs "${BINARIES[0]}"))
+    # Extract the binary architectures for all binaries within the bundle, to
+    # get a complete view of the required architectures in the bundle.
+    binary_archs=()
+    for binary in "${BINARIES[@]}"; do
+      for arch in $(get_binary_archs "$binary"); do
+        binary_archs+=($arch)
+      done
+    done
+
+    # Convert the list of architectures into a unique list.
+    local unique_binary_archs=(
+        $(echo "${binary_archs[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+    )
+
     local real_output_path=$("$REALPATH" "$2")
     find "$1" \
         -name *.dylib \
         -execdir \
-        lipo ${binary_archs[@]/#/-extract } -output "$real_output_path/{}" {} \;
+        lipo ${unique_binary_archs[@]/#/-extract } -output "$real_output_path/{}" {} \;
   fi
 }
 
