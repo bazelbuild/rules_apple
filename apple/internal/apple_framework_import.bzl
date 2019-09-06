@@ -241,16 +241,15 @@ def _apple_static_framework_import_impl(ctx):
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo(toolchain = toolchain))
 
-    if ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild"):
-        cpu = ctx.fragments.apple.single_arch_cpu
-        swiftmodule = _swiftmodules_for_cpu(swiftmodule_imports, cpu)
-        if swiftmodule:
+        if ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild"):
+            cpu = ctx.fragments.apple.single_arch_cpu
+            swiftmodule = _swiftmodules_for_cpu(swiftmodule_imports, cpu)
+            if not swiftmodule:
+                fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
             objc_provider_fields.update(
                 link_inputs = depset([swiftmodule]),
                 linkopt = depset(["-Wl,-add_ast_path," + swiftmodule.path]),
             )
-        elif len(swiftmodule_imports) > 0:
-            fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
