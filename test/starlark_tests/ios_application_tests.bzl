@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -34,6 +38,13 @@ load(
 def ios_application_test_suite():
     """Test suite for ios_application."""
     name = "ios_application"
+
+    analysis_target_outputs_test(
+        name = "{}_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_outputs = ["app.ipa"],
+        tags = [name],
+    )
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
