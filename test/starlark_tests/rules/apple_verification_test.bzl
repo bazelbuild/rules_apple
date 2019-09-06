@@ -48,6 +48,7 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:macos_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "x86_64",
             "//command_line_option:watchos_cpus": "i386",
+            "//command_line_option:compilation_mode": attr.compilation_mode,
         }
     else:
         return {
@@ -56,6 +57,7 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:macos_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "arm64",
             "//command_line_option:watchos_cpus": "armv7k",
+            "//command_line_option:compilation_mode": attr.compilation_mode,
         }
 
 apple_verification_transition = transition(
@@ -67,6 +69,7 @@ apple_verification_transition = transition(
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
         "//command_line_option:watchos_cpus",
+        "//command_line_option:compilation_mode",
     ],
 )
 
@@ -151,8 +154,16 @@ apple_verification_test = rule(
             mandatory = True,
             values = ["simulator", "device"],
             doc = """
-Type of build for the target under test. Possible values are `simulator` and `device`.
+Type of build for the target under test. Possible values are `simulator` or `device`.
 """,
+        ),
+        "compilation_mode": attr.string(
+            values = ["fastbuild", "opt", "dbg"],
+            doc = """
+Possible values are `fastbuild`, `dbg` or `opt`. Defaults to `fastbuild`.
+https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
+""",
+            default = "fastbuild",
         ),
         "target_under_test": attr.label(
             mandatory = True,

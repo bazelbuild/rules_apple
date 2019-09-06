@@ -60,8 +60,9 @@ def ios_application_test_suite():
     )
 
     archive_contents_test(
-        name = "{}_resources_simulator_test".format(name),
+        name = "{}_dbg_resources_simulator_test".format(name),
         build_type = "simulator",
+        compilation_mode = "dbg",
         is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
         is_not_binary_plist = ["$BUNDLE_ROOT/Another.plist"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
@@ -69,10 +70,35 @@ def ios_application_test_suite():
     )
 
     archive_contents_test(
-        name = "{}_resources_device_test".format(name),
+        name = "{}_opt_resources_simulator_test".format(name),
+        build_type = "simulator",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dbg_resources_device_test".format(name),
         build_type = "device",
+        compilation_mode = "dbg",
         is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
         is_not_binary_plist = ["$BUNDLE_ROOT/Another.plist"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_opt_resources_device_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
     )
