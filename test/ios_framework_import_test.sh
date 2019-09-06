@@ -136,7 +136,6 @@ EOF
     do_build ios //app:app || fail "Should build"
 }
 
-
 function test_swift_library_depends_on_dynamic_import() {
   create_common_files
 

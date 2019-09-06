@@ -82,6 +82,7 @@ ios_application(
     bundle_id = "com.example.app",
     families = ["iphone", "ipad"],
     infoplists = [":Info.plist"],
+    minimum_os_version = "10.0",
     deps = [":Lib"],
 )
 ```

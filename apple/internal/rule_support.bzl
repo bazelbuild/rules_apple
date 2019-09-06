@@ -302,6 +302,16 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_provisioning_profile = False,
             skip_signing = True,
         ),
+        apple_product_type.bundle: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            bundle_extension = ".bundle",
+            has_infoplist = True,
+            product_type = apple_product_type.bundle,
+            requires_bundle_id = True,
+            requires_provisioning_profile = False,
+            requires_signing_for_device = False,
+            skip_signing = True,
+        ),
         # ios_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
