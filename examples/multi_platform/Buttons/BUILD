@@ -2,6 +2,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:ios.bzl",
     "ios_application",
+    "ios_extension",
     "ios_static_framework",
     "ios_ui_test",
     "ios_unit_test",
@@ -44,6 +45,14 @@ swift_library(
 )
 
 swift_library(
+    name = "ButtonsExtensionLib",
+    srcs = [
+        "ButtonsExtension/ActionRequestHandler.swift",
+    ],
+    module_name = "ButtonsExtension",
+)
+
+swift_library(
     name = "ButtonsTestsLib",
     srcs = [
         "ButtonsTests/ButtonsTests.swift",
@@ -72,6 +81,7 @@ objc_library(
 ios_application(
     name = "Buttons",
     bundle_id = "com.google.Buttons",
+    extensions = [":ButtonsExtension"],
     families = [
         "iphone",
         "ipad",
@@ -83,6 +93,18 @@ ios_application(
         ":ButtonsLib",
         ":ButtonsResources",
     ],
+)
+
+ios_extension(
+    name = "ButtonsExtension",
+    bundle_id = "com.google.Buttons.ButtonsExtension",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["ButtonsExtension/Info.plist"],
+    minimum_os_version = "9.0",
+    deps = [":ButtonsExtensionLib"],
 )
 
 ios_static_framework(
