@@ -15,6 +15,10 @@
 """Implementation of framework import rules."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -34,6 +38,12 @@ load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftToolchainInfo",
+    "SwiftUsageInfo",
+    "swift_common",
+)
 
 AppleFrameworkImportInfo = provider(
     doc = "Provider that propagates information about framework import targets.",
@@ -44,6 +54,10 @@ application bundle under the Frameworks directory.
 """,
     },
 )
+
+def _is_swiftmodule(path):
+    """Predicate to identify Swift modules/interfaces."""
+    return path.endswith(".swiftmodule") or path.endswith(".swiftinterface")
 
 def _classify_framework_imports(framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
@@ -63,7 +77,7 @@ def _classify_framework_imports(framework_imports):
             # This matches /Headers/ and /PrivateHeaders/
             header_imports.append(file)
             continue
-        if file_short_path.endswith(".swiftmodule") or file_short_path.endswith(".swiftinterface"):
+        if _is_swiftmodule(file_short_path):
             # Add Swift's module files to header_imports so that they are correctly included in the build
             # by Bazel but they aren't processed in any way
             header_imports.append(file)
@@ -223,6 +237,12 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
+    for f in header_imports:
+        if _is_swiftmodule(f.basename):
+            toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+            providers.append(SwiftUsageInfo(toolchain = toolchain))
+            break
+
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
@@ -272,7 +292,7 @@ targets through the `deps` attribute.
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
-    attrs = {
+    attrs = dicts.add(swift_common.toolchain_attrs(), {
         "framework_imports": attr.label_list(
             allow_empty = False,
             allow_files = True,
@@ -323,7 +343,7 @@ runtime checks for protocol conformances added in extensions in the library but 
 reference any other symbols in the object file that adds that conformance.
 """,
         ),
-    },
+    }),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of files in a
 .framework directory. apple_static_framework_import targets need to be added to library targets

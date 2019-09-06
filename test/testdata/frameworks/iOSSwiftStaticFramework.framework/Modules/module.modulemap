@@ -1,0 +1,6 @@
+framework module iOSSwiftStaticFramework {
+  umbrella header "iOSSwiftStaticFramework.h"
+
+  export *
+  module * { export * }
+}
