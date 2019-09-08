@@ -53,7 +53,7 @@ application bundle under the Frameworks directory.
 
 def _is_swiftmodule(path):
     """Predicate to identify Swift modules/interfaces."""
-    return path.endswith(".swiftmodule") or path.endswith(".swiftinterface")
+    return path.endswith((".swiftmodule", ".swiftinterface"))
 
 def _swiftmodules_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
