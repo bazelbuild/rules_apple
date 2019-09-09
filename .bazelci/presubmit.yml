@@ -43,4 +43,9 @@ buildifier:
   #  https://github.com/bazelbuild/buildtools/issues/576
   # Disable 'print' warnings as there is no way to issue a warning from
   # Starlark.
-  warnings: -function-docstring-args,-print
+  # Disable 'bzl-visibility' since it doesn't work properly.
+  #  https://github.com/bazelbuild/buildtools/issues/718
+  # TODO(b/140759502): Remove native-cc from this list.
+  # TODO(b/140759593): Remove native-py from this list.
+  # TODO(b/140759909): Remove string-escape from this list.
+  warnings: -function-docstring-args,-print,-bzl-visibility,-native-cc,-native-py,-string-escape
