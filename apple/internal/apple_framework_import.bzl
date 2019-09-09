@@ -165,8 +165,8 @@ def _ensure_swiftmodule_is_embedded(swiftmodule):
     See: https://github.com/bazelbuild/rules_swift/blob/e78ceb37c401a9bf9e551a6accd1df7d864688d5/swift/internal/debugging.bzl#L20-L47
     """
     return dict(
-        linker_flags = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
-        linker_inputs = depset([swiftmodule]),
+        linkopt = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
+        link_inputs = depset([swiftmodule]),
     )
 
 def _framework_objc_provider_fields(
