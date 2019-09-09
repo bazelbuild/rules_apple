@@ -202,7 +202,16 @@ let sharedClass = SharedClass()
 sharedClass.doSomethingShared()
 EOF
 
-    do_build ios //app:app || fail "Should build"
+    do_build ios --compilation_mode=dbg //app:app || fail "Should build"
+
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
+        nm -aj - | \
+            grep -e /app_main.swiftmodule \
+                 -e /iOSSwiftStaticFramework.swiftmodule/x86_64.swiftmodule | \
+            wc -l | \
+            grep -e '^\s*2\s*$' > /dev/null \
+            || fail "Could not find .swiftmodule AST references in binary; " \
+                    "linkopts may have not propagated"
 }
 
 run_suite "framework_import tests"
