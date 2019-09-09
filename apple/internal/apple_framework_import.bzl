@@ -146,6 +146,29 @@ def _framework_import_info(transitive_sets):
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     return AppleFrameworkImportInfo(**provider_fields)
 
+def _is_debugging(ctx):
+    """Returns `True` if the current compilation mode produces debug info.
+
+    rules_apple specific implementation of rules_swift's `is_debugging`, which
+    is not currently exported.
+
+    See: https://github.com/bazelbuild/rules_swift/blob/44146fccd9e56fe1dc650a4e0f21420a503d301c/swift/internal/api.bzl#L315-L326
+    """
+    return ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild")
+
+def _ensure_swiftmodule_is_embedded(swiftmodule):
+    """Ensures that a `.swiftmodule` file is embedded in a library or binary.
+
+    rules_apple specific implementation of rules_swift's
+    `ensure_swiftmodule_is_embedded`, which is not currently exported.
+
+    See: https://github.com/bazelbuild/rules_swift/blob/e78ceb37c401a9bf9e551a6accd1df7d864688d5/swift/internal/debugging.bzl#L20-L47
+    """
+    return dict(
+        linker_flags = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
+        linker_inputs = depset([swiftmodule]),
+    )
+
 def _framework_objc_provider_fields(
         framework_binary_field,
         header_imports,
@@ -241,15 +264,12 @@ def _apple_static_framework_import_impl(ctx):
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo(toolchain = toolchain))
 
-        if ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild"):
+        if _is_debugging(ctx):
             cpu = ctx.fragments.apple.single_arch_cpu
             swiftmodule = _swiftmodules_for_cpu(swiftmodule_imports, cpu)
             if not swiftmodule:
                 fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
-            objc_provider_fields.update(
-                link_inputs = depset([swiftmodule]),
-                linkopt = depset(["-Wl,-add_ast_path," + swiftmodule.path]),
-            )
+            objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
