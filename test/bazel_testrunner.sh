@@ -168,11 +168,11 @@ if [[ -z "$XCODE_QUERY" ]]; then
       sed s#@local_config_xcode//:version## | \
       sed s#_#.#g)
 
-  printf "WARN: The desired version of Xcode ($OLD_XCODE_VERSION) was not " > "$TEST_log"
-  printf "installed; using the highest version currently installed instead " > "$TEST_log"
-  printf "($XCODE_VERSION_FOR_TESTS). Note that this may produce unpredictable " > "$TEST_log"
-  printf "results in tests that depend on the behavior of a specific version " > "$TEST_log"
-  printf "of Xcode.\n" > "$TEST_log"
+  printf "WARN: The desired version of Xcode ($OLD_XCODE_VERSION) was not " >> "$TEST_log"
+  printf "installed; using the highest version currently installed instead " >> "$TEST_log"
+  printf "($XCODE_VERSION_FOR_TESTS). Note that this may produce unpredictable " >> "$TEST_log"
+  printf "results in tests that depend on the behavior of a specific version " >> "$TEST_log"
+  printf "of Xcode.\n" >> "$TEST_log"
 fi
 
 setup_clean_workspace
