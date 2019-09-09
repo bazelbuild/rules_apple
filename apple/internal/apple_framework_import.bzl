@@ -61,6 +61,9 @@ def _swiftmodules_for_cpu(swiftmodule_files, cpu):
         root, _ = paths.split_extension(swiftmodule.basename)
         if root == cpu:
             return swiftmodule
+        # `arm` is an established alias for `armv7`.
+        if root == "arm" and cpu == "armv7":
+            return swiftmodule
 
     return None
 
