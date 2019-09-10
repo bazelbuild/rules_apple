@@ -22,10 +22,6 @@ load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
-load(
-    ":rules/infoplist_contents_test.bzl",
-    "infoplist_contents_test",
-)
 
 def macos_quick_look_plugin_test_suite():
     """Test suite for macos_quick_look_plugin."""
@@ -47,14 +43,8 @@ def macos_quick_look_plugin_test_suite():
             "$CONTENT_ROOT/Nested/non_nested.txt",
             "$CONTENT_ROOT/Nested/nested/nested.txt",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
-        tags = [name],
-    )
-
-    infoplist_contents_test(
-        name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
-        expected_values = {
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
             "BuildMachineOSBuild": "*",
             "CFBundleExecutable": "ql_plugin",
             "CFBundleIdentifier": "com.google.example",
@@ -70,6 +60,7 @@ def macos_quick_look_plugin_test_suite():
             "DTXcodeBuild": "*",
             "LSMinimumSystemVersion": "10.10",
         },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
         tags = [name],
     )
 

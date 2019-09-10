@@ -27,6 +27,8 @@ def archive_contents_test(
         not_contains = [],
         is_binary_plist = [],
         is_not_binary_plist = [],
+        plist_test_file = "",
+        plist_test_values = {},
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -49,8 +51,20 @@ def archive_contents_test(
             paths are expanded with bash. Test will fail if file doesn't exist.
         is_not_binary_plist:  Optional, List of paths to files to test for the absense of a binary
             plist format. The paths are expanded with bash. Test will fail if file doesn't exist.
+        plist_test_file: Optional, The plist file to test with `plist_test_values`(see next Arg).
+        plist_test_values: Optional, The key/value pairs to test. Keys are specified in PlistBuddy
+            format(e.g. "UIDeviceFamily:1"). The test will fail if the key does not exist or if
+            its value doesn't match the specified value. * can be used as a wildcard value.
+            See `plist_test_file`(previous Arg) to specify plist file to test.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
+
+    # Concatonate the keys and values of the test values so they can be passed as env vars.
+    plist_test_values_list = []
+    for key, value in plist_test_values.items():
+        if " " in key:
+            fail("Plist key has a space: \"{}\"".format(key))
+        plist_test_values_list.append("{} {}".format(key, value))
 
     apple_verification_test(
         name = name,
@@ -60,6 +74,8 @@ def archive_contents_test(
             "NOT_CONTAINS": not_contains,
             "IS_BINARY_PLIST": is_binary_plist,
             "IS_NOT_BINARY_PLIST": is_not_binary_plist,
+            "PLIST_TEST_FILE": [plist_test_file],
+            "PLIST_TEST_VALUES": plist_test_values_list,
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",

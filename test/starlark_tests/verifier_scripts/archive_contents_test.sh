@@ -31,6 +31,11 @@ newline=$'\n'
 #      are `binary` format. Filenames are expanded with bash.
 #  IS_NOT_BINARY_PLIST: takes a list of paths to plist files and checks that
 #      they are not `binary` format. Filenames are expanded with bash.
+#  PLIST_TEST_FILE: The plist file to test with `PLIST_TEST_VALUES`.
+#  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
+#      the key is in PlistBuddy format(which can't contain spaces), followed by
+#      by a single space, followed by the value to test. * can be used as a
+#      wildcard value.
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
@@ -85,3 +90,28 @@ if [[ -n "${IS_NOT_BINARY_PLIST-}" ]]; then
   done
 fi
 
+
+# Use `PlistBuddy` to test for key/value pairs in a plist/string/car file.
+if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
+  if [[ ${#PLIST_TEST_FILE[@]} -eq 0 ]]; then
+    fail "Plist test values passed, but no plist file specified."
+  fi
+  path=$(eval echo "$PLIST_TEST_FILE")
+  if [[ ! -e $path ]]; then
+    fail "Archive did not contain plist at \"$path\"" \
+      "contents were:$newline$(find $ARCHIVE_ROOT)"
+  fi
+  for test_values in "${PLIST_TEST_VALUES[@]}"
+  do
+    # Keys and expected-values are in the format "KEY VALUE".
+    IFS=' ' read -r key expected_value <<< "$test_values"
+    value="$(/usr/libexec/PlistBuddy -c "Print $key" $path 2>/dev/null || true)"
+    if [[ -z "$value" ]]; then
+      fail "Expected \"$key\" to be in plist \"$path\". Plist contents:" \
+        "$newline$(/usr/libexec/PlistBuddy -c Print $path)"
+    fi
+    if [[ "$value" != $expected_value ]]; then
+      fail "Expected plist value \"$value\" to be \"$expected_value\""
+    fi
+  done
+fi

@@ -50,21 +50,8 @@ def ios_unit_test_test_suite():
             "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/Another.plist",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        tags = [name],
-    )
-
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        expected_dsyms = ["unit_test.xctest"],
-        tags = [name],
-    )
-
-    infoplist_contents_test(
-        name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        expected_values = {
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
             "BuildMachineOSBuild": "*",
             "CFBundleExecutable": "unit_test",
             "CFBundleIdentifier": "com.google.exampleTests",
@@ -81,6 +68,14 @@ def ios_unit_test_test_suite():
             "MinimumOSVersion": "8.0",
             "UIDeviceFamily:0": "1",
         },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_dsyms = ["unit_test.xctest"],
         tags = [name],
     )
 
