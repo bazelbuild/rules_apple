@@ -39,6 +39,10 @@ while [[ $# -gt 0 ]]; do
       readonly PLATFORM="$2"
       shift
       ;;
+      --swift_dylibs_path)
+      readonly SWIFT_DYLIBS_PATH="$2"
+      shift
+      ;;
       --output_path)
       readonly OUTPUT_PATH="$2"
       shift
@@ -69,6 +73,7 @@ function get_binary_archs {
 function copy_swift_stdlibs {
   /usr/bin/xcrun swift-stdlib-tool \
       --copy \
+      --source-libraries "$DEVELOPER_DIR/$SWIFT_DYLIBS_PATH/$PLATFORM" \
       --platform "$PLATFORM" \
       ${BINARIES[@]/#/--scan-executable } \
       --destination "$1"

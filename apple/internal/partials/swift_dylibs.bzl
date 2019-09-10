@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "xcode_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -78,6 +82,14 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
 def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
+    swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
+
+    # Xcode 11 changed the location of the Swift dylibs within the default toolchain, so we need to
+    # make the dylibs path conditional on the Xcode version.
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
+        swift_dylibs_path += "-5.0"
+
     swift_stdlib_tool_args = [
         "--platform",
         platform_name,
@@ -85,6 +97,8 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
         output_dir.path,
         "--realpath",
         ctx.executable._realpath.path,
+        "--swift_dylibs_path",
+        swift_dylibs_path,
     ]
 
     apple_support.run(
