@@ -34,6 +34,14 @@ apple_resource_bundle(
     infoplists = ["Another.plist"],
 )
 
+apple_resource_bundle(
+    name = "localization",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+)
+
 filegroup(
     name = "example_filegroup",
     srcs = [

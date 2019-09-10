@@ -19,10 +19,6 @@ watchos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "3.0",
-    resources = [
-        "//test/starlark_tests/resources:example_filegroup",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     tags = [
         "manual",
         "notap",
@@ -38,6 +34,11 @@ watchos_extension(
     ],
     minimum_os_version = "3.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
     tags = [
         "manual",
         "notap",

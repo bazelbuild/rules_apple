@@ -166,7 +166,7 @@ def _bucketize(
         resource_depset = depset([resource])
 
         # For each type of resource, place in appropriate bucket.
-        if resource_short_path.endswith(".strings"):
+        if resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
             bucket_name = "strings"
         elif resource_short_path.endswith(".storyboard"):
             bucket_name = "storyboards"

@@ -29,6 +29,7 @@ macos_application(
     minimum_os_version = "10.10",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
         "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = [

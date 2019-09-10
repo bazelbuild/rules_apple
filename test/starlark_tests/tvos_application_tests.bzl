@@ -81,6 +81,17 @@ def tvos_application_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_strings_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        contains = [
+            "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
+            "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
+        ],
+        tags = [name],
+    )
+
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",

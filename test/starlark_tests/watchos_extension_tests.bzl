@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -52,6 +56,28 @@ def watchos_extension_test_suite():
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_resources_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$RESOURCE_ROOT/resource_bundle.bundle/Info.plist",
+            "$RESOURCE_ROOT/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_strings_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        contains = [
+            "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
+            "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
+        ],
         tags = [name],
     )
 
