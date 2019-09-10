@@ -48,8 +48,7 @@ tvos_test_runner(
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = glob(["**"]) + [
-    ],
+    srcs = glob(["**"]),
     visibility = [
         "//:__subpackages__",
     ],
