@@ -233,7 +233,7 @@ def _create_binary(
             name,
             deps,
             link_swift_statically,
-            is_test = False,
+            is_test = testonly or False,
             tags = tags,
             testonly = testonly,
         ),
