@@ -36,6 +36,9 @@ newline=$'\n'
 #      the key is in PlistBuddy format(which can't contain spaces), followed by
 #      by a single space, followed by the value to test. * can be used as a
 #      wildcard value.
+#  ASSET_CATALOG_FILE: The Asset.car file to test with `ASSET_CATALOG_CONTAINS`.
+#  ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
+#  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
@@ -90,8 +93,7 @@ if [[ -n "${IS_NOT_BINARY_PLIST-}" ]]; then
   done
 fi
 
-
-# Use `PlistBuddy` to test for key/value pairs in a plist/string/car file.
+# Use `PlistBuddy` to test for key/value pairs in a plist/string file.
 if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
   if [[ ${#PLIST_TEST_FILE[@]} -eq 0 ]]; then
     fail "Plist test values passed, but no plist file specified."
@@ -114,4 +116,56 @@ if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
       fail "Expected plist value \"$value\" to be \"$expected_value\""
     fi
   done
+fi
+
+# Use `assetutil` to test for asset names in a car file.
+if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
+  path=$(eval echo "$ASSET_CATALOG_FILE")
+  if [[ ! -e $path ]]; then
+    fail "Archive did not contain asset catalog at \"$path\"" \
+      "contents were:$newline$(find $ARCHIVE_ROOT)"
+  fi
+  # Get the JSON representation of the Asset catalog.
+  json=$(/usr/bin/assetutil -I "$path")
+
+  # Use a regular expression to extract the "Name" fields with each value on a
+  # separate line.
+  asset_names=$(sed -nE 's/\"Name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p' <<< "$json")
+
+  if [[ -n "${ASSET_CATALOG_CONTAINS-}" ]]; then
+    for expected_name in "${ASSET_CATALOG_CONTAINS[@]}"
+    do
+      name_found=false
+      # Loop over the known asset names. `while read` loops loop over lines.
+      while read -r actual_name
+      do
+        if [[ "$actual_name" == "$expected_name" ]]; then
+          name_found=true
+          break
+        fi
+      done <<< "$asset_names"
+      if [[ "$name_found" = false ]]; then
+        fail "Expected asset name \"$expected_name\" was not found." \
+          "The names in the asset were:$newline${asset_names[@]}"
+      fi
+    done
+  fi
+
+  if [[ -n "${ASSET_CATALOG_NOT_CONTAINS-}" ]]; then
+    for unexpected_name in "${ASSET_CATALOG_NOT_CONTAINS[@]}"
+    do
+      name_found=false
+      # Loop over the known asset names. `while read` loops loop over lines.
+      while read -r actual_name
+      do
+        if [[ "$actual_name" == "$unexpected_name" ]]; then
+          name_found=true
+          break
+        fi
+      done <<< "$asset_names"
+      if [[ "$name_found" = true ]]; then
+        fail "Unexpected asset name \"$unexpected_name\" was found."
+      fi
+    done
+  fi
 fi

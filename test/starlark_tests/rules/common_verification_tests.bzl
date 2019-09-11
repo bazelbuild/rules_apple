@@ -29,6 +29,9 @@ def archive_contents_test(
         is_not_binary_plist = [],
         plist_test_file = "",
         plist_test_values = {},
+        asset_catalog_test_file = "",
+        asset_catalog_test_contains = [],
+        asset_catalog_test_not_contains = [],
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -56,6 +59,11 @@ def archive_contents_test(
             format(e.g. "UIDeviceFamily:1"). The test will fail if the key does not exist or if
             its value doesn't match the specified value. * can be used as a wildcard value.
             See `plist_test_file`(previous Arg) to specify plist file to test.
+        asset_catalog_test_file: Optional, The asset catalog file to test (see next two Args).
+        asset_catalog_test_contains: Optional, A list of names of assets that should appear in the
+            asset catalog specified in `asset_catalog_file`.
+        asset_catalog_test_not_contains: Optional, A list of names of assets that should not appear
+            in the asset catalog specified in `asset_catalog_file`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
@@ -76,6 +84,9 @@ def archive_contents_test(
             "IS_NOT_BINARY_PLIST": is_not_binary_plist,
             "PLIST_TEST_FILE": [plist_test_file],
             "PLIST_TEST_VALUES": plist_test_values_list,
+            "ASSET_CATALOG_FILE": [asset_catalog_test_file],
+            "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
+            "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",
