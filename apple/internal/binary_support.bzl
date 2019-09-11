@@ -233,7 +233,7 @@ def _create_binary(
             name,
             deps,
             link_swift_statically,
-            is_test = bundling_args.get("testonly", False),
+            is_test = False,
             tags = tags,
             testonly = testonly,
         ),
