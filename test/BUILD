@@ -459,7 +459,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=i386,x86_64",
     ],
-    shard_count = 8,
+    shard_count = 9,
 )
 
 apple_shell_test(
@@ -469,7 +469,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=i386,x86_64",
     ],
-    shard_count = 4,
+    shard_count = 5,
 )
 
 apple_shell_test(

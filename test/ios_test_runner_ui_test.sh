@@ -31,6 +31,9 @@ load(
     "ios_application",
     "ios_ui_test"
  )
+load("@build_bazel_rules_swift//swift:swift.bzl",
+     "swift_library"
+)
 load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner"
@@ -123,6 +126,23 @@ function create_ios_ui_tests() {
 @end
 EOF
 
+  cat > ios/pass_ui_test.swift <<EOF
+import XCTest
+
+class PassingUiTest: XCTestCase {
+
+  override func setUp() {
+    super.setUp()
+    XCUIApplication().launch()
+  }
+
+  func testPass() throws {
+    let result = 1 + 1;
+    XCTAssertEqual(result, 2);
+  }
+}
+EOF
+
   cat > ios/fail_ui_test.m <<EOF
 #import <XCTest/XCTest.h>
 
@@ -158,6 +178,15 @@ EOF
 </plist>
 EOF
 
+  cat > ios/PassUiSwiftTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>PassUiSwiftTest</string>
+</dict>
+</plist>
+EOF
+
   cat > ios/FailUiTest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
@@ -178,6 +207,20 @@ ios_ui_test(
     infoplists = ["PassUiTest-Info.plist"],
     deps = [":pass_ui_test_lib"],
     minimum_os_version = "8.0",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+
+swift_library(
+    name = "pass_ui_swift_test_lib",
+    srcs = ["pass_ui_test.swift"],
+)
+
+ios_ui_test(
+    name = "PassingUiSwiftTest",
+    infoplists = ["PassUiSwiftTest-Info.plist"],
+    deps = [":pass_ui_swift_test_lib"],
+    minimum_os_version = "9.0",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -271,6 +314,17 @@ function test_ios_ui_test_pass() {
   expect_log "Test Suite 'PassingUiTest' passed"
   expect_log "Test Suite 'PassingUiTest.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_ui_swift_test_pass() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test //ios:PassingUiSwiftTest || fail "should pass"
+
+  expect_log "Test Suite 'PassingUiTest' passed"
+  expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
 }
 
 function test_ios_ui_test_fail() {

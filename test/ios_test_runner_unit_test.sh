@@ -31,6 +31,9 @@ load(
     "ios_application",
     "ios_unit_test"
 )
+load("@build_bazel_rules_swift//swift:swift.bzl",
+     "swift_library"
+)
 load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner"
@@ -113,6 +116,18 @@ function create_ios_unit_tests() {
 @end
 EOF
 
+  cat > ios/pass_unit_test.swift <<EOF
+import XCTest
+
+class PassingUnitTest : XCTestCase {
+
+  func testPass() throws {
+    let result = 1 + 1;
+    XCTAssertEqual(result, 2, "should pass");
+  }
+}
+EOF
+
   cat > ios/fail_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
 
@@ -134,6 +149,15 @@ EOF
 <dict>
         <key>CFBundleExecutable</key>
         <string>PassingUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat > ios/PassUnitSwiftTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>PassUnitSwiftTest</string>
 </dict>
 </plist>
 EOF
@@ -165,6 +189,20 @@ ios_unit_test(
     name = "PassingWithHost",
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+
+swift_library(
+    name = "pass_unit_swift_test_lib",
+    srcs = ["pass_unit_test.swift"],
+)
+
+ios_unit_test(
+    name = "PassingUnitSwiftTest",
+    infoplists = ["PassUnitSwiftTest-Info.plist"],
+    deps = [":pass_unit_swift_test_lib"],
     minimum_os_version = "9.0",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
@@ -275,6 +313,17 @@ function test_ios_unit_test_with_host_pass() {
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_swift_test_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitSwiftTest || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
 }
 
 function test_ios_unit_test_fail() {
