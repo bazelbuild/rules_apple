@@ -199,7 +199,7 @@ into a bash array.
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
         ),
         "_whitelist_function_transition": attr.label(
-            default = "@//tools/whitelists/function_transition_whitelist",
+            default = "@bazel_tools//tools/whitelists/function_trasition_whitelist",
         ),
     }),
     test = True,

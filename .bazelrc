@@ -18,13 +18,6 @@ test --build_tests_only
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
 
-# Flag used to enable transitions on Starlark rules. Required for now for
-# Starlark-based tests. Use `build` instead of `test` since we also build the
-# tests in BuildKite (blacklisting groups of targets doesn's seem to work in
-# .bazelci/presubmit.yml).
-# TODO(b/133755914): Remove this flag once it is flipped to true by default.
-build --experimental_starlark_config_transitions
-
 # Disable the Swift compilation worker when running integration tests, since it
 # requires the protobuf dependency, and because Bazel dependency management is
 # awful/non-existent, we can get away with not declaring protobuf's transitive
