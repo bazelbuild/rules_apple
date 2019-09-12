@@ -60,7 +60,9 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     capture_groups = {
-        "version": "\\d+\.\\d+",
+        # Testing double-escaped regex format. Buildifier errors when using single "\" chars
+        # that are not part of Buildifier's known escape sequences.
+        "version": "\\d+\\.\\d+",
         "candidate": "\\d+",
     },
     fallback_build_label = "MyApp_99.99_RC99",
@@ -82,7 +84,7 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     capture_groups = {
-        "version": "\\d+\.\\d+",
+        "version": "\\d+\\.\\d+",
         "candidate": "\\d+",
     },
     fallback_build_label = "MyApp_1.2_RC03",
@@ -139,8 +141,9 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     capture_groups = {
-        "version": "\\d+\.\\d+",
-        "candidate": "\\d+",
+        # Testing regex using [] character classes that don't need extra escaping.
+        "version": "[0-9]+[.][0-9]+",
+        "candidate": "[0-9]+",
     },
     short_version_string = "{version}",
     tags = TARGETS_UNDER_TEST_TAGS,
@@ -160,8 +163,8 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "1.2.3",
     capture_groups = {
-        "version": "\\d+\.\\d+",
-        "candidate": "\\d+",
+        "version": "[0-9]+[.][0-9]+",
+        "candidate": "[0-9]+",
     },
     short_version_string = "1.2",
     tags = TARGETS_UNDER_TEST_TAGS,
