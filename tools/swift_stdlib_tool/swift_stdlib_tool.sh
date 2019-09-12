@@ -129,9 +129,4 @@ readonly TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/swift_stdlib_tool.XXXXXX")
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 copy_swift_stdlibs "$TEMP_DIR"
-if ! ls "$TEMP_DIR/libswift"* > /dev/null 2>&1; then
-  echo "error: Expected to copy Swift Standard Lib dylibs, but none were copied." >&2
-  exit 1
-fi
-
 strip_dylibs "$TEMP_DIR" "$OUTPUT_PATH"
