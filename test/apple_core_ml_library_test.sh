@@ -52,6 +52,7 @@ swift_library(
     # smh.
     copts = ["-Xcc", "-Wno-nullability"],
     deps = [":SampleCoreML"],
+    alwayslink = True,
 )
 
 apple_core_ml_library(
