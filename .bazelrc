@@ -34,3 +34,4 @@ build --experimental_starlark_config_transitions
 # TODO(b/134144964): Formality to track removing this, but we all know it'll be
 # here forever.
 build --define=RULES_SWIFT_BUILD_DUMMY_WORKER=1
+build --strategy=SwiftCompile=local
