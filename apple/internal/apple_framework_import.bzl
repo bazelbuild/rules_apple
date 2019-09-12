@@ -58,6 +58,9 @@ def _is_swiftmodule(path):
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
     for swiftmodule in swiftmodule_files:
+        # The paths will be of the following format:
+        #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
+        # Where <arch> will be a common arch like x86_64, arm64, etc.
         root, _ = paths.split_extension(swiftmodule.basename)
         if root == cpu:
             return swiftmodule
