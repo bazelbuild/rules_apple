@@ -55,7 +55,7 @@ def _is_swiftmodule(path):
     """Predicate to identify Swift modules/interfaces."""
     return path.endswith((".swiftmodule", ".swiftinterface"))
 
-def _swiftmodules_for_cpu(swiftmodule_files, cpu):
+def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
     for swiftmodule in swiftmodule_files:
         root, _ = paths.split_extension(swiftmodule.basename)
@@ -269,7 +269,7 @@ def _apple_static_framework_import_impl(ctx):
 
         if _is_debugging(ctx):
             cpu = ctx.fragments.apple.single_arch_cpu
-            swiftmodule = _swiftmodules_for_cpu(swiftmodule_imports, cpu)
+            swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
             if not swiftmodule:
                 fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
             objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
