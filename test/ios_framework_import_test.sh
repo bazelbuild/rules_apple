@@ -209,14 +209,15 @@ EOF
             | nm -aj - | grep .swiftmodule
     )
 
-    local swiftmodule
     local swiftmodules=(
         app_main.swiftmodule
         iOSSwiftStaticFramework.swiftmodule/x86_64.swiftmodule
     )
-    for swiftmodule in "${swiftmodule[@]}"; do
+
+    local swiftmodule
+    for swiftmodule in "${swiftmodules[@]}"; do
         if [[ "$symbols" != *"$swiftmodule"* ]]; then
-            fail "Could not find .swiftmodule AST references in binary; " \
+            fail "Could not find $swiftmodule AST reference in binary; " \
                  "linkopts may have not propagated"
         fi
     done
