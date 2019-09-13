@@ -423,8 +423,8 @@ function do_action() {
        "$@" \
   )
 
-  echo "Executing: bazel ${action} ${bazel_options[*]}" > "$TEST_log"
-  bazel "${action}" "${bazel_options[@]}" > "$TEST_log" 2>&1
+  echo "Executing: bazel ${action} ${bazel_options[*]}" >> "$TEST_log"
+  bazel "${action}" "${bazel_options[@]}" >> "$TEST_log" 2>&1
 }
 
 
