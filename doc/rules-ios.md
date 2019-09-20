@@ -1132,7 +1132,7 @@ build a single framework artifact that works for all architectures by specifying
         <p>An optional single <code>.h</code> file to use as the umbrella
         header for this framework. Usually, this header will have the same name as this
         target, so that clients can load the header using the <code>#import
-        <MyFramework/MyFramework.h><code> format. If this attribute is not specified
+        &lt;MyFramework/MyFramework.h&gt;</code> format. If this attribute is not specified
         (the common use case), an umbrella header will be generated under the same name
         as this target.</p>
       </td>
