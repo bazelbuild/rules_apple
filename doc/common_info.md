@@ -1,8 +1,19 @@
 # Apple Bazel definitions - Common Information
 
-## Controlling Builds
+## Build limits
 
-Most aspect of your builds should be controlled via the attributes you set on
+According to
+[Apple's documentation](https://help.apple.com/app-store-connect/#/dev611e0a21f),
+iOS and tvOS bundle sizes cannot exceed 4GB in size (limit for watchOS is 75MB).
+Because of this, rules_apple does not support building zipped archives that
+would be larger than 4GB. If your build outputs would be larger than 4GB (e.g.
+test bundles) you'll need to reduce the number of dependencies to fit this limit
+(e.g. for test bundles, you can split the targets so that output size is smaller
+than 4GB).
+
+## Build outputs
+
+Most aspects of your builds should be controlled via the attributes you set on
 the rules. However there are some things where Bazel and/or the rules allow you
 to opt in/out of something on a per-build basis without the need to express it
 in a BUILD file.
