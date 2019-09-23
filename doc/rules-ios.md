@@ -164,11 +164,10 @@ Builds and bundles an iOS application.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -340,11 +339,10 @@ iMessage extension or a Sticker Pack extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -520,11 +518,10 @@ Builds and bundles an iOS application extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -709,11 +706,10 @@ Builds and bundles an iOS iMessage extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -858,11 +854,10 @@ Builds and bundles an iOS Sticker Pack extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1014,10 +1009,9 @@ app and extensions, list it in the `frameworks` attributes of those
       <td><code>minimum_os_version</code></td>
       <td>
         <p><code>String; required</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1191,10 +1185,9 @@ build a single framework artifact that works for all architectures by specifying
       <td><code>minimum_os_version</code></td>
       <td>
         <p><code>String; required</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1307,11 +1300,10 @@ of the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1461,11 +1453,10 @@ except `runner` is replaced by `runners`.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1616,11 +1607,10 @@ of the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>
@@ -1761,11 +1751,10 @@ containing an [ios_unit_test](#ios_unit_test) for each of the given `runners`.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <code>"9.0"</code>).
       </td>
     </tr>
     <tr>

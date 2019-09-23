@@ -143,11 +143,10 @@ simple command line tool as a standalone binary, use
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -348,11 +347,10 @@ Builds and bundles a macOS loadable bundle.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -471,11 +469,10 @@ Targets created with `macos_command_line_application` can be executed using
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -557,11 +554,10 @@ Builds a macOS dylib.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -705,11 +701,10 @@ Builds and bundles a macOS extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -880,11 +875,10 @@ Builds and bundles a macOS Kernel Extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -1055,11 +1049,10 @@ Builds and bundles a macOS Spotlight Importer.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -1192,11 +1185,10 @@ of the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.10"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -1334,11 +1326,10 @@ of the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.12"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--ios_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>
@@ -1521,11 +1512,10 @@ Builds and bundles a macOS XPC Service.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum macOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.11"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--macos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
       </td>
     </tr>
     <tr>

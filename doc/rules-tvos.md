@@ -141,11 +141,10 @@ Builds and bundles a tvOS application.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum tvOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--tvos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum tvOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.0"</code>).
       </td>
     </tr>
     <tr>
@@ -322,11 +321,10 @@ Builds and bundles a tvOS extension.
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum tvOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"10.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--tvos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum tvOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.0"</code>).
       </td>
     </tr>
     <tr>
@@ -477,11 +475,10 @@ and extensions, list it in the `frameworks` attributes of those
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum tvOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--tvos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum tvOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.0"</code>).
       </td>
     </tr>
     <tr>
@@ -582,11 +579,10 @@ the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum tvOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--tvos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum tvOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.0"</code>).
       </td>
     </tr>
     <tr>
@@ -733,11 +729,10 @@ of the attributes inherited by all test rules, please check the
     <tr>
       <td><code>minimum_os_version</code></td>
       <td>
-        <p><code>String; optional</code></p>
-        <p>An optional string indicating the minimum tvOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>). If this attribute is omitted, then the value specified
-        by the flag <code>--tvos_minimum_os</code> will be used instead.
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum tvOS version supported by
+        the target, represented as a dotted version number (for example,
+        <code>"10.0"</code>).
       </td>
     </tr>
     <tr>
