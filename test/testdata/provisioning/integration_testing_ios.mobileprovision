@@ -33,7 +33,7 @@
         <array>
             <string>FOOBARBAZ1.*</string>
         </array>
-        <key>get-task-allow</key>
+        <key>com.apple.security.get-task-allow</key>
         <true/>
         <key>application-identifier</key>
         <string>FOOBARBAZ1.*</string>

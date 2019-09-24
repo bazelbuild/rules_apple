@@ -335,7 +335,7 @@ ios_application(
 EOF
 
   # Use a local entitlements file so the default isn't extracted from the
-  # provisioning profile (which likely has get-task-allow).
+  # provisioning profile (which likely has com.apple.security.get-task-allow).
   cat > app/entitlements.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -368,9 +368,9 @@ EOF
   fi
 
   if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
-    assert_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_contains "<key>com.apple.security.get-task-allow</key>" "${FILE_TO_CHECK}"
   else
-    assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_not_contains "<key>com.apple.security.get-task-allow</key>" "${FILE_TO_CHECK}"
   fi
 }
 
