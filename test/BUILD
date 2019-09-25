@@ -131,7 +131,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = 1,
-    shard_count = 16,
+    shard_count = 6,
 )
 
 apple_multi_shell_test(
