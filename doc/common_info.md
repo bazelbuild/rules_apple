@@ -127,24 +127,24 @@ you'll need to specify the `--output_groups=+linkmaps` flag.
 
 ### Debugging Entitlement Support {#apple.add_debugger_entitlement}
 
-Some Apple platforms require an entitlement (`get-task-allow`) to support
-debugging tools. The rules will auto add the entitlement for non optimized
-builds (i.e. - anything that isn't `-c opt`). However when looking at specific
-issues (performance of a release build via Instruments), the entitlement is also
-needed.
+Some Apple platforms require an entitlement
+(`com.apple.security.get-task-allow`) to support debugging tools. The rules will
+auto add the entitlement for non optimized builds (i.e. - anything that isn't
+`-c opt`). However when looking at specific issues (performance of a release
+build via Instruments), the entitlement is also needed.
 
 The rules support direct control over the inclusion/exclusion of any bundle
 being built by
 `--define=apple.add_debugger_entitlement=(yes|true|1|no|false|0)`.
 
-Add `get-task-allow` entitlement:
+Add `com.apple.security.get-task-allow` entitlement:
 
 ```shell
 bazel build --define=apple.add_debugger_entitlement=yes //your/target
 ```
 
-Ensure `get-task-allow` entitlement is *not* added (even if the default would
-have added it):
+Ensure `com.apple.security.get-task-allow` entitlement is *not* added (even if
+the default would have added it):
 
 ```shell
 bazel build --define=apple.add_debugger_entitlement=no //your/target
