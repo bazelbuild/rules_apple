@@ -228,7 +228,7 @@ def _entitlements_impl(ctx):
     if signing_info.entitlements:
         plists.append(signing_info.entitlements)
     if _include_debug_entitlements(ctx):
-        get_task_allow = {"com.apple.security.get-task-allow": True}
+        get_task_allow = {"get-task-allow": True}
         forced_plists.append(struct(**get_task_allow))
 
     inputs = list(plists)
