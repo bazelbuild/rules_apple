@@ -69,9 +69,9 @@ def _macos_application_impl(ctx):
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
     # add linking support directly into the rule.
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
-    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     bundle_id = ctx.attr.bundle_id
     embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
@@ -118,6 +118,7 @@ def _macos_application_impl(ctx):
 
     executable = outputs.executable(ctx)
     run_support.register_macos_executable(ctx, executable)
+
     return [
         DefaultInfo(
             executable = executable,
@@ -129,9 +130,7 @@ def _macos_application_impl(ctx):
             ),
         ),
         MacosApplicationBundleInfo(),
-        # Propagate the binary provider so that this target can be used as bundle_loader in test
-        # rules.
-        binary_target[apple_common.AppleExecutableBinary],
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _macos_bundle_impl(ctx):
@@ -141,9 +140,9 @@ def _macos_bundle_impl(ctx):
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
     # add linking support directly into the rule.
 
-    binary_target = ctx.attr.deps[0]
-    binary_provider_type = apple_common.AppleLoadableBundleBinary
-    binary_artifact = binary_target[binary_provider_type].binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     bundle_id = ctx.attr.bundle_id
 
@@ -153,7 +152,7 @@ def _macos_bundle_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             plugins = [outputs.archive(ctx)],
@@ -421,9 +420,9 @@ def _macos_command_line_application_impl(ctx):
     providers = []
     outputs = [depset([output_file])]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
-    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     debug_outputs_partial = partials.debug_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
@@ -444,6 +443,7 @@ def _macos_command_line_application_impl(ctx):
             executable = output_file,
             files = depset(transitive = outputs),
         ),
+        binary_descriptor.provider,
     ] + providers
 
 def _macos_dylib_impl(ctx):
@@ -453,9 +453,9 @@ def _macos_dylib_impl(ctx):
     providers = []
     outputs = [depset([output_file])]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
-    debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs]
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     debug_outputs_partial = partials.debug_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
@@ -473,6 +473,7 @@ def _macos_dylib_impl(ctx):
             product_type = ctx.attr._product_type,
         ),
         DefaultInfo(files = depset(transitive = outputs)),
+        binary_descriptor.provider,
     ] + providers
 
 macos_application = rule_factory.create_apple_bundling_rule(

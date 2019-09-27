@@ -26,10 +26,6 @@ load(
     _macos_unit_test_bundle = "macos_unit_test_bundle",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -53,12 +49,15 @@ load(
 
 def macos_application(name, **kwargs):
     """Packages a macOS application."""
-    bundling_args = binary_support.create_binary(
+    binary_args = dict(kwargs)
+    features = binary_args.pop("features", [])
+    features += ["link_cocoa"]
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.application,
-        features = ["link_cocoa"],
-        **kwargs
+        platform_type = str(apple_common.platform_type.macos),
+        features = features,
+        **binary_args
     )
 
     _macos_application(
@@ -69,23 +68,12 @@ def macos_application(name, **kwargs):
 def macos_bundle(name, **kwargs):
     """Packages a macOS loadable bundle."""
     binary_args = dict(kwargs)
-
-    # If a bundle loader was passed, re-write it to use the underlying
-    # apple_binary target instead. When migrating to rules, we should validate
-    # the attribute with providers.
-    bundle_loader = binary_args.pop("bundle_loader", None)
-    if bundle_loader:
-        bundle_loader = "%s.__internal__.apple_binary" % bundle_loader
-        binary_args["bundle_loader"] = bundle_loader
-
     features = binary_args.pop("features", [])
     features += ["link_cocoa"]
 
-    bundling_args = binary_support.create_binary(
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.bundle,
-        binary_type = "loadable_bundle",
+        platform_type = str(apple_common.platform_type.macos),
         features = features,
         **binary_args
     )
@@ -202,15 +190,12 @@ def macos_command_line_application(name, **kwargs):
         )
         binary_deps.extend([":" + merged_launchdplists_name])
 
-    # Create the unsigned binary, then run the command line application rule that
-    # signs it.
-    cmd_line_app_args = binary_support.create_binary(
+    cmd_line_app_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.tool,
-        deps = binary_deps,
+        platform_type = str(apple_common.platform_type.macos),
         link_swift_statically = True,
-        suppress_entitlements = True,
+        include_entitlements = False,
+        deps = binary_deps,
         **binary_args
     )
 
@@ -256,14 +241,12 @@ def macos_dylib(name, **kwargs):
         )
         binary_deps.extend([":" + merged_infoplist_name])
 
-    dylib_args = binary_support.create_binary(
+    dylib_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.macos),
-        apple_product_type.dylib,
-        binary_type = "dylib",
-        deps = binary_deps,
+        platform_type = str(apple_common.platform_type.macos),
         link_swift_statically = True,
-        suppress_entitlements = True,
+        include_entitlements = False,
+        deps = binary_deps,
         **binary_args
     )
 
