@@ -613,6 +613,17 @@ _RULE_TYPE_DESCRIPTORS = {
             skip_signing = True,
             rule_transition = transition_support.apple_rule_transition,
         ),
+        # tvos_static_framework
+        apple_product_type.static_framework: _describe_rule_type(
+            allowed_device_families = ["tv"],
+            bundle_extension = ".framework",
+            has_infoplist = False,
+            product_type = apple_product_type.static_framework,
+            requires_bundle_id = False,
+            requires_provisioning_profile = False,
+            skip_signing = True,
+            rule_transition = transition_support.apple_rule_transition,
+        ),
         # tvos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["tv"],

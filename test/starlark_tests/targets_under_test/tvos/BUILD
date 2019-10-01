@@ -10,6 +10,7 @@ load(
     "tvos_application",
     "tvos_extension",
     "tvos_framework",
+    "tvos_static_framework",
     "tvos_ui_test",
     "tvos_unit_test",
 )
@@ -21,7 +22,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -44,7 +45,7 @@ tvos_application(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -63,7 +64,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -80,7 +81,7 @@ tvos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
@@ -100,7 +101,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -116,7 +117,24 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+tvos_static_framework(
+    name = "static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -133,7 +151,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -151,7 +169,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",
@@ -167,7 +185,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     tags = [
         "manual",
         "notap",

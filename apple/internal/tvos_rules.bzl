@@ -51,6 +51,7 @@ load(
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
+    "TvosStaticFrameworkBundleInfo",
 )
 
 def _tvos_application_impl(ctx):
@@ -249,6 +250,36 @@ def _tvos_extension_impl(ctx):
         TvosExtensionBundleInfo(),
     ] + processor_result.providers
 
+def _tvos_static_framework_impl(ctx):
+    """Implementation of ios_static_framework."""
+
+    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
+    # action, when available.
+    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
+    # add linking support directly into the rule.
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.static_framework_header_modulemap_partial(
+            hdrs = ctx.files.hdrs,
+            umbrella_header = ctx.file.umbrella_header,
+            binary_objc_provider = binary_target[apple_common.Objc],
+        ),
+    ]
+
+    if not ctx.attr.exclude_resources:
+        processor_partials.append(partials.resources_partial())
+
+    processor_result = processor.process(ctx, processor_partials)
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        TvosStaticFrameworkBundleInfo(),
+    ] + processor_result.providers
+
 tvos_application = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_application_impl,
     platform_type = "tvos",
@@ -268,4 +299,11 @@ tvos_framework = rule_factory.create_apple_bundling_rule(
     platform_type = "tvos",
     product_type = apple_product_type.framework,
     doc = "Builds and bundles a tvOS Dynamic Framework.",
+)
+
+tvos_static_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _tvos_static_framework_impl,
+    platform_type = "tvos",
+    product_type = apple_product_type.static_framework,
+    doc = "Builds and bundles a tvOS Static Framework.",
 )

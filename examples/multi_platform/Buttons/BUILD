@@ -18,6 +18,7 @@ load(
     "//apple:tvos.bzl",
     "tvos_application",
     "tvos_extension",
+    "tvos_static_framework",
 )
 load(
     "//apple:watchos.bzl",
@@ -252,6 +253,13 @@ tvos_extension(
     infoplists = ["ButtonsTVExtension/Info.plist"],
     minimum_os_version = "10.2",
     deps = [":ButtonsTVExtensionLib"],
+)
+
+tvos_static_framework(
+    name = "ButtonsTVStaticFramework",
+    bundle_name = "ButtonsTVStaticFramework",
+    minimum_os_version = "10.0",
+    deps = [":ButtonsTVLib"],
 )
 
 # macOS

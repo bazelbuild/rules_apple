@@ -40,7 +40,7 @@ def tvos_framework_test_suite():
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
+            "MinimumOSVersion": "9.0",
             "UIDeviceFamily:0": "3",
         },
         tags = [name],

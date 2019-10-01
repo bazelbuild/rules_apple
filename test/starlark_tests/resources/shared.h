@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import "shared.h"
+#import <Foundation/Foundation.h>
 
-@implementation ObjectiveCSharedClass
+@interface ObjectiveCSharedClass : NSObject
 
-- (void)doSomethingShared {
-  NSLog(@"Doing something shared");
-}
+- (void)doSomethingShared;
 
 @end

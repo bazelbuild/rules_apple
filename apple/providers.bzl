@@ -478,6 +478,18 @@ that requirement.
 """,
 )
 
+TvosStaticFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an tvOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a tvOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a tvOS static framework should use this provider to describe
+that requirement.
+""",
+)
+
 TvosXcTestBundleInfo = provider(
     doc = """
 Denotes a target that is a tvOS .xctest bundle.

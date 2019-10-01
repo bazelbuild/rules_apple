@@ -26,6 +26,7 @@ exports_files(
 objc_library(
     name = "objc_shared_lib",
     srcs = ["shared.m"],
+    hdrs = ["shared.h"],
 )
 
 objc_library(
