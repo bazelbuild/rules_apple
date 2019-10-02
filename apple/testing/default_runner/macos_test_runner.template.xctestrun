@@ -12,6 +12,8 @@
 		<string>BAZEL_TEST_HOST_PATH</string>
 		<key>TestingEnvironmentVariables</key>
 		<dict>
+			<key>DYLD_FALLBACK_LIBRARY_PATH</key>
+			<string>__PLATFORMS__/MacOSX.platform/Developer/usr/lib</string>
 			<key>DYLD_FRAMEWORK_PATH</key>
 			<string>__PLATFORMS__/MacOSX.platform/Developer/Library/Frameworks:__SHAREDFRAMEWORKS__</string>
 			<key>DYLD_LIBRARY_PATH</key>
