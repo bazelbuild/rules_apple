@@ -11,6 +11,10 @@ load(
     "apple_resource_group",
 )
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
 )
@@ -32,6 +36,14 @@ objc_library(
 objc_library(
     name = "objc_main_lib",
     srcs = ["main.m"],
+)
+
+swift_library(
+    name = "watchkit_ext_main_lib",
+    srcs = ["WatchKitExtMain.swift"],
+    tags = [
+        "manual",
+    ],
 )
 
 objc_library(

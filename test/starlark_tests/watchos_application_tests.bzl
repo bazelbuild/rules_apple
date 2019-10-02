@@ -52,7 +52,7 @@ def watchos_application_test_suite():
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "3.0",
+            "MinimumOSVersion": "4.0",
             "UIDeviceFamily:0": "4",
         },
         tags = [name],
