@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 # The path where the archive should be created, including the name of the
@@ -29,6 +29,40 @@ unzip -qq -d "$WORK_DIR" "$UNPROCESSED_ARCHIVE_PATH"
 if [[ -n "$POST_PROCESSOR" ]]; then
   "$POST_PROCESSOR" "$WORK_DIR"
 fi
+
+# Strip out any unnecessary slices from embedded dynamic frameworks to save space
+for i in "$WORK_DIR"/*.app; do
+    # Lets figure out what slices the app has
+    app_name=$(basename $i .app)
+    slices=$(xcrun lipo -info $i/$app_name | cut -d: -f3)
+
+    # Now lets make sure any included frameworks match
+    for f in $i/Frameworks/*.framework; do
+        # We need to check we have overlapping architectures
+        framework_name=$(basename $f .framework)
+        framework_slices=$(xcrun lipo -info $f/$framework_name | cut -d: -f3)
+        # Sanity check that the framework has at least the slices the app has
+        for s in $slices ; do
+            echo $framework_slices | grep -q $s
+            if [ $? -ne 0 ]; then
+                echo "App has slice $s, but $f does not. Aborting..."
+                exit -1
+            fi
+        done
+
+        # Now make the framework match the slices the app has
+        for s in $slices ; do
+            lipo_args="$lipo_args -extract $s"
+        done
+        xcrun lipo $f/$framework_name $lipo_args -output $temp_file
+        if [ $? -ne 0 ]; then
+            echo lipo failed, aborting...
+            exit 1
+        fi
+        file $temp_file
+        mv $temp_file $f/$framework_name
+    done
+done
 
 # Sign the application, if requested. This may expand to nothing in the case
 # where signing is not being performed.
