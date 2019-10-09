@@ -35,6 +35,10 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_static_framework_aspect.bzl",
+    "swift_static_framework_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_info_aspect",
 )
@@ -227,7 +231,10 @@ def _common_binary_linking_attrs(rule_descriptor):
         swift_usage_aspect,
     ]
     if _is_test_product_type(rule_descriptor.product_type):
-        deps_aspects.extend([apple_test_info_aspect])
+        deps_aspects.append(apple_test_info_aspect)
+
+    if rule_descriptor.product_type == apple_product_type.static_framework:
+        deps_aspects.append(swift_static_framework_aspect)
 
     return {
         "binary_type": attr.string(
@@ -960,7 +967,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     elif platform_type == "watchos":
         rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition:
+    if rule_descriptor.rule_transition or rule_descriptor.force_transition_whitelist:
         rule_attrs.append({
             "_whitelist_function_transition": attr.label(
                 default = "//tools/whitelists/function_transition_whitelist",

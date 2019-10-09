@@ -55,6 +55,10 @@ load(
     "stub_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_static_framework_aspect.bzl",
+    "SwiftStaticFrameworkInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
@@ -311,12 +315,24 @@ def _ios_static_framework_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.static_framework_header_modulemap_partial(
-            hdrs = ctx.files.hdrs,
-            umbrella_header = ctx.file.umbrella_header,
-            binary_objc_provider = binary_target[apple_common.Objc],
-        ),
     ]
+
+    # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
+    # framework.
+    if SwiftStaticFrameworkInfo in binary_target:
+        processor_partials.append(
+            partials.swift_static_framework_partial(
+                swift_static_framework_info = binary_target[SwiftStaticFrameworkInfo],
+            ),
+        )
+    else:
+        processor_partials.append(
+            partials.static_framework_header_modulemap_partial(
+                hdrs = ctx.files.hdrs,
+                umbrella_header = ctx.file.umbrella_header,
+                binary_objc_provider = binary_target[apple_common.Objc],
+            ),
+        )
 
     if not ctx.attr.exclude_resources:
         processor_partials.append(partials.resources_partial())

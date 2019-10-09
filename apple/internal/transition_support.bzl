@@ -98,6 +98,26 @@ _apple_rule_transition = transition(
     ],
 )
 
+def _static_framework_transition_impl(settings, attr):
+    """Attribute transition for static frameworks to enable swiftinterface generation."""
+    return {
+        "@build_bazel_rules_swift//swift:emit_swiftinterface": True,
+    }
+
+# This transition is used, for now, to enable swiftinterface generation on swift_library targets.
+# Once apple_common.split_transition is migrated to Starlark, this transition should be merged into
+# that one, being enabled by reading either a private attribute on the static framework rules, or
+# some other mechanism, so that it is only enabled on static framework rules and not all Apple
+# rules.
+_static_framework_transition = transition(
+    implementation = _static_framework_transition_impl,
+    inputs = [],
+    outputs = [
+        "@build_bazel_rules_swift//swift:emit_swiftinterface",
+    ],
+)
+
 transition_support = struct(
     apple_rule_transition = None,
+    static_framework_transition = _static_framework_transition,
 )

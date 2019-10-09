@@ -10,5 +10,15 @@ licenses(["notice"])
 
 package_group(
     name = "function_transition_whitelist",
-    packages = ["//test/..."],
+    packages = ["//..."],
+)
+
+# Consumed by bazel tests.
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]),
+    visibility = [
+        "//tools:__pkg__",
+    ],
 )
