@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 set -eu
 
 # The path where the archive should be created, including the name of the
@@ -31,13 +31,13 @@ if [[ -n "$POST_PROCESSOR" ]]; then
 fi
 
 # Strip out any unnecessary slices from embedded dynamic frameworks to save space
-temp_basename=`basename $0`
-temp_file=`mktemp -q /tmp/${temp_basename}.XXXXXX`
+temp_basename=$(basename $0)
+temp_file=$(mktemp -q /tmp/${temp_basename}.XXXXXX)
 if [ $? -ne 0 ]; then
        echo "error: Can't create temp file, exiting..." >&2
        exit 1
 fi
-for app in "$WORK_DIR"/*.app; do
+for app in "$WORK_DIR"/Payload/*.app; do
     # Lets figure out what slices the app has
     app_name=$(basename "$app" .app)
     app_slices=$(xcrun lipo -info "$app/$app_name" | cut -d: -f3)
