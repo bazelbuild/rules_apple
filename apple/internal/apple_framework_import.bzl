@@ -31,10 +31,6 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_apple_support//lib:framework_migration.bzl",
-    "framework_migration",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -178,18 +174,12 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    if framework_migration.is_post_framework_migration():
-        objc_provider_fields = _framework_objc_provider_fields(
-            "dynamic_framework_file",
-            header_imports,
-            module_map_imports,
-            _all_framework_binaries(framework_groups),
-        )
-    else:
-        objc_provider_fields = {
-            "dynamic_framework_dir": framework_dirs_set,
-            "dynamic_framework_file": depset(framework_imports),
-        }
+    objc_provider_fields = _framework_objc_provider_fields(
+        "dynamic_framework_file",
+        header_imports,
+        module_map_imports,
+        _all_framework_binaries(framework_groups),
+    )
 
     objc_provider = _objc_provider_with_dependencies(ctx, objc_provider_fields)
     providers.append(objc_provider)
@@ -214,17 +204,12 @@ def _apple_static_framework_import_impl(ctx):
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
 
-    if framework_migration.is_post_framework_migration():
-        objc_provider_fields = _framework_objc_provider_fields(
-            "static_framework_file",
-            header_imports,
-            module_map_imports,
-            framework_binaries,
-        )
-    else:
-        objc_provider_fields = {
-            "static_framework_file": depset(framework_imports),
-        }
+    objc_provider_fields = _framework_objc_provider_fields(
+        "static_framework_file",
+        header_imports,
+        module_map_imports,
+        framework_binaries,
+    )
 
     if ctx.attr.alwayslink:
         if not framework_binaries:
