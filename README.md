@@ -28,10 +28,26 @@ rules you wish to depend on:
 ```python
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+# rules_apple, rules_swift and apple_support no longer support releases. If
+# you'd like to pin down these dependencies to a specific commit, please add the
+# following to the top of your WORKSPACE, using the commit you'd like to pin for
+# each of the repositories.
 git_repository(
     name = "build_bazel_rules_apple",
     remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.18.0",
+    commit = "[SOME_HASH_VALUE]",
+)
+
+git_repository(
+    name = "build_bazel_rules_swift",
+    remote = "https://github.com/bazelbuild/rules_swift.git",
+    commit = "[SOME_HASH_VALUE]",
+)
+
+git_repository(
+    name = "build_bazel_apple_support",
+    remote = "https://github.com/bazelbuild/apple_support.git",
+    commit = "[SOME_HASH_VALUE]",
 )
 
 load(
