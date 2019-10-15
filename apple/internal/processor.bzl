@@ -369,7 +369,7 @@ def _bundle_partial_outputs_files(
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
-                "no-cache": "1",
+                "no-remote": "1",
                 # Unsure, but may be needed for keychain access, especially for files that live in
                 # $HOME.
                 "no-sandbox": "1",
