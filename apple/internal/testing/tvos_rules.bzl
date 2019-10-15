@@ -59,12 +59,16 @@ def _tvos_unit_test_impl(ctx):
         TvosXcTestBundleInfo(),
     ]
 
-tvos_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+# Declare it with an underscore so it shows up that way in queries.
+_tvos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_ui_test_bundle_impl,
     platform_type = str(apple_common.platform_type.tvos),
     product_type = apple_product_type.ui_test_bundle,
     doc = "Builds and bundles an tvOS UI Test Bundle.  Internal target not to be depended upon.",
 )
+
+# Alias to import it.
+tvos_internal_ui_test_bundle = _tvos_internal_ui_test_bundle
 
 tvos_ui_test = rule_factory.create_apple_test_rule(
     implementation = _tvos_ui_test_impl,
@@ -72,12 +76,16 @@ tvos_ui_test = rule_factory.create_apple_test_rule(
     platform_type = str(apple_common.platform_type.tvos),
 )
 
-tvos_unit_test_bundle = rule_factory.create_apple_bundling_rule(
+# Declare it with an underscore so it shows up that way in queries.
+_tvos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_unit_test_bundle_impl,
     platform_type = str(apple_common.platform_type.tvos),
     product_type = apple_product_type.unit_test_bundle,
     doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
 )
+
+# Alias to import it.
+tvos_internal_unit_test_bundle = _tvos_internal_unit_test_bundle
 
 tvos_unit_test = rule_factory.create_apple_test_rule(
     implementation = _tvos_unit_test_impl,

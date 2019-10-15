@@ -20,10 +20,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:tvos_rules.bzl",
+    _tvos_internal_ui_test_bundle = "tvos_internal_ui_test_bundle",
+    _tvos_internal_unit_test_bundle = "tvos_internal_unit_test_bundle",
     _tvos_ui_test = "tvos_ui_test",
-    _tvos_ui_test_bundle = "tvos_ui_test_bundle",
     _tvos_unit_test = "tvos_unit_test",
-    _tvos_unit_test_bundle = "tvos_unit_test_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
@@ -124,7 +124,7 @@ def tvos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _tvos_unit_test_bundle,
+        bundle_rule = _tvos_internal_unit_test_bundle,
         test_rule = _tvos_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
@@ -136,7 +136,7 @@ def tvos_ui_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _tvos_ui_test_bundle,
+        bundle_rule = _tvos_internal_ui_test_bundle,
         test_rule = _tvos_ui_test,
         runner = runner,
         **kwargs

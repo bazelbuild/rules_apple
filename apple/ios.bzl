@@ -20,10 +20,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
+    _ios_internal_ui_test_bundle = "ios_internal_ui_test_bundle",
+    _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
     _ios_ui_test = "ios_ui_test",
-    _ios_ui_test_bundle = "ios_ui_test_bundle",
     _ios_unit_test = "ios_unit_test",
-    _ios_unit_test_bundle = "ios_unit_test_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -183,7 +183,7 @@ def ios_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _ios_unit_test_bundle,
+        bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
@@ -195,7 +195,7 @@ def ios_ui_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _ios_ui_test_bundle,
+        bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
         runner = runner,
         dylibs = kwargs.get("frameworks"),
@@ -205,7 +205,7 @@ def ios_ui_test(name, **kwargs):
 def ios_unit_test_suite(name, **kwargs):
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _ios_unit_test_bundle,
+        bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
         bundle_loader = kwargs.get("test_host"),
         dylibs = kwargs.get("frameworks"),
@@ -215,7 +215,7 @@ def ios_unit_test_suite(name, **kwargs):
 def ios_ui_test_suite(name, **kwargs):
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _ios_ui_test_bundle,
+        bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
         dylibs = kwargs.get("frameworks"),
         **kwargs

@@ -20,10 +20,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
+    _macos_internal_ui_test_bundle = "macos_internal_ui_test_bundle",
+    _macos_internal_unit_test_bundle = "macos_internal_unit_test_bundle",
     _macos_ui_test = "macos_ui_test",
-    _macos_ui_test_bundle = "macos_ui_test_bundle",
     _macos_unit_test = "macos_unit_test",
-    _macos_unit_test_bundle = "macos_unit_test_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
@@ -280,7 +280,7 @@ def macos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _macos_unit_test_bundle,
+        bundle_rule = _macos_internal_unit_test_bundle,
         test_rule = _macos_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
@@ -292,7 +292,7 @@ def macos_ui_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
-        bundle_rule = _macos_ui_test_bundle,
+        bundle_rule = _macos_internal_ui_test_bundle,
         test_rule = _macos_ui_test,
         runner = runner,
         dylibs = kwargs.get("frameworks"),
