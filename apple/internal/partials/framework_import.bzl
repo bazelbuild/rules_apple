@@ -35,6 +35,11 @@ load(
     "paths",
 )
 
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+
 def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
     """Implementation for the framework import file processing partial."""
     _ignored = [ctx]
@@ -60,6 +65,8 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     bundle_files = []
+    outputs = []
+    inputs = []
     for file in files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
         framework_relative_path = paths.relativize(file.short_path, framework_path)
@@ -72,6 +79,25 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         bundle_files.append(
             (processor.location.framework, parent_dir, depset([file])),
         )
+        inputs.append(
+            file
+        )
+        outputs.append(
+            file
+        )
+
+    dynamic_framework_slicer_args = [
+        "--realpath",
+        ctx.executable._realpath.path,
+    ]
+    ctx.actions.run(
+        inputs = inputs,
+        tools = [ctx.executable._realpath],
+        executable = ctx.executable._dynamic_framework_slicer,
+        outputs = outputs,
+        #arguments = dynamic_framework_slicer_args + [x.path for x in bundle_files],
+        mnemonic = "DynamicFrameworkSlicer",
+    )
 
     return struct(bundle_files = bundle_files)
 
