@@ -1491,7 +1491,7 @@ except `runner` is replaced by `runners`.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider.
+        <code>AppleTestRunnerInfo</code> provider.</p>
       </td>
     </tr>
     <tr>
@@ -1787,7 +1787,7 @@ containing an [ios_unit_test](#ios_unit_test) for each of the given `runners`.
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider.
+        <code>AppleTestRunnerInfo</code> provider.</p>
       </td>
     </tr>
     <tr>
