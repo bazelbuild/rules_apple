@@ -1261,7 +1261,9 @@ resources, runner, test_host, data, deps, provisioning_profile,
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`.
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
 
 To run the same test on multiple simulators/devices see
 [ios_ui_test_suite](#ios_ui_test_suite).
@@ -1486,11 +1488,10 @@ except `runner` is replaced by `runners`.
     <tr>
       <td><code>runners</code></td>
       <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider. This attribute is required
-        and must contain at least 2 runners.</p>
+        <code>AppleTestRunnerInfo</code> provider.
       </td>
     </tr>
     <tr>
@@ -1552,7 +1553,9 @@ resources, runner, test_host, data, deps, [test specific attributes])
 ```
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`.
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
 
 `ios_unit_test` targets can work in two modes: as app or library
 tests. If the `test_host` attribute is set to an `ios_application` target, the
@@ -1651,10 +1654,7 @@ of the attributes inherited by all test rules, please check the
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>A target that will specify how the tests are to be run. This target
         needs to be defined using a rule that provides the <code>AppleTestRunnerInfo</code>
-        provider. The default runner can only run logic-based tests (i.e. tests
-        that do not rely on running a test host application). This is not the
-        case when running the tests from a Tulsi generated project, and both
-        logic and application based unit tests are supported in that scenario.</p>
+        provider.</p>
       </td>
     </tr>
     <tr>
@@ -1784,11 +1784,10 @@ containing an [ios_unit_test](#ios_unit_test) for each of the given `runners`.
     <tr>
       <td><code>runners</code></td>
       <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a></code></p>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
         <p>The list of runner targets that contain the logic of how the tests
         should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider. This attribute is required
-        and must contain at least 2 runners.</p>
+        <code>AppleTestRunnerInfo</code> provider.
       </td>
     </tr>
     <tr>

@@ -1104,7 +1104,9 @@ minimum_os_version, resources, runner, test_host, data, deps)
 ```
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`.
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
 
 `macos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `macos_application` target, the tests will
@@ -1205,8 +1207,7 @@ of the attributes inherited by all test rules, please check the
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
         <p>A target that will specify how the tests are to be run. This target
         needs to be defined using a rule that provides the <code>AppleTestRunnerInfo</code>
-        provider. The default runner can run logic and application-based tests.
-        Support for this rule in Tulsi is not yet available.</p>
+        provider.</p>
       </td>
     </tr>
     <tr>
@@ -1253,7 +1254,11 @@ minimum_os_version, resources, runner, test_host, data, deps,
 ```
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`.
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+Note: macOS UI tests are not currently supported in the default test runner.
 
 The following is a list of the `macos_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
