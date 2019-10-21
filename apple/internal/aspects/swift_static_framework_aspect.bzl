@@ -129,10 +129,14 @@ swift_library dependency with no transitive swift_library dependencies.\
                     generated_header = swiftinfo.transitive_generated_headers.to_list()[0]
 
             swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
-            swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
 
-        # Make sure that all dictionaries contain at least one module before returning the provider.
-        if all([module_name, swiftdocs, swiftinterfaces]):
+            if swiftinfo.transitive_swiftinterfaces.to_list():
+                swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
+
+        # Make sure that module_name and swiftdocs contain at least one module before returning the
+        # provider. swiftinterfaces will be an empty dictionary if one of the Swift features
+        # supports_library_evolution, enable_library_evolution or emit_swiftinterface is disabled.
+        if all([module_name, swiftdocs]):
             return [
                 SwiftStaticFrameworkInfo(
                     module_name = module_name,
