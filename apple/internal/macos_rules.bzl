@@ -111,7 +111,11 @@ def _macos_application_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -174,7 +178,11 @@ def _macos_bundle_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -220,7 +228,11 @@ def _macos_extension_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -273,7 +285,11 @@ def _macos_quick_look_plugin_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -315,7 +331,11 @@ def _macos_kernel_extension_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -358,7 +378,11 @@ def _macos_spotlight_importer_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)
@@ -401,7 +425,11 @@ def _macos_xpc_service_impl(ctx):
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                profile_artifact = ctx.file.provisioning_profile,
+                extension = "provisionprofile",
+                location = processor.location.content,
+            ),
         )
 
     processor_result = processor.process(ctx, processor_partials)

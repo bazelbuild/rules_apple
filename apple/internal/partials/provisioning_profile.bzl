@@ -31,7 +31,7 @@ load(
     "partial",
 )
 
-def _provisioning_profile_partial_impl(ctx, profile_artifact, extension):
+def _provisioning_profile_partial_impl(ctx, profile_artifact, extension, location):
     """Implementation for the provisioning profile partial."""
 
     if not profile_artifact:
@@ -52,11 +52,14 @@ def _provisioning_profile_partial_impl(ctx, profile_artifact, extension):
 
     return struct(
         bundle_files = [
-            (processor.location.resource, None, depset([intermediate_file])),
+            (location, None, depset([intermediate_file])),
         ],
     )
 
-def provisioning_profile_partial(profile_artifact, extension = "mobileprovision"):
+def provisioning_profile_partial(
+        profile_artifact,
+        extension = "mobileprovision",
+        location = processor.location.resource):
     """Constructor for the provisioning profile partial.
 
     This partial propagates the bundle location for the embedded provisioning profile artifact for
@@ -65,6 +68,7 @@ def provisioning_profile_partial(profile_artifact, extension = "mobileprovision"
     Args:
       profile_artifact: The provisioning profile to embed for this target.
       extension: The embedded provisioning profile extension.
+      location: The location within the bundle to place the profile.
 
     Returns:
       A partial that returns the bundle location of the provisioning profile artifact.
@@ -73,4 +77,5 @@ def provisioning_profile_partial(profile_artifact, extension = "mobileprovision"
         _provisioning_profile_partial_impl,
         profile_artifact = profile_artifact,
         extension = extension,
+        location = location,
     )
