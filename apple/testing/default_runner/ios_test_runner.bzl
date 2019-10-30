@@ -21,9 +21,11 @@ load(
 
 def _get_template_substitutions(ctx):
     """Returns the template substitutions for this runner."""
+    os_version = ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or ""
+    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
     subs = {
-        "device_type": ctx.attr.device_type,
-        "os_version": ctx.attr.os_version,
+        "device_type": device_type,
+        "os_version": str(os_version),
         "testrunner_binary": ctx.executable._testrunner.short_path,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
