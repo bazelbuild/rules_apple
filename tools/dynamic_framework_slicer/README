@@ -1,0 +1,5 @@
+dynamic_framework_slicer takes a directory containing .app bundle structures,
+iterates over the frameworks in the .app, and ensures that each framework only
+contains the same slices as the app binary.
+
+dynamic_framework_slicer can run on Darwin only.

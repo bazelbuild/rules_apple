@@ -60,6 +60,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
@@ -123,6 +124,7 @@ def _ios_application_impl(ctx):
         ),
         partials.framework_import_partial(
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
+            extra_binaries = [x[AppleBundleInfo].binary for x in ctx.attr.extensions],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,

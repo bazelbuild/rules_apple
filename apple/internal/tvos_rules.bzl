@@ -52,6 +52,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
@@ -101,6 +102,7 @@ def _tvos_application_impl(ctx):
         ),
         partials.framework_import_partial(
             targets = ctx.attr.deps + embeddable_targets,
+            extra_binaries = [x[AppleBundleInfo].binary for x in ctx.attr.extensions],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
