@@ -171,6 +171,11 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
         ),
+        "_dynamic_framework_slicer": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/dynamic_framework_slicer"),
+        ),
     },
     apple_support.action_required_attrs(),
 )
