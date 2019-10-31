@@ -27,14 +27,6 @@ load(
     "bundle_paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -43,7 +35,7 @@ load(
     "paths",
 )
 
-def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binaries):
+def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
     """Implementation for the framework import file processing partial."""
     _ignored = [ctx]
 
@@ -68,8 +60,6 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binarie
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     bundle_files = []
-    slicer_args = []
-    main_binary = outputs.binary(ctx)
     for file in files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
         framework_relative_path = paths.relativize(file.short_path, framework_path)
@@ -79,38 +69,13 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binarie
         if framework_relative_dir:
             parent_dir = paths.join(parent_dir, framework_relative_dir)
 
-        # check to see if the the parent is "Foo.[extension]" and the file is "Foo", thus "Foo.framework/Foo", so the binary within the framework.
-        if paths.replace_extension(parent_dir, "") == file.basename:
-            stripped = intermediates.file(
-                ctx.actions,
-                ctx.label.name,
-                paths.join("_imported_frameworks", file.basename),
-            )
-            bundle_files.append(
-                (processor.location.framework, parent_dir, depset([stripped])),
-            )
-
-            args = slicer_args + ["--in", file.path, "--out", stripped.path]
-            all_binaries = extra_binaries + [main_binary]
-            for binary in all_binaries:
-                args.append(binary.path)
-
-            ctx.actions.run(
-                inputs = [file] + all_binaries,
-                tools = [ctx.executable._realpath],
-                executable = ctx.executable._dynamic_framework_slicer,
-                outputs = [stripped],
-                arguments = args,
-                mnemonic = "DynamicFrameworkSlicer",
-            )
-        else:
-            bundle_files.append(
-                (processor.location.framework, parent_dir, depset([file])),
-            )
+        bundle_files.append(
+            (processor.location.framework, parent_dir, depset([file])),
+        )
 
     return struct(bundle_files = bundle_files)
 
-def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []):
+def framework_import_partial(targets, targets_to_avoid = []):
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
@@ -120,8 +85,6 @@ def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
             to be used when deduplicating frameworks already bundled.
-        extra_binaries: Extra binaries to consider when collecting which archs should be
-            preserved in the imported dynamic frameworks.
 
     Returns:
         A partial that returns the bundle location of the framework import files.
@@ -130,5 +93,4 @@ def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []
         _framework_import_partial_impl,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
-        extra_binaries = extra_binaries,
     )
