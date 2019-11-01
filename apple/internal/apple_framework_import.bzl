@@ -61,11 +61,16 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
         # The paths will be of the following format:
         #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
         # Where <arch> will be a common arch like x86_64, arm64, etc.
-        root, _ = paths.split_extension(swiftmodule.basename)
-        if root == cpu:
+        name, ext = paths.split_extension(swiftmodule.basename)
+
+        # Match only a .swiftmodule, not a .swiftinterface.
+        if ext != "swiftmodule":
+            continue
+
+        if name == cpu:
             return swiftmodule
         # `arm` is an established alias for `armv7`.
-        if root == "arm" and cpu == "armv7":
+        if name == "arm" and cpu == "armv7":
             return swiftmodule
 
     return None
