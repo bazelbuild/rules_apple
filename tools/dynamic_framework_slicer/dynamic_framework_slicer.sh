@@ -62,11 +62,9 @@ fi
 # Strip out any unnecessary slices from embedded dynamic frameworks to save space
 
 # Gather all binary slices
-declare -a all_bin_slices
 all_bin_slices=$(xcrun lipo -info "${BINARIES[@]}" | cut -d: -f3 | awk '{ for(i = 1; i <= NF; i++) { print $0; } }' | sort -u)
 
 # Gather the slices in the framework
-declare -a framework_slices
 framework_slices=$(xcrun lipo -info "$IN" | cut -d: -f3 | awk '{ for(i = 1; i <= NF; i++) { print $0; } }' | sort -u)
 
 if [[ $(echo -n $framework_slices | wc -w) -eq 1 || "$all_bin_slices" == "$framework_slices" ]]; then
