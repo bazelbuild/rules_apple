@@ -102,11 +102,25 @@ if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
   runner_flags+=("--launch_options_json_path=${LAUNCH_OPTIONS_JSON_PATH}")
 fi
 
+simulator_id="%(simulator_id)s"
+target_flags=()
+if [[ -n "$simulator_id" ]]; then
+  target_flags=(
+    "test"
+    "--id=$simulator_id"
+  )
+else
+  target_flags=(
+    "simulator_test"
+    "--device_type=%(device_type)s"
+    "--os_version=%(os_version)s"
+  )
+fi
+
+set -x
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
-  simulator_test
-  "--device_type=%(device_type)s"
-  "--os_version=%(os_version)s"
+  "${target_flags[@]}"
   "$@")
 "${cmd[@]}" 2>&1
 status=$?

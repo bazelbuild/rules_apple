@@ -14,6 +14,7 @@
 
 """iOS test runner rule."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
     "AppleTestRunnerInfo",
@@ -26,6 +27,7 @@ def _get_template_substitutions(ctx):
     subs = {
         "device_type": device_type,
         "os_version": str(os_version),
+        "simulator_id": ctx.attr.simulator_id[BuildSettingInfo].value if ctx.attr.simulator_id else "",
         "testrunner_binary": ctx.executable._testrunner.short_path,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -84,6 +86,14 @@ the runner. In most common cases, this should not be used.
 The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
+""",
+        ),
+        "simulator_id": attr.label(
+            default = None,
+            providers = [BuildSettingInfo],
+            doc = """
+The specific UDID for the simulator to be used. In this case the caller is
+responsible for making sure this simulator exists and is booted
 """,
         ),
         "_test_template": attr.label(
