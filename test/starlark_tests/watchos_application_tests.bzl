@@ -19,8 +19,8 @@ load(
     "apple_verification_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
-    "infoplist_contents_test",
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
 )
 load(
     ":rules/analysis_xcasset_argv_test.bzl",
@@ -39,13 +39,16 @@ def watchos_application_test_suite():
         tags = [name],
     )
 
-    infoplist_contents_test(
-        name = "{}_plist_test".format(name),
+    # Test the expected values in a watchOS app's Info.plist when compiling for simulators.
+    archive_contents_test(
+        name = "{}_app_plist_simulator_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
-        expected_values = {
+        build_type = "simulator",
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
             "BuildMachineOSBuild": "*",
             "CFBundleExecutable": "app",
-            "CFBundleIdentifier": "com.google.example",
+            "CFBundleIdentifier": "com.google.example.watch",
             "CFBundleName": "app",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
@@ -59,6 +62,111 @@ def watchos_application_test_suite():
             "MinimumOSVersion": "4.0",
             "UIDeviceFamily:0": "4",
         },
+        tags = [name],
+    )
+
+    # Test the expected values in a watchOS app's Info.plist when compiling for devices.
+    archive_contents_test(
+        name = "{}_app_plist_device_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        build_type = "device",
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleExecutable": "app",
+            "CFBundleIdentifier": "com.google.example.watch",
+            "CFBundleName": "app",
+            "CFBundleSupportedPlatforms:0": "WatchOS*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "watchos",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "watchos*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "MinimumOSVersion": "3.0",
+            "UIDeviceFamily:0": "4",
+        },
+        tags = [name],
+    )
+
+    # Test the expected values in a watchOS extension's Info.plist when compiling for devices.
+    archive_contents_test(
+        name = "{}_extension_plist_device_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        build_type = "device",
+        plist_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/Info.plist",
+        plist_test_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleExecutable": "ext",
+            # "CFBundleIdentifier": "com.google.example.ext",
+            "CFBundleName": "ext",
+            "CFBundleSupportedPlatforms:0": "WatchOS*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "watchos",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "watchos*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "MinimumOSVersion": "3.0",
+            "UIDeviceFamily:0": "4",
+        },
+        tags = [name],
+    )
+
+    # Test the expected values in a watchOS extension's Info.plist when compiling for simulators.
+    archive_contents_test(
+        name = "{}_extension_plist_simulator_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        build_type = "simulator",
+        plist_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/Info.plist",
+        plist_test_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleExecutable": "ext",
+            # "CFBundleIdentifier": "com.google.example.ext",
+            "CFBundleName": "ext",
+            "CFBundleSupportedPlatforms:0": "WatchSimulator*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "watchsimulator",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "watchsimulator*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "MinimumOSVersion": "3.0",
+            "UIDeviceFamily:0": "4",
+        },
+        tags = [name],
+    )
+
+    # Tests that the provisioning profile is present when built for device.
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        contains = [
+            "$BUNDLE_ROOT/embedded.mobileprovision",
+            "$BUNDLE_ROOT/PlugIns/ext.appex/embedded.mobileprovision",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        tags = [name],
+    )
+
+    # Tests that the watch application and IPA contain the WatchKit stub executable
+    # in the appropriate bundle and top-level support directories.
+    archive_contents_test(
+        name = "{}_contains_stub_executable_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
         tags = [name],
     )
 

@@ -43,6 +43,7 @@ ios_application(
         "manual",
         "notap",
     ],
+    watch_application = "//test/starlark_tests/targets_under_test/watchos:app",
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",
         "//test/starlark_tests/resources:bundle_library_ios_lib",

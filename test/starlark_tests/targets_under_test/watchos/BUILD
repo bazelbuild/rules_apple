@@ -14,12 +14,13 @@ load(
 watchos_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
+    bundle_id = "com.google.example.WatchKitApp",
     extension = ":ext",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = "4.2",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",
@@ -28,12 +29,12 @@ watchos_application(
 
 watchos_extension(
     name = "ext",
-    bundle_id = "com.google.example.ext",
+    bundle_id = "com.google.example.WatchKitApp.WatchKitExtension",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = "4.2",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -51,12 +52,12 @@ watchos_extension(
 
 watchos_extension(
     name = "ext_multiple_infoplists",
-    bundle_id = "com.google.example.ext",
+    bundle_id = "com.google.example.WatchKitApp.WatchKitExtension",
     infoplists = [
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = "4.2",
     tags = [
         "manual",
         "notap",

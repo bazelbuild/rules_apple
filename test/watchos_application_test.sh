@@ -275,19 +275,6 @@ EOF
   expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build watchos || return 0
-
-  create_minimal_watchos_application_with_companion
-  do_build watchos //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/embedded.mobileprovision"
-}
-
 # Tests that the watch application and IPA contain the WatchKit stub executable
 # in the appropriate bundle and top-level support directories.
 function test_contains_stub_executable() {
