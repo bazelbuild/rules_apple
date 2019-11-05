@@ -23,6 +23,21 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
+simulator_id=""
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+  case $arg in
+    --destination=platform=ios_simulator,id=*)
+      simulator_id="${arg##*=}"
+      ;;
+    *)
+      echo "error: unsupported argument: '$1'"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # Enable verbose output in test runner.
 runner_flags=("-v")
 
@@ -102,12 +117,24 @@ if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
   runner_flags+=("--launch_options_json_path=${LAUNCH_OPTIONS_JSON_PATH}")
 fi
 
+target_flags=()
+if [[ -n "$simulator_id" ]]; then
+  target_flags=(
+    "test"
+    "--platform=ios_simulator"
+    "--id=$simulator_id"
+  )
+else
+  target_flags=(
+    "simulator_test"
+    "--device_type=%(device_type)s"
+    "--os_version=%(os_version)s"
+  )
+fi
+
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
-  simulator_test
-  "--device_type=%(device_type)s"
-  "--os_version=%(os_version)s"
-  "$@")
+  "${target_flags[@]}")
 "${cmd[@]}" 2>&1
 status=$?
 exit ${status}
