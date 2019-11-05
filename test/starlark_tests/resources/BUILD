@@ -306,3 +306,18 @@ objc_library(
         "framework_resources/nonlocalized.plist",
     ],
 )
+
+filegroup(
+    name = "MacAppIcon.xcassets",
+    srcs = glob(["MacAppIcon.xcassets/**"]),
+)
+
+filegroup(
+    name = "TVBrandAssets.xcassets",
+    srcs = glob(["TVBrandAssets.xcassets/**"]),
+)
+
+filegroup(
+    name = "WatchAppIcon.xcassets",
+    srcs = glob(["WatchAppIcon.xcassets/**"]),
+)

@@ -21,6 +21,7 @@ macos_application(
         "//test/starlark_tests/resources:additional.txt": "Additional",
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
+    app_icons = ["//test/starlark_tests/resources:MacAppIcon.xcassets"],
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [

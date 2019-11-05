@@ -13,6 +13,7 @@ load(
 
 watchos_application(
     name = "app",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
     extension = ":ext",
     infoplists = [

@@ -30,6 +30,10 @@ load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    ":rules/analysis_xcasset_argv_test.bzl",
+    "analysis_xcasset_argv_test",
+)
 
 def macos_application_test_suite():
     """Test suite for macos_application."""
@@ -111,6 +115,13 @@ def macos_application_test_suite():
             "DTXcodeBuild": "*",
             "LSMinimumSystemVersion": "10.10",
         },
+        tags = [name],
+    )
+
+    # Tests xcasset tool is passed the correct arguments.
+    analysis_xcasset_argv_test(
+        name = "{}_xcasset_actool_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         tags = [name],
     )
 

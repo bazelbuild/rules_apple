@@ -30,6 +30,10 @@ load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    ":rules/analysis_xcasset_argv_test.bzl",
+    "analysis_xcasset_argv_test",
+)
 
 def tvos_application_test_suite():
     """Test suite for tvos_application."""
@@ -84,11 +88,18 @@ def tvos_application_test_suite():
     archive_contents_test(
         name = "{}_strings_device_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         contains = [
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
         ],
+        tags = [name],
+    )
+
+    # Tests xcasset tool is passed the correct arguments.
+    analysis_xcasset_argv_test(
+        name = "{}_xcasset_actool_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         tags = [name],
     )
 

@@ -17,6 +17,7 @@ load(
 
 tvos_application(
     name = "app",
+    app_icons = ["//test/starlark_tests/resources:TVBrandAssets.xcassets"],
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [

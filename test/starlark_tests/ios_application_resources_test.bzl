@@ -22,6 +22,10 @@ load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    ":rules/analysis_xcasset_argv_test.bzl",
+    "analysis_xcasset_argv_test",
+)
 
 def ios_application_resources_test_suite():
     """Test suite for apple_bundle_version."""
@@ -353,6 +357,13 @@ def ios_application_resources_test_suite():
             "SomeKey": "Special framework version!",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
+        tags = [name],
+    )
+
+    # Tests xcasset tool is passed the correct arguments.
+    analysis_xcasset_argv_test(
+        name = "{}_xcasset_actool_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
     )
 
