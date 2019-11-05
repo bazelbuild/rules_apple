@@ -72,6 +72,7 @@ if [[ $(echo -n $framework_slices | wc -w) -eq 1 || "$all_bin_slices" == "$frame
     cp "$IN" "$OUT"
 else
     # Figure out what we should strip
+    declare -a slices_needed
     for slice in $framework_slices; do
         if echo "$all_bin_slices" | grep -q "$slice" ; then
             slices_needed+=($slice)
@@ -79,7 +80,7 @@ else
     done
 
     declare -a lipo_args
-    for slice in $slices_needed; do
+    for slice in "${slices_needed[@]}"; do
         lipo_args+=(-extract $slice)
     done
     xcrun lipo "$IN" "${lipo_args[@]}" -output "$OUT"
