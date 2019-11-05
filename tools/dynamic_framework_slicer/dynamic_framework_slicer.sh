@@ -62,10 +62,10 @@ fi
 # Strip out any unnecessary slices from embedded dynamic frameworks to save space
 
 # Gather all binary slices
-all_bin_slices=$(xcrun lipo -info "${BINARIES[@]}" | cut -d: -f3 | tr ' ' '\n' | sort -u)
+all_bin_slices=$(xcrun lipo -info "${BINARIES[@]}" | cut -d: -f3 | awk '{ for(i = 1; i <= NF; i++) { print $0; } }' | sort -u)
 
 # Gather the slices in the framework
-framework_slices=$(xcrun lipo -info "$IN" | cut -d: -f3 | tr ' ' '\n' | sort -u)
+framework_slices=$(xcrun lipo -info "$IN" | cut -d: -f3 | awk '{ for(i = 1; i <= NF; i++) { print $0; } }' | sort -u)
 
 if [[ $(echo -n $framework_slices | wc -w) -eq 1 || "$all_bin_slices" == "$framework_slices" ]]; then
     # If we only have one slice or the slices match exactly, we don't need to do anything
@@ -79,7 +79,7 @@ else
     done
 
     declare -a lipo_args
-    for slice in $slices_needed; do
+    for slice in $all_bin_slices; do
         lipo_args+=(-extract $slice)
     done
     xcrun lipo "$IN" "${lipo_args[@]}" -output "$OUT"
