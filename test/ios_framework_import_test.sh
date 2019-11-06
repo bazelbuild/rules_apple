@@ -26,6 +26,8 @@ function tear_down() {
   rm -rf app
 }
 
+readonly IOS_VERSION="11.0"
+
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
@@ -42,7 +44,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "$IOS_VERSION",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":main"],
 )
@@ -107,7 +109,7 @@ EOF
 
   do_build ios \
     --compilation_mode=dbg \
-    --ios_minimum_os=11.0 \
+    --ios_minimum_os="$IOS_VERSION" \
     --apple_platform_type=ios \
     //libraries:iOSSwiftStaticFrameworkLibrary
 
