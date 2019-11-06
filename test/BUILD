@@ -104,6 +104,7 @@ apple_shell_test(
     src = "ios_framework_import_test.sh",
     data = [
         "//test/testdata/frameworks:ios_frameworks",
+        "//test/testdata/frameworks:swift_sources",
     ],
     shard_count = 4,
 )
