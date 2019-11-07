@@ -25,6 +25,9 @@ SwiftStaticFrameworkInfo = provider(
         "swiftinterfaces": """
 Dictionary of architecture to the generated swiftinterface file for that architecture.
 """,
+        "swiftmodules": """
+Dictionary of architecture to the generated swiftmodule file for that architecture.
+""",
         "swiftdocs": """
 Dictionary of architecture to the generated swiftdoc file for that architecture.
 """,
@@ -95,6 +98,7 @@ single swift_library dependency with no transitive swift_library dependencies.\
         module_name = None
         generated_header = None
         swiftdocs = {}
+        swiftmodules = {}
         swiftinterfaces = {}
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
@@ -129,15 +133,17 @@ swift_library dependency with no transitive swift_library dependencies.\
                     generated_header = swiftinfo.transitive_generated_headers.to_list()[0]
 
             swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
+            swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list()[0]
             swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
 
         # Make sure that all dictionaries contain at least one module before returning the provider.
-        if all([module_name, swiftdocs, swiftinterfaces]):
+        if all([module_name, swiftdocs, swiftmodules, swiftinterfaces]):
             return [
                 SwiftStaticFrameworkInfo(
                     module_name = module_name,
                     generated_header = generated_header,
                     swiftdocs = swiftdocs,
+                    swiftmodules = swiftmodules,
                     swiftinterfaces = swiftinterfaces,
                 ),
             ]

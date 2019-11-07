@@ -61,6 +61,7 @@ frameworks expect a single swift_library dependency with `module_name` set to th
 
     generated_header = swift_static_framework_info.generated_header
     swiftdocs = swift_static_framework_info.swiftdocs
+    swiftmodules = swift_static_framework_info.swiftmodules
     swiftinterfaces = swift_static_framework_info.swiftinterfaces
 
     bundle_files = []
@@ -74,6 +75,11 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         )
         file_support.symlink(ctx, swiftinterface, bundle_interface)
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
+
+    for arch, swiftmodule in swiftmodules.items():
+        bundle_module = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftmodule".format(arch))
+        file_support.symlink(ctx, swiftmodule, bundle_module)
+        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_module])))
 
     for arch, swiftdoc in swiftdocs.items():
         bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftdoc".format(arch))
