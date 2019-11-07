@@ -26,6 +26,8 @@ function tear_down() {
   rm -rf app
 }
 
+readonly IOS_VERSION="11.0"
+
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
@@ -42,7 +44,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "$IOS_VERSION",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":main"],
 )
@@ -88,6 +90,50 @@ EOF
       "Payload/app.app/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework"
 }
 
+function create_swift_static_framework() {
+  if [[ -f frameworks/BUILD ]]; then
+    return
+  fi
+
+  mkdir libraries
+  mkdir frameworks
+
+  cat >> libraries/BUILD <<EOF
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+swift_library(
+    name = "iOSSwiftStaticFrameworkLibrary",
+    module_name = "iOSSwiftStaticFramework",
+    srcs = ["@build_bazel_rules_apple//test/testdata/frameworks:swift_sources"],
+)
+EOF
+
+  do_build ios \
+    --compilation_mode=dbg \
+    --ios_minimum_os="$IOS_VERSION" \
+    --apple_platform_type=ios \
+    //libraries:iOSSwiftStaticFrameworkLibrary
+
+  local framework=frameworks/iOSSwiftStaticFramework.framework
+  mkdir -p "$framework"
+  cp test-bin/libraries/libiOSSwiftStaticFrameworkLibrary.a \
+     "$framework/iOSSwiftStaticFramework"
+  mkdir -p "$framework/Modules/iOSSwiftStaticFramework.swiftmodule"
+  cp test-bin/libraries/iOSSwiftStaticFramework.swiftmodule \
+     "$framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftmodule"
+  mkdir -p "$framework/Headers"
+  cp test-bin/libraries/iOSSwiftStaticFrameworkLibrary-Swift.h \
+     "$framework/Headers/iOSSwiftStaticFramework.h"
+
+  cat >> frameworks/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple.bzl", "apple_static_framework_import")
+apple_static_framework_import(
+    name = "iOSSwiftStaticFramework",
+    framework_imports = glob(["iOSSwiftStaticFramework.framework/**"]),
+    visibility = ["//visibility:public"],
+)
+EOF
+}
+
 function test_objc_library_depends_on_static_import() {
   create_common_files
 
@@ -115,11 +161,13 @@ EOF
 function test_objc_library_depends_on_swift_static_import() {
     create_common_files
 
+    create_swift_static_framework
+
     cat >> app/BUILD <<EOF
 objc_library(
     name = "main",
     srcs = ["main.m"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSSwiftStaticFramework"],
+    deps = ["//frameworks:iOSSwiftStaticFramework"],
 )
 EOF
 
@@ -186,12 +234,14 @@ EOF
 function test_swift_library_depends_on_swift_static_import() {
     create_common_files
 
+    create_swift_static_framework
+
     cat >> app/BUILD <<EOF
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSSwiftStaticFramework"],
+    deps = ["//frameworks:iOSSwiftStaticFramework"],
 )
 EOF
 
@@ -202,7 +252,25 @@ let sharedClass = SharedClass()
 sharedClass.doSomethingShared()
 EOF
 
-    do_build ios //app:app || fail "Should build"
+    do_build ios --compilation_mode=dbg //app:app || fail "Should build"
+
+    local symbols=$(
+        unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app"
+            | nm -aj - | grep .swiftmodule
+    )
+
+    local swiftmodules=(
+        app_main.swiftmodule
+        iOSSwiftStaticFramework.swiftmodule/x86_64.swiftmodule
+    )
+
+    local swiftmodule
+    for swiftmodule in "${swiftmodules[@]}"; do
+        if [[ "$symbols" != *"$swiftmodule"* ]]; then
+            fail "Could not find $swiftmodule AST reference in binary; " \
+                 "linkopts may have not propagated"
+        fi
+    done
 }
 
 run_suite "framework_import tests"

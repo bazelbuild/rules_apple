@@ -23,9 +23,9 @@ apple_static_framework_import(
     framework_imports = glob(["iOSStaticFramework.framework/**"]),
 )
 
-apple_static_framework_import(
-    name = "iOSSwiftStaticFramework",
-    framework_imports = glob(["iOSSwiftStaticFramework.framework/**"]),
+filegroup(
+    name = "swift_sources",
+    srcs = glob(["*.swift"]),
 )
 
 filegroup(
@@ -34,7 +34,6 @@ filegroup(
         [
             "iOSDynamicFramework.framework/**",
             "iOSStaticFramework.framework/**",
-            "iOSSwiftStaticFramework.framework/**",
         ],
     ) + [
         "BUILD",

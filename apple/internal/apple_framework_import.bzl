@@ -53,7 +53,21 @@ application bundle under the Frameworks directory.
 
 def _is_swiftmodule(path):
     """Predicate to identify Swift modules/interfaces."""
-    return path.endswith(".swiftmodule") or path.endswith(".swiftinterface")
+    return path.endswith((".swiftmodule", ".swiftinterface"))
+
+def _swiftmodule_for_cpu(swiftmodule_files, cpu):
+    """Select the cpu specific swiftmodule."""
+
+    # The paths will be of the following format:
+    #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
+    # Where <arch> will be a common arch like x86_64, arm64, etc.
+    named_files = {f.basename: f for f in swiftmodule_files}
+
+    module = named_files.get("{}.swiftmodule".format(cpu))
+    if not module and cpu == "armv7":
+        module = named_files.get("arm.swiftmodule")
+
+    return module
 
 def _classify_framework_imports(framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
@@ -136,6 +150,29 @@ def _framework_import_info(transitive_sets):
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     return AppleFrameworkImportInfo(**provider_fields)
+
+def _is_debugging(ctx):
+    """Returns `True` if the current compilation mode produces debug info.
+
+    rules_apple specific implementation of rules_swift's `is_debugging`, which
+    is not currently exported.
+
+    See: https://github.com/bazelbuild/rules_swift/blob/44146fccd9e56fe1dc650a4e0f21420a503d301c/swift/internal/api.bzl#L315-L326
+    """
+    return ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild")
+
+def _ensure_swiftmodule_is_embedded(swiftmodule):
+    """Ensures that a `.swiftmodule` file is embedded in a library or binary.
+
+    rules_apple specific implementation of rules_swift's
+    `ensure_swiftmodule_is_embedded`, which is not currently exported.
+
+    See: https://github.com/bazelbuild/rules_swift/blob/e78ceb37c401a9bf9e551a6accd1df7d864688d5/swift/internal/debugging.bzl#L20-L47
+    """
+    return dict(
+        linkopt = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
+        link_inputs = depset([swiftmodule]),
+    )
 
 def _framework_objc_provider_fields(
         framework_binary_field,
@@ -222,11 +259,22 @@ def _apple_static_framework_import_impl(ctx):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    for f in header_imports:
-        if _is_swiftmodule(f.basename):
-            toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
-            providers.append(SwiftUsageInfo(toolchain = toolchain))
-            break
+    swiftmodule_imports = [
+        header
+        for header in header_imports
+        if _is_swiftmodule(header.basename)
+    ]
+
+    if swiftmodule_imports:
+        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+        providers.append(SwiftUsageInfo(toolchain = toolchain))
+
+        if _is_debugging(ctx):
+            cpu = ctx.fragments.apple.single_arch_cpu
+            swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
+            if not swiftmodule:
+                fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
+            objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
 
@@ -277,6 +325,7 @@ targets through the `deps` attribute.
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
+    fragments = ["apple"],
     attrs = dicts.add(swift_common.toolchain_attrs(), {
         "framework_imports": attr.label_list(
             allow_empty = False,
