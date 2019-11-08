@@ -31,13 +31,21 @@ load(
     "collections",
 )
 
+def _get_common_args(bundling_args):
+    """Returns a dict of options to pass to internal targets.
+    """
+    common_args = {}
+    for x in ("tags", "testonly", "compatible_with"):
+        if x in bundling_args:
+            common_args[x] = bundling_args[x]
+    return common_args
+
 def _create_swift_runtime_linkopts_target(
         name,
         deps,
         is_static,
         is_test,
-        tags,
-        testonly):
+        **kwargs):
     """Creates a build target to propagate Swift runtime linker flags.
 
     Args:
@@ -46,8 +54,7 @@ def _create_swift_runtime_linkopts_target(
       is_static: True to use the static Swift runtime, or False to use the
           dynamic Swift runtime.
       is_test: True to make sure test specific linkopts are propagated.
-      tags: Tags to add to the created targets.
-      testonly: Whether the target should be testonly.
+      **kwargs: Other arguments to pass to the target.
 
     Returns:
       A build label that can be added to the deps of the binary target.
@@ -55,11 +62,10 @@ def _create_swift_runtime_linkopts_target(
     swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
     swift_runtime_linkopts(
         name = swift_runtime_linkopts_name,
+        deps = deps,
         is_static = is_static,
         is_test = is_test,
-        testonly = testonly,
-        tags = tags,
-        deps = deps,
+        **kwargs
     )
     return ":" + swift_runtime_linkopts_name
 
@@ -97,8 +103,7 @@ def _add_entitlements_and_swift_linkopts(
       A modified copy of `**kwargs` that should be passed to the bundling rule.
     """
     bundling_args = dict(kwargs)
-    tags = bundling_args.get("tags", None)
-    testonly = bundling_args.get("testonly", None)
+    common_args = _get_common_args(bundling_args)
 
     additional_deps = []
     if include_entitlements:
@@ -111,9 +116,8 @@ def _add_entitlements_and_swift_linkopts(
             entitlements = entitlements_value,
             platform_type = platform_type,
             provisioning_profile = provisioning_profile,
-            tags = tags,
-            testonly = testonly,
             validation_mode = bundling_args.get("entitlements_validation"),
+            **common_args
         )
 
         # Replace the `entitlements` attribute with the preprocessed entitlements.
@@ -135,8 +139,7 @@ def _add_entitlements_and_swift_linkopts(
                 deps,
                 link_swift_statically,
                 is_test,
-                tags = tags,
-                testonly = testonly,
+                **common_args
             ),
         )
 
@@ -193,6 +196,7 @@ def _create_binary(
       A modified copy of `**kwargs` that should be passed to the bundling rule.
     """
     bundling_args = dict(kwargs)
+    common_args = _get_common_args(bundling_args)
 
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
 
@@ -202,8 +206,6 @@ def _create_binary(
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")
-    tags = bundling_args.get("tags", None)
-    testonly = bundling_args.get("testonly", None)
 
     if suppress_entitlements:
         entitlements_deps = []
@@ -216,8 +218,8 @@ def _create_binary(
             entitlements = entitlements_value,
             platform_type = platform_type,
             provisioning_profile = provisioning_profile,
-            testonly = testonly,
             validation_mode = kwargs.get("entitlements_validation"),
+            **common_args
         )
         bundling_args["entitlements"] = ":" + entitlements_name
         entitlements_deps = [":" + entitlements_name]
@@ -233,9 +235,8 @@ def _create_binary(
             name,
             deps,
             link_swift_statically,
-            is_test = testonly or False,
-            tags = tags,
-            testonly = testonly,
+            is_test = bundling_args.get("testonly", False),
+            **common_args
         ),
     ]
 
@@ -247,6 +248,7 @@ def _create_binary(
         name = apple_binary_name,
         binary_type = binary_type,
         bundle_loader = bundle_loader,
+        compatible_with = kwargs.get("compatible_with"),
         dylibs = kwargs.get("frameworks"),
         extension_safe = extension_safe,
         features = kwargs.get("features"),
@@ -256,7 +258,7 @@ def _create_binary(
         sdk_frameworks = sdk_frameworks,
         deps = deps + entitlements_deps + swift_linkopts_deps,
         tags = ["manual", "notap"] + kwargs.get("tags", []),
-        testonly = testonly,
+        testonly = bundling_args.get("testonly", None),
         visibility = kwargs.get("visibility"),
     )
     bundling_args["deps"] = [":" + apple_binary_name]

@@ -72,7 +72,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
 
     # Args to apply to the test and the bundle.
-    for x in ("visibility", "tags"):
+    for x in ("visibility", "tags", "compatible_with"):
         if x in test_attrs:
             bundle_attrs[x] = test_attrs[x]
 
