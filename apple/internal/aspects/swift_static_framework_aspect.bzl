@@ -96,10 +96,20 @@ single swift_library dependency with no transitive swift_library dependencies.\
         generated_header = None
         swiftdocs = {}
         swiftinterfaces = {}
+        avoid_swiftinterfaces = []
+        for dep in ctx.rule.attr.avoid_deps:
+            if SwiftInfo in dep:
+                avoid_swiftinterfaces.extend(dep[SwiftInfo].transitive_swiftinterfaces.to_list())
+
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
+            propagated_swiftinterfaces = [
+                x
+                for x in swiftinfo.transitive_swiftinterfaces.to_list()
+                if x not in avoid_swiftinterfaces
+            ]
 
-            if len(swiftinfo.transitive_swiftinterfaces.to_list()) > 1:
+            if len(propagated_swiftinterfaces) > 1:
                 fail(
                     """\
 error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
@@ -122,14 +132,15 @@ swift_library dependency with no transitive swift_library dependencies.\
             # Collect the interface artifacts. Only get the first element from each depset since
             # they should only contain 1. If there are transitive swift_library dependencies, this
             # aspect would have errored out before.
+            # TODO: This has to be fixed before merging
             if swiftinfo.transitive_generated_headers:
                 if not generated_header:
                     # If headers are generated, they should be generated equally for all archs, so
                     # just take any of them.
                     generated_header = swiftinfo.transitive_generated_headers.to_list()[0]
 
-            swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
-            swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
+            swiftdocs[arch] = swiftinfo.direct_swiftdocs[0]
+            swiftinterfaces[arch] = propagated_swiftinterfaces[0]
 
         # Make sure that all dictionaries contain at least one module before returning the provider.
         if all([module_name, swiftdocs, swiftinterfaces]):
