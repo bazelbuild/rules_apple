@@ -68,38 +68,23 @@ EOF
 EOF
 }
 
-# Asserts that app.ipa contains the Swift dylibs in both the application
+# Asserts that app.ipa contains the Swift runtime in both the application
 # bundle and in the top-level support directory if the build was for device,
 # otherwise assert they're not in the top level SwiftSupport directory.
-#
-# We look for three dylibs based on what is used in the scratch AppDelegate
-# class above: Core, Foundation, and UIKit.
 function assert_ipa_contains_swift_dylibs_for_device() {
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/libswiftUIKit.dylib"
 
   if is_device_build ios; then
     assert_zip_contains "test-bin/app/app.ipa" \
         "SwiftSupport/iphoneos/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphoneos/libswiftUIKit.dylib"
   else
     assert_zip_not_contains "test-bin/app/app.ipa" \
         "SwiftSupport/iphonesimulator/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphonesimulator/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphonesimulator/libswiftUIKit.dylib"
   fi
 }
 
-# Tests that the bundler includes the Swift dylibs both in the application
+# Tests that the bundler includes the Swift runtime both in the application
 # bundle and in the top-level support directory of the IPA.
 function test_swift_dylibs_present() {
   create_minimal_ios_application
@@ -132,20 +117,12 @@ EOF
       || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libswiftCore.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "Payload/app.app/Frameworks/libswiftFoundation.dylib"
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "Payload/app.app/Frameworks/libswiftUIKit.dylib"
     assert_zip_not_contains "test-bin/app/app.ipa" \
         "SwiftSupport/iphoneos/libswiftCore.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-    assert_zip_not_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/iphoneos/libswiftUIKit.dylib"
   fi
 }
 
-# Tests that the bundler includes the Swift dylibs even when Swift is an
+# Tests that the bundler includes the Swift runtime even when Swift is an
 # indirect dependency (that is, none of the direct deps of the application
 # are swift_libraries, but a transitive dependency is). This verifies that
 # the `uses_swift` property is propagated correctly.

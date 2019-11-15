@@ -26,6 +26,7 @@ function set_up() {
 function tear_down() {
   rm -rf app
 }
+
 # Creates common source, targets, and basic plist for iOS applications.
 #
 # This creates everything but the "lib" target, which must be created by the
@@ -122,7 +123,7 @@ EOF
       "Payload/app.app/storyboard_ios.storyboardc/"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib/\?"
 
   # Verify nonlocalized unprocessed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -136,30 +137,17 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.strings"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/view_ios.nib"
+      "Payload/app.app/it.lproj/view_ios.nib/\?"
 
   # Verify localized unprocessed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
 
-  # Verify that the module name is mentioned in the file. We can predict the
-  # name of the .nib file inside the compiled storyboard based on its object
-  # identifier and the fact that we're compiling with a particular minimum
-  # iOS version.
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/unversioned_datamodel.mom" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/versioned_datamodel.momd/v1.mom" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/versioned_datamodel.momd/v2.mom" \
-      | grep "$module_name" > /dev/null
+  # TODO(b/131684083): We previously had other assertions that poked at the
+  # individual compiled resources, but they became extremely fragile as of
+  # Xcode 11 (the assumptions about the file structure no longer held).
+  # Instead, we should test (with analysis time tests) that we pass the
+  # correct module name to ibtool when we register the action.
 }
 
 # Tests that swift_library properly propagates resources from transitive
@@ -223,7 +211,7 @@ EOF
       "Payload/app.app/storyboard_ios.storyboardc/"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/nonlocalized.strings"
-  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib"
+  assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib/\?"
 
   # Verify nonlocalized unprocessed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -237,30 +225,17 @@ EOF
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.strings"
   assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/view_ios.nib"
+      "Payload/app.app/it.lproj/view_ios.nib/\?"
 
   # Verify localized unprocessed resources are present.
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
 
-  # Verify that the module name is mentioned in the file. We can predict the
-  # name of the .nib file inside the compiled storyboard based on its object
-  # identifier and the fact that we're compiling with a particular minimum
-  # iOS version.
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/storyboard_ios.storyboardc/UIViewController-mdN-da-fi0.nib" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/view_ios.nib" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/unversioned_datamodel.mom" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/versioned_datamodel.momd/v1.mom" \
-      | grep "$module_name" > /dev/null
-  unzip_single_file "test-bin/app/app.ipa" \
-      "Payload/app.app/versioned_datamodel.momd/v2.mom" \
-      | grep "$module_name" > /dev/null
+  # TODO(b/131684083): We previously had other assertions that poked at the
+  # individual compiled resources, but they became extremely fragile as of
+  # Xcode 11 (the assumptions about the file structure no longer held).
+  # Instead, we should test (with analysis time tests) that we pass the
+  # correct module name to ibtool when we register the action.
 }
 
 # Tests that swift_library targets have their intermediate compiled storyboards

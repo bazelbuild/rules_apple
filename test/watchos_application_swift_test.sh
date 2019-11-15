@@ -138,6 +138,7 @@ swift_library(
 objc_library(
     name = "watch_lib",
     srcs = ["main.m"],
+    sdk_frameworks = ["WatchKit"],
 )
 EOF
 
@@ -146,8 +147,6 @@ EOF
   # Make sure we do have Swift dylibs in the iOS application.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "Payload/phone_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Make sure we don't have a Swift dylib in the watchOS extension.
   assert_zip_not_contains "test-bin/app/phone_app.ipa" \
@@ -160,8 +159,6 @@ EOF
 
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "SwiftSupport/iphoneos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "SwiftSupport/iphoneos/libswiftFoundation.dylib"
 }
 
 # Tests that if the watchOS extension uses Swift and the iOS app does not, then
@@ -192,8 +189,6 @@ EOF
   # Make sure we do have Swift dylibs in the watchOS extension.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Ignore the following checks for simulator builds.
   # Support bundles are only present on device builds, since those are
@@ -202,8 +197,6 @@ EOF
 
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "SwiftSupport/watchos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "SwiftSupport/watchos/libswiftFoundation.dylib"
 }
 
 # Tests that if both the iOS app and the watchOS extension use Swift, then the
@@ -230,14 +223,10 @@ EOF
   # Make sure we do have Swift dylibs in the iOS application.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "Payload/phone_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Make sure we do have Swift dylibs in the watchOS extension.
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "Payload/phone_app.app/Watch/watch_app.app/Frameworks/libswiftFoundation.dylib"
 
   # Ignore the following checks for simulator builds.
   # Support bundles are only present on device builds, since those are
@@ -248,11 +237,7 @@ EOF
   assert_zip_contains "test-bin/app/phone_app.ipa" \
       "SwiftSupport/iphoneos/libswiftCore.dylib"
   assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "SwiftSupport/iphoneos/libswiftFoundation.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
       "SwiftSupport/watchos/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/phone_app.ipa" \
-      "SwiftSupport/watchos/libswiftFoundation.dylib"
 }
 
 run_suite "watchos_application with Swift bundling tests"

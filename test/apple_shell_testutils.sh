@@ -30,20 +30,32 @@ function assert_exists() {
 }
 
 
+# Builds a regex to match a path in ZIP assert helpers by escaping some
+# characters that might appear in filenames and preceding it by ^. Also
+# follows it by $ unless the path ends in "/\?", which is used to check for
+# either a file or a directory.
+function quote_path_regex() {
+  path="$1"
+
+  if echo "$path" | grep '/\?$' ; then
+    echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&/g'
+  else
+    echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&$/g'
+  fi
+}
+
+
 # Usage: assert_zip_contains <archive> <path_in_archive>
 #
 # Asserts that the file or directory at path `path_in_archive` exists in the
-# zip `archive`.
+# zip `archive`. If the path ends in "/\?", it will assert that either a file or
+# directory with that name is found.
 function assert_zip_contains() {
   archive="$1"
   path="$2"
 
-  # Build the regex we use to match by escaping a couple characters that might
-  # appear in filenames, then surround it by ^ and $.
-  path_regex="$(echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&$/g')"
-
   zip_contents=$(zipinfo -1 "$archive" || fail "Cannot list contents of $archive")
-  echo "$zip_contents" | grep "$path_regex" > /dev/null \
+  echo "$zip_contents" | grep "$(quote_path_regex "$path")" > /dev/null \
       || fail "Archive $archive did not contain ${path};" \
               "contents were: $zip_contents"
 }
@@ -52,17 +64,14 @@ function assert_zip_contains() {
 # Usage: assert_zip_not_contains <archive> <path_in_archive>
 #
 # Asserts that the file or directory at path `path_in_archive` does not exist
-# in the zip `archive`.
+# in the zip `archive`. If the path ends in "/\?", it will assert that neither a
+# file nor directory with that name is found.
 function assert_zip_not_contains() {
   archive="$1"
   path="$2"
 
-  # Build the regex we use to match by escaping a couple characters that might
-  # appear in filenames, then surround it by ^ and $.
-  path_regex="$(echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&$/g')"
-
   zip_contents=$(zipinfo -1 "$archive" || fail "Cannot extract contents of $archive")
-  echo "$zip_contents" | grep "$path_regex" > /dev/null \
+  echo "$zip_contents" | grep "$(quote_path_regex "$path")" > /dev/null \
       && fail "Archive $archive contained $path, but it should not;" \
               "contents were: $zip_contents" \
       || true

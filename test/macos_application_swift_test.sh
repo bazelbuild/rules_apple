@@ -70,18 +70,14 @@ EOF
 EOF
 }
 
-# Tests that the bundler includes the Swift dylibs in the application bundle.
+# Tests that the bundler includes the Swift runtime in the application bundle.
 function test_swift_dylibs_present() {
   create_minimal_macos_application
 
   do_build macos //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/libswiftAppKit.dylib"
-  assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Frameworks/libswiftCore.dylib"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/libswiftFoundation.dylib"
 
   # This should be implied by the previous check, but we also check that Swift
   # symbols are not found in the TEXT section (which would imply static
