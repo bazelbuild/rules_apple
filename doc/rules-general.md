@@ -60,8 +60,8 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_build_{build}",
     build_version = "{version}.{build}",
     capture_groups = {
-        "version": "\d+\.\d+",
-        "build": "\d+",
+        "version": "\\d+\\.\\d+",
+        "build": "\\d+",
     },
     short_version_string = "{version}",
     fallback_build_label = "MyApp_99.99_build_99",
