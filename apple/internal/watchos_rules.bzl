@@ -138,10 +138,17 @@ def _watchos_extension_impl(ctx):
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
-    # TODO(min(Xcode) >= 11): Remove this when the minimum supported Xcode is Xcode 11.
+    # TODO(min(Xcode) >= 11): Make this unconditional when the minimum supported Xcode is Xcode 11.
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
         extra_linkopts = ["-e", "_WKExtensionMain"]
+
+        # This is required when building with watchOS SDK 6.0 or higher but with a minimum
+        # deployment version lower than 6.0. See
+        # https://developer.apple.com/documentation/xcode_release_notes/xcode_11_release_notes.
+        minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
+        if minimum_os < apple_common.dotted_version("6.0"):
+            extra_linkopts.append("-lWKExtensionMainLegacy")
     else:
         extra_linkopts = []
 
