@@ -41,7 +41,7 @@ load(
 
 ios_test_runner(
     name = "ios_x86_64_sim_runner",
-    device_type = "iPhone 6",
+    device_type = "iPhone 8",
 )
 EOF
 }

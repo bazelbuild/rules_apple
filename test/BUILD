@@ -461,6 +461,20 @@ apple_shell_test(
         "--ios_multi_cpus=i386,x86_64",
     ],
     shard_count = 9,
+    tags = [
+        # TODO(b/143701116): Disable this test until Xcode 11.2 is the default.
+        # A bug in XCTest in Xcode 11.1 has it call [XCUIDevice localDevice] on
+        # assertion failure, even in logic tests, causing the test runner to
+        # crash because there is no host application. According to an Xcode
+        # engineer, this is fixed in Xcode 11.2.
+        #
+        # Alternatively, reconsider this test (and its UI test counterpart)
+        # entirely, since it is testing the runtime behavior of the simulator,
+        # test runner, and XCTest, none of which are things that we own or
+        # have any control over.
+        "manual",
+        "notap",
+    ],
 )
 
 apple_shell_test(
