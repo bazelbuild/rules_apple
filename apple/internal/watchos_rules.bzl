@@ -148,7 +148,17 @@ def _watchos_extension_impl(ctx):
         # https://developer.apple.com/documentation/xcode_release_notes/xcode_11_release_notes.
         minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
         if minimum_os < apple_common.dotted_version("6.0"):
-            extra_linkopts.append("-lWKExtensionMainLegacy")
+            extra_linkopts.append(
+                # The linker will search for this library relative to sysroot, which will already
+                # be the watchOS SDK directory.
+                #
+                # This is a force-load (unlike Xcode, which uses a standard `-l`) because we can't
+                # easily control where it appears in the link order relative to WatchKit.framework
+                # (where this symbol also lives, in watchOS 6+), so we need to guarantee that the
+                # linker doesn't skip the static library's implementation of `WKExtensionMain` if
+                # it already resolved the symbol from the framework.
+                "-Wl,-force_load,/usr/lib/libWKExtensionMainLegacy.a",
+            )
     else:
         extra_linkopts = []
 
