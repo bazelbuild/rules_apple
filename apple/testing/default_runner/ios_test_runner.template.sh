@@ -66,7 +66,7 @@ if [[ -n "$TEST_HOST_PATH" ]]; then
 fi
 
 if [[ -n "${TEST_UNDECLARED_OUTPUTS_DIR}" ]]; then
-  OUTPUT_DIR="${PWD}/${TEST_UNDECLARED_OUTPUTS_DIR}"
+  OUTPUT_DIR="${TEST_UNDECLARED_OUTPUTS_DIR}"
   runner_flags+=("--output_dir=$OUTPUT_DIR")
   mkdir -p "$OUTPUT_DIR"
 fi
