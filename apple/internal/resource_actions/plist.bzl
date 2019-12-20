@@ -119,6 +119,12 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
         "TARGET_NAME": product_name,
     }
 
+    # The generated Info.plists from Xcode's project templates use
+    # DEVELOPMENT_LANGUAGE as the default variable substitution for
+    # CFBundleDevelopmentRegion. We substitute this to `en` to support
+    # Info.plists out of the box coming from Xcode.
+    substitutions["DEVELOPMENT_LANGUAGE"] = "en"
+
     target = '%s (while bundling under "%s")' % (bundle_name, str(ctx.label))
 
     control = struct(
