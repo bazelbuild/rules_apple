@@ -95,8 +95,9 @@ TEST_ENV="%(test_env)s"
 if [[ -n "${TEST_ENV}" ]]; then
   # Converts the test env string to json format and addes it into launch
   # options string.
-  TEST_ENV=${TEST_ENV//=/\":\"}
-  TEST_ENV=${TEST_ENV//,/\",\"}
+  TEST_ENV=$(echo "$TEST_ENV" | awk -F ',' '{for (i=1; i <=NF; i++) { d = index($i, "="); print substr($i, 1, d-1) " " substr($i, d+1); }}')
+  TEST_ENV=${TEST_ENV// /\":\"}
+  TEST_ENV=${TEST_ENV//$'\n'/\",\"}
   TEST_ENV="{\"${TEST_ENV}\"}"
   LAUNCH_OPTIONS_JSON_STR="\"env_vars\":${TEST_ENV}"
 fi
