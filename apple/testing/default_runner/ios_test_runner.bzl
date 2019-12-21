@@ -51,6 +51,7 @@ def _ios_test_runner_impl(ctx):
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
             execution_environment = _get_execution_environment(ctx),
+            test_environment = ctx.attr.test_environment,
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
@@ -84,6 +85,12 @@ the runner. In most common cases, this should not be used.
 The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
+""",
+        ),
+        "test_environment": attr.string_dict(
+            doc = """
+Optional dictionary with the environment variables that are to be propagated
+into the XCTest invocation.
 """,
         ),
         "_test_template": attr.label(
