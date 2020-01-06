@@ -46,12 +46,18 @@ load(
 
 def ios_application(name, **kwargs):
     """Builds and bundles an iOS application."""
+    product_tags = kwargs.pop("product_tags", [])
+
     bundling_args = binary_support.create_binary(
         name,
         str(apple_common.platform_type.ios),
         apple_product_type.application,
         **kwargs
     )
+
+    if product_tags or "tags" in bundling_args:
+        tags = bundling_args.pop("tags", [])
+        kwargs["tags"] = tags + product_tags
 
     _ios_application(
         name = name,
