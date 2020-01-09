@@ -48,7 +48,7 @@ def _get_link_declarations(dylibs = [], frameworks = []):
 
     for dylib in dylibs:
         if not dylib.startswith("lib"):
-            fail("Linked libraries must start with 'lib' but found %s", dylib)
+            fail("Linked libraries must start with 'lib' but found %s" % dylib)
         link_lines.append('link "%s"' % dylib[3:])
     for framework in frameworks:
         link_lines.append('link framework "%s"' % framework)
