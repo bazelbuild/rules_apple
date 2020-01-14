@@ -226,6 +226,11 @@ AppleTestRunnerInfo provider.
         default = Label("@bazel_tools//tools/objc:mcov"),
         allow_single_file = True,
     ),
+    "_lcov_merger": attr.label(
+        cfg = "host",
+        executable = True,
+        default = Label("@bazel_tools//tools/test:lcov_merger"),
+    ),
 }
 
 def _common_binary_linking_attrs(rule_descriptor):
