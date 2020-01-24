@@ -152,7 +152,11 @@ def _datamodels(ctx, parent_dir, files, swift_module):
     # Split the datamodels into whether they are inside an xcdatamodeld bundle or not.
     for datamodel in datamodel_files:
         datamodel_short_path = datamodel.short_path
-        if ".xcmappingmodel/" in datamodel_short_path:
+        if datamodel_short_path.endswith((".xcmappingmodel", "xcdatamodeld")):
+          # In case directory `File` objects are passed, don't default to putting
+          # the container directories into the list of standalone datamodels
+          continue
+        elif ".xcmappingmodel/" in datamodel_short_path:
             mappingmodels.append(datamodel)
         elif ".xcdatamodeld/" in datamodel_short_path:
             grouped_datamodels.append(datamodel)
