@@ -12,3 +12,7 @@ filegroup(
         "dummy_test_runner.template",
     ],
 )
+
+exports_files([
+    "dummy_test_runner.template",
+])
