@@ -204,8 +204,6 @@ def _framework_objc_provider_fields(
 
     objc_provider_fields = {}
     if header_imports:
-        header_groups = _grouped_framework_files(header_imports)
-        objc_provider_fields["framework_search_paths"] = depset(header_groups.keys())
         objc_provider_fields["header"] = depset(header_imports)
 
     if module_map_imports:
