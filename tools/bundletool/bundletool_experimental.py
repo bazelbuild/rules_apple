@@ -47,8 +47,10 @@ following keys:
       bundle is complete but before it is signed.
 """
 
+import errno
 import filecmp
 import json
+import multiprocessing.pool
 import os
 import shutil
 import sys
@@ -120,8 +122,15 @@ class Bundler(object):
     for z in bundle_merge_zips:
       _add_zip_contents(z['src'], z['dest'], output_path)
 
+    # Merge files in parallel for bundling speed.
+    pool = multiprocessing.pool.Pool(multiprocessing.cpu_count())
+
     for f in bundle_merge_files:
-      _add_files(f['src'], f['dest'], f.get('executable', False), output_path)
+      pool.apply_async(_add_files,
+        (f['src'], f['dest'], f.get('executable', False), output_path))
+
+    pool.close()
+    pool.join()
 
     post_processor = self._control.get('post_processor')
     if post_processor:
@@ -241,7 +250,12 @@ def _makedirs_safely(path):
         will also be created.
   """
   if not os.path.isdir(path):
-    os.makedirs(path)
+    try:
+      os.makedirs(path)
+    except OSError as e:
+      # This process lost a race to create a directory, but it can be ignored.
+      if e.errno != errno.EEXIST:
+        raise
 
 
 def _post_process_bundle(bundle_root, post_processor):
