@@ -115,158 +115,164 @@ class Bundler(object):
     # Clear the output directory if it already exists.
     if os.path.exists(output_path):
       shutil.rmtree(output_path)
-    self._makedirs_safely(output_path)
+    _makedirs_safely(output_path)
 
     for z in bundle_merge_zips:
-      self._add_zip_contents(z['src'], z['dest'], output_path)
+      _add_zip_contents(z['src'], z['dest'], output_path)
 
     for f in bundle_merge_files:
-      self._add_files(f['src'], f['dest'], f.get('executable', False),
-                      output_path)
+      _add_files(f['src'], f['dest'], f.get('executable', False), output_path)
 
     post_processor = self._control.get('post_processor')
     if post_processor:
-      self._post_process_bundle(output_path, post_processor)
+      _post_process_bundle(output_path, post_processor)
 
     code_signing_commands = self._control.get('code_signing_commands')
     if code_signing_commands:
-      self._sign_bundle(output_path, code_signing_commands)
+      _sign_bundle(output_path, code_signing_commands)
 
-  def _add_files(self, src, dest, executable, bundle_root):
-    """Adds a file or a directory of files to the bundle.
 
-    Args:
-      src: The path to the file or directory that should be added.
-      dest: The path relative to the bundle root where the files should be
-          stored. If `src` is a single file, then `dest` should include the
-          filename that the file should have within the bundle. If `src` is a
-          directory, it represents the directory into which the files underneath
-          `src` will be recursively added.
-      executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
-      bundle_root: The bundle root directory into which the files should be
-          added.
-    """
-    if os.path.isdir(src):
-      for root, _, files in os.walk(src):
-        relpath = os.path.relpath(root, src)
-        for filename in files:
-          fsrc = os.path.join(root, filename)
-          fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          self._copy_file(fsrc, fdest, executable, bundle_root)
-    elif os.path.isfile(src):
-      self._copy_file(src, dest, executable, bundle_root)
+def _add_files(src, dest, executable, bundle_root):
+  """Adds a file or a directory of files to the bundle.
 
-  def _add_zip_contents(self, src, dest, bundle_root):
-    """Adds the contents of another ZIP file to the bundle.
+  Args:
+    src: The path to the file or directory that should be added.
+    dest: The path relative to the bundle root where the files should be
+        stored. If `src` is a single file, then `dest` should include the
+        filename that the file should have within the bundle. If `src` is a
+        directory, it represents the directory into which the files underneath
+        `src` will be recursively added.
+    executable: A Boolean value indicating whether or not the file(s) should
+        be made executable.
+    bundle_root: The bundle root directory into which the files should be
+        added.
+  """
+  if os.path.isdir(src):
+    for root, _, files in os.walk(src):
+      relpath = os.path.relpath(root, src)
+      for filename in files:
+        fsrc = os.path.join(root, filename)
+        fdest = os.path.normpath(os.path.join(dest, relpath, filename))
+        _copy_file(fsrc, fdest, executable, bundle_root)
+  elif os.path.isfile(src):
+    _copy_file(src, dest, executable, bundle_root)
 
-    Args:
-      src: The path to the file or directory that should be added.
-      dest: The path relative to the bundle root where the contents of `src`
-          should be expanded. The directory structure of `src` is preserved
-          underneath this path.
-      bundle_root: The bundle root directory into which the files should be
-          added.
-    """
-    with zipfile.ZipFile(src, 'r') as src_zip:
-      for src_zipinfo in src_zip.infolist():
-        # Normalize the destination path to remove any extraneous internal
-        # slashes or "." segments, but retain the final slash for directory
-        # entries.
-        file_dest = os.path.normpath(os.path.join(dest, src_zipinfo.filename))
-        if src_zipinfo.filename.endswith('/'):
-          continue
 
-        # Check for Unix --x--x--x permissions.
-        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
-        data = src_zip.read(src_zipinfo)
-        self._write_entry(file_dest, data, executable, bundle_root)
+def _add_zip_contents(src, dest, bundle_root):
+  """Adds the contents of another ZIP file to the bundle.
 
-  def _copy_file(self, src, dest, executable, bundle_root):
-    """Copies a file into the bundle.
+  Args:
+    src: The path to the file or directory that should be added.
+    dest: The path relative to the bundle root where the contents of `src`
+        should be expanded. The directory structure of `src` is preserved
+        underneath this path.
+    bundle_root: The bundle root directory into which the files should be
+        added.
+  """
+  with zipfile.ZipFile(src, 'r') as src_zip:
+    for src_zipinfo in src_zip.infolist():
+      # Normalize the destination path to remove any extraneous internal
+      # slashes or "." segments, but retain the final slash for directory
+      # entries.
+      file_dest = os.path.normpath(os.path.join(dest, src_zipinfo.filename))
+      if src_zipinfo.filename.endswith('/'):
+        continue
 
-    Args:
-      src: The path to the file or directory that should be added.
-      dest: The path relative to the bundle root where the file should be
-          stored.
-      executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
-      bundle_root: The bundle root directory into which the files should be
-          added.
-    """
-    full_dest = os.path.join(bundle_root, dest)
-    if (os.path.isfile(full_dest) and
-        not filecmp.cmp(full_dest, src, shallow=False)):
-      raise BundleConflictError(dest)
+      # Check for Unix --x--x--x permissions.
+      executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
+      data = src_zip.read(src_zipinfo)
+      _write_entry(file_dest, data, executable, bundle_root)
 
-    self._makedirs_safely(os.path.dirname(full_dest))
-    shutil.copy(src, full_dest)
-    os.chmod(full_dest, 0o755 if executable else 0o644)
 
-  def _write_entry(self, dest, data, executable, bundle_root):
-    """Writes the given data as a file in the output ZIP archive.
+def _copy_file(src, dest, executable, bundle_root):
+  """Copies a file into the bundle.
 
-    Args:
-      data: The data to be written in a file in the bundle.
-      dest: The path relative to the bundle root where the data should be
-          written.
-      executable: A Boolean value indicating whether or not the file should be
-          made executable.
-      bundle_root: The bundle root directory into which the files should be
-          added.
-    Raises:
-      BundleConflictError: If two files with different content would be placed
-          at the same location in the ZIP file.
-    """
-    full_dest = os.path.join(bundle_root, dest)
-    if os.path.isfile(full_dest):
-      with open(full_dest, "rb") as f:
-        if f.read() != data:
-          raise BundleConflictError(dest)
+  Args:
+    src: The path to the file or directory that should be added.
+    dest: The path relative to the bundle root where the file should be
+        stored.
+    executable: A Boolean value indicating whether or not the file(s) should
+        be made executable.
+    bundle_root: The bundle root directory into which the files should be
+        added.
+  """
+  full_dest = os.path.join(bundle_root, dest)
+  if (os.path.isfile(full_dest) and
+      not filecmp.cmp(full_dest, src, shallow=False)):
+    raise BundleConflictError(dest)
 
-    self._makedirs_safely(os.path.dirname(full_dest))
-    with open(full_dest, 'wb') as f:
-      f.write(data)
-    os.chmod(full_dest, 0o755 if executable else 0o644)
+  _makedirs_safely(os.path.dirname(full_dest))
+  shutil.copy(src, full_dest)
+  os.chmod(full_dest, 0o755 if executable else 0o644)
 
-  def _makedirs_safely(self, path):
-    """Creates a new directory, silently succeeding if it already exists.
 
-    Args:
-      path: The path to the directory. Any parent directories that do not exist
-          will also be created.
-    """
-    if not os.path.isdir(path):
-      os.makedirs(path)
+def _write_entry(dest, data, executable, bundle_root):
+  """Writes the given data as a file in the output ZIP archive.
 
-  def _post_process_bundle(self, bundle_root, post_processor):
-    """Executes the post processing tool for the bundle.
+  Args:
+    data: The data to be written in a file in the bundle.
+    dest: The path relative to the bundle root where the data should be
+        written.
+    executable: A Boolean value indicating whether or not the file should be
+        made executable.
+    bundle_root: The bundle root directory into which the files should be
+        added.
+  Raises:
+    BundleConflictError: If two files with different content would be placed
+        at the same location in the ZIP file.
+  """
+  full_dest = os.path.join(bundle_root, dest)
+  if os.path.isfile(full_dest):
+    with open(full_dest, "rb") as f:
+      if f.read() != data:
+        raise BundleConflictError(dest)
 
-    Args:
-      bundle_root: The path to the bundle.
-      post_processor: The path to the tool or script that should be executed on
-          the bundle before it is signed.
-    """
-    work_dir = os.path.dirname(bundle_root)
-    # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
-    # bundle, but keep the work_dir for compatibility with the bundletool post
-    # processing.
-    exit_code = os.system('TREE_ARTIFACT_OUTPUT=%s %s "%s"' %
-                          (bundle_root, post_processor, work_dir))
-    if exit_code:
-      raise PostProcessorError(exit_code)
+  _makedirs_safely(os.path.dirname(full_dest))
+  with open(full_dest, 'wb') as f:
+    f.write(data)
+  os.chmod(full_dest, 0o755 if executable else 0o644)
 
-  def _sign_bundle(self, bundle_root, command_lines):
-    """Executes the signing command lines on the bundle.
 
-    Args:
-      bundle_root: The path to the bundle.
-      command_lines: A newline-separated list of command lines that should be
-          executed in the bundle to sign it.
-    """
-    exit_code = os.system('WORK_DIR=%s\n%s' % (bundle_root, command_lines))
-    if exit_code:
-      raise CodeSignError(exit_code)
+def _makedirs_safely(path):
+  """Creates a new directory, silently succeeding if it already exists.
+
+  Args:
+    path: The path to the directory. Any parent directories that do not exist
+        will also be created.
+  """
+  if not os.path.isdir(path):
+    os.makedirs(path)
+
+
+def _post_process_bundle(bundle_root, post_processor):
+  """Executes the post processing tool for the bundle.
+
+  Args:
+    bundle_root: The path to the bundle.
+    post_processor: The path to the tool or script that should be executed on
+        the bundle before it is signed.
+  """
+  work_dir = os.path.dirname(bundle_root)
+  # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
+  # bundle, but keep the work_dir for compatibility with the bundletool post
+  # processing.
+  exit_code = os.system('TREE_ARTIFACT_OUTPUT=%s %s "%s"' %
+                        (bundle_root, post_processor, work_dir))
+  if exit_code:
+    raise PostProcessorError(exit_code)
+
+
+def _sign_bundle(bundle_root, command_lines):
+  """Executes the signing command lines on the bundle.
+
+  Args:
+    bundle_root: The path to the bundle.
+    command_lines: A newline-separated list of command lines that should be
+        executed in the bundle to sign it.
+  """
+  exit_code = os.system('WORK_DIR=%s\n%s' % (bundle_root, command_lines))
+  if exit_code:
+    raise CodeSignError(exit_code)
 
 
 def _main(control_path):
