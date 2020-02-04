@@ -87,9 +87,9 @@ def compile_plist(ctx, input_file, output_file):
     # execute the version of plutil that takes the file directly. If the file is
     # empty, it will echo an new line and then pipe it into plutil. We do this
     # to handle empty files as plutil doesn't handle them very well.
-    plutil_command = "plutil -convert binary1 -o %s --" % output_file.path
-    complete_command = ("if [[ -s {in_file} ]] ; then {plutil_command} {in_file} ; " +
-                        "elif [[ -f {in_file} ]] ; then echo | {plutil_command} - ; " +
+    plutil_command = "plutil -convert binary1 -o '%s' --" % output_file.path
+    complete_command = ("if [[ -s '{in_file}' ]] ; then {plutil_command} '{in_file}' ; " +
+                        "elif [[ -f '{in_file}' ]] ; then echo | {plutil_command} - ; " +
                         "else exit 1 ; " +
                         "fi").format(
         in_file = input_file.path,
