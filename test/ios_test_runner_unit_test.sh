@@ -43,6 +43,13 @@ ios_test_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone 8",
 )
+
+ios_test_runner(
+    name = "ios_i386_sim_runner",
+    device_type = "iPhone 5",
+    os_version = "10.3",
+)
+
 EOF
 }
 
@@ -194,6 +201,14 @@ ios_unit_test(
     runner = ":ios_x86_64_sim_runner",
 )
 
+ios_unit_test(
+    name = "PassingUnitTestOnI386",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "9.0",
+    runner = ":ios_i386_sim_runner",
+)
+
 swift_library(
     name = "pass_unit_swift_test_lib",
     srcs = ["pass_unit_test.swift"],
@@ -312,6 +327,16 @@ function test_ios_unit_test_with_host_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_test_on_i386_device_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTestOnI386 || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTestOnI386.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
 
