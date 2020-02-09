@@ -347,6 +347,13 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
         <code>bundle_name</code> attribute is provided.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>PRODUCT_BUNDLE_PACKAGE_TYPE</code></td>
+      <td>
+        <p>This is currently hardcoded to <code>APPL</code> if exists. This is
+        done to support the default Info.plists come from Xcode 11+.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 

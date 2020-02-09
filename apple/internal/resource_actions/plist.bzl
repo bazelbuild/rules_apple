@@ -216,6 +216,12 @@ def merge_root_infoplists(
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
+    # The generated Info.plists from Xcode's project templates use
+    # PRODUCT_BUNDLE_PACKAGE_TYPE as the default variable substitution for
+    # CFBundlePackageType. We substitute this to `APPL` to support
+    # Info.plists out of the box coming from Xcode 11+.
+    substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = "APPL"
+
     if include_executable_name:
         substitutions["EXECUTABLE_NAME"] = product_name
         forced_plists.append(struct(CFBundleExecutable = product_name))
