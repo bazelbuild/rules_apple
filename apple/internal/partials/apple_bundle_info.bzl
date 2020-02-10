@@ -58,8 +58,6 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
                 archive_root = outputs.archive_root_path(ctx),
                 binary = outputs.binary(ctx),
                 bundle_id = bundle_id,
-                # TODO(b/118772102): Remove this field.
-                bundle_dir = None,
                 bundle_name = bundling_support.bundle_name(ctx),
                 bundle_extension = bundling_support.bundle_extension(ctx),
                 entitlements = getattr(ctx.attr, "entitlements", None),
