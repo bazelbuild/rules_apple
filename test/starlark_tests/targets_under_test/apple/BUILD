@@ -1,3 +1,12 @@
+load(
+    "//apple:versioning.bzl",
+    "apple_bundle_version",
+)
+load(
+    "//apple:macos.bzl",
+    "macos_bundle",
+)
+
 licenses(["notice"])
 
 package(
@@ -9,15 +18,6 @@ TARGETS_UNDER_TEST_TAGS = [
     "manual",
     "notap",
 ]
-
-load(
-    "//apple:versioning.bzl",
-    "apple_bundle_version",
-)
-load(
-    "//apple:macos.bzl",
-    "macos_bundle",
-)
 
 # This is a list of Apple targets to be used for Starlark unit tests. These may not build correctly
 # since most of them do not have any source dependencies, so they are all tagged as manual and

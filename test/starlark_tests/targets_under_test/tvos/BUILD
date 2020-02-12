@@ -1,10 +1,3 @@
-licenses(["notice"])
-
-package(
-    default_testonly = 1,
-    default_visibility = ["//test/starlark_tests:__subpackages__"],
-)
-
 load(
     "//apple:tvos.bzl",
     "tvos_application",
@@ -13,6 +6,13 @@ load(
     "tvos_static_framework",
     "tvos_ui_test",
     "tvos_unit_test",
+)
+
+licenses(["notice"])
+
+package(
+    default_testonly = 1,
+    default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
 tvos_application(

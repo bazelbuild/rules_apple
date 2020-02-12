@@ -1,9 +1,3 @@
-licenses(["notice"])
-
-package(
-    default_visibility = ["//test/starlark_tests:__subpackages__"],
-)
-
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
@@ -17,6 +11,12 @@ load(
 load(
     "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
+)
+
+licenses(["notice"])
+
+package(
+    default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
 # Exports all files in this package as targets to make it easier to depend on them.

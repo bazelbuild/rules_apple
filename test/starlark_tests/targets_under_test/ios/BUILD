@@ -1,3 +1,14 @@
+load(
+    "//apple:ios.bzl",
+    "ios_application",
+    "ios_extension",
+    "ios_framework",
+    "ios_imessage_application",
+    "ios_sticker_pack_extension",
+    "ios_ui_test",
+    "ios_unit_test",
+)
+
 licenses(["notice"])
 
 package(
@@ -9,17 +20,6 @@ package(
 # since most of them do not have any source dependencies, so they are all tagged as manual and
 # notap to avoid them being built/tested when testing the //test/...
 # package.
-
-load(
-    "//apple:ios.bzl",
-    "ios_application",
-    "ios_extension",
-    "ios_framework",
-    "ios_imessage_application",
-    "ios_sticker_pack_extension",
-    "ios_ui_test",
-    "ios_unit_test",
-)
 
 ios_application(
     name = "app",

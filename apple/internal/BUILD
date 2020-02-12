@@ -3,12 +3,12 @@
 # This file exists to create a package under which to load the experimental
 # resource propagation logic bzl files.
 
-licenses(["notice"])
-
 load(
     "@build_bazel_rules_apple//apple/internal:environment_plist.bzl",
     "environment_plist",
 )
+
+licenses(["notice"])
 
 # Consumed by bazel tests.
 filegroup(
