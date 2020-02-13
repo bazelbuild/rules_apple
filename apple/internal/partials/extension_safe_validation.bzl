@@ -32,6 +32,9 @@ def _extension_safe_validation_partial_impl(ctx, is_extension_safe):
     if is_extension_safe:
         for target in ctx.attr.frameworks:
             if not target[_AppleExtensionSafeValidationInfo].is_extension_safe:
+                # There is no way to issue a warning, so print is the only way
+                # to message.
+                # buildifier: disable=print
                 print(
                     ("The target {current_label} is for an extension but its framework " +
                      "dependency {target_label} is not marked extension-safe. Specify " +
