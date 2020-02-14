@@ -74,6 +74,7 @@ def ios_extension(name, **kwargs):
     )
 
 def ios_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds and bundles an iOS dynamic framework."""
     linkopts = kwargs.get("linkopts", [])
 
@@ -106,6 +107,7 @@ def ios_framework(name, **kwargs):
     )
 
 def ios_static_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds and bundles an iOS static framework for third-party distribution."""
     avoid_deps = kwargs.get("avoid_deps")
     deps = kwargs.get("deps")
