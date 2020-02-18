@@ -1169,16 +1169,15 @@ class EntitlementsTask(PlistToolTask):
     Raises:
       PlistToolError: For any issues found.
     """
-    # com.apple.developer.team-identifier vs profile's TeamIdentifier and
-    # ApplicationIdentifierPrefix
+    # com.apple.developer.team-identifier vs profile's TeamIdentifier
     src_team_id = entitlements.get('com.apple.developer.team-identifier')
     if src_team_id:
-      for key in ('TeamIdentifier', 'ApplicationIdentifierPrefix'):
-        from_profile = self._profile_metadata.get(key, [])
-        if src_team_id not in from_profile:
-          self._report(
-              ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-                self.target, src_team_id, key, from_profile))
+      key = 'TeamIdentifier'
+      from_profile = self._profile_metadata.get(key, [])
+      if src_team_id not in from_profile:
+        self._report(
+            ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
+              self.target, src_team_id, key, from_profile)),
 
     profile_entitlements = self._profile_metadata.get('Entitlements')
 
