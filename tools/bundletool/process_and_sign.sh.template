@@ -46,7 +46,7 @@ pushd "$WORK_DIR" >/dev/null
 # Ensure that the entries in the ZIP are writable when expanded, because some
 # tools rely on the ability to unzip it, modify it, and re-sign it.
 chmod -R u+w .
-( TZ=UTC find . -exec touch -h -t 198001010000 {} \+ )
+( TZ=UTC find . -exec touch -h -t 200001010000 {} \+ )
 zip -qX -r --compression-method "$COMPRESSION_METHOD" "$OUTPUT_BASENAME" .
 popd >/dev/null
 mv "$WORK_DIR/$OUTPUT_BASENAME" "$OUTPUT_PATH"
