@@ -196,12 +196,12 @@ EOF
       //app:app || fail "Should build"
 
   # Make sure that a dSYM bundle was generated.
-  assert_exists "test-bin/app/app.dSYM/Contents/Info.plist"
+  assert_exists "test-bin/app/app_dsyms/app.dSYM/Contents/Info.plist"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/app/app.dSYM/Contents/Resources/DWARF/app_${arch}"
+        "test-bin/app/app_dsyms/app.dSYM/Contents/Resources/DWARF/app_${arch}"
   done
 }
 

@@ -45,18 +45,20 @@ def _dsyms_test_impl(ctx):
     }
 
     package = target_under_test.label.package
+    name = target_under_test.label.name
 
     expected_infoplists = [
-        "{0}/{1}.dSYM/Contents/Info.plist".format(package, x)
+        "{0}/{2}_dsyms/{1}.dSYM/Contents/Info.plist".format(package, x, name)
         for x in ctx.attr.expected_dsyms
     ]
 
     expected_binaries = [
-        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}_{3}".format(
+        "{0}/{4}_dsyms/{1}.dSYM/Contents/Resources/DWARF/{2}_{3}".format(
             package,
             x,
             paths.split_extension(x)[0],
             architecture,
+            name,
         )
         for x in ctx.attr.expected_dsyms
     ]

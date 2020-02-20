@@ -121,12 +121,12 @@ EOF
       //dylib:dylib || fail "Should build"
 
   # Make sure that a dSYM bundle was generated.
-  assert_exists "test-bin/dylib/dylib.dSYM/Contents/Info.plist"
+  assert_exists "test-bin/dylib/dylib_dsyms/dylib.dSYM/Contents/Info.plist"
 
   declare -a archs=( $(current_archs macos) )
   for arch in "${archs[@]}"; do
     assert_exists \
-        "test-bin/dylib/dylib.dSYM/Contents/Resources/DWARF/dylib_${arch}"
+        "test-bin/dylib/dylib_dsyms/dylib.dSYM/Contents/Resources/DWARF/dylib_${arch}"
   done
 }
 
