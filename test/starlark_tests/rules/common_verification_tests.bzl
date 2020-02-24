@@ -32,6 +32,8 @@ def archive_contents_test(
         asset_catalog_test_file = "",
         asset_catalog_test_contains = [],
         asset_catalog_test_not_contains = [],
+        text_test_file = "",
+        text_test_values = [],
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
@@ -68,6 +70,9 @@ def archive_contents_test(
             asset catalog specified in `asset_catalog_file`.
         asset_catalog_test_not_contains: Optional, A list of names of assets that should not appear
             in the asset catalog specified in `asset_catalog_file`.
+        text_test_file: Optional, The text file to test (see the next Arg).
+        text_test_values: Optional, A list of regular expressions that should be tested against
+            the contents of `text_test_file`.
         binary_test_file: Optional, The binary file to test (see next three Args).
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
             symbol tests (see next two Args).
@@ -98,6 +103,8 @@ def archive_contents_test(
             "ASSET_CATALOG_FILE": [asset_catalog_test_file],
             "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
             "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,
+            "TEXT_TEST_FILE": [text_test_file],
+            "TEXT_TEST_VALUES": text_test_values,
             "BINARY_TEST_FILE": [binary_test_file],
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,

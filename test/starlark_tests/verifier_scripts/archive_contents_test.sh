@@ -39,6 +39,9 @@ newline=$'\n'
 #  ASSET_CATALOG_FILE: The Asset.car file to test with `ASSET_CATALOG_CONTAINS`.
 #  ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
 #  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
+#  TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
+#  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
+#      text file with.
 #  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
@@ -52,6 +55,24 @@ if [[ -n "${CONTAINS-}" ]]; then
     if [[ ! -e $expanded_path ]]; then
       fail "Archive did not contain \"$expanded_path\"" \
         "contents were:$newline$(find $ARCHIVE_ROOT)"
+    fi
+  done
+fi
+
+# Test an array of regular expressions against the contents of a text file in
+# the archive.
+
+if [[ -n "${TEXT_TEST_FILE-}" ]]; then
+  path=$(eval echo "$TEXT_TEST_FILE")
+  if [[ ! -e $path ]]; then
+    fail "Archive did not contain text file at \"$path\"" \
+      "contents were:$newline$(find $ARCHIVE_ROOT)"
+  fi
+  for test_regexp in "${TEXT_TEST_VALUES[@]}"
+  do
+    if [[ $(grep -c "$test_regexp" "$path") == 0 ]]; then
+      fail "Expected regexp \"$test_regexp\" did not match" \
+        "contents of text file at \"$path\""
     fi
   done
 fi
