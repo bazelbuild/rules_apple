@@ -112,6 +112,62 @@ tvos_application(
     ],
 )
 
+tvos_application(
+    name = "app_with_two_fmwk_provisioned",
+    bundle_id = "com.google.example",
+    frameworks = [
+        ":fmwk_with_provisioning",
+        ":second_fmwk_with_provisioning",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_fmwk_with_fmwk_provisioned",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_fmwk_with_provisioning"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_fmwk_with_fmwk",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 tvos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
@@ -119,6 +175,75 @@ tvos_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_provisioning",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
+    name = "second_fmwk_with_provisioning",
+    bundle_id = "com.google.example.frameworktoo",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_fmwk",
+    bundle_id = "com.google.example.frameworkception",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_fmwk_with_provisioning",
+    bundle_id = "com.google.example.frameworkception",
+    frameworks = [":fmwk_with_provisioning"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",

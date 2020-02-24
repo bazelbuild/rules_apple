@@ -300,6 +300,30 @@ function assert_is_codesigned() {
 }
 
 
+# Usage assert_frameworks_not_resigned_given_output <path>
+#
+# If the output file from ipa_post_processor_verify_codesigning.sh was found,
+# asserts that the frameworks in the bundle have not been resigned.
+function assert_frameworks_not_resigned_given_output() {
+  local bundle="$1"
+
+  CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
+
+  if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
+    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
+
+    for fmwk in \
+        $(find "$bundle/Frameworks" -type d -maxdepth 1 -mindepth 1); do
+      /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
+    done
+
+    assert_equals "$(cat $CODESIGN_FMWKS_OUTPUT)" "$(cat $CODESIGN_FMWKS_ORIGINAL_OUTPUT)"
+
+    rm -rf "$CODESIGN_FMWKS_OUTPUT"
+  fi
+}
+
+
 # Usage: current_archs <platform>
 #
 # Prints the architectures for the given platform that were specified in the

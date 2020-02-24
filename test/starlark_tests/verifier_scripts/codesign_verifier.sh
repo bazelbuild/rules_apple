@@ -25,4 +25,7 @@ if [[ -d "$CONTENT_ROOT/Frameworks" ]]; then
       $(find "$CONTENT_ROOT/Frameworks" -type d -maxdepth 1 -mindepth 1); do
     assert_is_codesigned "$fmwk"
   done
+
+  # Assert that the frameworks have not been resigned.
+  assert_frameworks_not_resigned_given_output "$BUNDLE_ROOT"
 fi

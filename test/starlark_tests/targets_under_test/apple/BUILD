@@ -178,3 +178,11 @@ macos_bundle(
     tags = TARGETS_UNDER_TEST_TAGS,
     version = ":build_label_pattern_does_not_short_circuit_literal_version",
 )
+
+sh_binary(
+    name = "ipa_post_processor_verify_codesigning",
+    srcs = [
+        "ipa_post_processor_verify_codesigning.sh",
+    ],
+    tags = ["requires-darwin"],
+)

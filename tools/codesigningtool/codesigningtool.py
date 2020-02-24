@@ -63,6 +63,20 @@ def _check_output(args, inputstr=None):
   return stdout, stderr
 
 
+def _invoke_codesign(codesign_path, identity, codesign_args, full_path_to_sign):
+  cmd = [codesign_path, "-v", "--sign", identity
+        ] + codesign_args + [full_path_to_sign]
+  stdout, stderr = _check_output(cmd)
+  if stdout:
+    filtered_stdout = _filter_codesign_output(stdout)
+    if filtered_stdout:
+      print(filtered_stdout)
+  if stderr:
+    filtered_stderr = _filter_codesign_output(stderr)
+    if filtered_stderr:
+      print(filtered_stderr)
+
+
 def plist_from_bytes(byte_content):
   try:
     return plistlib.loads(byte_content)
@@ -157,11 +171,23 @@ def _filter_codesign_output(codesign_output):
 def main(argv):
   parser = argparse.ArgumentParser(description="codesign wrapper")
   parser.add_argument(
+      "--full_path_to_sign", type=str, required=True, help="full file system "
+      "path to the target to code sign"
+  )
+  parser.add_argument(
       "--mobileprovision", type=str, help="mobileprovision file")
   parser.add_argument(
       "--codesign", required=True, type=str, help="path to codesign binary")
   parser.add_argument(
       "--identity", type=str, help="specific identity to sign with")
+  parser.add_argument(
+      "--is_directory", action="store_true", help="if the target to sign is a "
+      "directory, if the directory doesn't exist this script will do nothing"
+  )
+  parser.add_argument(
+      "--signed_frameworks", type=str, nargs="*", help="a list of frameworks "
+      "that have already been signed"
+  )
   args, codesign_args = parser.parse_known_args()
   identity = args.identity
   if identity is None:
@@ -177,19 +203,38 @@ def main(argv):
       return -1
   # No identity was found, fail
   if identity is None:
-    print("ERROR: Unable to find an identity on the system matching the "\
-        "ones in %s" % args.mobileprovision, file=sys.stderr)
+    print("ERROR: Unable to find an identity on the system matching the "
+          "ones in %s" % args.mobileprovision, file=sys.stderr)
     return 1
-  stdout, stderr = _check_output([args.codesign, "-v", "--sign", identity] +
-                                 codesign_args,)
-  if stdout:
-    filtered_stdout = _filter_codesign_output(stdout)
-    if filtered_stdout:
-      print(filtered_stdout)
-  if stderr:
-    filtered_stderr = _filter_codesign_output(stderr)
-    if filtered_stderr:
-      print(filtered_stderr)
+  all_paths_to_sign = []
+  if args.is_directory:
+    if not os.path.exists(args.full_path_to_sign):
+      # TODO(b/149874635): Cleanly error here rather than no-op when the failure
+      # to find a directory is a valid error condition.
+      return 0
+    files_found = [
+        x for x in os.listdir(args.full_path_to_sign) if not x.startswith(".")
+    ]
+    # Prefix each path found through os.listdir with the full path to sign
+    # before passing to codesign.
+    all_paths_to_sign = [
+        os.path.join(args.full_path_to_sign, f) for f in files_found
+    ]
+  else:
+    all_paths_to_sign = [args.full_path_to_sign]
+  signed_frameworks = args.signed_frameworks
+  if signed_frameworks:
+    if set(signed_frameworks) - set(all_paths_to_sign):
+      print("ERROR: From the set of all paths to sign, signed frameworks were "
+            "not found: %s" % (set(signed_frameworks) - set(all_paths_to_sign)))
+      print("Set of all paths to sign contains: %s" % all_paths_to_sign)
+      return 1
+    all_paths_to_sign = [
+        p for p in all_paths_to_sign if p not in signed_frameworks
+    ]
+
+  for path_to_sign in all_paths_to_sign:
+    _invoke_codesign(args.codesign, identity, codesign_args, path_to_sign)
 
 
 if __name__ == '__main__':
