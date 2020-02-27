@@ -1024,7 +1024,8 @@ app and extensions, list it in the `frameworks` attributes of those
         when bundling the framework bundle. This value is optional and is
         expected to match the <code>provisioning_profile</code> of the
         <code>ios_application</code>, but it will make signing/caching more
-        efficient.</p>
+        efficient. <strong>NOTE</strong>: This will codesign the framework when
+        it is built standalone.</p>
       </td>
     </tr>
     <tr>
