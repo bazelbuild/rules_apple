@@ -27,6 +27,10 @@ load(
     "paths",
 )
 load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -195,6 +199,18 @@ def _framework_objc_provider_fields(
 
     return objc_provider_fields
 
+def _framework_search_paths(header_imports):
+    """Return the list framework search paths for the headers_imports."""
+    if header_imports:
+        header_groups = _grouped_framework_files(header_imports)
+
+        search_paths = sets.make()
+        for path in header_groups.keys():
+            sets.insert(search_paths, paths.dirname(path))
+        return sets.to_list(search_paths)
+    else:
+        return []
+
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     providers = []
@@ -220,6 +236,14 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     objc_provider = _objc_provider_with_dependencies(ctx, objc_provider_fields)
     providers.append(objc_provider)
+    providers.append(
+        CcInfo(
+            compilation_context = cc_common.create_compilation_context(
+                headers = depset(header_imports),
+                framework_includes = depset(_framework_search_paths(header_imports)),
+            ),
+        ),
+    )
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
@@ -277,6 +301,14 @@ def _apple_static_framework_import_impl(ctx):
             objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
+    providers.append(
+        CcInfo(
+            compilation_context = cc_common.create_compilation_context(
+                headers = depset(header_imports),
+                framework_includes = depset(_framework_search_paths(header_imports)),
+            ),
+        ),
+    )
 
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
