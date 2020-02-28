@@ -30,6 +30,19 @@ load(
     "transition_support",
 )
 
+# Options to declare signing behavior and exceptions.
+#
+# Args:
+#     none: No additional exceptions to code signing.
+#     sign_with_provisioning_profile: Sign the target's bundle/binary with a provisioning profile
+#         and no entitlements if a provisioning profile was specified at its level.
+#     skip_signing: Do not sign binaries and frameworks for this target.
+_CODESIGNING_EXCEPTIONS = struct(
+    none = None,
+    sign_with_provisioning_profile = "sign_with_provisioning_profile",
+    skip_signing = "skip_signing",
+)
+
 def _describe_bundle_locations(
         archive_relative = "",
         bundle_relative_contents = "",
@@ -62,6 +75,7 @@ def _describe_rule_type(
         binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
+        codesigning_exceptions = _CODESIGNING_EXCEPTIONS.none,
         default_infoplist = None,
         default_test_runner = None,
         deps_cfg = None,
@@ -81,7 +95,6 @@ def _describe_rule_type(
         requires_signing_for_device = True,
         rpaths = [],
         rule_transition = None,
-        skip_signing = False,
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
     """Creates a rule descriptor struct containing all the platform and product specific configs.
@@ -102,6 +115,8 @@ def _describe_rule_type(
             underneath are not affected.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
+        codesigning_exceptions: A value from _CODESIGNING_EXCEPTIONS to determine conditions for
+            code signing, if exceptions should be made.
         default_infoplist: Default Info.plist to set in the infoplists attribute. Only used for
             tests.
         default_test_runner: Default test runner to set in the runner attribute. Only used for
@@ -130,7 +145,6 @@ def _describe_rule_type(
             opposed to simulators).
         rpaths: List of rpaths to add to the linker.
         rule_transition: Starlark transition to apply to the rule.
-        skip_signing: Whether this rule skips the signing step.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
         stub_binary_path: Xcode SDK root relative path to the stub binary to copy as this rule's
@@ -154,6 +168,7 @@ def _describe_rule_type(
         binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
+        codesigning_exceptions = codesigning_exceptions,
         default_infoplist = default_infoplist,
         default_test_runner = default_test_runner,
         deps_cfg = deps_cfg,
@@ -174,7 +189,6 @@ def _describe_rule_type(
         rpaths = rpaths,
         rule_transition = rule_transition,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
-        skip_signing = skip_signing,
         stub_binary_path = stub_binary_path,
     )
 
@@ -235,6 +249,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             mandatory_families = True,
             product_type = apple_product_type.framework,
             rpaths = [
@@ -243,7 +258,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
-            skip_signing = True,
         ),
         # ios_imessage_application
         apple_product_type.messages_application: _describe_rule_type(
@@ -299,13 +313,13 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.static_framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
             force_transition_whitelist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
             requires_provisioning_profile = False,
-            skip_signing = True,
         ),
         # ios_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -607,6 +621,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
             binary_type = "dylib",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
             rpaths = [
@@ -615,20 +630,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
-            skip_signing = True,
             rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_static_framework
         apple_product_type.static_framework: _describe_rule_type(
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
             force_transition_whitelist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
             requires_provisioning_profile = False,
-            skip_signing = True,
             rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_ui_test
@@ -748,4 +762,5 @@ def _rule_descriptor(ctx):
 rule_support = struct(
     rule_descriptor = _rule_descriptor,
     rule_descriptor_no_ctx = _rule_descriptor_no_ctx,
+    codesigning_exceptions = _CODESIGNING_EXCEPTIONS,
 )

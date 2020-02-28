@@ -39,6 +39,13 @@ newline=$'\n'
 #  ASSET_CATALOG_FILE: The Asset.car file to test with `ASSET_CATALOG_CONTAINS`.
 #  ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
 #  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
+#  TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
+#  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
+#      text file with.
+#  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
+#  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
+#  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
+#  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
@@ -50,6 +57,73 @@ if [[ -n "${CONTAINS-}" ]]; then
         "contents were:$newline$(find $ARCHIVE_ROOT)"
     fi
   done
+fi
+
+# Test an array of regular expressions against the contents of a text file in
+# the archive.
+
+if [[ -n "${TEXT_TEST_FILE-}" ]]; then
+  path=$(eval echo "$TEXT_TEST_FILE")
+  if [[ ! -e $path ]]; then
+    fail "Archive did not contain text file at \"$path\"" \
+      "contents were:$newline$(find $ARCHIVE_ROOT)"
+  fi
+  for test_regexp in "${TEXT_TEST_VALUES[@]}"
+  do
+    if [[ $(grep -c "$test_regexp" "$path") == 0 ]]; then
+      fail "Expected regexp \"$test_regexp\" did not match" \
+        "contents of text file at \"$path\""
+    fi
+  done
+fi
+
+# Test that the archive contains and does not contain the specified symbols.
+if [[ -n "${BINARY_TEST_FILE-}" ]]; then
+  path=$(eval echo "$BINARY_TEST_FILE")
+  if [[ ! -e $path ]]; then
+    fail "Archive did not contain binary at \"$path\"" \
+      "contents were:$newline$(find $ARCHIVE_ROOT)"
+  fi
+  arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+  if [[ ! -n $arch ]]; then
+    fail "No architecture specified for binary file at \"$path\""
+  fi
+  IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | awk '{print $3}'))
+  if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+    for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
+    do
+      symbol_found=false
+      for actual_symbol in "${actual_symbols[@]}"
+      do
+        if [[ "$actual_symbol" == "$test_symbol" ]]; then
+          symbol_found=true
+          break
+        fi
+      done
+      if [[ "$symbol_found" = false ]]; then
+          fail "Expected symbol name \"$test_symbol\" was not found." \
+            "The symbols in the binary were:$newline${actual_symbols[@]}"
+      fi
+    done
+  fi
+
+  if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+    for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+    do
+      symbol_found=false
+      for actual_symbol in "${actual_symbols[@]}"
+      do
+        if [[ "$actual_symbol" == "$test_symbol" ]]; then
+          symbol_found=true
+          break
+        fi
+      done
+      if [[ "$symbol_found" = true ]]; then
+          fail "Unexpected symbol name \"$test_symbol\" was found." \
+            "The symbols in the binary were:$newline${actual_symbols[@]}"
+      fi
+    done
+  fi
 fi
 
 # Test that the archive doesn't contains the specified files in NOT_CONTAINS.

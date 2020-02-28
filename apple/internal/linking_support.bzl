@@ -49,6 +49,24 @@ def _sectcreate_objc_provider(segname, sectname, file):
         link_inputs = depset([file]),
     )
 
+def _exported_symbols_list_objc_provider(files):
+    """Returns an objc provider that propagates exported symbols lists.
+
+    This function creates a new objc provider that contains the necessary linkopts
+    to add exported symbols lists
+
+    Args:
+      files: The files whose contents will be the exported symbols lists.
+
+    Returns:
+      An objc provider that propagates the appropriate linkopts.
+    """
+    linkopts = ["-Wl,-exported_symbols_list,%s" % (file.path) for file in files]
+    return apple_common.new_objc_provider(
+        linkopt = depset(linkopts, order = "topological"),
+        link_inputs = depset(files),
+    )
+
 def _register_linking_action(ctx, extra_linkopts = []):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
 
@@ -90,6 +108,7 @@ def _register_linking_action(ctx, extra_linkopts = []):
     )
 
 linking_support = struct(
+    exported_symbols_list_objc_provider = _exported_symbols_list_objc_provider,
     register_linking_action = _register_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )

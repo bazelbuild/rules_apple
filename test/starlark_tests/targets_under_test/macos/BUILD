@@ -1,10 +1,3 @@
-licenses(["notice"])
-
-package(
-    default_testonly = 1,
-    default_visibility = ["//test/starlark_tests:__subpackages__"],
-)
-
 load(
     "//apple:macos.bzl",
     "macos_application",
@@ -13,6 +6,13 @@ load(
     "macos_quick_look_plugin",
     "macos_ui_test",
     "macos_unit_test",
+)
+
+licenses(["notice"])
+
+package(
+    default_testonly = 1,
+    default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
 macos_application(

@@ -1,3 +1,12 @@
+load(
+    "//apple:versioning.bzl",
+    "apple_bundle_version",
+)
+load(
+    "//apple:macos.bzl",
+    "macos_bundle",
+)
+
 licenses(["notice"])
 
 package(
@@ -9,15 +18,6 @@ TARGETS_UNDER_TEST_TAGS = [
     "manual",
     "notap",
 ]
-
-load(
-    "//apple:versioning.bzl",
-    "apple_bundle_version",
-)
-load(
-    "//apple:macos.bzl",
-    "macos_bundle",
-)
 
 # This is a list of Apple targets to be used for Starlark unit tests. These may not build correctly
 # since most of them do not have any source dependencies, so they are all tagged as manual and
@@ -177,4 +177,12 @@ macos_bundle(
     minimum_os_version = "10.10",
     tags = TARGETS_UNDER_TEST_TAGS,
     version = ":build_label_pattern_does_not_short_circuit_literal_version",
+)
+
+sh_binary(
+    name = "ipa_post_processor_verify_codesigning",
+    srcs = [
+        "ipa_post_processor_verify_codesigning.sh",
+    ],
+    tags = ["requires-darwin"],
 )

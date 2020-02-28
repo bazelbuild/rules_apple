@@ -1,14 +1,14 @@
-# Public only because these are used by the integration tests from generated
-# workspaces. Please no not depend on them as they can change at any time.
-package(default_visibility = ["//visibility:public"])
-
-licenses(["notice"])
-
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
     "apple_static_framework_import",
 )
+
+# Public only because these are used by the integration tests from generated
+# workspaces. Please no not depend on them as they can change at any time.
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
 
 # To update the binaries and headers for these framework imports, please run
 # `update_frameworks.sh` script in this directory.

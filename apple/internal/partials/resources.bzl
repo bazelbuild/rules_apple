@@ -206,6 +206,10 @@ def _validate_processed_locales(label, locales_requested, locales_included, loca
         # could mean that the user made a mistake in defining the locales they want to keep.
         if not sets.is_equal(locales_requested, locales_included):
             unused_locales = sets.difference(locales_requested, locales_included)
+
+            # There is no way to issue a warning, so print is the only way
+            # to message.
+            # buildifier: disable=print
             print("Warning: " + str(label) + " did not have resources that matched " +
                   sets.str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include is defined properly.")

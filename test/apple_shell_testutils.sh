@@ -22,7 +22,7 @@
 #
 # Asserts that the file at the given path exists.
 function assert_exists() {
-  path="$1"
+  local path="$1"
   [ -f "$path" ] && return 0
 
   fail "Expected file '$path' to exist, but it did not"
@@ -35,7 +35,7 @@ function assert_exists() {
 # follows it by $ unless the path ends in "/\?", which is used to check for
 # either a file or a directory.
 function quote_path_regex() {
-  path="$1"
+  local path="$1"
 
   if echo "$path" | grep '/\?$' ; then
     echo "$path" | sed -e 's/\([.+]\)/\\\1/g' -e 's/^.*$/^&/g'
@@ -51,11 +51,11 @@ function quote_path_regex() {
 # zip `archive`. If the path ends in "/\?", it will assert that either a file or
 # directory with that name is found.
 function assert_zip_contains() {
-  archive="$1"
-  path="$2"
+  local archive="$1"
+  local path="$2"
 
-  zip_contents=$(zipinfo -1 "$archive" || fail "Cannot list contents of $archive")
-  echo "$zip_contents" | grep "$(quote_path_regex "$path")" > /dev/null \
+  local zip_contents=$(zipinfo -1 "$archive" || fail "Cannot list contents of $archive")
+  echo "$zip_contents" | grep -e "$(quote_path_regex "$path")" > /dev/null \
       || fail "Archive $archive did not contain ${path};" \
               "contents were: $zip_contents"
 }
@@ -67,11 +67,11 @@ function assert_zip_contains() {
 # in the zip `archive`. If the path ends in "/\?", it will assert that neither a
 # file nor directory with that name is found.
 function assert_zip_not_contains() {
-  archive="$1"
-  path="$2"
+  local archive="$1"
+  local path="$2"
 
-  zip_contents=$(zipinfo -1 "$archive" || fail "Cannot extract contents of $archive")
-  echo "$zip_contents" | grep "$(quote_path_regex "$path")" > /dev/null \
+  local zip_contents=$(zipinfo -1 "$archive" || fail "Cannot extract contents of $archive")
+  echo "$zip_contents" | grep -e "$(quote_path_regex "$path")" > /dev/null \
       && fail "Archive $archive contained $path, but it should not;" \
               "contents were: $zip_contents" \
       || true
@@ -82,15 +82,15 @@ function assert_zip_not_contains() {
 # Asserts that the Assets.car at `assets_path_in_archive` within the zip
 # `archive` contains a reference to the image with name `image_name`.
 function assert_assets_contains() {
-  archive="$1"
-  assets_path="$2"
-  image_name="$3"
+  local archive="$1"
+  local assets_path="$2"
+  local image_name="$3"
 
   mkdir -p tempdir
-  unzipped_assets="tempdir/Assets.car"
+  local unzipped_assets="tempdir/Assets.car"
 
   unzip_single_file "$archive" "$assets_path" > $unzipped_assets
-  strings "$unzipped_assets" | grep "$image_name" > /dev/null \
+  strings "$unzipped_assets" | grep -e "$image_name" > /dev/null \
       || fail "File $assets_path did not contain $image_name"
   rm -rf tempdir
 }
@@ -101,8 +101,8 @@ function assert_assets_contains() {
 # the leading slashes, then removing the target name portion (":foo") and
 # appending "BUILD".
 function build_path() {
-  target_label="$1"
-  no_slashes="${target_label#//}"
+  local target_label="$1"
+  local no_slashes="${target_label#//}"
   echo "${no_slashes%%:*}/BUILD"
 }
 
@@ -141,10 +141,10 @@ function create_dump_plist() {
   else
     SUFFIX=
   fi
-  zip_label="$1"; shift
-  plist_path="$1"; shift
+  local zip_label="$1"; shift
+  local plist_path="$1"; shift
 
-  build_path="$(build_path "$zip_label")"
+  local build_path="$(build_path "$zip_label")"
 
   # There is no convenient way to get an arbitrary value out of a Plist file on
   # Linux, so we create an action we run on a Mac to dump out the values we
@@ -217,10 +217,10 @@ function create_whole_dump_plist() {
   else
     SUFFIX=
   fi
-  zip_label="$1"; shift
-  plist_path="$1"; shift
+  local zip_label="$1"; shift
+  local plist_path="$1"; shift
 
-  build_path="$(build_path "$zip_label")"
+  local build_path="$(build_path "$zip_label")"
 
   cat >> "${build_path}" <<EOF
 genrule(
@@ -259,10 +259,10 @@ EOF
 # `codesign_args` is a list of arguments that should be passed to the codesign
 # invocation. They are inserted before the archive path.
 function create_dump_codesign() {
-  zip_label="$1"; shift
-  archive_path="$1"; shift
+  local zip_label="$1"; shift
+  local archive_path="$1"; shift
 
-  build_path="$(build_path "$zip_label")"
+  local build_path="$(build_path "$zip_label")"
 
   cat >> "${build_path}" <<EOF
 genrule(
@@ -288,7 +288,7 @@ EOF
 #
 # Asserts that the given bundle path is properly codesigned.
 function assert_is_codesigned() {
-  bundle="$1"
+  local bundle="$1"
   CODESIGN_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
 
   codesign -vvvv "$bundle" &> "$CODESIGN_OUTPUT" || echo "Should not fail"
@@ -300,6 +300,30 @@ function assert_is_codesigned() {
 }
 
 
+# Usage assert_frameworks_not_resigned_given_output <path>
+#
+# If the output file from ipa_post_processor_verify_codesigning.sh was found,
+# asserts that the frameworks in the bundle have not been resigned.
+function assert_frameworks_not_resigned_given_output() {
+  local bundle="$1"
+
+  CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
+
+  if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
+    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
+
+    for fmwk in \
+        $(find "$bundle/Frameworks" -type d -maxdepth 1 -mindepth 1); do
+      /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
+    done
+
+    assert_equals "$(cat $CODESIGN_FMWKS_OUTPUT)" "$(cat $CODESIGN_FMWKS_ORIGINAL_OUTPUT)"
+
+    rm -rf "$CODESIGN_FMWKS_OUTPUT"
+  fi
+}
+
+
 # Usage: current_archs <platform>
 #
 # Prints the architectures for the given platform that were specified in the
@@ -307,7 +331,7 @@ function assert_is_codesigned() {
 # values will be printed on separate lines; the output here is typically meant
 # to be captured into an array.
 function current_archs() {
-  platform="$1"
+  local platform="$1"
   if [[ "$platform" == ios ]]; then
     # Fudge the ios platform name to match the expected command line option.
     platform=ios_multi
@@ -393,7 +417,7 @@ function do_action() {
   local action="$1"; shift
   local platform="$1"; shift
 
-  declare -a bazel_options=(
+  local -a bazel_options=(
       "--announce_rc"
       "--symlink_prefix=test-"
       "--verbose_failures"
@@ -409,7 +433,7 @@ function do_action() {
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
-    declare -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
+    local -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
     if [ -n "${sdk_options[*]}" ]; then
       bazel_options+=("${sdk_options[@]}")
     else
@@ -464,8 +488,8 @@ function is_bitcode_build() {
 # Intended to let individual tests skip all or part of their logic when running
 # under multiple configurations.
 function is_device_build() {
-  platform="$1"
-  archs="$(current_archs "$platform")"
+  local platform="$1"
+  local archs="$(current_archs "$platform")"
 
   # For simplicity, we just test the entire architecture list string and assume
   # users aren't writing tests with multiple incompatible architectures.
@@ -478,7 +502,7 @@ function is_device_build() {
 # Extracts and prints the debug entitlements from the appropriate Mach-O
 # section of the given binary.
 function print_debug_entitlements() {
-  binary="$1"
+  local binary="$1"
 
   # This monstrosity uses objdump to dump the hex content of the entitlements
   # section, strips off the leading addresses (and ignores lines that don't
@@ -496,84 +520,86 @@ function print_debug_entitlements() {
 # Extracts and prints the contents of the file located at `path_in_archive`
 # within the given zip `archive`.
 function unzip_single_file() {
-  archive="$1"
-  path="$2"
+  local archive="$1"
+  local path="$2"
   unzip -p "$archive" "$path" || fail "Unable to find $path in $archive"
 }
 
 
-# Usage: assert_binary_contains <archive> <path_in_archive> <symbol_string>
+# Usage: assert_binary_contains <archive> <path_in_archive> <symbol_regexp>
 #
 # Asserts that the binary at `path_in_archive` within the zip `archive`
-# contains the string `symbol_string` in its objc runtime.
+# contains the string `symbol_regexp` in its objc runtime.
 function assert_binary_contains() {
-  platform="$1"
-  archive="$2"
-  path="$3"
-  symbol_string="$4"
+  local platform="$1"
+  local archive="$2"
+  local path="$3"
+  local symbol_regexp="$4"
 
   mkdir -p tempdir
-  fat_path="tempdir/fat_binary"
-  thin_path="tempdir/thin_binary"
+  local fat_path="tempdir/fat_binary"
+  local thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  declare -a archs=( $(current_archs "$platform") )
+  local -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    assert_objdump_contains "$arch" "$fat_path" "$symbol_string"
+    assert_objdump_contains "$arch" "$fat_path" "$symbol_regexp"
   done
   rm -rf tempdir
 }
 
 
-# Usage: assert_binary_not_contains <archive> <path_in_archive> <symbol_string>
+# Usage: assert_binary_not_contains <archive> <path_in_archive> <symbol_regexp>
 #
 # Asserts that the binary at `path_in_archive` within the zip `archive`
-# does not contain the string `symbol_string` in its objc runtime.
+# does not contain the string `symbol_regexp` in its objc runtime.
 function assert_binary_not_contains() {
-  platform="$1"
-  archive="$2"
-  path="$3"
-  symbol_string="$4"
+  local platform="$1"
+  local archive="$2"
+  local path="$3"
+  local symbol_regexp="$4"
 
   mkdir -p tempdir
-  fat_path="tempdir/fat_binary"
-  thin_path="tempdir/thin_binary"
+  local fat_path="tempdir/fat_binary"
+  local thin_path="tempdir/thin_binary"
 
   unzip_single_file "$archive" "$path" > $fat_path
-  declare -a archs=( $(current_archs "$platform") )
+  local -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    assert_objdump_not_contains "$arch" "$fat_path" "$symbol_string"
+    assert_objdump_not_contains "$arch" "$fat_path" "$symbol_regexp"
   done
   rm -rf tempdir
 }
 
-# Usage: assert_objdump_contains <arch> <path> <symbol_string>
+# Usage: assert_objdump_contains <arch> <path> <symbol_regexp>
 #
 # Uses objdump and asserts that the binary at `path`
-# contains the string `symbol_string` in its objc runtime.
+# contains the string `symbol_regexp` in its objc runtime.
 function assert_objdump_contains() {
-  arch="$1"
-  path="$2"
-  symbol_string="$3"
+  local arch="$1"
+  local path="$2"
+  local symbol_regexp="$3"
 
-  local contents=$(objdump -t -macho -arch="$arch" "$fat_path" | grep -v "*UND*")
-  echo "$contents" | grep "$symbol_string" >& /dev/null && return 0
-  fail "Expected binary '$path' to contain '$symbol_string' but it did not." \
+  [[ -f "$path" ]] || fail "$path does not exist"
+  local contents=$(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*")
+  echo "$contents" | grep -e "$symbol_regexp" >& /dev/null && return 0
+  fail "Expected binary '$path' to contain '$symbol_regexp' but it did not." \
       "contents were: $contents"
 }
 
-# Usage: assert_objdump_not_contains <arch> <path> <symbol_string>
+# Usage: assert_objdump_not_contains <arch> <path> <symbol_regexp>
 #
 # Uses objdump and asserts that the binary at `path`
-# does not contain the string `symbol_string` in its objc runtime.
+# does not contain the string `symbol_regexp` in its objc runtime.
 function assert_objdump_not_contains() {
-  arch="$1"
-  path="$2"
-  symbol_string="$3"
+  local arch="$1"
+  local path="$2"
+  local symbol_regexp="$3"
 
-  local contents=$(objdump -t -macho -arch="$arch" "$fat_path" | grep -v "*UND*")
-  echo "$contents" | grep "$symbol_string" >& /dev/null || return 0
-  fail "Expected binary '$path' to not contain '$symbol_string' but it did."  \
+  [[ -f "$path" ]] || fail "$path does not exist"
+  local contents=$(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*")
+  echo "$contents" | grep -e "$symbol_regexp" >& /dev/null || return 0
+  fail "Expected binary '$path' to not contain '$symbol_regexp' but it did."  \
       "contents were: $contents"
 }
 
@@ -582,19 +608,19 @@ function assert_objdump_not_contains() {
 # Asserts that the IPA at `archive` contains bitcode symbol map of the binary
 # at `path_in_archive` for each architecture being built for the `platform`.
 function assert_ipa_contains_bitcode_maps() {
-  platform="$1"
-  archive="$2"
-  binary="$3"
+  local platform="$1"
+  local archive="$2"
+  local binary="$3"
 
   assert_zip_contains "$archive" "$binary"
   unzip_single_file "$archive" "$binary" > $TEST_TMPDIR/tmp_bin
-  declare -a archs=( $(current_archs "$platform") )
+  local -a archs=( $(current_archs "$platform") )
 
   # Store the outputs of dwarfdump since using the -arch introduces flakiness
   # on the output.
   UUIDS=$(dwarfdump -u "$TEST_TMPDIR"/tmp_bin)
   for arch in "${archs[@]}"; do
-    BIN_UUID=$(echo "$UUIDS" | grep "$arch" | cut -d' ' -f2)
+    BIN_UUID=$(echo "$UUIDS" | grep -e "$arch" | cut -d' ' -f2)
     assert_zip_contains "$archive" \
       "BCSymbolMaps/${BIN_UUID}.bcsymbolmap"
   done
@@ -605,8 +631,8 @@ function assert_ipa_contains_bitcode_maps() {
 # Asserts that the IPA/zip at `archive` contains a binary plist file at
 # `path_in_archive`.
 function assert_plist_is_binary() {
-  archive="$1"
-  path_in_archive="$2"
+  local archive="$1"
+  local path_in_archive="$2"
 
   assert_zip_contains "$archive" "$path_in_archive"
   unzip_single_file "$archive" "$path_in_archive" | \
@@ -618,8 +644,8 @@ function assert_plist_is_binary() {
 # Asserts that the IPA/zip at `archive` contains a binary strings file at
 # `path_in_archive`.
 function assert_strings_is_binary() {
-  archive="$1"
-  path_in_archive="$2"
+  local archive="$1"
+  local path_in_archive="$2"
   assert_plist_is_binary "$archive" "$path_in_archive"
 }
 
@@ -628,8 +654,8 @@ function assert_strings_is_binary() {
 # Asserts that the IPA/zip at `archive` contains a text plist file at
 # `path_in_archive`.
 function assert_plist_is_text() {
-  archive="$1"
-  path_in_archive="$2"
+  local archive="$1"
+  local path_in_archive="$2"
 
   assert_zip_contains "$archive" "$path_in_archive"
   unzip_single_file "$archive" "$path_in_archive" | \
@@ -642,7 +668,7 @@ function assert_plist_is_text() {
 # Asserts that the IPA/zip at `archive` contains a text strings file at
 # `path_in_archive`.
 function assert_strings_is_text() {
-  archive="$1"
-  path_in_archive="$2"
+  local archive="$1"
+  local path_in_archive="$2"
   assert_plist_is_text "$archive" "$path_in_archive"
 }

@@ -103,7 +103,9 @@ Builds and bundles an iOS application.
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
         <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this application depends on.</p>
+        that this application depends on. <b>NOTE:</b> Adding a
+        <code>provisioning_profile</code> to any frameworks listed will make the
+        signing/caching more efficient.</p>
       </td>
     </tr>
     <tr>
@@ -906,8 +908,8 @@ Builds and bundles an iOS Sticker Pack extension.
 
 ```python
 ios_framework(name, bundle_id, bundle_name, extension_safe, families,
-frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version, resources,
-strings, version, deps)
+frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version,
+provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles an iOS dynamic framework. To use this framework for your
@@ -1012,6 +1014,18 @@ app and extensions, list it in the `frameworks` attributes of those
         <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>).
+      </td>
+    </tr>
+    <tr>
+      <td><code>provisioning_profile</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
+        when bundling the framework bundle. This value is optional and is
+        expected to match the <code>provisioning_profile</code> of the
+        <code>ios_application</code>, but it will make signing/caching more
+        efficient. <strong>NOTE</strong>: This will codesign the framework when
+        it is built standalone.</p>
       </td>
     </tr>
     <tr>

@@ -48,10 +48,11 @@ load(
 )
 
 def macos_application(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Packages a macOS application."""
     binary_args = dict(kwargs)
     features = binary_args.pop("features", [])
-    features += ["link_cocoa"]
+    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -66,10 +67,11 @@ def macos_application(name, **kwargs):
     )
 
 def macos_bundle(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Packages a macOS loadable bundle."""
     binary_args = dict(kwargs)
     features = binary_args.pop("features", [])
-    features += ["link_cocoa"]
+    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -98,10 +100,11 @@ def macos_quick_look_plugin(name, **kwargs):
     )
 
 def macos_kernel_extension(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Packages a macOS Kernel Extension."""
     binary_args = dict(kwargs)
     features = binary_args.pop("features", [])
-    features += ["kernel_extension"]
+    features.append("kernel_extension")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -144,6 +147,7 @@ def macos_xpc_service(name, **kwargs):
     )
 
 def macos_command_line_application(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds a macOS command line application."""
 
     # Xcode will happily apply entitlements during code signing for a command line
@@ -205,6 +209,7 @@ def macos_command_line_application(name, **kwargs):
     )
 
 def macos_dylib(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds a macOS dylib."""
 
     # Xcode will happily apply entitlements during code signing for a dylib even
@@ -256,11 +261,12 @@ def macos_dylib(name, **kwargs):
     )
 
 def macos_extension(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Packages a macOS Extension Bundle."""
     binary_args = dict(kwargs)
 
     features = binary_args.pop("features", [])
-    features += ["link_cocoa"]
+    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,

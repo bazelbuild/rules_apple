@@ -32,6 +32,12 @@ def archive_contents_test(
         asset_catalog_test_file = "",
         asset_catalog_test_contains = [],
         asset_catalog_test_not_contains = [],
+        text_test_file = "",
+        text_test_values = [],
+        binary_test_file = "",
+        binary_test_architecture = "",
+        binary_contains_symbols = [],
+        binary_not_contains_symbols = [],
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -64,6 +70,16 @@ def archive_contents_test(
             asset catalog specified in `asset_catalog_file`.
         asset_catalog_test_not_contains: Optional, A list of names of assets that should not appear
             in the asset catalog specified in `asset_catalog_file`.
+        text_test_file: Optional, The text file to test (see the next Arg).
+        text_test_values: Optional, A list of regular expressions that should be tested against
+            the contents of `text_test_file`.
+        binary_test_file: Optional, The binary file to test (see next three Args).
+        binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
+            symbol tests (see next two Args).
+        binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
+            specified in `binary_test_file`.
+        binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
+            binary file specified in `binary_test_file`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
@@ -87,6 +103,12 @@ def archive_contents_test(
             "ASSET_CATALOG_FILE": [asset_catalog_test_file],
             "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
             "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,
+            "TEXT_TEST_FILE": [text_test_file],
+            "TEXT_TEST_VALUES": text_test_values,
+            "BINARY_TEST_FILE": [binary_test_file],
+            "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
+            "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
+            "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",

@@ -19,6 +19,10 @@ load(
     "entitlements",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:exported_symbols_lists_rules.bzl",
+    "exported_symbols_lists",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -222,6 +226,18 @@ def _create_binary(
         bundling_args["entitlements"] = ":" + entitlements_name
         entitlements_deps = [":" + entitlements_name]
 
+    # Exported symbols
+    exported_symbols_lists_value = bundling_args.pop("exported_symbols_lists", None)
+    if exported_symbols_lists_value:
+        exported_symbols_lists_name = "%s_exported_symbols_lists" % name
+        exported_symbols_lists(
+            name = exported_symbols_lists_name,
+            lists = exported_symbols_lists_value,
+        )
+        exported_symbols_list_deps = [":" + exported_symbols_lists_name]
+    else:
+        exported_symbols_list_deps = []
+
     # Remove the deps so that we only pass them to the binary, not to the
     # bundling rule.
     deps = bundling_args.pop("deps", [])
@@ -254,7 +270,7 @@ def _create_binary(
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         sdk_frameworks = sdk_frameworks,
-        deps = deps + entitlements_deps + swift_linkopts_deps,
+        deps = deps + entitlements_deps + exported_symbols_list_deps + swift_linkopts_deps,
         tags = ["manual", "notap"] + kwargs.get("tags", []),
         testonly = testonly,
         visibility = kwargs.get("visibility"),

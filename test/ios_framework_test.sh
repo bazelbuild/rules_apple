@@ -179,13 +179,14 @@ void doStuff() {
 EOF
 }
 
-# Usage: create_minimal_ios_framework_with_params [extension_safe] [minimum_os_version]
+# Usage: create_minimal_ios_framework_with_params [extension_safe] [minimum_os_version] [exported_symbols_lists]
 #
 # Creates the targets for a minimal iOS dynamic framework with
 # the given values for extension_safe and minimum_os_version.
 function create_minimal_ios_framework_with_params() {
   extension_safe="$1"; shift
   minimum_os_version="$1"; shift
+  exported_symbols_lists="$1"; shift
 
   cat > framework/BUILD <<EOF
 package(default_visibility = ["//app:__pkg__"])
@@ -200,6 +201,7 @@ ios_framework(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     extension_safe = ${extension_safe},
+    exported_symbols_lists = [":ExportDoStuff.exp"] + ${exported_symbols_lists},
     minimum_os_version = "${minimum_os_version}",
     deps = [":framework_lib"],
 )
@@ -211,7 +213,6 @@ objc_library(
         "Framework.m",
     ],
     deps = [":framework_dependent_lib"],
-    alwayslink = 1,
     data = [":structured_resources"],
 )
 
@@ -250,6 +251,8 @@ EOF
 #define FRAMEWORK_FRAMEWORK_H_
 
 void doStuff();
+void dontCallMe();
+void anotherFunction();
 
 #endif  // FRAMEWORK_FRAMEWORK_H_
 EOF
@@ -260,6 +263,17 @@ EOF
 void doStuff() {
   NSLog(@"Framework method called\n");
 }
+
+void dontCallMe() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
+void anotherFunction() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
 EOF
 
   cat > framework/FrameworkDependent.m <<EOF
@@ -269,12 +283,23 @@ void frameworkDependent() {
   NSLog(@"frameworkDependent() called");
 }
 EOF
+
+  cat > framework/ExportDoStuff.exp << EOF
+_doStuff
+
+EOF
+
+  cat > framework/ExportDontCallMe.exp << EOF
+_dontCallMe
+
+EOF
+
 }
 
 
 # Creates the targets for a minimal iOS dynamic framework.
 function create_minimal_ios_framework() {
-  create_minimal_ios_framework_with_params True "9.0"
+  create_minimal_ios_framework_with_params True "9.0" "[]"
 }
 
 # Creates the targets for a minimal iOS application and extension that both use
@@ -1396,7 +1421,7 @@ EOF
 # TODO(cparsons): This should eventually cause failure instead of merely a
 # warning.
 function test_extension_depends_on_unsafe_framework() {
-  create_minimal_ios_framework_with_params False "9.0"
+  create_minimal_ios_framework_with_params False "9.0" "[]"
   create_minimal_ios_application_and_extension
   do_build ios //app:app || fail "Should build"
 
@@ -1643,7 +1668,7 @@ EOF
 # Verifies that, when an extension depends on a framework with different
 # minimum_os, symbol subtraction still occurs.
 function test_differing_minimum_os() {
-  create_minimal_ios_framework_with_params True "8.0"
+  create_minimal_ios_framework_with_params True "8.0" "[]"
 
 cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
@@ -2080,5 +2105,38 @@ EOF
   assert_binary_not_contains ios "test-bin/app/app.ipa" \
       "Payload/app.app/app" "doStuff"
 }
+
+# Test that frameworks are stripped properly with a single export list.
+function test_framework_exports_strips() {
+  EXTRA_BUILD_OPTIONS+=( "--objc_enable_binary_stripping" )
+  create_minimal_ios_framework_with_params False "8.0" "[]"
+  do_build ios //framework:framework || fail "Should build"
+
+  assert_binary_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "doStuff"
+
+  assert_binary_not_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "dontCallMe"
+
+  assert_binary_not_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "anotherFunction"
+}
+
+# Test that frameworks are stripped properly with multiple export lists.
+function test_framework_exports_two_lists() {
+  EXTRA_BUILD_OPTIONS+=( "--objc_enable_binary_stripping" )
+  create_minimal_ios_framework_with_params False "8.0" "[\":ExportDontCallMe.exp\"]"
+  do_build ios //framework:framework || fail "Should build"
+
+  assert_binary_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "doStuff"
+
+  assert_binary_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "dontCallMe"
+
+  assert_binary_not_contains ios "test-bin/framework/framework.zip" \
+      "framework.framework/framework" "anotherFunction"
+}
+
 
 run_suite "ios_framework bundling tests"

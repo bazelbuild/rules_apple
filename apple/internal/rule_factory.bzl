@@ -474,7 +474,7 @@ bundle in a directory named `Settings.bundle`.
             ),
         })
 
-    if not rule_descriptor.skip_signing:
+    if rule_descriptor.codesigning_exceptions == rule_support.codesigning_exceptions.none:
         attrs.append({
             "entitlements": attr.label(
                 providers = [[], [AppleEntitlementsInfo]],

@@ -19,6 +19,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -41,6 +45,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:run_support.bzl",
@@ -156,6 +164,13 @@ def _tvos_framework_impl(ctx):
 
     bundle_id = ctx.attr.bundle_id
 
+    signed_frameworks = []
+    if getattr(ctx.file, "provisioning_profile", None):
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+        signed_frameworks = [
+            bundling_support.bundle_name(ctx) + rule_descriptor.bundle_extension,
+        ]
+
     processor_partials = [
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
@@ -174,6 +189,7 @@ def _tvos_framework_impl(ctx):
         partials.embedded_bundles_partial(
             frameworks = [outputs.archive(ctx)],
             embeddable_targets = ctx.attr.frameworks,
+            signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),

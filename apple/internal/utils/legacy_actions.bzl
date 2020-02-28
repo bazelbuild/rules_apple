@@ -60,7 +60,7 @@ def _kwargs_for_apple_platform(ctx, additional_env = None, **kwargs):
         execution_requirement_dicts.append(original_execution_requirements)
 
     # Add the execution requirements last to avoid clients overriding this value.
-    execution_requirement_dicts.append(apple_support.action_required_execution_requirements())
+    execution_requirement_dicts.append(apple_support.action_required_execution_requirements(ctx))
 
     processed_args["env"] = _add_dicts(*env_dicts)
     processed_args["execution_requirements"] = _add_dicts(*execution_requirement_dicts)

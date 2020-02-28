@@ -66,6 +66,7 @@ def tvos_extension(name, **kwargs):
     )
 
 def tvos_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds and bundles a tvOS dynamic framework."""
 
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
@@ -92,6 +93,7 @@ def tvos_framework(name, **kwargs):
     )
 
 def tvos_static_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds and bundles a tvOS static framework for third-party distribution."""
     avoid_deps = kwargs.get("avoid_deps")
     deps = kwargs.get("deps")

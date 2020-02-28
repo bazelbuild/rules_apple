@@ -38,6 +38,8 @@ Frameworks section of the packaging bundle.""",
         "plugins": """
 A depset with the zipped archives of bundles that need to be expanded into the
 PlugIns section of the packaging bundle.""",
+        "signed_frameworks": """
+A depset of strings referencing frameworks that have already been codesigned.""",
         "watch_bundles": """
 A depset with the zipped archives of bundles that need to be expanded into the Watch section of
 the packaging bundle. Only applicable for iOS applications.""",
@@ -51,6 +53,7 @@ def _embedded_bundles_partial_impl(
         ctx,
         bundle_embedded_bundles,
         embeddable_targets,
+        signed_frameworks,
         **input_bundles_by_type):
     """Implementation for the embedded bundles processing partial."""
     _ignore = [ctx]
@@ -121,6 +124,33 @@ def _embedded_bundles_partial_impl(
     else:
         partial_output_fields["bundle_zips"] = bundles_to_embed
 
+    # Construct a transitive depset of signed paths, indicating files that we expect to have
+    # already been code signed by past targets.
+    transitive_signed_framework_depsets = []
+
+    # See if any signed_frameworks have been propagated.
+    for provider in embeddable_providers:
+        if hasattr(provider, "signed_frameworks"):
+            transitive_signed_framework_depsets.append(provider.signed_frameworks)
+
+    if transitive_signed_framework_depsets:
+        # Output the existing, propagated signed_frameworks as an output of this partial.
+        #
+        # NOTE: We avoid passing this target's additional depset of signed_frameworks to the code
+        # signing phase to avoid suggesting to this target's code signing phase that files that
+        # will be code signed in this target have already been code signed.
+        partial_output_fields["signed_frameworks"] = depset(
+            transitive = transitive_signed_framework_depsets,
+        )
+
+        # Propagate the full set of signed frameworks upstream as the provider output.
+        embeddedable_info_fields["signed_frameworks"] = depset(
+            transitive = [signed_frameworks] + transitive_signed_framework_depsets,
+        )
+    else:
+        # If no transitive signed frameworks were found, pass signed_frameworks.
+        embeddedable_info_fields["signed_frameworks"] = signed_frameworks
+
     return struct(
         providers = [_AppleEmbeddableInfo(**embeddedable_info_fields)],
         **partial_output_fields
@@ -131,6 +161,7 @@ def embedded_bundles_partial(
         embeddable_targets = [],
         frameworks = [],
         plugins = [],
+        signed_frameworks = depset(),
         watch_bundles = [],
         xpc_services = []):
     """Constructor for the embedded bundles processing partial.
@@ -150,6 +181,8 @@ def embedded_bundles_partial(
             target to bundle inside `Frameworks`.
         plugins: List of plugin bundles that should be propagated downstream for a top level
             target to bundle inside `PlugIns`.
+        signed_frameworks: A depset of strings referencing frameworks that have already been
+            codesigned.
         watch_bundles: List of watchOS application bundles that should be propagated downstream for
             a top level target to bundle inside `Watch`.
         xpc_services: List of macOS XPC Service bundles that should be propagated downstream for
@@ -164,6 +197,7 @@ def embedded_bundles_partial(
         embeddable_targets = embeddable_targets,
         frameworks = frameworks,
         plugins = plugins,
+        signed_frameworks = signed_frameworks,
         watch_bundles = watch_bundles,
         xpc_services = xpc_services,
     )

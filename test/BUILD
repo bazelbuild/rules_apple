@@ -460,7 +460,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=i386,x86_64",
     ],
-    shard_count = 9,
+    shard_count = 10,
     tags = [
         # TODO(b/143701116): Disable this test until Xcode 11.2 is the default.
         # A bug in XCTest in Xcode 11.1 has it call [XCUIDevice localDevice] on

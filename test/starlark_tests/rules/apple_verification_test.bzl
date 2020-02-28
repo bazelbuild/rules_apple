@@ -137,7 +137,7 @@ def _apple_verification_test_impl(ctx):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
 
     return [
-        testing.ExecutionInfo(apple_support.action_required_execution_requirements()),
+        testing.ExecutionInfo(apple_support.action_required_execution_requirements(ctx)),
         testing.TestEnvironment(dicts.add(apple_support.action_required_env(ctx), test_env)),
         DefaultInfo(
             executable = output_script,

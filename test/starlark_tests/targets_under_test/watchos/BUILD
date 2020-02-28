@@ -1,14 +1,14 @@
+load(
+    "//apple:watchos.bzl",
+    "watchos_application",
+    "watchos_extension",
+)
+
 licenses(["notice"])
 
 package(
     default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
-)
-
-load(
-    "//apple:watchos.bzl",
-    "watchos_application",
-    "watchos_extension",
 )
 
 watchos_application(
