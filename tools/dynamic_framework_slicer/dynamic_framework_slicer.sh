@@ -79,9 +79,14 @@ else
         fi
     done
 
+    # Create a thin binary if there's only one needed slice, otherwise create a universal binary
     declare -a lipo_args
-    for slice in "${slices_needed[@]}"; do
-        lipo_args+=(-extract $slice)
-    done
+    if [[ "${#slices_needed[@]}" -eq 1 ]]; then
+        lipo_args+=(-thin ${slices_needed[0]})
+    else
+        for slice in "${slices_needed[@]}"; do
+            lipo_args+=(-extract $slice)
+        done
+    fi
     xcrun lipo "$IN" "${lipo_args[@]}" -output "$OUT"
 fi
