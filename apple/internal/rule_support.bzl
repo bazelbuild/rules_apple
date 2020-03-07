@@ -419,7 +419,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
                 "@loader_path/Frameworks",
             ],
-            skip_simulator_signing_allowed = False,
         ),
     },
     "macos": {
