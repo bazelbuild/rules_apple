@@ -28,6 +28,9 @@ Dictionary of architecture to the generated swiftinterface file for that archite
         "swiftdocs": """
 Dictionary of architecture to the generated swiftdoc file for that architecture.
 """,
+        "swiftmodules": """
+Dictionary of architecture to the generated swiftmodule file for that architecture.
+""",
         "generated_header": """
 The generated Objective-C header for the single swift_library dependency.
 """,
@@ -96,6 +99,7 @@ single swift_library dependency with no transitive swift_library dependencies.\
         generated_header = None
         swiftdocs = {}
         swiftinterfaces = {}
+        swiftmodules = {}
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
 
@@ -130,15 +134,17 @@ swift_library dependency with no transitive swift_library dependencies.\
 
             swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
             swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
+            swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list()[0]
 
         # Make sure that all dictionaries contain at least one module before returning the provider.
-        if all([module_name, swiftdocs, swiftinterfaces]):
+        if all([module_name, swiftdocs, swiftinterfaces, swiftmodules]):
             return [
                 SwiftStaticFrameworkInfo(
                     module_name = module_name,
                     generated_header = generated_header,
                     swiftdocs = swiftdocs,
                     swiftinterfaces = swiftinterfaces,
+                    swiftmodules = swiftmodules,
                 ),
             ]
         else:
