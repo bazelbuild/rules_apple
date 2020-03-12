@@ -32,8 +32,9 @@ libtool() {
 
 # Compile and link the SharedClass.m file into a static and dynamic binaries.
 xcrun clang \
-    -mios-simulator-version-min=11 \
+    -mios-simulator-version-min=10 \
     -arch x86_64 \
+    -arch i386 \
     -c "$SRCROOT/SharedClass.m" \
     -o "$INTERMEDIATES_DIR/SharedClass.o"
 
@@ -45,8 +46,9 @@ libtool \
 xcrun clang \
     -dynamiclib \
     -arch x86_64 \
+    -arch i386 \
     -fobjc-link-runtime \
-    -mios-simulator-version-min=11.0 \
+    -mios-simulator-version-min=10.0 \
     -install_name @rpath/DynamicFramework.framework/DynamicFramework \
     "$INTERMEDIATES_DIR/SharedClass.o" \
     -o "$INTERMEDIATES_DIR/iOSDynamicFramework"
