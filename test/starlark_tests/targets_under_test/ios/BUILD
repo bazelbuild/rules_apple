@@ -162,6 +162,31 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_ext_and_fmwk_provisioned",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_fmwk_provisioned"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk_with_provisioning",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_extension(
     name = "ext",
     bundle_id = "com.google.example.ext",
@@ -196,6 +221,31 @@ ios_extension(
         "//test/starlark_tests/resources:Another.plist",
     ],
     minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_fmwk_provisioned",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk_with_provisioning",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",

@@ -41,24 +41,28 @@ load(
 
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
+    output_dictionary = {
+        "//command_line_option:ios_signing_cert_name": "-",
+        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:compilation_mode": attr.compilation_mode,
+    }
     if attr.build_type == "simulator":
-        return {
-            "//command_line_option:ios_signing_cert_name": "-",
+        output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "x86_64",
-            "//command_line_option:macos_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "x86_64",
             "//command_line_option:watchos_cpus": "i386",
-            "//command_line_option:compilation_mode": attr.compilation_mode,
-        }
+        })
     else:
-        return {
-            "//command_line_option:ios_signing_cert_name": "-",
+        output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,armv7",
-            "//command_line_option:macos_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "arm64",
             "//command_line_option:watchos_cpus": "armv7k",
-            "//command_line_option:compilation_mode": attr.compilation_mode,
-        }
+        })
+    if attr.sanitizer != "none":
+        output_dictionary["//command_line_option:features"] = [attr.sanitizer]
+    else:
+        output_dictionary["//command_line_option:features"] = []
+    return output_dictionary
 
 apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
@@ -70,6 +74,7 @@ apple_verification_transition = transition(
         "//command_line_option:tvos_cpus",
         "//command_line_option:watchos_cpus",
         "//command_line_option:compilation_mode",
+        "//command_line_option:features",
     ],
 )
 
@@ -164,6 +169,14 @@ Possible values are `fastbuild`, `dbg` or `opt`. Defaults to `fastbuild`.
 https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 """,
             default = "fastbuild",
+        ),
+        "sanitizer": attr.string(
+            default = "none",
+            values = ["none", "asan", "tsan", "ubsan"],
+            doc = """
+Possible values are `none`, `asan`, `tsan` or `ubsan`. Defaults to `none`.
+Passes a sanitizer to the target under test.
+""",
         ),
         "target_under_test": attr.label(
             mandatory = True,

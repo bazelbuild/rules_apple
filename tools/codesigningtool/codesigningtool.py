@@ -225,10 +225,9 @@ def main(argv):
   signed_frameworks = args.signed_frameworks
   if signed_frameworks:
     if set(signed_frameworks) - set(all_paths_to_sign):
-      print("ERROR: From the set of all paths to sign, signed frameworks were "
+      print("WARNING: From the set of all paths to sign, signed frameworks "
             "not found: %s" % (set(signed_frameworks) - set(all_paths_to_sign)))
       print("Set of all paths to sign contains: %s" % all_paths_to_sign)
-      return 1
     all_paths_to_sign = [
         p for p in all_paths_to_sign if p not in signed_frameworks
     ]
