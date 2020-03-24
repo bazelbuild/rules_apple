@@ -1173,6 +1173,8 @@ def _macos_command_line_application_impl(ctx):
         rule_label = label,
     )
 
+    provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+
     processor_result = processor.process(
         ctx = ctx,
         actions = actions,
@@ -1184,13 +1186,18 @@ def _macos_command_line_application_impl(ctx):
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         rule_label = label,
     )
     output_file = actions.declare_file(label.name)
-    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(
+        ctx = ctx,
+        input_binary = binary_artifact,
+        output_binary = output_file,
+        provisioning_profile = provisioning_profile
+    )
 
     return [
         AppleBinaryInfo(
@@ -1245,6 +1252,8 @@ def _macos_dylib_impl(ctx):
         rule_label = label,
     )
 
+    provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
+
     processor_result = processor.process(
         ctx = ctx,
         actions = actions,
@@ -1256,13 +1265,18 @@ def _macos_dylib_impl(ctx):
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         rule_label = label,
     )
     output_file = actions.declare_file(label.name + ".dylib")
-    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(
+        ctx = ctx,
+        input_binary = binary_artifact,
+        output_binary = output_file,
+        provisioning_profile = provisioning_profile
+    )
 
     return [
         AppleBinaryInfo(

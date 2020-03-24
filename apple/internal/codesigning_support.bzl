@@ -388,6 +388,12 @@ def _post_process_and_sign_archive_action(
     input_files = [input_archive]
     processing_tools = []
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files that live in
+        # $HOME.
+        "no-sandbox": "1",
+    }
+
     signing_command_lines = _codesigning_command(
         ctx,
         entitlements,
@@ -402,6 +408,11 @@ def _post_process_and_sign_archive_action(
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
         if provisioning_profile:
             input_files.append(provisioning_profile)
+            if platform_support.is_device_build(ctx):
+                # Added so that the output of this action is not cached
+                # remotely, in case multiple developers sign the same artifact
+                # with different identities.
+                execution_requirements["no-remote"] = "1"
 
     ipa_post_processor = ctx.executable.ipa_post_processor
     ipa_post_processor_path = ""
@@ -473,14 +484,7 @@ def _post_process_and_sign_archive_action(
             arguments = arguments,
             mnemonic = mnemonic,
             progress_message = progress_message,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-cache": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
+            execution_requirements = execution_requirements,
             tools = processing_tools,
         )
     else:
@@ -493,13 +497,14 @@ def _post_process_and_sign_archive_action(
             progress_message = progress_message,
         )
 
-def _sign_binary_action(ctx, input_binary, output_binary):
+def _sign_binary_action(ctx, input_binary, output_binary, provisioning_profile):
     """Signs the input binary file, copying it into the given output binary file.
 
     Args:
       ctx: The target's rule context.
       input_binary: The `File` representing the binary to be signed.
       output_binary: The `File` representing signed binary.
+      provisioning_profile: The `File` representing the provisioning file.
     """
 
     # It's not hermetic to sign the binary that was built by the apple_binary
@@ -512,6 +517,17 @@ def _sign_binary_action(ctx, input_binary, output_binary):
         None,
     )
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+    if platform_support.is_device_build(ctx) and provisioning_profile:
+        # Added so that the output of this action is not cached remotely,
+        # in case multiple developers sign the same artifact with different
+        # identities.
+        execution_requirements["no-remote"] = "1"
+
     legacy_actions.run_shell(
         ctx,
         inputs = [input_binary],
@@ -521,14 +537,7 @@ def _sign_binary_action(ctx, input_binary, output_binary):
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
         mnemonic = "SignBinary",
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
+        execution_requirements = execution_requirements,
         tools = [
             ctx.executable._codesigningtool,
         ],
