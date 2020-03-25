@@ -1,6 +1,0 @@
-framework module iOSDynamicFramework {
-  umbrella header "iOSDynamicFramework.h"
-
-  export *
-  module * { export * }
-}

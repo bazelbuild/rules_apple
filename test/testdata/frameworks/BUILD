@@ -3,6 +3,10 @@ load(
     "apple_dynamic_framework_import",
     "apple_static_framework_import",
 )
+load(
+    "//test/testdata/frameworks:generate_framework.bzl",
+    "generate_import_framework",
+)
 
 # Public only because these are used by the integration tests from generated
 # workspaces. Please no not depend on them as they can change at any time.
@@ -10,32 +14,60 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-# To update the binaries and headers for these framework imports, please run
-# `update_frameworks.sh` script in this directory.
-
 apple_dynamic_framework_import(
-    name = "iOSDynamicFramework",
-    framework_imports = glob(["iOSDynamicFramework.framework/**"]),
+    name = "iOSImportedDynamicFramework",
+    framework_imports = [":iOSDynamicFramework"],
 )
 
 apple_static_framework_import(
-    name = "iOSStaticFramework",
-    framework_imports = glob(["iOSStaticFramework.framework/**"]),
+    name = "iOSImportedStaticFramework",
+    framework_imports = [":iOSStaticFramework"],
 )
 
 filegroup(
-    name = "swift_sources",
-    srcs = glob(["*.swift"]),
-)
-
-filegroup(
-    name = "ios_frameworks",
-    srcs = glob(
-        [
-            "iOSDynamicFramework.framework/**",
-            "iOSStaticFramework.framework/**",
-        ],
-    ) + [
-        "BUILD",
+    name = "swift_source",
+    srcs = [
+        "SharedClass.swift",
     ],
+)
+
+filegroup(
+    name = "objc_source",
+    srcs = [
+        "SharedClass.m",
+    ],
+)
+
+filegroup(
+    name = "objc_headers",
+    srcs = [
+        "SharedClass.h",
+    ],
+)
+
+filegroup(
+    name = "ios_framework_generators",
+    srcs = [
+        "BUILD",
+        "generate_framework.bzl",
+        "generate_framework.py",
+    ],
+)
+
+py_binary(
+    name = "generate_framework",
+    srcs = ["generate_framework.py"],
+    srcs_version = "PY2AND3",
+)
+
+generate_import_framework(
+    name = "iOSDynamicFramework",
+    archs = ["x86_64"],
+    libtype = "dynamic",
+)
+
+generate_import_framework(
+    name = "iOSStaticFramework",
+    archs = ["x86_64"],
+    libtype = "static",
 )
