@@ -40,6 +40,22 @@ _BUNDLE_ATTRS = {
     ]
 }
 
+_SHARED_SUITE_TEST_ATTRS  = {
+    x: None
+    for x in [
+        "compatible_with",
+        "deprecation",
+        "distribs",
+        "features",
+        "licenses",
+        "restricted_to",
+        "tags",
+        "testonly",
+        "visibility"
+    ]
+}
+
+
 def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwargs):
     """Assembles the test bundle and test targets.
 
@@ -117,9 +133,11 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
                 deps = [":{}".format(test_bundle_name)],
                 **test_attrs
             )
+        shared_test_suite_attrs = {k: v for (k, v) in test_attrs.items() if k in _SHARED_SUITE_TEST_ATTRS}
         native.test_suite(
             name = name,
             tests = tests,
+            **shared_test_suite_attrs,
         )
 
 apple_test_assembler = struct(
