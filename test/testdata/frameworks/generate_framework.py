@@ -23,9 +23,30 @@ import sys
 
 _PY3 = sys.version_info[0] == 3
 
+_LIBTYPE_ARG = [
+    "dynamic",
+    "static",
+]
 
+_SDK_TO_VERSION_ARG = {
+    "iphonesimulator": "-mios-simulator-version-min",
+    "ios": "-miphoneos-version-min",
+    "macosx": "-mmacos-version-min",
+    "appletvsimulator": "-mtvos-simulator-version-min",
+    "appletvos": "-mtvos-version-min",
+    "watchsimulator": "-mwatchos-simulator-version-min",
+    "watchos": "-mwatchos-version-min",
+}
+
+
+# TODO(b/152659280): Unify implementation with the execute script.
 def _check_output(args, custom_env=None):
-  """Wrapper for subprocess, executes Popen and raises errors if found."""
+  """Handles output from a subprocess, filtering where appropriate.
+
+  Args:
+    args: A list of arguments to be invoked as a subprocess.
+    custom_env: A dictionary of custom environment variables for this session.
+  """
   env = os.environ.copy()
   if custom_env:
     env.update(custom_env)
@@ -55,15 +76,21 @@ def _check_output(args, custom_env=None):
   return stdout, stderr
 
 
-def _build_library_binary(archs, source_file, output_path):
+def _version_arg_for_sdk(sdk, minimum_os_version):
+  """Returns the clang minimum version argument for a given SDK as a string."""
+  return "{0}={1}".format(_SDK_TO_VERSION_ARG[sdk], minimum_os_version)
+
+
+def _build_library_binary(archs, sdk, minimum_os_version, source_file,
+                          output_path):
   """Builds the library binary from a source file, writes to output_path."""
   output_lib = os.path.join(os.path.dirname(output_path),
                             os.path.basename(source_file) + ".o")
 
   # Start assembling the list of arguments with what we know will remain.
   # constant.
-  library_cmd = ["xcrun", "-sdk", "iphonesimulator", "clang",
-                 "-mios-simulator-version-min=11"]
+  library_cmd = ["xcrun", "-sdk", sdk, "clang",
+                 _version_arg_for_sdk(sdk, minimum_os_version)]
 
   # Append archs.
   for arch in archs:
@@ -92,11 +119,11 @@ def _build_library_binary(archs, source_file, output_path):
   return output_lib
 
 
-def _generate_dynamic_cmd(name, framework_path, archs):
+def _generate_dynamic_cmd(name, sdk, minimum_os_version, framework_path, archs):
   """Generate the common set of commands to create this dynamic framework."""
-  framework_cmd = ["xcrun", "-sdk", "iphonesimulator", "clang",
-                   "-fobjc-link-runtime", "-mios-simulator-version-min=11.0",
-                   "-dynamiclib"]
+  framework_cmd = ["xcrun", "-sdk", sdk, "clang", "-fobjc-link-runtime",
+                   _version_arg_for_sdk(sdk, minimum_os_version), "-dynamiclib"]
+
   framework_cmd.extend([
       "-install_name",
       "@rpath/{}/{}".format(os.path.basename(framework_path), name),
@@ -110,9 +137,11 @@ def _generate_dynamic_cmd(name, framework_path, archs):
   return framework_cmd
 
 
-def _build_framework_binary(name, framework_path, libtype, archs, source_file):
+def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
+                            libtype, archs, source_file):
   """Builds the framework binary from a source file, saves to framework_path."""
-  output_lib = _build_library_binary(archs, source_file, framework_path)
+  output_lib = _build_library_binary(archs, sdk, minimum_os_version,
+                                     source_file, framework_path)
 
   # Delete any existing framework files, if they are already there.
   if os.path.exists(framework_path):
@@ -124,7 +153,8 @@ def _build_framework_binary(name, framework_path, libtype, archs, source_file):
   custom_env = None
 
   if libtype == "dynamic":
-    framework_cmd = _generate_dynamic_cmd(name, framework_path, archs)
+    framework_cmd = _generate_dynamic_cmd(name, sdk, minimum_os_version,
+                                          framework_path, archs)
   elif libtype == "static":
     framework_cmd = ["xcrun", "libtool"]
     custom_env = {"ZERO_AR_DATE": "1"}
@@ -137,7 +167,7 @@ def _build_framework_binary(name, framework_path, libtype, archs, source_file):
       os.path.join(framework_path, name),
   ])
 
-  stdout, stderr = _check_output(framework_cmd, custom_env)
+  stdout, stderr = _check_output(framework_cmd, custom_env=custom_env)
   if stdout:
     print(stdout)
   if stderr:
@@ -223,8 +253,16 @@ def main():
       "--name", type=str, required=True, help="name of the generated framework"
   )
   parser.add_argument(
-      "--libtype", type=str, required=True, help="library type for the "
-      "generated framework, can be `dynamic` or `static`"
+      "--sdk", type=str, required=True, choices=_SDK_TO_VERSION_ARG.keys(),
+      help="sdk for the generated framework"
+  )
+  parser.add_argument(
+      "--minimum_os_version", type=str, required=True, help="minimum OS "
+      "version number for the generated framework"
+  )
+  parser.add_argument(
+      "--libtype", type=str, required=True, choices=_LIBTYPE_ARG, help=
+      "library type for the generated framework"
   )
   parser.add_argument(
       "--framework_path", type=str, required=True, help="path to create the "
@@ -245,7 +283,9 @@ def main():
   args = parser.parse_args()
 
   # Step 1: Build the framework binary, output to the framework path.
-  status_code = _build_framework_binary(args.name, args.framework_path,
+  status_code = _build_framework_binary(args.name, args.sdk,
+                                        args.minimum_os_version,
+                                        args.framework_path,
                                         args.libtype, args.arch,
                                         args.source_file)
   if status_code:

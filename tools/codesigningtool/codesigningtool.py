@@ -37,12 +37,24 @@ _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
 )
 
 
-def _check_output(args, inputstr=None):
+# TODO(b/152659280): Unify implementation with the execute script.
+def _check_output(args, custom_env=None, inputstr=None):
+  """Handles output from a subprocess, filtering where appropriate.
+
+  Args:
+    args: A list of arguments to be invoked as a subprocess.
+    custom_env: A dictionary of custom environment variables for this session.
+    inputstr: Data to send directly to the child process.
+  """
+  env = os.environ.copy()
+  if custom_env:
+    env.update(custom_env)
   proc = subprocess.Popen(
       args,
       stdin=subprocess.PIPE,
       stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE)
+      stderr=subprocess.PIPE,
+      env=env)
   stdout, stderr = proc.communicate(input=inputstr)
 
   # Only decode the output for Py3 so that the output type matches
@@ -53,8 +65,8 @@ def _check_output(args, inputstr=None):
     # better option, just use utf8 with error replacement. This will replace
     # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
     # from raising.
-    stdout = stdout.decode('utf8', 'replace')
-    stderr = stderr.decode('utf8', 'replace')
+    stdout = stdout.decode("utf8", "replace")
+    stderr = stderr.decode("utf8", "replace")
 
   if proc.returncode != 0:
     # print the stdout and stderr, as the exception won't print it.
@@ -63,10 +75,40 @@ def _check_output(args, inputstr=None):
   return stdout, stderr
 
 
-def _invoke_codesign(codesign_path, identity, codesign_args, full_path_to_sign):
-  cmd = [codesign_path, "-v", "--sign", identity
-        ] + codesign_args + [full_path_to_sign]
-  stdout, stderr = _check_output(cmd)
+def _find_codesign_allocate():
+  cmd = ["xcrun", "--find", "codesign_allocate"]
+  stdout, _ = _check_output(cmd)
+  return stdout.strip()
+
+
+def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
+                     disable_timestamp, full_path_to_sign):
+  """Invokes the codesign tool on the given path to sign.
+
+  Args:
+    codesign_path: Path to the codesign tool as a string.
+    identity: The unique identifier string to identify code signatures.
+    entitlements: Path to the file with entitlement data. Optional.
+    force_signing: If true, replaces any existing signature on the path given.
+    disable_timestamp: If true, disables the use of timestamp services.
+    full_path_to_sign: Path to the bundle or binary to code sign as a string.
+  """
+  cmd = [codesign_path, "-v", "--sign", identity]
+  if entitlements:
+    cmd.extend([
+        "--entitlements",
+        entitlements,
+    ])
+  if force_signing:
+    cmd.append("--force")
+  if disable_timestamp:
+    cmd.append("--timestamp=none")
+  cmd.append(full_path_to_sign)
+
+  # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
+  # version.
+  custom_env = {"CODESIGN_ALLOCATE": _find_codesign_allocate()}
+  stdout, stderr = _check_output(cmd, custom_env=custom_env)
   if stdout:
     filtered_stdout = _filter_codesign_output(stdout)
     if filtered_stdout:
@@ -168,11 +210,54 @@ def _filter_codesign_output(codesign_output):
       filtered_lines.append(line)
   return "\n".join(filtered_lines)
 
-def main(argv):
+
+def _all_paths_to_sign(targets_to_sign, directories_to_sign):
+  """Returns a list of paths to sign from paths to targets and directories"""
+  all_paths_to_sign = []
+
+  if targets_to_sign:
+    for target_to_sign in targets_to_sign:
+      all_paths_to_sign.append(target_to_sign)
+
+  if directories_to_sign:
+    for directory_to_sign in directories_to_sign:
+      if not os.path.exists(directory_to_sign):
+        # TODO(b/149874635): Cleanly error here rather than no-op when the
+        # failure to find a directory is a valid error condition.
+        continue
+      files_found = [
+          x for x in os.listdir(directory_to_sign) if not x.startswith(".")
+      ]
+      # Prefix each path found through os.listdir before passing to codesign.
+      all_paths_to_sign = [
+          os.path.join(directory_to_sign, f) for f in files_found
+      ]
+
+  return all_paths_to_sign
+
+
+def _filter_paths_already_signed(all_paths_to_sign, signed_paths):
+  if set(signed_paths) - set(all_paths_to_sign):
+    # TODO(b/151635856): Turn this condition into an error when clang_rt libs
+    # for the sanitizers are properly scoped to only the *_application
+    # Frameworks and not the *_extension Frameworks.
+    print("WARNING: From the set of all paths to sign, signed frameworks were "
+          "not found: %s" % (set(signed_paths) - set(all_paths_to_sign)))
+    print("Set of all paths to sign contains: %s" % all_paths_to_sign)
+  return [p for p in all_paths_to_sign if p not in signed_paths]
+
+
+def generate_arg_parser():
+  """Returns the arugment parser for the code signing tool."""
   parser = argparse.ArgumentParser(description="codesign wrapper")
   parser.add_argument(
-      "--full_path_to_sign", type=str, required=True, help="full file system "
-      "path to the target to code sign"
+      "--target_to_sign", type=str, action="append", help="full file system "
+      "paths to a target to code sign"
+  )
+  parser.add_argument(
+      "--directory_to_sign", type=str, action="append", help="full file system "
+      "paths to a directory to code sign, if the directory doesn't exist this "
+      "script will do nothing"
   )
   parser.add_argument(
       "--mobileprovision", type=str, help="mobileprovision file")
@@ -181,14 +266,25 @@ def main(argv):
   parser.add_argument(
       "--identity", type=str, help="specific identity to sign with")
   parser.add_argument(
-      "--is_directory", action="store_true", help="if the target to sign is a "
-      "directory, if the directory doesn't exist this script will do nothing"
+      "--signed_path", type=str, action="append", help="a path that has "
+      "already been signed"
   )
   parser.add_argument(
-      "--signed_frameworks", type=str, nargs="*", help="a list of frameworks "
-      "that have already been signed"
+      "--entitlements", type=str, help="file with entitlement data to forward "
+      "to the code signing tool"
   )
-  args, codesign_args = parser.parse_known_args()
+  parser.add_argument(
+      "--force", action="store_true", help="replace any existing signature on "
+      "the path(s) given"
+  )
+  parser.add_argument(
+      "--disable_timestamp", action="store_true", help="disables the use of "
+      "timestamp services"
+  )
+  return parser
+
+
+def main(args):
   identity = args.identity
   if identity is None:
     identity = _find_codesign_identity(args.mobileprovision)
@@ -206,35 +302,26 @@ def main(argv):
     print("ERROR: Unable to find an identity on the system matching the "
           "ones in %s" % args.mobileprovision, file=sys.stderr)
     return 1
-  all_paths_to_sign = []
-  if args.is_directory:
-    if not os.path.exists(args.full_path_to_sign):
-      # TODO(b/149874635): Cleanly error here rather than no-op when the failure
-      # to find a directory is a valid error condition.
-      return 0
-    files_found = [
-        x for x in os.listdir(args.full_path_to_sign) if not x.startswith(".")
-    ]
-    # Prefix each path found through os.listdir with the full path to sign
-    # before passing to codesign.
-    all_paths_to_sign = [
-        os.path.join(args.full_path_to_sign, f) for f in files_found
-    ]
-  else:
-    all_paths_to_sign = [args.full_path_to_sign]
-  signed_frameworks = args.signed_frameworks
-  if signed_frameworks:
-    if set(signed_frameworks) - set(all_paths_to_sign):
-      print("WARNING: From the set of all paths to sign, signed frameworks "
-            "not found: %s" % (set(signed_frameworks) - set(all_paths_to_sign)))
-      print("Set of all paths to sign contains: %s" % all_paths_to_sign)
-    all_paths_to_sign = [
-        p for p in all_paths_to_sign if p not in signed_frameworks
-    ]
+  # No targets to sign were provided, fail
+  if not args.target_to_sign and not args.directory_to_sign:
+    print("INTERNAL ERROR: No paths to sign were given to codesign. Should "
+          "have one of --target_to_sign or --directory_to_sign")
+    return 1
+  all_paths_to_sign = _all_paths_to_sign(args.target_to_sign,
+                                         args.directory_to_sign)
+  if not all_paths_to_sign:
+    # TODO(b/149874635): Cleanly error here rather than no-op when the failure
+    # to find paths to sign is a valid error condition.
+    return 0
+  signed_path = args.signed_path
+  if signed_path:
+    all_paths_to_sign = _filter_paths_already_signed(all_paths_to_sign,
+                                                     signed_path)
 
   for path_to_sign in all_paths_to_sign:
-    _invoke_codesign(args.codesign, identity, codesign_args, path_to_sign)
+    _invoke_codesign(args.codesign, identity, args.entitlements, args.force,
+                     args.disable_timestamp, path_to_sign)
 
 
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+if __name__ == "__main__":
+  sys.exit(main(generate_arg_parser().parse_args()))

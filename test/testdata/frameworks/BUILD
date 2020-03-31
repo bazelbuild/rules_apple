@@ -64,10 +64,14 @@ generate_import_framework(
     name = "iOSDynamicFramework",
     archs = ["x86_64"],
     libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
 )
 
 generate_import_framework(
     name = "iOSStaticFramework",
     archs = ["x86_64"],
     libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
 )

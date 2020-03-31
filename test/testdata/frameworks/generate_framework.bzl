@@ -21,6 +21,8 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 def _generate_import_framework_impl(ctx):
     args = ctx.actions.args()
     args.add("--name", ctx.label.name)
+    args.add("--sdk", ctx.attr.sdk)
+    args.add("--minimum_os_version", ctx.attr.minimum_os_version)
     args.add("--libtype", ctx.attr.libtype)
     for arch in ctx.attr.archs:
         args.add("--arch", arch)
@@ -68,12 +70,19 @@ def _generate_import_framework_impl(ctx):
 generate_import_framework = rule(
     implementation = _generate_import_framework_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
-        # TODO(b/151319395): Add options for device versus sim, platform type (iOS, tvOS, macOS),
-        # minimum supported OS. As this isn't based on an Apple binary rule, we don't get these
-        # attributes for free.
         "archs": attr.string_list(
             allow_empty = False,
             doc = "A list of architectures this framework will be generated for.",
+        ),
+        "sdk": attr.string(
+            doc = """
+Determines what SDK the framework will be built under.
+""",
+        ),
+        "minimum_os_version": attr.string(
+            doc = """
+Minimum version of the OS corresponding to the SDK that this binary will support.
+""",
         ),
         "src": attr.label(
             allow_single_file = True,

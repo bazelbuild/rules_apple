@@ -7,6 +7,14 @@ load(
     "macos_ui_test",
     "macos_unit_test",
 )
+load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+)
+load(
+    "//test/testdata/frameworks:generate_framework.bzl",
+    "generate_import_framework",
+)
 
 licenses(["notice"])
 
@@ -96,6 +104,41 @@ macos_extension(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+macos_application(
+    name = "app_with_imported_fmwk",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = "10.11",
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+objc_library(
+    name = "dynamic_fmwk_depending_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    deps = [":imported_macos_dynamic_fmwk"],
+)
+
+apple_dynamic_framework_import(
+    name = "imported_macos_dynamic_fmwk",
+    framework_imports = [":generated_macos_dynamic_fmwk"],
+)
+
+generate_import_framework(
+    name = "generated_macos_dynamic_fmwk",
+    archs = ["x86_64"],
+    libtype = "dynamic",
+    minimum_os_version = "10.11",
+    sdk = "macosx",
 )
 
 # ---------------------------------------------------------------------------------------

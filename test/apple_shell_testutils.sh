@@ -307,13 +307,20 @@ function assert_is_codesigned() {
 function assert_frameworks_not_resigned_given_output() {
   local bundle="$1"
 
-  CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
+  WORKDIR="$1"
+  if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
+    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
+    FRAMEWORK_DIR="$bundle/Frameworks"
+  else
+    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/Contents/Resources/codesign_v_fmwks_output.txt"
+    FRAMEWORK_DIR="$bundle/Contents/Frameworks"
+  fi
 
   if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
     CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
 
     for fmwk in \
-        $(find "$bundle/Frameworks" -type d -maxdepth 1 -mindepth 1); do
+        $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
       /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
     done
 

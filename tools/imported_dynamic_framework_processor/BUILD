@@ -1,12 +1,14 @@
 licenses(["notice"])
 
-sh_binary(
-    name = "dynamic_framework_slicer",
-    srcs = ["dynamic_framework_slicer.sh"],
+py_binary(
+    name = "imported_dynamic_framework_processor",
+    srcs = ["imported_dynamic_framework_processor.py"],
+    srcs_version = "PY2AND3",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = ["//tools/codesigningtool:codesigningtool_lib"],
 )
 
 # Consumed by bazel tests.

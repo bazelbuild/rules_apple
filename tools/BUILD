@@ -17,7 +17,7 @@ filegroup(
         "//tools/whitelists/function_transition_whitelist:for_bazel_tests",
         "//tools/wrapper_common:for_bazel_tests",
         "//tools/xctoolrunner:for_bazel_tests",
-        "//tools/dynamic_framework_slicer:for_bazel_tests",
+        "//tools/imported_dynamic_framework_processor:for_bazel_tests",
     ],
     visibility = [
         "//:__pkg__",

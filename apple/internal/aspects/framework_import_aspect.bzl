@@ -31,6 +31,7 @@ def _framework_import_aspect_impl(target, ctx):
         return []
 
     transitive_sets = []
+    build_archs = []
     for attribute in _FRAMEWORK_IMPORT_ASPECT_ATTRS:
         if not hasattr(ctx.rule.attr, attribute):
             continue
@@ -38,11 +39,15 @@ def _framework_import_aspect_impl(target, ctx):
             if AppleFrameworkImportInfo in dep_target:
                 if hasattr(dep_target[AppleFrameworkImportInfo], "framework_imports"):
                     transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
+                build_archs.append(dep_target[AppleFrameworkImportInfo].build_archs)
 
     if not transitive_sets:
         return []
 
-    return [AppleFrameworkImportInfo(framework_imports = depset(transitive = transitive_sets))]
+    return [AppleFrameworkImportInfo(
+        framework_imports = depset(transitive = transitive_sets),
+        build_archs = depset(transitive = build_archs),
+    )]
 
 framework_import_aspect = aspect(
     implementation = _framework_import_aspect_impl,

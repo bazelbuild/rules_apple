@@ -23,6 +23,10 @@ load(
     "AppleFrameworkImportInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -33,10 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -71,49 +71,105 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binarie
             # bundled.
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
-    bundle_files = []
-    slicer_args = []
-    main_binary = outputs.binary(ctx)
+    # Collect the architectures that we are using for the build.
+    build_archs_found = [
+        build_arch
+        for x in targets
+        if AppleFrameworkImportInfo in x
+        for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list()
+    ]
+
+    # Start assembling our partial's outputs.
+    bundle_zips = []
+    signed_frameworks_list = []
+
+    # Separating our files by framework path, to better address what should be passed in.
+    framework_binaries_by_framework = dict()
+    files_by_framework = dict()
+
     for file in files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
+
+        # Use the framework path's basename to distinguish groups of files.
+        framework_basename = paths.basename(framework_path)
+        if not files_by_framework.get(framework_basename):
+            files_by_framework[framework_basename] = []
+        if not framework_binaries_by_framework.get(framework_basename):
+            framework_binaries_by_framework[framework_basename] = []
+
+        # Check if this file is a binary to slice and code sign.
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
-        parent_dir = paths.basename(framework_path)
+        parent_dir = framework_basename
         framework_relative_dir = paths.dirname(framework_relative_path).strip("/")
         if framework_relative_dir:
             parent_dir = paths.join(parent_dir, framework_relative_dir)
 
-        # check to see if the the parent is "Foo.[extension]" and the file is "Foo", thus "Foo.framework/Foo", so the binary within the framework.
         if paths.replace_extension(parent_dir, "") == file.basename:
-            stripped = intermediates.file(
-                ctx.actions,
-                ctx.label.name,
-                paths.join("_imported_frameworks", file.basename),
-            )
-            bundle_files.append(
-                (processor.location.framework, parent_dir, depset([stripped])),
-            )
+            framework_binaries_by_framework[framework_basename].append(file)
+            continue
 
-            args = slicer_args + ["--in", file.path, "--out", stripped.path]
-            all_binaries = extra_binaries + [main_binary]
-            for binary in all_binaries:
-                args.append(binary.path)
+        # Treat the rest as files to copy into the bundle.
+        files_by_framework[framework_basename].append(file)
 
-            apple_support.run(
-                ctx,
-                inputs = [file] + all_binaries,
-                tools = [ctx.executable._realpath],
-                executable = ctx.executable._dynamic_framework_slicer,
-                outputs = [stripped],
-                arguments = args,
-                mnemonic = "DynamicFrameworkSlicer",
-            )
-        else:
-            bundle_files.append(
-                (processor.location.framework, parent_dir, depset([file])),
-            )
+    for framework_basename in files_by_framework.keys():
+        # Create a temporary path for intermediate files and the anticipated zip output.
+        temp_path = paths.join("_imported_frameworks/", framework_basename)
+        framework_zip = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            temp_path + ".zip",
+        )
+        temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
 
-    return struct(bundle_files = bundle_files)
+        # Pass through all binaries, files, and relevant info as args.
+        args = ctx.actions.args()
+
+        for framework_binary in framework_binaries_by_framework[framework_basename]:
+            args.add("--framework_binary", framework_binary.path)
+
+        for build_arch in build_archs_found:
+            args.add("--slice", build_arch)
+
+        args.add("--output_zip", framework_zip.path)
+
+        args.add("--temp_path", temp_framework_bundle_path)
+
+        for file in files_by_framework[framework_basename]:
+            args.add("--framework_file", file.path)
+
+        codesign_args = codesigning_support.codesigning_args(
+            ctx,
+            entitlements = None,
+            full_archive_path = temp_framework_bundle_path,
+            is_framework = True,
+        )
+        args.add_all(codesign_args)
+
+        # Inputs of action are all the framework files, plus binaries needed for identifying the
+        # current build's preferred architecture, plus a generated list of those binaries to prune
+        # their dependencies so that future changes to the app/extension/framework binaries do not
+        # force this action to re-run on incremental builds.
+        apple_support.run(
+            ctx,
+            inputs = files_by_framework[framework_basename] +
+                     framework_binaries_by_framework[framework_basename],
+            tools = [ctx.executable._codesigningtool],
+            executable = ctx.executable._imported_dynamic_framework_processor,
+            outputs = [framework_zip],
+            arguments = [args],
+            mnemonic = "ImportedDynamicFrameworkProcessor",
+        )
+
+        bundle_zips.append(
+            (processor.location.framework, None, depset([framework_zip])),
+        )
+        signed_frameworks_list.append(framework_basename)
+
+    return struct(
+        bundle_zips = bundle_zips,
+        signed_frameworks = depset(signed_frameworks_list),
+    )
 
 def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []):
     """Constructor for the framework import file processing partial.

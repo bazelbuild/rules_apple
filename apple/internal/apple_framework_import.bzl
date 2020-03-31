@@ -52,6 +52,9 @@ AppleFrameworkImportInfo = provider(
 Depset of Files that represent framework imports that need to be bundled in the top level
 application bundle under the Frameworks directory.
 """,
+        "build_archs": """
+Depset of strings that represent binary architectures reported from the current build.
+""",
     },
 )
 
@@ -148,11 +151,12 @@ def _transitive_framework_imports(deps):
         if hasattr(dep[AppleFrameworkImportInfo], "framework_imports")
     ]
 
-def _framework_import_info(transitive_sets):
-    """Returns an AppleFrameworkImportInfo containg any transitive framework imports."""
+def _framework_import_info(transitive_sets, arch_found):
+    """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs."""
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
+    provider_fields["build_archs"] = depset([arch_found])
     return AppleFrameworkImportInfo(**provider_fields)
 
 def _is_debugging(ctx):
@@ -223,7 +227,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
     if bundling_imports:
         transitive_sets.append(depset(bundling_imports))
-    providers.append(_framework_import_info(transitive_sets))
+    providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
 
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
@@ -260,7 +264,7 @@ def _apple_static_framework_import_impl(ctx):
     _, header_imports, module_map_imports = _classify_framework_imports(framework_imports)
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
-    providers.append(_framework_import_info(transitive_sets))
+    providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
 
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
@@ -328,6 +332,7 @@ def _apple_static_framework_import_impl(ctx):
 
 apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
+    fragments = ["apple"],
     attrs = {
         "framework_imports": attr.label_list(
             allow_empty = False,
