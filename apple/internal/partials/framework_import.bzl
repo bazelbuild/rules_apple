@@ -47,7 +47,7 @@ load(
     "paths",
 )
 
-def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binaries):
+def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
     """Implementation for the framework import file processing partial."""
     _ignored = [ctx]
 
@@ -171,7 +171,7 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid, extra_binarie
         signed_frameworks = depset(signed_frameworks_list),
     )
 
-def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []):
+def framework_import_partial(targets, targets_to_avoid = []):
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
@@ -181,8 +181,6 @@ def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
             to be used when deduplicating frameworks already bundled.
-        extra_binaries: Extra binaries to consider when collecting which archs should be
-            preserved in the imported dynamic frameworks.
 
     Returns:
         A partial that returns the bundle location of the framework import files.
@@ -191,5 +189,4 @@ def framework_import_partial(targets, targets_to_avoid = [], extra_binaries = []
         _framework_import_partial_impl,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
-        extra_binaries = extra_binaries,
     )
