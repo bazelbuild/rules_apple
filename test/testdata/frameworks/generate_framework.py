@@ -18,10 +18,10 @@ from __future__ import print_function
 import argparse
 import os
 import shutil
-import subprocess
 import sys
 
-_PY3 = sys.version_info[0] == 3
+from build_bazel_rules_apple.tools.wrapper_common import execute
+
 
 _LIBTYPE_ARG = [
     "dynamic",
@@ -37,43 +37,6 @@ _SDK_TO_VERSION_ARG = {
     "watchsimulator": "-mwatchos-simulator-version-min",
     "watchos": "-mwatchos-version-min",
 }
-
-
-# TODO(b/152659280): Unify implementation with the execute script.
-def _check_output(args, custom_env=None):
-  """Handles output from a subprocess, filtering where appropriate.
-
-  Args:
-    args: A list of arguments to be invoked as a subprocess.
-    custom_env: A dictionary of custom environment variables for this session.
-  """
-  env = os.environ.copy()
-  if custom_env:
-    env.update(custom_env)
-  proc = subprocess.Popen(
-      args,
-      stdin=subprocess.PIPE,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE,
-      env=env)
-  stdout, stderr = proc.communicate()
-
-  # Only decode the output for Py3 so that the output type matches
-  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
-  # in Py2.
-  if _PY3:
-    # The invoked tools don't specify what encoding they use, so for lack of a
-    # better option, just use utf8 with error replacement. This will replace
-    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-    # from raising.
-    stdout = stdout.decode("utf8", "replace")
-    stderr = stderr.decode("utf8", "replace")
-
-  if proc.returncode != 0:
-    # print the stdout and stderr, as the exception won't print it.
-    print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
-    raise subprocess.CalledProcessError(proc.returncode, args)
-  return stdout, stderr
 
 
 def _version_arg_for_sdk(sdk, minimum_os_version):
@@ -111,7 +74,8 @@ def _build_library_binary(archs, sdk, minimum_os_version, source_file,
   ])
 
   # Run the command to assemble the output library.
-  stdout, stderr = _check_output(library_cmd)
+  _, stdout, stderr = execute.execute_and_filter_output(library_cmd,
+                                                        raise_on_failure=True)
   if stdout:
     print(stdout)
   if stderr:
@@ -167,7 +131,9 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
       os.path.join(framework_path, name),
   ])
 
-  stdout, stderr = _check_output(framework_cmd, custom_env=custom_env)
+  _, stdout, stderr = execute.execute_and_filter_output(framework_cmd,
+                                                        custom_env=custom_env,
+                                                        raise_on_failure=True)
   if stdout:
     print(stdout)
   if stderr:

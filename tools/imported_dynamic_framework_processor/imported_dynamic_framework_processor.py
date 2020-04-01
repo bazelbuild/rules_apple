@@ -21,41 +21,7 @@ import sys
 import time
 
 from build_bazel_rules_apple.tools.codesigningtool import codesigningtool
-
-_PY3 = sys.version_info[0] == 3
-
-
-# TODO(b/152659280): Unify implementation with the execute script.
-def _check_output(args):
-  """Handles output from a subprocess, filtering where appropriate.
-
-  Args:
-    args: A list of arguments to be invoked as a subprocess.
-    inputstr: Data to send directly to the child process.
-  """
-  proc = subprocess.Popen(
-      args,
-      stdin=subprocess.PIPE,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE)
-  stdout, stderr = proc.communicate()
-
-  # Only decode the output for Py3 so that the output type matches
-  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
-  # in Py2.
-  if _PY3:
-    # The invoked tools don't specify what encoding they use, so for lack of a
-    # better option, just use utf8 with error replacement. This will replace
-    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-    # from raising.
-    stdout = stdout.decode("utf8", "replace")
-    stderr = stderr.decode("utf8", "replace")
-
-  if proc.returncode != 0:
-    # print the stdout and stderr, as the exception won't print it.
-    print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
-    raise subprocess.CalledProcessError(proc.returncode, args)
-  return stdout, stderr
+from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
 def _invoke_lipo(binary_path, binary_slices, output_path):
@@ -69,7 +35,8 @@ def _invoke_lipo(binary_path, binary_slices, output_path):
     for binary_slice in binary_slices:
       cmd.extend(["-extract", binary_slice])
   cmd.extend(["-output", output_path])
-  stdout, stderr = _check_output(cmd)
+  _, stdout, stderr = execute.execute_and_filter_output(cmd,
+                                                        raise_on_failure=True)
   if stdout:
     print(stdout)
   if stderr:
@@ -82,7 +49,8 @@ def _find_archs_for_binaries(binary_list):
 
   for binary in binary_list:
     cmd = ["xcrun", "lipo", "-info", binary]
-    stdout, stderr = _check_output(cmd)
+    _, stdout, stderr = execute.execute_and_filter_output(cmd,
+                                                          raise_on_failure=True)
     if stderr:
       print(stderr)
     if not stdout:

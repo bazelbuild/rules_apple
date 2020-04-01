@@ -58,6 +58,7 @@ py_binary(
     name = "generate_framework",
     srcs = ["generate_framework.py"],
     srcs_version = "PY2AND3",
+    deps = ["//tools/wrapper_common:execute"],
 )
 
 generate_import_framework(

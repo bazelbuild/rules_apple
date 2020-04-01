@@ -24,12 +24,20 @@ import sys
 _PY3 = sys.version_info[0] == 3
 
 
-def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
+def execute_and_filter_output(
+    cmd_args,
+    filtering=None,
+    trim_paths=False,
+    custom_env=None,
+    inputstr=None,
+    print_output=False,
+    raise_on_failure=False):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
     cmd_args: A list of strings beginning with the command to execute followed
         by its arguments.
+
     filtering: Optionally specify a filter for stdout/stderr. It must be
         callable and have the following signature:
 
@@ -42,14 +50,34 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
     trim_paths: Optionally specify whether or not to trim the current working
         directory from any paths in the output.
 
+    custom_env: A dictionary of custom environment variables for this session.
+
+    inputstr: Data to send directly to the child process as input.
+
+    print_output: Wheither to always print the output of stdout and stderr for
+        this subprocess.
+
+    raise_on_failure: Raises an exception if the subprocess does not return a
+        successful result.
+
   Returns:
     The result of running the command.
+
+  Raises:
+    CalledProcessError: If the process did not indicate a successful result and
+        raise_on_failure is True.
   """
-  p = subprocess.Popen(cmd_args,
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE)
-  stdout, stderr = p.communicate()
-  cmd_result = p.returncode
+  env = os.environ.copy()
+  if custom_env:
+    env.update(custom_env)
+  proc = subprocess.Popen(
+      cmd_args,
+      stdin=subprocess.PIPE,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      env=env)
+  stdout, stderr = proc.communicate(input=inputstr)
+  cmd_result = proc.returncode
 
   # Only decode the output for Py3 so that the output type matches
   # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
@@ -59,30 +87,35 @@ def execute_and_filter_output(cmd_args, filtering=None, trim_paths=False):
     # better option, just use utf8 with error replacement. This will replace
     # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
     # from raising.
-    stdout = stdout.decode('utf8', 'replace')
-    stderr = stderr.decode('utf8', 'replace')
+    stdout = stdout.decode("utf8", "replace")
+    stderr = stderr.decode("utf8", "replace")
 
   if (stdout or stderr) and filtering:
     if not callable(filtering):
       raise TypeError("'filtering' must be callable.")
     stdout, stderr = filtering(cmd_result, stdout, stderr)
 
-  if trim_paths:
+  if cmd_result != 0 and raise_on_failure:
+    # print the stdout and stderr, as the exception won't print it.
+    print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
+    raise subprocess.CalledProcessError(proc.returncode, cmd_args)
+  elif print_output:
+    maybe_trim_paths = _trim_paths if trim_paths else _no_op
     if stdout:
-      stdout = _trim_paths(stdout)
+      sys.stdout.write("%s" % maybe_trim_paths(stdout))
     if stderr:
-      stderr = _trim_paths(stderr)
+      sys.stderr.write("%s" % maybe_trim_paths(stderr))
 
-  if stdout:
-    sys.stdout.write("%s" % stdout)
-  if stderr:
-    sys.stderr.write("%s" % stderr)
+  return cmd_result, stdout, stderr
 
-  return cmd_result
+
+def _no_op(x):
+    """Helper that does nothing but return the result."""
+    return x
 
 
 def _trim_paths(stdout):
-  """Trim CWD from any paths in "stdout"."""
+  """Trim the current working directory from any paths in "stdout"."""
   CWD = os.getcwd() + "/"
 
   def replace_path(m):

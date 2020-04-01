@@ -132,10 +132,12 @@ def ibtool(_, toolargs):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  return execute.execute_and_filter_output(
+  return_code, _, _ = execute.execute_and_filter_output(
       xcrunargs,
       trim_paths=True,
-      filtering=ibtool_filtering)
+      filtering=ibtool_filtering,
+      print_output=True)
+  return return_code
 
 
 def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
@@ -229,10 +231,13 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  return execute.execute_and_filter_output(
+  return_code, _, _ = execute.execute_and_filter_output(
       xcrunargs,
       trim_paths=True,
-      filtering=actool_filtering)
+      filtering=actool_filtering,
+      print_output=True)
+  return return_code
+
 
 def coremlc(_, toolargs):
   """Assemble the call to "xcrun coremlc"."""
@@ -240,7 +245,10 @@ def coremlc(_, toolargs):
   _apply_realpath(toolargs)
   xcrunargs += toolargs
 
-  return execute.execute_and_filter_output(xcrunargs)
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      print_output=True)
+  return return_code
 
 
 def _zip_directory(directory, output):
@@ -272,7 +280,9 @@ def swift_stdlib_tool(args, toolargs):
 
   xcrunargs += toolargs
 
-  result = execute.execute_and_filter_output(xcrunargs)
+  result, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      print_output=True)
   if not result:
     _zip_directory(tmpdir, os.path.splitext(args.output)[0])
 
@@ -286,7 +296,10 @@ def momc(_, toolargs):
   _apply_realpath(toolargs)
   xcrunargs += toolargs
 
-  return execute.execute_and_filter_output(xcrunargs)
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      print_output=True)
+  return return_code
 
 
 def mapc(_, toolargs):
@@ -295,7 +308,10 @@ def mapc(_, toolargs):
   _apply_realpath(toolargs)
   xcrunargs += toolargs
 
-  return execute.execute_and_filter_output(xcrunargs)
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      print_output=True)
+  return return_code
 
 
 def main(argv):

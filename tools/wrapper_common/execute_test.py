@@ -20,7 +20,6 @@ from __future__ import print_function
 
 import contextlib
 import io
-import os
 import sys
 import unittest
 
@@ -48,7 +47,10 @@ class ExecuteTest(unittest.TestCase):
     args = ['echo', '-n', bytes_out]
 
     with self._mock_streams() as (mock_stdout, mock_stderr):
-      execute.execute_and_filter_output(args, filtering=_cmd_filter)
+      execute.execute_and_filter_output(args,
+                                        filtering=_cmd_filter,
+                                        print_output=True,
+                                        raise_on_failure=False)
       stdout = mock_stdout.getvalue()
       stderr = mock_stderr.getvalue()
 

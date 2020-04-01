@@ -22,7 +22,7 @@ import re
 import subprocess
 import sys
 
-_PY3 = sys.version_info[0] == 3
+from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
 # Regex with benign codesign messages that can be safely ignored.
@@ -37,47 +37,9 @@ _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
 )
 
 
-# TODO(b/152659280): Unify implementation with the execute script.
-def _check_output(args, custom_env=None, inputstr=None):
-  """Handles output from a subprocess, filtering where appropriate.
-
-  Args:
-    args: A list of arguments to be invoked as a subprocess.
-    custom_env: A dictionary of custom environment variables for this session.
-    inputstr: Data to send directly to the child process.
-  """
-  env = os.environ.copy()
-  if custom_env:
-    env.update(custom_env)
-  proc = subprocess.Popen(
-      args,
-      stdin=subprocess.PIPE,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE,
-      env=env)
-  stdout, stderr = proc.communicate(input=inputstr)
-
-  # Only decode the output for Py3 so that the output type matches
-  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
-  # in Py2.
-  if _PY3:
-    # The invoked tools don't specify what encoding they use, so for lack of a
-    # better option, just use utf8 with error replacement. This will replace
-    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-    # from raising.
-    stdout = stdout.decode("utf8", "replace")
-    stderr = stderr.decode("utf8", "replace")
-
-  if proc.returncode != 0:
-    # print the stdout and stderr, as the exception won't print it.
-    print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
-    raise subprocess.CalledProcessError(proc.returncode, args)
-  return stdout, stderr
-
-
 def _find_codesign_allocate():
   cmd = ["xcrun", "--find", "codesign_allocate"]
-  stdout, _ = _check_output(cmd)
+  _, stdout, _ = execute.execute_and_filter_output(cmd, raise_on_failure=True)
   return stdout.strip()
 
 
@@ -108,7 +70,9 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
   # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
   # version.
   custom_env = {"CODESIGN_ALLOCATE": _find_codesign_allocate()}
-  stdout, stderr = _check_output(cmd, custom_env=custom_env)
+  _, stdout, stderr = execute.execute_and_filter_output(cmd,
+                                                        custom_env=custom_env,
+                                                        raise_on_failure=True)
   if stdout:
     filtered_stdout = _filter_codesign_output(stdout)
     if filtered_stdout:
@@ -140,15 +104,14 @@ def _parse_mobileprovision_file(mobileprovision_file):
 
 def _certificate_fingerprint(identity):
   """Extracts a fingerprint given identity in a mobileprovision file."""
-  fingerprint, stderr = _check_output([
+  _, fingerprint, _ = execute.execute_and_filter_output([
       "openssl",
       "x509",
       "-inform",
       "DER",
       "-noout",
       "-fingerprint",
-  ],
-                                      inputstr=identity)
+  ], inputstr=identity, raise_on_failure=True)
   fingerprint = fingerprint.strip()
   fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
   fingerprint = fingerprint.replace(":", "")
@@ -168,13 +131,13 @@ def _get_identities_from_provisioning_profile(mpf):
 def _find_codesign_identities(identity=None):
   """Finds code signing identities on the current system."""
   ids = []
-  output, stderr = _check_output([
+  _, output, _ = execute.execute_and_filter_output([
       "security",
       "find-identity",
       "-v",
       "-p",
       "codesigning",
-  ])
+  ], raise_on_failure=True)
   output = output.strip()
   pattern = "(?P<hash>[A-F0-9]{40})"
   if identity:
