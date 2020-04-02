@@ -48,7 +48,8 @@ def execute_and_filter_output(
         output as they wish, returning what ever should be used.
 
     trim_paths: Optionally specify whether or not to trim the current working
-        directory from any paths in the output.
+        directory from any paths in the output. Based on output after filtering,
+        if a filter has been specified.
 
     custom_env: A dictionary of custom environment variables for this session.
 
@@ -95,27 +96,27 @@ def execute_and_filter_output(
       raise TypeError("'filtering' must be callable.")
     stdout, stderr = filtering(cmd_result, stdout, stderr)
 
+  if trim_paths:
+    stdout = _trim_paths(stdout)
+    stderr = _trim_paths(stderr)
+
   if cmd_result != 0 and raise_on_failure:
     # print the stdout and stderr, as the exception won't print it.
     print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
     raise subprocess.CalledProcessError(proc.returncode, cmd_args)
   elif print_output:
-    maybe_trim_paths = _trim_paths if trim_paths else _no_op
     if stdout:
-      sys.stdout.write("%s" % maybe_trim_paths(stdout))
+      sys.stdout.write("%s" % stdout)
     if stderr:
-      sys.stderr.write("%s" % maybe_trim_paths(stderr))
+      sys.stderr.write("%s" % stderr)
 
   return cmd_result, stdout, stderr
 
 
-def _no_op(x):
-    """Helper that does nothing but return the result."""
-    return x
-
-
 def _trim_paths(stdout):
   """Trim the current working directory from any paths in "stdout"."""
+  if not stdout:
+    return None
   CWD = os.getcwd() + "/"
 
   def replace_path(m):
