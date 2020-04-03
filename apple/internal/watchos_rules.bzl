@@ -61,7 +61,7 @@ load(
 )
 
 def _watchos_application_impl(ctx):
-    """Experimental implementation of ios_application."""
+    """Implementation of watchos_application."""
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
     top_level_attrs = [
@@ -129,7 +129,7 @@ def _watchos_application_impl(ctx):
     ] + processor_result.providers
 
 def _watchos_extension_impl(ctx):
-    """Experimental implementation of ios_extension."""
+    """Implementation of watchos_extension."""
     top_level_attrs = [
         "app_icons",
         "strings",
@@ -183,6 +183,10 @@ def _watchos_extension_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
+        # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
+        # framework, scoping dynamic frameworks only to the watch extension bundles:
+        # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
+        partials.framework_import_partial(targets = ctx.attr.deps),
         partials.resources_partial(
             bundle_id = bundle_id,
             plist_attrs = ["infoplists"],

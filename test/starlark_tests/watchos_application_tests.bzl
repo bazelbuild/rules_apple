@@ -39,6 +39,14 @@ def watchos_application_test_suite():
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_no_custom_fmwks_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_imported_fmwk",
+        verifier_script = "verifier_scripts/no_custom_fmwks_verifier.sh",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",

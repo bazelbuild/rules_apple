@@ -17,11 +17,14 @@
 set -eu
 
 WORKDIR="$1"
-if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
-  APPDIR="$WORKDIR/Payload"
-else
-  APPDIR="$WORKDIR"
-fi
+case "$APPLE_SDK_PLATFORM" in
+  "MacOSX"|"WatchSimulator"|"WatchOS")
+    APPDIR="$WORKDIR"
+    ;;
+  *)
+    APPDIR="$WORKDIR/Payload"
+    ;;
+esac
 
 # Save all codesigning output for each framework to verify later that they are
 # not being re-signed.

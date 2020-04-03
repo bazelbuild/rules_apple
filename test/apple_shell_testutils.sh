@@ -30,6 +30,18 @@ function assert_exists() {
 }
 
 
+# Usage: assert_not_exists <path>
+#
+# Asserts that the file at the given path does not exist.
+function assert_not_exists() {
+  local path="$1"
+  [ ! -f "$path" ] && return 0
+
+  fail "Expected file '$path' to not exist, but it does"
+  return 1
+}
+
+
 # Builds a regex to match a path in ZIP assert helpers by escaping some
 # characters that might appear in filenames and preceding it by ^. Also
 # follows it by $ unless the path ends in "/\?", which is used to check for

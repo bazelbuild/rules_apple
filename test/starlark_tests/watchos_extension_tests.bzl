@@ -44,6 +44,14 @@ def watchos_extension_test_suite():
     )
 
     apple_verification_test(
+        name = "{}_imported_fmwk_codesign_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_imported_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
         name = "{}_entitlements_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
@@ -78,6 +86,17 @@ def watchos_extension_test_suite():
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_imported_fmwk_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$RESOURCE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
+            "$RESOURCE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_imported_fmwk",
         tags = [name],
     )
 
