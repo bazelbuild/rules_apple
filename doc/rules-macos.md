@@ -759,7 +759,7 @@ Builds and bundles a macOS extension.
 ## macos_kernel_extension
 
 ```python
-macos_bundle(name, additional_contents, bundle_id, bundle_name, entitlements,
+macos_kernel_extension(name, additional_contents, bundle_id, bundle_name, entitlements,
 entitlements_validation, infoplists, ipa_post_processor, linkopts,
 minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
