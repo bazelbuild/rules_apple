@@ -54,10 +54,13 @@ def _swift_static_framework_partial_impl(ctx, swift_static_framework_info):
     expected_module_name = bundling_support.bundle_name(ctx)
     if expected_module_name != swift_static_framework_info.module_name:
         fail("""
-error: Found swift_library with module name {actual} but expected {expected}. Swift static \
+error: Found swift_library with module name '{actual}' but expected '{expected}.' Swift static \
 frameworks expect a single swift_library dependency with `module_name` set to the same \
 `bundle_name` as the static framework target.\
-""")
+""".format(
+            actual = swift_static_framework_info.module_name,
+            expected = expected_module_name,
+        ))
 
     generated_header = swift_static_framework_info.generated_header
     swiftdocs = swift_static_framework_info.swiftdocs
