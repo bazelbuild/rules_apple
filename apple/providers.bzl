@@ -197,7 +197,7 @@ used by an IDE to identify the Swift module (if any) used by the test's sources.
 deps.
 """,
         "sources": """
-`depset` of `File`s containing sources from the test's immediate deps.
+`depset` of `File`s containing sources and headers from the test's immediate deps.
 """,
         "swift_modules": """
 `depset` of `File`s representing transitive swift modules which are needed by

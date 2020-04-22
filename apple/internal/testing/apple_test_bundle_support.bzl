@@ -65,15 +65,18 @@ load(
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
 
-def _collect_files(rule_attr, attr_name):
-    """Collects files from attr_name (if present) into a depset."""
+def _collect_files(rule_attr, attr_names):
+    """Collects files from given attr_names (when present) into a depset."""
+    transitive_files = []
 
-    attr_val = getattr(rule_attr, attr_name, None)
-    if not attr_val:
-        return depset()
+    for attr_name in attr_names:
+        attr_val = getattr(rule_attr, attr_name, None)
+        if not attr_val:
+            continue
+        attr_val_as_list = attr_val if types.is_list(attr_val) else [attr_val]
+        transitive_files.extend([f.files for f in attr_val_as_list])
 
-    attr_val_as_list = attr_val if types.is_list(attr_val) else [attr_val]
-    return depset(transitive = [f.files for f in attr_val_as_list])
+    return depset(transitive = transitive_files)
 
 def _apple_test_info_aspect_impl(target, ctx):
     """See `test_info_aspect` for full documentation."""
@@ -107,12 +110,15 @@ def _apple_test_info_aspect_impl(target, ctx):
         hasattr(target[SwiftInfo], "transitive_swiftmodules")):
         swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
 
-    # Collect sources from the current target and add any relevant transitive
-    # information. Note that we do not propagate sources transitively as we
-    # intentionally only show test sources from the test's first-level of
-    # dependencies instead of all transitive dependencies.
-    non_arc_sources = _collect_files(ctx.rule.attr, "non_arc_srcs")
-    sources = _collect_files(ctx.rule.attr, "srcs")
+    # Collect sources from the current target. Note that we do not propagate
+    # sources transitively as we intentionally only show test sources from the
+    # test's first-level of dependencies instead of all transitive dependencies.
+    #
+    # Group the transitively exported headers into `sources` since we have no
+    # need to differentiate between internal headers and transitively exported
+    # headers.
+    non_arc_sources = _collect_files(ctx.rule.attr, ["non_arc_srcs"])
+    sources = _collect_files(ctx.rule.attr, ["srcs", "hdrs", "textual_hdrs"])
 
     return [AppleTestInfo(
         includes = depset(transitive = includes),
