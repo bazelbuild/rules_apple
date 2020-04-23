@@ -100,11 +100,15 @@ def _apple_test_info_aspect_impl(target, ctx):
 
     if apple_common.Objc in target:
         objc_provider = target[apple_common.Objc]
-        includes.append(objc_provider.include)
+        includes.append(objc_provider.strict_include)
 
         # Module maps should only be used by Swift targets.
         if SwiftInfo in target:
             module_maps.append(objc_provider.module_map)
+
+    if CcInfo in target:
+        cc_info = target[CcInfo]
+        includes.append(cc_info.compilation_context.includes)
 
     if (SwiftInfo in target and
         hasattr(target[SwiftInfo], "transitive_swiftmodules")):
