@@ -78,7 +78,9 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "bundletool_output_file_path",
     "is_experimental_tree_artifact_enabled",
+    "is_untracked_bundletool_output_enabled",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -331,7 +333,18 @@ def _bundle_partial_outputs_files(
                              "is not allowed. check input file:\n%s") % (target_path, source.path),
                         )
                     processed_file_target_paths[target_path] = None
-                control_files.append(struct(src = source.path, dest = target_path))
+
+                source_path = source.path
+                if (location == _LOCATION_ENUM.app_clip or
+                    location == _LOCATION_ENUM.framework or
+                    location == _LOCATION_ENUM.plugin):
+                    # This fixes bundling for other bundled products built by Bazel
+                    source_path = bundletool_output_file_path(
+                        config_vars = config_vars,
+                        original_path = source_path,
+                    )
+
+                control_files.append(struct(src = source_path, dest = target_path))
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
             if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
@@ -363,7 +376,10 @@ def _bundle_partial_outputs_files(
     control = struct(
         bundle_merge_files = control_files,
         bundle_merge_zips = control_zips,
-        output = output_file.path,
+        output = bundletool_output_file_path(
+            config_vars = config_vars,
+            original_path = output_file.path,
+        ),
         code_signing_commands = codesigning_command or "",
         post_processor = post_processor_path,
     )
@@ -406,6 +422,9 @@ def _bundle_partial_outputs_files(
             # Added so that the output of this action is not cached remotely, in case multiple
             # developers sign the same artifact with different identities.
             execution_requirements["no-remote"] = "1"
+        if is_untracked_bundletool_output_enabled(config_vars = config_vars):
+            # Untracked output shouldn't be cached (leads to odd results since we aren't tracking it)
+            execution_requirements["no-cache"] = "1"
 
         apple_support.run(
             actions = actions,

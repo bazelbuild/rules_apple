@@ -212,7 +212,11 @@ def _copy_file(src, dest, executable, bundle_root):
 
   _makedirs_safely(os.path.dirname(full_dest))
   shutil.copy(src, full_dest)
-  os.chmod(full_dest, 0o755 if executable else 0o644)
+  # Bazel created directories make the chmod a no-op (because it doesn't have
+  # permission?). When applied to non-bazel created directories it works, but
+  # executable property isn't being passed correctly currently, resulting in
+  # non-executable executables.
+  # os.chmod(full_dest, 0o755 if executable else 0o644)
 
 
 def _write_entry(dest, data, executable, bundle_root):
