@@ -66,6 +66,6 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_file,
         name = "xctestrunner",
         executable = 1,
-        sha256 = "9e46d5782a9dc7d40bc93c99377c091886c180b8c4ffb9f79a19a58e234cdb09",
-        urls = ["https://github.com/google/xctestrunner/releases/download/0.2.10/ios_test_runner.par"],
+        sha256 = "0338c71977106f1304a8056739db6f462a76f386a299052c1ed7f8fd463d01a8",
+        urls = ["https://github.com/google/xctestrunner/releases/download/0.2.11/ios_test_runner.par"],
     )
