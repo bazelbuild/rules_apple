@@ -143,6 +143,19 @@ def _objc_provider_with_dependencies(ctx, objc_provider_fields):
     objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
     return apple_common.new_objc_provider(**objc_provider_fields)
 
+def _cc_info_with_dependencies(ctx, header_imports):
+    """Returns a new CcInfo which includes transitive Cc dependencies."""
+    cc_info = CcInfo(
+        compilation_context = cc_common.create_compilation_context(
+            headers = depset(header_imports),
+            framework_includes = depset(_framework_search_paths(header_imports)),
+        ),
+    )
+    dep_cc_infos = [dep[CcInfo] for dep in ctx.attr.deps]
+    return cc_common.merge_cc_infos(
+        cc_infos = [cc_info] + dep_cc_infos,
+    )
+
 def _transitive_framework_imports(deps):
     """Returns the list of transitive framework imports for the given deps."""
     return [
@@ -239,15 +252,9 @@ def _apple_dynamic_framework_import_impl(ctx):
     )
 
     objc_provider = _objc_provider_with_dependencies(ctx, objc_provider_fields)
+    cc_info = _cc_info_with_dependencies(ctx, header_imports)
     providers.append(objc_provider)
-    providers.append(
-        CcInfo(
-            compilation_context = cc_common.create_compilation_context(
-                headers = depset(header_imports),
-                framework_includes = depset(_framework_search_paths(header_imports)),
-            ),
-        ),
-    )
+    providers.append(cc_info)
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
@@ -305,14 +312,7 @@ def _apple_static_framework_import_impl(ctx):
             objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
-    providers.append(
-        CcInfo(
-            compilation_context = cc_common.create_compilation_context(
-                headers = depset(header_imports),
-                framework_includes = depset(_framework_search_paths(header_imports)),
-            ),
-        ),
-    )
+    providers.append(_cc_info_with_dependencies(ctx, header_imports))
 
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
@@ -397,11 +397,11 @@ are not present at runtime.
         ),
         "deps": attr.label_list(
             doc = """
-A list of targets that are dependencies of the target being built, which will be
+A list of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
 """,
             providers = [
-                [apple_common.Objc, AppleFrameworkImportInfo],
+                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
             ],
         ),
         "alwayslink": attr.bool(
