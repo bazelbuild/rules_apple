@@ -25,27 +25,11 @@ def _symlink(ctx, source, target):
       source: The source `File` of the symlink.
       target: A `File` representing the target of the symlink.
     """
-
-    # TODO(b/33386130): Create proper symlinks everywhere.
-    ctx.actions.run_shell(
-        inputs = [source],
-        outputs = [target],
-        mnemonic = "Symlink",
-        arguments = [
-            target.dirname,
-            source.path,
-            target.path,
-            ctx.file._realpath.path,
-        ],
-        command = ('mkdir -p "$1"; ' +
-                   'if [[ "$(uname)" == Darwin ]]; then ' +
-                   '  ln -s "$("$4" "$2")" "$3"; ' +
-                   "else " +
-                   '  cp "$2" "$3"; ' +
-                   "fi"),
+    
+    ctx.actions.symlink(
+        output = target,
+        target_file = source,
         progress_message = "Symlinking %s to %s" % (source.path, target.path),
-        tools = [ctx.file._realpath],
-        execution_requirements = {"no-sandbox": "1"},
     )
 
 # Define the loadable module that lists the exported symbols in this file.
