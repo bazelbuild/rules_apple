@@ -27,4 +27,5 @@ buildifier:
   # TODO(b/140759593): Remove native-py from this list.
   # Disable 'bzl-visibility' since it doesn't work properly.
   #  https://github.com/bazelbuild/buildtools/issues/718
-  warnings: -native-cc,-native-py,-bzl-visibility
+  # TODO(b/155657940): Remove unnamed-macro from this list.
+  warnings: -native-cc,-native-py,-bzl-visibility,-unnamed-macro
