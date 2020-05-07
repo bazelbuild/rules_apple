@@ -271,7 +271,7 @@ def _tvos_extension_impl(ctx):
     ] + processor_result.providers
 
 def _tvos_static_framework_impl(ctx):
-    """Implementation of ios_static_framework."""
+    """Implementation of tvos_static_framework."""
 
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
