@@ -109,6 +109,8 @@ def _apple_test_info_aspect_impl(target, ctx):
     if CcInfo in target:
         cc_info = target[CcInfo]
         includes.append(cc_info.compilation_context.includes)
+        includes.append(cc_info.compilation_context.quote_includes)
+        includes.append(cc_info.compilation_context.system_includes)
 
     if (SwiftInfo in target and
         hasattr(target[SwiftInfo], "transitive_swiftmodules")):
