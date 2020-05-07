@@ -769,6 +769,17 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # watchos_static_framework
+        apple_product_type.static_framework: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
+            deps_cfg = transition_support.static_framework_transition,
+            has_infoplist = False,
+            product_type = apple_product_type.static_framework,
+            requires_bundle_id = False,
+            requires_provisioning_profile = False,
+        ),
     },
 }
 

@@ -33,6 +33,7 @@ load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_sui
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
 load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
+load(":watchos_static_framework_tests.bzl", "watchos_static_framework_test_suite")
 
 licenses(["notice"])
 
@@ -103,6 +104,8 @@ watchos_application_test_suite()
 watchos_dynamic_framework_test_suite()
 
 watchos_extension_test_suite()
+
+watchos_static_framework_test_suite()
 
 test_suite(
     name = "all_tests",
