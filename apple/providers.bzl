@@ -522,3 +522,27 @@ require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """,
 )
+
+WatchosFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is a watchOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a watchOS dynamic framework should use this provider to describe
+that requirement.
+""",
+)
+
+WatchosStaticFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an watchOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a watchOS static framework should use this provider to describe
+that requirement.
+""",
+)

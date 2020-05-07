@@ -725,6 +725,35 @@ _RULE_TYPE_DESCRIPTORS = {
             ],
             rule_transition = transition_support.apple_rule_transition,
         ),
+        # watchos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            bundle_extension = ".framework",
+            binary_type = "dylib",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+            rule_transition = transition_support.apple_rule_transition,
+        ),
+        # watchos_static_framework
+        apple_product_type.static_framework: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
+            deps_cfg = transition_support.static_framework_transition,
+            force_transition_whitelist = True,
+            has_infoplist = False,
+            product_type = apple_product_type.static_framework,
+            requires_bundle_id = False,
+            requires_provisioning_profile = False,
+            rule_transition = transition_support.apple_rule_transition,
+        ),
     },
 }
 

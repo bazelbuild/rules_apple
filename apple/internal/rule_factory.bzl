@@ -74,6 +74,7 @@ load(
     "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
+    "WatchosFrameworkBundleInfo"
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -828,6 +829,75 @@ A list of targets whose resources will be included in the final application. Sin
 application does not contain any code of its own, any code in the dependent libraries will be
 ignored.
 """,
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.framework:
+        attrs.append({
+            # TODO(kaipi): This attribute is not publicly documented, but it is tested in
+            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
+            # what to do with this.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.static_framework:
+        attrs.append({
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+            "avoid_deps": attr.label_list(
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+        })
+
+    # TODO(kaipi): Once all platforms have framework rules, move this into
+    # _common_binary_linking_attrs().
+    if rule_descriptor.requires_deps:
+        extra_args = {}
+        if rule_descriptor.product_type == apple_product_type.watch2_application:
+            extra_args["aspects"] = [framework_import_aspect]
+
+        attrs.append({
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+                **extra_args
             ),
         })
 
