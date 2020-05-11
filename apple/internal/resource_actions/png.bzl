@@ -27,15 +27,26 @@ def copy_png(ctx, input_file, output_file):
       input_file: The png file to be copied.
       output_file: The file reference for the output plist.
     """
+
+    # Xcode uses `xcrun copypng -strip-PNG-text -compress IN OUT`. But pngcrush
+    # is a perl script that doesn't properly handle when the process dies via a
+    # signal, so instead just expand out the comment to skip the script and
+    # directly run Xcode's copy of pngcrush with the same args.
     apple_support.run(
         ctx,
         inputs = [input_file],
         outputs = [output_file],
         executable = "/usr/bin/xcrun",
         arguments = [
-            "copypng",
-            "-strip-PNG-text",
-            "-compress",
+            "pngcrush",
+            # -compress expands to:
+            "-q",
+            "-iphone",
+            "-f",
+            "0",
+            # "-strip-PNG-text",
+            "-rem",
+            "text",
             input_file.path,
             output_file.path,
         ],
