@@ -24,7 +24,7 @@ ios_sticker_pack_extension(
         "ipad",
     ],
     infoplists = ["StickersExtension-Info.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     sticker_assets = glob(["Stickers.xcstickers/**"]),
     version = ":StickerAppVersion",
 )
@@ -39,7 +39,7 @@ ios_imessage_application(
         "ipad",
     ],
     infoplists = ["StickersApp-Info.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     version = ":StickerAppVersion",
 )
 

@@ -572,7 +572,7 @@ ios_imessage_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     tags = [
         "manual",
         "notap",
@@ -589,7 +589,7 @@ ios_sticker_pack_extension(
     infoplists = [
         "//test/starlark_tests/resources:StickerPackInfo.plist",
     ],
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     sticker_assets = [],
     tags = [
         "manual",

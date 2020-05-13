@@ -258,7 +258,7 @@ tvos_extension(
 tvos_static_framework(
     name = "ButtonsTVStaticFramework",
     bundle_name = "ButtonsTVStaticFramework",
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     deps = [":ButtonsTVLib"],
 )
 
