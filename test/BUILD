@@ -359,6 +359,18 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "watchos_framework_test",
+    size = "large",
+    src = "watchos_framework_test.sh",
+    configurations = WATCHOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/binaries:empty_watchos_dylib",
+        "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
+    shard_count = 12,
+)
+
+apple_multi_shell_test(
     name = "ios_unit_test_test",
     size = "medium",
     src = "ios_unit_test_test.sh",

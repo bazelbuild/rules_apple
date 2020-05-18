@@ -20,6 +20,14 @@ apple_binary(
     deps = [":dummy_lib"],
 )
 
+apple_binary(
+    name = "empty_watchos_dylib",
+    binary_type = "dylib",
+    minimum_os_version = "2.0",
+    platform_type = "watchos",
+    deps = [":dummy_lib"],
+)
+
 apple_static_library(
     name = "empty_staticlib",
     minimum_os_version = "9.0",
