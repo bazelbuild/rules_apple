@@ -1099,7 +1099,7 @@ Builds and bundles a macOS Spotlight Importer.
 ## macos_unit_test
 
 ```python
-macos_unit_test(name, additional_contents, bundle_id, infoplists,
+macos_unit_test(name, additional_contents, bundle_id, env, infoplists,
 minimum_os_version, resources, runner, test_host, data, deps)
 ```
 
@@ -1244,16 +1244,126 @@ of the attributes inherited by all test rules, please check the
   </tbody>
 </table>
 
+<a name="macos_unit_test_suite"></a>
+## macos_unit_test_suite
+```python
+macos_unit_test_suite(name, bundle_id, env, infoplists,
+minimum_os_version, runners, test_host, deps, [test specific attributes])
+```
+
+Generates a
+[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
+containing an [macos_unit_test](#macos_unit_test) for each of the given `runners`.
+`macos_unit_test_suite` takes the same parameters as
+[macos_unit_test](#macos_unit_test), except `runner` is replaced by `runners`.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>env</code></td>
+      <td>
+        <p><code>Dictionary of strings; optional</code></p>
+        <p>Dictionary of environment variables that should be set during the
+        test execution.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the test bundle. If not
+        specified, a default one will be provided that only contains the
+        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
+        placeholders that will be replaced when bundling. Please see
+        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
+      </td>
+    </tr>
+    <tr>
+      <td><code>runners</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
+        <p>The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an
+        <code>AppleTestRunnerInfo</code> provider.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_host</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>An <code>macos_application</code> target that represents the app that
+        will host the tests. If not specified, an empty shell app will be
+        provided as the test host.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets to link into the binary. Any
+        resources, such as asset catalogs, that are referenced by those targets
+        will also be transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
 <a name="macos_ui_test"></a>
 ## macos_ui_test
 
 ```python
-macos_ui_test(name, additional_contents, bundle_id, infoplists,
+macos_ui_test(name, additional_contents, bundle_id, env, infoplists,
 minimum_os_version, resources, runner, test_host, data, deps,
 [test specific attributes])
 ```
 
-Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+Builds and bundles an macOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
@@ -1358,7 +1468,7 @@ of the attributes inherited by all test rules, please check the
       <td><code>test_host</code></td>
       <td>
         <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
+        <p>An <code>macos_application</code> target that represents the app that
         will be tested using XCUITests. This is required as passing a default
         has no meaning in UI tests.
         </p>
@@ -1396,6 +1506,139 @@ of the attributes inherited by all test rules, please check the
     </tr>
   </tbody>
 </table>
+
+
+<a name="macos_ui_test_suite"></a>
+## macos_ui_test_suite
+
+```python
+macos_ui_test_suite(name, bundle_id, env, infoplists,
+minimum_os_version, runners, test_host, data, deps, provisioning_profile,
+[test specific attributes])
+```
+
+Generates a
+[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
+containing an [macos_ui_test](macos_ui_test) for each of the given `runners`.
+`macos_ui_test_suite` takes the same parameters as [macos_ui_test](macos_ui_test),
+except `runner` is replaced by `runners`.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>bundle_id</code></td>
+      <td>
+        <p><code>String; optional</code></p>
+        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
+        same bundle ID as the <code>test_host</code> bundle ID. If not
+        specified, the <code>test_host</code>'s bundle ID will be used with a
+        "Tests" suffix.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>env</code></td>
+      <td>
+        <p><code>Dictionary of strings; optional</code></p>
+        <p>Dictionary of environment variables that should be set during the
+        test execution.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>infoplists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of <code>.plist</code> files that will be merged to form the
+        <code>Info.plist</code> that represents the test bundle. If not
+        specified, a default one will be provided that only contains the
+        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
+        placeholders that will be replaced when bundling.  Please see
+        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
+        for what is supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum macOS version supported by the
+        target, represented as a dotted version number (for example,
+        <code>"10.11"</code>).
+      </td>
+    </tr>
+    <tr>
+      <td><code>runners</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
+        <p>The list of runner targets that contain the logic of how the tests
+        should be executed. This target needs to provide an
+        <code>AppleTestRunnerInfo</code> provider.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>test_host</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>An <code>macos_application</code> target that represents the app that
+        will be tested using XCUITests. This is required as passing a default
+        has no meaning in UI tests.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The list of files needed by this rule at runtime.</p>
+        <p>Targets named in the data attribute will appear in the `*.runfiles`
+        area of this rule, if it has one. This may include data files needed by
+        a binary or library, or other programs needed by it.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of dependencies targets to link into the binary. Any
+        resources, such as asset catalogs, that are referenced by those targets
+        will also be transitively included in the final test bundle.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>provisioning_profile</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
+        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
+        when bundling the target.</p>
+      </td>
+    </tr>
+    <tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 
 <a name="macos_xpc_service"></a>
 ## macos_xpc_service

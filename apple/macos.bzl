@@ -304,3 +304,22 @@ def macos_ui_test(name, **kwargs):
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )
+
+def macos_unit_test_suite(name, **kwargs):
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _macos_internal_unit_test_bundle,
+        test_rule = _macos_unit_test,
+        bundle_loader = kwargs.get("test_host"),
+        dylibs = kwargs.get("frameworks"),
+        **kwargs
+    )
+
+def macos_ui_test_suite(name, **kwargs):
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _macos_internal_ui_test_bundle,
+        test_rule = _macos_ui_test,
+        dylibs = kwargs.get("frameworks"),
+        **kwargs
+    )

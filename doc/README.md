@@ -49,7 +49,10 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-macos.md#macos_extension">macos_extension</a></code><br/>
       </td>
       <td valign="top">
+        <code><a href="rules-macos.md#macos_ui_test">macos_ui_test</a></code><br/>
+        <code><a href="rules-macos.md#macos_ui_test_suite">macos_ui_test_suite</a></code><br/>
         <code><a href="rules-macos.md#macos_unit_test">macos_unit_test</a></code><br/>
+        <code><a href="rules-macos.md#macos_unit_test_suite">macos_unit_test_suite</a></code><br/>
       </td>
     <tr>
       <th align="left" valign="top">tvOS</th>
