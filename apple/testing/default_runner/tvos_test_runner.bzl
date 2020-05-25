@@ -40,7 +40,7 @@ def _get_execution_environment(ctx):
 def _tvos_test_runner_impl(ctx):
     """Implementation for the tvos_test_runner rule."""
     ctx.actions.expand_template(
-        template = ctx.file._test_template,
+        template = ctx.file.test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(ctx),
     )
@@ -84,7 +84,7 @@ correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.1.
 By default, it is the latest supported version of the device type.'
 """,
         ),
-        "_test_template": attr.label(
+        "test_template": attr.label(
             default = Label(
                 "@build_bazel_rules_apple//apple/testing/default_runner:tvos_test_runner.template.sh",
             ),
