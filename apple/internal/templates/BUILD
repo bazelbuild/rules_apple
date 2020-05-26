@@ -11,7 +11,7 @@ filegroup(
 
 filegroup(
     name = "ios_sim_template",
-    srcs = ["ios_sim.template.sh"],
+    srcs = ["ios_sim.template.py"],
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.

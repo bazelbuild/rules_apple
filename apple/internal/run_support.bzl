@@ -37,7 +37,6 @@ def _register_simulator_executable(ctx, output):
             "%ipa_file%": outputs.archive(ctx).short_path,
             "%sim_device%": sim_device,
             "%sim_os_version%": sim_os_version,
-            "%std_redirect_dylib_path%": ctx.file._std_redirect_dylib.short_path,
         },
     )
 
