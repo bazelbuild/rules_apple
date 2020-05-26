@@ -16,6 +16,10 @@
 
 load("@build_bazel_rules_apple//apple/internal:bundling_support.bzl", "bundling_support")
 load("@build_bazel_rules_apple//apple/internal:outputs.bzl", "outputs")
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
 
 def _register_simulator_executable(ctx, output):
     """Registers an action that runs the bundled app in the iOS simulator.
@@ -27,6 +31,7 @@ def _register_simulator_executable(ctx, output):
 
     sim_device = str(ctx.fragments.objc.ios_simulator_device or "")
     sim_os_version = str(ctx.fragments.objc.ios_simulator_version or "")
+    minimum_os = str(platform_support.minimum_os(ctx))
 
     ctx.actions.expand_template(
         output = output,
@@ -37,6 +42,7 @@ def _register_simulator_executable(ctx, output):
             "%ipa_file%": outputs.archive(ctx).short_path,
             "%sim_device%": sim_device,
             "%sim_os_version%": sim_os_version,
+            "%minimum_os%": minimum_os,
         },
     )
 
