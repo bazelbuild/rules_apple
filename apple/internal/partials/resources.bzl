@@ -280,8 +280,6 @@ def _resources_partial_impl(
         "mlmodels": (resources_support.mlmodels, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
-        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
-        "resource_zips": (resources_support.resource_zips, False),
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),

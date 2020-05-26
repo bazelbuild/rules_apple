@@ -145,8 +145,6 @@ only be bucketed with the `bucketize_typed` method.""",
         "mlmodels": "Core ML model files that should be processed and bundled at the top level.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",
-        # TODO(b/113252360): Remove this once we can correctly process Fileset files.
-        "resource_zips": "ZIP files that need to be extracted into the resources bundle location.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "texture_atlases": "Texture atlas files.",
