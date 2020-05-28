@@ -233,43 +233,4 @@ function test_runner_script_contains_expected_values() {
   assert_contains "TEST_TYPE=XCUITEST" "test-bin/app/ui_tests"
 }
 
-# Tests that test bundles can depend on ios_frameworks.
-function test_target_can_depend_on_ios_framework() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-
-ios_framework(
-    name = "test_framework",
-    bundle_id = "my.test.shared.framework",
-    infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
-    families = ["iphone", "ipad"],
-    deps = [":shared_test_lib"],
-)
-
-ios_ui_test(
-    name = "ui_tests",
-    deps = [":ui_test_lib"],
-    frameworks = [":test_framework"],
-    minimum_os_version = "9.0",
-    test_host = ":app",
-)
-EOF
-
-  do_build ios //app:ui_tests || fail "Should build"
-
-  assert_zip_contains "test-bin/app/ui_tests.zip" \
-      "ui_tests.xctest/Frameworks/test_framework.framework/test_framework"
-}
-
 run_suite "ios_ui_test bundling tests"

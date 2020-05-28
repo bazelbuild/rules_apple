@@ -89,6 +89,53 @@ def ios_unit_test_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_test_target_bundles_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_bundles_imported_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_imported_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_does_not_bundle_framework_if_host_does".format(name),
+        build_type = "simulator",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_host_importing_same_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_does_not_bundle_resources_from_host_or_shared_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/nonlocalized.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.plist",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/empty.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:dedupe_test_test",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

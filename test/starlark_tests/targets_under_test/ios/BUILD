@@ -661,6 +661,29 @@ ios_ui_test(
     ],
 )
 
+ios_ui_test(
+    name = "ui_test_with_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_unit_test(
@@ -746,5 +769,179 @@ ios_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_imported_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_host_importing_same_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    test_host = ":app_with_imported_fmwk",
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for the app/test resource deduping test.
+
+objc_library(
+    name = "shared_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:basic_bundle",
+    ],
+    tags = [
+        "manual",
+        "notap",
+    ],
+)
+
+objc_library(
+    name = "app_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:empty.strings",
+    ],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [":shared_lib"],
+)
+
+objc_library(
+    name = "test_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:nonlocalized.strings",
+    ],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [":app_lib"],
+)
+
+objc_library(
+    name = "main_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":app_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "dedupe_test_fmwk",
+    bundle_id = "com.fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":shared_lib",
+    ],
+)
+
+ios_application(
+    name = "dedupe_test_app",
+    bundle_id = "com.app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":dedupe_test_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":main_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "dedupe_test_test",
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    test_host = ":dedupe_test_app",
+    deps = [
+        ":test_lib",
     ],
 )

@@ -371,13 +371,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_unit_test_resources_test",
-    size = "medium",
-    src = "ios_unit_test_resources_test.sh",
-    configurations = IOS_TEST_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "ios_ui_test_test",
     size = "medium",
     src = "ios_ui_test_test.sh",
