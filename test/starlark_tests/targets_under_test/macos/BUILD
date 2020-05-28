@@ -163,6 +163,30 @@ macos_bundle(
     ],
 )
 
+macos_bundle(
+    name = "bundle_dead_stripped",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    bundle_id = "com.google.example",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_quick_look_plugin(
@@ -175,6 +199,30 @@ macos_quick_look_plugin(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_quick_look_plugin(
+    name = "ql_plugin_dead_stripped",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    bundle_id = "com.google.example",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionMain.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
     minimum_os_version = "10.10",
     tags = [
         "manual",

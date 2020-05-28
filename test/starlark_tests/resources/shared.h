@@ -14,6 +14,10 @@
 
 #import <Foundation/Foundation.h>
 
+void dontCallMeShared();
+void anotherFunctionShared();
+void anticipatedDeadCode();
+
 @interface ObjectiveCSharedClass : NSObject
 
 - (void)doSomethingShared;

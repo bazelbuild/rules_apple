@@ -418,6 +418,57 @@ ios_framework(
 )
 
 ios_framework(
+    name = "fmwk_dead_stripped",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_dead_stripped_two_exported_symbol_lists",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+        "//test/starlark_tests/resources:ExportDontCallMeShared.exp",
+    ],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
     extension_safe = 1,

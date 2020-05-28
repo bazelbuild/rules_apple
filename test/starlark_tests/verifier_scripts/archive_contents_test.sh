@@ -88,7 +88,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   if [[ ! -n $arch ]]; then
     fail "No architecture specified for binary file at \"$path\""
   fi
-  IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | awk '{print $3}'))
+  # Filter out undefined symbols from the objdump mach-o symbol output.
+  IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print $NF}'))
   if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
     for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
     do

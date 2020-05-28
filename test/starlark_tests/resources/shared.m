@@ -14,6 +14,21 @@
 
 #import "shared.h"
 
+void dontCallMeShared() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
+void anotherFunctionShared() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
+void anticipatedDeadCode() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
 @implementation ObjectiveCSharedClass
 
 - (void)doSomethingShared {

@@ -211,6 +211,26 @@ tvos_framework(
 )
 
 tvos_framework(
+    name = "fmwk_dead_stripped",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
     infoplists = [

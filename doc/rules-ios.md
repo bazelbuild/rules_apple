@@ -907,9 +907,10 @@ Builds and bundles an iOS Sticker Pack extension.
 ## ios_framework
 
 ```python
-ios_framework(name, bundle_id, bundle_name, extension_safe, families,
-frameworks, infoplists, ipa_post_processor, linkopts, minimum_os_version,
-provisioning_profile, resources, strings, version, deps)
+ios_framework(name, bundle_id, bundle_name, exported_symbols_list,
+extension_safe, families, frameworks, infoplists, ipa_post_processor,
+linkopts, minimum_os_version, provisioning_profile, resources, strings,
+version, deps)
 ```
 
 Builds and bundles an iOS dynamic framework. To use this framework for your
@@ -952,11 +953,24 @@ app and extensions, list it in the `frameworks` attributes of those
       </td>
     </tr>
     <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>extension_safe</code></td>
       <td>
         <p><code>Boolean; optional</code></p>
         <p>If true, compiles and links this framework with <code>-application-extension</code>,
-        restricting the binary to use only extension-safe APIs. False by default.
+        restricting the binary to use only extension-safe APIs. False by default.</p>
       </td>
     </tr>
     <tr>

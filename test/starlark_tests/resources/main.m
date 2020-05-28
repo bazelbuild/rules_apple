@@ -12,6 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#import <Foundation/Foundation.h>
+
+void dontCallMeMain() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
+void anotherFunctionMain() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
 int main() {
   return 0;
 }

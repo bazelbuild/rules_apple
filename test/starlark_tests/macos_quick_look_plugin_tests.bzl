@@ -64,6 +64,18 @@ def macos_quick_look_plugin_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_exported_symbols_list_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin_dead_stripped",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin_dead_stripped",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionMain"],
+        binary_not_contains_symbols = ["_dontCallMeMain"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

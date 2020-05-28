@@ -77,6 +77,7 @@ def macos_bundle(name, **kwargs):
         name,
         platform_type = str(apple_common.platform_type.macos),
         features = features,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         **binary_args
     )
 
@@ -86,12 +87,16 @@ def macos_bundle(name, **kwargs):
     )
 
 def macos_quick_look_plugin(name, **kwargs):
+    # buildifier: disable=function-docstring-args
     """Builds and bundles an macOS Quick Look plugin."""
+    binary_args = dict(kwargs)
+
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.macos),
         include_entitlements = False,
-        **kwargs
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
+        **binary_args
     )
 
     _macos_quick_look_plugin(

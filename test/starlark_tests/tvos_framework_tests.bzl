@@ -15,6 +15,10 @@
 """tvos_framework Starlark tests."""
 
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -43,6 +47,18 @@ def tvos_framework_test_suite():
             "MinimumOSVersion": "9.0",
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_exported_symbols_list_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_dead_stripped",
+        binary_test_file = "$BUNDLE_ROOT/fmwk_dead_stripped",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        binary_not_contains_symbols = ["_dontCallMeShared", "_anticipatedDeadCode"],
         tags = [name],
     )
 

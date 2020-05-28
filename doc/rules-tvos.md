@@ -382,9 +382,9 @@ Builds and bundles a tvOS extension.
 ## tvos_framework
 
 ```python
-tvos_framework(name, bundle_id, bundle_name, extension_safe, frameworks,
-infoplists, ipa_post_processor, linkopts, minimum_os_version,
-provisioning_profile, resources, strings, version, deps)
+tvos_framework(name, bundle_id, bundle_name, exported_symbols_lists,
+extension_safe, frameworks, infoplists, ipa_post_processor, linkopts,
+minimum_os_version, provisioning_profile, resources, strings, version, deps)
 ```
 
 Builds and bundles a tvOS dynamic framework. To use this framework for your app
@@ -424,6 +424,19 @@ and extensions, list it in the `frameworks` attributes of those
         <p>The desired name of the bundle (without the <code>.framework</code>
         extension). If this attribute is not set, then the <code>name</code> of
         the target will be used instead.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
       </td>
     </tr>
     <tr>
