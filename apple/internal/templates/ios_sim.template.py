@@ -447,7 +447,9 @@ def ios_simulator(simctl_path, minimum_os, sim_device, sim_os_version):
     The UDID of the simulator.
   """
   if sim_device and sim_os_version:
-    yield temporary_ios_simulator(simctl_path, sim_device, sim_os_version)
+    with temporary_ios_simulator(simctl_path, sim_device,
+                                 sim_os_version) as udid:
+      yield udid
   else:
     yield persistent_ios_simulator(simctl_path, minimum_os, sim_device,
                                    sim_os_version)
