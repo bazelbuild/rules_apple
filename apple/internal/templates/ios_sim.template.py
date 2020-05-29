@@ -92,13 +92,27 @@ class DeviceType(collections.abc.Mapping):
 
   def __lt__(self, other):
     # Order iPhones ahead of (later in the list than) iPads.
-    if self["productFamily"] == "iPad" and other["productFamily"] == "iPhone":
+    if self.is_ipad() and other.is_iphone():
       return True
-    elif self["productFamily"] == "iPhone" and other["productFamily"] == "iPad":
+    elif self.is_iphone() and other.is_ipad():
       return False
     # Order device types from the same product family in the same order
     # as `simctl list`.
     return self.simctl_list_index < other.simctl_list_index
+
+  def is_iphone(self):
+    return self.has_product_family_or_identifier("iPhone")
+
+  def is_ipad(self):
+    return self.has_product_family_or_identifier("iPad")
+
+  def has_product_family_or_identifier(self, device_type):
+    product_family = self.get("productFamily")
+    if product_family:
+      return product_family == device_type
+    # Some older simulators are missing `productFamily`. Try to guess from the
+    # identifier.
+    return device_type in self["identifier"]
 
 
 class Device(collections.abc.Mapping):
@@ -193,13 +207,17 @@ def discover_best_compatible_simulator(simctl_path, minimum_os, sim_device,
   # the index of each device type to preserve that ordering when
   # sorting device types.
   for (simctl_list_index, device_type) in enumerate(simctl_data["devicetypes"]):
-    if device_type["productFamily"] not in ("iPhone", "iPad"):
+    device_type = DeviceType(device_type, simctl_list_index)
+    if not (device_type.is_iphone() or device_type.is_ipad()):
       continue
-    if device_type["maxRuntimeVersion"] < minimum_runtime_version:
+    # Some older simulators are missing `maxRuntimeVersion`. Assume those
+    # simulators support all OSes (even though it's not true).
+    max_runtime_version = device_type.get("maxRuntimeVersion")
+    if max_runtime_version and max_runtime_version < minimum_runtime_version:
       continue
     if sim_device and device_type["name"].casefold().find(sim_device) == -1:
       continue
-    compatible_device_types.append(DeviceType(device_type, simctl_list_index))
+    compatible_device_types.append(device_type)
   compatible_device_types.sort()
   logger.debug("Found %d compatible device types.",
                len(compatible_device_types))
