@@ -239,6 +239,8 @@ def _create_binary(
     linkopts = kwargs.pop("linkopts", [])
     linkopts = linkopts + collections.before_each("-rpath", rule_descriptor.rpaths)
     linkopts = linkopts + rule_descriptor.extra_linkopts
+    if extension_safe:
+        linkopts = linkopts + ["-application_extension"]
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")
