@@ -20,7 +20,7 @@ def _bool_value(ctx, define_name, default):
     Will also report an error if the value is not a supported value.
 
     Args:
-      ctx: A skylark context.
+      ctx: A Starlark context.
       define_name: The name of the define to look up.
       default: The value to return if the define isn't found.
 

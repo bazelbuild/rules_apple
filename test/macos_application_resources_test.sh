@@ -368,7 +368,7 @@ EOF
       CFBundleIdentifier CFBundleName
   do_build macos //app:dump_plist || fail "Should build"
 
-  # Verify the values injected by the Skylark rule for bundle_library's
+  # Verify the values injected by the Starlark rule for bundle_library's
   # info.plist
   assert_equals "org.bazel.bundle-library-macos" \
       "$(cat "test-bin/app/CFBundleIdentifier")"

@@ -86,7 +86,7 @@ EOF
 # Usage: create_minimal_ios_application_with_extension [product type]
 #
 # Creates a minimal iOS application target. The optional product type is
-# the Skylark constant that should be set on the extension using the
+# the Starlark constant that should be set on the extension using the
 # `product_type` attribute.
 function create_minimal_ios_application_with_extension() {
   if [[ ! -f app/BUILD ]]; then
