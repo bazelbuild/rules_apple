@@ -448,6 +448,10 @@ def simctl_launch_environ():
       continue
     new_key = k.replace("IOS_", "SIMCTL_CHILD_", 1)
     result[new_key] = v
+  if 'IDE_DISABLED_OS_ACTIVITY_DT_MODE' not in os.environ:
+    # Ensure os_log() mirrors writes to stderr. (lldb and Xcode set this
+    # environment variable as well.)
+    result["SIMCTL_CHILD_OS_ACTIVITY_DT_MODE"] = "enable"
   return result
 
 
