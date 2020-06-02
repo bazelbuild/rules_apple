@@ -78,6 +78,7 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",

@@ -144,33 +144,6 @@ EOF
   expect_log 'Target "//app:ext" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build tvos || return 0
-
-  create_minimal_tvos_application_with_extension
-  do_build tvos //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
-}
-
-# Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
-  # Bitcode is only availabe on device. Ignore the test for simulator builds.
-  is_device_build tvos || return 0
-
-  create_minimal_tvos_application_with_extension
-  do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
-
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
-      "Payload/app.app/app"
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/ext"
-}
-
 # Tests that if an application contains an extension with a bundle ID that is
 # not the app's ID followed by at least another component, the build fails.
 function test_extension_with_mismatched_bundle_id_fails_to_build() {

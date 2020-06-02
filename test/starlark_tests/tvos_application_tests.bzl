@@ -185,7 +185,10 @@ def tvos_application_test_suite():
         name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
         apple_bitcode = "embedded",
         build_type = "device",
-        env = {"PLATFORM": ["tvos"]},
+        env = {
+            "BITCODE_BINARIES": ["Payload/app.app/app"],
+            "PLATFORM": ["tvos"],
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         verifier_script = "verifier_scripts/bitcode_verifier.sh",
         tags = [

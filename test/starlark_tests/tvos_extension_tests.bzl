@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -66,6 +70,39 @@ def tvos_extension_test_suite():
             "MinimumOSVersion": "9.0",
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    # Tests that the archive contains Bitcode symbol maps when Bitcode is
+    # enabled.
+    apple_verification_test(
+        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
+        apple_bitcode = "embedded",
+        build_type = "device",
+        env = {
+            "BITCODE_BINARIES": [
+                "Payload/app_with_ext.app/app_with_ext",
+                "Payload/app_with_ext.app/PlugIns/ext.appex/ext",
+            ],
+            "PLATFORM": ["tvos"],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext",
+        verifier_script = "verifier_scripts/bitcode_verifier.sh",
+        tags = [
+            name,
+            # OSS Blocked by b/73546952
+            "manual",  # disabled in oss
+        ],
+    )
+
+    # Tests that the provisioning profile is present when built for device.
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        contains = [
+            "$BUNDLE_ROOT/embedded.mobileprovision",
+        ],
         tags = [name],
     )
 

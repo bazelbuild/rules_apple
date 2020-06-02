@@ -630,35 +630,39 @@ function assert_objdump_not_contains() {
 # To support legacy shell tests and newer Starlark tests, this function can take
 # the `archive` and `binary_path` arguments in two forms:
 #
-# - If `archive` is a directory, then `binary_path` is assumed to be the full
-#   path to the binary.
+# - If `archive` is a directory, then `binary_path` is assumed to be the
+#   path to the binary relative to `archive`.
 # - If `archive` is a file, it is assumed to be an .ipa or .zip archive and
 #   `binary_path` is treated as the relative path to the binary inside that
 #   archive.
 function assert_ipa_contains_bitcode_maps() {
-  local platform="$1"
-  local archive_zip_or_dir="$2"
-  local binary="$3"
+  local platform="$1" ; shift
+  local archive_zip_or_dir="$1" ; shift
 
-  if [[ -d "$archive_zip_or_dir" ]] ; then
-    ln -s "$binary" "$TEST_TMPDIR"/tmp_bin
-  else
-    assert_zip_contains "$archive_zip_or_dir" "$binary"
-    unzip_single_file "$archive_zip_or_dir" "$binary" > "$TEST_TMPDIR"/tmp_bin
-  fi
-
-  # Verify that there is a Bitcode symbol map for each UUID in the DWARF info.
-  dwarfdump -u "$TEST_TMPDIR"/tmp_bin | while read line ; do
-    local -a uuid_and_arch=(
-      $(echo "$line" | sed -e 's/UUID: \([^ ]*\) (\([^)]*\)).*/\1 \2/') )
-    local uuid=${uuid_and_arch[0]}
-
+  for binary in "$@" ; do
     if [[ -d "$archive_zip_or_dir" ]] ; then
-      assert_exists "$archive_zip_or_dir/BCSymbolMaps/${uuid}.bcsymbolmap"
+      assert_exists "$archive_zip_or_dir/$binary"
+      ln -s "$archive_zip_or_dir/$binary" "$TEST_TMPDIR"/tmp_bin
     else
-      assert_zip_contains "$archive_zip_or_dir" \
-        "BCSymbolMaps/${uuid}.bcsymbolmap"
+      assert_zip_contains "$archive_zip_or_dir" "$binary"
+      unzip_single_file "$archive_zip_or_dir" "$binary" > "$TEST_TMPDIR"/tmp_bin
     fi
+
+    # Verify that there is a Bitcode symbol map for each UUID in the DWARF info.
+    dwarfdump -u "$TEST_TMPDIR"/tmp_bin | while read line ; do
+      local -a uuid_and_arch=(
+        $(echo "$line" | sed -e 's/UUID: \([^ ]*\) (\([^)]*\)).*/\1 \2/') )
+      local uuid=${uuid_and_arch[0]}
+
+      if [[ -d "$archive_zip_or_dir" ]] ; then
+        assert_exists "$archive_zip_or_dir/BCSymbolMaps/${uuid}.bcsymbolmap"
+      else
+        assert_zip_contains "$archive_zip_or_dir" \
+          "BCSymbolMaps/${uuid}.bcsymbolmap"
+      fi
+    done
+
+    rm "$TEST_TMPDIR"/tmp_bin
   done
 }
 
