@@ -25,7 +25,7 @@ def _register_simulator_executable(ctx, output):
     """Registers an action that runs the bundled app in the iOS simulator.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       output: The `File` representing where the executable should be generated.
     """
 
@@ -50,7 +50,7 @@ def _register_macos_executable(ctx, output):
     """Registers an action that runs the bundled macOS app.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       output: The `File` representing where the executable should be generated.
     """
     ctx.actions.expand_template(

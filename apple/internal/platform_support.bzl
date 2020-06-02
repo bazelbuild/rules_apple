@@ -43,7 +43,7 @@ def _families(ctx):
     families from the private attribute instead.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The list of device families that apply to the target being built.
@@ -58,7 +58,7 @@ def _ui_device_family_plist_value(ctx):
     no plist entry (currently, only macOS doesn't use UIDeviceFamily).
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       A list of integers to use for the `UIDeviceFamily` in an Info.plist
@@ -77,7 +77,7 @@ def _is_device_build(ctx):
     """Returns True if the target is being built for a device.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       True if this is a device build, or False if it is a simulator build.
@@ -89,7 +89,7 @@ def _minimum_os(ctx):
     """Returns the minimum OS version required for the current target.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       A string containing the dotted minimum OS version.
@@ -105,7 +105,7 @@ def _platform_type(ctx):
     """Returns the platform type for the current target.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The `PlatformType` for the current target, after being converted from its
@@ -118,7 +118,7 @@ def _platform(ctx):
     """Returns the platform for the current target.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The Platform object for the target.
@@ -131,7 +131,7 @@ def _platform_and_sdk_version(ctx):
     """Returns the platform and SDK version for the current target.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       A tuple containing the Platform object for the target and the SDK version

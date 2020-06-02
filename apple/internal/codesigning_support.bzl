@@ -67,7 +67,7 @@ def _codesign_args_for_path(
     """Returns a command line for the codesigning tool wrapper script.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       path_to_sign: A struct indicating the path that should be signed and its
           optionality (see `_path_to_sign`).
       provisioning_profile: The provisioning profile file. May be `None`.
@@ -200,7 +200,7 @@ def _signing_command_lines(
     used for signing for any reason.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
           paths that should be code-signed.
       entitlements_file: The entitlements file to pass to codesign.
@@ -233,7 +233,7 @@ def _should_sign_simulator_bundles(ctx):
     the other bundles.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       True/False for if the bundle should be signed.

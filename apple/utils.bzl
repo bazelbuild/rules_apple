@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility functions for working with strings, lists, and files in Skylark."""
+"""Utility functions for working with strings, lists, and files in Starlark."""
 
 def full_label(lbl):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.

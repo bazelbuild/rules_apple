@@ -26,7 +26,7 @@ def _bundle_name(ctx):
     given; if not, then the name of the target will be used instead.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The bundle name.
@@ -40,7 +40,7 @@ def _bundle_extension(ctx):
     """Returns the bundle extension.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The bundle extension.
@@ -60,7 +60,7 @@ def _bundle_name_with_extension(ctx):
     """Returns the name of the bundle with its extension.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       The bundle name with its extension.

@@ -21,7 +21,7 @@ def _symlink(ctx, source, target):
     it is not present already.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       source: The source `File` of the symlink.
       target: A `File` representing the target of the symlink.
     """

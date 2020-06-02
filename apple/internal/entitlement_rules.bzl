@@ -93,7 +93,7 @@ def _new_entitlements_artifact(ctx, extension):
     target's location whose name is the target's name with the given extension.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       extension: The file extension (including the leading dot).
 
     Returns:
@@ -112,7 +112,7 @@ def _include_debug_entitlements(ctx):
     Debug entitlements are also not used on macOS.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       True if the debug entitlements should be included, otherwise False.
@@ -134,7 +134,7 @@ def _extract_signing_info(ctx):
     """Inspects the current context and extracts the signing information.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       A `struct` with two items: the entitlements file to use, a
@@ -206,7 +206,7 @@ def _entitlements_impl(ctx):
     used in that case.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
 
     Returns:
       A `struct` containing the `objc` provider that propagates the additional

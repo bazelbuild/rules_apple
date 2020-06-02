@@ -82,7 +82,7 @@ def _run(ctx, **kwargs):
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       **kwargs: Arguments to be passed into ctx.actions.run.
     """
     ctx.actions.run(**_kwargs_for_apple_platform(ctx, **kwargs))
@@ -102,7 +102,7 @@ def _run_shell(ctx, **kwargs):
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       **kwargs: Arguments to be passed into ctx.actions.run_shell.
     """
 

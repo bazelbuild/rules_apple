@@ -51,7 +51,7 @@ def plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
     actions for more specific resources, like Info.plist files or entitlements.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       inputs: Any `File`s that should be treated as inputs to the underlying
           action.
       outputs: Any `File`s that should be treated as outputs of the underlying
@@ -74,7 +74,7 @@ def compile_plist(ctx, input_file, output_file):
     """Creates an action that compiles plist and strings files.
 
     Args:
-      ctx: The Skylark context.
+      ctx: The Starlark context.
       input_file: The property list file that should be converted.
       output_file: The file reference for the output plist.
     """

@@ -534,7 +534,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         IosStickerPackExtensionBundleInfo(),
     ] + processor_result.providers
 
-# Rule definitions for rules that use the Skylark linking API and the new rule_factory support.
+# Rule definitions for rules that use the Starlark linking API and the new rule_factory support.
 # TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
 # attributes.
 
