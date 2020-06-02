@@ -28,4 +28,5 @@ buildifier:
   # Disable 'bzl-visibility' since it doesn't work properly.
   #  https://github.com/bazelbuild/buildtools/issues/718
   # TODO(b/155657940): Remove unnamed-macro from this list.
-  warnings: -native-cc,-native-py,-bzl-visibility,-unnamed-macro
+  # TODO(b/158011388): Remove skylark-{comment,docstring} from this list.
+  warnings: -native-cc,-native-py,-bzl-visibility,-unnamed-macro,-skylark-comment,-skylark-docstring
