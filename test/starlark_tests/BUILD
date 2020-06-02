@@ -13,6 +13,7 @@ load(":macos_kernel_extension_tests.bzl", "macos_kernel_extension_test_suite")
 load(":macos_quick_look_plugin_tests.bzl", "macos_quick_look_plugin_test_suite")
 load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
+load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
 load(":tvos_extension_tests.bzl", "tvos_extension_test_suite")
 load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
@@ -53,6 +54,8 @@ macos_quick_look_plugin_test_suite()
 macos_ui_test_test_suite()
 
 macos_unit_test_test_suite()
+
+tvos_application_swift_test_suite()
 
 tvos_application_test_suite()
 

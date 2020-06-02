@@ -68,38 +68,6 @@ EOF
 EOF
 }
 
-# Asserts that app.ipa contains the Swift runtime in both the application
-# bundle and in the top-level support directory.
-function assert_ipa_contains_swift_dylibs_for_device() {
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/libswiftCore.dylib"
-
-  if is_device_build tvos; then
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/appletvos/libswiftCore.dylib"
-  else
-    assert_zip_not_contains "test-bin/app/app.ipa" \
-        "SwiftSupport/appletvsimulator/libswiftCore.dylib"
-  fi
-
-}
-
-# Tests that the bundler includes the Swift runtime both in the application
-# bundle and in the top-level support directory of the IPA.
-function test_swift_dylibs_present() {
-  create_minimal_tvos_application
-
-  cat >> app/BUILD <<EOF
-swift_library(
-    name = "lib",
-    srcs = ["AppDelegate.swift"],
-)
-EOF
-
-  do_build tvos //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs_for_device
-}
-
 # Tests that if the Swift dylib feature is set to false, they don't exist
 # in final device build ipas
 function test_swift_dylibs_not_present_for_feature() {
@@ -120,34 +88,6 @@ EOF
     assert_zip_not_contains "test-bin/app/app.ipa" \
         "SwiftSupport/appletvos/libswiftCore.dylib"
   fi
-}
-
-# Tests that the bundler includes the Swift runtime even when Swift is an
-# indirect dependency (that is, none of the direct deps of the application
-# are swift_libraries, but a transitive dependency is). This verifies that
-# the `uses_swift` property is propagated correctly.
-function test_swift_dylibs_present_with_only_indirect_swift_deps() {
-  create_minimal_tvos_application
-
-  cat >> app/dummy.m <<EOF
-static void dummy() {}
-EOF
-
-  cat >> app/BUILD <<EOF
-objc_library(
-    name = "lib",
-    srcs = ["dummy.m"],
-    deps = [":lib2"],
-)
-
-swift_library(
-    name = "lib2",
-    srcs = ["AppDelegate.swift"],
-)
-EOF
-
-  do_build tvos //app:app || fail "Should build"
-  assert_ipa_contains_swift_dylibs_for_device
 }
 
 run_suite "tvos_application with Swift bundling tests"

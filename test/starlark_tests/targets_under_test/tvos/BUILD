@@ -15,6 +15,10 @@ load(
     "//test/testdata/frameworks:generate_framework.bzl",
     "generate_import_framework",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
 
 licenses(["notice"])
 
@@ -387,4 +391,62 @@ tvos_unit_test(
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+tvos_application(
+    name = "app_with_direct_swift_dep",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [":swift_lib"],
+)
+
+tvos_application(
+    name = "app_with_indirect_swift_dep",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [":objc_to_swift_lib"],
+)
+
+tvos_application(
+    name = "app_with_direct_swift_dep_stable_abi",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "12.2",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [":swift_lib"],
+)
+
+swift_library(
+    name = "swift_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+)
+
+objc_library(
+    name = "objc_to_swift_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    deps = [":swift_lib"],
 )
