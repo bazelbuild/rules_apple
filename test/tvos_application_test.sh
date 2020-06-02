@@ -112,33 +112,6 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
-  create_common_files
-  create_minimal_tvos_application
-  do_build tvos --objc_generate_linkmap //app:app || fail "Should build"
-
-  declare -a archs=( $(current_archs tvos) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/app_${arch}.linkmap"
-  done
-}
-
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build tvos || return 0
-
-  create_common_files
-  create_minimal_tvos_application
-  do_build tvos //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/embedded.mobileprovision"
-}
-
 # Tests that failures to extract from a provisioning profile are propertly
 # reported.
 function test_provisioning_profile_extraction_failure() {
@@ -163,19 +136,6 @@ EOF
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
   expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
-}
-
-# Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
-  # Bitcode is only availabe on device. Ignore the test for simulator builds.
-  is_device_build tvos || return 0
-
-  create_common_files
-  create_minimal_tvos_application
-  do_build tvos //app:app --apple_bitcode=embedded || fail "Should build"
-
-  assert_ipa_contains_bitcode_maps tvos "test-bin/app/app.ipa" \
-      "Payload/app.app/app"
 }
 
 run_suite "tvos_application bundling tests"

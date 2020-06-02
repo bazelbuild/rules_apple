@@ -31,6 +31,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    ":rules/linkmap_test.bzl",
+    "linkmap_test",
+)
+load(
     ":rules/analysis_xcasset_argv_test.bzl",
     "analysis_xcasset_argv_test",
 )
@@ -172,6 +176,45 @@ def tvos_application_test_suite():
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "app_multiple_infoplists",
         },
+        tags = [name],
+    )
+
+    # Tests that the archive contains Bitcode symbol maps when Bitcode is
+    # enabled.
+    apple_verification_test(
+        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
+        apple_bitcode = "embedded",
+        build_type = "device",
+        env = {"PLATFORM": ["tvos"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        verifier_script = "verifier_scripts/bitcode_verifier.sh",
+        tags = [
+            name,
+            # OSS Blocked by b/73546952
+            "manual",  # disabled in oss
+        ],
+    )
+
+    # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
+    # is present.
+    linkmap_test(
+        name = "{}_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        tags = [
+            name,
+            # OSS Blocked by b/73547215
+            "manual",  # disabled in oss
+        ],
+    )
+
+    # Tests that the provisioning profile is present when built for device.
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        contains = [
+            "$BUNDLE_ROOT/embedded.mobileprovision",
+        ],
         tags = [name],
     )
 

@@ -45,6 +45,7 @@ def _apple_verification_transition_impl(settings, attr):
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
+        "//command_line_option:apple_bitcode": attr.apple_bitcode,
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -75,6 +76,7 @@ apple_verification_transition = transition(
         "//command_line_option:watchos_cpus",
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
+        "//command_line_option:apple_bitcode",
     ],
 )
 
@@ -155,6 +157,15 @@ def _apple_verification_test_impl(ctx):
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
+        "apple_bitcode": attr.string(
+            mandatory = False,
+            default = "none",
+            values = ["none", "embedded_markers", "embedded"],
+            doc = """
+The Bitcode mode to use for compilation steps. Possible values are `none`,
+`embedded_markers`, or `embedded`. Defaults to `none`.
+""",
+        ),
         "build_type": attr.string(
             mandatory = True,
             values = ["simulator", "device"],
@@ -191,6 +202,8 @@ Passes a sanitizer to the target under test.
 Shell script containing the verification code. This script can expect the following environment
 variables to exist:
 
+* ARCHIVE_ROOT: The path to the unzipped `.ipa` or `.zip` archive that was the output of the
+  build.
 * BINARY: The path to the main bundle binary.
 * BUILD_TYPE: The type of build for the target under test. Can be `simulator` or `device`.
 * BUNDLE_ROOT: The directory where the bundle is located.
