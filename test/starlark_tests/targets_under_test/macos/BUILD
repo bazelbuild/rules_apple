@@ -3,6 +3,7 @@ load(
     "macos_application",
     "macos_bundle",
     "macos_extension",
+    "macos_kernel_extension",
     "macos_quick_look_plugin",
     "macos_ui_test",
     "macos_unit_test",
@@ -184,6 +185,24 @@ macos_bundle(
     ],
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+macos_kernel_extension(
+    name = "kext",
+    bundle_id = "com.google.kext",
+    infoplists = [
+        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
+    ],
+    minimum_os_version = "10.13",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
 
