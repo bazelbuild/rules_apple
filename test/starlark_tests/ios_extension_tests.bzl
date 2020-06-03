@@ -19,12 +19,21 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+    "bitcode_symbol_map_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
 load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":rules/linkmap_test.bzl",
+    "linkmap_test",
 )
 
 def ios_extension_test_suite():
@@ -112,6 +121,41 @@ def ios_extension_test_suite():
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "ext_multiple_infoplists",
         },
+        tags = [name],
+    )
+
+    # Tests that the archive contains Bitcode symbol maps when Bitcode is
+    # enabled.
+    bitcode_symbol_map_test(
+        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
+        binary_paths = [
+            "Payload/app_with_ext.app/app_with_ext",
+            "Payload/app_with_ext.app/PlugIns/ext.appex/ext",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext",
+        tags = [name],
+    )
+
+    # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
+    # is present.
+    linkmap_test(
+        name = "{}_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        tags = [
+            name,
+            # OSS Blocked by b/73547215
+            "manual",  # disabled in oss
+        ],
+    )
+
+    # Tests that the provisioning profile is present when built for device.
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        contains = [
+            "$BUNDLE_ROOT/embedded.mobileprovision",
+        ],
         tags = [name],
     )
 

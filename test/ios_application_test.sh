@@ -214,33 +214,6 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
-  create_common_files
-  create_minimal_ios_application
-  do_build ios --objc_generate_linkmap //app:app || fail "Should build"
-
-  declare -a archs=( $(current_archs ios) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/app_${arch}.linkmap"
-  done
-}
-
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build ios || return 0
-
-  create_common_files
-  create_minimal_ios_application
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/embedded.mobileprovision"
-}
-
 # Tests that the IPA post-processor is executed and can modify the bundle.
 function test_ipa_post_processor() {
   create_common_files
@@ -637,21 +610,6 @@ EOF
 
   ! do_build ios //app:app || fail "Should fail"
   expect_log "Invalid character(s) in bundle_id: \"my#bundle\""
-}
-
-# Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
-  # Bitcode is only availabe on device. Ignore the test for simulator builds.
-  is_device_build ios || return 0
-
-  create_common_files
-  create_minimal_ios_application
-
-  do_build ios -s --apple_bitcode=embedded \
-       //app:app || fail "Should build"
-
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
-      "Payload/app.app/app"
 }
 
 # Tests that the bundle name can be overridden to differ from the target name.

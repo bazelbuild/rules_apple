@@ -154,3 +154,41 @@ def binary_contents_test(
         verifier_script = "verifier_scripts/binary_contents_test.sh",
         **kwargs
     )
+
+def bitcode_symbol_map_test(
+        name,
+        binary_paths,
+        tags,
+        target_under_test,
+        **kwargs):
+    """Macro to call `apple_verification_test` with `bitcode_verifier.sh`.
+
+    This simplifies Bitcode verification tests by forcing
+    `apple_bitcode = "embedded"`, `build_type = "device"`, and also currently
+    disables the test in OSS until Bitcode is properly supported in Bazel's
+    crosstool.
+
+    Args:
+        name: Name of the generated test target.
+        binary_paths: The list of archive-relative paths of binaries whose
+            DWARF info should have UDIDs extracted and checked against
+            Bitcode symbol maps in the archive root.
+        tags: Tags to be applied to the test target.
+        target_under_test: The archive target whose contents are to be verified.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
+    """
+    apple_verification_test(
+        name = name,
+        apple_bitcode = "embedded",
+        build_type = "device",
+        env = {
+            "BITCODE_BINARIES": binary_paths,
+            "PLATFORM": ["unused"],
+        },
+        target_under_test = target_under_test,
+        verifier_script = "verifier_scripts/bitcode_verifier.sh",
+        tags = tags + [
+            # OSS Blocked by b/73546952
+            "manual",  # disabled in oss
+        ],
+    )

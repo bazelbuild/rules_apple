@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -74,6 +78,21 @@ def watchos_application_test_suite():
     analysis_xcasset_argv_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        tags = [name],
+    )
+
+    # Tests that the WatchKit stub executable is bundled everywhere it's
+    # supposed to be. This must be tested through the companion app since
+    # the `WatchKitSupport2` directory is only added at the root of archives
+    # for distribution.
+    archive_contents_test(
+        name = "{}_contains_stub_executable_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        contains = [
+            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
+            "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+        ],
         tags = [name],
     )
 

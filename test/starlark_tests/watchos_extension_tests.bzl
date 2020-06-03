@@ -21,6 +21,7 @@ load(
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
+    "bitcode_symbol_map_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -29,6 +30,10 @@ load(
 load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":rules/linkmap_test.bzl",
+    "linkmap_test",
 )
 
 def watchos_extension_test_suite():
@@ -139,6 +144,42 @@ def watchos_extension_test_suite():
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "ext_multiple_infoplists",
         },
+        tags = [name],
+    )
+
+    # Tests that the archive contains Bitcode symbol maps when Bitcode is
+    # enabled. We have to test this by building a companion iOS application,
+    # since the symbol maps are only included in a top-level archive for
+    # distribution.
+    bitcode_symbol_map_test(
+        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
+        binary_paths = [
+            "Payload/app_companion.app/Watch/app.app/PlugIns/ext.appex/ext",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        tags = [name],
+    )
+
+    # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
+    # is present.
+    linkmap_test(
+        name = "{}_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [
+            name,
+            # OSS Blocked by b/73547215
+            "manual",  # disabled in oss
+        ],
+    )
+
+    # Tests that the provisioning profile is present when built for device.
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        contains = [
+            "$BUNDLE_ROOT/embedded.mobileprovision",
+        ],
         tags = [name],
     )
 

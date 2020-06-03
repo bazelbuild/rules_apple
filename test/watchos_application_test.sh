@@ -145,40 +145,6 @@ watchos_extension(
 EOF
 }
 
-# Asserts that the common OS and environment plist values in the watch
-# application and extension have the correct values.
-function assert_common_watch_app_and_extension_plist_values() {
-  assert_equals "2.0" "$(cat "test-bin/app/MinimumOSVersion")"
-  assert_equals "4" "$(cat "test-bin/app/UIDeviceFamily.0")"
-
-  if is_device_build watchos ; then
-    assert_equals "WatchOS" \
-        "$(cat "test-bin/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "watchos" \
-        "$(cat "test-bin/app/DTPlatformName")"
-    assert_contains "watchos.*" "test-bin/app/DTSDKName"
-  else
-    assert_equals "WatchSimulator" \
-        "$(cat "test-bin/app/CFBundleSupportedPlatforms.0")"
-    assert_equals "watchsimulator" \
-        "$(cat "test-bin/app/DTPlatformName")"
-    assert_contains "watchsimulator.*" "test-bin/app/DTSDKName"
-  fi
-
-  # Verify the values injected by the environment_plist script. Some of these
-  # are dependent on the version of Xcode being used, and since we don't want to
-  # force a particular version to always be present, we just make sure that
-  # *something* is getting into the plist.
-  assert_not_equals "" "$(cat "test-bin/app/DTPlatformBuild")"
-  assert_not_equals "" "$(cat "test-bin/app/DTSDKBuild")"
-  assert_not_equals "" "$(cat "test-bin/app/DTPlatformVersion")"
-  assert_not_equals "" "$(cat "test-bin/app/DTXcode")"
-  assert_not_equals "" "$(cat "test-bin/app/DTXcodeBuild")"
-  assert_equals "com.apple.compilers.llvm.clang.1_0" \
-      "$(cat "test-bin/app/DTCompiler")"
-  assert_not_equals "" "$(cat "test-bin/app/BuildMachineOSBuild")"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_watch_app_missing_version_fails() {
   create_minimal_watchos_application_with_companion
@@ -273,65 +239,6 @@ EOF
     || fail "Should fail build"
 
   expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
-}
-
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build watchos || return 0
-
-  create_minimal_watchos_application_with_companion
-  do_build watchos //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/embedded.mobileprovision"
-}
-
-# Tests that the watch application and IPA contain the WatchKit stub executable
-# in the appropriate bundle and top-level support directories.
-function test_contains_stub_executable() {
-  create_minimal_watchos_application_with_companion
-  do_build watchos //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/_WatchKitStub/WK"
-
-  # Ignore the check for simulator builds.
-  is_device_build watchos || return 0
-
-  assert_zip_contains "test-bin/app/app.ipa" \
-    "WatchKitSupport2/WK"
-}
-
-# Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
-  # Bitcode is only availabe on device. Ignore the test for simulator builds.
-  is_device_build watchos || return 0
-
-  create_minimal_watchos_application_with_companion
-
-  do_build watchos //app:app \
-      --apple_bitcode=embedded || fail "Should build"
-
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
-      "Payload/app.app/app"
-  assert_ipa_contains_bitcode_maps watchos "test-bin/app/app.ipa" \
-      "Payload/app.app/Watch/watch_app.app/PlugIns/watch_ext.appex/watch_ext"
-}
-
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
-  create_minimal_watchos_application_with_companion
-  do_build watchos --objc_generate_linkmap \
-      //app:watch_ext || fail "Should build"
-
-  declare -a archs=( $(current_archs watchos) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/watch_ext_${arch}.linkmap"
-  done
 }
 
 # Tests that failures to extract from a provisioning profile are propertly

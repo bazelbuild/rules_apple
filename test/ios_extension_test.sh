@@ -201,20 +201,6 @@ This shouldn't get included
 EOF
 }
 
-# Tests that the provisioning profile is present when built for device.
-function test_contains_provisioning_profile() {
-  # Ignore the test for simulator builds.
-  is_device_build ios || return 0
-
-  create_common_files
-  create_minimal_ios_application_with_extension
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that the IPA contains the provisioning profile.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/embedded.mobileprovision"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_common_files
@@ -540,37 +526,6 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Tests that the IPA contains bitcode symbols when bitcode is embedded.
-function disabled_test_bitcode_symbol_maps_packaging() {  # Blocked on b/73546952
-  # Bitcode is only availabe on device. Ignore the test for simulator builds.
-  is_device_build ios || return 0
-
-  create_common_files
-  create_minimal_ios_application_with_extension
-
-  do_build ios --apple_bitcode=embedded \
-       //app:app || fail "Should build"
-
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
-      "Payload/app.app/app"
-  assert_ipa_contains_bitcode_maps ios "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/ext.appex/ext"
-}
-
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function disabled_test_linkmaps_generated() {  # Blocked on b/73547215
-  create_common_files
-  create_minimal_ios_application_with_extension
-  do_build ios --objc_generate_linkmap \
-      //app:ext || fail "Should build"
-
-  declare -a archs=( $(current_archs ios) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/ext_${arch}.linkmap"
-  done
 }
 
 # Tests that ios_extension cannot be a depenency of objc_library.

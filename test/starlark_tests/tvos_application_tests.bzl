@@ -21,6 +21,7 @@ load(
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
+    "bitcode_symbol_map_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -181,21 +182,11 @@ def tvos_application_test_suite():
 
     # Tests that the archive contains Bitcode symbol maps when Bitcode is
     # enabled.
-    apple_verification_test(
+    bitcode_symbol_map_test(
         name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
-        apple_bitcode = "embedded",
-        build_type = "device",
-        env = {
-            "BITCODE_BINARIES": ["Payload/app.app/app"],
-            "PLATFORM": ["tvos"],
-        },
+        binary_paths = ["Payload/app.app/app"],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        verifier_script = "verifier_scripts/bitcode_verifier.sh",
-        tags = [
-            name,
-            # OSS Blocked by b/73546952
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`

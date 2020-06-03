@@ -1,4 +1,8 @@
 load(
+    "//apple:ios.bzl",
+    "ios_application",
+)
+load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
@@ -25,9 +29,10 @@ watchos_application(
     bundle_id = "com.google.example",
     extension = ":ext",
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = [
         "manual",
         "notap",
@@ -40,7 +45,7 @@ watchos_application(
     bundle_id = "com.google.example",
     extension = ":ext_with_imported_fmwk",
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     minimum_os_version = "4.0",
     tags = [
@@ -103,6 +108,25 @@ watchos_extension(
     tags = [
         "manual",
         "notap",
+    ],
+)
+
+ios_application(
+    name = "app_companion",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    watch_application = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
