@@ -83,7 +83,7 @@ def archive_contents_test(
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
-    # Concatonate the keys and values of the test values so they can be passed as env vars.
+    # Concatenate the keys and values of the test values so they can be passed as env vars.
     plist_test_values_list = []
     for key, value in plist_test_values.items():
         if " " in key:
@@ -112,5 +112,45 @@ def archive_contents_test(
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",
+        **kwargs
+    )
+
+def binary_contents_test(
+        name,
+        build_type,
+        target_under_test,
+        binary_test_file,
+        embedded_plist_test_values = {},
+        **kwargs):
+    """Macro for calling the apple_verification_test with binary_contents_test.sh.
+
+    Args:
+        name: Name of generated test target.
+        build_type: Type of build for the target. Possible values are `simulator` and `device`.
+        target_under_test: The Apple binary target whose contents are to be verified.
+        binary_test_file: The binary file to test.
+        embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
+            if the key does not exist or if its value doesn't match the specified value. * can
+            be used as a wildcard value. An embedded plist will be extracted from the
+            `binary_test_file` (previous Arg) fpr this test.
+        **kwargs: Other arguments are passed through to the apple_verification_test rule.
+    """
+
+    # Concatenate the keys and values of the test values so they can be passed as env vars.
+    plist_test_values_list = []
+    for key, value in embedded_plist_test_values.items():
+        if " " in key:
+            fail("Plist key has a space: \"{}\"".format(key))
+        plist_test_values_list.append("{} {}".format(key, value))
+
+    apple_verification_test(
+        name = name,
+        build_type = build_type,
+        env = {
+            "BINARY_TEST_FILE": [binary_test_file],
+            "PLIST_TEST_VALUES": plist_test_values_list,
+        },
+        target_under_test = target_under_test,
+        verifier_script = "verifier_scripts/binary_contents_test.sh",
         **kwargs
     )

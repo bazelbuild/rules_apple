@@ -458,12 +458,14 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
             entitlements = entitlements,
         )
 
-def _process(ctx, partials):
+def _process(ctx, partials, bundle_post_process_and_sign = True):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
       ctx: The ctx object for the target being processed.
       partials: The list of partials to process to construct the complete bundle.
+      bundle_post_process_and_sign: If the process action should also post process and sign after
+          calling the implementation of every partial. Defaults to True.
 
     Returns:
       A struct with the results of the processing. The files to make outputs of
@@ -472,11 +474,14 @@ def _process(ctx, partials):
     """
     partial_outputs = [partial.call(p, ctx) for p in partials]
 
-    output_archive = outputs.archive(ctx)
-    _bundle_post_process_and_sign(ctx, partial_outputs, output_archive)
+    if bundle_post_process_and_sign:
+        output_archive = outputs.archive(ctx)
+        _bundle_post_process_and_sign(ctx, partial_outputs, output_archive)
+        transitive_output_files = [depset([output_archive])]
+    else:
+        transitive_output_files = []
 
     providers = []
-    transitive_output_files = [depset([output_archive])]
     output_group_dicts = []
     for partial_output in partial_outputs:
         if hasattr(partial_output, "providers"):

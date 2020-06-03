@@ -57,10 +57,6 @@ load(
     "MacosSpotlightImporterBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -443,11 +439,6 @@ def _macos_xpc_service_impl(ctx):
 
 def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
-    output_file = ctx.actions.declare_file(ctx.label.name)
-
-    providers = []
-    outputs = [depset([output_file])]
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
@@ -456,10 +447,12 @@ def _macos_command_line_application_impl(ctx):
         debug_outputs_provider = debug_outputs_provider,
     )
 
-    result = partial.call(debug_outputs_partial, ctx)
-    outputs.append(result.output_files)
-    providers.extend(result.providers)
-
+    processor_result = processor.process(
+        ctx,
+        [debug_outputs_partial],
+        bundle_post_process_and_sign = False,
+    )
+    output_file = ctx.actions.declare_file(ctx.label.name)
     codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
@@ -469,18 +462,16 @@ def _macos_command_line_application_impl(ctx):
         ),
         DefaultInfo(
             executable = output_file,
-            files = depset(transitive = outputs),
+            files = depset(transitive = [
+                depset([output_file]),
+                processor_result.output_files,
+            ]),
         ),
         binary_descriptor.provider,
-    ] + providers
+    ] + processor_result.providers
 
 def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
-    output_file = ctx.actions.declare_file(ctx.label.name + ".dylib")
-
-    providers = []
-    outputs = [depset([output_file])]
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
@@ -489,10 +480,12 @@ def _macos_dylib_impl(ctx):
         debug_outputs_provider = debug_outputs_provider,
     )
 
-    result = partial.call(debug_outputs_partial, ctx)
-    outputs.append(result.output_files)
-    providers.extend(result.providers)
-
+    processor_result = processor.process(
+        ctx,
+        [debug_outputs_partial],
+        bundle_post_process_and_sign = False,
+    )
+    output_file = ctx.actions.declare_file(ctx.label.name + ".dylib")
     codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
@@ -500,9 +493,12 @@ def _macos_dylib_impl(ctx):
             binary = output_file,
             product_type = ctx.attr._product_type,
         ),
-        DefaultInfo(files = depset(transitive = outputs)),
+        DefaultInfo(files = depset(transitive = [
+            depset([output_file]),
+            processor_result.output_files,
+        ])),
         binary_descriptor.provider,
-    ] + providers
+    ] + processor_result.providers
 
 macos_application = rule_factory.create_apple_bundling_rule(
     implementation = _macos_application_impl,

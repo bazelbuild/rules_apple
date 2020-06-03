@@ -2,6 +2,7 @@ load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_bundle",
+    "macos_dylib",
     "macos_extension",
     "macos_kernel_extension",
     "macos_quick_look_plugin",
@@ -179,6 +180,24 @@ macos_bundle(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+macos_dylib(
+    name = "dylib",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.11",
     tags = [
         "manual",
         "notap",
