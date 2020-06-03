@@ -261,21 +261,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "macos_command_line_application_test",
-    size = "medium",
-    src = "macos_command_line_application_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-    shard_count = 5,
-)
-
-apple_multi_shell_test(
-    name = "macos_command_line_application_swift_test",
-    size = "medium",
-    src = "macos_command_line_application_swift_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "macos_quick_look_plugin_test",
     size = "medium",
     src = "macos_quick_look_plugin_test.sh",

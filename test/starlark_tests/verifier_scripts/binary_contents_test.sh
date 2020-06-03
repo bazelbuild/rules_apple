@@ -24,6 +24,11 @@ newline=$'\n'
 #
 # Supported operations:
 #  BINARY_TEST_FILE: The file to test with `PLIST_TEST_VALUES`
+#  BINARY_TEST_ARCHITECTURE: The architecture to use with
+#      `BINARY_CONTAINS_SYMBOLS`.
+#  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
+#  PLIST_SECTION_NAME: Name of the plist section to inspect values from. If not
+#      supplied, will test the embedded Info.plist slice at __TEXT,__info_plist.
 #  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
 #      the key is a string without spaces, followed by by a single space,
 #      followed by the value to test. * can be used as a wildcard value.
@@ -34,19 +39,54 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   if [[ ! -e "$path" ]]; then
     fail "Could not find binary at \"$path\""
   fi
+
+  if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+    arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+    if [[ ! -n $arch ]]; then
+      fail "No architecture specified for binary file at \"$path\""
+    fi
+
+    # Filter out undefined symbols from the objdump mach-o symbol output.
+    IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print $NF}'))
+    if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+      for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
+      do
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected symbol name \"$test_symbol\" was not found." \
+                "The symbols in the binary were:$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+  fi
+
   # Use `launchctl plist` to test for key/value pairs in an embedded plist file.
   if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
     for test_values in "${PLIST_TEST_VALUES[@]}"
     do
       # Keys and expected-values are in the format "KEY VALUE".
       IFS=' ' read -r key expected_value <<< "$test_values"
+      # Choose which plist slice we'd like to test, default to embedded
+      # Info.plist.
+      if [[ -n "${PLIST_SECTION_NAME-}" ]]; then
+        plist_section_name="__TEXT,$PLIST_SECTION_NAME"
+      else
+        plist_section_name="__TEXT,__info_plist"
+      fi
       # Replace wildcard "*" characters with a sed-friendly ".*" wildcard.
       expected_value=${expected_value/"*"/".*"}
-      value="$(launchctl plist $path | sed -nE "s/.*\"$key\" = \"($expected_value)\";.*/\1/p" || true)"
+      value="$(launchctl plist $plist_section_name $path | sed -nE "s/.*\"$key\" = \"($expected_value)\";.*/\1/p" || true)"
       if [[ ! -n "$value" ]]; then
         fail "Expected plist key \"$key\" to be \"$expected_value\" in plist " \
-            "embedded in \"$path\". Plist contents:$newline" \
-            "$(launchctl plist $path)"
+            "embedded in \"$path\" at \"$plist_section_name\". Plist " \
+            "contents:$newline$(launchctl plist $plist_section_name $path)"
       fi
     done
   fi

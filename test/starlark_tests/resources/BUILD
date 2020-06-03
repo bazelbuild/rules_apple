@@ -39,6 +39,14 @@ objc_library(
 )
 
 swift_library(
+    name = "swift_main_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    tags = [
+        "manual",
+    ],
+)
+
+swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
     tags = [

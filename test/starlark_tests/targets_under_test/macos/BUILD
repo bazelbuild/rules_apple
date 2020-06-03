@@ -2,6 +2,7 @@ load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_bundle",
+    "macos_command_line_application",
     "macos_dylib",
     "macos_extension",
     "macos_kernel_extension",
@@ -186,6 +187,87 @@ macos_bundle(
     ],
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+macos_command_line_application(
+    name = "cmd_app_basic",
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_basic_swift",
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_info_plists",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_info_and_launchd_plists",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    launchdplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:launchd.plist",
+    ],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_special_linkopts",
+    linkopts = [
+        "-alias",
+        "_main",
+        "_linkopts_test_main",
+    ],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 

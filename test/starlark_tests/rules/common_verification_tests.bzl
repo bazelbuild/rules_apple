@@ -115,12 +115,16 @@ def archive_contents_test(
         **kwargs
     )
 
+# TODO(nglevin): Extend for usages required of macos_command_line_application tests.
 def binary_contents_test(
         name,
         build_type,
         target_under_test,
         binary_test_file,
+        binary_test_architecture = "",
+        binary_contains_symbols = [],
         embedded_plist_test_values = {},
+        plist_section_name = "__info_plist",
         **kwargs):
     """Macro for calling the apple_verification_test with binary_contents_test.sh.
 
@@ -129,10 +133,17 @@ def binary_contents_test(
         build_type: Type of build for the target. Possible values are `simulator` and `device`.
         target_under_test: The Apple binary target whose contents are to be verified.
         binary_test_file: The binary file to test.
+        binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
+            symbol tests (see next two Args).
+        binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
+            specified in `binary_test_file`.
         embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
             if the key does not exist or if its value doesn't match the specified value. * can
             be used as a wildcard value. An embedded plist will be extracted from the
-            `binary_test_file` (previous Arg) fpr this test.
+            `binary_test_file` based on the `plist_slice` for this test.
+        plist_section_name: Optional, The name of the plist section to test. Will be the
+            identifier for the section in the `__TEXT` segment, for instance `__launchd_plist`.
+            Defaults to `__info_plist`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
@@ -148,6 +159,9 @@ def binary_contents_test(
         build_type = build_type,
         env = {
             "BINARY_TEST_FILE": [binary_test_file],
+            "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
+            "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
+            "PLIST_SECTION_NAME": [plist_section_name],
             "PLIST_TEST_VALUES": plist_test_values_list,
         },
         target_under_test = target_under_test,
