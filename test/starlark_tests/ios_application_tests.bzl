@@ -263,6 +263,81 @@ def ios_application_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_contains_asan_dylib_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "asan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        tags = [
+            name,
+            # OSS Blocked by b/73547309
+            "manual",  # disabled in oss
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_asan_dylib_device_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_ios_dynamic.dylib",
+        ],
+        sanitizer = "asan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        tags = [
+            name,
+            # OSS Blocked by b/73547309
+            "manual",  # disabled in oss
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_tsan_dylib_device_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "tsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        tags = [
+            name,
+            # OSS Blocked by b/73547309
+            "manual",  # disabled in oss
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_ubsan_dylib_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.ubsan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "ubsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        tags = [
+            name,
+            # OSS Blocked by b/73547309
+            "manual",  # disabled in oss
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_ubsan_dylib_device_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.ubsan_ios_dynamic.dylib",
+        ],
+        sanitizer = "ubsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        tags = [
+            name,
+            # OSS Blocked by b/73547309
+            "manual",  # disabled in oss
+        ],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

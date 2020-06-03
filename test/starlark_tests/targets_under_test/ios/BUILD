@@ -22,6 +22,24 @@ package(
 # package.
 
 ios_application(
+    name = "app_minimal",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
     bundle_id = "com.google.example",

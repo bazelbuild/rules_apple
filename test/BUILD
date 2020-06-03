@@ -352,14 +352,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_application_clang_rt_test",
-    size = "medium",
-    src = "ios_application_clang_rt_test.sh",
-    configurations = IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS,
-    shard_count = 4,
-)
-
-apple_multi_shell_test(
     name = "macos_unit_test_test",
     size = "medium",
     src = "macos_unit_test_test.sh",
