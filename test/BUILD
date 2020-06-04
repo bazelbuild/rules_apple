@@ -321,14 +321,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "watchos_application_swift_test",
-    size = "medium",
-    src = "watchos_application_swift_test.sh",
-    configurations = WATCHOS_CONFIGURATIONS,
-    shard_count = 3,
-)
-
-apple_multi_shell_test(
     name = "ios_unit_test_test",
     size = "medium",
     src = "ios_unit_test_test.sh",

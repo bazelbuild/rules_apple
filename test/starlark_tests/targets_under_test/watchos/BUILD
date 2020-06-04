@@ -15,6 +15,10 @@ load(
     "//test/testdata/frameworks:generate_framework.bzl",
     "generate_import_framework",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
 
 licenses(["notice"])
 
@@ -149,4 +153,199 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "4.0",
     sdk = "watchsimulator",
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
+    name = "ios_with_swift_watchos_no_swift",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    watch_application = ":watchos_app_no_swift",
+    deps = [
+        ":swift_lib",
+    ],
+)
+
+ios_application(
+    name = "ios_no_swift_watchos_with_swift",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    watch_application = ":watchos_app_swift",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "ios_with_swift_watchos_with_swift",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    watch_application = ":watchos_app_swift",
+    deps = [
+        ":swift_lib",
+    ],
+)
+
+ios_application(
+    name = "ios_with_swift_watchos_with_swift_stable_abi",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "12.2",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    watch_application = ":watchos_app_swift_stable_abi",
+    deps = [
+        ":swift_lib",
+    ],
+)
+
+watchos_application(
+    name = "watchos_app_no_swift",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    bundle_name = "app",
+    extension = ":watchos_ext_no_swift",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+)
+
+watchos_extension(
+    name = "watchos_ext_no_swift",
+    bundle_id = "com.google.example.ext",
+    bundle_name = "ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+watchos_application(
+    name = "watchos_app_swift",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    bundle_name = "app",
+    extension = ":watchos_ext_swift",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+)
+
+watchos_extension(
+    name = "watchos_ext_swift",
+    bundle_id = "com.google.example.ext",
+    bundle_name = "ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_application(
+    name = "watchos_app_swift_stable_abi",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    bundle_name = "app",
+    extension = ":watchos_ext_swift_stable_abi",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "6.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+)
+
+watchos_extension(
+    name = "watchos_ext_swift_stable_abi",
+    bundle_id = "com.google.example.ext",
+    bundle_name = "ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "6.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+swift_library(
+    name = "swift_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
 )
