@@ -7,6 +7,7 @@ load(":ios_imessage_application_tests.bzl", "ios_imessage_application_test_suite
 load(":ios_sticker_pack_extension_tests.bzl", "ios_sticker_pack_extension_test_suite")
 load(":ios_ui_test_tests.bzl", "ios_ui_test_test_suite")
 load(":ios_unit_test_tests.bzl", "ios_unit_test_test_suite")
+load(":macos_application_resources_tests.bzl", "macos_application_resources_test_suite")
 load(":macos_application_tests.bzl", "macos_application_test_suite")
 load(":macos_bundle_tests.bzl", "macos_bundle_test_suite")
 load(":macos_command_line_application_tests.bzl", "macos_command_line_application_test_suite")
@@ -45,6 +46,8 @@ ios_sticker_pack_extension_test_suite()
 ios_ui_test_test_suite()
 
 ios_unit_test_test_suite()
+
+macos_application_resources_test_suite()
 
 macos_application_test_suite()
 

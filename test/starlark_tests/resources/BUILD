@@ -247,6 +247,29 @@ objc_library(
 )
 
 objc_library(
+    name = "apple_non_localized_assets_lib",
+    srcs = ["main.m"],
+    data = [
+        ":mapping_model",
+        ":nonlocalized.plist",
+        ":nonlocalized.strings",
+        ":sample.png",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+    ],
+)
+
+objc_library(
+    name = "apple_localized_assets_lib",
+    srcs = ["main.m"],
+    data = [
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+    ],
+)
+
+objc_library(
     name = "empty_strings_file_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
@@ -289,6 +312,39 @@ objc_library(
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         ":bundle_library_ios",
+    ],
+)
+
+apple_resource_bundle(
+    name = "bundle_library_apple",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+)
+
+objc_library(
+    name = "bundle_library_apple_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        ":bundle_library_apple",
     ],
 )
 

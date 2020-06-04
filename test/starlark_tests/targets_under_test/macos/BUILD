@@ -49,6 +49,12 @@ macos_application(
         "notap",
     ],
     deps = [
+        "//test/starlark_tests/resources:apple_localized_assets_lib",
+        "//test/starlark_tests/resources:apple_non_localized_assets_lib",
+        "//test/starlark_tests/resources:basic_bundle_lib",
+        "//test/starlark_tests/resources:bundle_library_apple_lib",
+        "//test/starlark_tests/resources:empty_strings_file_lib",
+        "//test/starlark_tests/resources:nested_bundle_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
