@@ -19,10 +19,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -291,10 +287,9 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     # Symlink the test bundle archive to the output attribute. This is used when having a test such
     # as `ios_unit_test(name = "Foo")` to declare a `:Foo.zip` target.
-    file_support.symlink(
-        ctx,
-        ctx.outputs.archive,
-        ctx.outputs.test_bundle_output,
+    ctx.actions.symlink(
+        target_file = ctx.outputs.archive,
+        output = ctx.outputs.test_bundle_output,
     )
 
     if is_experimental_tree_artifact_enabled(ctx):

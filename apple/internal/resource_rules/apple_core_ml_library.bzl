@@ -15,10 +15,6 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -66,7 +62,7 @@ def _apple_core_ml_library_impl(ctx):
     # output, but those can only reference the name of the target, so we need to symlink the coremlc
     # source into the implicit output. We don't want to do this for the headers since we would like
     # the header to be named as the objc_library target and not the target for this rule.
-    file_support.symlink(ctx, coremlc_source, ctx.outputs.source)
+    ctx.actions.symlink(target_file = coremlc_source, output = ctx.outputs.source)
 
     # This rule returns the headers as its outputs so that they can be referenced in the hdrs of the
     # underlying objc_library.

@@ -19,10 +19,6 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -72,12 +68,18 @@ frameworks expect a single swift_library dependency with `module_name` set to th
             ctx.label.name,
             "{}.swiftinterface".format(arch),
         )
-        file_support.symlink(ctx, swiftinterface, bundle_interface)
+        ctx.actions.symlink(
+            target_file = swiftinterface,
+            output = bundle_interface,
+        )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
 
     for arch, swiftdoc in swiftdocs.items():
         bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftdoc".format(arch))
-        file_support.symlink(ctx, swiftdoc, bundle_doc)
+        ctx.actions.symlink(
+            target_file = swiftdoc,
+            output = bundle_doc,
+        )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
 
     if generated_header:
@@ -86,7 +88,10 @@ frameworks expect a single swift_library dependency with `module_name` set to th
             ctx.label.name,
             "{}.h".format(expected_module_name),
         )
-        file_support.symlink(ctx, generated_header, bundle_header)
+        ctx.actions.symlink(
+            target_file = generated_header,
+            output = bundle_header,
+        )
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
         modulemap = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")

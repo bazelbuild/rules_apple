@@ -15,10 +15,6 @@
 """Partial implementation for embedding provisioning profiles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -48,7 +44,10 @@ def _provisioning_profile_partial_impl(ctx, profile_artifact, extension, locatio
         ctx.label.name,
         "embedded.%s" % extension,
     )
-    file_support.symlink(ctx, profile_artifact, intermediate_file)
+    ctx.actions.symlink(
+        target_file = profile_artifact,
+        output = intermediate_file,
+    )
 
     return struct(
         bundle_files = [

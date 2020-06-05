@@ -19,10 +19,6 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -45,7 +41,10 @@ def _framework_provider_partial_impl(ctx, binary_provider):
     framework_file = ctx.actions.declare_file(
         paths.join(framework_dir, bundle_name),
     )
-    file_support.symlink(ctx, binary_file, framework_file)
+    ctx.actions.symlink(
+        target_file = binary_file,
+        output = framework_file,
+    )
 
     absolute_framework_dir = paths.join(
         ctx.bin_dir.path,

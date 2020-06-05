@@ -15,10 +15,6 @@
 """Partial implementation for binary processing for bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -36,7 +32,7 @@ def _binary_partial_impl(ctx, binary_artifact):
 
     # Create intermediate file with proper name for the binary.
     output_binary = outputs.binary(ctx)
-    file_support.symlink(ctx, binary_artifact, output_binary)
+    ctx.actions.symlink(target_file = binary_artifact, output = output_binary)
 
     return struct(
         bundle_files = [

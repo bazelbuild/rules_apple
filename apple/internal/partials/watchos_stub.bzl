@@ -15,10 +15,6 @@
 """Partial implementation for placing the watchOS stub file in the archive."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:file_support.bzl",
-    "file_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -55,7 +51,10 @@ def _watchos_stub_partial_impl(ctx, binary_artifact, package_watchkit_support):
             ctx.label.name,
             "WK",
         )
-        file_support.symlink(ctx, binary_artifact, intermediate_file)
+        ctx.actions.symlink(
+            target_file = binary_artifact,
+            output = intermediate_file,
+        )
         bundle_files.append(
             (processor.location.bundle, "_WatchKitStub", depset([intermediate_file])),
         )
