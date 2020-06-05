@@ -14,6 +14,32 @@
 
 """Starlark transition support for Apple rules."""
 
+def _apple_bitcode_string(platform_type, settings):
+    apple_bitcode = settings["//command_line_option:apple_bitcode"]
+    if apple_bitcode:
+        return apple_bitcode
+    if platform_type == "watchos":
+        compilation_mode = settings["//command_line_option:compilation_mode"]
+        if compilation_mode == "opt":
+            return "apple_bitcode=embedded"
+    return None
+
+def _apple_bitcode_transition_impl(settings, attr):
+    """Rule transition for Apple bitcode."""
+    return {
+        "//command_line_option:apple_bitcode": _apple_bitcode_string(attr.platform_type, settings),
+    }
+
+_apple_bitcode_transition = transition(
+    implementation = _apple_bitcode_transition_impl,
+    inputs = [
+        "//command_line_option:apple_bitcode",
+    ],
+    outputs = [
+        "//command_line_option:apple_bitcode",
+    ],
+)
+
 def _cpu_string(platform_type, settings):
     """Generates a <platform>_<arch> string for the current target based on the given parameters."""
     if platform_type == "ios":
@@ -118,6 +144,8 @@ _static_framework_transition = transition(
 )
 
 transition_support = struct(
-    apple_rule_transition = None,
+    # Merge _apple_bitcode_transition with _apple_rule_transition when Apple
+    # rule transition is enabled
+    apple_rule_transition = _apple_bitcode_transition,
     static_framework_transition = _static_framework_transition,
 )
