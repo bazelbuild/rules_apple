@@ -76,6 +76,17 @@ def macos_quick_look_plugin_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_custom_linkopts_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin_special_linkopts",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_linkopts_test_main"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

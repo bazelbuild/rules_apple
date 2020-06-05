@@ -80,6 +80,31 @@ def macos_bundle_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_custom_linkopts_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_special_linkopts",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundle_special_linkopts",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_linkopts_test_anotherFunctionShared"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_name_with_different_extension_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_with_different_extension",
+        compilation_mode = "opt",
+        contains = [
+            "$ARCHIVE_ROOT/bundle_with_different_extension.prefPane",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/bundle_with_different_extension.bundle",
+        ],
+        tags = [name],
+    )
+
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",

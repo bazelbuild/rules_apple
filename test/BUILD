@@ -246,13 +246,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "macos_application_swift_test",
-    size = "medium",
-    src = "macos_application_swift_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "macos_bundle_test",
     size = "medium",
     src = "macos_bundle_test.sh",

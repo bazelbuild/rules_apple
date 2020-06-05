@@ -141,29 +141,6 @@ EOF
       "app.bundle/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
-# Tests that linkopts get passed to the underlying apple_binary target.
-function test_linkopts_passed_to_binary() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_bundle(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    linkopts = ["-alias", "_main", "_linkopts_test_main"],
-    minimum_os_version = "10.10",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  unzip_single_file "test-bin/app/app.zip" "app.bundle/Contents/MacOS/app" |
-      nm -j - | grep _linkopts_test_main > /dev/null \
-      || fail "Could not find -alias symbol in binary; " \
-              "linkopts may have not propagated"
-}
-
 # Tests that the correct rpaths were added at link-time to the binary.
 function test_binary_has_correct_rpaths() {
   create_common_files
@@ -174,27 +151,6 @@ function test_binary_has_correct_rpaths() {
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
-}
-
-# Tests that the bundle_extension attribute changes the extension.
-function test_different_bundle_extension() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_bundle(
-    name = "app",
-    bundle_extension = "prefPane",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    minimum_os_version = "10.10",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  assert_zip_not_contains "test-bin/app/app.zip" "app.bundle/"
-  assert_zip_contains "test-bin/app/app.zip" "app.prefPane/"
 }
 
 function test_bundle_loader_macos_application_symbols_deduped() {

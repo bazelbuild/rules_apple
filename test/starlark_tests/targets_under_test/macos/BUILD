@@ -60,10 +60,82 @@ macos_application(
 )
 
 macos_application(
+    name = "app_basic_swift",
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+macos_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_special_linkopts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-alias",
+        "_main",
+        "_linkopts_test_main",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_space",
+    bundle_id = "com.google.example",
+    bundle_name = "app with space",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_different_extension",
+    bundle_extension = "xpc",
+    bundle_id = "com.google.example",
+    infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
@@ -186,6 +258,44 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-dead_strip"],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle_special_linkopts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-alias",
+        "_anotherFunctionShared",
+        "_linkopts_test_anotherFunctionShared",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle_with_different_extension",
+    bundle_extension = "prefPane",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = "10.10",
     tags = [
         "manual",
@@ -349,6 +459,27 @@ macos_quick_look_plugin(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-dead_strip"],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_quick_look_plugin(
+    name = "ql_plugin_special_linkopts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-alias",
+        "_main",
+        "_linkopts_test_main",
+    ],
     minimum_os_version = "10.10",
     tags = [
         "manual",

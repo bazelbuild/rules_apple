@@ -64,6 +64,19 @@ def macos_application_test_suite():
     )
 
     archive_contents_test(
+        name = "{}_swift_dylibs_no_static_linkage_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_basic_swift",
+        binary_test_file = "$CONTENT_ROOT/MacOS/app_basic_swift",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["_swift_slowAlloc"],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_additional_contents_test".format(name),
         build_type = "device",
         contains = [
@@ -93,6 +106,60 @@ def macos_application_test_suite():
         contains = [
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_custom_linkopts_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_special_linkopts",
+        binary_test_file = "$CONTENT_ROOT/MacOS/app_special_linkopts",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_linkopts_test_main"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_name_with_space_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        compilation_mode = "opt",
+        contains = [
+            "$ARCHIVE_ROOT/app with space.app",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/app.app",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_name_with_different_extension_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_different_extension",
+        compilation_mode = "opt",
+        contains = [
+            "$ARCHIVE_ROOT/app_with_different_extension.xpc",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/app_with_different_extension.app",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_prebuilt_dynamic_framework_dependency_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Info.plist",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Modules/module.modulemap",
         ],
         tags = [name],
     )

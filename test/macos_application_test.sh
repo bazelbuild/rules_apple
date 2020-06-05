@@ -75,54 +75,6 @@ macos_application(
 EOF
 }
 
-function create_minimal_macos_application_with_framework_import() {
-  cat >> app/BUILD <<EOF
-macos_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    minimum_os_version = "10.11",
-    deps = [
-        ":lib",
-        ":frameworkDependingLib",
-    ],
-)
-
-objc_library(
-    name = "frameworkDependingLib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    deps = [":fmwk"],
-)
-
-apple_dynamic_framework_import(
-    name = "fmwk",
-    framework_imports = glob(["fmwk.framework/**"]),
-)
-EOF
-
-  mkdir -p app/fmwk.framework
-  cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin) \
-      app/fmwk.framework/fmwk
-
-  cat > app/fmwk.framework/Info.plist <<EOF
-Dummy plist
-EOF
-
-  cat > app/fmwk.framework/resource.txt <<EOF
-Dummy resource
-EOF
-
-  mkdir -p app/fmwk.framework/Headers
-  cat > app/fmwk.framework/Headers/fmwk.h <<EOF
-This shouldn't get included
-EOF
-
-  mkdir -p app/fmwk.framework/Modules
-  cat > app/fmwk.framework/Headers/module.modulemap <<EOF
-This shouldn't get included
-EOF
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_common_files
@@ -193,29 +145,6 @@ EOF
       "app.app/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
-# Tests that linkopts get passed to the underlying apple_binary target.
-function test_linkopts_passed_to_binary() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    linkopts = ["-alias", "_main", "_linkopts_test_main"],
-    minimum_os_version = "10.10",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" |
-      nm -j - | grep _linkopts_test_main > /dev/null \
-      || fail "Could not find -alias symbol in binary; " \
-              "linkopts may have not propagated"
-}
-
 # Tests that the PkgInfo file exists in the bundle and has the expected
 # content.
 function test_pkginfo_contents() {
@@ -237,70 +166,6 @@ function test_binary_has_correct_rpaths() {
       > "$TEST_TMPDIR/app_bin"
   otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
   assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
-}
-
-# Tests that the bundle_extension attribute changes the extension.
-function test_different_bundle_extension() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_application(
-    name = "app",
-    bundle_extension = "xpc",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    minimum_os_version = "10.10",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  assert_zip_not_contains "test-bin/app/app.zip" "app.app/"
-  assert_zip_contains "test-bin/app/app.zip" "app.xpc/"
-}
-
-function test_space_in_bundle_name() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_application(
-    name = "app",
-    bundle_name = "app with space",
-    bundle_id = "my.bundle.id",
-    infoplists = ["Info.plist"],
-    minimum_os_version = "10.11",
-    deps = [":lib"],
-)
-EOF
-
-  do_build macos //app:app || fail "Should build"
-
-  assert_zip_not_contains "test-bin/app/app.zip" "app.app"
-  assert_zip_contains "test-bin/app/app.zip" "app with space.app/"
-}
-
-# Tests that a prebuilt dynamic framework is bundled properly with the
-# application.
-function test_prebuilt_dynamic_framework_dependency() {
-  create_common_files
-  create_minimal_macos_application_with_framework_import
-
-  do_build macos //app:app || fail "Should build"
-
-  # Verify that the binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/fmwk.framework/resource.txt"
-
-  # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.zip" \
-      "app.app/Contents/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
 run_suite "macos_application bundling tests"
