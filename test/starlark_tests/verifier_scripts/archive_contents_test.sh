@@ -46,6 +46,10 @@ newline=$'\n'
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
 #  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#  MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
+#      be present.
+#  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
+#      not be present.
 
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
@@ -61,7 +65,6 @@ fi
 
 # Test an array of regular expressions against the contents of a text file in
 # the archive.
-
 if [[ -n "${TEXT_TEST_FILE-}" ]]; then
   path=$(eval echo "$TEXT_TEST_FILE")
   if [[ ! -e $path ]]; then
@@ -84,46 +87,96 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     fail "Archive did not contain binary at \"$path\"" \
       "contents were:$newline$(find $ARCHIVE_ROOT)"
   fi
-  arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
-  if [[ ! -n $arch ]]; then
-    fail "No architecture specified for binary file at \"$path\""
-  fi
-  # Filter out undefined symbols from the objdump mach-o symbol output.
-  IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print $NF}'))
-  if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
-    for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
-    do
-      symbol_found=false
-      for actual_symbol in "${actual_symbols[@]}"
+  if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+    arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+    if [[ ! -n $arch ]]; then
+      fail "No architecture specified for binary file at \"$path\""
+    fi
+
+    # Filter out undefined symbols from the objdump mach-o symbol output and
+    # return the rightmost value; these binary symbols will not have spaces.
+    IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print $NF}'))
+    if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+      for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
-        if [[ "$actual_symbol" == "$test_symbol" ]]; then
-          symbol_found=true
-          break
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected load command \"$test_symbol\" was not found." \
+              "The load commands in the binary were:" \
+              "$newline${actual_symbols[@]}"
         fi
       done
-      if [[ "$symbol_found" = false ]]; then
-          fail "Expected symbol name \"$test_symbol\" was not found." \
-            "The symbols in the binary were:$newline${actual_symbols[@]}"
-      fi
-    done
+    fi
+
+    if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+      for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+      do
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = true ]]; then
+            fail "Unexpected load command \"$test_symbol\" was found." \
+              "The load commands in the binary were:" \
+              "$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
   fi
 
-  if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
-    for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
-    do
-      symbol_found=false
-      for actual_symbol in "${actual_symbols[@]}"
+  if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" || -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+    # Remove the leftmost white space from otool output to make string matching
+    # of symbols possible, avoiding the accidental elimination of white space
+    # from paths and identifiers.
+    IFS=$'\n' actual_symbols=($(otool -l "$path" | awk '{$1=$1}1'))
+    if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
+      for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
       do
-        if [[ "$actual_symbol" == "$test_symbol" ]]; then
-          symbol_found=true
-          break
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected private header symbol \"$test_symbol\" was not " \
+              "found. The private header symbols in the binary were:" \
+              "$newline${actual_symbols[@]}"
         fi
       done
-      if [[ "$symbol_found" = true ]]; then
-          fail "Unexpected symbol name \"$test_symbol\" was found." \
-            "The symbols in the binary were:$newline${actual_symbols[@]}"
-      fi
-    done
+    fi
+
+    if [[ -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+      for test_symbol in "${MACHO_LOAD_COMMANDS_NOT_CONTAIN[@]}"
+      do
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = true ]]; then
+            fail "Unexpected private header symbol \"$test_symbol\" was " \
+              "found. The private header symbols in the binary were:" \
+              "$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
   fi
 fi
 

@@ -38,6 +38,8 @@ def archive_contents_test(
         binary_test_architecture = "",
         binary_contains_symbols = [],
         binary_not_contains_symbols = [],
+        macho_load_commands_contain = [],
+        macho_load_commands_not_contain = [],
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -80,6 +82,10 @@ def archive_contents_test(
             specified in `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
+        macho_load_commands_contain: Optional, A list of Mach-O load commands that should appear in
+            the binary file specified in `binary_test_file`.
+        macho_load_commands_not_contain: Optional, A list of Mach-O load commands that should not
+            appear in the binary file specified in `binary_test_file`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
 
@@ -109,6 +115,8 @@ def archive_contents_test(
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
+            "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
+            "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
         },
         target_under_test = target_under_test,
         verifier_script = "verifier_scripts/archive_contents_test.sh",

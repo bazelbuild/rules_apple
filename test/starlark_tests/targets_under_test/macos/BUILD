@@ -245,6 +245,40 @@ macos_bundle(
 )
 
 macos_bundle(
+    name = "bundle_for_app",
+    bundle_id = "com.google.example",
+    bundle_loader = ":app",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle_for_cmd_app",
+    bundle_id = "com.google.example",
+    bundle_loader = ":cmd_app_basic",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_bundle(
     name = "bundle_dead_stripped",
     additional_contents = {
         "//test/starlark_tests/resources:additional.txt": "Additional",

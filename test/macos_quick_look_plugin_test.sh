@@ -141,16 +141,4 @@ EOF
       "app.qlgenerator/Contents/Resources/inserted_by_post_processor.txt")"
 }
 
-# Tests that no rpaths were added at link-time to the binary.
-function disabled_test_binary_has_no_rpaths() {  # Blocked on b/127807024
-  create_common_files
-  create_minimal_macos_quick_look_plugin
-  do_build macos //app:app || fail "Should build"
-
-  unzip_single_file "test-bin/app/app.zip" "app.qlgenerator/Contents/MacOS/app" \
-      > "$TEST_TMPDIR/app_bin"
-  otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
-  assert_not_contains "cmd LC_RPATH" "$TEST_TMPDIR/otool_output"
-}
-
 run_suite "macos_quick_look_plugin bundling tests"

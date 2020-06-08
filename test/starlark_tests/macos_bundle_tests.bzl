@@ -69,6 +69,39 @@ def macos_bundle_test_suite():
     )
 
     archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundle",
+        macho_load_commands_contain = ["path @executable_path/../Frameworks (offset 12)"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_loader_macos_application_symbols_deduped_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_for_app",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundle_for_app",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCSharedClass"],
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_loader_macos_command_line_application_symbols_deduped_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_for_cmd_app",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundle_for_cmd_app",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCSharedClass"],
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_exported_symbols_list_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_dead_stripped",

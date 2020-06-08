@@ -89,6 +89,15 @@ def macos_application_test_suite():
     )
 
     archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/app",
+        macho_load_commands_contain = ["path @executable_path/../Frameworks (offset 12)"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_resources_test".format(name),
         build_type = "device",
         contains = [

@@ -65,6 +65,19 @@ def macos_quick_look_plugin_test_suite():
     )
 
     archive_contents_test(
+        name = "{}_missing_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin",
+        macho_load_commands_not_contain = ["cmd LC_RPATH"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
+        tags = [
+            name,
+            # OSS Blocked by b/127807024
+            "manual",  # disabled in oss
+        ],
+    )
+
+    archive_contents_test(
         name = "{}_exported_symbols_list_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin_dead_stripped",

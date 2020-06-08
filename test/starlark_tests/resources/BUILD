@@ -28,14 +28,26 @@ exports_files(
 )
 
 objc_library(
+    name = "objc_common_lib",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+)
+
+objc_library(
     name = "objc_shared_lib",
     srcs = ["shared.m"],
     hdrs = ["shared.h"],
+    deps = [
+        ":objc_common_lib",
+    ],
 )
 
 objc_library(
     name = "objc_main_lib",
     srcs = ["main.m"],
+    deps = [
+        ":objc_common_lib",
+    ],
 )
 
 swift_library(

@@ -156,16 +156,4 @@ function test_pkginfo_contents() {
       "app.app/Contents/PkgInfo")"
 }
 
-# Tests that the correct rpaths were added at link-time to the binary.
-function test_binary_has_correct_rpaths() {
-  create_common_files
-  create_minimal_macos_application
-  do_build macos //app:app || fail "Should build"
-
-  unzip_single_file "test-bin/app/app.zip" "app.app/Contents/MacOS/app" \
-      > "$TEST_TMPDIR/app_bin"
-  otool -l "$TEST_TMPDIR/app_bin" > "$TEST_TMPDIR/otool_output"
-  assert_contains "@executable_path/../Frameworks" "$TEST_TMPDIR/otool_output"
-}
-
 run_suite "macos_application bundling tests"
