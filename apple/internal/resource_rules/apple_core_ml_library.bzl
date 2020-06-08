@@ -87,12 +87,6 @@ Label to a single mlmodel file from which to generate sources and compile into m
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
         ),
-        "_realpath": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//tools/realpath"),
-            executable = True,
-        ),
     }),
     output_to_genfiles = True,
     fragments = ["apple"],

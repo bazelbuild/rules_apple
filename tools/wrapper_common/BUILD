@@ -21,6 +21,16 @@ py2and3_test(
     ],
 )
 
+py_library(
+    name = "lipo",
+    srcs = ["lipo.py"],
+    srcs_version = "PY2AND3",
+    visibility = [
+        "//tools:__subpackages__",
+    ],
+    deps = ["//tools/wrapper_common:execute"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

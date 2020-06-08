@@ -8,7 +8,10 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
-    deps = ["//tools/codesigningtool:codesigningtool_lib"],
+    deps = [
+        "//tools/codesigningtool:codesigningtool_lib",
+        "//tools/wrapper_common:lipo",
+    ],
 )
 
 # Consumed by bazel tests.

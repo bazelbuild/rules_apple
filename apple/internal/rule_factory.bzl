@@ -136,14 +136,6 @@ _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
             allow_single_file = True,
             default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
         ),
-        # TODO(b/117933004): Find out whether realpath is still needed for symlinking, and if not,
-        # remove this attribute, which is still used by file_actions.symlink.
-        "_realpath": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//tools/realpath"),
-            executable = True,
-        ),
         # TODO(b/74731511): Refactor this attribute into being specified for each
         # platform.
         "_runner_template": attr.label(

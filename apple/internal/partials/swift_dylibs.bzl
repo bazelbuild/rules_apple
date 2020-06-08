@@ -95,19 +95,21 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
         platform_name,
         "--output_path",
         output_dir.path,
-        "--realpath",
-        ctx.executable._realpath.path,
         "--swift_dylibs_path",
         swift_dylibs_path,
     ]
+    for x in binary_files:
+        swift_stdlib_tool_args.extend([
+            "--binary",
+            x.path,
+        ])
 
     apple_support.run(
         ctx,
         inputs = binary_files,
-        tools = [ctx.executable._realpath],
         executable = ctx.executable._swift_stdlib_tool,
         outputs = [output_dir],
-        arguments = swift_stdlib_tool_args + [x.path for x in binary_files],
+        arguments = swift_stdlib_tool_args,
         mnemonic = "SwiftStdlibCopy",
     )
 
