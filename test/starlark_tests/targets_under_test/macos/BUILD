@@ -421,6 +421,22 @@ macos_command_line_application(
     ],
 )
 
+macos_command_line_application(
+    name = "cmd_app_dead_stripped",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionMain.exp",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_dylib(
@@ -429,6 +445,26 @@ macos_dylib(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = "10.11",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_dylib(
+    name = "dylib_dead_stripped",
+    bundle_id = "com.google.example",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
     minimum_os_version = "10.11",
     tags = [
         "manual",
@@ -453,6 +489,27 @@ macos_kernel_extension(
         "notap",
     ],
     deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)
+
+macos_kernel_extension(
+    name = "kext_dead_stripped",
+    bundle_id = "com.google.kext",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = "10.13",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )

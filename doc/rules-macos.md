@@ -210,8 +210,9 @@ simple command line tool as a standalone binary, use
 
 ```python
 macos_bundle(name, additional_contents, app_icons, bundle_id, bundle_name,
-entitlements, entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, resources, strings, version, deps)
+entitlements, entitlements_validation, exported_symbols_lists, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
+resources, strings, version, deps)
 ```
 
 Builds and bundles a macOS loadable bundle.
@@ -313,6 +314,19 @@ Builds and bundles a macOS loadable bundle.
       </td>
     </tr>
     <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>infoplists</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
@@ -405,8 +419,8 @@ Builds and bundles a macOS loadable bundle.
 ## macos_command_line_application
 
 ```python
-macos_command_line_application(name, bundle_id, infoplists, linkopts,
-minimum_os_version, version, deps)
+macos_command_line_application(name, bundle_id, exported_symbols_lists,
+infoplists, linkopts, minimum_os_version, version, deps)
 ```
 
 Builds a macOS command line application.
@@ -446,6 +460,19 @@ Targets created with `macos_command_line_application` can be executed using
         application.</p>
         <p>If present, this value will be embedded in an <code>Info.plist</code>
         in the application binary.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
       </td>
     </tr>
     <tr>
@@ -499,8 +526,8 @@ Targets created with `macos_command_line_application` can be executed using
 ## macos_dylib
 
 ```python
-macos_dylib(name, bundle_id, infoplists, linkopts, minimum_os_version, version,
-deps)
+macos_dylib(name, bundle_id, exported_symbols_lists, infoplists, linkopts,
+minimum_os_version, version, deps)
 ```
 
 Builds a macOS dylib.
@@ -531,6 +558,19 @@ Builds a macOS dylib.
         target.</p>
         <p>If present, this value will be embedded in an <code>Info.plist</code>
         in the binary.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
       </td>
     </tr>
     <tr>
@@ -759,9 +799,10 @@ Builds and bundles a macOS extension.
 ## macos_kernel_extension
 
 ```python
-macos_kernel_extension(name, additional_contents, bundle_id, bundle_name, entitlements,
-entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, resources, strings, version, deps)
+macos_kernel_extension(name, additional_contents, bundle_id, bundle_name,
+entitlements, entitlements_validation, exported_symbols_lists, infoplists,
+ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
+resources, strings, version, deps)
 ```
 
 Builds and bundles a macOS Kernel Extension.
@@ -839,6 +880,19 @@ Builds and bundles a macOS Kernel Extension.
         <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
         to control the validation of the requested entitlements against the
         provisioning profile to ensure they are supported.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>exported_symbols_lists</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>A list of targets containing exported symbols lists files for the
+        linker to control symbol resolution. Each file is expected to have a
+        list of global symbol names that will remain as global symbols in the
+        compiled binary owned by this framework.  All other global symbols will
+        be treated as if they were marked as __private_extern__ (aka
+        visibility=hidden) and will not be global in the output file. See the
+        man page documentation for ld(1) on macOS for more details.</p>
       </td>
     </tr>
     <tr>

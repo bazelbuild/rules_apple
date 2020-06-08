@@ -90,7 +90,7 @@ def tvos_framework(name, **kwargs):
 
     _tvos_framework(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
+        dylibs = binary_args.get("frameworks", []),
         **bundling_args
     )
 

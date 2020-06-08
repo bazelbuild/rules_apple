@@ -108,9 +108,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
           fi
         done
         if [[ "$symbol_found" = false ]]; then
-            fail "Expected load command \"$test_symbol\" was not found." \
-              "The load commands in the binary were:" \
-              "$newline${actual_symbols[@]}"
+            fail "Expected symbol \"$test_symbol\" was not found. The " \
+              "symbols in the binary were:$newline${actual_symbols[@]}"
         fi
       done
     fi
@@ -127,9 +126,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
           fi
         done
         if [[ "$symbol_found" = true ]]; then
-            fail "Unexpected load command \"$test_symbol\" was found." \
-              "The load commands in the binary were:" \
-              "$newline${actual_symbols[@]}"
+            fail "Unexpected symbol \"$test_symbol\" was found. The symbols " \
+              "in the binary were:$newline${actual_symbols[@]}"
         fi
       done
     fi
@@ -152,8 +150,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
           fi
         done
         if [[ "$symbol_found" = false ]]; then
-            fail "Expected private header symbol \"$test_symbol\" was not " \
-              "found. The private header symbols in the binary were:" \
+            fail "Expected load command \"$test_symbol\" was not found." \
+              "The load commands in the binary were:" \
               "$newline${actual_symbols[@]}"
         fi
       done
@@ -171,8 +169,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
           fi
         done
         if [[ "$symbol_found" = true ]]; then
-            fail "Unexpected private header symbol \"$test_symbol\" was " \
-              "found. The private header symbols in the binary were:" \
+            fail "Unexpected load command \"$test_symbol\" was found." \
+              "The load commands in the binary were:" \
               "$newline${actual_symbols[@]}"
         fi
       done

@@ -131,6 +131,7 @@ def binary_contents_test(
         binary_test_file,
         binary_test_architecture = "",
         binary_contains_symbols = [],
+        binary_not_contains_symbols = [],
         embedded_plist_test_values = {},
         plist_section_name = "__info_plist",
         **kwargs):
@@ -145,6 +146,8 @@ def binary_contents_test(
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
+        binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
+            binary file specified in `binary_test_file`.
         embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
             if the key does not exist or if its value doesn't match the specified value. * can
             be used as a wildcard value. An embedded plist will be extracted from the
@@ -169,6 +172,7 @@ def binary_contents_test(
             "BINARY_TEST_FILE": [binary_test_file],
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
+            "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
             "PLIST_SECTION_NAME": [plist_section_name],
             "PLIST_TEST_VALUES": plist_test_values_list,
         },

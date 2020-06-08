@@ -27,6 +27,7 @@ newline=$'\n'
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with
 #      `BINARY_CONTAINS_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
+#  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
 #  PLIST_SECTION_NAME: Name of the plist section to inspect values from. If not
 #      supplied, will test the embedded Info.plist slice at __TEXT,__info_plist.
 #  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
@@ -39,14 +40,14 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   if [[ ! -e "$path" ]]; then
     fail "Could not find binary at \"$path\""
   fi
-
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
     if [[ ! -n $arch ]]; then
       fail "No architecture specified for binary file at \"$path\""
     fi
 
-    # Filter out undefined symbols from the objdump mach-o symbol output.
+    # Filter out undefined symbols from the objdump mach-o symbol output and
+    # return the rightmost value; these binary symbols will not have spaces.
     IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print $NF}'))
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
@@ -60,8 +61,26 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
           fi
         done
         if [[ "$symbol_found" = false ]]; then
-            fail "Expected symbol name \"$test_symbol\" was not found." \
-                "The symbols in the binary were:$newline${actual_symbols[@]}"
+            fail "Expected symbol \"$test_symbol\" was not found. The " \
+              "symbols in the binary were:$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+
+    if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+      for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+      do
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = true ]]; then
+            fail "Unexpected symbol \"$test_symbol\" was found. The symbols " \
+              "in the binary were:$newline${actual_symbols[@]}"
         fi
       done
     fi

@@ -115,6 +115,7 @@ def macos_kernel_extension(name, **kwargs):
         name,
         platform_type = str(apple_common.platform_type.macos),
         features = features,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         **binary_args
     )
 
@@ -204,6 +205,7 @@ def macos_command_line_application(name, **kwargs):
         platform_type = str(apple_common.platform_type.macos),
         link_swift_statically = True,
         include_entitlements = False,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         deps = binary_deps,
         **binary_args
     )
@@ -256,6 +258,7 @@ def macos_dylib(name, **kwargs):
         platform_type = str(apple_common.platform_type.macos),
         link_swift_statically = True,
         include_entitlements = False,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         deps = binary_deps,
         **binary_args
     )

@@ -907,7 +907,7 @@ Builds and bundles an iOS Sticker Pack extension.
 ## ios_framework
 
 ```python
-ios_framework(name, bundle_id, bundle_name, exported_symbols_list,
+ios_framework(name, bundle_id, bundle_name, exported_symbols_lists,
 extension_safe, families, frameworks, infoplists, ipa_post_processor,
 linkopts, minimum_os_version, provisioning_profile, resources, strings,
 version, deps)
