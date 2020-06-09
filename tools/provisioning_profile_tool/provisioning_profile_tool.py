@@ -153,7 +153,7 @@ class ProvisioningProfileTool(object):
       output_path: Where to write the data.
       provisioning_profile: The provisioning profile.
     """
-    # The keys likely to be useful. We use a whitelist to ensure nothing
+    # The keys likely to be useful. We use an explicit list to ensure nothing
     # extra get pulled that won't be useful and could be large. Depending
     # on the company, the ProvisionedDevices can be pretty long, so there
     # is no reason to drag that along for parsing.
