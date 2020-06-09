@@ -388,13 +388,6 @@ apple_multi_shell_test(
     shard_count = 4,
 )
 
-apple_multi_shell_test(
-    name = "dtrace_test",
-    size = "medium",
-    src = "dtrace_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-)
-
 apple_shell_test(
     name = "ios_test_runner_unit_test",
     size = "large",
