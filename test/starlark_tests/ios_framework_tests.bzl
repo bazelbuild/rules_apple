@@ -50,6 +50,67 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_archive_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",
+        binary_test_file = "$BUNDLE_ROOT/fmwk",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["name @rpath/fmwk.framework/fmwk (offset 24)"],
+        contains = [
+            "$BUNDLE_ROOT/fmwk",
+            "$BUNDLE_ROOT/Headers/common.h",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_version_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_no_version",
+        not_expected_keys = ["CFBundleShortVersionString", "CFBundleVersion"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_extensions_do_not_duplicate_frameworks_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Info.plist",
+            "$BUNDLE_ROOT/PlugIns/ext_with_fmwk_provisioned.appex",
+        ],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext_with_fmwk_provisioned.appex/Frameworks"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_extensions_framework_propagates_to_app_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_fmwk_provisioned",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Info.plist",
+            "$BUNDLE_ROOT/PlugIns/ext_with_fmwk_provisioned.appex",
+        ],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext_with_fmwk_provisioned.appex/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_app_includes_transitive_framework_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_multiple_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_multiple_infoplists",
@@ -61,7 +122,31 @@ def ios_framework_test_suite():
     )
 
     archive_contents_test(
-        name = "{}_exported_symbols_list_test".format(name),
+        name = "{}_exported_symbols_list_stripped_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_stripped",
+        binary_test_file = "$BUNDLE_ROOT/fmwk_stripped",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        binary_not_contains_symbols = ["_dontCallMeShared", "_anticipatedDeadCode"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_two_exported_symbols_lists_stripped_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_stripped_two_exported_symbol_lists",
+        binary_test_file = "$BUNDLE_ROOT/fmwk_stripped_two_exported_symbol_lists",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared", "_dontCallMeShared"],
+        binary_not_contains_symbols = ["_anticipatedDeadCode"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_exported_symbols_list_dead_stripped_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_dead_stripped",
         binary_test_file = "$BUNDLE_ROOT/fmwk_dead_stripped",
@@ -73,7 +158,7 @@ def ios_framework_test_suite():
     )
 
     archive_contents_test(
-        name = "{}_two_exported_symbols_lists_test".format(name),
+        name = "{}_two_exported_symbols_lists_dead_stripped_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_dead_stripped_two_exported_symbol_lists",
         binary_test_file = "$BUNDLE_ROOT/fmwk_dead_stripped_two_exported_symbol_lists",

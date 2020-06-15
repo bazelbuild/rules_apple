@@ -62,6 +62,18 @@ def _infoplist_contents_test_impl(ctx):
             "fi",
         ])
 
+    for key in ctx.attr.not_expected_keys:
+        test_lines.extend([
+            "VALUE=\"$(/usr/libexec/PlistBuddy -c \"Print {0}\" {1} 2>/dev/null)\"".format(
+                key,
+                plist_path,
+            ),
+            "if [[ -n \"$VALUE\" ]]; then",
+            "  echo \"ERROR: Expected '{}' not to be contained in the plist.\"".format(key),
+            "  EXIT_CODE=1",
+            "fi",
+        ])
+
     test_lines.append("exit $EXIT_CODE")
 
     test_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
@@ -90,12 +102,18 @@ infoplist_contents_test = rule(
             doc = "Target containing an Info.plist file to verify.",
         ),
         "expected_values": attr.string_dict(
-            mandatory = True,
+            mandatory = False,
+            default = {},
             doc = """
 Dictionary of plist keys and expected values for that key. This test will fail if the key does not
 exist or if it it doesn't match the value. * can be used as a wildcard, similar to how it works in
 shell scripts.
 """,
+        ),
+        "not_expected_keys": attr.string_list(
+            mandatory = False,
+            default = [],
+            doc = "Array of plist keys that should not exist. The test will fail if the key exists.",
         ),
     }),
     fragments = ["apple"],
