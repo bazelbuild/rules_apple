@@ -50,6 +50,17 @@ objc_library(
     ],
 )
 
+objc_library(
+    name = "objc_lib_with_resources",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        ":structured_resources",
+    ],
+)
+
 swift_library(
     name = "swift_main_lib",
     srcs = ["//test/testdata/sources:main.swift"],
@@ -123,6 +134,13 @@ filegroup(
     srcs = [
         "nested/nested.txt",
         "non_nested.txt",
+    ],
+)
+
+apple_resource_group(
+    name = "structured_resources",
+    structured_resources = [
+        "Another.plist",
     ],
 )
 

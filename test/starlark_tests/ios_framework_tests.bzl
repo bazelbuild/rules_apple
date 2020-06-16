@@ -98,6 +98,53 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Tests that resources that both apps and frameworks depend on are present
+    # in the .framework directory and app directory if both have explicit owners
+    # for the resources.
+    archive_contents_test(
+        name = "{}_shared_resources_with_explicit_owners_in_framework_and_app".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_and_shared_resources",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    # Tests that resources that both apps and frameworks depend on are present
+    # in the .framework directory only.
+    archive_contents_test(
+        name = "{}_resources_in_framework_stays_in_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_and_resources",
+        contains = ["$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist"],
+        not_contains = ["$BUNDLE_ROOT/another.plist"],
+        tags = [name],
+    )
+
+    # Tests that libraries that both apps and frameworks depend only have symbols
+    # present in the framework.
+    archive_contents_test(
+        name = "{}_symbols_from_shared_library_in_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_and_resources",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+        binary_contains_symbols = ["_dontCallMeShared"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_symbols_from_shared_library_not_in_application".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_and_resources",
+        binary_test_file = "$BUNDLE_ROOT/app_with_framework_and_resources",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["_dontCallMeShared"],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_app_includes_transitive_framework_test".format(name),
         build_type = "simulator",
