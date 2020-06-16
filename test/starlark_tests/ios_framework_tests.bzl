@@ -233,6 +233,29 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Test that if an ios_framework target depends on a prebuilt static framework,
+    # the inner framework is propagated up to the application and not nested in
+    # the outer framework.
+    archive_contents_test(
+        name = "{}_prebuild_static_framework_included_in_outer_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_inner_and_outer_static_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_static_fmwk.framework/fmwk_with_imported_static_fmwk",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["-[ObjectiveCSharedClass doSomethingShared]"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_prebuild_static_framework_not_included_in_app".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_inner_and_outer_static_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_inner_and_outer_static_fmwk",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["-[ObjectiveCSharedClass doSomethingShared]"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
