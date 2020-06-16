@@ -216,6 +216,23 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Test that if an ios_framework target depends on a prebuilt framework, that
+    # the inner framework is propagated up to the application and not nested in
+    # the outer framework.
+    archive_contents_test(
+        name = "{}_prebuild_framework_propagated_to_application".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_inner_and_outer_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_fmwk.framework/fmwk_with_imported_fmwk",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_fmwk.framework/Frameworks",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

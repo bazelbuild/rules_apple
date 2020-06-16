@@ -160,6 +160,50 @@ ios_application(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "app_with_inner_and_outer_fmwk",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [
+        ":fmwk_with_imported_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_imported_fmwk",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/testdata/frameworks:iOSImportedDynamicFramework",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
     name = "app_with_ext_with_fmwk_provisioned",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
