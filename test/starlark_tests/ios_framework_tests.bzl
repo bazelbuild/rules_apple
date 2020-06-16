@@ -149,12 +149,31 @@ def ios_framework_test_suite():
         name = "{}_app_includes_transitive_framework_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        binary_test_architecture = "x86_64",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/nonlocalized.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
         ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Frameworks/",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/framework_resources/nonlocalized.plist",
+        ],
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_app_includes_transitive_framework_symbols_not_in_app".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_with_fmwk",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
     )
 
@@ -253,6 +272,28 @@ def ios_framework_test_suite():
         binary_test_file = "$BUNDLE_ROOT/app_with_inner_and_outer_static_fmwk",
         binary_test_architecture = "x86_64",
         binary_not_contains_symbols = ["-[ObjectiveCSharedClass doSomethingShared]"],
+        tags = [name],
+    )
+
+    # Verifies that, when an extension depends on a framework with different
+    # minimum_os, symbol subtraction still occurs.
+    archive_contents_test(
+        name = "{}_symbols_present_in_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_min_version",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_8_0_minimum.framework/fmwk_8_0_minimum",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_symbols_not_in_extension".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_min_version",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_9_0_min_version.appex/ext_with_9_0_min_version",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["_anotherFunctisonShared"],
         tags = [name],
     )
 

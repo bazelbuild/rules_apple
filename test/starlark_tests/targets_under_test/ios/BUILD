@@ -246,6 +246,89 @@ ios_framework(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "app_with_8_0_min_version",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_9_0_min_version"],
+    families = ["iphone"],
+    frameworks = [":fmwk_8_0_minimum"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":fmwk_8_0_minimum_lib",
+        ":min_version_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_9_0_min_version",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":fmwk_8_0_minimum"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":fmwk_8_0_minimum_lib",
+        ":min_version_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_8_0_minimum",
+    hdrs = ["//test/starlark_tests/resources:common.h"],
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":fmwk_8_0_minimum_lib",
+    ],
+)
+
+objc_library(
+    name = "fmwk_8_0_minimum_lib",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+)
+
+objc_library(
+    name = "min_version_main_lib",
+    srcs = [
+        "//test/starlark_tests/resources:main.m",
+    ],
+    deps = [":fmwk_8_0_minimum_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
     name = "app_with_ext_with_fmwk_provisioned",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
@@ -828,10 +911,6 @@ ios_framework(
     tags = [
         "manual",
         "notap",
-    ],
-    deps = [
-        "//test/starlark_tests/resources:framework_resources_lib",
-        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
