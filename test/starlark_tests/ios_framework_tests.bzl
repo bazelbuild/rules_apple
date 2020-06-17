@@ -98,6 +98,38 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Tests that if frameworks and applications have different minimum versions
+    # the assets are still only in the framework.
+    archive_contents_test(
+        name = "{}_resources_in_framework_stays_in_framework_with_app_with_lower_min_os_version".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_minimum_and_9_0_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/nested/should_be_nested.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_resources_in_framework_stays_in_framework_with_app_with_higher_min_os_version".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_9_0_minimum_and_8_0_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_8_0.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_8_0.framework/basic.bundle/nested/should_be_nested.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+        ],
+        tags = [name],
+    )
+
     # Tests that resources that both apps and frameworks depend on are present
     # in the .framework directory and app directory if both have explicit owners
     # for the resources.
