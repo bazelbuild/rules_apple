@@ -472,6 +472,28 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_fmwk_with_bundle_resources",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":fmwk_min_os_9_0"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_framework(
     name = "fmwk_min_os_9_0",
     hdrs = ["//test/starlark_tests/resources:common.h"],

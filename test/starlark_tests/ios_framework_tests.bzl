@@ -98,6 +98,23 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Tests that if frameworks have resource bundles they are only in the
+    # framework.
+    archive_contents_test(
+        name = "{}_resource_bundle_in_framework_stays_in_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_bundle_resources",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/nested/should_be_nested.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+        ],
+        tags = [name],
+    )
+
     # Tests that if frameworks and applications have different minimum versions
     # the assets are still only in the framework.
     archive_contents_test(
