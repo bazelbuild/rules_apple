@@ -167,7 +167,7 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/binaries:empty_staticlib",
     ],
-    shard_count = 12,
+    shard_count = 10,
 )
 
 apple_multi_shell_test(
@@ -186,7 +186,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_extension_swift_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    shard_count = 2,
 )
 
 apple_multi_shell_test(
@@ -198,7 +197,6 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 12,
 )
 
 apple_multi_shell_test(
@@ -231,7 +229,7 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/binaries:empty_staticlib",
     ],
-    shard_count = 8,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
@@ -242,7 +240,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
-    shard_count = 8,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
@@ -250,7 +248,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_bundle_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 8,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
@@ -258,7 +256,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_quick_look_plugin_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    shard_count = 5,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
@@ -266,7 +264,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_application_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 4,
+    shard_count = 3,
 )
 
 apple_multi_shell_test(
@@ -274,7 +272,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_application_swift_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 2,
 )
 
 apple_multi_shell_test(
@@ -282,7 +279,7 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_extension_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 7,
+    shard_count = 5,
 )
 
 apple_multi_shell_test(
@@ -290,7 +287,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_extension_swift_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-    shard_count = 2,
 )
 
 apple_multi_shell_test(
@@ -322,7 +318,7 @@ apple_multi_shell_test(
         "//test/testdata/binaries:empty_dylib",
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 8,
+    shard_count = 6,
 )
 
 apple_multi_shell_test(
@@ -333,7 +329,7 @@ apple_multi_shell_test(
     data = [
         "//test/testdata/rules:dummy_runner",
     ],
-    shard_count = 5,
+    shard_count = 4,
 )
 
 apple_multi_shell_test(
