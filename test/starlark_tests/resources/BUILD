@@ -145,6 +145,13 @@ apple_resource_group(
 )
 
 apple_resource_group(
+    name = "structured_resources_duplicate",
+    structured_resources = [
+        "Another.plist",
+    ],
+)
+
+apple_resource_group(
     name = "structured_resources_in_resources",
     structured_resources = [
         "Resources/some.file",

@@ -85,6 +85,19 @@ def ios_framework_test_suite():
         tags = [name],
     )
 
+    # Tests that different root-level resources with the same name are not
+    # deduped between framework and app.
+    archive_contents_test(
+        name = "{}_same_resource_names_not_deduped".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_same_resource_names_as_framework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_duplicate_resource_names.framework/Another.plist",
+            "$BUNDLE_ROOT/Another.plist",
+        ],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_extensions_framework_propagates_to_app_test".format(name),
         build_type = "simulator",

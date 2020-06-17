@@ -160,6 +160,61 @@ ios_application(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "app_with_same_resource_names_as_framework",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [
+        ":fmwk_with_duplicate_resource_names",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":app_structured_resources_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_duplicate_resource_names",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":fmwk_structured_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+objc_library(
+    name = "fmwk_structured_resources_lib",
+    data = ["//test/starlark_tests/resources:structured_resources"],
+)
+
+objc_library(
+    name = "app_structured_resources_lib",
+    data = ["//test/starlark_tests/resources:structured_resources_duplicate"],
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
     name = "app_with_inner_and_outer_fmwk",
     bundle_id = "com.google.example",
     families = ["iphone"],
