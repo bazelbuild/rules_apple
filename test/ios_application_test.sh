@@ -335,12 +335,14 @@ EOF
 </plist>
 EOF
 
+  create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
+  readonly CODESIGN_OUTPUT="test-bin/app/codesign_output"
+
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
-    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
-    readonly FILE_TO_CHECK="test-bin/app/codesign_output"
+    readonly FILE_TO_CHECK="${CODESIGN_OUTPUT}"
     readonly SHOULD_CONTAIN="${FOR_DEVICE}"
   else
     # For simulator builds, entitlements are added as a Mach-O section in
@@ -351,12 +353,26 @@ EOF
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
     readonly SHOULD_CONTAIN="${FOR_SIM}"
+
+    # Simulator builds also have entitlements in the codesign output,
+    # but only `com.apple.security.get-task-allow` and nothing else
+    do_build ios "$@" //app:dump_codesign || fail "Should build"
+
+    if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
+      assert_contains "<key>com.apple.security.get-task-allow</key>" "${CODESIGN_OUTPUT}"
+      assert_not_contains "<key>keychain-access-groups</key>" "${CODESIGN_OUTPUT}"
+    else
+      assert_not_contains "<key>com.apple.security.get-task-allow</key>" "${CODESIGN_OUTPUT}"
+      assert_not_contains "<key>keychain-access-groups</key>" "${CODESIGN_OUTPUT}"
+    fi
   fi
 
   if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
     assert_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_contains "<key>keychain-access-groups</key>" "${FILE_TO_CHECK}"
   else
     assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_contains "<key>keychain-access-groups</key>" "${FILE_TO_CHECK}"
   fi
 }
 
