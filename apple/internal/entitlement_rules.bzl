@@ -323,13 +323,39 @@ def _entitlements_impl(ctx):
     # Only propagate linkopts for simulator builds to embed the entitlements into
     # the binary; for device builds, the entitlements are applied during signing.
     if not is_device:
+        simulator_entitlements = None
+        if _include_debug_entitlements(ctx):
+            simulator_entitlements = ctx.actions.declare_file(
+                "%s.simulator.entitlements" % ctx.label.name,
+            )
+            simulator_control = struct(
+                plists = [],
+                forced_plists = [struct(**{"com.apple.security.get-task-allow": True})],
+                output = simulator_entitlements.path,
+                target = str(ctx.label),
+            )
+            simulator_control_file = _new_entitlements_artifact(ctx, "simulator-plisttool-control")
+            ctx.actions.write(
+                output = simulator_control_file,
+                content = simulator_control.to_json(),
+            )
+            resource_actions.plisttool_action(
+                actions = actions,
+                inputs = [],
+                outputs = [simulator_entitlements],
+                platform_prerequisites = platform_prerequisites,
+                plisttool = ctx.executable._plisttool,
+                control_file = simulator_control_file,
+                mnemonic = "ProcessSimulatorEntitlementsFile",
+            )
+
         return [
             linking_support.sectcreate_objc_provider(
                 "__TEXT",
                 "__entitlements",
                 final_entitlements,
             ),
-            AppleEntitlementsInfo(final_entitlements = final_entitlements),
+            AppleEntitlementsInfo(final_entitlements = simulator_entitlements),
         ]
     else:
         return [
