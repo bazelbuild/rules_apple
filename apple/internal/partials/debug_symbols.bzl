@@ -15,6 +15,10 @@
 """Partial implementation for debug symbol file processing."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -117,29 +121,49 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
     bundle_name_with_extension = bundle_name + bundle_extension
     dsym_bundle_name = bundle_name_with_extension + ".dSYM"
 
-    outputs = []
+    output_binary = ctx.actions.declare_file(
+        "%s/Contents/Resources/DWARF/%s" % (
+            dsym_bundle_name,
+            bundle_name,
+        ),
+    )
+    outputs = [output_binary]
 
-    # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-    for arch in debug_provider.outputs_map:
-        arch_outputs = debug_provider.outputs_map[arch]
+    outputs_map_items = debug_provider.outputs_map.items()
+
+    # Copy the binary over if there's only a single arch.
+    if len(outputs_map_items) == 1:
+        _, arch_outputs = outputs_map_items[0]
         dsym_binary = arch_outputs["dsym_binary"]
-        output_binary = ctx.actions.declare_file(
-            "%s/Contents/Resources/DWARF/%s_%s" % (
-                dsym_bundle_name,
-                bundle_name,
-                arch,
-            ),
-        )
-        outputs.append(output_binary)
-
         # cp instead of symlink here because a dSYM with a symlink to the DWARF data will not be
         # recognized by spotlight which is key for lldb on mac to find a dSYM for a binary.
         # https://lldb.llvm.org/use/symbols.html
         ctx.actions.run_shell(
             inputs = [dsym_binary],
-            outputs = [output_binary],
+            outputs = outputs,
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
             command = "cp -p '%s' '%s'" % (dsym_binary.path, output_binary.path),
+        )
+    else:
+        # Create a universal binary if there are more than one arch.
+        args = ctx.actions.args()
+        args.add("lipo")
+        args.add("-create")
+        args.add("-output", output_binary)
+
+        inputs = []
+        for arch, arch_outputs in outputs_map_items:
+            dsym_binary = arch_outputs["dsym_binary"]
+            args.add_all("-arch", [arch, dsym_binary])
+            inputs.append(dsym_binary)
+
+        apple_support.run(
+            ctx,
+            executable = "/usr/bin/xcrun",
+            inputs = inputs,
+            outputs = outputs,
+            arguments = [args],
+            mnemonic = "DsymLipo",
         )
 
     # If we found any outputs, create the Info.plist for the bundle as well; otherwise, we just
