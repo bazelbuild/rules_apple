@@ -13,7 +13,6 @@ filegroup(
         "//tools/provisioning_profile_tool:for_bazel_tests",
         "//tools/swift_stdlib_tool:for_bazel_tests",
         "//tools/versiontool:for_bazel_tests",
-        "//tools/whitelists/function_transition_whitelist:for_bazel_tests",
         "//tools/wrapper_common:for_bazel_tests",
         "//tools/xctoolrunner:for_bazel_tests",
         "//tools/imported_dynamic_framework_processor:for_bazel_tests",

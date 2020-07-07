@@ -909,7 +909,7 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
     if rule_descriptor.rule_transition:
         rule_attrs.append({
             "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
+                default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
             ),
         })
 
@@ -967,7 +967,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     if rule_descriptor.rule_transition or rule_descriptor.force_transition_whitelist:
         rule_attrs.append({
             "_whitelist_function_transition": attr.label(
-                default = "//tools/whitelists/function_transition_whitelist",
+                default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
             ),
         })
 
