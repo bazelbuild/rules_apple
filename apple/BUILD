@@ -9,6 +9,7 @@ licenses(["notice"])
     )
     for arch in [
         "darwin_x86_64",
+        "darwin_arm64",
         "ios_i386",
         "ios_x86_64",
         "ios_armv7",
