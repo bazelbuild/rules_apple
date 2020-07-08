@@ -80,7 +80,7 @@ def _describe_rule_type(
         default_test_runner = None,
         deps_cfg = None,
         extra_linkopts = [],
-        force_transition_whitelist = False,
+        force_transition_allowlist = False,
         has_infoplist = True,
         has_launch_images = False,
         has_settings_bundle = False,
@@ -125,7 +125,7 @@ def _describe_rule_type(
             the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
             that use the Starlark linking API.
         extra_linkopts: Extra options to pass to the linker.
-        force_transition_whitelist: Whether to force a dependency on the transition whitelist.
+        force_transition_allowlist: Whether to force a dependency on the transition allowlist.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
@@ -173,7 +173,7 @@ def _describe_rule_type(
         default_test_runner = default_test_runner,
         deps_cfg = deps_cfg,
         extra_linkopts = extra_linkopts,
-        force_transition_whitelist = force_transition_whitelist,
+        force_transition_allowlist = force_transition_allowlist,
         has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
@@ -315,7 +315,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
-            force_transition_whitelist = True,
+            force_transition_allowlist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -638,7 +638,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
-            force_transition_whitelist = True,
+            force_transition_allowlist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,

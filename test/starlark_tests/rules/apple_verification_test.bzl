@@ -244,8 +244,8 @@ into a bash array.
         "_test_deps": attr.label(
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
         ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     }),
     test = True,

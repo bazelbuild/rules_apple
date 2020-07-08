@@ -908,8 +908,8 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
 
     if rule_descriptor.rule_transition:
         rule_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
         })
 
@@ -964,10 +964,10 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     elif platform_type == "watchos":
         rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition or rule_descriptor.force_transition_whitelist:
+    if rule_descriptor.rule_transition or rule_descriptor.force_transition_allowlist:
         rule_attrs.append({
-            "_whitelist_function_transition": attr.label(
-                default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
         })
 
