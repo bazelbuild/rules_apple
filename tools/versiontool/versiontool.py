@@ -25,7 +25,7 @@ representation of a "control" structure. This control structure is a dictionary
 with the following keys:
 
   build_info_path: The path to the build info file (`ctx.info_file.path` from
-      Skylark) that contains the embedded label information.
+      Starlark) that contains the embedded label information.
   build_label_pattern: The regular expression that should be matched against the
       build label, with possible placeholders corresponding to `capture_groups`.
   build_version_pattern: The string (possibly containing placeholders) that

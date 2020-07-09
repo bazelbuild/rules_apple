@@ -155,7 +155,7 @@ apple_resource_bundle(
     bundle_name = "bundle_library_macos",
     # TODO: Bazel seems to crash with an exception if given datamodels
     # and targeting macOS. So until objc_bundle_library is redone in
-    # skylark we might just have to live this this.
+    # starlark we might just have to live with this.
     infoplists = [
         "Info-template.plist",
     ],

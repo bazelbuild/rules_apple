@@ -1043,7 +1043,7 @@ class EntitlementsTask(PlistToolTask):
         # Note: These subs must be set up by plisttool (and not passed in)
         # via the *_substitutions keys in the control because it takes an
         # action running to extract them from the provisioning profile, so
-        # the skylark for the rule doesn't have access to the values.
+        # the starlark for the rule doesn't have access to the values.
         #
         # Set up the subs using the info extracted from the provisioning
         # profile:
