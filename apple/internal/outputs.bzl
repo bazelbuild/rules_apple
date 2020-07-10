@@ -31,6 +31,10 @@ load(
     "intermediates",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -46,6 +50,13 @@ def _archive(ctx):
     # TODO(kaipi): Look into removing this rule implicit output and just return it using
     # DefaultInfo.
     return ctx.outputs.archive
+
+def _archive_for_embedding(ctx):
+    """Returns a files reference for this target's archive, when being embedded in another target."""
+    if _has_different_embedding_archive(ctx):
+        return ctx.actions.declare_file("%s.embedding.zip" % ctx.label.name)
+    else:
+        return _archive(ctx)
 
 def _archive_root_path(ctx):
     """Returns the path to a directory reference for this target's archive root."""
@@ -66,14 +77,25 @@ def _executable(ctx):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return ctx.actions.declare_file(ctx.label.name)
 
+def _has_different_embedding_archive(ctx):
+    """Returns True if this target has a different archive when being embedded in another target."""
+    if is_experimental_tree_artifact_enabled(ctx):
+        return False
+
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    return rule_descriptor.bundle_locations.archive_relative != ""
+
 def _infoplist(ctx):
     """Returns a file reference for this target's Info.plist file."""
     return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
 
 outputs = struct(
     archive = _archive,
+    archive_for_embedding = _archive_for_embedding,
     archive_root_path = _archive_root_path,
     binary = _binary,
     executable = _executable,
+    has_different_embedding_archive = _has_different_embedding_archive,
     infoplist = _infoplist,
 )

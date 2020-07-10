@@ -41,6 +41,7 @@ All partials handled by this processor must follow this API:
 Location types can be 7:
   - archive: Files are to be placed relative to the archive of the bundle
     (i.e. the root of the zip/IPA file to generate).
+  - app_clip: Files are to be placed in the AppClips section of the bundle.
   - binary: Files are to be placed in the binary section of the bundle.
   - bundle: Files are to be placed at the root of the bundle.
   - content: Files are to be placed in the contents section of the bundle.
@@ -122,6 +123,7 @@ load(
 # Location enum that can be used to tag files into their appropriate location
 # in the final archive.
 _LOCATION_ENUM = struct(
+    app_clip = "app_clip",
     archive = "archive",
     binary = "binary",
     bundle = "bundle",
@@ -169,7 +171,7 @@ def _is_parent_dir_valid(invalid_top_level_dirs, parent_dir):
             return False
     return True
 
-def _archive_paths(ctx):
+def _archive_paths(ctx, embedding = False):
     """Returns the map of location type to final archive path."""
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
@@ -181,10 +183,15 @@ def _archive_paths(ctx):
         bundle_name_with_extension = (
             bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
         )
-        bundle_path = paths.join(
-            rule_descriptor.bundle_locations.archive_relative,
-            bundle_name_with_extension,
-        )
+
+        # When embedding in another target, we don't use the archive_relative path
+        if embedding:
+            bundle_path = bundle_name_with_extension
+        else:
+            bundle_path = paths.join(
+                rule_descriptor.bundle_locations.archive_relative,
+                bundle_name_with_extension,
+            )
 
     contents_path = paths.join(
         bundle_path,
@@ -193,6 +200,10 @@ def _archive_paths(ctx):
 
     # Map of location types to relative paths in the archive.
     return {
+        _LOCATION_ENUM.app_clip: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_app_clips,
+        ),
         _LOCATION_ENUM.archive: "",
         _LOCATION_ENUM.binary: paths.join(
             contents_path,
@@ -226,6 +237,7 @@ def _bundle_partial_outputs_files(
         ctx,
         partial_outputs,
         output_file,
+        embedding = False,
         codesigning_command = None,
         extra_input_files = []):
     """Invokes bundletool to bundle the files specified by the partial outputs.
@@ -235,6 +247,8 @@ def _bundle_partial_outputs_files(
       partial_outputs: List of partial outputs from which to collect the files
         that will be bundled inside the final archive.
       output_file: The file where the final zipped bundle should be created.
+      embedding: If True, output_file is going to be used to embed in another
+          target, and the paths inside the archive reflect that.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
       extra_input_files: Extra files to include in the bundling action.
@@ -265,7 +279,7 @@ def _bundle_partial_outputs_files(
                         if locale:
                             base_locales.append(locale)
 
-    location_to_paths = _archive_paths(ctx)
+    location_to_paths = _archive_paths(ctx, embedding = embedding)
 
     platform_type = platform_support.platform_type(ctx)
     invalid_top_level_dirs = _invalid_top_level_directories_for_platform(platform_type)
@@ -337,10 +351,15 @@ def _bundle_partial_outputs_files(
         post_processor = post_processor_path,
     )
 
+    if embedding:
+        control_file_name = "embedding_bundletool_control.json"
+    else:
+        control_file_name = "bundletool_control.json"
+
     control_file = intermediates.file(
         ctx.actions,
         ctx.label.name,
-        "bundletool_control.json",
+        control_file_name,
     )
     ctx.actions.write(
         output = control_file,
@@ -440,6 +459,10 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
             "unprocessed_archive.zip",
         )
         _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+
+        if outputs.has_different_embedding_archive(ctx):
+            embedding_archive = outputs.archive_for_embedding(ctx)
+            _bundle_partial_outputs_files(ctx, partial_outputs, embedding_archive, embedding = True)
 
         archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
         frameworks_path = archive_paths[_LOCATION_ENUM.framework]
