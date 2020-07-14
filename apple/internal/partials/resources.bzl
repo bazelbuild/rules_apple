@@ -21,6 +21,10 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "ASPECT_PROVIDER_FIELD_TO_ACTION",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
     "resources_support",
 )
@@ -65,6 +69,8 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
+
+_PROCESSED_FIELDS = ASPECT_PROVIDER_FIELD_TO_ACTION.keys()
 
 def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """Registers the root Info.plist generation action.
@@ -113,7 +119,13 @@ def _expand_owners(owners):
             dict.setdefault(resource, default = {})[owner] = None
     return dict
 
-def _deduplicate(resources_provider, avoid_provider, owners, avoid_owners, field):
+def _deduplicate(
+        resources_provider,
+        avoid_provider,
+        owners,
+        avoid_owners,
+        processed_deduplication_map,
+        field):
     """Deduplicates and returns resources between 2 providers for a given field.
 
     Deduplication happens by comparing the target path of a file and the files
@@ -130,6 +142,9 @@ def _deduplicate(resources_provider, avoid_provider, owners, avoid_owners, field
       avoid_provider: The provider with the resources to avoid bundling.
       owners: The owners map for resources_provider computed by _expand_owners.
       avoid_owners: The owners map for avoid_provider computed by _expand_owners.
+      processed_deduplication_map: A dictionary of keys to short paths referencing already-
+          deduplicated resources that can be referenced by the resource processing aspect to avoid
+          duplicating files referenced by library targets and top level targets.
       field: The field to deduplicate resources on.
 
     Returns:
@@ -147,12 +162,21 @@ def _deduplicate(resources_provider, avoid_provider, owners, avoid_owners, field
     # key, and remove the duplicated file references. Then recreate the original
     # tuple with only the remaining files, if any.
     deduped_tuples = []
+
     for parent_dir, swift_module, files in getattr(resources_provider, field):
         key = "%s_%s" % (parent_dir or "root", swift_module or "root")
 
         # Dictionary used as a set to mark files as processed by short_path to deduplicate generated
         # files that may appear more than once if multiple architectures are being built.
         multi_architecture_deduplication_set = {}
+
+        # Update the deduplication map for this key, representing the domain of this library
+        # processable resource in bundling, and use that as our deduplication set for library
+        # processable resources.
+        if not processed_deduplication_map.get(key, None):
+            processed_deduplication_map[key] = {}
+        processed_deduplication_set = processed_deduplication_map[key]
+
         deduped_files = []
         for to_bundle_file in files.to_list():
             short_path = to_bundle_file.short_path
@@ -171,10 +195,24 @@ def _deduplicate(resources_provider, avoid_provider, owners, avoid_owners, field
                     for o in owners[short_path]
                     if o not in avoid_owners[short_path]
                 ]
-                if deduped_owners:
-                    deduped_files.append(to_bundle_file)
-            else:
-                deduped_files.append(to_bundle_file)
+                if not deduped_owners:
+                    continue
+
+            if field == "processed":
+                # Check for duplicates referencing our map of where the processed resources were
+                # based from.
+                processed_origins = getattr(resources_provider, "processed_origins")
+                found_origin = processed_origins[short_path]
+                if found_origin in processed_deduplication_set:
+                    continue
+                processed_deduplication_set[found_origin] = None
+            elif field in _PROCESSED_FIELDS:
+                # Check for duplicates across other fields, to avoid dupes across top-level fields.
+                if short_path in processed_deduplication_set:
+                    continue
+                processed_deduplication_set[short_path] = None
+
+            deduped_files.append(to_bundle_file)
 
         if deduped_files:
             deduped_tuples.append((parent_dir, swift_module, depset(deduped_files)))
@@ -280,6 +318,7 @@ def _resources_partial_impl(
         "mlmodels": (resources_support.mlmodels, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
+        "processed": (resources_support.noop, False),
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),
@@ -306,9 +345,20 @@ def _resources_partial_impl(
         avoid_owners = _expand_owners(avoid_provider.owners)
     owners = _expand_owners(final_provider.owners)
 
+    # Create the deduplication map for library processable resources to be referenced across fields
+    # for the purposes of deduplicating top level resources and multiple library scoped resources.
+    processed_deduplication_map = {}
+
     for field in fields:
+        deduplicated = _deduplicate(
+            final_provider,
+            avoid_provider,
+            owners,
+            avoid_owners,
+            processed_deduplication_map,
+            field,
+        )
         processing_func, requires_swift_module = provider_field_to_action[field]
-        deduplicated = _deduplicate(final_provider, avoid_provider, owners, avoid_owners, field)
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)

@@ -360,6 +360,57 @@ def ios_application_resources_test_suite():
         tags = [name],
     )
 
+    # Test that library-defined resources such as strings and plists have ths same outputs as if
+    # they were app-defined.
+    archive_contents_test(
+        name = "{}_with_library_defined_strings_and_plists_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.plist",
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/it.lproj/localized.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_library_scoped_localized_assets",
+        tags = [name],
+    )
+
+    # Test that having the same library-defined resources referenced from two different library
+    # targets will be deduplicated, and therefore will not cause issues with the build.
+    archive_contents_test(
+        name = "{}_with_two_libraries_referencing_same_strings_and_plists_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.plist",
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/it.lproj/localized.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_duplicated_library_scoped_localized_assets",
+        tags = [name],
+    )
+
+    # Test that having the same library-defined resources referenced from a library target and the
+    # top level target will be deduplicated, and therefore will not cause issues with the build.
+    archive_contents_test(
+        name = "{}_with_top_level_and_library_scoped_localized_assets_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.strings",
+            "$BUNDLE_ROOT/fr.lproj/localized.plist",
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/it.lproj/localized.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_and_library_scoped_localized_assets",
+        tags = [name],
+    )
+
     # Tests xcasset tool is passed the correct arguments.
     analysis_xcasset_argv_test(
         name = "{}_xcasset_actool_argv".format(name),

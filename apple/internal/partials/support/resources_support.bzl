@@ -280,12 +280,14 @@ def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
         return _noop(ctx, parent_dir, files)
 
     plist_files = []
+    processed_origins = {}
     for file in files.to_list():
         plist_file = intermediates.file(
             ctx.actions,
             ctx.label.name,
             paths.join(parent_dir or "", file.basename),
         )
+        processed_origins[plist_file.short_path] = file.short_path
         resource_actions.compile_plist(ctx, file, plist_file)
         plist_files.append(plist_file)
 
@@ -293,6 +295,7 @@ def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
         files = [
             (processor.location.resource, parent_dir, depset(direct = plist_files)),
         ],
+        processed_origins = processed_origins,
     )
 
 def _pngs(ctx, parent_dir, files):
@@ -413,7 +416,13 @@ def _xibs(ctx, parent_dir, files, swift_module):
 def _noop(ctx, parent_dir, files):
     """Registers files to be bundled as is."""
     _ignore = [ctx]
-    return struct(files = [(processor.location.resource, parent_dir, files)])
+    processed_origins = {}
+    for file in files.to_list():
+        processed_origins[file.short_path] = file.short_path
+    return struct(
+        files = [(processor.location.resource, parent_dir, files)],
+        processed_origins = processed_origins,
+    )
 
 resources_support = struct(
     asset_catalogs = _asset_catalogs,

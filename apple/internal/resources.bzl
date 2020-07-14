@@ -93,7 +93,7 @@ def _get_attr_as_list(attr, attribute):
         return value
     return [value]
 
-def _bucketize(
+def _bucketize_data(
         resources,
         swift_module = None,
         owner = None,
@@ -131,7 +131,8 @@ def _bucketize(
             means all buckets are allowed.
 
     Returns:
-        A AppleResourceInfo provider with resources bucketized according to type.
+        A tuple with a list of owners, a list of "unowned" resources, and a dictionary with
+            bucketized resources organized by resource type.
     """
     buckets = {}
     owners = []
@@ -165,7 +166,7 @@ def _bucketize(
         resource_swift_module = None
         resource_depset = depset([resource])
 
-        # For each type of resource, place in appropriate bucket.
+        # For each type of resource, place in the appropriate bucket.
         if resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
             bucket_name = "strings"
         elif resource_short_path.endswith(".storyboard"):
@@ -203,10 +204,49 @@ def _bucketize(
             default = [],
         ).append((parent, resource_swift_module, resource_depset))
 
+    return (
+        owners,
+        unowned_resources,
+        dict([(k, _minimize(b)) for k, b in buckets.items()]),
+    )
+
+def _bucketize(
+        resources,
+        swift_module = None,
+        owner = None,
+        parent_dir_param = None,
+        allowed_buckets = None):
+    """Separates the given resources into resource bucket types and returns an AppleResourceInfo.
+
+    This method wraps _bucketize_data and returns its tuple as an immutable Starlark structure to
+    help propagate the structure of the Apple bundle resources to the bundler.
+
+    Args:
+        resources: List of resources to bucketize.
+        swift_module: The Swift module name to associate to these resources.
+        owner: An optional string that has a unique identifier to the target that should own the
+            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
+        parent_dir_param: Either a string/None or a struct used to calculate the value of
+            parent_dir for each resource. If it is a struct, it will be considered a partial
+            context, and will be invoked with partial.call().
+        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
+            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
+            means all buckets are allowed.
+
+    Returns:
+        An AppleResourceInfo provider with resources bucketized according to type.
+    """
+    owners, unowned_resources, buckets = _bucketize_data(
+        resources,
+        swift_module,
+        owner,
+        parent_dir_param,
+        allowed_buckets,
+    )
     return AppleResourceInfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
-        **dict([(k, _minimize(b)) for k, b in buckets.items()])
+        **buckets
     )
 
 def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = None):
@@ -351,6 +391,12 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
     # unowned_resources is a depset of resource paths.
     unowned_resources = depset(transitive = [provider.unowned_resources for provider in providers])
 
+    # processed_origins is a dictionary of processed resources to resources.
+    processed_origins = {}
+    for provider in providers:
+        if getattr(provider, "processed_origins", None):
+            processed_origins.update(provider.processed_origins)
+
     # owners is a depset of (resource_path, owner) pairs.
     transitive_owners = [provider.owners for provider in providers]
 
@@ -371,6 +417,7 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
     return AppleResourceInfo(
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
+        processed_origins = processed_origins,
         **dict([(k, _minimize(v)) for (k, v) in buckets.items()])
     )
 
@@ -443,6 +490,7 @@ def _nest_in_bundle(provider_to_nest, nesting_bundle_dir):
     return AppleResourceInfo(
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
+        processed_origins = getattr(provider_to_nest, "processed_origins", None),
         **nested_provider_fields
     )
 
@@ -453,7 +501,7 @@ def _populated_resource_fields(provider):
     return [
         f
         for f in dir(provider)
-        if f not in ["owners", "unowned_resources", "to_json", "to_proto"]
+        if f not in ["owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
     ]
 
 def _structured_resources_parent_dir(resource, parent_dir = None):
@@ -475,6 +523,7 @@ def _structured_resources_parent_dir(resource, parent_dir = None):
 
 resources = struct(
     bucketize = _bucketize,
+    bucketize_data = _bucketize_data,
     bucketize_typed = _bucketize_typed,
     bundle_relative_parent_dir = _bundle_relative_parent_dir,
     collect = _collect,
