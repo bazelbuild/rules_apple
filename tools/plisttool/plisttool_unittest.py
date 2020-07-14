@@ -190,11 +190,11 @@ class PlistToolVersionStringTest(unittest.TestCase):
     self._assert_invalid('abc')
     self._assert_invalid('abc1')
     self._assert_invalid('1abc')
-    self._assert_invalid('1abc1')
+    self._assert_invalid('1abc.1')
     self._assert_invalid('1.abc')
     self._assert_invalid('1.1abc')
-    self._assert_invalid('1.abc1')
-    self._assert_invalid('1.1abc1')
+    self._assert_invalid('1.abc.1')
+    self._assert_invalid('1.1abc.1')
     self._assert_invalid('abc.1')
     self._assert_invalid('1.abc.2')
 
@@ -244,6 +244,11 @@ class PlistToolVersionStringTest(unittest.TestCase):
     self._assert_valid('1.0.0b7')
     self._assert_valid('1.0.3fc1')
     self._assert_valid('10.11.12d123')
+    self._assert_valid('1abc1')
+    self._assert_valid('1.1abc1')
+    self._assert_valid('1.2.3foo4')
+    self._assert_valid('1.2.3bar1')
+    self._assert_valid('1.2.3baz255')
 
   def test_invalid_tracks(self):
     self._assert_invalid('1a0')
@@ -254,6 +259,9 @@ class PlistToolVersionStringTest(unittest.TestCase):
     self._assert_invalid('1.2.3b1234')
     self._assert_invalid('1.0fc')
     self._assert_invalid('1.0fc256')
+    self._assert_invalid('1.2.3thisistoolong4')
+    self._assert_invalid('1.2.3stilltoolong45')
+    self._assert_invalid('1.2.3alsotoolong128')
 
 
 class PlistToolShortVersionStringTest(unittest.TestCase):
@@ -334,6 +342,7 @@ class PlistToolShortVersionStringTest(unittest.TestCase):
     self._assert_invalid('1.0.0b7')
     self._assert_invalid('1.0.3fc1')
     self._assert_invalid('10.11.12d123')
+    self._assert_invalid('1.2.3abcstaging1')
 
 
 class PlistToolGetWithKeyPath(unittest.TestCase):

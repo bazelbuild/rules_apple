@@ -380,9 +380,18 @@ _RFC1034_RE = re.compile(r'[^0-9A-Za-z.]')
 #     really tell if this is a Release/AppStore build or not.
 #   - NOTE: While the docs all say 3 segments, enterprise builds (and
 #     TestFlight?) are perfectly happy with 4 segment, so 4 is allowed.
+#   - The syntax for the optional suffix for development builds is documented
+#     incompletely (only by example) and also inconsistently (being
+#     described as 'The character in the suffix', implying
+#     that only a single character is allowed, but also including 'fc' as an
+#     example suffix, which clearly contains more than one character).
+#     In practice, xcode allows longer suffixes too, e.g. '1.2.3.foo4',
+#     so we allow them here too.  The development suffix in any case needs to
+#     be removed before a mobile app can be uploaded to the app store.
+
 # - TechNote also lists an 18 characters max
 CF_BUNDLE_VERSION_RE = re.compile(
-    r'^[0-9]+(\.[0-9]+){0,3}((d|a|b|fc)(?P<track_num>[0-9]{1,3}))?$'
+    r'^[0-9]+(\.[0-9]+){0,3}([a-z]+(?P<track_num>[0-9]{1,3}))?$'
 )
 BUNDLE_VERSION_VALUE_MAX_LENGTH = 18
 # CFBundleShortVersionString:
@@ -390,7 +399,7 @@ BUNDLE_VERSION_VALUE_MAX_LENGTH = 18
 #   - The "Core Foundation Keys" does not list any limited on the number of
 #     characters in the segments.
 #   - Doesn't say anything about leading zeros, assume still ok.
-#   - NOTE: While the docs all say 3 segments, enterprise builsd (and
+#   - NOTE: While the docs all say 3 segments, enterprise builds (and
 #     TestFlight?) are perfectly happy with 4 segment, so 4 is allowed.
 # - TechNote also lists an 18 characters max
 CF_BUNDLE_SHORT_VERSION_RE = re.compile(
