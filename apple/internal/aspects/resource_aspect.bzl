@@ -37,6 +37,7 @@ load(
 
 ASPECT_PROVIDER_FIELD_TO_ACTION = {
     "plists": (resources_support.plists_and_strings, False),
+    "pngs": (resources_support.pngs, False),
     "strings": (resources_support.plists_and_strings, False),
 }
 

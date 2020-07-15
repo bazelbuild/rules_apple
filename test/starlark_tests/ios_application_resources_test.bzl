@@ -360,8 +360,8 @@ def ios_application_resources_test_suite():
         tags = [name],
     )
 
-    # Test that library-defined resources such as strings and plists have ths same outputs as if
-    # they were app-defined.
+    # Test that strings and plist library-defined resources have ths same outputs as if they were
+    # app-defined.
     archive_contents_test(
         name = "{}_with_library_defined_strings_and_plists_test".format(name),
         build_type = "device",
@@ -377,8 +377,9 @@ def ios_application_resources_test_suite():
         tags = [name],
     )
 
-    # Test that having the same library-defined resources referenced from two different library
-    # targets will be deduplicated, and therefore will not cause issues with the build.
+    # Test that having the same strings and plist library-defined resources referenced from two
+    # different library targets will be deduplicated, and therefore will not cause issues with the
+    # build.
     archive_contents_test(
         name = "{}_with_two_libraries_referencing_same_strings_and_plists_test".format(name),
         build_type = "device",
@@ -394,8 +395,9 @@ def ios_application_resources_test_suite():
         tags = [name],
     )
 
-    # Test that having the same library-defined resources referenced from a library target and the
-    # top level target will be deduplicated, and therefore will not cause issues with the build.
+    # Test that having the same strings and plist library-defined resources referenced from a
+    # library target and the top level target will be deduplicated, and therefore will not cause
+    # issues with the build.
     archive_contents_test(
         name = "{}_with_top_level_and_library_scoped_localized_assets_test".format(name),
         build_type = "device",
@@ -408,6 +410,45 @@ def ios_application_resources_test_suite():
             "$BUNDLE_ROOT/it.lproj/localized.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_and_library_scoped_localized_assets",
+        tags = [name],
+    )
+
+    # Test that raw PNG library-defined resources have ths same outputs as if they were app-defined.
+    archive_contents_test(
+        name = "{}_with_library_defined_launch_images_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_launch_images_from_library",
+        contains = [
+            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
+            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
+        ],
+        tags = [name],
+    )
+
+    # Test that having the same raw PNG library-defined resources referenced from two different
+    # library targets will be deduplicated, and therefore will not cause issues with the build.
+    archive_contents_test(
+        name = "{}_with_two_libraries_referencing_same_launch_images_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_duplicated_library_scoped_launch_images",
+        contains = [
+            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
+            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
+        ],
+        tags = [name],
+    )
+
+    # Test that having the same library-defined raw PNG resources referenced from a library target
+    # and the top level target will be deduplicated, and therefore will not cause issues with the
+    # build.
+    archive_contents_test(
+        name = "{}_with_top_level_and_library_scoped_launch_images_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_and_library_scoped_launch_images",
+        contains = [
+            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
+            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
+        ],
         tags = [name],
     )
 

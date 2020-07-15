@@ -312,13 +312,20 @@ def _pngs(ctx, parent_dir, files):
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
     png_files = []
+    processed_origins = {}
     for file in files.to_list():
         png_path = paths.join(parent_dir or "", file.basename)
         png_file = intermediates.file(ctx.actions, ctx.label.name, png_path)
+        processed_origins[png_file.short_path] = file.short_path
         resource_actions.copy_png(ctx, file, png_file)
         png_files.append(png_file)
 
-    return struct(files = [(processor.location.resource, parent_dir, depset(direct = png_files))])
+    return struct(
+        files = [
+            (processor.location.resource, parent_dir, depset(direct = png_files)),
+        ],
+        processed_origins = processed_origins,
+    )
 
 def _storyboards(ctx, parent_dir, files, swift_module):
     """Processes storyboard files."""

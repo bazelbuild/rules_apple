@@ -186,6 +186,20 @@ filegroup(
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )
 
+objc_library(
+    name = "launch_images_ios_lib",
+    data = [
+        ":launch_images_ios",
+    ],
+)
+
+objc_library(
+    name = "launch_images_ios_lib_duplicated_target",
+    data = [
+        ":launch_images_ios",
+    ],
+)
+
 filegroup(
     name = "basic_bundle_files",
     srcs = glob(["basic.bundle/**"]),
