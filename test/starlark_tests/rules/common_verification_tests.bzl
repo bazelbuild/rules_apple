@@ -218,3 +218,33 @@ def bitcode_symbol_map_test(
             "manual",  # disabled in oss
         ],
     )
+
+def entry_point_test(
+        name,
+        build_type,
+        entry_point,
+        tags,
+        target_under_test,
+        **kwargs):
+    """Macro to call `apple_verification_test` with `entry_point_verifier.sh`.
+
+    Args:
+        name: Name of the generated test target.
+        build_type: Type of build for the target. Possible values are
+            `simulator` and `device`.
+        entry_point: The name of the symbol that is expected to be the entry
+            point of the binary.
+        tags: Tags to be applied to the test target.
+        target_under_test: The archive target whose contents are to be verified.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
+    """
+    apple_verification_test(
+        name = name,
+        build_type = build_type,
+        env = {
+            "ENTRY_POINT": [entry_point],
+        },
+        target_under_test = target_under_test,
+        verifier_script = "verifier_scripts/entry_point_verifier.sh",
+        tags = tags,
+    )

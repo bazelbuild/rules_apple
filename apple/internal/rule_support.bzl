@@ -234,8 +234,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Migrate to -fapplication-extension, like the other rules, once ios_extension is
                 # migrated to a proper rule and not a macro with an apple_binary.
                 "-application_extension",
-                "-e",
-                "_NSExtensionMain",
             ],
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
@@ -421,10 +419,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             deps_cfg = apple_common.multi_arch_split,
-            extra_linkopts = [
-                "-e",
-                "_NSExtensionMain",
-            ],
             product_type = apple_product_type.app_extension,
             provisioning_profile_extension = ".provisionprofile",
             requires_signing_for_device = False,

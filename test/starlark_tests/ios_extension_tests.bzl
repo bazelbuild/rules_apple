@@ -22,6 +22,7 @@ load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
     "bitcode_symbol_map_test",
+    "entry_point_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -156,6 +157,22 @@ def ios_extension_test_suite():
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_nsextensionmain_test".format(name),
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_main_test".format(name),
+        build_type = "simulator",
+        entry_point = "_main",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_main",
         tags = [name],
     )
 

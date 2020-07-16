@@ -15,6 +15,10 @@
 """Binary creation support functions."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
     "entitlements",
 )
@@ -239,6 +243,15 @@ def _create_binary(
     linkopts = kwargs.pop("linkopts", [])
     linkopts = linkopts + collections.before_each("-rpath", rule_descriptor.rpaths)
     linkopts = linkopts + rule_descriptor.extra_linkopts
+
+    # Special case for `ios_extension` until it is migrated to the Starlark linking
+    # API. Note that we use `kwargs.get` instead of `pop` so that the attribute
+    # remains in the dictionary to be passed to the bundling rule; this ensures that
+    # analysis fails if the user tries to pass the attribute to a rule that doesn't
+    # support it.
+    provides_main = kwargs.get("provides_main", False)
+    if product_type == apple_product_type.app_extension and not provides_main:
+        linkopts.extend(["-e", "_NSExtensionMain"])
 
     minimum_os_version = kwargs.get("minimum_os_version")
     provisioning_profile = kwargs.get("provisioning_profile")

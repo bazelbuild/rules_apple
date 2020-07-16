@@ -394,10 +394,20 @@ iMessage extension or a Sticker Pack extension.
 ```python
 ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
 entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, resources, strings, version, deps)
+linkopts, minimum_os_version, provides_main, provisioning_profile, resources,
+strings, version, deps)
 ```
 
 Builds and bundles an iOS application extension.
+
+Most iOS app extensions use a plug-in-based architecture where the executable's
+entry point is provided by a system framework. However, iOS 14 introduced
+Widget Extensions that use a traditional <code>main</code> entry point
+(typically expressed through Swift's <code>@main</code> attribute). If you are
+building a Widget Extension, you <em>must</em> set
+<code>provides_main = True</code> to indicate that your code provides the entry
+point so that Bazel doesn't direct the linker to use the system framework's
+entry point instead.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -524,6 +534,23 @@ Builds and bundles an iOS application extension.
         <p>A required string indicating the minimum iOS version supported by the
         target, represented as a dotted version number (for example,
         <code>"9.0"</code>).
+      </td>
+    </tr>
+    <tr>
+      <td><code>provides_main</code></td>
+      <td>
+        <p><code>Boolean; optional</code></p>
+        <p>A value indicating whether one of this extension's dependencies
+        provides a <code>main</code> entry point.</p>
+        <p>This is false by default, because most app extensions provide their
+        implementation by specifying a principal class or main storyboard in
+        their <code>Info.plist</code> file, and the executable's entry point is
+        actually in a system framework that delegates to it.</p>
+        <p>However, some modern extensions (such as SwiftUI widget extensions
+        introduced in iOS 14 and macOS 11) use the <code>@main</code> attribute
+        to identify their primary type, which generates a traditional
+        <code>main</code> function that passes control to that type. For these
+        extensions, this attribute should be set to true.</p>
       </td>
     </tr>
     <tr>
