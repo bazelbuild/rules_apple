@@ -15,6 +15,10 @@
 """Implementation of apple_resource_bundle rule."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -22,6 +26,10 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceBundleInfo",
     "AppleResourceInfo",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -45,18 +53,25 @@ def _apple_resource_bundle_impl(ctx):
     resource_files = resources.collect(ctx.attr, res_attrs = ["resources"])
     if resource_files:
         providers.append(
-            resources.bucketize(
+            resources.bucketize_with_processing(
+                ctx,
                 resource_files,
                 parent_dir_param = bundle_name,
             ),
         )
 
     if ctx.attr.structured_resources:
+        structured_files = resources.collect(
+            ctx.attr,
+            res_attrs = ["structured_resources"],
+        )
+
         # Avoid processing PNG files that are referenced through the structured_resources
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
         providers.append(
-            resources.bucketize(
-                resources.collect(ctx.attr, res_attrs = ["structured_resources"]),
+            resources.bucketize_with_processing(
+                ctx,
+                structured_files,
                 parent_dir_param = partial.make(
                     resources.structured_resources_parent_dir,
                     parent_dir = bundle_name,
@@ -97,7 +112,7 @@ def _apple_resource_bundle_impl(ctx):
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
-    attrs = {
+    attrs = dicts.add(apple_support.action_required_attrs(), {
         "bundle_name": attr.string(
             doc = """
 The desired name of the bundle (without the `.bundle` extension). If this attribute is not set,
@@ -146,7 +161,8 @@ bundle root in the same structure passed to this argument, so ["res/foo.png"] wi
 res/foo.png inside the bundle.
 """,
         ),
-    },
+    }),
+    fragments = ["apple"],
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
 apple_resource_bundle's resources are put in a resource bundle in the top level Apple bundle

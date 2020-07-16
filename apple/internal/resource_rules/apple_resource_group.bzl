@@ -15,12 +15,20 @@
 """Implementation of apple_resource_group rule."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -30,15 +38,14 @@ load(
 def _apple_resource_group_impl(ctx):
     """Implementation of the apple_resource_group rule."""
     resource_providers = []
+
     if ctx.attr.resources:
         resource_files = resources.collect(ctx.attr, res_attrs = ["resources"])
         if resource_files:
             resource_providers.append(
-                resources.bucketize(resource_files),
+                resources.bucketize_with_processing(ctx, resource_files),
             )
     if ctx.attr.structured_resources:
-        # TODO(kaipi): Validate that structured_resources doesn't have processable resources,
-        # e.g. we shouldn't accept xib files that should be compiled before bundling.
         structured_files = resources.collect(
             ctx.attr,
             res_attrs = ["structured_resources"],
@@ -47,7 +54,8 @@ def _apple_resource_group_impl(ctx):
         # Avoid processing PNG files that are referenced through the structured_resources
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
         resource_providers.append(
-            resources.bucketize(
+            resources.bucketize_with_processing(
+                ctx,
                 structured_files,
                 parent_dir_param = partial.make(
                     resources.structured_resources_parent_dir,
@@ -71,7 +79,7 @@ def _apple_resource_group_impl(ctx):
 
 apple_resource_group = rule(
     implementation = _apple_resource_group_impl,
-    attrs = {
+    attrs = dicts.add(apple_support.action_required_attrs(), {
         "resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
@@ -97,7 +105,8 @@ bundle root in the same structure passed to this argument, so ["res/foo.png"] wi
 res/foo.png inside the bundle.
 """,
         ),
-    },
+    }),
+    fragments = ["apple"],
     doc = """
 This rule encapsulates a target which provides resources to dependents. An
 apple_resource_group's resources are put in the top-level Apple bundle dependent.

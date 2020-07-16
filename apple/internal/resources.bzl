@@ -68,6 +68,10 @@ load(
     "AppleResourceInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "resources_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -83,6 +87,13 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+
+CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
+    "plists": (resources_support.plists_and_strings, False),
+    "pngs": (resources_support.pngs, False),
+    "strings": (resources_support.plists_and_strings, False),
+    "unprocessed": (resources_support.noop, False),
+}
 
 def _get_attr_as_list(attr, attribute):
     """Helper method to always get an attribute as a list."""
@@ -294,6 +305,103 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **{bucket_type: _minimize(typed_bucket)}
+    )
+
+def _bucketize_with_processing(
+        ctx,
+        resources,
+        swift_module = None,
+        owner = None,
+        parent_dir_param = None,
+        allowed_buckets = None):
+    """Bucketizes the resources, and registers actions for cacheable resource types.
+
+    This method performs the same actions as bucketize_data, and further iterates through a subset
+    of supported resource types to register actions to process them as necessary before returning an
+    AppleResourceInfo. This AppleResourceInfo has an additional field, called "processed", featuring
+    the expected outputs for each of the actions declared in this method.
+
+    Args:
+        ctx: The current context, currently required for processing actions.
+        resources: List of resources to bucketize.
+        swift_module: The Swift module name to associate to these resources.
+        owner: An optional string that has a unique identifier to the target that should own the
+            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
+        parent_dir_param: Either a string/None or a struct used to calculate the value of
+            parent_dir for each resource. If it is a struct, it will be considered a partial
+            context, and will be invoked with partial.call().
+        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
+            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
+            means all buckets are allowed.
+
+    Returns:
+        An AppleResourceInfo provider with resources bucketized according to type.
+    """
+    owners, unowned_resources, buckets = _bucketize_data(
+        resources,
+        swift_module = swift_module,
+        owner = owner,
+        parent_dir_param = parent_dir_param,
+        allowed_buckets = allowed_buckets,
+    )
+
+    # Keep a dictionary to reference what the processed files are based from.
+    processed_origins = {}
+
+    for bucket_name, bucket_action in CACHEABLE_PROVIDER_FIELD_TO_ACTION.items():
+        processed_field = buckets.pop(bucket_name, default = None)
+        if not processed_field:
+            continue
+        for parent_dir, swift_module, files in processed_field:
+            processing_func, requires_swift_module = bucket_action
+
+            # TODO(b/161370390): Eliminate this dependency on ctx and its use as an argument above.
+            processing_args = {
+                "ctx": ctx,
+                "files": files,
+                "parent_dir": parent_dir,
+            }
+
+            # Only pass the Swift module name if the resource to process requires it.
+            if requires_swift_module:
+                processing_args["swift_module"] = swift_module
+
+            # Execute the processing function.
+            result = processing_func(**processing_args)
+
+            processed_origins.update(result.processed_origins)
+
+            processed_field = {}
+            for _, _, processed_file in result.files:
+                processed_field.setdefault(
+                    parent_dir if parent_dir else "",
+                    default = [],
+                ).append(processed_file)
+
+            # Save results to the "processed" field for copying in the bundling phase.
+            for _, processed_files in processed_field.items():
+                buckets.setdefault(
+                    "processed",
+                    default = [],
+                ).append((
+                    parent_dir,
+                    swift_module,
+                    depset(transitive = processed_files),
+                ))
+
+            # Add owners information for each of the processed files.
+            for _, _, processed_files in result.files:
+                for processed_file in processed_files.to_list():
+                    if owner:
+                        owners.append((processed_file.short_path, owner))
+                    else:
+                        unowned_resources.append(processed_file.short_path)
+
+    return AppleResourceInfo(
+        owners = depset(owners),
+        unowned_resources = depset(unowned_resources),
+        processed_origins = processed_origins,
+        **buckets
     )
 
 def _bundle_relative_parent_dir(resource, extension):
@@ -523,8 +631,8 @@ def _structured_resources_parent_dir(resource, parent_dir = None):
 
 resources = struct(
     bucketize = _bucketize,
-    bucketize_data = _bucketize_data,
     bucketize_typed = _bucketize_typed,
+    bucketize_with_processing = _bucketize_with_processing,
     bundle_relative_parent_dir = _bundle_relative_parent_dir,
     collect = _collect,
     merge_providers = _merge_providers,

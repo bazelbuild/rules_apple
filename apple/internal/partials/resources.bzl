@@ -21,10 +21,6 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    "ASPECT_PROVIDER_FIELD_TO_ACTION",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
     "resources_support",
 )
@@ -50,6 +46,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "CACHEABLE_PROVIDER_FIELD_TO_ACTION",
     "resources",
 )
 load(
@@ -70,7 +67,7 @@ load(
     "partial",
 )
 
-_PROCESSED_FIELDS = ASPECT_PROVIDER_FIELD_TO_ACTION.keys()
+_PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 
 def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """Registers the root Info.plist generation action.

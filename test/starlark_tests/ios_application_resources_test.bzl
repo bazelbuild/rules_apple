@@ -452,6 +452,61 @@ def ios_application_resources_test_suite():
         tags = [name],
     )
 
+    # Tests that multiple references to a structured resource will be successfully deduplicated.
+    archive_contents_test(
+        name = "{}_with_multiple_refs_to_same_structured_resources_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_refs_to_same_structured_resources",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    # Tests that multiple resource bundles with shared resources have all resources accounted for.
+    archive_contents_test(
+        name = "{}_with_multiple_resource_bundles_with_shared_resources_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_resource_bundles_with_shared_resources",
+        contains = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/mapping_model.cdm",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/nested.txt",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/it.lproj/localized.txt",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/mapping_model.cdm",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/structured/nested.txt",
+        ],
+        is_binary_plist = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/generated.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.strings",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/structured/generated.strings",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/structured/should_be_binary.plist",
+            "$BUNDLE_ROOT/bundle_library_apple.bundle/structured/should_be_binary.strings",
+        ],
+        tags = [name],
+    )
+
     # Tests xcasset tool is passed the correct arguments.
     analysis_xcasset_argv_test(
         name = "{}_xcasset_actool_argv".format(name),

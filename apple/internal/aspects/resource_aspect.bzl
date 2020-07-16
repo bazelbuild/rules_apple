@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -34,12 +30,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-
-ASPECT_PROVIDER_FIELD_TO_ACTION = {
-    "plists": (resources_support.plists_and_strings, False),
-    "pngs": (resources_support.pngs, False),
-    "strings": (resources_support.plists_and_strings, False),
-}
 
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
@@ -79,68 +69,12 @@ def _apple_resource_aspect_impl(target, ctx):
     # Collect all resource files related to this target.
     files = resources.collect(ctx.rule.attr, **collect_args)
     if files:
-        owners, unowned_resources, buckets = resources.bucketize_data(
-            files,
-            owner = owner,
-            **bucketize_args
-        )
-
-        # Keep a dictionary to reference what the processed files are based from.
-        processed_origins = {}
-
-        for bucket_name, bucket_action in ASPECT_PROVIDER_FIELD_TO_ACTION.items():
-            processed_field = buckets.pop(bucket_name, default = None)
-            if not processed_field:
-                continue
-            for parent_dir, swift_module, files in processed_field:
-                processing_func, requires_swift_module = bucket_action
-                processing_args = {
-                    "ctx": ctx,
-                    "files": files,
-                    "parent_dir": parent_dir,
-                }
-
-                # Only pass the Swift module name if the resource to process requires it.
-                if requires_swift_module:
-                    processing_args["swift_module"] = swift_module
-
-                # Execute the processing function.
-                result = processing_func(**processing_args)
-
-                processed_origins.update(result.processed_origins)
-
-                processed_field = {}
-                for _, _, processed_file in result.files:
-                    processed_field.setdefault(
-                        parent_dir if parent_dir else "",
-                        default = [],
-                    ).append(processed_file)
-
-                # Save results to the "processed" field for copying in the bundling phase.
-                for _, processed_files in processed_field.items():
-                    buckets.setdefault(
-                        "processed",
-                        default = [],
-                    ).append((
-                        parent_dir,
-                        swift_module,
-                        depset(transitive = processed_files),
-                    ))
-
-                # Add owners information for each of the processed files.
-                for _, _, processed_files in result.files:
-                    for processed_file in processed_files.to_list():
-                        if owner:
-                            owners.append((processed_file.short_path, owner))
-                        else:
-                            unowned_resources.append(processed_file.short_path)
-
         providers.append(
-            AppleResourceInfo(
-                owners = depset(owners),
-                unowned_resources = depset(unowned_resources),
-                processed_origins = processed_origins,
-                **buckets
+            resources.bucketize_with_processing(
+                ctx,
+                files,
+                owner = owner,
+                **bucketize_args
             ),
         )
 

@@ -604,6 +604,47 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_multiple_refs_to_same_structured_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":app_structured_resources_lib",
+        ":fmwk_structured_resources_lib",
+        ":lib_with_structured_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_multiple_resource_bundles_with_shared_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:bundle_library_apple_lib",
+        "//test/starlark_tests/resources:bundle_library_ios_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 objc_library(
     name = "lib_with_structured_resources",
     data = [
