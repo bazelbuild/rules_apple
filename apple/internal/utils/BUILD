@@ -1,9 +1,51 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Utils.
 
 # This file exists to create a package under which to load the utility
 # bzl files.
 
 licenses(["notice"])
+
+bzl_library(
+    name = "bundle_paths",
+    srcs = ["bundle_paths.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "defines",
+    srcs = ["defines.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "legacy_actions",
+    srcs = ["legacy_actions.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:platform_support",
+        "@bazel_skylib//lib:types",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "xctoolrunner",
+    srcs = ["xctoolrunner.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
 
 # Consumed by bazel tests.
 filegroup(

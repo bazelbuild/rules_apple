@@ -1,9 +1,302 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Partials.
 
 # This file exists to create a package under which to load the processor
 # partials bzl files.
 
 licenses(["notice"])
+
+bzl_library(
+    name = "app_assets_validation",
+    srcs = ["app_assets_validation.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:platform_support",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "apple_bundle_info",
+    srcs = ["apple_bundle_info.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:bundling_support",
+        "//apple/internal:outputs",
+        "//apple/internal:platform_support",
+        "//apple/internal:swift_support",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "binary",
+    srcs = ["binary.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:outputs",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "bitcode_symbols",
+    srcs = ["bitcode_symbols.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "//apple/internal/utils:legacy_actions",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "clang_rt_dylibs",
+    srcs = ["clang_rt_dylibs.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "//apple/internal/utils:legacy_actions",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "debug_symbols",
+    srcs = ["debug_symbols.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:bundling_support",
+        "//apple/internal/utils:defines",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "embedded_bundles",
+    srcs = ["embedded_bundles.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:experimental",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "extension_safe_validation",
+    srcs = ["extension_safe_validation.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "framework_headers",
+    srcs = ["framework_headers.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "framework_import",
+    srcs = ["framework_import.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:apple_framework_import",
+        "//apple/internal:codesigning_support",
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "//apple/internal/utils:bundle_paths",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "framework_provider",
+    srcs = ["framework_provider.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:bundling_support",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "macos_additional_contents",
+    srcs = ["macos_additional_contents.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:processor",
+        "//apple/internal/utils:bundle_paths",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "messages_stub",
+    srcs = ["messages_stub.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "provisioning_profile",
+    srcs = ["provisioning_profile.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "resources",
+    srcs = ["resources.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:intermediates",
+        "//apple/internal:outputs",
+        "//apple/internal:processor",
+        "//apple/internal:resource_actions",
+        "//apple/internal:resources",
+        "//apple/internal:rule_support",
+        "//apple/internal/partials/support:resources_support",
+        "//apple/internal/utils:bundle_paths",
+        "@bazel_skylib//lib:new_sets",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "settings_bundle",
+    srcs = ["settings_bundle.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:processor",
+        "//apple/internal:resources",
+        "//apple/internal/partials/support:resources_support",
+        "//apple/internal/utils:bundle_paths",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "static_framework_header_modulemap",
+    srcs = ["static_framework_header_modulemap.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:bundling_support",
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "swift_dylibs",
+    srcs = ["swift_dylibs.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:platform_support",
+        "//apple/internal:processor",
+        "//apple/internal:swift_support",
+        "//apple/internal/utils:defines",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//lib:xcode_support",
+    ],
+)
+
+bzl_library(
+    name = "swift_static_framework",
+    srcs = ["swift_static_framework.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:bundling_support",
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "watchos_stub",
+    srcs = ["watchos_stub.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+    ],
+)
 
 # Consumed by bazel tests.
 filegroup(

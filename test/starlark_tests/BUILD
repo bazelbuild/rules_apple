@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
@@ -93,4 +94,18 @@ watchos_extension_test_suite()
 
 test_suite(
     name = "all_tests",
+)
+
+bzl_library(
+    name = "starlark_tests_bzls",
+    srcs = glob(["**/*.bzl"]),
+    deps = [
+        "//apple:providers",
+        "//apple/internal:apple_product_type",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:new_sets",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//lib:unittest",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
 )

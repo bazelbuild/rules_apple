@@ -13,8 +13,14 @@ load(
     "apple_multi_shell_test",
     "apple_shell_test",
 )
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])
+
+bzl_library(
+    name = "configurations",
+    srcs = ["configurations.bzl"],
+)
 
 # To enable sharding of the apple_shell_test rules, invoke bazel with
 #   '--define bazel_rules_apple.shell_test_sharding=1'

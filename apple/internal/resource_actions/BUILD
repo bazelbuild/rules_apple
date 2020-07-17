@@ -1,9 +1,116 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Resource actions.
 
 # This file exists to create a package under which to load the resource actions
 # bzl files.
 
 licenses(["notice"])
+
+bzl_library(
+    name = "actool",
+    srcs = ["actool.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:utils",
+        "//apple/internal:apple_product_type",
+        "//apple/internal:platform_support",
+        "//apple/internal/utils:legacy_actions",
+        "//apple/internal/utils:xctoolrunner",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:xcode_support",
+    ],
+)
+
+bzl_library(
+    name = "datamodel",
+    srcs = ["datamodel.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:platform_support",
+        "//apple/internal/utils:legacy_actions",
+        "//apple/internal/utils:xctoolrunner",
+    ],
+)
+
+bzl_library(
+    name = "ibtool",
+    srcs = ["ibtool.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:platform_support",
+        "//apple/internal/utils:legacy_actions",
+        "//apple/internal/utils:xctoolrunner",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "mlmodel",
+    srcs = ["mlmodel.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/utils:xctoolrunner",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "plist",
+    srcs = ["plist.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:bundling_support",
+        "//apple/internal:intermediates",
+        "//apple/internal:platform_support",
+        "//apple/internal:rule_support",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "png",
+    srcs = ["png.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "texture_atlas",
+    srcs = ["texture_atlas.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "zip",
+    srcs = ["zip.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+)
 
 # Consumed by bazel tests.
 filegroup(
