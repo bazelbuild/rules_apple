@@ -92,7 +92,6 @@ CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "plists": (resources_support.plists_and_strings, False),
     "pngs": (resources_support.pngs, False),
     "strings": (resources_support.plists_and_strings, False),
-    "unprocessed": (resources_support.noop, False),
 }
 
 def _get_attr_as_list(attr, attribute):
@@ -345,8 +344,8 @@ def _bucketize_with_processing(
         allowed_buckets = allowed_buckets,
     )
 
-    # Keep a dictionary to reference what the processed files are based from.
-    processed_origins = {}
+    # Keep a list to reference what the processed files are based from.
+    processed_origins = []
 
     for bucket_name, bucket_action in CACHEABLE_PROVIDER_FIELD_TO_ACTION.items():
         processed_field = buckets.pop(bucket_name, default = None)
@@ -369,7 +368,10 @@ def _bucketize_with_processing(
             # Execute the processing function.
             result = processing_func(**processing_args)
 
-            processed_origins.update(result.processed_origins)
+            # Store each origin as a tuple in an array, to keep this knowledge as a low-memory
+            # reference within a depset.
+            for processed_resource, processed_origin in result.processed_origins.items():
+                processed_origins.append((processed_resource, processed_origin))
 
             processed_field = {}
             for _, _, processed_file in result.files:
@@ -378,7 +380,7 @@ def _bucketize_with_processing(
                     default = [],
                 ).append(processed_file)
 
-            # Save results to the "processed" field for copying in the bundling phase.
+            # Save files to the "processed" field for copying in the bundling phase.
             for _, processed_files in processed_field.items():
                 buckets.setdefault(
                     "processed",
@@ -400,7 +402,7 @@ def _bucketize_with_processing(
     return AppleResourceInfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
-        processed_origins = processed_origins,
+        processed_origins = depset(processed_origins),
         **buckets
     )
 
@@ -499,11 +501,16 @@ def _merge_providers(providers, default_owner = None, validate_all_resources_own
     # unowned_resources is a depset of resource paths.
     unowned_resources = depset(transitive = [provider.unowned_resources for provider in providers])
 
-    # processed_origins is a dictionary of processed resources to resources.
-    processed_origins = {}
-    for provider in providers:
-        if getattr(provider, "processed_origins", None):
-            processed_origins.update(provider.processed_origins)
+    # processed_origins is a depset of processed resources to resources.
+    processed_origins_list = [
+        provider.processed_origins
+        for provider in providers
+        if getattr(provider, "processed_origins", None)
+    ]
+    if processed_origins_list:
+        processed_origins = depset(transitive = processed_origins_list)
+    else:
+        processed_origins = None
 
     # owners is a depset of (resource_path, owner) pairs.
     transitive_owners = [provider.owners for provider in providers]

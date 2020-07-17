@@ -116,11 +116,23 @@ def _expand_owners(owners):
             dict.setdefault(resource, default = {})[owner] = None
     return dict
 
+def _expand_processed_origins(processed_origins):
+    """Converts a depset of (processed_resource, resource) to a dict.
+
+    Args:
+      processed_origins: A depset of (processed_resource, resource) pairs.
+    """
+    processed_origins_dict = {}
+    for processed_resource, resource in processed_origins.to_list():
+        processed_origins_dict[processed_resource] = resource
+    return processed_origins_dict
+
 def _deduplicate(
         resources_provider,
         avoid_provider,
         owners,
         avoid_owners,
+        processed_origins,
         processed_deduplication_map,
         field):
     """Deduplicates and returns resources between 2 providers for a given field.
@@ -139,6 +151,8 @@ def _deduplicate(
       avoid_provider: The provider with the resources to avoid bundling.
       owners: The owners map for resources_provider computed by _expand_owners.
       avoid_owners: The owners map for avoid_provider computed by _expand_owners.
+      processed_origins: The processed resources map for resources_provider computed by
+          _expand_processed_origins.
       processed_deduplication_map: A dictionary of keys to short paths referencing already-
           deduplicated resources that can be referenced by the resource processing aspect to avoid
           duplicating files referenced by library targets and top level targets.
@@ -198,7 +212,6 @@ def _deduplicate(
             if field == "processed":
                 # Check for duplicates referencing our map of where the processed resources were
                 # based from.
-                processed_origins = getattr(resources_provider, "processed_origins")
                 found_origin = processed_origins[short_path]
                 if found_origin in processed_deduplication_set:
                     continue
@@ -335,12 +348,16 @@ def _resources_partial_impl(
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
-    # Precompute owners and avoid_owners to avoid duplicate work in _deduplicate.
+    # Precompute owners, avoid_owners and processed_origins to avoid duplicate work in _deduplicate.
     # Build a dictionary with the file paths under each key for the avoided resources.
     avoid_owners = {}
     if avoid_provider:
         avoid_owners = _expand_owners(avoid_provider.owners)
     owners = _expand_owners(final_provider.owners)
+    if final_provider.processed_origins:
+        processed_origins = _expand_processed_origins(final_provider.processed_origins)
+    else:
+        processed_origins = {}
 
     # Create the deduplication map for library processable resources to be referenced across fields
     # for the purposes of deduplicating top level resources and multiple library scoped resources.
@@ -352,6 +369,7 @@ def _resources_partial_impl(
             avoid_provider,
             owners,
             avoid_owners,
+            processed_origins,
             processed_deduplication_map,
             field,
         )
