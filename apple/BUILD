@@ -31,3 +31,8 @@ filegroup(
     ],
     visibility = ["//:__pkg__"],
 )
+
+bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+)

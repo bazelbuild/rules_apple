@@ -4,7 +4,7 @@
 # resource propagation logic bzl files.
 
 load(
-    "@build_bazel_rules_apple//apple/internal:environment_plist.bzl",
+    "//apple/internal:environment_plist.bzl",
     "environment_plist",
 )
 
