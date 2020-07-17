@@ -14,8 +14,14 @@
 
 """Common definitions used to make runnable Apple bundling rules."""
 
-load("@build_bazel_rules_apple//apple/internal:bundling_support.bzl", "bundling_support")
-load("@build_bazel_rules_apple//apple/internal:outputs.bzl", "outputs")
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
