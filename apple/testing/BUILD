@@ -7,6 +7,7 @@ bzl_library(
     srcs = ["apple_test_rules.bzl"],
     visibility = [
         "//apple/testing:__subpackages__",
+        "//test:__subpackages__",
     ],
     deps = [
         "//apple:providers",

@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
@@ -75,4 +76,15 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
+)
+
+bzl_library(
+    name = "generate_framework_bzl",
+    srcs = ["generate_framework.bzl"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
 )
