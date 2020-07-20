@@ -22,6 +22,11 @@ bzl_library(
     srcs = ["configurations.bzl"],
 )
 
+bzl_library(
+    name = "test_rules",
+    srcs = ["test_rules.bzl"],
+)
+
 # To enable sharding of the apple_shell_test rules, invoke bazel with
 #   '--define bazel_rules_apple.shell_test_sharding=1'
 config_setting(
