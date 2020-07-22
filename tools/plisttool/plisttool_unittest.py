@@ -1819,6 +1819,57 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_entitlements_missing_wifi_info_active(self):
+    plist = {}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.networking.wifi-info': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
+  def test_entitlements_wifi_info_active_mismatch(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_WIFI_INFO_MISMATCH % (
+            _testing_target, 'False', 'True'))):
+      plist = {'com.apple.developer.networking.wifi-info': False}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.developer.networking.wifi-info': True,
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_profile_missing_wifi_info_active(self):
+    with self.assertRaisesRegexp(
+        plisttool.PlistToolError,
+        re.escape(
+            plisttool.ENTITLEMENTS_WIFI_INFO_MISSING % _testing_target)):
+      plist = {'com.apple.developer.networking.wifi-info': True}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                    'application-identifier': 'QWERTY.*',
+                    # No wifi-info
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
   def test_entitlements_associated_domains_match(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {

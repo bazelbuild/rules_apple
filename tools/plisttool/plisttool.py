@@ -298,6 +298,17 @@ ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH = (
     'match the value in the provisioning profile ("%s").'
 )
 
+ENTITLEMENTS_WIFI_INFO_MISSING = (
+    'Target "%s" uses entitlements with the '
+    'com.apple.developer.networking.wifi-info key, but the profile does not '
+    'have this key'
+)
+
+ENTITLEMENTS_WIFI_INFO_MISMATCH = (
+    'In target "%s"; the "com.apple.developer.networking.wifi-info" ("%s") '
+    'did not match the value in the provisioning profile ("%s").'
+)
+
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
@@ -1201,6 +1212,18 @@ class EntitlementsTask(PlistToolTask):
             ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH %
             (self.target, aps_environment, profile_aps_environment),
             **report_extras)
+
+    wifi_info = entitlements.get('com.apple.developer.networking.wifi-info')
+    if wifi_info is not None and profile_entitlements:
+      profile_wifi_info = profile_entitlements.get(
+          'com.apple.developer.networking.wifi-info')
+      if not profile_wifi_info:
+        self._report(ENTITLEMENTS_WIFI_INFO_MISSING % self.target,
+                     **report_extras)
+      if wifi_info != profile_wifi_info:
+        self._report(ENTITLEMENTS_WIFI_INFO_MISMATCH %
+                     (self.target, wifi_info, profile_wifi_info),
+                     **report_extras)
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
