@@ -19,6 +19,10 @@ load(
     "apple_test_assembler",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     _ios_internal_ui_test_bundle = "ios_internal_ui_test_bundle",
     _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
@@ -222,3 +226,23 @@ def ios_ui_test_suite(name, **kwargs):
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )
+
+ios_build_test = apple_build_test_rule(
+    doc = """\
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for iOS.
+
+Typical usage:
+
+```starlark
+ios_build_test(
+    name = "my_build_test",
+    minimum_os_version = "12.0",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
+```
+""",
+    platform_type = "ios",
+)

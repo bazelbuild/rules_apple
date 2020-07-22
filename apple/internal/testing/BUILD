@@ -51,6 +51,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "build_test_rules",
+    srcs = ["build_test_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "ios_rules",
     srcs = ["ios_rules.bzl"],
     visibility = [

@@ -1025,3 +1025,69 @@ of the attributes inherited by all test rules, please check the
     </tr>
   </tbody>
 </table>
+
+<a name="tvos_build_test"></a>
+## tvos_build_test
+
+```python
+tvos_build_test(name, minimum_os_version, targets, [test specific attributes])
+```
+
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for tvOS.
+
+Typical usage:
+
+```starlark
+tvos_build_test(
+    name = "my_build_test",
+    minimum_os_version = "12.0",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
+```
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>minimum_os_version</code></td>
+      <td>
+        <p><code>String; required</code></p>
+        <p>A required string indicating the minimum OS version that will be used
+        as the deployment target when building the targets, represented as a
+        dotted version number (for example, <code>"9.0"</code>).</p>
+      </td>
+    </tr>
+      <td><code>targets</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>The targets to check for successful build.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>[test specific attributes]</code></td>
+      <td>
+        <p>For a list of the attributes inherited by all test rules, please check the
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>

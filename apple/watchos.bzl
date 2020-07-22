@@ -15,6 +15,10 @@
 """Bazel rules for creating watchOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -54,3 +58,23 @@ def watchos_extension(name, **kwargs):
         name = name,
         **bundling_args
     )
+
+watchos_build_test = apple_build_test_rule(
+    doc = """\
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for watchOS.
+
+Typical usage:
+
+```starlark
+watchos_build_test(
+    name = "my_build_test",
+    minimum_os_version = "6.0",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
+```
+""",
+    platform_type = "watchos",
+)

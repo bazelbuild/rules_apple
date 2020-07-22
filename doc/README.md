@@ -37,6 +37,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-ios.md#ios_ui_test_suite">ios_ui_test_suite</a></code><br/>
         <code><a href="rules-ios.md#ios_unit_test">ios_unit_test</a></code><br/>
         <code><a href="rules-ios.md#ios_unit_test_suite">ios_unit_test_suite</a></code><br/>
+        <code><a href="rules-ios.md#ios_build_test">ios_build_test</a></code><br/>
       </td>
     </tr>
     <tr>
@@ -50,6 +51,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       </td>
       <td valign="top">
         <code><a href="rules-macos.md#macos_unit_test">macos_unit_test</a></code><br/>
+        <code><a href="rules-macos.md#macos_build_test">macos_build_test</a></code><br/>
       </td>
     <tr>
       <th align="left" valign="top">tvOS</th>
@@ -61,6 +63,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top">
         <code><a href="rules-tvos.md#tvos_ui_test">tvos_ui_test</a></code><br/>
         <code><a href="rules-tvos.md#tvos_unit_test">tvos_unit_test</a></code><br/>
+        <code><a href="rules-tvos.md#tvos_build_test">tvos_build_test</a></code><br/>
       </td>
     </tr>
     <tr>
@@ -70,7 +73,9 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-watchos.md#watchos_application">watchos_application</a></code><br/>
         <code><a href="rules-watchos.md#watchos_extension">watchos_extension</a></code><br/>
       </td>
-      <td valign="top"></td>
+      <td valign="top">
+        <code><a href="rules-watchos.md#watchos_build_test">watchos_build_test</a></code><br/>
+      </td>
     </tr>
   </tbody>
 </table>

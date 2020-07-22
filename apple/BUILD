@@ -56,6 +56,7 @@ bzl_library(
         "//apple/internal:binary_support",
         "//apple/internal:ios_rules",
         "//apple/internal/testing:apple_test_assembler",
+        "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:ios_rules",
     ],
 )
@@ -68,6 +69,7 @@ bzl_library(
         "//apple/internal:macos_binary_support",
         "//apple/internal:macos_rules",
         "//apple/internal/testing:apple_test_assembler",
+        "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:macos_rules",
     ],
 )
@@ -100,6 +102,7 @@ bzl_library(
         "//apple/internal:binary_support",
         "//apple/internal:tvos_rules",
         "//apple/internal/testing:apple_test_assembler",
+        "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:tvos_rules",
     ],
 )
@@ -123,6 +126,7 @@ bzl_library(
     deps = [
         "//apple/internal:binary_support",
         "//apple/internal:watchos_rules",
+        "//apple/internal/testing:build_test_rules",
     ],
 )
 
