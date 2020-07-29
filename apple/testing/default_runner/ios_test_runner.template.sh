@@ -16,6 +16,11 @@
 
 set -e
 
+if [[ -z "${DEVELOPER_DIR:-}" ]]; then
+  echo "Missing dev dir"
+  exit 1
+fi
+
 basename_without_extension() {
   local full_path="$1"
   local filename
