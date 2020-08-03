@@ -149,11 +149,17 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, plus a generated list of those binaries to prune
         # their dependencies so that future changes to the app/extension/framework binaries do not
-        # force this action to re-run on incremental builds.
+        # force this action to re-run on incremental builds, plus the top-level target's
+        # provisioning profile if the current build targets real devices.
+        inputs = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
+
+        provisioning_profile = codesigning_support.provisioning_profile(ctx)
+        if provisioning_profile:
+            inputs.append(provisioning_profile)
+
         apple_support.run(
             ctx,
-            inputs = files_by_framework[framework_basename] +
-                     framework_binaries_by_framework[framework_basename],
+            inputs = inputs,
             tools = [ctx.executable._codesigningtool],
             executable = ctx.executable._imported_dynamic_framework_processor,
             outputs = [framework_zip],

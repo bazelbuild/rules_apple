@@ -493,5 +493,6 @@ codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
+    provisioning_profile = _provisioning_profile,
     sign_binary_action = _sign_binary_action,
 )
