@@ -353,7 +353,7 @@ def _get_common_bundling_attributes(rule_descriptor):
         attrs.append({
             "infoplists": attr.label_list(
                 allow_empty = False,
-                allow_files = [".plist"],
+                allow_files = [".plist", ".strings"],
                 doc = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
@@ -869,7 +869,7 @@ required for device builds.
         # TODO(kaipi): Document this attribute.
         attrs.append({
             "launchdplists": attr.label_list(
-                allow_files = [".plist"],
+                allow_files = [".plist", ".strings"],
             ),
         })
 
@@ -881,7 +881,7 @@ this value will be embedded in an Info.plist in the application binary.
 """,
         ),
         "infoplists": attr.label_list(
-            allow_files = [".plist"],
+            allow_files = [".plist", ".strings"],
             doc = """
 A list of .plist files that will be merged to form the Info.plist that represents the application
 and is embedded into the binary. Please see

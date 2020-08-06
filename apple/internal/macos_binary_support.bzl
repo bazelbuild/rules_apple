@@ -99,7 +99,7 @@ macos_binary_infoplist = rule(
         {
             "bundle_id": attr.string(mandatory = False),
             "infoplists": attr.label_list(
-                allow_files = [".plist"],
+                allow_files = [".plist", ".strings"],
                 mandatory = False,
                 allow_empty = True,
             ),
@@ -155,7 +155,7 @@ macos_command_line_launchdplist = rule(
         rule_factory.common_tool_attributes,
         {
             "launchdplists": attr.label_list(
-                allow_files = [".plist"],
+                allow_files = [".plist", ".strings"],
                 mandatory = False,
             ),
         },
