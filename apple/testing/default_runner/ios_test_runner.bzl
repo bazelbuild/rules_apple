@@ -35,7 +35,7 @@ def _get_execution_environment(ctx):
     execution_environment = {}
     xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
     if xcode_version:
-        execution_environment["XCODE_VERSION"] = xcode_version
+        execution_environment["XCODE_VERSION_OVERRIDE"] = xcode_version
 
     return execution_environment
 
