@@ -49,10 +49,10 @@ def apple_rules_dependencies(ignore_version_differences = False):
     )
 
     _maybe(
-        git_repository,
+        http_archive,
         name = "build_bazel_apple_support",
-        remote = "https://github.com/bazelbuild/apple_support.git",
-        branch = "master",
+        sha256 = "a5117190075ba395c7f6ee5ac42bb9f8bc44cc11f427a55b5f16ec69a01c89cb",
+        url = "https://github.com/bazelbuild/apple_support/releases/download/0.8.0/apple_support.0.8.0.tar.gz",
     )
 
     _maybe(
