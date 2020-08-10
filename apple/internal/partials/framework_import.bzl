@@ -165,6 +165,7 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
             outputs = [framework_zip],
             arguments = [args],
             mnemonic = "ImportedDynamicFrameworkProcessor",
+            execution_requirements = {"no-sandbox": "1"},
         )
 
         bundle_zips.append(
