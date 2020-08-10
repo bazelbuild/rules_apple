@@ -308,7 +308,6 @@ def _create_binary(
         binary_type = binary_type,
         bundle_loader = bundle_loader,
         dylibs = kwargs.get("frameworks"),
-        extension_safe = extension_safe,
         features = kwargs.get("features"),
         linkopts = linkopts,
         minimum_os_version = minimum_os_version,
