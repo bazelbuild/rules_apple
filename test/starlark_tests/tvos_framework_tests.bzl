@@ -23,9 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_framework_test_suite():
-    """Test suite for tvos_framework."""
-    name = "tvos_framework"
+def tvos_framework_test_suite(name = "tvos_framework"):
+    """Test suite for tvos_framework.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),

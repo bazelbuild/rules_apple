@@ -19,9 +19,12 @@ load(
     "archive_contents_test",
 )
 
-def tvos_application_swift_test_suite():
-    """Test suite for tvos_application_swift."""
-    name = "tvos_application_swift"
+def tvos_application_swift_test_suite(name = "tvos_application_swift"):
+    """Test suite for tvos_application_swift.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     # If an app is built with a min OS before ABI stability, targeting the
     # simulator, the Swift runtime should be bundled in the Frameworks

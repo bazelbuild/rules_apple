@@ -23,9 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def apple_bundle_version_test_suite():
-    """Test suite for apple_bundle_version."""
-    name = "apple_bundle_version"
+def apple_bundle_version_test_suite(name = "apple_bundle_version"):
+    """Test suite for apple_bundle_version.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     # Tests that manual version numbers work correctly.
     infoplist_contents_test(

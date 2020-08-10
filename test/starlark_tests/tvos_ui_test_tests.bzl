@@ -27,9 +27,12 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_ui_test_test_suite():
-    """Test suite for tvos_ui_test."""
-    name = "tvos_ui_test"
+def tvos_ui_test_test_suite(name = "tvos_ui_test"):
+    """Test suite for tvos_ui_test.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),

@@ -21,7 +21,7 @@ that may change at any time. Please do not depend on this rule.
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
-)
+)  # buildifier: disable=bzl-visibility
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",

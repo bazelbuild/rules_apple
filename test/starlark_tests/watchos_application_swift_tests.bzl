@@ -19,9 +19,12 @@ load(
     "archive_contents_test",
 )
 
-def watchos_application_swift_test_suite():
-    """Test suite for watchos_application_swift."""
-    name = "watchos_application_swift"
+def watchos_application_swift_test_suite(name = "watchos_application_swift"):
+    """Test suite for watchos_application_swift.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     # Pre-ABI stability, simulator build, iOS companion app uses Swift but
     # watchOS app extension does not: Swift runtime should be bundled in the

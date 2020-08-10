@@ -40,9 +40,12 @@ load(
     "analysis_xcasset_argv_test",
 )
 
-def tvos_application_test_suite():
-    """Test suite for tvos_application."""
-    name = "tvos_application"
+def tvos_application_test_suite(name = "tvos_application"):
+    """Test suite for tvos_application.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),

@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",

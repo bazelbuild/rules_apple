@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
 licenses(["notice"])
 
 exports_files(["LICENSE"])

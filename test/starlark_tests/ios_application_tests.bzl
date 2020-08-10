@@ -40,9 +40,12 @@ load(
     "linkmap_test",
 )
 
-def ios_application_test_suite():
-    """Test suite for ios_application."""
-    name = "ios_application"
+def ios_application_test_suite(name = "ios_application"):
+    """Test suite for ios_application.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),

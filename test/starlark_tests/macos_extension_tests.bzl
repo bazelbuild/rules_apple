@@ -19,9 +19,12 @@ load(
     "entry_point_test",
 )
 
-def macos_extension_test_suite():
-    """Test suite for macos_extension."""
-    name = "macos_extension"
+def macos_extension_test_suite(name = "macos_extension"):
+    """Test suite for macos_extension.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     entry_point_test(
         name = "{}_entry_point_nsextensionmain_test".format(name),

@@ -35,9 +35,12 @@ load(
     "analysis_xcasset_argv_test",
 )
 
-def macos_application_test_suite():
-    """Test suite for macos_application."""
-    name = "macos_application"
+def macos_application_test_suite(name = "macos_application"):
+    """Test suite for macos_application.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
