@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple:apple.bzl",

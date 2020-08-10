@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_library")
 load("//tools:py2and3_test.bzl", "py2and3_test")
 
 licenses(["notice"])

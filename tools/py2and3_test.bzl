@@ -14,8 +14,6 @@
 
 """Wrapper to test under python 2 and 3."""
 
-load("@rules_python//python:defs.bzl", "py_test")
-
 def py2and3_test(**kwargs):
     """Wrapper to test under python 2 and 3.
 
@@ -31,14 +29,14 @@ def py2and3_test(**kwargs):
 
     main = kwargs.pop("main", name + ".py")
     base_tags = kwargs.pop("tags", [])
-    py_test(
+    native.py_test(
         name = py2_name,
         python_version = "PY2",
         main = main,
         tags = base_tags + ["python2"],
         **kwargs
     )
-    py_test(
+    native.py_test(
         name = py3_name,
         python_version = "PY3",
         main = main,
