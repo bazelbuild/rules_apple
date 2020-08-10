@@ -243,6 +243,8 @@ def _create_binary(
     linkopts = kwargs.pop("linkopts", [])
     linkopts = linkopts + collections.before_each("-rpath", rule_descriptor.rpaths)
     linkopts = linkopts + rule_descriptor.extra_linkopts
+    if extension_safe:
+        linkopts = linkopts + ["-application_extension"]
 
     # Special case for `ios_extension` until it is migrated to the Starlark linking
     # API. Note that we use `kwargs.get` instead of `pop` so that the attribute
