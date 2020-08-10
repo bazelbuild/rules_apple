@@ -154,8 +154,10 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         inputs = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
 
         provisioning_profile = codesigning_support.provisioning_profile(ctx)
+        execution_requirements = {}
         if provisioning_profile:
             inputs.append(provisioning_profile)
+            execution_requirements = {"no-sandbox": "1"}
 
         apple_support.run(
             ctx,
@@ -165,6 +167,7 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
             outputs = [framework_zip],
             arguments = [args],
             mnemonic = "ImportedDynamicFrameworkProcessor",
+            execution_requirements = execution_requirements,
         )
 
         bundle_zips.append(
