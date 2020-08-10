@@ -17,7 +17,7 @@
 set -eu
 
 # Modify the WORKSPACE to pull in the master branches of some deps.
-sed \
+/usr/bin/sed \
   -i "" \
   -e \
     's/apple_rules_dependencies()/apple_rules_dependencies(ignore_version_differences = True)/' \
