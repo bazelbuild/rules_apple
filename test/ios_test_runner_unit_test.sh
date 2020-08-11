@@ -436,4 +436,12 @@ function test_ios_unit_simulator_id() {
   expect_log "error: unsupported --test_arg: 'invalid_arg'"
 }
 
+function test_ios_unit_test_with_multi_equal_env() {
+  create_sim_runners
+  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
 run_suite "ios_unit_test with iOS test runner bundling tests"
