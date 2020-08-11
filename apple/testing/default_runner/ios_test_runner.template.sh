@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
       simulator_id="${arg##*=}"
       ;;
     *)
-      echo "error: unsupported argument: '$1'"
+      echo "error: unsupported --test_arg: '$1'"
       exit 1
       ;;
   esac
