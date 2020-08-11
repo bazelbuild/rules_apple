@@ -100,6 +100,8 @@ single swift_library dependency with no transitive swift_library dependencies.\
         for dep in ctx.rule.attr.avoid_deps:
             if SwiftInfo in dep:
                 avoid_swiftinterfaces.extend(dep[SwiftInfo].transitive_swiftinterfaces.to_list())
+            else:
+                fail("Targets in 'avoid_deps' must propagate 'SwiftInfo'. {} does not".format(dep.name))
 
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
@@ -113,7 +115,8 @@ single swift_library dependency with no transitive swift_library dependencies.\
                 fail(
                     """\
 error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
-swift_library dependency with no transitive swift_library dependencies.\
+swift_library dependency with no transitive swift_library dependencies. Add build time only \
+dependencies to 'avoid_deps'.\
 """,
                 )
 
