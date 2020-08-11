@@ -35,7 +35,6 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
     )
 load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_dynamic_framework_import",
      "apple_static_framework_import",
     )
 
@@ -124,12 +123,14 @@ EOF
   cp test-bin/libraries/iOSSwiftStaticFrameworkLibrary-Swift.h \
      "$framework/Headers/iOSSwiftStaticFramework.h"
 
+  touch frameworks/static.txt
   cat >> frameworks/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:apple.bzl", "apple_static_framework_import")
 apple_static_framework_import(
     name = "iOSSwiftStaticFramework",
     framework_imports = glob(["iOSSwiftStaticFramework.framework/**"]),
     visibility = ["//visibility:public"],
+    data = ["static.txt"],
 )
 EOF
 }
@@ -253,6 +254,7 @@ sharedClass.doSomethingShared()
 EOF
 
     do_build ios --compilation_mode=dbg //app:app || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/static.txt"
 
     local symbols=$(
         unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app"

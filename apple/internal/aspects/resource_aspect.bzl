@@ -59,6 +59,10 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
+    elif ctx.rule.kind == "apple_static_framework_import":
+        collect_args["res_attrs"] = ["data"]
+        owner = str(ctx.label)
+
     elif ctx.rule.kind == "apple_binary":
         # Set the binary targets as the default_owner to avoid losing ownership information when
         # aggregating dependencies resources that have an owners on one branch, and that don't have

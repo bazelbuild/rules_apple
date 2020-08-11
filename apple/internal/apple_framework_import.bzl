@@ -231,9 +231,7 @@ def _framework_search_paths(header_imports):
 
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
-    providers = [
-        DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data)),
-    ]
+    providers = []
 
     framework_imports = ctx.files.framework_imports
     bundling_imports, header_imports, module_map_imports = (
@@ -356,16 +354,6 @@ target.
             providers = [
                 [apple_common.Objc, AppleFrameworkImportInfo],
             ],
-        ),
-        "data": attr.label_list(
-            allow_files = True,
-            doc = """
-The list of files needed by this target at runtime.
-
-Files and targets named in the `data` attribute will appear in the `*.runfiles`
-area of this target, if it has one. This may include data files needed by a
-binary or library, or other programs needed by it.
-""",
         ),
     },
     doc = """
