@@ -412,4 +412,28 @@ function test_ios_unit_test_with_host_with_env() {
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
 
+function test_ios_unit_simulator_id() {
+  create_sim_runners
+  create_ios_unit_tests
+  readonly simulator_id=$(xcrun simctl create custom-sim "iPhone X" 2> >(grep -v "No runtime specified" || true))
+  do_ios_test //ios:PassingUnitTest \
+    --test_arg="--destination=platform=ios_simulator,id=$simulator_id" \
+    || fail "should pass"
+
+  xcrun simctl delete "$simulator_id"
+
+  # Custom logs from xctestrunner
+  expect_not_log "Creating a new simulator"
+  expect_not_log "Created new simulator"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_simulator_id() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
+
+  expect_log "error: unsupported --test_arg: 'invalid_arg'"
+}
+
 run_suite "ios_unit_test with iOS test runner bundling tests"
