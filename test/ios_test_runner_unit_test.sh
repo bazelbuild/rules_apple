@@ -50,6 +50,12 @@ ios_test_runner(
     os_version = "10.3",
 )
 
+ios_test_runner(
+    name = "ios_x86_64_sim_runner_env",
+    device_type = "iPhone 8",
+    test_environment = {"env_source": "ios_test_runner"},
+)
+
 EOF
 }
 
@@ -302,6 +308,25 @@ ios_unit_test(
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
+
+ios_unit_test(
+    name = 'EnvFromRunner',
+    infoplists = ["EnvUnitTest-Info.plist"],
+    deps = [":env_unit_test_lib"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner_env",
+)
+
+ios_unit_test(
+    name = 'EnvFromRunnerAndBundle',
+    infoplists = ["EnvUnitTest-Info.plist"],
+    deps = [":env_unit_test_lib"],
+    minimum_os_version = "9.0",
+    test_host = ":app",
+    env = {"env_source": "ios_unit_test"},
+    runner = ":ios_x86_64_sim_runner_env",
+)
 EOF
 }
 
@@ -408,6 +433,42 @@ function test_ios_unit_test_with_host_with_env() {
   create_test_host_app
   create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_env() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_envtest env_source ios_unit_test
+  do_ios_test //ios:EnvFromRunnerAndBundle || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_test_env() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_envtest env_source ios_unit_test
+  do_ios_test --test_env=env_source=test_env //ios:EnvFromRunnerAndBundle || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_runner_env() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_envtest env_source ios_test_runner
+  do_ios_test //ios:EnvFromRunner || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_env_overridden() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_envtest env_source ios_test_runner
+  do_ios_test --test_env=env_source=test_env //ios:EnvFromRunner || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
