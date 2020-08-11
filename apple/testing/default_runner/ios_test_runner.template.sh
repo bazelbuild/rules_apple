@@ -107,7 +107,8 @@ if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
     LAUNCH_OPTIONS_JSON_STR+=","
   fi
-  LAUNCH_OPTIONS_JSON_STR+="\"tests_to_run\":[\"$TESTBRIDGE_TEST_ONLY\"]"
+  TESTS="${TESTBRIDGE_TEST_ONLY//,/\",\"}"
+  LAUNCH_OPTIONS_JSON_STR+="\"tests_to_run\":[\"$TESTS\"]"
 fi
 
 if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
