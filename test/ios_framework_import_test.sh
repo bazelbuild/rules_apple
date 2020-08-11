@@ -92,7 +92,8 @@ EOF
 
 function create_swift_static_framework() {
   if [[ -f frameworks/BUILD ]]; then
-    return
+    echo "Framework already created" >&2
+    exit 1
   fi
 
   mkdir libraries
