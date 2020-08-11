@@ -29,7 +29,6 @@ def py2and3_test(**kwargs):
 
     main = kwargs.pop("main", name + ".py")
     base_tags = kwargs.pop("tags", [])
-
     native.py_test(
         name = py2_name,
         python_version = "PY2",
@@ -37,7 +36,6 @@ def py2and3_test(**kwargs):
         tags = base_tags + ["python2"],
         **kwargs
     )
-
     native.py_test(
         name = py3_name,
         python_version = "PY3",

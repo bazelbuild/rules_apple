@@ -27,9 +27,12 @@ load(
     "dsyms_test",
 )
 
-def macos_unit_test_test_suite():
-    """Test suite for macos_unit_test."""
-    name = "macos_unit_test"
+def macos_unit_test_test_suite(name = "macos_unit_test"):
+    """Test suite for macos_unit_test.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),

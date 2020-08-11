@@ -27,9 +27,12 @@ load(
     "analysis_xcasset_argv_test",
 )
 
-def ios_application_resources_test_suite():
-    """Test suite for apple_bundle_version."""
-    name = "ios_application_resources"
+def ios_application_resources_test_suite(name = "ios_application_resources"):
+    """Test suite for apple_bundle_version.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     # Tests that various nonlocalized resource types are bundled correctly with
     # the application (at the top-level, rather than inside an .lproj directory).

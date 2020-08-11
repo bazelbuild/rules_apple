@@ -23,9 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_imessage_application_test_suite():
-    """Test suite for ios_extension."""
-    name = "ios_imessage_application"
+def ios_imessage_application_test_suite(name = "ios_imessage_application"):
+    """Test suite for ios_extension.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),

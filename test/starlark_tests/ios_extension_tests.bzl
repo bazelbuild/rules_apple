@@ -37,9 +37,12 @@ load(
     "linkmap_test",
 )
 
-def ios_extension_test_suite():
-    """Test suite for ios_extension."""
-    name = "ios_extension"
+def ios_extension_test_suite(name = "ios_extension"):
+    """Test suite for ios_extension.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),

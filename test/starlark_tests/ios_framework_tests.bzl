@@ -23,9 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_framework_test_suite():
-    """Test suite for ios_framework."""
-    name = "ios_framework"
+def ios_framework_test_suite(name = "ios_framework"):
+    """Test suite for ios_framework.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
