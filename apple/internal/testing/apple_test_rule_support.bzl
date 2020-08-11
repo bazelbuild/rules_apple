@@ -142,8 +142,8 @@ def _apple_test_rule_impl(ctx, test_type):
     # --test_env and env attribute values, but not the execution environment variables.
     test_environment = dicts.add(
         ctx.configuration.test_env,
-        ctx.attr.env,
         getattr(runner, "test_environment", {}),
+        ctx.attr.env,
     )
 
     # Environment variables for the Bazel test action itself.
