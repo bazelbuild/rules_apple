@@ -227,6 +227,11 @@ filegroup(
 )
 
 filegroup(
+    name = "metal_files",
+    srcs = glob(["*.metal"]),
+)
+
+filegroup(
     name = "localized_generic_resources",
     srcs = glob(["*.lproj/*.txt"]),
 )
@@ -350,6 +355,7 @@ apple_resource_bundle(
         ":localized_strings",
         ":localized_xibs_ios",
         ":mapping_model",
+        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
     ],
@@ -383,6 +389,7 @@ apple_resource_bundle(
         ":localized_plists",
         ":localized_strings",
         ":mapping_model",
+        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
     ],

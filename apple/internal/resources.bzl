@@ -198,6 +198,8 @@ def _bucketize_data(
             bucket_name = "pngs"
         elif resource_short_path.endswith(".plist"):
             bucket_name = "plists"
+        elif resource_short_path.endswith(".metal"):
+            bucket_name = "metals"
         elif resource_short_path.endswith(".mlmodel"):
             bucket_name = "mlmodels"
         else:

@@ -325,6 +325,7 @@ def _resources_partial_impl(
         "asset_catalogs": (resources_support.asset_catalogs, False),
         "datamodels": (resources_support.datamodels, True),
         "infoplists": (resources_support.infoplists, False),
+        "metals": (resources_support.metals, False),
         "mlmodels": (resources_support.mlmodels, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
