@@ -120,6 +120,10 @@ function create_ios_unit_tests() {
   XCTAssertEqual(1, 1, @"should pass");
 }
 
+- (void)testPass3 {
+  XCTAssertEqual(1, 1, @"should pass");
+}
+
 @end
 EOF
 
@@ -316,7 +320,7 @@ function test_ios_unit_test_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_test_with_host_pass() {
@@ -327,7 +331,7 @@ function test_ios_unit_test_with_host_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_test_on_i386_device_pass() {
@@ -337,7 +341,7 @@ function test_ios_unit_test_on_i386_device_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTestOnI386.xctest' passed"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_swift_test_pass() {
@@ -383,6 +387,18 @@ function test_ios_unit_test_with_filter() {
   expect_log "Executed 1 test, with 0 failures"
 }
 
+function test_ios_unit_test_with_multi_filter() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest/testPass2,PassingUnitTest/testPass3 //ios:PassingUnitTest || fail "should pass"
+
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
 function test_ios_unit_test_with_host_with_filter() {
   create_sim_runners
   create_test_host_app
@@ -425,7 +441,7 @@ function test_ios_unit_simulator_id() {
   # Custom logs from xctestrunner
   expect_not_log "Creating a new simulator"
   expect_not_log "Created new simulator"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_simulator_id() {
