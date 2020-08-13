@@ -1245,7 +1245,9 @@ class EntitlementsTask(PlistToolTask):
         supports_wildcards=True)
 
     # com.apple.security.application-groups
-    self._check_entitlements_array(
+    # (This check does not apply to macOS-only provisioning profiles.)
+    if self._profile_metadata.get('Platform', []) != ['OSX']:
+      self._check_entitlements_array(
         entitlements, profile_entitlements,
         'com.apple.security.application-groups', self.target,
         report_extras=report_extras)
