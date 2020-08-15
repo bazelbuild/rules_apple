@@ -16,17 +16,11 @@
 
 import os
 import shutil
-import subprocess
 import sys
 import time
 
 from build_bazel_rules_apple.tools.codesigningtool import codesigningtool
-from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
-
-
-def _sign_framework(args):
-  codesigningtool.main(args)
 
 
 def _zip_framework(framework_temp_path, output_zip_path):
@@ -158,7 +152,10 @@ def main():
       if status_code:
         return 1
 
-  _sign_framework(args)
+  # Attempt to sign the framework, check for an error when signing.
+  status_code = codesigningtool.main(args)
+  if status_code:
+    return status_code
 
   _zip_framework(args.temp_path, args.output_zip)
 
