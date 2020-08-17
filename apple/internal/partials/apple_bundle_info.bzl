@@ -60,6 +60,7 @@ def _apple_bundle_info_partial_impl(ctx, bundle_id):
                 bundle_id = bundle_id,
                 bundle_name = bundling_support.bundle_name(ctx),
                 bundle_extension = bundling_support.bundle_extension(ctx),
+                executable_name = bundling_support.executable_name(ctx),
                 entitlements = getattr(ctx.attr, "entitlements", None),
                 infoplist = infoplist,
                 minimum_os_version = platform_support.minimum_os(ctx),

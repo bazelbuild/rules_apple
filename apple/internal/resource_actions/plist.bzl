@@ -206,6 +206,7 @@ def merge_root_infoplists(
     info_plist_options = {}
 
     bundle_name = bundling_support.bundle_name_with_extension(ctx)
+    executable_name = bundling_support.executable_name(ctx)
     product_name = paths.replace_extension(bundle_name, "")
 
     # Values for string replacement substitutions to perform in the merged
@@ -227,8 +228,8 @@ def merge_root_infoplists(
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
     if include_executable_name:
-        substitutions["EXECUTABLE_NAME"] = product_name
-        forced_plists.append(struct(CFBundleExecutable = product_name))
+        substitutions["EXECUTABLE_NAME"] = executable_name
+        forced_plists.append(struct(CFBundleExecutable = executable_name))
 
     if bundle_id:
         substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id

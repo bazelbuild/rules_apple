@@ -384,6 +384,14 @@ The desired name of the bundle (without the extension). If this attribute is not
 of the target will be used instead.
 """,
         ),
+        "executable_name": attr.string(
+            mandatory = False,
+            doc = """
+The desired name of the executable, if the bundle has an executable. If this attribute is not set,
+then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
+the target will be used instead.
+""",
+        ),
         # TODO(b/36512239): Rename to "bundle_post_processor".
         "ipa_post_processor": attr.label(
             allow_files = True,

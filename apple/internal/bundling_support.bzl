@@ -67,6 +67,25 @@ def _bundle_name_with_extension(ctx):
     """
     return _bundle_name(ctx) + _bundle_extension(ctx)
 
+def _executable_name(ctx):
+    """Returns the executable name of the bundle.
+
+    The executable of the bundle is the value of the `executable_name`
+    attribute if it was given; if not, then the name of the `bundle_name`
+    attribute if it was given; if not, then the name of the target will be used
+    instead.
+
+    Args:
+      ctx: The Starlark context.
+
+    Returns:
+      The executable name.
+    """
+    executable_name = getattr(ctx.attr, "executable_name", None)
+    if not executable_name:
+        executable_name = _bundle_name(ctx)
+    return executable_name
+
 def _validate_bundle_id(bundle_id):
     """Ensure the value is a valid bundle it or fail the build.
 
@@ -201,5 +220,6 @@ bundling_support = struct(
     bundle_name_with_extension = _bundle_name_with_extension,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
+    executable_name = _executable_name,
     validate_bundle_id = _validate_bundle_id,
 )

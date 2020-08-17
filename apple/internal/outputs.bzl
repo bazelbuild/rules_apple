@@ -59,7 +59,7 @@ def _binary(ctx):
     return intermediates.file(
         ctx.actions,
         ctx.label.name,
-        bundling_support.bundle_name(ctx),
+        bundling_support.executable_name(ctx),
     )
 
 def _executable(ctx):
