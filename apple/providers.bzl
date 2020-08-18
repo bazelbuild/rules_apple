@@ -142,6 +142,8 @@ AppleResourceInfo = provider(
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
 only be bucketed with the `bucketize_typed` method.""",
+        "metals": """Metal Shading Language source files to be compiled into a single .metallib file
+and bundled at the top level.""",
         "mlmodels": "Core ML model files that should be processed and bundled at the top level.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
         "pngs": "PNG images which are not bundled in an .xcassets folder.",

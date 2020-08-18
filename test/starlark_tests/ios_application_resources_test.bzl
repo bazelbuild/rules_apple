@@ -205,6 +205,7 @@ def ios_application_resources_test_suite(name = "ios_application_resources"):
         },
         contains = [
             "$BUNDLE_ROOT/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/default.metallib",
             "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.strings",
             "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.txt",
             "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/",

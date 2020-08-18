@@ -30,6 +30,10 @@ load(
     _link_storyboards = "link_storyboards",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/resource_actions:metals.bzl",
+    _compile_metals = "compile_metals",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:mlmodel.bzl",
     _compile_mlmodel = "compile_mlmodel",
     _generate_objc_mlmodel_sources = "generate_objc_mlmodel_sources",
@@ -58,6 +62,7 @@ resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
     compile_datamodels = _compile_datamodels,
     compile_mappingmodel = _compile_mappingmodel,
+    compile_metals = _compile_metals,
     compile_mlmodel = _compile_mlmodel,
     compile_plist = _compile_plist,
     compile_storyboard = _compile_storyboard,

@@ -222,6 +222,40 @@ def _infoplists(ctx, parent_dir, files):
     else:
         return struct(files = [], infoplists = files.to_list())
 
+def _metals(ctx, parent_dir, files, output_filename = "default.metallib"):
+    """Processes metal files.
+
+    The metal files will be compiled into a Metal library named `default.metallib`.
+
+    Args:
+        ctx: The target's context.
+        parent_dir: The path under which the library should be placed.
+        files: The metal files to process.
+        output_filename: The output .metallib filename.
+
+    Returns:
+        A struct containing a `files` field with tuples as described in processor.bzl.
+    """
+    metallib_path = paths.join(parent_dir or "", output_filename)
+    metallib_file = intermediates.file(
+        ctx.actions,
+        ctx.label.name,
+        metallib_path,
+    )
+    resource_actions.compile_metals(
+        ctx,
+        files.to_list(),
+        metallib_file,
+    )
+
+    return struct(
+        files = [(
+            processor.location.resource,
+            parent_dir,
+            depset(direct = [metallib_file])
+        )],
+    )
+
 def _mlmodels(ctx, parent_dir, files):
     """Processes mlmodel files."""
 
@@ -435,6 +469,7 @@ resources_support = struct(
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,
+    metals = _metals,
     mlmodels = _mlmodels,
     noop = _noop,
     plists_and_strings = _plists_and_strings,

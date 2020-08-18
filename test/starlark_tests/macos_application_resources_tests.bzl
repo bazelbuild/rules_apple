@@ -129,6 +129,7 @@ def macos_application_resources_test_suite():
         },
         contains = [
             "$RESOURCE_ROOT/bundle_library_apple.bundle/basic.bundle/basic_bundle.txt",
+            "$RESOURCE_ROOT/bundle_library_apple.bundle/default.metallib",
             "$RESOURCE_ROOT/bundle_library_apple.bundle/it.lproj/localized.strings",
             "$RESOURCE_ROOT/bundle_library_apple.bundle/it.lproj/localized.txt",
             "$RESOURCE_ROOT/bundle_library_apple.bundle/mapping_model.cdm",
