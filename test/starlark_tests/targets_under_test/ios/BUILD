@@ -117,6 +117,7 @@ ios_application(
 ios_application(
     name = "app_with_custom_executable_name",
     bundle_id = "com.google.example",
+    bundle_name = "custom_bundle_name",
     executable_name = "app.exe",
     families = ["iphone"],
     infoplists = [
