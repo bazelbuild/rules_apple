@@ -139,6 +139,15 @@ def ios_application_test_suite(name = "ios_application"):
     )
 
     archive_contents_test(
+        name = "{}_custom_executable_name_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
+        contains = ["$BUNDLE_ROOT/app.exe"],
+        not_contains = ["$BUNDLE_ROOT/app_with_custom_executable_name"],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_dbg_resources_simulator_test".format(name),
         build_type = "simulator",
         compilation_mode = "dbg",
@@ -220,6 +229,15 @@ def ios_application_test_suite(name = "ios_application"):
             "DTXcodeBuild": "*",
             "MinimumOSVersion": "8.0",
             "UIDeviceFamily:0": "1",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_custom_executable_name_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
+        expected_values = {
+            "CFBundleExecutable": "app.exe",
         },
         tags = [name],
     )

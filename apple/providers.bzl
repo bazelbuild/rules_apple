@@ -53,6 +53,9 @@ the binary directly at analysis time; for example, for code coverage.
         "bundle_name": """
 `string`. The name of the bundle, without the extension.
 """,
+        "executable_name": """
+`string`. The name of the executable that was bundled.
+""",
         "entitlements": "`File`. Entitlements file used to codesign, if any.",
         "extension_safe": """
 Boolean. True if the target propagating this provider was

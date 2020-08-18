@@ -316,10 +316,10 @@ replaced with the `-` character (i.e., `Foo Bar` will become `Foo-Bar`).
     <tr>
       <td><code>EXECUTABLE_NAME</code></td>
       <td>
-        <p>This is an alias for the same value as <code>PRODUCT_NAME</code>.
-        This is done to match some developer expectations from Xcode. It is
-        only available on rules that create executables, not on those that
-        create resource-only bundles.</p>
+        <p>The value of the rule's <code>executable_name</code> attribute if it
+        was given; if not, then the name of the <code>bundle_name</code>
+        attribute if it was given; if not, then the <code>name</code>of the
+        target.</p>
       </td>
     </tr>
     <tr>

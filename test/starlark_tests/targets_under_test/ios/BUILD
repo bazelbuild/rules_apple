@@ -115,6 +115,25 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_custom_executable_name",
+    bundle_id = "com.google.example",
+    bundle_name = "custom_bundle_name",
+    executable_name = "app.exe",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_structured_resources_in_resources_folder",
     bundle_id = "com.google.example",
     families = [

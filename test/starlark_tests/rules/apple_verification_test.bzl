@@ -110,12 +110,15 @@ def _apple_verification_test_impl(ctx):
             archive_relative_binary = paths.join(
                 archive_relative_contents,
                 "MacOS",
-                bundle_info.bundle_name,
+                bundle_info.executable_name,
             )
             archive_relative_resources = paths.join(archive_relative_contents, "Resources")
         else:
             archive_relative_contents = archive_relative_bundle
-            archive_relative_binary = paths.join(archive_relative_bundle, bundle_info.bundle_name)
+            archive_relative_binary = paths.join(
+                archive_relative_bundle,
+                bundle_info.executable_name,
+            )
             archive_relative_resources = archive_relative_bundle
 
         archive_short_path = archive.short_path
