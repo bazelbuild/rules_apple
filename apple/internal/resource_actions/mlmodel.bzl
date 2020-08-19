@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
 )
@@ -40,6 +44,13 @@ def compile_mlmodel(ctx, input_file, output_bundle, output_plist):
         "--output-partial-info-plist",
         xctoolrunner.prefixed_path(output_plist.path),
     ]
+
+    user_defined_args = defines.list_value(
+        ctx,
+        define_name = "apple.coreml_opts",
+        default = [],
+    )
+    args.extend(user_defined_args)
 
     apple_support.run(
         ctx,

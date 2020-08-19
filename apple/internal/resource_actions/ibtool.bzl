@@ -15,6 +15,10 @@
 """IBTool related actions."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
@@ -80,8 +84,18 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
     args.extend([
         "--module",
         swift_module,
-        xctoolrunner.prefixed_path(input_file.path),
     ])
+
+    user_defined_args = defines.list_value(
+        ctx,
+        define_name = "apple.ibtool_opts",
+        default = [],
+    )
+    args.extend(user_defined_args)
+
+    args.append(
+        xctoolrunner.prefixed_path(input_file.path),
+    )
 
     legacy_actions.run(
         ctx,

@@ -19,6 +19,10 @@ load(
     "xcode_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
@@ -205,6 +209,13 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
             "--output-partial-info-plist",
             xctoolrunner.prefixed_path(output_plist.path),
         ])
+
+    user_defined_args = defines.list_value(
+        ctx,
+        define_name = "apple.actool_opts",
+        default = [],
+    )
+    args.extend(user_defined_args)
 
     xcassets = group_files_by_directory(
         asset_files,

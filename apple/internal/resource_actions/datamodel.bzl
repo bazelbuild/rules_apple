@@ -15,6 +15,10 @@
 """Datamodel related actions."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
@@ -48,9 +52,19 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
         min_os,
         "--module",
         module_name,
+    ]
+
+    user_defined_args = defines.list_value(
+        ctx,
+        define_name = "apple.momc_opts",
+        default = [],
+    )
+    args.extend(user_defined_args)
+
+    args.extend([
         xctoolrunner.prefixed_path(datamodel_path),
         xctoolrunner.prefixed_path(output_file.path),
-    ]
+    ])
 
     legacy_actions.run(
         ctx,
@@ -75,6 +89,13 @@ def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
         xctoolrunner.prefixed_path(mappingmodel_path),
         xctoolrunner.prefixed_path(output_file.path),
     ]
+
+    user_defined_args = defines.list_value(
+        ctx,
+        define_name = "apple.mapc_opts",
+        default = [],
+    )
+    args.extend(user_defined_args)
 
     legacy_actions.run(
         ctx,

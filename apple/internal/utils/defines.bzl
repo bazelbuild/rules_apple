@@ -38,6 +38,29 @@ def _bool_value(ctx, define_name, default):
         ))
     return default
 
+def _list_value(ctx, define_name, default):
+    """Returns a list of string value given a define on ctx.
+
+    Args:
+      ctx: A Starlark context.
+      define_name: The name of the define to look up.
+      default: The value to return if the define isn't found.
+
+    Returns:
+      List of string or the default value if the define wasn't found.
+    """
+    value = ctx.var.get(define_name, None)
+    if value != None:
+        values = []
+        # Handle cases where multiple spaces are passed as separators, that end
+        # up being split into empty strings
+        for v in value.split(" "):
+            if v != "":
+                values.append(v)
+        return values
+    return default
+
 defines = struct(
     bool_value = _bool_value,
+    list_value = _list_value,
 )
