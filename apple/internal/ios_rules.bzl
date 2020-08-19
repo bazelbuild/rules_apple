@@ -740,6 +740,7 @@ def _ios_framework_impl(ctx):
             bin_root_path = bin_root_path,
             binary_provider = link_result.binary_provider,
             bundle_name = bundle_name,
+            bundle_only = ctx.attr.bundle_only,
             rule_label = label,
         ),
         partials.resources_partial(
