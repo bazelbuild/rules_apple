@@ -242,6 +242,7 @@ def _macos_extension_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosExtensionBundleInfo(),
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _macos_quick_look_plugin_impl(ctx):

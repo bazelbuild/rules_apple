@@ -36,6 +36,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
 
 objc_library(
     name = "lib",
+    hdrs = ["Foo.h"],
     srcs = ["main.m"],
 )
 
@@ -59,13 +60,20 @@ tvos_extension(
 )
 EOF
 
-  cat > app/main.m <<EOF
+  cat > app/Foo.h <<EOF
 #import <Foundation/Foundation.h>
 // This dummy class is needed to generate code in the extension target,
 // which does not take main() from here, rather from an SDK.
 @interface Foo: NSObject
+- (void)doSomething;
 @end
+EOF
+
+  cat > app/main.m <<EOF
+#import <Foundation/Foundation.h>
+#import "app/Foo.h"
 @implementation Foo
+- (void)doSomething { }
 @end
 
 int main(int argc, char **argv) {
@@ -96,6 +104,47 @@ EOF
   };
 }
 EOF
+}
+
+# Test that the extension can be a bundle loader
+function test_bundle_loader() {
+  create_minimal_tvos_application_with_extension
+
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:tvos.bzl",
+     "tvos_unit_test",
+)
+
+objc_library(
+    name = "unit_test_lib",
+    hdrs = ["Foo.h"],
+    srcs = ["UnitTest.m"],
+)
+
+tvos_unit_test(
+    name = "unit_tests",
+    deps = [":unit_test_lib"],
+    minimum_os_version = "9.0",
+    test_host = ":ext",
+)
+EOF
+
+  cat > app/UnitTest.m <<EOF
+#import <XCTest/XCTest.h>
+#import "app/Foo.h"
+@interface UnitTest: XCTestCase
+@end
+
+@implementation UnitTest
+- (void)testAssertNil {
+  // Call something in test host to ensure bundle loading works.
+  [[[Foo alloc] init] doSomething];
+  XCTAssertNil(nil);
+}
+@end
+EOF
+
+  do_build tvos //app:unit_tests || fail "Should build"
 }
 
 # Test missing the CFBundleVersion fails the build.

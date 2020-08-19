@@ -268,6 +268,9 @@ def _tvos_extension_impl(ctx):
             files = processor_result.output_files,
         ),
         TvosExtensionBundleInfo(),
+        # Propagate the binary provider so that this target can be used as bundle_loader in test
+        # rules.
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _tvos_static_framework_impl(ctx):
