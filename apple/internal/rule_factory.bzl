@@ -632,7 +632,10 @@ the application bundle.
     elif rule_descriptor.product_type == apple_product_type.app_extension:
         attrs.append(_EXTENSION_PROVIDES_MAIN_ATTRS)
     elif _is_test_product_type(rule_descriptor.product_type):
-        required_providers = [[AppleBundleInfo, IosApplicationBundleInfo]]
+        required_providers = [
+            [AppleBundleInfo, IosApplicationBundleInfo],
+            [AppleBundleInfo, IosExtensionBundleInfo],
+        ]
         test_host_mandatory = False
         if rule_descriptor.product_type == apple_product_type.ui_test_bundle:
             required_providers.append([AppleBundleInfo, IosImessageApplicationBundleInfo])
@@ -723,7 +726,10 @@ set, then the default extension is determined by the application's product_type.
             "test_host": attr.label(
                 aspects = [framework_import_aspect],
                 mandatory = test_host_mandatory,
-                providers = [AppleBundleInfo, MacosApplicationBundleInfo],
+                providers = [
+                    [AppleBundleInfo, MacosApplicationBundleInfo],
+                    [AppleBundleInfo, MacosExtensionBundleInfo],
+                ],
             ),
         })
 
@@ -798,7 +804,10 @@ fashion, such as a Cocoapod.
             "test_host": attr.label(
                 aspects = [framework_import_aspect],
                 mandatory = test_host_mandatory,
-                providers = [AppleBundleInfo, TvosApplicationBundleInfo],
+                providers = [
+                    [AppleBundleInfo, TvosApplicationBundleInfo],
+                    [AppleBundleInfo, TvosExtensionBundleInfo],
+                ]
             ),
         })
 
