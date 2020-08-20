@@ -24,6 +24,8 @@ def _generate_import_framework_impl(ctx):
     args.add("--sdk", ctx.attr.sdk)
     args.add("--minimum_os_version", ctx.attr.minimum_os_version)
     args.add("--libtype", ctx.attr.libtype)
+    if ctx.attr.embed_bitcode:
+        args.add("--embed_bitcode")
     for arch in ctx.attr.archs:
         args.add("--arch", arch)
 
@@ -103,6 +105,12 @@ Minimum version of the OS corresponding to the SDK that this binary will support
             doc = """
 Possible values are `dynamic` or `static`.
 Determines if the framework will be built as a dynamic framework or a static framework.
+""",
+        ),
+        "embed_bitcode": attr.bool(
+            default = False,
+            doc = """
+Set to `True` to generate and embed bitcode in the final framework binary.
 """,
         ),
         "_generate_framework": attr.label(

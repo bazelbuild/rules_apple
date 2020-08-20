@@ -20,6 +20,11 @@ apple_dynamic_framework_import(
     framework_imports = [":iOSDynamicFramework"],
 )
 
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithBitcode",
+    framework_imports = [":iOSDynamicFrameworkWithBitcode"],
+)
+
 apple_static_framework_import(
     name = "iOSImportedStaticFramework",
     framework_imports = [":iOSStaticFramework"],
@@ -66,6 +71,15 @@ generate_import_framework(
     name = "iOSDynamicFramework",
     archs = ["x86_64"],
     libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+)
+
+generate_import_framework(
+    name = "iOSDynamicFrameworkWithBitcode",
+    archs = ["x86_64"],
+    libtype = "dynamic",
+    embed_bitcode = True,
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
 )

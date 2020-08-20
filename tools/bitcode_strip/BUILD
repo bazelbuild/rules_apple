@@ -1,18 +1,14 @@
 licenses(["notice"])
 
-py_binary(
-    name = "imported_dynamic_framework_processor",
-    srcs = ["imported_dynamic_framework_processor.py"],
+py_library(
+    name = "bitcode_strip",
+    srcs = ["bitcode_strip.py"],
     srcs_version = "PY2AND3",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
-    deps = [
-        "//tools/bitcode_strip",
-        "//tools/codesigningtool:codesigningtool_lib",
-        "//tools/wrapper_common:lipo",
-    ],
+    deps = ["//tools/wrapper_common:execute"],
 )
 
 # Consumed by bazel tests.

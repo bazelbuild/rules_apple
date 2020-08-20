@@ -273,6 +273,28 @@ def ios_application_test_suite(name = "ios_application"):
         ],
     )
 
+    # Test that Bitcode was removed from the imported framework when building
+    # with Bitcode disabled.
+    archive_contents_test(
+        name = "{}_imported_dynamic_framework_bitcode_strip_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_bitcode",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/iOSDynamicFrameworkWithBitcode.framework/iOSDynamicFrameworkWithBitcode",
+        macho_load_commands_not_contain = ["__LLVM"],
+        tags = [name],
+    )
+
+    # Test that Bitcode was removed from the Swift standard libraries when building
+    # with Bitcode disabled.
+    archive_contents_test(
+        name = "{}_swift_stdlibs_bitcode_strip_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_dep",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        macho_load_commands_not_contain = ["__LLVM"],
+        tags = [name],
+    )
+
     # Tests that the provisioning profile is present when built for device.
     archive_contents_test(
         name = "{}_contains_provisioning_profile_test".format(name),

@@ -12,6 +12,7 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]) + [
+        "//tools/bitcode_strip:for_bazel_tests",
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
         "//tools/codesigningtool:for_bazel_tests",
