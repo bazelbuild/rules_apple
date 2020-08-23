@@ -102,6 +102,7 @@ def _tvos_application_impl(ctx):
         partials.debug_symbols_partial(
             debug_dependencies = embeddable_targets,
             debug_outputs_provider = debug_outputs_provider,
+            package_symbols = True,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,

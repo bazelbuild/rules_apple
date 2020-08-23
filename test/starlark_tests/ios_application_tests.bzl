@@ -138,6 +138,20 @@ def ios_application_test_suite(name = "ios_application"):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_package_symbols_test".format(name),
+        build_type = "simulator",
+        env = {
+            "BINARY_PATHS": ["Payload/app.app/app"],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        verifier_script = "verifier_scripts/symbols_verifier.sh",
+        tags = [
+            name,
+            "manual",  # can't use Starlark transition on --define now
+        ],
+    )
+
     archive_contents_test(
         name = "{}_custom_executable_name_test".format(name),
         build_type = "simulator",

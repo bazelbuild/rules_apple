@@ -683,4 +683,16 @@ function test_tree_artifacts_and_disable_simulator_codesigning() {
       --define=apple.codesign_simulator_bundles=no || fail "Should build"
 }
 
+# Tests that symbols files are included in the ipa when builds with
+# --apple_generate_dsym and --define=apple.package_symbols=yes.
+function test_ipa_contains_symbols() {
+  create_common_files
+  create_minimal_ios_application
+  do_build ios //app:app \
+      --apple_generate_dsym \
+      --define=apple.package_symbols=yes || fail "Should build"
+
+  assert_ipa_contains_symbols "test-bin/app/app.ipa" "Payload/app.app/app"
+}
+
 run_suite "ios_application bundling tests"
