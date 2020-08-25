@@ -213,7 +213,6 @@ def actool(_, toolargs):
                "--errors",
                "--warnings",
                "--notices",
-               "--compress-pngs",
                "--output-format",
                "human-readable-text"]
 
