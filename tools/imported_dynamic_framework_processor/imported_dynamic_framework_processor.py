@@ -27,8 +27,8 @@ def _zip_framework(framework_temp_path, output_zip_path):
   """Saves the framework as a zip file for caching."""
   zip_epoch_timestamp = 946684800  # 2000-01-01 00:00
   if os.path.exists(framework_temp_path):
-    for root, _, files in os.walk(framework_temp_path):
-      for file_name in files:
+    for root, dirs, files in os.walk(framework_temp_path):
+      for file_name in dirs + files:
         file_path = os.path.join(root, file_name)
         timestamp = zip_epoch_timestamp + time.timezone
         os.utime(file_path, (timestamp, timestamp))
