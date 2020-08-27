@@ -44,8 +44,8 @@ def _version_arg_for_sdk(sdk, minimum_os_version):
   return "{0}={1}".format(_SDK_TO_VERSION_ARG[sdk], minimum_os_version)
 
 
-def _build_library_binary(archs, sdk, minimum_os_version, source_file,
-                          output_path):
+def _build_library_binary(archs, sdk, minimum_os_version, embed_bitcode,
+                          source_file, output_path):
   """Builds the library binary from a source file, writes to output_path."""
   output_lib = os.path.join(os.path.dirname(output_path),
                             os.path.basename(source_file) + ".o")
@@ -54,6 +54,9 @@ def _build_library_binary(archs, sdk, minimum_os_version, source_file,
   # constant.
   library_cmd = ["xcrun", "-sdk", sdk, "clang",
                  _version_arg_for_sdk(sdk, minimum_os_version)]
+
+  if embed_bitcode:
+    library_cmd.append("-fembed-bitcode")
 
   # Append archs.
   for arch in archs:
@@ -102,10 +105,10 @@ def _generate_dynamic_cmd(name, sdk, minimum_os_version, framework_path, archs):
 
 
 def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
-                            libtype, archs, source_file):
+                            libtype, embed_bitcode, archs, source_file):
   """Builds the framework binary from a source file, saves to framework_path."""
   output_lib = _build_library_binary(archs, sdk, minimum_os_version,
-                                     source_file, framework_path)
+                                     embed_bitcode, source_file, framework_path)
 
   # Delete any existing framework files, if they are already there.
   if os.path.exists(framework_path):
@@ -130,6 +133,21 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
       "-o",
       os.path.join(framework_path, name),
   ])
+
+  if embed_bitcode:
+    bcsymbolmap_path = os.path.join(os.path.dirname(framework_path),
+                                    os.path.basename(name) + ".bcsymbolmap")
+    framework_cmd.extend([
+        "-fembed-bitcode",
+        "-Xlinker",
+        "-bitcode_verify",
+        "-Xlinker",
+        "-bitcode_hide_symbols",
+        "-Xlinker",
+        "-bitcode_symbol_map",
+        "-Xlinker",
+        bcsymbolmap_path,
+    ])
 
   _, stdout, stderr = execute.execute_and_filter_output(framework_cmd,
                                                         custom_env=custom_env,
@@ -231,6 +249,10 @@ def main():
       "library type for the generated framework"
   )
   parser.add_argument(
+      "--embed_bitcode", action="store_true", default=False, help="embed "
+      "bitcode in the final framework binary"
+  )
+  parser.add_argument(
       "--framework_path", type=str, required=True, help="path to create the "
       "framework's contents in"
   )
@@ -252,8 +274,8 @@ def main():
   status_code = _build_framework_binary(args.name, args.sdk,
                                         args.minimum_os_version,
                                         args.framework_path,
-                                        args.libtype, args.arch,
-                                        args.source_file)
+                                        args.libtype, args.embed_bitcode,
+                                        args.arch, args.source_file)
   if status_code:
     return status_code
 

@@ -23,6 +23,10 @@ load(
     "xcode_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
+    "bitcode_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -103,6 +107,9 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
             "--binary",
             x.path,
         ])
+
+    if bitcode_support.bitcode_mode_string(ctx) == "none":
+        swift_stdlib_tool_args.append("--strip_bitcode")
 
     apple_support.run(
         ctx,

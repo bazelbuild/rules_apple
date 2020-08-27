@@ -409,6 +409,49 @@ ios_framework(
 )
 
 ios_application(
+    name = "app_with_imported_dynamic_fmwk_with_bitcode",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithBitcode",
+    ],
+)
+
+ios_application(
+    name = "app_with_swift_dep",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_inner_and_outer_static_fmwk",
     bundle_id = "com.google.example",
     families = ["iphone"],
