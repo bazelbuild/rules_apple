@@ -257,8 +257,8 @@ def _zip_directory(directory, output):
   # Set the timestamp of all files within "tmpdir" to the Zip Epoch:
   # 2000-01-01 00:00. They are adjusted for timezone since Python "zipfile"
   # checks the local timestamps of the files.
-  for root, _, files in os.walk(directory):
-    for f in files:
+  for root, dirs, files in os.walk(directory):
+    for f in dirs + files:
       filepath = os.path.join(root, f)
       timestamp = zip_epoch_timestamp + time.timezone
       os.utime(filepath, (timestamp, timestamp))
