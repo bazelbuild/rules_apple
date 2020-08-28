@@ -31,19 +31,12 @@ Subcommands:
   mapc [<args>...]
 
   momc [<args>...]
-
-  swift-stdlib-tool [OUTPUT] [BUNDLE] [<args>...]
-      OUTPUT: The path to place the output zip file.
-      BUNDLE: The path inside of the archive to where the libs will be copied.
 """
 
 import argparse
 import os
 import re
-import shutil
 import sys
-import tempfile
-import time
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
@@ -250,45 +243,6 @@ def coremlc(_, toolargs):
   return return_code
 
 
-def _zip_directory(directory, output):
-  """Zip the contents of the specified directory to the output file."""
-  zip_epoch_timestamp = 946684800  # 2000-01-01 00:00
-
-  # Set the timestamp of all files within "tmpdir" to the Zip Epoch:
-  # 2000-01-01 00:00. They are adjusted for timezone since Python "zipfile"
-  # checks the local timestamps of the files.
-  for root, _, files in os.walk(directory):
-    for f in files:
-      filepath = os.path.join(root, f)
-      timestamp = zip_epoch_timestamp + time.timezone
-      os.utime(filepath, (timestamp, timestamp))
-
-  shutil.make_archive(output, "zip", directory, ".")
-
-
-def swift_stdlib_tool(args, toolargs):
-  """Assemble the call to "xcrun swift-stdlib-tool" and zip the output."""
-  tmpdir = tempfile.mkdtemp(prefix="swiftstdlibtoolZippingOutput.")
-  destination = os.path.join(tmpdir, args.bundle)
-
-  xcrunargs = ["xcrun",
-               "swift-stdlib-tool",
-               "--copy",
-               "--destination",
-               destination]
-
-  xcrunargs += toolargs
-
-  result, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
-  if not result:
-    _zip_directory(tmpdir, os.path.splitext(args.output)[0])
-
-  shutil.rmtree(tmpdir)
-  return result
-
-
 def momc(_, toolargs):
   """Assemble the call to "xcrun momc"."""
   xcrunargs = ["xcrun", "momc"]
@@ -328,14 +282,6 @@ def main(argv):
   # COREMLC Argument Parser
   mapc_parser = subparsers.add_parser("coremlc")
   mapc_parser.set_defaults(func=coremlc)
-
-  # SWIFT-STDLIB-TOOL Argument Parser
-  swiftlib_parser = subparsers.add_parser("swift-stdlib-tool")
-  swiftlib_parser.add_argument("output", help="The output zip file.")
-  swiftlib_parser.add_argument(
-      "bundle",
-      help="The path inside of the archive to where the libs are copied.")
-  swiftlib_parser.set_defaults(func=swift_stdlib_tool)
 
   # MOMC Argument Parser
   momc_parser = subparsers.add_parser("momc")
