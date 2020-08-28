@@ -298,11 +298,7 @@ def ios_application_test_suite(name = "ios_application"):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        tags = [
-            name,
-            # OSS Blocked by b/73547215
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     # Test that Bitcode was removed from the imported framework when building

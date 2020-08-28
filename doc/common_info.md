@@ -107,7 +107,6 @@ mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
 -->
-<!-- Blocked on b/73547215
 
 ### linkmap Generation {#objc_generate_linkmap}
 
@@ -122,8 +121,6 @@ bazel build --objc_generate_linkmap //your/target
 By default, only the top level linkmap file is built when this flag is
 specified. If you require the linkmap file of the top level target dependencies,
 you'll need to specify the `--output_groups=+linkmaps` flag.
-
--->
 
 ### Debugging Entitlement Support {#apple.add_debugger_entitlement}
 

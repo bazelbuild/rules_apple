@@ -214,6 +214,19 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_ios_application
+  do_build ios --objc_generate_linkmap //app:app || fail "Should build"
+
+  declare -a archs=( $(current_archs ios) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/app_${arch}.linkmap"
+  done
+}
+
 # Tests that the IPA post-processor is executed and can modify the bundle.
 function test_ipa_post_processor() {
   create_common_files
