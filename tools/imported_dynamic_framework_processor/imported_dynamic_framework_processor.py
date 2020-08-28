@@ -27,12 +27,18 @@ from build_bazel_rules_apple.tools.wrapper_common import lipo
 def _zip_framework(framework_temp_path, output_zip_path):
   """Saves the framework as a zip file for caching."""
   zip_epoch_timestamp = 946684800  # 2000-01-01 00:00
+  timestamp = zip_epoch_timestamp + time.timezone
   if os.path.exists(framework_temp_path):
-    for root, dirs, files in os.walk(framework_temp_path):
+    # Apply the fixed utime to the files within directories, then their parent
+    # directories and files adjacent to those directories.
+    #
+    # Avoids accidentally resetting utime on the directories when utime is set
+    # on the files within.
+    for root, dirs, files in os.walk(framework_temp_path, topdown=False):
       for file_name in dirs + files:
         file_path = os.path.join(root, file_name)
-        timestamp = zip_epoch_timestamp + time.timezone
         os.utime(file_path, (timestamp, timestamp))
+    os.utime(framework_temp_path, (timestamp, timestamp))
   shutil.make_archive(os.path.splitext(output_zip_path)[0], "zip",
                       os.path.dirname(framework_temp_path),
                       os.path.basename(framework_temp_path))
