@@ -120,6 +120,7 @@ def _ios_application_impl(ctx):
         partials.debug_symbols_partial(
             debug_dependencies = embeddable_targets,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            package_symbols = True,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,

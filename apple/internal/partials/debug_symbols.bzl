@@ -19,8 +19,20 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "processor",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
+    "legacy_actions",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -47,6 +59,10 @@ Depset of `File` references to dSYM files if requested in the build with --apple
 """,
         "linkmaps": """
 Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
+""",
+        "symbols": """
+Depset of `File` references to symbols files if requested in the build with
+--define=apple.package_symbols=(yes|true|1).
 """,
     },
 )
@@ -145,7 +161,11 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
 
     return outputs
 
-def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_provider = None):
+def _debug_symbols_partial_impl(
+    ctx,
+    debug_dependencies = [],
+    debug_outputs_provider = None,
+    package_symbols = False):
     """Implementation for the debug symbols processing partial."""
     deps_providers = [
         x[_AppleDebugInfo]
@@ -160,6 +180,9 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
     direct_linkmaps = []
     transitive_linkmaps = [x.linkmaps for x in deps_providers]
+
+    direct_symbols = []
+    transitive_symbols = [x.symbols for x in deps_providers]
 
     output_providers = []
 
@@ -188,6 +211,19 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
                 transitive = [dsym_bundles],
             )
 
+            include_symbols = defines.bool_value(
+                ctx,
+                "apple.package_symbols",
+                False,
+            )
+
+            if include_symbols:
+                symbols = _generate_symbols(
+                    ctx,
+                    debug_outputs_provider,
+                )
+                direct_symbols.extend(symbols)
+
         if ctx.fragments.objc.generate_linkmap:
             linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
             direct_linkmaps.extend(linkmaps)
@@ -202,21 +238,33 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
+    symbols_group = depset(direct_symbols, transitive = transitive_symbols)
 
     if propagate_embedded_extra_outputs:
         output_files = depset(transitive = [dsyms_group, linkmaps_group])
     else:
         output_files = depset(direct_dsyms + direct_linkmaps)
 
+    if package_symbols and symbols_group:
+        bundle_files = [(
+            processor.location.archive,
+            "Symbols",
+            symbols_group,
+        )]
+    else:
+        bundle_files = []
+
     output_providers.append(
         _AppleDebugInfo(
             dsym_bundles = dsym_bundles,
             dsyms = dsyms_group,
             linkmaps = linkmaps_group,
+            symbols = symbols_group,
         ),
     )
 
     return struct(
+        bundle_files = bundle_files,
         output_files = output_files,
         providers = output_providers,
         output_groups = {
@@ -225,7 +273,44 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
         },
     )
 
-def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None):
+def _generate_symbols(ctx, debug_provider):
+    dsym_binaries = []
+
+    symbols_dir = intermediates.directory(
+        ctx.actions,
+        ctx.label.name,
+        "symbols_files",
+    )
+    outputs = [symbols_dir]
+
+    commands = ["mkdir -p \"${OUTPUT_DIR}\""]
+
+    for (arch, arch_outputs) in debug_provider.outputs_map.items():
+        dsym_binary = arch_outputs["dsym_binary"]
+        dsym_binaries.append(dsym_binary)
+        commands.append(
+            ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {arch} " +
+             "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{dsym_binary}\"").format(
+                arch = arch,
+                dsym_binary = dsym_binary.path,
+            ),
+        )
+
+    legacy_actions.run_shell(
+        ctx,
+        inputs = dsym_binaries,
+        outputs = outputs,
+        command = "\n".join(commands),
+        env = {"OUTPUT_DIR": symbols_dir.path},
+        mnemonic = "GenerateSymbolsFiles",
+    )
+
+    return outputs
+
+def debug_symbols_partial(
+    debug_dependencies = [],
+    debug_outputs_provider = None,
+    package_symbols = False):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -241,6 +326,7 @@ def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None
         information to propagate them upstream.
       debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
         outputs of this target's binary.
+      package_symbols: Whether the partial should package the symbols files for all binaries.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
@@ -249,4 +335,5 @@ def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None
         _debug_symbols_partial_impl,
         debug_dependencies = debug_dependencies,
         debug_outputs_provider = debug_outputs_provider,
+        package_symbols = package_symbols,
     )

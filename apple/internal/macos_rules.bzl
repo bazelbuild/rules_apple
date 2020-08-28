@@ -79,6 +79,7 @@ def _macos_application_impl(ctx):
         partials.debug_symbols_partial(
             debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            package_symbols = True,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
