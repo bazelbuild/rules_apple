@@ -87,6 +87,23 @@ def tvos_application_test_suite(name = "tvos_application"):
         tags = [name],
     )
 
+    # Tests that Swift standard libraries bundled in SwiftSupport have the code
+    # signature from Apple.
+    archive_contents_test(
+        name = "{}_swift_support_codesign_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        binary_test_file = "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
+        codesign_info_contains = [
+            "Identifier=com.apple.dt.runtime.swiftCore",
+            "Authority=Software Signing",
+            "Authority=Apple Code Signing Certification Authority",
+            "Authority=Apple Root CA",
+            "TeamIdentifier=59GAB85EFG",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_entitlements_simulator_test".format(name),
         build_type = "simulator",

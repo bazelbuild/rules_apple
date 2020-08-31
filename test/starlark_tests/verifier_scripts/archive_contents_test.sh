@@ -46,6 +46,10 @@ newline=$'\n'
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
 #  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#  CODESIGN_INFO_CONTAINS: Array of codesign information that should
+#      be present.
+#  CODESIGN_INFO_NOT_CONTAINS: Array of codesign information that should
+#      not be present.
 #  MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
 #      be present.
 #  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
@@ -128,6 +132,42 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
         if [[ "$symbol_found" = true ]]; then
             fail "Unexpected symbol \"$test_symbol\" was found. The symbols " \
               "in the binary were:$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+  fi
+
+  if [[ -n "${CODESIGN_INFO_CONTAINS-}" || -n "${CODESIGN_INFO_NOT_CONTAINS-}" ]]; then
+    codesign_output="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+    codesign --display --verbose=4 "$path" &> "$codesign_output"
+    if [[ -n "${CODESIGN_INFO_CONTAINS-}" ]]; then
+      for test_codesign_info in "${CODESIGN_INFO_CONTAINS[@]}"
+      do
+        codesign_info_found=false
+        if grep -sq "$test_codesign_info" "$codesign_output"; then
+          codesign_info_found=true
+          break
+        fi
+        if [[ "$codesign_info_found" = false ]]; then
+          fail "Expected codesign info \"$test_codesign_info\" was not found." \
+            "The codesign info in the binary were:$newline"\
+            "$(cat "$codesign_output")"
+        fi
+      done
+    fi
+
+    if [[ -n "${CODESIGN_INFO_NOT_CONTAINS-}" ]]; then
+      for test_codesign_info in "${CODESIGN_INFO_NOT_CONTAINS[@]}"
+      do
+        codesign_info_found=false
+        if grep -sq "$test_codesign_info" "$codesign_output"; then
+          codesign_info_found=true
+          break
+        fi
+        if [[ "$codesign_info_found" = true ]]; then
+          fail "Unexpected codesign info \"$test_codesign_info\" was found." \
+            "The codesign info in the binary were:$newline"\
+            "$(cat "$codesign_output")"
         fi
       done
     fi
