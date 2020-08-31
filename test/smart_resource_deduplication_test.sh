@@ -43,6 +43,16 @@ EOF
 }
 EOF
 
+  cat > app/FrameworkInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "FMWK";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
+
   cat > app/app.strings <<EOF
 "my_string" = "I should be at the top level!";
 EOF
@@ -114,7 +124,7 @@ ios_framework(
     name = "framework",
     bundle_id = "com.framework",
     families = ["iphone"],
-    infoplists = ["Info.plist"],
+    infoplists = ["FrameworkInfo.plist"],
     minimum_os_version = "8",
     deps = [":shared_lib"],
 )
@@ -191,7 +201,7 @@ ios_framework(
     name = "framework",
     bundle_id = "com.framework",
     families = ["iphone"],
-    infoplists = ["Info.plist"],
+    infoplists = ["FrameworkInfo.plist"],
     minimum_os_version = "8",
     deps = [":shared_lib_with_no_direct_resources"],
 )
@@ -225,7 +235,7 @@ ios_framework(
     name = "framework",
     bundle_id = "com.framework",
     families = ["iphone"],
-    infoplists = ["Info.plist"],
+    infoplists = ["FrameworkInfo.plist"],
     minimum_os_version = "8",
     deps = [":shared_lib"],
 )

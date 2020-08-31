@@ -132,7 +132,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
   NSExtension = {
@@ -344,7 +344,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
   NSExtension = {
@@ -771,7 +771,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
   NSExtension = {
@@ -1555,7 +1555,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
   NSExtension = {
