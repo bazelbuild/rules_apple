@@ -108,7 +108,12 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
             x.path,
         ])
 
-    if bitcode_support.bitcode_mode_string(ctx) == "none":
+    # The dylibs bundled in Swift Support need to keep the original code
+    # signature, but `bitcode_strip` also strips it out. Xcode 11.4 added a new
+    # `-keep_cs` flag to `bitcode_strip`, which allows us to strip bitcode from
+    # the dylibs without modifying their code signature.
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if xcode_support.is_xcode_at_least_version(xcode_config, "11.4") and (bitcode_support.bitcode_mode_string(ctx) == "none"):
         swift_stdlib_tool_args.append("--strip_bitcode")
 
     apple_support.run(

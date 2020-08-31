@@ -23,6 +23,7 @@ def invoke(input_path, output_path):
                "bitcode_strip",
                input_path,
                "-r",
+               "-keep_cs",
                "-o",
                output_path]
 
