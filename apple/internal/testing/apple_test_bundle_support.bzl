@@ -254,6 +254,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "BNDL",
             plist_attrs = ["infoplists"],
             targets_to_avoid = targets_to_avoid,
             version_keys_required = False,

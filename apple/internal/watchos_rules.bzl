@@ -102,6 +102,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "APPL",
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
@@ -189,6 +190,7 @@ def _watchos_extension_impl(ctx):
         partials.framework_import_partial(targets = ctx.attr.deps),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),

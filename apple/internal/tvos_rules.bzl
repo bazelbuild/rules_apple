@@ -113,6 +113,7 @@ def _tvos_application_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "APPL",
             bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
@@ -195,6 +196,7 @@ def _tvos_framework_impl(ctx):
         partials.framework_provider_partial(binary_provider = binary_provider),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "FMWK",
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             version_keys_required = False,
@@ -247,6 +249,7 @@ def _tvos_extension_impl(ctx):
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,

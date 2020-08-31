@@ -131,6 +131,7 @@ def _ios_application_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "APPL",
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
@@ -234,6 +235,7 @@ def _ios_framework_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "FMWK",
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             version_keys_required = False,
@@ -291,6 +293,7 @@ def _ios_extension_impl(ctx):
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -397,6 +400,7 @@ def _ios_imessage_application_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "APPL",
             bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
@@ -462,6 +466,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -517,6 +522,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
+            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             top_level_attrs = top_level_attrs,
         ),
