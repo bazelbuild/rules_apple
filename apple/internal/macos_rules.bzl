@@ -91,7 +91,6 @@ def _macos_application_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "APPL",
             bundle_verification_targets = [struct(target = ext) for ext in embedded_targets],
             plist_attrs = ["infoplists"],
             top_level_attrs = [
@@ -162,7 +161,6 @@ def _macos_bundle_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "BNDL",
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "app_icons",
@@ -217,7 +215,6 @@ def _macos_extension_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "app_icons",
@@ -277,7 +274,6 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
             top_level_attrs = [
                 "strings",
@@ -327,7 +323,6 @@ def _macos_kernel_extension_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "KEXT",
             plist_attrs = ["infoplists"],
             top_level_attrs = ["resources"],
         ),
@@ -376,7 +371,6 @@ def _macos_spotlight_importer_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
         ),
         partials.swift_dylibs_partial(
@@ -424,7 +418,6 @@ def _macos_xpc_service_impl(ctx):
         partials.macos_additional_contents_partial(),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_package_type = "XPC!",
             plist_attrs = ["infoplists"],
         ),
         partials.swift_dylibs_partial(

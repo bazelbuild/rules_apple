@@ -265,7 +265,6 @@ def _validate_processed_locales(label, locales_requested, locales_included, loca
 def _resources_partial_impl(
         ctx,
         bundle_id,
-        bundle_package_type,
         bundle_verification_targets,
         plist_attrs,
         targets_to_avoid,
@@ -428,7 +427,6 @@ def _resources_partial_impl(
                 infoplists,
                 out_infoplist,
                 bundle_id = bundle_id,
-                bundle_package_type = bundle_package_type,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 version_keys_required = version_keys_required,
@@ -439,7 +437,6 @@ def _resources_partial_impl(
 
 def resources_partial(
         bundle_id = None,
-        bundle_package_type = None,
         bundle_verification_targets = [],
         plist_attrs = [],
         targets_to_avoid = [],
@@ -454,7 +451,6 @@ def resources_partial(
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
             occur.
-        bundle_package_type: Optional four-character code representing the bundle type.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
@@ -475,7 +471,6 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         bundle_id = bundle_id,
-        bundle_package_type = bundle_package_type,
         bundle_verification_targets = bundle_verification_targets,
         plist_attrs = plist_attrs,
         targets_to_avoid = targets_to_avoid,

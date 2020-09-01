@@ -163,7 +163,6 @@ def merge_root_infoplists(
         output_plist,
         output_pkginfo,
         bundle_id = None,
-        bundle_package_type = None,
         child_plists = [],
         child_required_values = [],
         include_executable_name = True,
@@ -180,8 +179,6 @@ def merge_root_infoplists(
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
         required.
       bundle_id: The bundle identifier to set in the output plist.
-      bundle_package_type: A four-character code representing the bundle type.
-          Corresponds to CFBundlePackageType.
       child_plists: A list of plists from child targets (such as extensions
           or Watch apps) whose bundle IDs and version strings should be
           validated against the compiled plist for consistency.
@@ -243,10 +240,6 @@ def merge_root_infoplists(
         # been valid bugs, so this will still catch that.
         plists.append(struct(CFBundleIdentifier = bundle_id))
 
-    if bundle_package_type:
-        substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = bundle_package_type
-        plists.append(struct(CFBundlePackageType = bundle_package_type))
-
     if child_plists:
         info_plist_options["child_plists"] = struct(
             **{str(p.owner): p.path for p in child_plists}
@@ -286,6 +279,10 @@ def merge_root_infoplists(
         forced_plists.append(
             struct(**rule_descriptor.additional_infoplist_values),
         )
+
+    # Replace PRODUCT_BUNDLE_PACKAGE_TYPE based on info in rule descriptor
+    if rule_descriptor.bundle_package_type:
+        substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = rule_descriptor.bundle_package_type
 
     if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
         plist_key = "LSMinimumSystemVersion"
