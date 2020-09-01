@@ -54,6 +54,7 @@ def ios_ui_test_test_suite(name = "ios_ui_test"):
             "CFBundleExecutable": "ui_test",
             "CFBundleIdentifier": "com.google.exampleTests",
             "CFBundleName": "ui_test",
+            "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

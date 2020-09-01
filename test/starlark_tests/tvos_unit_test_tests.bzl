@@ -57,6 +57,7 @@ def tvos_unit_test_test_suite(name = "tvos_unit_test"):
             "CFBundleExecutable": "unit_test",
             "CFBundleIdentifier": "com.google.exampleTests",
             "CFBundleName": "unit_test",
+            "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "AppleTV*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

@@ -52,6 +52,7 @@ def macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin"):
             "CFBundleExecutable": "ql_plugin",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "ql_plugin",
+            "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "MacOSX",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

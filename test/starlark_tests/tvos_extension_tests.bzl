@@ -62,6 +62,7 @@ def tvos_extension_test_suite(name = "tvos_extension"):
             "CFBundleExecutable": "ext",
             "CFBundleIdentifier": "com.google.example.ext",
             "CFBundleName": "ext",
+            "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "AppleTVSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

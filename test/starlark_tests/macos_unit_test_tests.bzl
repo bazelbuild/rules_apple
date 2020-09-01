@@ -56,6 +56,7 @@ def macos_unit_test_test_suite(name = "macos_unit_test"):
             "CFBundleExecutable": "unit_test",
             "CFBundleIdentifier": "com.google.exampleTests",
             "CFBundleName": "unit_test",
+            "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "MacOSX",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

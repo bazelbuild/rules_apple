@@ -46,6 +46,7 @@ def ios_imessage_application_test_suite(name = "ios_imessage_application"):
             "CFBundleExecutable": "imessage_app",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "imessage_app",
+            "CFBundlePackageType": "APPL",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",
