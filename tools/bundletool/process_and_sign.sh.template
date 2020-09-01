@@ -1,6 +1,12 @@
 #!/bin/bash
 set -eu
 
+# NOTES:
+# 1. This can run on Linux or Mac depending on what work it needs to do.
+# 2. This script is passed arguments but they are *NOT* used, the arguments
+#    are there to allow action logging to have some visibility into what the
+#    actions running the script is doing each time.
+
 # The path where the archive should be created, including the name of the
 # archive itself.
 readonly OUTPUT_PATH=%output_path%
