@@ -454,7 +454,7 @@ def resources_partial(
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
             occur.
-        bundle_package_type: An optional four-character code representing the bundle type.
+        bundle_package_type: Optional four-character code representing the bundle type.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
