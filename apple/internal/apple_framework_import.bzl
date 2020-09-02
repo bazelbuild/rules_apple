@@ -305,9 +305,8 @@ def _apple_static_framework_import_impl(ctx):
         if _is_debugging(ctx):
             cpu = ctx.fragments.apple.single_arch_cpu
             swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
-            if not swiftmodule:
-                fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
-            objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
+            if swiftmodule:
+                objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
     providers.append(_cc_info_with_dependencies(ctx, header_imports))
