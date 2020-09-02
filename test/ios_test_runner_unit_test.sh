@@ -444,12 +444,13 @@ function test_ios_unit_simulator_id() {
   expect_log "Executed 3 tests, with 0 failures"
 }
 
-function test_ios_unit_simulator_id() {
+function test_ios_unit_other_arg() {
   create_sim_runners
   create_ios_unit_tests
   ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
 
-  expect_log "error: unsupported --test_arg: 'invalid_arg'"
+  # Error comes from xctestrunner
+  expect_log "downloaded: error: unrecognized arguments: invalid_arg"
 }
 
 function test_ios_unit_test_with_multi_equal_env() {
