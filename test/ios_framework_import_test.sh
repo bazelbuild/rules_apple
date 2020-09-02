@@ -254,8 +254,9 @@ EOF
 
     do_build ios --compilation_mode=dbg //app:app || fail "Should build"
 
-    local symbols=$(
-        unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app"
+    local symbols
+    symbols=$(
+        unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" \
             | nm -aj - | grep .swiftmodule
     )
 
