@@ -69,15 +69,12 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
     # Where <arch> will be a common arch like x86_64, arm64, etc.
     named_files = {f.basename: f for f in swiftmodule_files}
-    for extension in ("swiftinterface", "swiftmodule"):
-        module = named_files.get("{}.{}".format(cpu, extension))
-        if not module and cpu == "armv7":
-            module = named_files.get("arm.{}".format(extension))
 
-        if module:
-            return module
+    module = named_files.get("{}.swiftmodule".format(cpu))
+    if not module and cpu == "armv7":
+        module = named_files.get("arm.swiftmodule")
 
-    return None
+    return module
 
 def _classify_framework_imports(framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
@@ -308,9 +305,8 @@ def _apple_static_framework_import_impl(ctx):
         if _is_debugging(ctx):
             cpu = ctx.fragments.apple.single_arch_cpu
             swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
-            if not swiftmodule:
-                fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
-            objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
+            if swiftmodule:
+                objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
     providers.append(_cc_info_with_dependencies(ctx, header_imports))
