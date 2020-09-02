@@ -171,7 +171,6 @@ EOF
     || fail "Should have said to link CFNetwork.framework"
 }
 
-# Tests sdk_dylib and sdk_framework attributes are captured into the modulemap.
 function test_swift_contains_swiftinterface() {
   cat >> sdk/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
