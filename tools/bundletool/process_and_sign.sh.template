@@ -52,7 +52,12 @@ pushd "$WORK_DIR" >/dev/null
 # Ensure that the entries in the ZIP are writable when expanded, because some
 # tools rely on the ability to unzip it, modify it, and re-sign it.
 chmod -R u+w .
-( TZ=UTC find . -exec touch -h -t 198001010000 {} \+ )
-zip -qX -r --compression-method "$COMPRESSION_METHOD" "$OUTPUT_BASENAME" .
+# Fix the time stamps (this only does files, not directories or symlinks).
+( TZ=UTC find . -type f -exec touch -h -t 198001010000 {} \+ )
+# Avoid zip -r and feed just the files (not symlinks) in a stable order so the
+# zip is smaller and deterministic.
+find . -type f \
+  | sort \
+  | zip -qX "-@" --compression-method "$COMPRESSION_METHOD" "$OUTPUT_BASENAME"
 popd >/dev/null
 mv "$WORK_DIR/$OUTPUT_BASENAME" "$OUTPUT_PATH"
