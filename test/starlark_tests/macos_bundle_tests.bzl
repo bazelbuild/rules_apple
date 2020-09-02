@@ -56,6 +56,7 @@ def macos_bundle_test_suite(name = "macos_bundle"):
             "CFBundleExecutable": "bundle",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "bundle",
+            "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "MacOSX",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

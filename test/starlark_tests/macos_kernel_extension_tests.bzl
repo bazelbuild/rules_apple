@@ -45,6 +45,7 @@ def macos_kernel_extension_test_suite():
             "CFBundleExecutable": "kext",
             "CFBundleIdentifier": "com.google.kext",
             "CFBundleName": "kext",
+            "CFBundlePackageType": "KEXT",
             "CFBundleSupportedPlatforms:0": "MacOSX",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

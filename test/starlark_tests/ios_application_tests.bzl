@@ -232,6 +232,7 @@ def ios_application_test_suite(name = "ios_application"):
             "CFBundleExecutable": "app",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "app",
+            "CFBundlePackageType": "APPL",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

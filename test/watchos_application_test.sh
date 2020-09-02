@@ -92,7 +92,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   CFBundleVersion = "1";
   NSExtension = {
@@ -198,7 +198,7 @@ function test_watch_ext_missing_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   NSExtension = {
     NSExtensionAttributes = {
@@ -224,7 +224,7 @@ function test_watch_ext_missing_short_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleVersion = "1";
   NSExtension = {
     NSExtensionAttributes = {
@@ -343,7 +343,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   CFBundleVersion = "1";
   NSExtension = {
@@ -434,7 +434,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.1";
   CFBundleVersion = "1";
   NSExtension = {
@@ -481,7 +481,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.1";
   CFBundleVersion = "1";
   NSExtension = {
@@ -541,7 +541,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   CFBundleVersion = "1.1";
   NSExtension = {
@@ -588,7 +588,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   CFBundleVersion = "1.1";
   NSExtension = {
@@ -678,7 +678,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1";
   CFBundleVersion = "1";
   NSExtension = {

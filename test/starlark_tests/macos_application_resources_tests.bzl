@@ -125,6 +125,7 @@ def macos_application_resources_test_suite():
         plist_test_values = {
             "CFBundleIdentifier": "org.bazel.bundle-library-apple",
             "CFBundleName": "bundle_library_apple.bundle",
+            "CFBundlePackageType": "BNDL",
             "TargetName": "bundle_library_apple",
         },
         contains = [

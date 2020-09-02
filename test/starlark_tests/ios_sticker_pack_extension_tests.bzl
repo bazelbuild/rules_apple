@@ -46,6 +46,7 @@ def ios_sticker_pack_extension_test_suite(name = "ios_sticker_pack_extension"):
             "CFBundleExecutable": "sticker_ext",
             "CFBundleIdentifier": "com.google.example.stickerext",
             "CFBundleName": "sticker_ext",
+            "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",
