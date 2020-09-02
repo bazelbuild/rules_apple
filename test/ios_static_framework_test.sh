@@ -171,4 +171,41 @@ EOF
     || fail "Should have said to link CFNetwork.framework"
 }
 
+# Tests sdk_dylib and sdk_framework attributes are captured into the modulemap.
+function test_swift_contains_swiftinterface() {
+  cat >> sdk/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+swift_library(
+    name = "framework_lib",
+    module_name = "sdk",
+    srcs = [":lib.swift"],
+)
+
+ios_static_framework(
+    name = "sdk",
+    minimum_os_version = "11.0",
+    deps = [":framework_lib"],
+)
+EOF
+
+  cat >> sdk/lib.swift <<EOF
+public struct lib {}
+EOF
+
+  do_build ios //sdk:sdk || fail "Should build"
+
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/sdk"
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Headers/sdk.h"
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftinterface"
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftdoc"
+  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftmodule"
+}
+
 run_suite "ios_static_framework bundling tests"
