@@ -31,13 +31,7 @@ readonly IOS_VERSION="11.0"
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:ios.bzl",
-     "ios_application",
-    )
-load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_dynamic_framework_import",
-     "apple_static_framework_import",
-    )
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 
 ios_application(
     name = "app",
@@ -48,7 +42,6 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":main"],
 )
-
 EOF
 
   cat > app/Info-App.plist <<EOF
