@@ -200,11 +200,11 @@ EOF
   assert_zip_contains "test-bin/sdk/sdk.zip" \
       "sdk.framework/Headers/sdk.h"
   assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftinterface"
+      "sdk.framework/Modules/sdk.swiftmodule/*.swiftinterface"
   assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftdoc"
+      "sdk.framework/Modules/sdk.swiftmodule/*.swiftdoc"
   assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/Modules/sdk.swiftmodule/x86_64.swiftmodule"
+      "sdk.framework/Modules/sdk.swiftmodule/*.swiftmodule"
 }
 
 run_suite "ios_static_framework bundling tests"
