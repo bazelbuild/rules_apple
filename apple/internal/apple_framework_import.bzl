@@ -69,15 +69,12 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
     # Where <arch> will be a common arch like x86_64, arm64, etc.
     named_files = {f.basename: f for f in swiftmodule_files}
-    for extension in ("swiftinterface", "swiftmodule"):
-        module = named_files.get("{}.{}".format(cpu, extension))
-        if not module and cpu == "armv7":
-            module = named_files.get("arm.{}".format(extension))
 
-        if module:
-            return module
+    module = named_files.get("{}.swiftmodule".format(cpu))
+    if not module and cpu == "armv7":
+        module = named_files.get("arm.swiftmodule")
 
-    return None
+    return module
 
 def _classify_framework_imports(framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
