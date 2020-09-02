@@ -203,7 +203,7 @@ EOF
       "sdk.framework/Modules/sdk.swiftmodule/.*.swiftinterface"
   assert_zip_contains "test-bin/sdk/sdk.zip" \
       "sdk.framework/Modules/sdk.swiftmodule/.*.swiftdoc"
-  assert_zip_not_contains "test-bin/sdk/sdk.zip" \
+  assert_zip_contains "test-bin/sdk/sdk.zip" \
       "sdk.framework/Modules/sdk.swiftmodule/.*.swiftmodule"
 }
 
