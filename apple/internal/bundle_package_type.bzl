@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ bundle_package_type = struct(
     application = "APPL",
     bundle = "BNDL",
     framework = "FMWK",
-    extension = "XPC!",
+    extension_or_xpc = "XPC!",
     kernel_extension = "KEXT",
-    test_bundle = "BNDL",
-    xpc_service = "XPC!",
 )
