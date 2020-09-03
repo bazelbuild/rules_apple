@@ -71,6 +71,15 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_framework_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    module_name = "swift_framework_lib",
+    tags = [
+        "manual",
+    ],
+)
+
+swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
     tags = [
