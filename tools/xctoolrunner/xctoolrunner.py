@@ -213,6 +213,16 @@ def actool(_, toolargs):
 
   xcrunargs += toolargs
 
+  # The argument coming after "--compile" is the output directory. "actool"
+  # expects an directory to exist at that path. Create an empty directory there
+  # if one doesn't exist yet.
+  for idx, arg in enumerate(toolargs):
+    if arg == "--compile":
+      output_dir = toolargs[idx + 1]
+      if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+      break
+
   # If we are running into problems figuring out "actool" issues, there are a
   # couple of environment variables that may help. Both of the following must be
   # set to work.
