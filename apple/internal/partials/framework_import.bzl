@@ -19,7 +19,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
+    "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
 )
 load(
