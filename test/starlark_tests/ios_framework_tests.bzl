@@ -363,6 +363,21 @@ def ios_framework_test_suite(name = "ios_framework"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_static_framework_contains_swiftinterface".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_framework",
+        contains = [
+            "$BUNDLE_ROOT/Headers/swift_framework_lib.h",
+            "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftinterface",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

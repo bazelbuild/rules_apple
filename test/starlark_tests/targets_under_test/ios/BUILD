@@ -5,6 +5,7 @@ load(
     "ios_extension",
     "ios_framework",
     "ios_imessage_application",
+    "ios_static_framework",
     "ios_sticker_pack_extension",
     "ios_ui_test",
     "ios_unit_test",
@@ -448,6 +449,15 @@ ios_application(
     ],
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_static_framework(
+    name = "swift_static_framework",
+    minimum_os_version = "9.0",
+    bundle_name = "swift_framework_lib",
+    deps = [
+        "//test/starlark_tests/resources:swift_framework_lib",
     ],
 )
 
