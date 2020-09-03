@@ -23,6 +23,7 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
+custom_xctestrunner_args=()
 simulator_id=""
 while [[ $# -gt 0 ]]; do
   arg="$1"
@@ -31,8 +32,7 @@ while [[ $# -gt 0 ]]; do
       simulator_id="${arg##*=}"
       ;;
     *)
-      echo "error: unsupported --test_arg: '$1'"
-      exit 1
+      custom_xctestrunner_args+=("$arg")
       ;;
   esac
   shift
@@ -136,7 +136,8 @@ fi
 
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
-  "${target_flags[@]}")
+  "${target_flags[@]}"
+  "${custom_xctestrunner_args[@]}")
 "${cmd[@]}" 2>&1
 status=$?
 exit ${status}
