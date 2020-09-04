@@ -35,6 +35,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -76,7 +80,7 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
 
     return module
 
-def _classify_framework_imports(framework_imports):
+def _classify_framework_imports(ctx, framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
 
     bundling_imports = []
@@ -88,6 +92,16 @@ def _classify_framework_imports(framework_imports):
             header_imports.append(file)
             continue
         if file_short_path.endswith(".modulemap"):
+            # With the flip of `--incompatible_objc_framework_cleanup`, the
+            # `objc_library` implementation in Bazel no longer passes module
+            # maps as inputs to the compile actions, so that `@import`
+            # statements for user-provided framework no longer work in a
+            # sandbox. This trap door allows users to continue using `@import`
+            # statements for imported framework by adding module map to
+            # header_imports so that they are included in Obj-C compilation but
+            # they aren't processed in any way.
+            if defines.bool_value(ctx, "apple.incompatible.objc_framework_propagate_modulemap", False):
+                header_imports.append(file)
             module_map_imports.append(file)
             continue
         if "Headers/" in file_short_path:
@@ -232,7 +246,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     framework_imports = ctx.files.framework_imports
     bundling_imports, header_imports, module_map_imports = (
-        _classify_framework_imports(framework_imports)
+        _classify_framework_imports(ctx, framework_imports)
     )
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
@@ -266,7 +280,7 @@ def _apple_static_framework_import_impl(ctx):
     providers = []
 
     framework_imports = ctx.files.framework_imports
-    _, header_imports, module_map_imports = _classify_framework_imports(framework_imports)
+    _, header_imports, module_map_imports = _classify_framework_imports(ctx, framework_imports)
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
     providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
