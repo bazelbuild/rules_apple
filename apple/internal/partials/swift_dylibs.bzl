@@ -83,7 +83,12 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "watchos": apple_common.dotted_version("5.2"),
 }
 
-def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
+def _swift_dylib_action(
+    ctx,
+    platform_name,
+    binary_files,
+    output_dir,
+    strip_bitcode = False):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
     swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
@@ -108,7 +113,7 @@ def _swift_dylib_action(ctx, platform_name, binary_files, output_dir):
             x.path,
         ])
 
-    if bitcode_support.bitcode_mode_string(ctx) == "none":
+    if strip_bitcode:
         swift_stdlib_tool_args.append("--strip_bitcode")
 
     apple_support.run(
@@ -155,6 +160,11 @@ def _swift_dylibs_partial_impl(
         transitive = transitive_binary_sets,
     )
 
+    strip_bitcode = bitcode_support.bitcode_mode_string(ctx) == "none"
+
+    swift_support_requested = defines.bool_value(ctx, "apple.package_swift_support", True)
+    needs_swift_support = platform_support.is_device_build(ctx) and swift_support_requested
+
     bundle_files = []
     if bundle_dylibs:
         propagated_binaries = depset()
@@ -171,15 +181,36 @@ def _swift_dylibs_partial_impl(
                 platform_name,
                 binaries_to_check,
                 output_dir,
+                strip_bitcode,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
 
-            swift_support_file = (platform_name, output_dir)
-            transitive_swift_support_files.append(swift_support_file)
+            if needs_swift_support:
+                if strip_bitcode:
+                    # We're not allowed to modify stdlibs that are used for
+                    # Swift Support, so we register another action for copying
+                    # them without stripping bitcode.
+                    swift_support_output_dir = intermediates.directory(
+                        ctx.actions,
+                        ctx.label.name,
+                        "swiftlibs_for_swiftsupport",
+                    )
+                    _swift_dylib_action(
+                        ctx,
+                        platform_name,
+                        binaries_to_check,
+                        swift_support_output_dir,
+                    )
+                else:
+                    # When not building with bitcode, we can reuse Swift dylibs
+                    # for bundling in both SwiftSupport and in the app bundle's
+                    # "Frameworks" directory.
+                    swift_support_output_dir = output_dir
 
-        swift_support_requested = defines.bool_value(ctx, "apple.package_swift_support", True)
-        needs_swift_support = platform_support.is_device_build(ctx) and swift_support_requested
+                swift_support_file = (platform_name, swift_support_output_dir)
+                transitive_swift_support_files.append(swift_support_file)
+
         if package_swift_support_if_needed and needs_swift_support:
             # Package all the transitive SwiftSupport dylibs into the archive for this target.
             bundle_files.extend([
