@@ -76,7 +76,7 @@ filegroup(
     testonly = 1,
     srcs = [
         "@bazel_skylib//:test_deps",
-        "@xctestrunner//file",
+        "@xctestrunner//:ios_test_runner",
     ],
 )
 

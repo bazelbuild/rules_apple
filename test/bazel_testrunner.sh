@@ -60,18 +60,6 @@ function create_new_workspace() {
   # copy and we should reference it from the original location.
   cp -rf "$EXTERNAL_DIR" ../external
 
-  # Because for xctestrunner we use the http_file rule, we need to create a
-  # similar BUILD file manually. This is not the case for bazel_skylib as it
-  # only needs an empty top level BUILD file.
-  cat > ../external/xctestrunner/file/BUILD <<EOF
-filegroup(
-    name = "file",
-    # http_file downloads files with the "downloaded" name by default.
-    srcs = ["downloaded"],
-    visibility = ["//visibility:public"],
-)
-EOF
-
   touch WORKSPACE
   cat > WORKSPACE <<EOF
 workspace(name = 'build_bazel_rules_apple_integration_tests')
@@ -87,9 +75,9 @@ new_local_repository(
 )
 
 new_local_repository(
-    name = 'xctestrunner',
+    name = "subpar",
     build_file_content = '',
-    path = '$PWD/../external/xctestrunner',
+    path = '$PWD/../external/subpar',
 )
 
 local_repository(
@@ -105,6 +93,11 @@ local_repository(
 local_repository(
     name = 'build_bazel_apple_support',
     path = '$(rlocation build_bazel_apple_support)',
+)
+
+local_repository(
+    name = 'xctestrunner',
+    path = '$(rlocation xctestrunner)',
 )
 
 # We load rules_swift dependencies into the WORKSPACE. This is safe to do

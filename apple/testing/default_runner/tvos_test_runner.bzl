@@ -51,9 +51,7 @@ def _tvos_test_runner_impl(ctx):
             execution_environment = _get_execution_environment(ctx),
         ),
         DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [ctx.file._testrunner],
-            ),
+            runfiles = ctx.attr._testrunner[DefaultInfo].default_runfiles,
         ),
     ]
 
@@ -92,9 +90,8 @@ By default, it is the latest supported version of the device type.'
         ),
         "_testrunner": attr.label(
             default = Label(
-                "@xctestrunner//file",
+                "@xctestrunner//:ios_test_runner",
             ),
-            allow_single_file = True,
             executable = True,
             cfg = "host",
             doc = """
