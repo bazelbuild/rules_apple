@@ -18,6 +18,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
+    "filtered_ds_store_files",
+)
 
 def _bundle_name(ctx):
     """Returns the name of the bundle.
@@ -123,6 +127,9 @@ def _ensure_single_xcassets_type(attr, files, extension, message = None):
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
     """
+    # Ignore `.DS_Store` files in the validation logic, since they don't
+    # represent an xcassets type.
+    files = filtered_ds_store_files(files)
     if not message:
         message = ("Expected the xcassets directory to only contain files " +
                    "are in sub-directories with the extension %s") % extension
