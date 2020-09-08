@@ -23,7 +23,7 @@ load(
 # these are supported by `objc_library` for frameworks that should be present in the bundle, but not
 # linked against.
 # TODO(b/120205406): Migrate the `runtime_deps` use case to be referenced through `data` instead.
-_FRAMEWORK_IMPORT_ASPECT_ATTRS = ["deps", "frameworks", "runtime_deps"]
+_FRAMEWORK_IMPORT_ASPECT_ATTRS = ["deps", "private_deps", "frameworks", "runtime_deps"]
 
 def _framework_import_aspect_impl(target, ctx):
     """Implementation of the framework import propagation aspect."""
