@@ -12,6 +12,16 @@ x_defaults:
     - "test/..."
     - "examples/..."
 
+  # Tests that need extra flags
+  # 1. Test that .symbols files are generated and bundled in .ipa file
+  package_symbols: &package_symbols
+    platform: macos
+    test_flags:
+    - "--apple_generate_dsym"
+    - "--define=apple.package_symbols=true"
+    test_targets:
+    - "test/starlark_tests:ios_application_package_symbols_test"
+
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
@@ -33,6 +43,11 @@ tasks:
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
+
+  macos_latest_package_symbols:
+    name: "Symbols Tests with Latest Bazel"
+    bazel: latest
+    <<: *package_symbols
 
 buildifier:
   version: latest
