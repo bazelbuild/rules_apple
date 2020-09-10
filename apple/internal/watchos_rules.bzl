@@ -62,14 +62,15 @@ load(
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
     top_level_attrs = [
         "app_icons",
         "storyboards",
         "strings",
         "resources",
     ]
+
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
@@ -92,7 +93,12 @@ def _watchos_application_impl(ctx):
     processor_partials = [
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(dependency_targets = [ctx.attr.extension]),
+        partials.bitcode_symbols_partial(
+            actions = ctx.actions,
+            dependency_targets = [ctx.attr.extension],
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
         partials.embedded_bundles_partial(
@@ -136,6 +142,8 @@ def _watchos_extension_impl(ctx):
         "resources",
     ]
 
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
     # TODO(min(Xcode) >= 11): Make this unconditional when the minimum supported Xcode is Xcode 11.
@@ -175,8 +183,11 @@ def _watchos_extension_impl(ctx):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
+            actions = ctx.actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(

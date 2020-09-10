@@ -83,6 +83,8 @@ def _ios_application_impl(ctx):
         "resources",
     ]
 
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
@@ -107,14 +109,19 @@ def _ios_application_impl(ctx):
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
             launch_images = ctx.files.launch_images,
+            platform_prerequisites = platform_prerequisites,
+            product_type = ctx.attr._product_type,
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
+            actions = ctx.actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = embeddable_targets,
+            label_name = ctx.label.name,
             package_bitcode = True,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -190,6 +197,8 @@ def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     # TODO(kaipi): Add support for packaging headers.
 
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
@@ -210,9 +219,12 @@ def _ios_framework_impl(ctx):
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
+            actions = ctx.actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = ctx.attr.frameworks,
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
         ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
@@ -258,6 +270,8 @@ def _ios_extension_impl(ctx):
         "strings",
     ]
 
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
     # action, when available.
     # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
@@ -270,13 +284,18 @@ def _ios_extension_impl(ctx):
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
+            platform_prerequisites = platform_prerequisites,
+            product_type = ctx.attr._product_type,
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
+            actions = ctx.actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = ctx.attr.frameworks,
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -358,13 +377,14 @@ def _ios_static_framework_impl(ctx):
 
 def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
     top_level_attrs = [
         "app_icons",
         "strings",
         "resources",
     ]
+
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
@@ -379,6 +399,8 @@ def _ios_imessage_application_impl(ctx):
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
+            platform_prerequisites = platform_prerequisites,
+            product_type = ctx.attr._product_type,
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
@@ -427,6 +449,8 @@ def _ios_imessage_extension_impl(ctx):
         "resources",
     ]
 
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
@@ -438,13 +462,18 @@ def _ios_imessage_extension_impl(ctx):
         # sticker_assets as a top level attribute.
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
+            platform_prerequisites = platform_prerequisites,
+            product_type = ctx.attr._product_type,
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
         partials.bitcode_symbols_partial(
+            actions = ctx.actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
@@ -485,13 +514,14 @@ def _ios_imessage_extension_impl(ctx):
 
 def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
     top_level_attrs = [
         "sticker_assets",
         "strings",
         "resources",
     ]
+
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
@@ -505,6 +535,8 @@ def _ios_sticker_pack_extension_impl(ctx):
         # sticker_assets as a top level attribute.
         partials.app_assets_validation_partial(
             app_icons = ctx.files.sticker_assets,
+            platform_prerequisites = platform_prerequisites,
+            product_type = ctx.attr._product_type,
         ),
         partials.apple_bundle_info_partial(bundle_id = bundle_id),
         partials.binary_partial(binary_artifact = binary_artifact),
