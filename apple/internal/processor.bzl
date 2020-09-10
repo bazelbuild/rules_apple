@@ -472,7 +472,10 @@ def _process(ctx, partials, bundle_post_process_and_sign = True):
       the rule are contained under the `output_files` field, and the providers to
       return are contained under the `providers` field.
     """
-    partial_outputs = [partial.call(p, ctx) for p in partials]
+
+    # TODO(b/161370390): Remove the ctx kwarg passed to this call once ctx is removed from the args
+    # of all of the partials.
+    partial_outputs = [partial.call(p, ctx = ctx) for p in partials]
 
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(ctx)

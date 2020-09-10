@@ -38,12 +38,17 @@ _AppleBitcodeInfo = provider(
     },
 )
 
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _bitcode_symbols_partial_impl(
+        *,
         ctx,
+        actions,
         binary_artifact,
         debug_outputs_provider,
         dependency_targets,
-        package_bitcode):
+        label_name,
+        package_bitcode,
+        platform_prerequisites):
     """Implementation for the bitcode symbols processing partial."""
 
     bitcode_dirs = []
@@ -71,16 +76,17 @@ def _bitcode_symbols_partial_impl(
             )
 
         if bitcode_files:
-            bitcode_dir = intermediates.directory(ctx.actions, ctx.label.name, "bitcode_files")
+            bitcode_dir = intermediates.directory(actions, label_name, "bitcode_files")
             bitcode_dirs.append(bitcode_dir)
 
             legacy_actions.run_shell(
-                ctx,
+                actions = actions,
                 inputs = [binary_artifact] + bitcode_files,
                 outputs = [bitcode_dir],
                 command = "mkdir -p ${OUTPUT_DIR} && " + " && ".join(copy_commands),
                 env = {"OUTPUT_DIR": bitcode_dir.path},
                 mnemonic = "BitcodeSymbolsCopy",
+                platform_prerequisites = platform_prerequisites,
             )
 
     transitive_bitcode_files = depset(
@@ -103,28 +109,38 @@ def _bitcode_symbols_partial_impl(
     )
 
 def bitcode_symbols_partial(
+        *,
+        actions,
         binary_artifact = None,
         debug_outputs_provider = None,
         dependency_targets = [],
-        package_bitcode = False):
+        label_name,
+        package_bitcode = False,
+        platform_prerequisites):
     """Constructor for the bitcode symbols processing partial.
 
     Args:
+      actions: Actions defined for the current build context.
       binary_artifact: The main binary artifact for this target.
       debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
         outputs of this target's binary.
       dependency_targets: List of targets that should be checked for bitcode files that need to be
         bundled..
+      label_name: Name of the target being built
       package_bitcode: Whether the partial should package the bitcode files for all dependency
         binaries.
+      platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
       A partial that returns the bitcode files to propagate or bundle, if any were requested.
     """
     return partial.make(
         _bitcode_symbols_partial_impl,
+        actions = actions,
         binary_artifact = binary_artifact,
         debug_outputs_provider = debug_outputs_provider,
         dependency_targets = dependency_targets,
+        label_name = label_name,
         package_bitcode = package_bitcode,
+        platform_prerequisites = platform_prerequisites,
     )

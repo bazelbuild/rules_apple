@@ -37,7 +37,11 @@ def _add_dicts(*dictionaries):
 
     return result
 
-def _kwargs_for_apple_platform(ctx, additional_env = None, **kwargs):
+def _kwargs_for_apple_platform(
+        ctx,
+        *,
+        platform_prerequisites,
+        **kwargs):
     """Returns a modified dictionary with required arguments to run on Apple platforms."""
     processed_args = dict(kwargs)
 
@@ -45,12 +49,22 @@ def _kwargs_for_apple_platform(ctx, additional_env = None, **kwargs):
     original_env = processed_args.get("env")
     if original_env:
         env_dicts.append(original_env)
-    if additional_env:
-        env_dicts.append(additional_env)
 
     # This is where things differ from apple_support.
-    platform = platform_support.platform(ctx)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    # TODO(b/161370390): Eliminate need to make platform_prerequisites optional when all calls to
+    # run and run_shell with a ctx argument are eliminated.
+    if platform_prerequisites:
+        platform = platform_prerequisites.platform
+        xcode_config = platform_prerequisites.xcode_version_config
+        action_execution_requirements = apple_support.action_required_execution_requirements(
+            xcode_config = xcode_config,
+        )
+    else:
+        platform = platform_support.platform(ctx)
+        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+        action_execution_requirements = apple_support.action_required_execution_requirements(ctx)
+
     env_dicts.append(apple_common.apple_host_system_env(xcode_config))
     env_dicts.append(apple_common.target_apple_env(xcode_config, platform))
 
@@ -59,15 +73,20 @@ def _kwargs_for_apple_platform(ctx, additional_env = None, **kwargs):
     if original_execution_requirements:
         execution_requirement_dicts.append(original_execution_requirements)
 
-    # Add the execution requirements last to avoid clients overriding this value.
-    execution_requirement_dicts.append(apple_support.action_required_execution_requirements(ctx))
+    # Add the action execution requirements last to avoid clients overriding this value.
+    execution_requirement_dicts.append(action_execution_requirements)
 
     processed_args["env"] = _add_dicts(*env_dicts)
     processed_args["execution_requirements"] = _add_dicts(*execution_requirement_dicts)
 
     return processed_args
 
-def _run(ctx, **kwargs):
+def _run(
+        ctx = None,
+        *,
+        actions = None,
+        platform_prerequisites = None,
+        **kwargs):
     """Executes a Darwin-only action with the necessary platform environment.
 
     Note: The env here is different than apple_support's run/run_shell in that uses
@@ -82,12 +101,29 @@ def _run(ctx, **kwargs):
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Starlark context.
+      ctx: The Starlark context. Deprecated.
+      actions: The actions provider from ctx.actions.
+      platform_prerequisites: Struct containing information on the platform being targeted.
       **kwargs: Arguments to be passed into ctx.actions.run.
     """
-    ctx.actions.run(**_kwargs_for_apple_platform(ctx, **kwargs))
 
-def _run_shell(ctx, **kwargs):
+    # TODO(b/161370390): Eliminate need to make actions and platform_prerequisites optional when all
+    # calls to this method with a ctx argument are eliminated.
+    if not actions:
+        actions = ctx.actions
+
+    actions.run(**_kwargs_for_apple_platform(
+        ctx = ctx,
+        platform_prerequisites = platform_prerequisites,
+        **kwargs
+    ))
+
+def _run_shell(
+        ctx = None,
+        *,
+        actions = None,
+        platform_prerequisites = None,
+        **kwargs):
     """Executes a Darwin-only action with the necessary platform environment.
 
     Note: The env here is different than apple_support's run/run_shell in that uses
@@ -102,7 +138,9 @@ def _run_shell(ctx, **kwargs):
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Starlark context.
+      ctx: The Starlark context. Deprecated.
+      actions: The actions provider from ctx.actions.
+      platform_prerequisites: Struct containing information on the platform being targeted.
       **kwargs: Arguments to be passed into ctx.actions.run_shell.
     """
 
@@ -116,7 +154,16 @@ def _run_shell(ctx, **kwargs):
         processed_args["command"] = ["/bin/sh", "-c", command]
         kwargs = processed_args
 
-    ctx.actions.run_shell(**_kwargs_for_apple_platform(ctx, **kwargs))
+    # TODO(b/161370390): Eliminate need to make actions and platform_prerequisites optional when all
+    # calls to this method with a ctx argument are eliminated.
+    if not actions:
+        actions = ctx.actions
+
+    actions.run_shell(**_kwargs_for_apple_platform(
+        ctx = ctx,
+        platform_prerequisites = platform_prerequisites,
+        **kwargs
+    ))
 
 # Define the loadable module that lists the exported symbols in this file.
 legacy_actions = struct(
