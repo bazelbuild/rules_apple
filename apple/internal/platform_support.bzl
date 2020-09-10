@@ -51,26 +51,33 @@ def _families(ctx):
     rule_descriptor = rule_support.rule_descriptor(ctx)
     return getattr(ctx.attr, "families", rule_descriptor.allowed_device_families)
 
-def _ui_device_family_plist_value(ctx):
+def _ui_device_family_plist_value(ctx = None, *, platform_prerequisites = None):
     """Returns the value to use for `UIDeviceFamily` in an info.plist.
 
     This function returns the array of value to use or None if there should be
     no plist entry (currently, only macOS doesn't use UIDeviceFamily).
 
     Args:
-      ctx: The Starlark context.
+      ctx: The Starlark context. Deprecated.
+      platform_prerequisites: The platform prerequisites.
 
     Returns:
       A list of integers to use for the `UIDeviceFamily` in an Info.plist
       or None if the key should not be added to the Info.plist.
     """
-    families = []
-    for f in _families(ctx):
+    family_ids = []
+
+    if platform_prerequisites:
+        families = platform_prerequisites.families
+    else:
+        families = _families(ctx)
+
+    for f in families:
         number = _DEVICE_FAMILY_VALUES[f]
         if number:
-            families.append(number)
-    if families:
-        return families
+            family_ids.append(number)
+    if family_ids:
+        return family_ids
     return None
 
 def _is_device_build(ctx):
@@ -84,6 +91,67 @@ def _is_device_build(ctx):
     """
     platform = _platform(ctx)
     return platform.is_device
+
+def _platform_prerequisites(
+        *,
+        apple_fragment,
+        device_families,
+        explicit_minimum_os = None,
+        platform_type_string,
+        xcode_version_config):
+    """Returns a struct containing information on the platform being targeted.
+
+    Args:
+      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      device_families: The list of device families that apply to the target being built.
+      explicit_minimum_os: A dotted version string indicating minimum OS desired. Optional.
+      platform_type_string: The platform type for the current target as a string.
+      xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+
+    Returns:
+      A struct representing the collected platform information.
+    """
+    platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
+    platform = apple_fragment.multi_arch_platform(platform_type_attr)
+
+    if explicit_minimum_os:
+        minimum_os = explicit_minimum_os
+    else:
+        minimum_os = xcode_version_config.minimum_os_for_platform_type(platform_type_attr)
+
+    sdk_version = xcode_version_config.sdk_version_for_platform(platform)
+
+    return struct(
+        apple_fragment = apple_fragment,
+        device_families = device_families,
+        minimum_os = minimum_os,
+        platform = platform,
+        platform_type = platform_type_attr,
+        sdk_version = sdk_version,
+        xcode_version_config = xcode_version_config,
+    )
+
+def _platform_prerequisites_from_rule_ctx(ctx):
+    """Returns a struct containing information on the platform being targeted from a rule context.
+
+    Args:
+      ctx: The Starlark context for a rule.
+
+    Returns:
+      A struct representing the default collected platform information for that rule context.
+    """
+    device_families = getattr(ctx.attr, "families", None)
+    if not device_families:
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+        device_families = rule_descriptor.allowed_device_families
+
+    return _platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        device_families = device_families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        platform_type_string = ctx.attr.platform_type,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
 def _minimum_os(ctx):
     """Returns the minimum OS version required for the current target.
@@ -149,6 +217,8 @@ platform_support = struct(
     minimum_os = _minimum_os,
     platform = _platform,
     platform_and_sdk_version = _platform_and_sdk_version,
+    platform_prerequisites = _platform_prerequisites,
+    platform_prerequisites_from_rule_ctx = _platform_prerequisites_from_rule_ctx,
     platform_type = _platform_type,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )
