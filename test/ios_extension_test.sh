@@ -693,13 +693,10 @@ function test_all_dsyms_propagated() {
   assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
   assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
 
-  declare -a archs=( $(current_archs ios) )
-  for arch in "${archs[@]}"; do
-    assert_exists \
-        "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app_${arch}"
-    assert_exists \
-        "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext_${arch}"
-  done
+  assert_exists \
+      "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app"
+  assert_exists \
+      "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext"
 }
 
 run_suite "ios_extension bundling tests"

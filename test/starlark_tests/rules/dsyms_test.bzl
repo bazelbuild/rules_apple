@@ -15,11 +15,6 @@
 """Starlark test rules for debug symbols."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
-    "AppleBundleInfo",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -34,19 +29,6 @@ def _dsyms_test_impl(ctx):
     env = analysistest.begin(ctx)
     target_under_test = ctx.attr.target_under_test[0]
 
-    if AppleBundleInfo in target_under_test:
-        platform_type = target_under_test[AppleBundleInfo].platform_type
-        if platform_type == "watchos":
-            architecture = "i386"
-        else:
-            architecture = "x86_64"
-    elif AppleBinaryInfo in target_under_test:
-        # AppleBinaryInfo does not supply a platform_type. In this case, assume x86_64.
-        architecture = "x86_64"
-    else:
-        fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
-             target_under_test.label)
-
     outputs = {
         x.short_path: None
         for x in target_under_test[OutputGroupInfo]["dsyms"].to_list()
@@ -60,11 +42,10 @@ def _dsyms_test_impl(ctx):
     ]
 
     expected_binaries = [
-        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}_{3}".format(
+        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
             package,
             x,
             paths.split_extension(x)[0],
-            architecture,
         )
         for x in ctx.attr.expected_dsyms
     ]
