@@ -115,17 +115,10 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
 
 def _get_coverage_execution_environment(ctx, covered_binaries):
     """Returns environment variables required for test coverage support."""
-    gcov_files = ctx.attr._gcov.files.to_list()
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
         "APPLE_COVERAGE": "1",
-        # TODO(b/72383680): Remove the workspace_name prefix for the path.
-        "COVERAGE_GCOV_PATH": "/".join([
-            "runfiles",
-            ctx.workspace_name,
-            gcov_files[0].path,
-        ]),
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
@@ -171,8 +164,6 @@ def _apple_test_rule_impl(ctx, test_type):
         transitive_runfiles.append(covered_binaries)
         transitive_runfiles.append(test_bundle_target[CoverageFilesInfo].coverage_files)
 
-        transitive_runfiles.append(ctx.attr._gcov.files)
-        transitive_runfiles.append(ctx.attr._mcov.files)
         transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
