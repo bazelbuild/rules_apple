@@ -33,7 +33,7 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 # * signed bundle with Mach-O thin
 # * replacing existing signature
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r'(signed.*Mach-O (universal|thin)|libswift.*\.dylib: replacing existing signature)'
+    r'(signed.*Mach-O (universal|thin)|replacing existing signature)'
 )
 
 
