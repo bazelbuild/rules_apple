@@ -247,6 +247,7 @@ def _bundle_partial_outputs_files(
       output_file: The file where the final zipped bundle should be created.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
+      embedding: Whether outputs are being bundled to be embedded.
       extra_input_files: Extra files to include in the bundling action.
     """
     rule_descriptor = rule_support.rule_descriptor(ctx)
