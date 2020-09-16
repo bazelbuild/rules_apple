@@ -23,6 +23,10 @@ load(
     "defines",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -130,6 +134,17 @@ def _include_debug_entitlements(ctx):
         return False
     return True
 
+def _include_app_clip_entitlements(ctx):
+    """Returns a value indicating whether app clip entitlements should be used.
+
+    Args:
+      ctx: The Starlark context.
+
+    Returns:
+      True if the app clip entitlements should be included, otherwise False.
+    """
+    return ctx.attr.product_type == apple_product_type.app_clip
+
 def _extract_signing_info(ctx):
     """Inspects the current context and extracts the signing information.
 
@@ -230,6 +245,9 @@ def _entitlements_impl(ctx):
     if _include_debug_entitlements(ctx):
         get_task_allow = {"get-task-allow": True}
         forced_plists.append(struct(**get_task_allow))
+    if _include_app_clip_entitlements(ctx):
+        app_clip = {"com.apple.developer.on-demand-install-capable": True}
+        forced_plists.append(struct(**app_clip))
 
     inputs = list(plists)
 
@@ -306,6 +324,8 @@ entitlements = rule(
         ),
         # Used to pass the platform type through from the calling rule.
         "platform_type": attr.string(),
+        # Used to pass the product type through from the calling rule.
+        "product_type": attr.string(),
         "provisioning_profile": attr.label(
             allow_single_file = [".mobileprovision", ".provisionprofile"],
         ),

@@ -32,6 +32,9 @@ _AppleEmbeddableInfo = provider(
 Private provider used to propagate the different embeddable bundles that a
 top-level bundling rule will need to package.""",
     fields = {
+        "app_clips": """
+A depset with the zipped archives of bundles that need to be expanded into the
+AppClips section of the packaging bundle.""",
         "frameworks": """
 A depset with the zipped archives of bundles that need to be expanded into the
 Frameworks section of the packaging bundle.""",
@@ -67,6 +70,7 @@ def _embedded_bundles_partial_impl(
 
     # Map of embedded bundle type to their final location in the top-level bundle.
     bundle_type_to_location = {
+        "app_clips": processor.location.app_clip,
         "frameworks": processor.location.framework,
         "plugins": processor.location.plugin,
         "watch_bundles": processor.location.watch,
@@ -157,6 +161,7 @@ def _embedded_bundles_partial_impl(
     )
 
 def embedded_bundles_partial(
+        app_clips = [],
         bundle_embedded_bundles = False,
         embeddable_targets = [],
         frameworks = [],
@@ -172,6 +177,8 @@ def embedded_bundles_partial(
     ios_application.
 
     Args:
+        app_clips: List of plugin bundles that should be propagated downstream for a top level
+            target to bundle inside `AppClips`.
         bundle_embedded_bundles: If True, this target will embed all transitive embeddable_bundles
             _only_ propagated through the targets given in embeddable_targets. If False, the
             embeddable bundles will be propagated downstream for a top level target to bundle them.
@@ -193,6 +200,7 @@ def embedded_bundles_partial(
     """
     return partial.make(
         _embedded_bundles_partial_impl,
+        app_clips = app_clips,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
         frameworks = frameworks,

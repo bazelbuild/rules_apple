@@ -50,6 +50,7 @@ _CODESIGNING_EXCEPTIONS = struct(
 def _describe_bundle_locations(
         archive_relative = "",
         bundle_relative_contents = "",
+        contents_relative_app_clips = "AppClips",
         contents_relative_binary = "",
         contents_relative_frameworks = "Frameworks",
         contents_relative_plugins = "PlugIns",
@@ -60,6 +61,7 @@ def _describe_bundle_locations(
     return struct(
         archive_relative = archive_relative,
         bundle_relative_contents = bundle_relative_contents,
+        contents_relative_app_clips = contents_relative_app_clips,
         contents_relative_binary = contents_relative_binary,
         contents_relative_frameworks = contents_relative_frameworks,
         contents_relative_plugins = contents_relative_plugins,
@@ -85,6 +87,7 @@ def _describe_rule_type(
         default_test_runner = None,
         deps_cfg = None,
         extra_linkopts = [],
+        expose_non_archive_relative_output = False,
         force_transition_allowlist = False,
         has_infoplist = True,
         has_launch_images = False,
@@ -130,6 +133,9 @@ def _describe_rule_type(
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
             the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
             that use the Starlark linking API.
+        expose_non_archive_relative_output: Whether or not to expose an output archive that ignores
+            the `archive_relative` bundle location, to permit embedding within another target. Has no
+            effect if `archive_relative` is empty.
         extra_linkopts: Extra options to pass to the linker.
         force_transition_allowlist: Whether to force a dependency on the transition allowlist.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
@@ -179,6 +185,7 @@ def _describe_rule_type(
         default_infoplist = default_infoplist,
         default_test_runner = default_test_runner,
         deps_cfg = deps_cfg,
+        expose_non_archive_relative_output = expose_non_archive_relative_output,
         extra_linkopts = extra_linkopts,
         force_transition_allowlist = force_transition_allowlist,
         has_infoplist = has_infoplist,
@@ -228,6 +235,26 @@ _RULE_TYPE_DESCRIPTORS = {
             rpaths = [
                 # Application binaries live in Application.app/Application
                 # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
+        # ios_app_clip
+        apple_product_type.app_clip: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            allows_locale_trimming = True,
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
+            archive_extension = ".ipa",
+            bundle_extension = ".app",
+            bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            expose_non_archive_relative_output = True,
+            is_executable = True,
+            mandatory_families = True,
+            product_type = apple_product_type.app_clip,
+            requires_pkginfo = True,
+            rpaths = [
+                # AppClip binary located at AppClip.app/AppClip
+                # Frameworks are packaged in AppClip.app/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
