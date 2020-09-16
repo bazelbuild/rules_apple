@@ -15,6 +15,10 @@
 """Helper methods for assembling the test targets."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -98,6 +102,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         test_bundle_name,
         bundle_name = name,
         platform_type = str(apple_common.platform_type.ios),
+        product_type = apple_product_type.unit_test_bundle,
         is_test = True,
         include_entitlements = False,
         testonly = True,

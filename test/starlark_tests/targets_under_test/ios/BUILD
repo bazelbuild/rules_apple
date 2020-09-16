@@ -1,5 +1,6 @@
 load(
     "//apple:ios.bzl",
+    "ios_app_clip",
     "ios_application",
     "ios_extension",
     "ios_framework",
@@ -511,6 +512,47 @@ objc_library(
         "//test/starlark_tests/resources:main.m",
     ],
     deps = [":fmwk_8_0_minimum_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
+    name = "app_with_app_clip",
+    app_clips = [":app_clip"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------

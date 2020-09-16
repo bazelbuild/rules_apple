@@ -30,6 +30,10 @@ load(
     _tvos_unit_test = "tvos_unit_test",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
@@ -46,6 +50,7 @@ def tvos_application(name, **kwargs):
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.tvos),
+        product_type = apple_product_type.application,
         **kwargs
     )
 
@@ -60,6 +65,7 @@ def tvos_extension(name, **kwargs):
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.tvos),
+        product_type = apple_product_type.app_extension,
         **kwargs
     )
 
@@ -85,6 +91,7 @@ def tvos_framework(name, **kwargs):
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         platform_type = str(apple_common.platform_type.tvos),
+        product_type = apple_product_type.framework,
         exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         **binary_args
     )

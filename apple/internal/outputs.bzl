@@ -47,6 +47,13 @@ def _archive(ctx):
     # DefaultInfo.
     return ctx.outputs.archive
 
+def _archive_for_embedding(ctx, rule_descriptor):
+    """Returns a files reference for this target's archive, when embedded in another target."""
+    if _has_different_embedding_archive(ctx, rule_descriptor):
+        return ctx.actions.declare_file("%s.embedding.zip" % ctx.label.name)
+    else:
+        return _archive(ctx)
+
 def _archive_root_path(ctx):
     """Returns the path to a directory reference for this target's archive root."""
 
@@ -70,10 +77,19 @@ def _infoplist(ctx):
     """Returns a file reference for this target's Info.plist file."""
     return intermediates.file(ctx.actions, ctx.label.name, "Info.plist")
 
+def _has_different_embedding_archive(ctx, rule_descriptor):
+    """Returns True if this target exposes a different archive when embedded in another target."""
+    if is_experimental_tree_artifact_enabled(ctx):
+        return False
+
+    return rule_descriptor.bundle_locations.archive_relative != "" and rule_descriptor.expose_non_archive_relative_output
+
 outputs = struct(
     archive = _archive,
+    archive_for_embedding = _archive_for_embedding,
     archive_root_path = _archive_root_path,
     binary = _binary,
     executable = _executable,
     infoplist = _infoplist,
+    has_different_embedding_archive = _has_different_embedding_archive,
 )

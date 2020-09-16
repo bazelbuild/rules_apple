@@ -261,6 +261,17 @@ requirement.
 """,
 )
 
+IosAppClipBundleInfo = provider(
+    doc = """
+Denotes that a target is an iOS app clip.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an iOS app clip bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is an iOS app clip should use this provider to describe that requirement.
+""",
+)
+
 IosExtensionBundleInfo = provider(
     doc = """
 Denotes that a target is an iOS application extension.

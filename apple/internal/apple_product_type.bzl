@@ -85,6 +85,7 @@ type of rule being created and thus its descriptor to control behaviors.
 #   have the extension `.xpc`.
 apple_product_type = struct(
     application = "com.apple.product-type.application",
+    app_clip = "com.apple.product-type.application.on-demand-install-capable",
     app_extension = "com.apple.product-type.app-extension",
     bundle = "com.apple.product-type.bundle",
     dylib = "com.apple.product-type.library.dynamic",

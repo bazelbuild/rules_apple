@@ -74,6 +74,7 @@ def _create_swift_runtime_linkopts_target(
 def _add_entitlements_and_swift_linkopts(
         name,
         platform_type,
+        product_type,
         include_entitlements = True,
         is_stub = False,
         link_swift_statically = False,
@@ -93,6 +94,7 @@ def _add_entitlements_and_swift_linkopts(
       name: The name of the bundle target, from which the targets' names
           will be derived.
       platform_type: The platform type of the bundle.
+      product_type: The product type of the bundle.
       include_entitlements: True/False, indicates whether to include an entitlements target.
           Defaults to True.
       is_stub: True/False, indicates whether the function is being called for a bundle that uses a
@@ -121,6 +123,7 @@ def _add_entitlements_and_swift_linkopts(
             bundle_id = bundling_args.get("bundle_id"),
             entitlements = entitlements_value,
             platform_type = platform_type,
+            product_type = product_type,
             provisioning_profile = provisioning_profile,
             tags = tags,
             testonly = testonly,
@@ -268,6 +271,7 @@ def _create_binary(
             bundle_id = kwargs.get("bundle_id"),
             entitlements = entitlements_value,
             platform_type = platform_type,
+            product_type = product_type,
             provisioning_profile = provisioning_profile,
             testonly = testonly,
             validation_mode = kwargs.get("entitlements_validation"),
