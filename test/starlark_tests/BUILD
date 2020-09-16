@@ -3,6 +3,7 @@ load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
+load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
 load(":ios_imessage_application_tests.bzl", "ios_imessage_application_test_suite")
@@ -39,6 +40,8 @@ dtrace_compile_test_suite()
 ios_application_resources_test_suite()
 
 ios_application_test_suite()
+
+ios_app_clip_test_suite()
 
 ios_extension_test_suite()
 

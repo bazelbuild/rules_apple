@@ -60,6 +60,7 @@ load(
     "AppleBundleVersionInfo",
     "AppleResourceBundleInfo",
     "AppleTestRunnerInfo",
+    "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
@@ -595,6 +596,12 @@ fashion, such as a Cocoapod.
         })
     elif rule_descriptor.product_type == apple_product_type.application:
         attrs.append({
+            "app_clips": attr.label_list(
+                providers = [[AppleBundleInfo, IosAppClipBundleInfo]],
+                doc = """
+A list of iOS app clips to include in the final application bundle.
+""",
+            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
                 doc = """
@@ -615,6 +622,18 @@ Info.plist under the key `UILaunchStoryboardName`.
                 doc = """
 A `watchos_application` target that represents an Apple Watch application that should be embedded in
 the application bundle.
+""",
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.app_clip:
+        attrs.append({
+            "launch_storyboard": attr.label(
+                allow_single_file = [".storyboard", ".xib"],
+                doc = """
+The `.storyboard` or `.xib` file that should be used as the launch screen for the app clip. The
+provided file will be compiled into the appropriate format (`.storyboardc` or `.nib`) and placed in
+the root of the final bundle. The generated file will also be registered in the bundle's
+Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
         })
@@ -642,7 +661,8 @@ the application bundle.
     # _common_binary_linking_attrs().
     if rule_descriptor.requires_deps:
         extra_args = {}
-        if rule_descriptor.product_type == apple_product_type.application:
+        if (rule_descriptor.product_type == apple_product_type.application or
+            rule_descriptor.product_type == apple_product_type.app_clip):
             extra_args["aspects"] = [framework_import_aspect]
 
         attrs.append({

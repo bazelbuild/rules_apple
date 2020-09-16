@@ -429,7 +429,7 @@ def _post_process_and_sign_archive_action(
     process_and_sign_template = intermediates.file(
         ctx.actions,
         ctx.label.name,
-        "process-and-sign.sh",
+        "process-and-sign-%s.sh" % hash(output_archive.path),
     )
     ctx.actions.expand_template(
         template = ctx.file._process_and_sign_template,

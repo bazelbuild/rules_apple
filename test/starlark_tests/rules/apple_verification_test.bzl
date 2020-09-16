@@ -99,6 +99,7 @@ def _apple_verification_test_impl(ctx):
             "tvos",
         ] and bundle_info.product_type in [
             apple_product_type.application,
+            apple_product_type.app_clip,
             apple_product_type.messages_application,
         ]:
             archive_relative_bundle = paths.join("Payload", bundle_with_extension)
