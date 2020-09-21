@@ -246,6 +246,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             archive_extension = ".ipa",
             bundle_extension = ".app",
+            bundle_package_type = bundle_package_type.application,
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             expose_non_archive_relative_output = True,
             is_executable = True,
