@@ -19,6 +19,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -206,6 +210,10 @@ def _test_host_bundle_id(test_host):
 
 def _apple_test_bundle_impl(ctx, extra_providers = []):
     """Implementation for bundling XCTest bundles."""
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+
     test_host_bundle_id = _test_host_bundle_id(ctx.attr.test_host)
     if ctx.attr.bundle_id:
         bundle_id = ctx.attr.bundle_id
@@ -217,9 +225,14 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
              "same as the test host's bundle identifier. Please change one of " +
              "them.")
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    actions = ctx.actions
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    config_vars = ctx.var
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
 
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
@@ -237,8 +250,23 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             targets_to_avoid.append(ctx.attr.test_host)
 
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = debug_dependencies,
@@ -272,6 +300,14 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     processor_result = processor.process(ctx, processor_partials)
 
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
     # the rule (except the archive) so that they're propagated and can be returned by the test
@@ -279,7 +315,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     filtered_outputs = [
         x
         for x in processor_result.output_files.to_list()
-        if x != outputs.archive(ctx)
+        if x != archive
     ]
 
     providers = processor_result.providers
@@ -287,13 +323,13 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     # Symlink the test bundle archive to the output attribute. This is used when having a test such
     # as `ios_unit_test(name = "Foo")` to declare a `:Foo.zip` target.
-    ctx.actions.symlink(
+    actions.symlink(
         target_file = ctx.outputs.archive,
         output = ctx.outputs.test_bundle_output,
     )
 
-    if is_experimental_tree_artifact_enabled(ctx):
-        test_runner_bundle_output = outputs.archive(ctx)
+    if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+        test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output
 

@@ -23,6 +23,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -69,15 +73,20 @@ def _watchos_application_impl(ctx):
         "resources",
     ]
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
+    actions = ctx.actions
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
-
-    bundle_id = ctx.attr.bundle_id
 
     bundle_verification_targets = [
         struct(
@@ -90,13 +99,36 @@ def _watchos_application_impl(ctx):
         ),
     ]
 
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            bundle_id = bundle_id,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             dependency_targets = [ctx.attr.extension],
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
@@ -104,7 +136,7 @@ def _watchos_application_impl(ctx):
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = [ctx.attr.extension],
-            watch_bundles = [outputs.archive(ctx)],
+            watch_bundles = [archive],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
@@ -142,8 +174,6 @@ def _watchos_extension_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
     # TODO(min(Xcode) >= 11): Make this unconditional when the minimum supported Xcode is Xcode 11.
@@ -177,23 +207,53 @@ def _watchos_extension_impl(ctx):
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            bundle_id = bundle_id,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = ctx.label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_outputs_provider = debug_outputs_provider,
         ),
-        partials.embedded_bundles_partial(plugins = [outputs.archive(ctx)]),
+        partials.embedded_bundles_partial(plugins = [archive]),
         # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
         # framework, scoping dynamic frameworks only to the watch extension bundles:
         # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
