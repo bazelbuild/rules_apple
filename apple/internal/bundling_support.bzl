@@ -33,7 +33,7 @@ def _bundle_full_name_from_rule_ctx(ctx):
     Returns:
       A tuple representing the default bundle file name and extension for that rule context.
     """
-    return (_bundle_name(ctx), _bundle_extension(ctx))
+    return (_bundle_name(ctx), _bundle_extension(ctx), _executable_name(ctx))
 
 def _bundle_name(ctx):
     """Returns the name of the bundle.

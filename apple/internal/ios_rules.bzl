@@ -89,7 +89,7 @@ def _ios_application_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -120,6 +120,7 @@ def _ios_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -242,7 +243,7 @@ def _ios_app_clip_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
@@ -273,6 +274,7 @@ def _ios_app_clip_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -376,7 +378,7 @@ def _ios_framework_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -406,6 +408,7 @@ def _ios_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -475,7 +478,7 @@ def _ios_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -504,6 +507,7 @@ def _ios_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -570,7 +574,7 @@ def _ios_static_framework_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
     actions = ctx.actions
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -582,6 +586,7 @@ def _ios_static_framework_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -633,7 +638,7 @@ def _ios_imessage_application_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
     embeddable_targets = [ctx.attr.extension]
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -659,6 +664,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -722,7 +728,7 @@ def _ios_imessage_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -753,6 +759,7 @@ def _ios_imessage_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -820,7 +827,7 @@ def _ios_sticker_pack_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -856,6 +863,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,

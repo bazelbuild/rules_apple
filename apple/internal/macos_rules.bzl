@@ -76,7 +76,7 @@ def _macos_application_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
@@ -90,6 +90,7 @@ def _macos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -186,7 +187,7 @@ def _macos_bundle_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -207,6 +208,7 @@ def _macos_bundle_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -271,7 +273,7 @@ def _macos_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -292,6 +294,7 @@ def _macos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -356,7 +359,7 @@ def _macos_quick_look_plugin_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -377,6 +380,7 @@ def _macos_quick_look_plugin_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -437,7 +441,7 @@ def _macos_kernel_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -458,6 +462,7 @@ def _macos_kernel_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -515,7 +520,7 @@ def _macos_spotlight_importer_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -536,6 +541,7 @@ def _macos_spotlight_importer_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -592,7 +598,7 @@ def _macos_xpc_service_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -612,6 +618,7 @@ def _macos_xpc_service_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             bundle_id = bundle_id,
             entitlements = entitlements,
             label_name = label.name,

@@ -75,7 +75,7 @@ def _apple_bundle_info_partial_impl(
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
                 bundle_extension = bundle_extension,
-                executable_name = executable_name
+                executable_name = executable_name,
                 entitlements = entitlements,
                 infoplist = infoplist,
                 minimum_os_version = platform_prerequisites.minimum_os,

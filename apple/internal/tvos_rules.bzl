@@ -81,7 +81,7 @@ def _tvos_application_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -103,6 +103,7 @@ def _tvos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -205,7 +206,7 @@ def _tvos_framework_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -233,6 +234,7 @@ def _tvos_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -302,7 +304,7 @@ def _tvos_extension_impl(ctx):
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -322,6 +324,7 @@ def _tvos_extension_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             bundle_id = bundle_id,
             entitlements = entitlements,
             label_name = label.name,
@@ -389,7 +392,7 @@ def _tvos_static_framework_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
     actions = ctx.actions
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension, executable_name = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -401,6 +404,7 @@ def _tvos_static_framework_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
