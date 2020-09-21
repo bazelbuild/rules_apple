@@ -19,6 +19,22 @@ load(
     "rule_support",
 )
 
+# TODO(b/161370390): Move all instances of bundle_name, bundle_extension, and
+# bundle_name_with_extension to use this macro instead, from the rule declarations and nowhere else.
+#
+# Eliminate bundle_name, bundle_extension and bundle_name_from_extension and move the implementation
+# of bundle_name and bundle_extension into this macro once that is done.
+def _bundle_full_name_from_rule_ctx(ctx):
+    """Returns a tuple containing information on the bundle file name from a rule context.
+
+    Args:
+      ctx: The Starlark context for a rule.
+
+    Returns:
+      A tuple representing the default bundle file name and extension for that rule context.
+    """
+    return (_bundle_name(ctx), _bundle_extension(ctx))
+
 def _bundle_name(ctx):
     """Returns the name of the bundle.
 
@@ -196,6 +212,7 @@ def _ensure_path_format(attr, files, path_fragments_list, message = None):
 
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
+    bundle_full_name_from_rule_ctx = _bundle_full_name_from_rule_ctx,
     bundle_name = _bundle_name,
     bundle_extension = _bundle_extension,
     bundle_name_with_extension = _bundle_name_with_extension,

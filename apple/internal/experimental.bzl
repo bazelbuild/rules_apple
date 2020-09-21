@@ -19,6 +19,11 @@ load(
     "defines",
 )
 
-def is_experimental_tree_artifact_enabled(ctx):
+def is_experimental_tree_artifact_enabled(ctx = None, *, config_vars = None):
     """Returns whether tree artifact outputs experiment is enabled."""
-    return defines.bool_value(ctx, "apple.experimental.tree_artifact_outputs", False)
+    return defines.bool_value(
+        ctx = ctx,
+        config_vars = config_vars,
+        define_name = "apple.experimental.tree_artifact_outputs",
+        default = False,
+    )

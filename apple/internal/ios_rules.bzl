@@ -84,18 +84,20 @@ def _ios_application_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
 
@@ -113,14 +115,29 @@ def _ios_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = embeddable_targets,
-            label_name = ctx.label.name,
+            label_name = label.name,
             package_bitcode = True,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -172,8 +189,27 @@ def _ios_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    executable = outputs.executable(ctx)
-    run_support.register_simulator_executable(ctx, executable)
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+    run_support.register_simulator_executable(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        file = ctx.file,
+        output = executable,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     return [
         # TODO(b/121155041): Should we do the same for ios_framework and ios_extension?
@@ -182,10 +218,7 @@ def _ios_application_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [
-                    outputs.archive(ctx),
-                    ctx.file._std_redirect_dylib,
-                ],
+                files = [archive, ctx.file._std_redirect_dylib],
             ),
         ),
         IosApplicationBundleInfo(),
@@ -203,18 +236,30 @@ def _ios_app_clip_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
-    # TODO: Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO: Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    embeddable_targets = ctx.attr.frameworks
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -222,14 +267,29 @@ def _ios_app_clip_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = embeddable_targets,
-            label_name = ctx.label.name,
+            label_name = label.name,
             package_bitcode = True,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -239,7 +299,7 @@ def _ios_app_clip_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            app_clips = [outputs.archive_for_embedding(ctx, rule_descriptor)],
+            app_clips = [archive_for_embedding],
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
         ),
@@ -267,8 +327,28 @@ def _ios_app_clip_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    executable = outputs.executable(ctx)
-    run_support.register_simulator_executable(ctx, executable)
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+
+    run_support.register_simulator_executable(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        file = ctx.file,
+        output = executable,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     return [
         # TODO(b/121155041): Should we do the same for ios_framework?
@@ -277,10 +357,7 @@ def _ios_app_clip_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [
-                    outputs.archive(ctx),
-                    ctx.file._std_redirect_dylib,
-                ],
+                files = [archive, ctx.file._std_redirect_dylib],
             ),
         ),
         IosAppClipBundleInfo(),
@@ -293,33 +370,59 @@ def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     # TODO(kaipi): Add support for packaging headers.
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     signed_frameworks = []
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     if getattr(ctx.file, "provisioning_profile", None):
         signed_frameworks = [
-            bundling_support.bundle_name(ctx) + rule_descriptor.bundle_extension,
+            bundle_name + rule_descriptor.bundle_extension,
         ]
 
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = ctx.attr.frameworks,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
@@ -330,7 +433,7 @@ def _ios_framework_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            frameworks = [outputs.archive_for_embedding(ctx, rule_descriptor)],
+            frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             signed_frameworks = depset(signed_frameworks),
         ),
@@ -366,17 +469,28 @@ def _ios_extension_impl(ctx):
         "strings",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -384,14 +498,29 @@ def _ios_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
             dependency_targets = ctx.attr.frameworks,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
@@ -400,7 +529,7 @@ def _ios_extension_impl(ctx):
             debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
         ),
         partials.embedded_bundles_partial(
-            plugins = [outputs.archive_for_embedding(ctx, rule_descriptor)],
+            plugins = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
@@ -433,16 +562,34 @@ def _ios_extension_impl(ctx):
 def _ios_static_framework_impl(ctx):
     """Experimental implementation of ios_static_framework."""
 
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
+    actions = ctx.actions
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
     ]
 
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
@@ -480,18 +627,22 @@ def _ios_imessage_application_impl(ctx):
         "resources",
     ]
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
+    actions = ctx.actions
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_verification_targets = [struct(target = ctx.attr.extension)]
+    embeddable_targets = [ctx.attr.extension]
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
-
-    bundle_id = ctx.attr.bundle_id
-
-    bundle_verification_targets = [struct(target = ctx.attr.extension)]
-    embeddable_targets = [ctx.attr.extension]
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -499,8 +650,23 @@ def _ios_imessage_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
@@ -546,14 +712,29 @@ def _ios_imessage_extension_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
         # TODO(kaipi): Refactor this partial into a more generic interface to account for
@@ -563,14 +744,29 @@ def _ios_imessage_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
@@ -579,7 +775,7 @@ def _ios_imessage_extension_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            plugins = [outputs.archive_for_embedding(ctx, rule_descriptor)],
+            plugins = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
@@ -618,15 +814,30 @@ def _ios_sticker_pack_extension_impl(ctx):
         "resources",
     ]
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
+    actions = ctx.actions
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
 
-    bundle_id = ctx.attr.bundle_id
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
         # TODO(kaipi): Refactor this partial into a more generic interface to account for
@@ -636,10 +847,25 @@ def _ios_sticker_pack_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.embedded_bundles_partial(
-            plugins = [outputs.archive_for_embedding(ctx, rule_descriptor)],
+            plugins = [archive_for_embedding],
         ),
         partials.resources_partial(
             bundle_id = bundle_id,

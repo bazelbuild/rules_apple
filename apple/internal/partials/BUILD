@@ -29,10 +29,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bundling_support",
         "//apple/internal:outputs",
-        "//apple/internal:platform_support",
-        "//apple/internal:swift_support",
         "@bazel_skylib//lib:partial",
     ],
 )
