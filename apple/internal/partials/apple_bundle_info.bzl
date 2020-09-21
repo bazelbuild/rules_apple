@@ -15,20 +15,8 @@
 """Partial implementation for the AppleBundleInfo provider."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -39,50 +27,105 @@ load(
     "partial",
 )
 
-def _apple_bundle_info_partial_impl(ctx, bundle_id):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _apple_bundle_info_partial_impl(
+        *,
+        ctx,
+        actions,
+        bundle_id,
+        bundle_extension,
+        bundle_name,
+        executable_name,
+        entitlements,
+        label_name,
+        platform_prerequisites,
+        predeclared_outputs,
+        product_type):
     """Implementation for the AppleBundleInfo processing partial."""
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+    archive_root = outputs.root_path_from_archive(archive = archive)
+
+    binary = outputs.binary(
+        actions = actions,
+        bundle_name = bundle_name,
+        label_name = label_name,
+    )
 
     infoplist = None
     if bundle_id:
         # Only add the infoplist if there is a bundle ID, otherwise, do not create the output file.
-        infoplist = outputs.infoplist(ctx)
-
-    uses_swift = False
-    if hasattr(ctx.attr, "deps"):
-        uses_swift = swift_support.uses_swift(ctx.attr.deps)
+        infoplist = outputs.infoplist(
+            actions = actions,
+            label_name = label_name,
+        )
 
     return struct(
         providers = [
             AppleBundleInfo(
-                archive = outputs.archive(ctx),
-                archive_root = outputs.archive_root_path(ctx),
-                binary = outputs.binary(ctx),
+                archive = archive,
+                archive_root = archive_root,
+                binary = binary,
                 bundle_id = bundle_id,
-                bundle_name = bundling_support.bundle_name(ctx),
-                bundle_extension = bundling_support.bundle_extension(ctx),
-                executable_name = bundling_support.executable_name(ctx),
-                entitlements = getattr(ctx.attr, "entitlements", None),
+                bundle_name = bundle_name,
+                bundle_extension = bundle_extension,
+                executable_name = executable_name
+                entitlements = entitlements,
                 infoplist = infoplist,
-                minimum_os_version = platform_support.minimum_os(ctx),
-                platform_type = str(platform_support.platform_type(ctx)),
-                product_type = ctx.attr._product_type,
-                uses_swift = uses_swift,
+                minimum_os_version = platform_prerequisites.minimum_os,
+                platform_type = str(platform_prerequisites.platform_type),
+                product_type = product_type,
+                uses_swift = platform_prerequisites.uses_swift,
             ),
         ],
     )
 
-def apple_bundle_info_partial(bundle_id = None):
+def apple_bundle_info_partial(
+        *,
+        actions,
+        bundle_id = None,
+        bundle_extension,
+        bundle_name,
+        entitlements,
+        label_name,
+        platform_prerequisites,
+        predeclared_outputs,
+        product_type):
     """Constructor for the AppleBundleInfo processing partial.
 
     This partial propagates the AppleBundleInfo provider for this target.
 
     Args:
+      actions: The actions provider from ctx.actions.
       bundle_id: The bundle ID to configure for this target.
+      bundle_extension: Extension for the Apple bundle inside the archive.
+      bundle_name: The name of the output bundle.
+      executable_name: The name of the output executable.
+      entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      label_name: Name of the target being built.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
+      product_type: Product type identifier used to describe the current bundle type.
 
     Returns:
       A partial that returns the AppleBundleInfo provider.
     """
     return partial.make(
         _apple_bundle_info_partial_impl,
+        actions = actions,
         bundle_id = bundle_id,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        executable_name = executable_name,
+        entitlements = entitlements,
+        label_name = label_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        product_type = product_type,
     )

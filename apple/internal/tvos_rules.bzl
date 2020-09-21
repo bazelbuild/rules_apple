@@ -75,15 +75,20 @@ def _tvos_application_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
-
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
     swift_dylib_dependencies = ctx.attr.extensions + ctx.attr.frameworks
 
     processor_partials = [
@@ -93,14 +98,29 @@ def _tvos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             product_type = ctx.attr._product_type,
         ),
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
             dependency_targets = embeddable_targets,
-            label_name = ctx.label.name,
+            label_name = label.name,
             package_bitcode = True,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -119,7 +139,7 @@ def _tvos_application_impl(ctx):
         ),
         partials.resources_partial(
             bundle_id = bundle_id,
-            bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions],
+            bundle_verification_targets = bundle_verification_targets,
             plist_attrs = ["infoplists"],
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -140,18 +160,34 @@ def _tvos_application_impl(ctx):
 
     processor_result = processor.process(ctx, processor_partials)
 
-    executable = outputs.executable(ctx)
-    run_support.register_simulator_executable(ctx, executable)
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+    run_support.register_simulator_executable(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        file = ctx.file,
+        output = executable,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     return [
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [
-                    outputs.archive(ctx),
-                    ctx.file._std_redirect_dylib,
-                ],
+                files = [archive, ctx.file._std_redirect_dylib],
             ),
         ),
         TvosApplicationBundleInfo(),
@@ -162,31 +198,59 @@ def _tvos_application_impl(ctx):
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     binary_provider = binary_descriptor.provider
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
         rule_descriptor = rule_support.rule_descriptor(ctx)
         signed_frameworks = [
-            bundling_support.bundle_name(ctx) + rule_descriptor.bundle_extension,
+            bundle_name + rule_descriptor.bundle_extension,
         ]
 
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
@@ -197,7 +261,7 @@ def _tvos_framework_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            frameworks = [outputs.archive(ctx)],
+            frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             signed_frameworks = depset(signed_frameworks),
         ),
@@ -232,23 +296,51 @@ def _tvos_extension_impl(ctx):
         "resources",
     ]
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
+    actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            bundle_id = bundle_id,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.bitcode_symbols_partial(
-            actions = ctx.actions,
+            actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
-            label_name = ctx.label.name,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
@@ -257,7 +349,7 @@ def _tvos_extension_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
-            plugins = [outputs.archive(ctx)],
+            plugins = [archive],
             embeddable_targets = ctx.attr.frameworks,
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
@@ -293,18 +385,34 @@ def _tvos_extension_impl(ctx):
 def _tvos_static_framework_impl(ctx):
     """Implementation of tvos_static_framework."""
 
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-
-    # TODO(kaipi): Replace the debug_outputs_provider with the provider returned from the linking
-    # action, when available.
-    # TODO(kaipi): Extract this into a common location to be reused and refactored later when we
-    # add linking support directly into the rule.
     binary_target = ctx.attr.deps[0]
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
+    actions = ctx.actions
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+
     processor_partials = [
-        partials.apple_bundle_info_partial(),
-        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
     ]
 
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static

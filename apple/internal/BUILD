@@ -213,10 +213,12 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":bundling_support",
         ":codesigning_support",
         ":linking_support",
         ":outputs",
         ":partials",
+        ":platform_support",
         ":processor",
         ":rule_factory",
         ":run_support",
@@ -276,6 +278,7 @@ bzl_library(
     ],
     deps = [
         ":rule_support",
+        ":swift_support",
     ],
 )
 
@@ -379,9 +382,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":bundling_support",
         ":outputs",
-        ":platform_support",
     ],
 )
 
@@ -444,6 +445,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":bundling_support",
         ":linking_support",
         ":outputs",
         ":partials",

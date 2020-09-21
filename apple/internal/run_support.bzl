@@ -15,57 +15,91 @@
 """Common definitions used to make runnable Apple bundling rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
 
-def _register_simulator_executable(ctx, output):
+def _register_simulator_executable(
+        *,
+        actions,
+        bundle_extension,
+        bundle_name,
+        file,
+        output,
+        platform_prerequisites,
+        predeclared_outputs):
     """Registers an action that runs the bundled app in the iOS simulator.
 
     Args:
-      ctx: The Starlark context.
+      actions: The actions provider from ctx.actions.
+      bundle_extension: Extension for the Apple bundle inside the archive.
+      bundle_name: The name of the output bundle.
+      file: The file provider from ctx.file.
       output: The `File` representing where the executable should be generated.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
     """
 
-    sim_device = str(ctx.fragments.objc.ios_simulator_device or "")
-    sim_os_version = str(ctx.fragments.objc.ios_simulator_version or "")
-    minimum_os = str(platform_support.minimum_os(ctx))
+    sim_device = str(platform_prerequisites.objc_fragment.ios_simulator_device or "")
+    sim_os_version = str(platform_prerequisites.objc_fragment.ios_simulator_version or "")
+    minimum_os = str(platform_prerequisites.minimum_os)
+    archive = outputs.archive(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
 
-    ctx.actions.expand_template(
+    actions.expand_template(
         output = output,
         is_executable = True,
-        template = ctx.file._runner_template,
+        template = file._runner_template,
         substitutions = {
-            "%app_name%": bundling_support.bundle_name(ctx),
-            "%ipa_file%": outputs.archive(ctx).short_path,
+            "%app_name%": bundle_name,
+            "%ipa_file%": archive.short_path,
             "%sim_device%": sim_device,
             "%sim_os_version%": sim_os_version,
             "%minimum_os%": minimum_os,
         },
     )
 
-def _register_macos_executable(ctx, output):
+def _register_macos_executable(
+        *,
+        actions,
+        bundle_extension,
+        bundle_name,
+        file,
+        output,
+        platform_prerequisites,
+        predeclared_outputs):
     """Registers an action that runs the bundled macOS app.
 
     Args:
-      ctx: The Starlark context.
+      actions: The actions provider from ctx.actions.
+      bundle_extension: Extension for the Apple bundle inside the archive.
+      bundle_name: The name of the output bundle.
+      file: The file provider from ctx.file.
       output: The `File` representing where the executable should be generated.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
     """
-    ctx.actions.expand_template(
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    actions.expand_template(
         output = output,
         is_executable = True,
-        template = ctx.file._macos_runner_template,
+        template = file._macos_runner_template,
         substitutions = {
-            "%app_name%": bundling_support.bundle_name(ctx),
-            "%app_path%": outputs.archive(ctx).short_path,
+            "%app_name%": bundle_name,
+            "%app_path%": archive.short_path,
         },
     )
 
