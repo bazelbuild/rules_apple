@@ -54,7 +54,7 @@ def _apple_bundle_info_partial_impl(
 
     binary = outputs.binary(
         actions = actions,
-        bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label_name,
     )
 
@@ -75,7 +75,7 @@ def _apple_bundle_info_partial_impl(
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
                 bundle_extension = bundle_extension,
-                executable_name = executable_name
+                executable_name = executable_name,
                 entitlements = entitlements,
                 infoplist = infoplist,
                 minimum_os_version = platform_prerequisites.minimum_os,
@@ -92,6 +92,7 @@ def apple_bundle_info_partial(
         bundle_id = None,
         bundle_extension,
         bundle_name,
+        executable_name,
         entitlements,
         label_name,
         platform_prerequisites,

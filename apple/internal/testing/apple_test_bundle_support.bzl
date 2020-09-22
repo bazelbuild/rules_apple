@@ -229,6 +229,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     config_vars = ctx.var
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -255,6 +256,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -264,7 +266,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
