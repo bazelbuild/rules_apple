@@ -93,6 +93,7 @@ def _ios_application_impl(ctx):
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -120,6 +121,7 @@ def _ios_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -129,7 +131,7 @@ def _ios_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.bitcode_symbols_partial(
@@ -208,6 +210,7 @@ def _ios_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
@@ -247,6 +250,7 @@ def _ios_app_clip_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
@@ -256,6 +260,7 @@ def _ios_app_clip_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label.name,
         rule_descriptor = rule_descriptor,
         platform_prerequisites = platform_prerequisites,
@@ -273,6 +278,7 @@ def _ios_app_clip_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -282,7 +288,7 @@ def _ios_app_clip_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.bitcode_symbols_partial(
@@ -347,6 +353,7 @@ def _ios_app_clip_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
@@ -378,6 +385,7 @@ def _ios_framework_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -394,6 +402,7 @@ def _ios_framework_impl(ctx):
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        executable_name = executable_name,
         label_name = label.name,
         rule_descriptor = rule_descriptor,
         platform_prerequisites = platform_prerequisites,
@@ -406,6 +415,7 @@ def _ios_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -415,7 +425,7 @@ def _ios_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.bitcode_symbols_partial(
@@ -477,6 +487,7 @@ def _ios_extension_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -487,6 +498,7 @@ def _ios_extension_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label.name,
         rule_descriptor = rule_descriptor,
         platform_prerequisites = platform_prerequisites,
@@ -504,6 +516,7 @@ def _ios_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -513,7 +526,7 @@ def _ios_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.bitcode_symbols_partial(
@@ -572,6 +585,7 @@ def _ios_static_framework_impl(ctx):
     actions = ctx.actions
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -582,6 +596,7 @@ def _ios_static_framework_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -591,7 +606,7 @@ def _ios_static_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
     ]
@@ -637,6 +652,7 @@ def _ios_imessage_application_impl(ctx):
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
     embeddable_targets = [ctx.attr.extension]
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -659,6 +675,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -668,7 +685,7 @@ def _ios_imessage_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.embedded_bundles_partial(
@@ -724,6 +741,7 @@ def _ios_imessage_extension_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -734,6 +752,7 @@ def _ios_imessage_extension_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label.name,
         rule_descriptor = rule_descriptor,
         platform_prerequisites = platform_prerequisites,
@@ -753,6 +772,7 @@ def _ios_imessage_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -762,7 +782,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.bitcode_symbols_partial(
@@ -822,6 +842,7 @@ def _ios_sticker_pack_extension_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -837,6 +858,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label.name,
         rule_descriptor = rule_descriptor,
         platform_prerequisites = platform_prerequisites,
@@ -856,6 +878,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -865,7 +888,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.embedded_bundles_partial(

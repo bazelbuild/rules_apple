@@ -28,13 +28,13 @@ load(
 )
 
 # TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
-def _binary_partial_impl(ctx, actions, binary_artifact, bundle_name, label_name):
+def _binary_partial_impl(ctx, actions, binary_artifact, executable_name, label_name):
     """Implementation for the binary processing partial."""
 
     # Create intermediate file with proper name for the binary.
     output_binary = outputs.binary(
         actions = actions,
-        bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label_name,
     )
     actions.symlink(target_file = binary_artifact, output = output_binary)
@@ -45,7 +45,7 @@ def _binary_partial_impl(ctx, actions, binary_artifact, bundle_name, label_name)
         ],
     )
 
-def binary_partial(actions, binary_artifact, bundle_name, label_name):
+def binary_partial(actions, binary_artifact, executable_name, label_name):
     """Constructor for the binary processing partial.
 
     This partial propagates the bundle location for the main binary artifact for the target.
@@ -53,7 +53,7 @@ def binary_partial(actions, binary_artifact, bundle_name, label_name):
     Args:
       actions: The actions provider from ctx.actions.
       binary_artifact: The main binary artifact for this target.
-      bundle_name: The name of the output bundle.
+      executable_name: The name of the output executable.
       label_name: Name of the target being built.
 
     Returns:
@@ -63,6 +63,6 @@ def binary_partial(actions, binary_artifact, bundle_name, label_name):
         _binary_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
-        bundle_name = bundle_name,
+        executable_name = executable_name,
         label_name = label_name,
     )

@@ -41,6 +41,7 @@ def _archive(
         actions = None,
         bundle_extension = None,
         bundle_name = None,
+        executable_name = None,
         platform_prerequisites = None,
         predeclared_outputs = None):
     """Returns a file reference for this target's archive."""
@@ -78,6 +79,7 @@ def _archive_for_embedding(
         actions = None,
         bundle_name = None,
         bundle_extension = None,
+        executable_name = None,
         label_name = None,
         platform_prerequisites = None,
         predeclared_outputs = None):
@@ -128,7 +130,7 @@ def _archive_root_path(
 
     return _root_path_from_archive(archive = archive)
 
-def _binary(ctx = None, *, actions = None, bundle_name = None, label_name = None):
+def _binary(ctx = None, *, actions = None, executable_name = None, label_name = None):
     """Returns a file reference for the binary that will be packaged into this target's archive. """
     if not actions:
         actions = ctx.actions
@@ -136,10 +138,10 @@ def _binary(ctx = None, *, actions = None, bundle_name = None, label_name = None
     if not label_name:
         label_name = ctx.label.name
 
-    if not bundle_name:
-        bundle_name = bundling_support.executable_name(ctx)
+    if not executable_name:
+        executable_name = bundling_support.executable_name(ctx)
 
-    return intermediates.file(actions, label_name, bundle_name)
+    return intermediates.file(actions, label_name, executable_name)
 
 def _executable(ctx = None, *, actions = None, label_name = None):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
