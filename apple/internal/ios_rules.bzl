@@ -98,6 +98,7 @@ def _ios_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
@@ -157,9 +158,18 @@ def _ios_application_impl(ctx):
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -314,8 +324,17 @@ def _ios_app_clip_impl(ctx):
             targets = ctx.attr.deps + ctx.attr.frameworks,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -454,11 +473,20 @@ def _ios_framework_impl(ctx):
             binary_provider = binary_target[apple_common.AppleDylibBinary],
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
-            version_keys_required = False,
             top_level_attrs = ["resources"],
+            version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -548,8 +576,17 @@ def _ios_extension_impl(ctx):
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -590,6 +627,7 @@ def _ios_static_framework_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -629,7 +667,17 @@ def _ios_static_framework_impl(ctx):
         )
 
     if not ctx.attr.exclude_resources:
-        processor_partials.append(partials.resources_partial())
+        processor_partials.append(partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
+        ))
 
     processor_result = processor.process(ctx, processor_partials)
 
@@ -698,9 +746,18 @@ def _ios_imessage_application_impl(ctx):
             package_messages_support = True,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
@@ -804,8 +861,17 @@ def _ios_imessage_extension_impl(ctx):
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             plist_attrs = ["infoplists"],
+            platform_prerequisites = platform_prerequisites,
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -895,8 +961,17 @@ def _ios_sticker_pack_extension_impl(ctx):
             plugins = [archive_for_embedding],
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
         partials.messages_stub_partial(binary_artifact = binary_artifact),

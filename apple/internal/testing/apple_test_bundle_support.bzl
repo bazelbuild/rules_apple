@@ -47,6 +47,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
@@ -234,6 +238,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
@@ -283,11 +288,20 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             targets_to_avoid = targets_to_avoid,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = targets_to_avoid,
-            version_keys_required = False,
             top_level_attrs = ["resources"],
+            version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,

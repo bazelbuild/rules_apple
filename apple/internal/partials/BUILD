@@ -210,7 +210,6 @@ bzl_library(
         "//apple/internal:processor",
         "//apple/internal:resource_actions",
         "//apple/internal:resources",
-        "//apple/internal:rule_support",
         "//apple/internal/partials/support:resources_support",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:new_sets",

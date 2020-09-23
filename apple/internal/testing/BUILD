@@ -34,6 +34,7 @@ bzl_library(
         "//apple/internal:partials",
         "//apple/internal:platform_support",
         "//apple/internal:processor",
+        "//apple/internal:rule_support",
         "@bazel_skylib//lib:types",
         "@build_bazel_rules_swift//swift",
     ],
