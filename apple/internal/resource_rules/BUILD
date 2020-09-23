@@ -43,7 +43,9 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:platform_support",
         "//apple/internal:resources",
+        "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
@@ -58,7 +60,9 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:platform_support",
         "//apple/internal:resources",
+        "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",

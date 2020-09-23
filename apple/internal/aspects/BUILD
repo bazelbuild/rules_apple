@@ -26,7 +26,9 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:platform_support",
         "//apple/internal:resources",
+        "//apple/internal:swift_support",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
     ],

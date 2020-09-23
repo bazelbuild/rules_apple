@@ -23,6 +23,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
 )
@@ -34,16 +38,48 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
 
 def _apple_resource_group_impl(ctx):
     """Implementation of the apple_resource_group rule."""
+    actions = ctx.actions
+    rule_executables = ctx.executable
+    rule_label = ctx.label
+
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = swift_support.uses_swift(deps) if deps else False
+
+    # TODO(b/168721966): Move all resource processing below into the resource aspect. This will
+    # avoid issues with being able to determine platform information from these rules, where we do
+    # not have sufficient knowledge to fill out all of the platform prerequisites
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        device_families = None,
+        objc_fragment = None,
+        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        uses_swift = uses_swift,
+        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
     resource_providers = []
 
     if ctx.attr.resources:
         resource_files = resources.collect(ctx.attr, res_attrs = ["resources"])
         if resource_files:
             resource_providers.append(
-                resources.bucketize_with_processing(ctx, resource_files),
+                resources.bucketize_with_processing(
+                    ctx = ctx,
+                    actions = actions,
+                    platform_prerequisites = platform_prerequisites,
+                    resources = resource_files,
+                    rule_executables = rule_executables,
+                    rule_label = rule_label,
+                ),
             )
     if ctx.attr.structured_resources:
         structured_files = resources.collect(
@@ -55,12 +91,16 @@ def _apple_resource_group_impl(ctx):
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
         resource_providers.append(
             resources.bucketize_with_processing(
-                ctx,
-                structured_files,
+                ctx = ctx,
+                actions = actions,
+                allowed_buckets = ["strings", "plists"],
                 parent_dir_param = partial.make(
                     resources.structured_resources_parent_dir,
                 ),
-                allowed_buckets = ["strings", "plists"],
+                platform_prerequisites = platform_prerequisites,
+                resources = structured_files,
+                rule_executables = rule_executables,
+                rule_label = rule_label,
             ),
         )
 

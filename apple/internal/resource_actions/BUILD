@@ -73,10 +73,8 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bundling_support",
         "//apple/internal:intermediates",
         "//apple/internal:platform_support",
-        "//apple/internal:rule_support",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],

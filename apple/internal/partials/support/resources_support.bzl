@@ -106,7 +106,12 @@ def _compile_mappingmodels(ctx, parent_dir, mappingmodel_groups):
 
     return output_files
 
-def _asset_catalogs(ctx, parent_dir, files):
+def _asset_catalogs(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        **kwargs):
     """Processes asset catalog files."""
 
     # Only merge the resulting plist for the top level bundle. For resource
@@ -141,7 +146,13 @@ def _asset_catalogs(ctx, parent_dir, files):
         infoplists = infoplists,
     )
 
-def _datamodels(ctx, parent_dir, files, swift_module):
+def _datamodels(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        swift_module,
+        **kwargs):
     "Processes datamodel related files."
     datamodel_files = files.to_list()
 
@@ -184,7 +195,15 @@ def _datamodels(ctx, parent_dir, files, swift_module):
 
     return struct(files = output_files)
 
-def _infoplists(ctx, parent_dir, files):
+def _infoplists(
+        *,
+        actions,
+        executables,
+        files,
+        parent_dir,
+        platform_prerequisites,
+        rule_label,
+        **kwargs):
     """Processes infoplists.
 
     If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
@@ -193,10 +212,13 @@ def _infoplists(ctx, parent_dir, files):
     processing returns a plist that needs to be merged into the root).
 
     Args:
-        ctx: The target's context.
-        parent_dir: The path under which the merged Info.plist should be placed for resource
-            bundles.
+        actions: The actions provider from `ctx.actions`.
+        executables: Struct containing executable files defined by a rule.
         files: The infoplist files to process.
+        parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        rule_label: The label of the target being analyzed.
+        **kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl, and an
@@ -204,15 +226,18 @@ def _infoplists(ctx, parent_dir, files):
     """
     if parent_dir:
         out_plist = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            rule_label.name,
             paths.join(parent_dir, "Info.plist"),
         )
         resource_actions.merge_resource_infoplists(
-            ctx,
-            paths.basename(parent_dir),
-            files.to_list(),
-            out_plist,
+            actions = actions,
+            bundle_name_with_extension = paths.basename(parent_dir),
+            input_files = files.to_list(),
+            output_plist = out_plist,
+            platform_prerequisites = platform_prerequisites,
+            plisttool = executables._plisttool,
+            rule_label = rule_label,
         )
         return struct(
             files = [
@@ -222,7 +247,12 @@ def _infoplists(ctx, parent_dir, files):
     else:
         return struct(files = [], infoplists = files.to_list())
 
-def _mlmodels(ctx, parent_dir, files):
+def _mlmodels(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        **kwargs):
     """Processes mlmodel files."""
 
     mlmodel_bundles = []
@@ -257,7 +287,15 @@ def _mlmodels(ctx, parent_dir, files):
         infoplists = infoplists,
     )
 
-def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
+def _plists_and_strings(
+        *,
+        actions,
+        files,
+        force_binary = False,
+        rule_label,
+        parent_dir,
+        platform_prerequisites,
+        **kwargs):
     """Processes plists and string files.
 
     If compilation mode is `opt`, or if force_binary is True, the plist files will be compiled into
@@ -265,30 +303,41 @@ def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
     processing time.
 
     Args:
-        ctx: The target's context.
-        parent_dir: The path under which the files should be placed.
+        actions: The actions provider from `ctx.actions`.
         files: The plist or string files to process.
         force_binary: If true, files will be converted to binary independently of the compilation
             mode.
+        rule_label: The label of the target being analyzed.
+        parent_dir: The path under which the files should be placed.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        **kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
 
     # If this is not an optimized build, and force_compile is False, then just copy the files
-    if not force_binary and ctx.var["COMPILATION_MODE"] != "opt":
-        return _noop(ctx, parent_dir, files)
+    if not force_binary and platform_prerequisites.config_vars["COMPILATION_MODE"] != "opt":
+        return _noop(
+            parent_dir = parent_dir,
+            files = files,
+        )
 
     plist_files = []
     processed_origins = {}
     for file in files.to_list():
         plist_file = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            rule_label.name,
             paths.join(parent_dir or "", file.basename),
         )
         processed_origins[plist_file.short_path] = file.short_path
-        resource_actions.compile_plist(ctx, file, plist_file)
+        resource_actions.compile_plist(
+            actions = actions,
+            input_file = file,
+            output_file = plist_file,
+            platform_prerequisites = platform_prerequisites,
+        )
         plist_files.append(plist_file)
 
     return struct(
@@ -298,7 +347,12 @@ def _plists_and_strings(ctx, parent_dir, files, force_binary = False):
         processed_origins = processed_origins,
     )
 
-def _pngs(ctx, parent_dir, files):
+def _pngs(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        **kwargs):
     """Register PNG processing actions.
 
     The PNG files will be copied using `pngcopy` to make them smaller.
@@ -307,6 +361,7 @@ def _pngs(ctx, parent_dir, files):
         ctx: The target's context.
         parent_dir: The path under which the images should be placed.
         files: The PNG files to process.
+        **kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -327,7 +382,13 @@ def _pngs(ctx, parent_dir, files):
         processed_origins = processed_origins,
     )
 
-def _storyboards(ctx, parent_dir, files, swift_module):
+def _storyboards(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        swift_module,
+        **kwargs):
     """Processes storyboard files."""
     swift_module = swift_module or ctx.label.name
 
@@ -374,7 +435,12 @@ def _storyboards(ctx, parent_dir, files, swift_module):
         ],
     )
 
-def _texture_atlases(ctx, parent_dir, files):
+def _texture_atlases(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        **kwargs):
     """Processes texture atlas files."""
     atlases_groups = group_files_by_directory(
         files.to_list(),
@@ -407,7 +473,13 @@ def _texture_atlases(ctx, parent_dir, files):
         ],
     )
 
-def _xibs(ctx, parent_dir, files, swift_module):
+def _xibs(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        swift_module,
+        **kwargs):
     """Processes Xib files."""
     swift_module = swift_module or ctx.label.name
     nib_files = []
@@ -420,9 +492,12 @@ def _xibs(ctx, parent_dir, files, swift_module):
 
     return struct(files = [(processor.location.resource, parent_dir, depset(direct = nib_files))])
 
-def _noop(ctx, parent_dir, files):
+def _noop(
+        *,
+        parent_dir,
+        files,
+        **kwargs):
     """Registers files to be bundled as is."""
-    _ignore = [ctx]
     processed_origins = {}
     for file in files.to_list():
         processed_origins[file.short_path] = file.short_path

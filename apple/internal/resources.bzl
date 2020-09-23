@@ -307,12 +307,17 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
     )
 
 def _bucketize_with_processing(
+        *,
         ctx,
-        resources,
-        swift_module = None,
+        actions,
+        allowed_buckets = None,
         owner = None,
         parent_dir_param = None,
-        allowed_buckets = None):
+        platform_prerequisites,
+        resources,
+        rule_executables,
+        rule_label,
+        swift_module = None):
     """Bucketizes the resources, and registers actions for cacheable resource types.
 
     This method performs the same actions as bucketize_data, and further iterates through a subset
@@ -321,17 +326,21 @@ def _bucketize_with_processing(
     the expected outputs for each of the actions declared in this method.
 
     Args:
-        ctx: The current context, currently required for processing actions.
-        resources: List of resources to bucketize.
-        swift_module: The Swift module name to associate to these resources.
+        ctx: The target's rule context. Deprecated.
+        actions: The actions provider from `ctx.actions`.
+        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
+            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
+            means all buckets are allowed.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
-        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
-            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
-            means all buckets are allowed.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        resources: List of resources to bucketize.
+        rule_executables: Struct containing executable files defined by a rule.
+        rule_label: The label of the target being analyzed.
+        swift_module: The Swift module name to associate to these resources.
 
     Returns:
         An AppleResourceInfo provider with resources bucketized according to type.
@@ -356,9 +365,13 @@ def _bucketize_with_processing(
 
             # TODO(b/161370390): Eliminate this dependency on ctx and its use as an argument above.
             processing_args = {
+                "actions": actions,
                 "ctx": ctx,
+                "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
+                "platform_prerequisites": platform_prerequisites,
+                "rule_label": rule_label,
             }
 
             # Only pass the Swift module name if the resource to process requires it.

@@ -50,10 +50,6 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleResourceInfo",
@@ -69,13 +65,20 @@ load(
 
 _PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 
-def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
+def _merge_root_infoplists(
+        *,
+        actions,
+        out_infoplist,
+        rule_descriptor,
+        rule_label,
+        **kwargs):
     """Registers the root Info.plist generation action.
 
     Args:
-      ctx: The target's rule context.
-      infoplists: List of plists that should be merged into the root Info.plist.
+      actions: The actions provider from `ctx.actions`.
       out_infoplist: Reference to the output Info plist.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_label: The label of the target being analyzed.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
@@ -84,27 +87,27 @@ def _merge_root_infoplists(ctx, infoplists, out_infoplist, **kwargs):
     """
     files = [out_infoplist]
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     out_pkginfo = None
     if rule_descriptor.requires_pkginfo:
         out_pkginfo = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            rule_label.name,
             "PkgInfo",
         )
         files.append(out_pkginfo)
 
     resource_actions.merge_root_infoplists(
-        ctx,
-        infoplists,
-        out_infoplist,
-        out_pkginfo,
+        actions = actions,
+        output_plist = out_infoplist,
+        output_pkginfo = out_pkginfo,
+        rule_descriptor = rule_descriptor,
+        rule_label = rule_label,
         **kwargs
     )
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _expand_owners(owners):
+def _expand_owners(*, owners):
     """Converts a depset of (path, owner) to a dict of paths to dict of owners.
 
     Args:
@@ -116,7 +119,7 @@ def _expand_owners(owners):
             dict.setdefault(resource, default = {})[owner] = None
     return dict
 
-def _expand_processed_origins(processed_origins):
+def _expand_processed_origins(*, processed_origins):
     """Converts a depset of (processed_resource, resource) to a dict.
 
     Args:
@@ -128,13 +131,14 @@ def _expand_processed_origins(processed_origins):
     return processed_origins_dict
 
 def _deduplicate(
-        resources_provider,
-        avoid_provider,
-        owners,
+        *,
         avoid_owners,
+        avoid_provider,
+        field,
+        owners,
         processed_origins,
         processed_deduplication_map,
-        field):
+        resources_provider):
     """Deduplicates and returns resources between 2 providers for a given field.
 
     Deduplication happens by comparing the target path of a file and the files
@@ -147,16 +151,16 @@ def _deduplicate(
     multiple binary-containing bundles.
 
     Args:
-      resources_provider: The provider with the resources to be bundled.
-      avoid_provider: The provider with the resources to avoid bundling.
-      owners: The owners map for resources_provider computed by _expand_owners.
       avoid_owners: The owners map for avoid_provider computed by _expand_owners.
+      avoid_provider: The provider with the resources to avoid bundling.
+      field: The field to deduplicate resources on.
+      resources_provider: The provider with the resources to be bundled.
+      owners: The owners map for resources_provider computed by _expand_owners.
       processed_origins: The processed resources map for resources_provider computed by
           _expand_processed_origins.
       processed_deduplication_map: A dictionary of keys to short paths referencing already-
           deduplicated resources that can be referenced by the resource processing aspect to avoid
           duplicating files referenced by library targets and top level targets.
-      field: The field to deduplicate resources on.
 
     Returns:
       A list of tuples with the resources present in avoid_providers removed from
@@ -229,25 +233,25 @@ def _deduplicate(
 
     return deduped_tuples
 
-def _locales_requested(ctx):
+def _locales_requested(*, config_vars):
     """Determines which locales to include when resource actions.
 
     If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
     'Base' is included by default to any given list of locales to include.
 
     Args:
-        ctx: The rule context.
+        config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
 
     Returns:
         A set of locales to include or None if all should be included.
     """
-    requested_locales = ctx.var.get("apple.locales_to_include")
+    requested_locales = config_vars.get("apple.locales_to_include")
     if requested_locales != None:
         return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
     else:
         return None
 
-def _validate_processed_locales(label, locales_requested, locales_included, locales_dropped):
+def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
     if sets.length(locales_dropped):
         # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
@@ -263,34 +267,44 @@ def _validate_processed_locales(label, locales_requested, locales_included, loca
                   "apple.locales_to_include is defined properly.")
 
 def _resources_partial_impl(
+        *,
         ctx,
+        actions,
+        bundle_extension,
         bundle_id,
+        bundle_name,
         bundle_verification_targets,
+        platform_prerequisites,
         plist_attrs,
+        rule_attrs,
+        rule_descriptor,
+        rule_executables,
+        rule_single_files,
+        rule_label,
         targets_to_avoid,
         top_level_attrs,
         version_keys_required):
     """Implementation for the resource processing partial."""
     providers = []
     for attr in ["deps", "resources"]:
-        if hasattr(ctx.attr, attr):
+        if hasattr(rule_attrs, attr):
             providers.extend([
                 x[AppleResourceInfo]
-                for x in getattr(ctx.attr, attr)
+                for x in getattr(rule_attrs, attr)
                 if AppleResourceInfo in x
             ])
 
     # TODO(kaipi): Bucket top_level_attrs directly instead of collecting and
     # splitting.
-    files = resources.collect(ctx.attr, res_attrs = top_level_attrs)
+    files = resources.collect(rule_attrs, res_attrs = top_level_attrs)
     if files:
-        providers.append(resources.bucketize(files, owner = str(ctx.label)))
+        providers.append(resources.bucketize(files, owner = str(rule_label)))
 
     if plist_attrs:
-        plists = resources.collect(ctx.attr, res_attrs = plist_attrs)
+        plists = resources.collect(rule_attrs, res_attrs = plist_attrs)
         plist_provider = resources.bucketize_typed(
             plists,
-            owner = str(ctx.label),
+            owner = str(rule_label),
             bucket_type = "infoplists",
         )
         providers.append(plist_provider)
@@ -302,7 +316,7 @@ def _resources_partial_impl(
         # resource.
         return struct()
 
-    final_provider = resources.merge_providers(providers, default_owner = str(ctx.label))
+    final_provider = resources.merge_providers(providers, default_owner = str(rule_label))
 
     avoid_providers = [
         x[AppleResourceInfo]
@@ -344,7 +358,7 @@ def _resources_partial_impl(
 
     infoplists = []
 
-    locales_requested = _locales_requested(ctx)
+    locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
@@ -352,10 +366,12 @@ def _resources_partial_impl(
     # Build a dictionary with the file paths under each key for the avoided resources.
     avoid_owners = {}
     if avoid_provider:
-        avoid_owners = _expand_owners(avoid_provider.owners)
-    owners = _expand_owners(final_provider.owners)
+        avoid_owners = _expand_owners(owners = avoid_provider.owners)
+    owners = _expand_owners(owners = final_provider.owners)
     if final_provider.processed_origins:
-        processed_origins = _expand_processed_origins(final_provider.processed_origins)
+        processed_origins = _expand_processed_origins(
+            processed_origins = final_provider.processed_origins,
+        )
     else:
         processed_origins = {}
 
@@ -365,13 +381,13 @@ def _resources_partial_impl(
 
     for field in fields:
         deduplicated = _deduplicate(
-            final_provider,
-            avoid_provider,
-            owners,
-            avoid_owners,
-            processed_origins,
-            processed_deduplication_map,
-            field,
+            avoid_owners = avoid_owners,
+            avoid_provider = avoid_provider,
+            field = field,
+            owners = owners,
+            processed_origins = processed_origins,
+            processed_deduplication_map = processed_deduplication_map,
+            resources_provider = final_provider,
         )
         processing_func, requires_swift_module = provider_field_to_action[field]
         for parent_dir, swift_module, files in deduplicated:
@@ -383,10 +399,15 @@ def _resources_partial_impl(
                     sets.insert(locales_dropped, locale)
                     continue
 
+            # TODO(b/161370390): Eliminate this dependency on ctx and its use as an argument above.
             processing_args = {
+                "actions": actions,
                 "ctx": ctx,
+                "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
+                "platform_prerequisites": platform_prerequisites,
+                "rule_label": rule_label,
             }
 
             # Only pass the Swift module name if the type of resource to process
@@ -400,7 +421,12 @@ def _resources_partial_impl(
                 infoplists.extend(result.infoplists)
 
     if locales_requested:
-        _validate_processed_locales(ctx.label, locales_requested, locales_included, locales_dropped)
+        _validate_processed_locales(
+            label = rule_label,
+            locales_dropped = locales_dropped,
+            locales_included = locales_included,
+            locales_requested = locales_requested,
+        )
 
     if bundle_id:
         # If no bundle ID was given, do not process the root Info.plist and do not validate embedded
@@ -419,15 +445,27 @@ def _resources_partial_impl(
             if hasattr(b, "parent_bundle_id_reference")
         ]
 
-        out_infoplist = outputs.infoplist(ctx)
+        out_infoplist = outputs.infoplist(
+            actions = actions,
+            label_name = rule_label.name,
+        )
         bundle_files.extend(
             _merge_root_infoplists(
-                ctx,
-                infoplists,
-                out_infoplist,
+                actions = actions,
+                bundle_extension = bundle_extension,
                 bundle_id = bundle_id,
+                bundle_name = bundle_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
+                environment_plist = rule_single_files._environment_plist,
+                input_plists = infoplists,
+                launch_storyboard = getattr(rule_single_files, "launch_storyboard", None),
+                out_infoplist = out_infoplist,
+                platform_prerequisites = platform_prerequisites,
+                plisttool = rule_executables._plisttool,
+                rule_descriptor = rule_descriptor,
+                rule_label = rule_label,
+                version = getattr(rule_attrs, "version", None),
                 version_keys_required = version_keys_required,
             ),
         )
@@ -435,9 +473,19 @@ def _resources_partial_impl(
     return struct(bundle_files = bundle_files, providers = [final_provider])
 
 def resources_partial(
+        *,
+        actions,
+        bundle_extension,
         bundle_id = None,
+        bundle_name,
         bundle_verification_targets = [],
+        platform_prerequisites,
         plist_attrs = [],
+        rule_attrs,
+        rule_descriptor,
+        rule_executables,
+        rule_label,
+        rule_single_files,
         targets_to_avoid = [],
         top_level_attrs = [],
         version_keys_required = True):
@@ -447,16 +495,25 @@ def resources_partial(
     processed.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
+        bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
             occur.
+        bundle_name: The name of the output bundle.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
+        platform_prerequisites: Struct containing information on the platform being targeted.
         plist_attrs: List of attributes that should be processed as Info plists that should be
             merged and processed.
+        rule_attrs: List of attributes defined by the rule. Typically from `ctx.attr`.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
+        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+        rule_label: The label of the target being analyzed.
+        rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_attrs: List of attributes containing resources that need to be processed from the
@@ -469,9 +526,18 @@ def resources_partial(
     """
     return partial.make(
         _resources_partial_impl,
+        actions = actions,
+        bundle_extension = bundle_extension,
         bundle_id = bundle_id,
+        bundle_name = bundle_name,
         bundle_verification_targets = bundle_verification_targets,
+        platform_prerequisites = platform_prerequisites,
         plist_attrs = plist_attrs,
+        rule_attrs = rule_attrs,
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_single_files = rule_single_files,
+        rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,
         version_keys_required = version_keys_required,
