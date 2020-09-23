@@ -141,9 +141,18 @@ def _watchos_application_impl(ctx):
             watch_bundles = [archive],
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
@@ -218,6 +227,7 @@ def _watchos_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     archive = outputs.archive(
         actions = actions,
@@ -263,8 +273,17 @@ def _watchos_extension_impl(ctx):
         # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
         partials.framework_import_partial(targets = ctx.attr.deps),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(binary_artifact = binary_artifact),

@@ -55,14 +55,13 @@ def _families(ctx):
     rule_descriptor = rule_support.rule_descriptor(ctx)
     return getattr(ctx.attr, "families", rule_descriptor.allowed_device_families)
 
-def _ui_device_family_plist_value(ctx = None, *, platform_prerequisites = None):
+def _ui_device_family_plist_value(*, platform_prerequisites):
     """Returns the value to use for `UIDeviceFamily` in an info.plist.
 
     This function returns the array of value to use or None if there should be
     no plist entry (currently, only macOS doesn't use UIDeviceFamily).
 
     Args:
-      ctx: The Starlark context. Deprecated.
       platform_prerequisites: The platform prerequisites.
 
     Returns:
@@ -70,11 +69,7 @@ def _ui_device_family_plist_value(ctx = None, *, platform_prerequisites = None):
       or None if the key should not be added to the Info.plist.
     """
     family_ids = []
-
-    if platform_prerequisites:
-        families = platform_prerequisites.families
-    else:
-        families = _families(ctx)
+    families = platform_prerequisites.device_families
 
     for f in families:
         number = _DEVICE_FAMILY_VALUES[f]
@@ -100,11 +95,11 @@ def _platform_prerequisites(
         *,
         apple_fragment,
         config_vars,
-        deps,
         device_families,
         explicit_minimum_os = None,
         objc_fragment = None,
         platform_type_string,
+        uses_swift,
         xcode_path_wrapper,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
@@ -112,11 +107,11 @@ def _platform_prerequisites(
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       config_vars: A reference to configuration variables, typically from `ctx.var`.
-      deps: The list of dependencies for this target, if any exist. Can be `None`.
       device_families: The list of device families that apply to the target being built.
       explicit_minimum_os: A dotted version string indicating minimum OS desired. Optional.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       platform_type_string: The platform type for the current target as a string.
+      uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_path_wrapper: The Xcode path wrapper script. Can be none if and only we don't need to
           resolve __BAZEL_XCODE_SDKROOT__ and other placeholders in environment arguments.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
@@ -133,8 +128,6 @@ def _platform_prerequisites(
         minimum_os = xcode_version_config.minimum_os_for_platform_type(platform_type_attr)
 
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
-
-    uses_swift = swift_support.uses_swift(deps) if deps else False
 
     return struct(
         apple_fragment = apple_fragment,
@@ -164,14 +157,17 @@ def _platform_prerequisites_from_rule_ctx(ctx):
         rule_descriptor = rule_support.rule_descriptor(ctx)
         device_families = rule_descriptor.allowed_device_families
 
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = swift_support.uses_swift(deps) if deps else False
+
     return _platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
-        deps = getattr(ctx.attr, "deps", None),
         device_families = device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        uses_swift = uses_swift,
         xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )

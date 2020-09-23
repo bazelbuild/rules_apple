@@ -43,7 +43,7 @@ bzl_library(
     deps = [
         ":entitlement_rules",
         ":exported_symbols_lists_rules",
-        ":rule_support",
+        ":platform_support",
         ":swift_support",
     ],
 )
@@ -87,6 +87,7 @@ bzl_library(
         ":linking_support",
         ":platform_support",
         ":resource_actions",
+        ":swift_support",
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
@@ -195,10 +196,13 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":bundling_support",
         ":intermediates",
         ":linking_support",
+        ":platform_support",
         ":resource_actions",
         ":rule_factory",
+        ":rule_support",
         "//apple:providers",
         "@bazel_skylib//lib:dicts",
     ],
@@ -220,6 +224,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":rule_factory",
+        ":rule_support",
         ":run_support",
         "//apple:providers",
     ],

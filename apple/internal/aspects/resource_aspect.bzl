@@ -19,8 +19,16 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -69,11 +77,32 @@ def _apple_resource_aspect_impl(target, ctx):
     # Collect all resource files related to this target.
     files = resources.collect(ctx.rule.attr, **collect_args)
     if files:
+        deps = getattr(ctx.attr, "deps", None)
+        uses_swift = swift_support.uses_swift(deps) if deps else False
+
+        # TODO(b/161370390): Support device_families when rule_descriptor can be accessed from an
+        # aspect, or the list of allowed device families can be determined independently of the
+        # rule_descriptor.
+        platform_prerequisites = platform_support.platform_prerequisites(
+            apple_fragment = ctx.fragments.apple,
+            config_vars = ctx.var,
+            device_families = None,
+            explicit_minimum_os = getattr(ctx.attr, "minimum_os_version", None),
+            objc_fragment = None,
+            platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+            uses_swift = uses_swift,
+            xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
+            xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        )
         providers.append(
             resources.bucketize_with_processing(
-                ctx,
-                files,
+                ctx = ctx,
+                actions = ctx.actions,
                 owner = owner,
+                platform_prerequisites = platform_prerequisites,
+                resources = files,
+                rule_executables = ctx.rule.executable,
+                rule_label = ctx.label,
                 **bucketize_args
             ),
         )

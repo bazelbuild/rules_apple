@@ -90,6 +90,7 @@ def _tvos_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
     swift_dylib_dependencies = ctx.attr.extensions + ctx.attr.frameworks
 
     processor_partials = [
@@ -140,9 +141,18 @@ def _tvos_application_impl(ctx):
             targets = ctx.attr.deps + embeddable_targets,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -214,10 +224,10 @@ def _tvos_framework_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
-        rule_descriptor = rule_support.rule_descriptor(ctx)
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]
@@ -273,11 +283,20 @@ def _tvos_framework_impl(ctx):
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(binary_provider = binary_provider),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
-            version_keys_required = False,
             top_level_attrs = ["resources"],
+            version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
             binary_artifact = binary_artifact,
@@ -313,6 +332,7 @@ def _tvos_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     archive = outputs.archive(
         actions = actions,
@@ -360,8 +380,17 @@ def _tvos_extension_impl(ctx):
         ),
         partials.extension_safe_validation_partial(is_extension_safe = True),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
         ),
@@ -441,7 +470,19 @@ def _tvos_static_framework_impl(ctx):
         )
 
     if not ctx.attr.exclude_resources:
-        processor_partials.append(partials.resources_partial())
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+
+        processor_partials.append(partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = ctx.executable,
+            rule_label = label,
+            rule_single_files = ctx.file,
+        ))
 
     processor_result = processor.process(ctx, processor_partials)
 
