@@ -97,7 +97,6 @@ def _describe_rule_type(
         requires_provisioning_profile = True,
         requires_signing_for_device = True,
         rpaths = [],
-        rule_transition = None,
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
     """Creates a rule descriptor struct containing all the platform and product specific configs.
@@ -150,7 +149,6 @@ def _describe_rule_type(
         requires_signing_for_device: Whether signing is required when building for devices (as
             opposed to simulators).
         rpaths: List of rpaths to add to the linker.
-        rule_transition: Starlark transition to apply to the rule.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
         stub_binary_path: Xcode SDK root relative path to the stub binary to copy as this rule's
@@ -194,7 +192,6 @@ def _describe_rule_type(
         requires_provisioning_profile = requires_provisioning_profile,
         requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
-        rule_transition = rule_transition,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         stub_binary_path = stub_binary_path,
     )
@@ -413,7 +410,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_command_line_application
         apple_product_type.tool: _describe_rule_type(
@@ -425,7 +421,6 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_provisioning_profile = True,
             requires_signing_for_device = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
@@ -435,7 +430,6 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -455,7 +449,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_quick_look_plugin
         apple_product_type.quicklook_plugin: _describe_rule_type(
@@ -468,7 +461,6 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
@@ -488,7 +480,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_kernel_extension
         apple_product_type.kernel_extension: _describe_rule_type(
@@ -509,7 +500,6 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_spotlight_importer
         apple_product_type.spotlight_importer: _describe_rule_type(
@@ -521,7 +511,6 @@ _RULE_TYPE_DESCRIPTORS = {
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
             requires_signing_for_device = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_xpc_service
         apple_product_type.xpc_service: _describe_rule_type(
@@ -540,7 +529,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -565,7 +553,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
                 "@loader_path/../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # macos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -590,7 +577,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
                 "@loader_path/../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
     },
     "tvos": {
@@ -614,7 +600,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_extension
         apple_product_type.app_extension: _describe_rule_type(
@@ -635,7 +620,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
@@ -651,7 +635,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_static_framework
         apple_product_type.static_framework: _describe_rule_type(
@@ -664,7 +647,6 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
             requires_provisioning_profile = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
@@ -688,7 +670,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
         # tvos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
@@ -712,7 +693,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
             skip_simulator_signing_allowed = False,
-            rule_transition = transition_support.apple_rule_transition,
         ),
     },
     "watchos": {
@@ -726,7 +706,6 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_application,
             requires_deps = False,
             requires_pkginfo = True,
-            rule_transition = transition_support.apple_rule_transition,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
         # watchos_extension
@@ -744,7 +723,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
-            rule_transition = transition_support.apple_rule_transition,
         ),
     },
 }
