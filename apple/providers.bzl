@@ -172,6 +172,7 @@ a "marker" to indicate that a target is specifically an Apple resource bundle
 dependency is an Apple resource bundle should use this provider to describe that
 requirement.
 """,
+    fields = [],
 )
 
 AppleTestInfo = provider(
@@ -264,9 +265,11 @@ a "marker" to indicate that a target is specifically an iOS application bundle
 dependency is an iOS application should use this provider to describe that
 requirement.
 """,
+    fields = [],
 )
 
 IosAppClipBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS app clip.
 
@@ -278,6 +281,7 @@ is an iOS app clip should use this provider to describe that requirement.
 )
 
 IosExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS application extension.
 
@@ -290,6 +294,7 @@ provider to describe that requirement.
 )
 
 IosFrameworkBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS dynamic framework.
 
@@ -302,6 +307,7 @@ that requirement.
 )
 
 IosStaticFrameworkBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS static framework.
 
@@ -314,6 +320,7 @@ that requirement.
 )
 
 IosImessageApplicationBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS iMessage application.
 
@@ -326,6 +333,7 @@ that requirement.
 )
 
 IosImessageExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS iMessage extension.
 
@@ -338,6 +346,7 @@ that requirement.
 )
 
 IosStickerPackExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an iOS Sticker Pack extension.
 
@@ -350,6 +359,7 @@ that requirement.
 )
 
 IosXcTestBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes a target that is an iOS .xctest bundle.
 
@@ -361,6 +371,7 @@ is an iOS .xctest bundle should use this provider to describe that requirement.
 )
 
 MacosApplicationBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS application.
 
@@ -373,6 +384,7 @@ requirement.
 )
 
 MacosBundleBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS loadable bundle.
 
@@ -385,6 +397,7 @@ requirement.
 )
 
 MacosExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS application extension.
 
@@ -397,6 +410,7 @@ provider to describe that requirement.
 )
 
 MacosKernelExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS kernel extension.
 
@@ -409,6 +423,7 @@ requirement.
 )
 
 MacosQuickLookPluginBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS Quick Look Generator bundle.
 
@@ -421,6 +436,7 @@ that requirement.
 )
 
 MacosSpotlightImporterBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS Spotlight Importer bundle.
 
@@ -433,6 +449,7 @@ requirement.
 )
 
 MacosXPCServiceBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a macOS XPC Service bundle.
 
@@ -445,6 +462,7 @@ requirement.
 )
 
 MacosXcTestBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes a target that is a macOS .xctest bundle.
 
@@ -457,6 +475,7 @@ requirement.
 )
 
 TvosApplicationBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a tvOS application.
 
@@ -469,6 +488,7 @@ requirement.
 )
 
 TvosExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a tvOS application extension.
 
@@ -481,6 +501,7 @@ provider to describe that requirement.
 )
 
 TvosFrameworkBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a tvOS dynamic framework.
 
@@ -493,6 +514,7 @@ that requirement.
 )
 
 TvosStaticFrameworkBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is an tvOS static framework.
 
@@ -505,6 +527,7 @@ that requirement.
 )
 
 TvosXcTestBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes a target that is a tvOS .xctest bundle.
 
@@ -516,6 +539,7 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
 )
 
 WatchosApplicationBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a watchOS application.
 
@@ -528,6 +552,7 @@ requirement.
 )
 
 WatchosExtensionBundleInfo = provider(
+    fields = [],
     doc = """
 Denotes that a target is a watchOS application extension.
 
