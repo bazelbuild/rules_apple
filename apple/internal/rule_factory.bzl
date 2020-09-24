@@ -39,6 +39,10 @@ load(
     "swift_static_framework_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_info_aspect",
 )
@@ -956,18 +960,17 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
 
     rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition:
-        rule_attrs.append({
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
-        })
+    rule_attrs.append({
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    })
 
     return rule(
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = rule_descriptor.rule_transition,
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
@@ -1014,19 +1017,18 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     elif platform_type == "watchos":
         rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
-    if rule_descriptor.rule_transition or rule_descriptor.force_transition_allowlist:
-        rule_attrs.append({
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
-        })
+    rule_attrs.append({
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    })
 
     archive_name = "%{name}" + rule_descriptor.archive_extension
     return rule(
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = rule_descriptor.rule_transition,
+        cfg = transition_support.apple_rule_transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],
