@@ -118,6 +118,6 @@ _static_framework_transition = transition(
 )
 
 transition_support = struct(
-    apple_rule_transition = None,
+    apple_rule_transition = _apple_rule_transition,
     static_framework_transition = _static_framework_transition,
 )
