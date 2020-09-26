@@ -20,13 +20,12 @@ import shutil
 import sys
 import tempfile
 
-from build_bazel_rules_apple.tools.bitcode_strip import bitcode_strip
 from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
 
 
 def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_path, sdk_platform,
-                        destination_path):
+                        destination_path, strip_bitcode):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Use the currently selected Xcode developer directory and SDK to determine
   # exactly which Swift stdlibs we should be copying.
@@ -47,6 +46,8 @@ def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_path, sdk_platform,
       library_source_dir, "--platform", sdk_platform, "--destination",
       destination_path
   ]
+  if strip_bitcode:
+    cmd.append("--strip-bitcode")
   for binary_to_scan in binaries_to_scan:
     cmd.extend(["--scan-executable", binary_to_scan])
 
@@ -58,8 +59,7 @@ def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_path, sdk_platform,
     print(stdout)
 
 
-def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
-                     destination_path):
+def _lipo_exec_files(exec_files, target_archs, source_path, destination_path):
   """Strips executable files if needed and copies them to the destination."""
   # Find all architectures from the set of files we might have to lipo.
   exec_archs = lipo.find_archs_for_binaries(
@@ -78,8 +78,6 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
       lipo.invoke_lipo(
           exec_file_source_path, target_archs, exec_file_destination_path
       )
-    if strip_bitcode:
-      bitcode_strip.invoke(exec_file_destination_path, exec_file_destination_path)
 
 
 def main():
@@ -113,7 +111,8 @@ def main():
 
   # Use the binaries to copy only the Swift stdlibs we need for this app.
   _copy_swift_stdlibs(
-      args.binary, args.swift_dylibs_path, args.platform, temp_path
+      args.binary, args.swift_dylibs_path, args.platform, temp_path,
+      args.strip_bitcode
   )
 
   # Determine the binary slices we need to strip with lipo.
@@ -127,8 +126,7 @@ def main():
   ]
 
   # Copy or use lipo to strip the executable Swift stdlibs to their destination.
-  _lipo_exec_files(stdlib_files, target_archs, args.strip_bitcode, temp_path,
-                   args.output_path)
+  _lipo_exec_files(stdlib_files, target_archs, temp_path, args.output_path)
 
   shutil.rmtree(temp_path)
 
