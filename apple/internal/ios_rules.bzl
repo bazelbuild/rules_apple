@@ -73,6 +73,7 @@ load(
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
 )
+load("@bazel_skylib//lib:collections.bzl", "collections")
 
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
@@ -84,8 +85,18 @@ def _ios_application_impl(ctx):
         "resources",
     ]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    extra_linkopts = []
+    if ctx.attr.sdk_frameworks:
+        extra_linkopts.extend(
+            collections.before_each("-framework", ctx.attr.sdk_frameworks),
+        )
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
@@ -136,7 +147,7 @@ def _ios_application_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = embeddable_targets,
             label_name = label.name,
             package_bitcode = True,
@@ -145,7 +156,7 @@ def _ios_application_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = embeddable_targets,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -234,7 +245,7 @@ def _ios_application_impl(ctx):
         IosApplicationBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_target[apple_common.AppleExecutableBinary],
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
@@ -246,8 +257,9 @@ def _ios_app_clip_impl(ctx):
         "resources",
     ]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
@@ -297,7 +309,7 @@ def _ios_app_clip_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = embeddable_targets,
             label_name = label.name,
             package_bitcode = True,
@@ -306,7 +318,7 @@ def _ios_app_clip_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = embeddable_targets,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -382,15 +394,17 @@ def _ios_app_clip_impl(ctx):
         IosAppClipBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_target[apple_common.AppleExecutableBinary],
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     # TODO(kaipi): Add support for packaging headers.
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
+    binary_descriptor = linking_support.register_linking_action(ctx)
+    binary_artifact = binary_descriptor.artifact
+    binary_provider = binary_descriptor.provider
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
@@ -439,7 +453,7 @@ def _ios_framework_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -449,7 +463,7 @@ def _ios_framework_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -458,9 +472,7 @@ def _ios_framework_impl(ctx):
         ),
         partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
-        partials.framework_provider_partial(
-            binary_provider = binary_target[apple_common.AppleDylibBinary],
-        ),
+        partials.framework_provider_partial(binary_provider = binary_provider),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -497,8 +509,20 @@ def _ios_extension_impl(ctx):
         "strings",
     ]
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleExecutableBinary].binary
+    extra_linkopts = []
+    if not ctx.attr.provides_main:
+        extra_linkopts.extend(["-e", "_NSExtensionMain"])
+    if ctx.attr.sdk_frameworks:
+        extra_linkopts.extend(
+            collections.before_each("-framework", ctx.attr.sdk_frameworks),
+        )
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
+    binary_artifact = binary_descriptor.artifact
+    debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
     bundle_id = ctx.attr.bundle_id
@@ -546,7 +570,7 @@ def _ios_extension_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -554,7 +578,7 @@ def _ios_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
         partials.debug_symbols_partial(
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
         ),
         partials.embedded_bundles_partial(
             plugins = [archive_for_embedding],

@@ -215,6 +215,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            deps_cfg = apple_common.multi_arch_split,
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,
@@ -236,6 +237,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            deps_cfg = apple_common.multi_arch_split,
             expose_non_archive_relative_output = True,
             is_executable = True,
             mandatory_families = True,
@@ -254,10 +256,9 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
+            deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                # Migrate to -fapplication-extension, like the other rules, once ios_extension is
-                # migrated to a proper rule and not a macro with an apple_binary.
-                "-application_extension",
+                "-fapplication-extension",
             ],
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
@@ -270,8 +271,10 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            binary_type = "dylib",
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            deps_cfg = apple_common.multi_arch_split,
             mandatory_families = True,
             product_type = apple_product_type.framework,
             rpaths = [
