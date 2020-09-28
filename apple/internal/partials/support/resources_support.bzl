@@ -247,7 +247,13 @@ def _infoplists(
     else:
         return struct(files = [], infoplists = files.to_list())
 
-def _metals(ctx, parent_dir, files, output_filename = "default.metallib"):
+def _metals(
+        *,
+        ctx,
+        parent_dir,
+        files,
+        output_filename = "default.metallib",
+        **kwargs):
     """Processes metal files.
 
     The metal files will be compiled into a Metal library named `default.metallib`.
@@ -257,6 +263,7 @@ def _metals(ctx, parent_dir, files, output_filename = "default.metallib"):
         parent_dir: The path under which the library should be placed.
         files: The metal files to process.
         output_filename: The output .metallib filename.
+        kwargs: Ignored
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
