@@ -597,7 +597,7 @@ def _ios_extension_impl(ctx):
         IosExtensionBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_target[apple_common.AppleExecutableBinary],
+        binary_descriptor.provider,
     ] + processor_result.providers
 
 def _ios_static_framework_impl(ctx):
