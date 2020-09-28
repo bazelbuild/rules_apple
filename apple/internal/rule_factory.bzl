@@ -681,6 +681,27 @@ that this target depends on.
             ),
         })
 
+    # TODO(b/XXXXXXXX): `sdk_frameworks` was never documented on `ios_application` but it leaked
+    # through due to the old macro passing it to the underlying `apple_binary`. Support this
+    # temporarily for a limited set of product types until we can migrate teams off the attribute,
+    # once explicit build targets are used to propagate linking information for system frameworks.
+    if (rule_descriptor.product_type == apple_product_type.application or
+        rule_descriptor.product_type == apple_product_type.app_extension):
+        attrs.append({
+            "sdk_frameworks": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`).
+`UIKit` and `Foundation` are always included, even if this attribute is
+provided and does not list them.
+
+This attribute is discouraged; in general, targets should list system
+framework dependencies in the library targets where that framework is used,
+not in the top-level bundle.
+""",
+            ),
+        })
+
     return attrs
 
 def _get_macos_attrs(rule_descriptor):
