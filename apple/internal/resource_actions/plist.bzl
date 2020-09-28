@@ -241,14 +241,9 @@ def merge_root_infoplists(
     # plisttool options for merging the Info.plist file.
     info_plist_options = {}
 
-<<<<<<< HEAD
-    bundle_name = bundling_support.bundle_name_with_extension(ctx)
-    executable_name = bundling_support.executable_name(ctx)
-    product_name = paths.replace_extension(bundle_name, "")
-=======
     bundle_name_with_extension = bundle_name + bundle_extension
+    executable_name = bundling_support.executable_name(ctx)
     product_name = paths.replace_extension(bundle_name_with_extension, "")
->>>>>>> 8f88e1f... Migrate the majority of the Resources partial to use the ctx-less format, and migrate all of the plist workflows and macros with that.
 
     # Values for string replacement substitutions to perform in the merged
     # Info.plist
@@ -319,15 +314,11 @@ def merge_root_infoplists(
             struct(**rule_descriptor.additional_infoplist_values),
         )
 
-<<<<<<< HEAD
     # Replace PRODUCT_BUNDLE_PACKAGE_TYPE based on info in rule descriptor
     if rule_descriptor.bundle_package_type:
         substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = rule_descriptor.bundle_package_type
 
-    if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
-=======
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
->>>>>>> 8f88e1f... Migrate the majority of the Resources partial to use the ctx-less format, and migrate all of the plist workflows and macros with that.
         plist_key = "LSMinimumSystemVersion"
     else:
         plist_key = "MinimumOSVersion"
