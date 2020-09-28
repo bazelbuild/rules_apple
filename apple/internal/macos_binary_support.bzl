@@ -73,6 +73,7 @@ def _macos_binary_infoplist_impl(ctx):
     actions = ctx.actions
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_id = ctx.attr.bundle_id
+    executable_name = bundling_support.executable_name(ctx)
     rule_descriptor = rule_support.rule_descriptor(ctx)
     rule_label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -98,6 +99,7 @@ def _macos_binary_infoplist_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         environment_plist = ctx.file._environment_plist,
         include_executable_name = False,
         input_plists = infoplists,

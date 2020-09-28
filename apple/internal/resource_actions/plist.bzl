@@ -180,6 +180,7 @@ def merge_root_infoplists(
         bundle_name,
         bundle_id = None,
         bundle_extension,
+        executable_name,
         child_plists = [],
         child_required_values = [],
         environment_plist,
@@ -204,6 +205,7 @@ def merge_root_infoplists(
       bundle_name: The name of the output bundle.
       bundle_id: The bundle identifier to set in the output plist.
       bundle_extension: The extension for the bundle.
+      executable_name: The name of the output executable.
       child_plists: A list of plists from child targets (such as extensions
           or Watch apps) whose bundle IDs and version strings should be
           validated against the compiled plist for consistency.
@@ -242,7 +244,6 @@ def merge_root_infoplists(
     info_plist_options = {}
 
     bundle_name_with_extension = bundle_name + bundle_extension
-    executable_name = bundling_support.executable_name(ctx)
     product_name = paths.replace_extension(bundle_name_with_extension, "")
 
     # Values for string replacement substitutions to perform in the merged

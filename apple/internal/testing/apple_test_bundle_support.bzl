@@ -292,6 +292,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
