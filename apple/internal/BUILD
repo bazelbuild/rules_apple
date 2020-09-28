@@ -41,12 +41,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":apple_product_type",
         ":entitlement_rules",
         ":exported_symbols_lists_rules",
         ":rule_support",
         ":swift_support",
-        "@bazel_skylib//lib:collections",
     ],
 )
 
@@ -173,6 +171,7 @@ bzl_library(
         ":stub_support",
         "//apple:providers",
         "//apple/internal/aspects:swift_static_framework_aspect",
+        "@bazel_skylib//lib:collections",
     ],
 )
 
