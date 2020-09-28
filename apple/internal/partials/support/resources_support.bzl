@@ -263,7 +263,7 @@ def _metals(
         parent_dir: The path under which the library should be placed.
         files: The metal files to process.
         output_filename: The output .metallib filename.
-        kwargs: Ignored
+        **kwargs: Ignored
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
