@@ -273,6 +273,7 @@ def _resources_partial_impl(
         bundle_extension,
         bundle_id,
         bundle_name,
+        executable_name,
         bundle_verification_targets,
         platform_prerequisites,
         plist_attrs,
@@ -456,6 +457,7 @@ def _resources_partial_impl(
                 bundle_extension = bundle_extension,
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
+                executable_name = executable_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = rule_single_files._environment_plist,
@@ -479,6 +481,7 @@ def resources_partial(
         bundle_extension,
         bundle_id = None,
         bundle_name,
+        executable_name,
         bundle_verification_targets = [],
         platform_prerequisites,
         plist_attrs = [],
@@ -502,6 +505,7 @@ def resources_partial(
             the bundle will not contain a root Info.plist and no embedded bundle verification will
             occur.
         bundle_name: The name of the output bundle.
+        executable_name: The name of the output executable.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
@@ -531,6 +535,7 @@ def resources_partial(
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         bundle_verification_targets = bundle_verification_targets,
         platform_prerequisites = platform_prerequisites,
         plist_attrs = plist_attrs,
