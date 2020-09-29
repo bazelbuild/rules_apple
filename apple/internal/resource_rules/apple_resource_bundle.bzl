@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -39,10 +43,6 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
 
 def _apple_resource_bundle_impl(ctx):
     actions = ctx.actions
@@ -55,7 +55,7 @@ def _apple_resource_bundle_impl(ctx):
 
     # TODO(b/168721966): Move all resource processing below into the resource aspect. This will
     # avoid issues with being able to determine platform information from these rules, where we do
-    # not have sufficient knowledge to fill out all of the platform prerequisites
+    # not have sufficient knowledge to fill out all of the platform prerequisites.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
@@ -82,10 +82,11 @@ def _apple_resource_bundle_impl(ctx):
     if resource_files:
         providers.append(
             resources.bucketize_with_processing(
-                ctx = ctx,
                 actions = actions,
+                bundle_id = None,
                 parent_dir_param = bundle_name,
                 platform_prerequisites = platform_prerequisites,
+                product_type = None,
                 resources = resource_files,
                 rule_executables = rule_executables,
                 rule_label = rule_label,
@@ -102,14 +103,15 @@ def _apple_resource_bundle_impl(ctx):
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
         providers.append(
             resources.bucketize_with_processing(
-                ctx = ctx,
                 actions = actions,
                 allowed_buckets = ["strings", "plists"],
+                bundle_id = None,
                 parent_dir_param = partial.make(
                     resources.structured_resources_parent_dir,
                     parent_dir = bundle_name,
                 ),
                 platform_prerequisites = platform_prerequisites,
+                product_type = None,
                 resources = structured_files,
                 rule_executables = rule_executables,
                 rule_label = rule_label,

@@ -19,13 +19,14 @@ load(
     "apple_support",
 )
 
-def copy_png(ctx, input_file, output_file):
+def copy_png(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that copies and compresses a png using copypng.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
       input_file: The png file to be copied.
       output_file: The file reference for the output plist.
+      platform_prerequisites: Struct containing information on the platform being targeted.
     """
 
     # Xcode uses `xcrun copypng -strip-PNG-text -compress IN OUT`. But pngcrush
@@ -33,10 +34,8 @@ def copy_png(ctx, input_file, output_file):
     # signal, so instead just expand out the comment to skip the script and
     # directly run Xcode's copy of pngcrush with the same args.
     apple_support.run(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_file],
-        executable = "/usr/bin/xcrun",
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
             "pngcrush",
             # -compress expands to:
@@ -50,5 +49,10 @@ def copy_png(ctx, input_file, output_file):
             input_file.path,
             output_file.path,
         ],
+        executable = "/usr/bin/xcrun",
+        inputs = [input_file],
         mnemonic = "CopyPng",
+        outputs = [output_file],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
