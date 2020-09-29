@@ -19,24 +19,34 @@ load(
     "apple_support",
 )
 
-def compile_texture_atlas(ctx, input_path, input_files, output_dir):
+def compile_texture_atlas(
+        *,
+        actions,
+        input_files,
+        input_path,
+        output_dir,
+        platform_prerequisites):
     """Creates an action that compiles texture atlas bundles (i.e. .atlas).
 
     Args:
-      ctx: The target's rule context.
-      input_path: The path to the .atlas directory to compile.
+      actions: The actions provider from `ctx.actions`.
       input_files: The atlas file inputs that will be compiled.
+      input_path: The path to the .atlas directory to compile.
       output_dir: The file reference for the compiled output directory.
+      platform_prerequisites: Struct containing information on the platform being targeted.
     """
     apple_support.run(
-        ctx,
-        executable = "/usr/bin/xcrun",
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
             "TextureAtlas",
             input_path,
             output_dir.path,
         ],
+        executable = "/usr/bin/xcrun",
         inputs = input_files,
-        outputs = [output_dir],
         mnemonic = "CompileTextureAtlas",
+        outputs = [output_dir],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )

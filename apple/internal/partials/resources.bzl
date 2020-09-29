@@ -401,14 +401,14 @@ def _resources_partial_impl(
                     sets.insert(locales_dropped, locale)
                     continue
 
-            # TODO(b/161370390): Eliminate this dependency on ctx and its use as an argument above.
             processing_args = {
                 "actions": actions,
-                "ctx": ctx,
+                "bundle_id": bundle_id,
                 "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                "product_type": rule_descriptor.product_type,
                 "rule_label": rule_label,
             }
 

@@ -96,10 +96,11 @@ def _apple_resource_aspect_impl(target, ctx):
         )
         providers.append(
             resources.bucketize_with_processing(
-                ctx = ctx,
                 actions = ctx.actions,
+                bundle_id = getattr(ctx.attr, "bundle_id", None),
                 owner = owner,
                 platform_prerequisites = platform_prerequisites,
+                product_type = getattr(ctx.attr, "_product_type", None),
                 resources = files,
                 rule_executables = ctx.rule.executable,
                 rule_label = ctx.label,

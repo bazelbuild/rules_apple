@@ -310,12 +310,13 @@ def _bucketize_typed(resources, bucket_type, owner = None, parent_dir_param = No
 
 def _bucketize_with_processing(
         *,
-        ctx,
         actions,
         allowed_buckets = None,
+        bundle_id,
         owner = None,
         parent_dir_param = None,
         platform_prerequisites,
+        product_type,
         resources,
         rule_executables,
         rule_label,
@@ -328,17 +329,18 @@ def _bucketize_with_processing(
     the expected outputs for each of the actions declared in this method.
 
     Args:
-        ctx: The target's rule context. Deprecated.
         actions: The actions provider from `ctx.actions`.
         allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
             buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
             means all buckets are allowed.
+        bundle_id: The bundle ID to configure for this target.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
         platform_prerequisites: Struct containing information on the platform being targeted.
+        product_type: The product type identifier used to describe the current bundle type.
         resources: List of resources to bucketize.
         rule_executables: Struct containing executable files defined by a rule.
         rule_label: The label of the target being analyzed.
@@ -365,14 +367,14 @@ def _bucketize_with_processing(
         for parent_dir, swift_module, files in processed_field:
             processing_func, requires_swift_module = bucket_action
 
-            # TODO(b/161370390): Eliminate this dependency on ctx and its use as an argument above.
             processing_args = {
                 "actions": actions,
-                "ctx": ctx,
+                "bundle_id": bundle_id,
                 "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                "product_type": product_type,
                 "rule_label": rule_label,
             }
 

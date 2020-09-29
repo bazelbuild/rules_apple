@@ -19,6 +19,14 @@ load(
     "resource_actions",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -33,27 +41,49 @@ load(
 
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
+    actions = ctx.actions
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
+    rule_executables = ctx.executable
 
-    coremlc_source = ctx.actions.declare_file(
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = swift_support.uses_swift(deps) if deps else False
+
+    coremlc_source = actions.declare_file(
         "{}.m".format(basename),
         sibling = ctx.outputs.source,
     )
-    coremlc_header = ctx.actions.declare_file("{}.h".format(basename), sibling = coremlc_source)
+    coremlc_header = actions.declare_file("{}.h".format(basename), sibling = coremlc_source)
+
+    # TODO(b/168721966): Consider if an aspect could be used to generate mlmodel sources. This
+    # would be similar to how we are planning to use the resource aspect with the
+    # apple_resource_bundle and apple_resource_group resource rules. That might allow for more
+    # portable platform information.
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        device_families = None,
+        objc_fragment = None,
+        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        uses_swift = uses_swift,
+        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
     resource_actions.generate_objc_mlmodel_sources(
-        ctx,
-        ctx.file.mlmodel,
-        coremlc_source,
-        coremlc_header,
+        actions = actions,
+        input_file = ctx.file.mlmodel,
+        output_source = coremlc_source,
+        output_header = coremlc_header,
+        platform_prerequisites = platform_prerequisites,
+        xctoolrunner_executable = rule_executables._xctoolrunner,
     )
 
     # But we would like our ObjC clients to use <target_name>.h instead, so we create that header
     # too and import the coremlc header.
-    public_header = ctx.actions.declare_file("{}.h".format(ctx.attr.header_name))
-    ctx.actions.write(
+    public_header = actions.declare_file("{}.h".format(ctx.attr.header_name))
+    actions.write(
         public_header,
         "#import \"{}\"".format(coremlc_header.path),
     )
@@ -62,7 +92,7 @@ def _apple_core_ml_library_impl(ctx):
     # output, but those can only reference the name of the target, so we need to symlink the coremlc
     # source into the implicit output. We don't want to do this for the headers since we would like
     # the header to be named as the objc_library target and not the target for this rule.
-    ctx.actions.symlink(target_file = coremlc_source, output = ctx.outputs.source)
+    actions.symlink(target_file = coremlc_source, output = ctx.outputs.source)
 
     # This rule returns the headers as its outputs so that they can be referenced in the hdrs of the
     # underlying objc_library.
