@@ -60,7 +60,7 @@ frameworks expect a single swift_library dependency with `module_name` set to th
     generated_header = swift_dynamic_framework_info.generated_header
     swiftdocs = swift_dynamic_framework_info.swiftdocs
     swiftmodules = swift_dynamic_framework_info.swiftmodules
-    modulemapFile = swift_dynamic_framework_info.modulemap
+    modulemap_file = swift_dynamic_framework_info.modulemap
 
     bundle_files = []
     modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
@@ -84,9 +84,9 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         ctx.actions.symlink(target_file = generated_header, output = bundle_header)
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
-    if modulemapFile:
+    if modulemap_file:
         modulemap = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")
-        ctx.actions.symlink(target_file = modulemapFile, output = modulemap)
+        ctx.actions.symlink(target_file = modulemap_file, output = modulemap)
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
     providers = []

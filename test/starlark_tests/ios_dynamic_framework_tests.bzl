@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ios_framework Starlark tests."""
+"""ios_dynamic_framework Starlark tests."""
 
 load(
     ":rules/common_verification_tests.bzl",
@@ -23,9 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_dynamic_framework_test_suite():
-    """Test suite for ios_framework."""
-    name = "ios_dynamic_framework"
+def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
+    """Test suite for ios_dynamic_framework.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     archive_contents_test(
         name = "{}_archive_contents_test".format(name),

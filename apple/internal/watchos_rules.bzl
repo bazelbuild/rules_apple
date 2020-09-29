@@ -62,18 +62,11 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
+    "IosFrameworkBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "IosFrameworkBundleInfo",
 )
 
 def _watchos_dynamic_framework_impl(ctx):

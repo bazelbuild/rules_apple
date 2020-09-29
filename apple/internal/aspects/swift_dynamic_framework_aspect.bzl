@@ -91,6 +91,7 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     generated_header = None
     swiftdocs = {}
     swiftmodules = {}
+    modulemap_file = None
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
 
@@ -107,18 +108,18 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
         swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list().pop()
         swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list().pop()
         
-        modulemapFile = ctx.actions.declare_file("{}File.modulemap".format(module_name))
-        ctx.actions.write(modulemapFile, _modulemap_contents(module_name))
+        modulemap_file = ctx.actions.declare_file("{}File.modulemap".format(module_name))
+        ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
 
     # Make sure that all dictionaries contain at least one module before returning the provider.
-    if all([module_name, generated_header, swiftdocs, swiftmodules, modulemapFile]):
+    if all([module_name, generated_header, swiftdocs, swiftmodules, modulemap_file]):
         return [
             SwiftDynamicFrameworkInfo(
                 module_name = module_name,
                 generated_header = generated_header,
                 swiftdocs = swiftdocs,
                 swiftmodules = swiftmodules,
-                modulemap = modulemapFile,
+                modulemap = modulemap_file,
             ),
         ]
     else:

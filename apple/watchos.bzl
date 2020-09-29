@@ -27,10 +27,6 @@ load(
     "binary_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
-    _watchos_dynamic_framework = "watchos_dynamic_framework",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -41,6 +37,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_extension = "watchos_extension",
+    _watchos_dynamic_framework = "watchos_dynamic_framework",
 )
 
 def watchos_application(name, **kwargs):
