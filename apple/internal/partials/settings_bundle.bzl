@@ -39,13 +39,20 @@ load(
     "partial",
 )
 
-def _settings_bundle_partial_impl(ctx):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _settings_bundle_partial_impl(
+        *,
+        ctx,
+        actions,
+        platform_prerequisites,
+        rule_label,
+        settings_bundle):
     """Implementation for the settings bundle processing partial."""
 
-    if not ctx.attr.settings_bundle:
+    if not settings_bundle:
         return struct()
 
-    provider = ctx.attr.settings_bundle[AppleResourceInfo]
+    provider = settings_bundle[AppleResourceInfo]
     fields = resources.populated_resource_fields(provider)
     bundle_files = []
     for field in fields:
@@ -54,11 +61,15 @@ def _settings_bundle_partial_impl(ctx):
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
 
             if field in ["plists", "strings"]:
+                # TODO(b/161370390): This might already be dead code as the workflow appears to be
+                # handled by the resource aspect. Confirm this in follow up work.
                 compiled_files = resources_support.plists_and_strings(
-                    ctx,
-                    parent_dir,
-                    files,
+                    actions = actions,
+                    files = files,
                     force_binary = True,
+                    parent_dir = parent_dir,
+                    platform_prerequisites = platform_prerequisites,
+                    rule_label = rule_label,
                 )
                 bundle_files.extend(compiled_files.files)
             else:
@@ -66,14 +77,30 @@ def _settings_bundle_partial_impl(ctx):
 
     return struct(bundle_files = bundle_files)
 
-def settings_bundle_partial():
+def settings_bundle_partial(
+        *,
+        actions,
+        platform_prerequisites,
+        rule_label,
+        settings_bundle):
     """Constructor for the settings bundles processing partial.
 
-    This partial processes the settings bundle for iOS applications.
+    This partial processes the settings bundle for Apple applications.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        rule_label: The label of the target being analyzed.
+        settings_bundle: A list of labels representing resource bundle targets that contain the
+            files that make up the application's settings bundle.
 
     Returns:
         A partial that returns the bundle location of the settings bundle, if any were configured.
     """
     return partial.make(
         _settings_bundle_partial_impl,
+        actions = actions,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = rule_label,
+        settings_bundle = settings_bundle,
     )

@@ -36,15 +36,16 @@ load(
     "paths",
 )
 
-def _macos_additional_contents_partial_impl(ctx):
-    """Implementation for the settings bundle processing partial."""
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _macos_additional_contents_partial_impl(*, ctx, additional_contents):
+    """Implementation for the additional contents processing partial."""
 
-    if not ctx.attr.additional_contents:
+    if not additional_contents:
         return struct()
 
     bundle_files = []
     bundle_zips = []
-    for target, subdirectory in ctx.attr.additional_contents.items():
+    for target, subdirectory in additional_contents.items():
         if AppleBundleInfo in target:
             bundle_zips.append(
                 (
@@ -78,10 +79,14 @@ def _macos_additional_contents_partial_impl(ctx):
         bundle_zips = bundle_zips,
     )
 
-def macos_additional_contents_partial():
+def macos_additional_contents_partial(*, additional_contents):
     """Constructor for the macOS additional contents processing partial.
 
     This partial processes additional contents for macOS applications.
+
+    Args:
+        additional_contents: A dictionary of labels to strings representing files that should be
+            copied into specific subdirectories of the `Contents` folder in the bundle.
 
     Returns:
         A partial that returns the bundle location of the additional contents bundle, if any were
@@ -89,4 +94,5 @@ def macos_additional_contents_partial():
     """
     return partial.make(
         _macos_additional_contents_partial_impl,
+        additional_contents = additional_contents,
     )

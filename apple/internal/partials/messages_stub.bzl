@@ -39,25 +39,26 @@ archive.
     },
 )
 
-def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _messages_stub_partial_impl(
+        *,
+        ctx,
+        actions,
+        binary_artifact,
+        extensions,
+        label_name,
+        package_messages_support):
     """Implementation for the messages support stub processing partial."""
 
     bundle_files = []
     providers = []
 
     if package_messages_support:
-        # TODO(kaipi): Make extensions a parameter of the partial, not a hardcoded lookup in the
-        # partial.
-        if hasattr(ctx.attr, "extensions"):
-            extension_binaries = [
-                x[_AppleMessagesStubInfo].binary
-                for x in ctx.attr.extensions
-                if _AppleMessagesStubInfo in x
-            ]
-        elif hasattr(ctx.attr, "extension") and _AppleMessagesStubInfo in ctx.attr.extension:
-            extension_binaries = [ctx.attr.extension[_AppleMessagesStubInfo].binary]
-        else:
-            extension_binaries = []
+        extension_binaries = [
+            x[_AppleMessagesStubInfo].binary
+            for x in extensions
+            if _AppleMessagesStubInfo in x
+        ]
 
         if extension_binaries:
             bundle_files.append(
@@ -70,11 +71,11 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
 
         if binary_artifact:
             intermediate_file = intermediates.file(
-                ctx.actions,
-                ctx.label.name,
+                actions,
+                label_name,
                 "MessagesApplicationSupportStub",
             )
-            ctx.actions.symlink(
+            actions.symlink(
                 target_file = binary_artifact,
                 output = intermediate_file,
             )
@@ -89,11 +90,11 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
 
     elif binary_artifact:
         intermediate_file = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            label_name,
             "MessagesApplicationExtensionSupportStub",
         )
-        ctx.actions.symlink(
+        actions.symlink(
             target_file = binary_artifact,
             output = intermediate_file,
         )
@@ -104,13 +105,22 @@ def _messages_stub_partial_impl(ctx, binary_artifact, package_messages_support):
         providers = providers,
     )
 
-def messages_stub_partial(binary_artifact = None, package_messages_support = False):
+def messages_stub_partial(
+        *,
+        actions,
+        binary_artifact = None,
+        extensions = None,
+        label_name,
+        package_messages_support = False):
     """Constructor for the messages support stub processing partial.
 
     This partial copies the messages support stubs into the expected location for iOS archives.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
         binary_artifact: The stub binary to copy.
+        extensions: List of extension bundles associated with this rule.
+        label_name: Name of the target being built.
         package_messages_support: Whether to package the messages stub binary in the archive root.
 
     Returns:
@@ -118,6 +128,9 @@ def messages_stub_partial(binary_artifact = None, package_messages_support = Fal
     """
     return partial.make(
         _messages_stub_partial_impl,
+        actions = actions,
         binary_artifact = binary_artifact,
+        extensions = extensions,
+        label_name = label_name,
         package_messages_support = package_messages_support,
     )

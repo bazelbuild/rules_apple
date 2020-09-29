@@ -39,10 +39,6 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -84,18 +80,21 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
 }
 
 def _swift_dylib_action(
-    ctx,
-    platform_name,
-    binary_files,
-    output_dir,
-    strip_bitcode = False):
+        *,
+        actions,
+        binary_files,
+        output_dir,
+        platform_name,
+        platform_prerequisites,
+        swift_stdlib_tool,
+        strip_bitcode = False):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
     swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
 
     # Xcode 11 changed the location of the Swift dylibs within the default toolchain, so we need to
     # make the dylibs path conditional on the Xcode version.
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = platform_prerequisites.xcode_version_config
     if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
         swift_dylibs_path += "-5.0"
 
@@ -117,20 +116,29 @@ def _swift_dylib_action(
         swift_stdlib_tool_args.append("--strip_bitcode")
 
     apple_support.run(
-        ctx,
-        inputs = binary_files,
-        executable = ctx.executable._swift_stdlib_tool,
-        outputs = [output_dir],
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = swift_stdlib_tool_args,
+        executable = swift_stdlib_tool,
+        inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",
+        outputs = [output_dir],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dylibs_partial_impl(
+        *,
         ctx,
+        actions,
         binary_artifact,
-        dependency_targets,
         bundle_dylibs,
-        package_swift_support_if_needed):
+        dependency_targets,
+        label_name,
+        package_swift_support_if_needed,
+        platform_prerequisites,
+        swift_stdlib_tool):
     """Implementation for the Swift dylibs processing partial."""
 
     # Collect transitive data.
@@ -146,9 +154,9 @@ def _swift_dylibs_partial_impl(
         transitive_swift_support_files.extend(provider.swift_support_files)
 
     direct_binaries = []
-    if binary_artifact and swift_support.uses_swift(ctx.attr.deps):
-        target_min_os = apple_common.dotted_version(platform_support.minimum_os(ctx))
-        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_support.platform_type(ctx))]
+    if binary_artifact and platform_prerequisites.uses_swift:
+        target_min_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
+        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_prerequisites.platform_type)]
 
         # Only check this binary for Swift dylibs if the minimum OS version is lower than the
         # minimum OS version under which Swift dylibs are already packaged with the OS.
@@ -170,18 +178,20 @@ def _swift_dylibs_partial_impl(
         propagated_binaries = depset()
         binaries_to_check = transitive_binaries.to_list()
         if binaries_to_check:
-            platform_name = platform_support.platform(ctx).name_in_plist.lower()
+            platform_name = platform_prerequisites.platform.name_in_plist.lower()
             output_dir = intermediates.directory(
-                ctx.actions,
-                ctx.label.name,
+                actions,
+                label_name,
                 "swiftlibs",
             )
             _swift_dylib_action(
-                ctx,
-                platform_name,
-                binaries_to_check,
-                output_dir,
-                strip_bitcode,
+                actions = actions,
+                binary_files = binaries_to_check,
+                output_dir = output_dir,
+                platform_name = platform_name,
+                platform_prerequisites = platform_prerequisites,
+                swift_stdlib_tool = swift_stdlib_tool,
+                strip_bitcode = strip_bitcode,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
@@ -197,10 +207,13 @@ def _swift_dylibs_partial_impl(
                         "swiftlibs_for_swiftsupport",
                     )
                     _swift_dylib_action(
-                        ctx,
-                        platform_name,
-                        binaries_to_check,
-                        swift_support_output_dir,
+                        actions = actions,
+                        binary_files = binaries_to_check,
+                        output_dir = swift_support_output_dir,
+                        platform_name = platform_name,
+                        platform_prerequisites = platform_prerequisites,
+                        swift_stdlib_tool = swift_stdlib_tool,
+                        strip_bitcode = strip_bitcode,
                     )
                 else:
                     # When not building with bitcode, we can reuse Swift dylibs
@@ -238,23 +251,32 @@ def _swift_dylibs_partial_impl(
     )
 
 def swift_dylibs_partial(
+        *,
+        actions,
         binary_artifact,
-        dependency_targets = [],
         bundle_dylibs = False,
-        package_swift_support_if_needed = False):
+        dependency_targets = [],
+        label_name,
+        package_swift_support_if_needed = False,
+        platform_prerequisites,
+        swift_stdlib_tool):
     """Constructor for the Swift dylibs processing partial.
 
     This partial handles the Swift dylibs that may need to be packaged or propagated.
 
     Args:
+      actions: The actions provider from `ctx.actions`.
       binary_artifact: The main binary artifact for this target.
-      dependency_targets: List of targets that should be checked for binaries that might contain
-        Swift, so that the Swift dylibs can be collected.
       bundle_dylibs: Whether the partial should return the Swift files to be bundled inside the
         target's bundle.
+      dependency_targets: List of targets that should be checked for binaries that might contain
+        Swift, so that the Swift dylibs can be collected.
+      label_name: Name of the target being built.
       package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for
         each dependency platform into the SwiftSupport directory at the root of the archive. It
         might still not be included depending on what it is being built for.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      swift_stdlib_tool: A reference to a tool to copy Swift stdlibs required by the binaries.
 
     Returns:
       A partial that returns the bundle location of the Swift dylibs and propagates dylib
@@ -262,8 +284,12 @@ def swift_dylibs_partial(
     """
     return partial.make(
         _swift_dylibs_partial_impl,
+        actions = actions,
         binary_artifact = binary_artifact,
-        dependency_targets = dependency_targets,
         bundle_dylibs = bundle_dylibs,
+        dependency_targets = dependency_targets,
+        label_name = label_name,
         package_swift_support_if_needed = package_swift_support_if_needed,
+        platform_prerequisites = platform_prerequisites,
+        swift_stdlib_tool = swift_stdlib_tool,
     )
