@@ -39,7 +39,14 @@ archive.
     },
 )
 
-def _watchos_stub_partial_impl(ctx, binary_artifact, package_watchkit_support):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _watchos_stub_partial_impl(
+        *,
+        ctx,
+        actions,
+        binary_artifact,
+        label_name,
+        watch_application):
     """Implementation for the watchOS stub processing partial."""
 
     bundle_files = []
@@ -47,11 +54,11 @@ def _watchos_stub_partial_impl(ctx, binary_artifact, package_watchkit_support):
     if binary_artifact:
         # Create intermediate file with proper name for the binary.
         intermediate_file = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            label_name,
             "WK",
         )
-        ctx.actions.symlink(
+        actions.symlink(
             target_file = binary_artifact,
             output = intermediate_file,
         )
@@ -60,8 +67,8 @@ def _watchos_stub_partial_impl(ctx, binary_artifact, package_watchkit_support):
         )
         providers.append(_AppleWatchosStubInfo(binary = intermediate_file))
 
-    if package_watchkit_support:
-        binary_artifact = ctx.attr.watch_application[_AppleWatchosStubInfo].binary
+    if watch_application:
+        binary_artifact = watch_application[_AppleWatchosStubInfo].binary
         bundle_files.append(
             (processor.location.archive, "WatchKitSupport2", depset([binary_artifact])),
         )
@@ -71,7 +78,12 @@ def _watchos_stub_partial_impl(ctx, binary_artifact, package_watchkit_support):
         providers = providers,
     )
 
-def watchos_stub_partial(binary_artifact = None, package_watchkit_support = False):
+def watchos_stub_partial(
+        *,
+        actions,
+        binary_artifact = None,
+        label_name,
+        watch_application = None):
     """Constructor for the watchOS stub processing partial.
 
     This partial copies the WatchKit stub into the expected location inside the watchOS bundle.
@@ -79,14 +91,19 @@ def watchos_stub_partial(binary_artifact = None, package_watchkit_support = Fals
     to the ios_application rule for packaging the stub in the WatchKitSupport2 root directory.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
         binary_artifact: The stub binary to copy.
-        package_watchkit_support: Whether to package the watchOS stub binary in the archive root.
+        label_name: Name of the target being built.
+        watch_application: Optional. A reference to the watch application associated with the rule.
+            If defined, this partial will package the watchOS stub binary in the archive root.
 
     Returns:
       A partial that returns the bundle location of the stub binary.
     """
     return partial.make(
         _watchos_stub_partial_impl,
+        actions = actions,
         binary_artifact = binary_artifact,
-        package_watchkit_support = package_watchkit_support,
+        label_name = label_name,
+        watch_application = watch_application,
     )
