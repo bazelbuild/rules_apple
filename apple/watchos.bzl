@@ -26,10 +26,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
