@@ -28,7 +28,9 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
+        "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",

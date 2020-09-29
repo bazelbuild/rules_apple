@@ -31,10 +31,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -47,7 +43,12 @@ load(
     "paths",
 )
 
-def _actool_args_for_special_file_types(ctx, asset_files):
+def _actool_args_for_special_file_types(
+        *,
+        asset_files,
+        bundle_id,
+        platform_prerequisites,
+        product_type):
     """Returns command line arguments needed to compile special assets.
 
     This function is called by `actool` to scan for specially recognized asset
@@ -57,15 +58,16 @@ def _actool_args_for_special_file_types(ctx, asset_files):
     one app icon set or launch image set to be present).
 
     Args:
-      ctx: The target's rule context.
       asset_files: The asset catalog files.
+      bundle_id: The bundle ID to configure for this target.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      product_type: The product type identifier used to describe the current bundle type.
 
     Returns:
       An array of extra arguments to pass to `actool`, which may be empty.
     """
     args = []
 
-    product_type = ctx.attr._product_type
     if product_type in (
         apple_product_type.messages_extension,
         apple_product_type.messages_sticker_pack_extension,
@@ -77,7 +79,7 @@ def _actool_args_for_special_file_types(ctx, asset_files):
         # ios_extension, in which case the bundle ID might not be appropriate here.
         args.extend([
             "--sticker-pack-identifier-prefix",
-            ctx.attr.bundle_id + ".sticker-pack.",
+            bundle_id + ".sticker-pack.",
         ])
 
         # Fail if the user has included .appiconset folders in their asset catalog;
@@ -101,14 +103,12 @@ def _actool_args_for_special_file_types(ctx, asset_files):
                  "(.appiconset). Found the following: " +
                  formatted_dirs, "app_icons")
 
+    elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
+        appicon_extension = "brandassets"
+        icon_files = [f for f in asset_files if ".brandassets/" in f.path]
     else:
-        platform_type = platform_support.platform_type(ctx)
-        if platform_type == apple_common.platform_type.tvos:
-            appicon_extension = "brandassets"
-            icon_files = [f for f in asset_files if ".brandassets/" in f.path]
-        else:
-            appicon_extension = "appiconset"
-            icon_files = [f for f in asset_files if ".appiconset/" in f.path]
+        appicon_extension = "appiconset"
+        icon_files = [f for f in asset_files if ".appiconset/" in f.path]
 
     # Add arguments for app icons, if there are any.
     if icon_files:
@@ -147,7 +147,16 @@ def _actool_args_for_special_file_types(ctx, asset_files):
 
     return args
 
-def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
+def compile_asset_catalog(
+        *,
+        actions,
+        asset_files,
+        bundle_id,
+        output_dir,
+        output_plist,
+        platform_prerequisites,
+        product_type,
+        xctoolrunner_executable):
     """Creates an action that compiles asset catalogs.
 
     This action populates a directory with compiled assets that must be merged
@@ -156,18 +165,21 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
     launch image are requested (if not, the actool plist is empty).
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
       asset_files: An iterable of files in all asset catalogs that should be
           packaged as part of this catalog. This should include transitive
           dependencies (i.e., assets not just from the application target, but
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
+      bundle_id: The bundle ID to configure for this target.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      product_type: The product type identifier used to describe the current bundle type.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
-    platform = platform_support.platform(ctx)
-    min_os = platform_support.minimum_os(ctx)
+    platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
 
     args = [
@@ -177,25 +189,23 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
         "--platform",
         actool_platform,
         "--minimum-deployment-target",
-        min_os,
+        platform_prerequisites.minimum_os,
         "--compress-pngs",
     ]
 
-    if xcode_support.is_xcode_at_least_version(
-        ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-        "8",
-    ):
-        product_type = ctx.attr._product_type
+    if xcode_support.is_xcode_at_least_version(platform_prerequisites.xcode_version_config, "8"):
         if product_type:
             args.extend(["--product-type", product_type])
 
     args.extend(_actool_args_for_special_file_types(
-        ctx,
-        asset_files,
+        asset_files = asset_files,
+        bundle_id = bundle_id,
+        platform_prerequisites = platform_prerequisites,
+        product_type = product_type,
     ))
     args.extend(collections.before_each(
         "--target-device",
-        platform_support.families(ctx),
+        platform_prerequisites.device_families,
     ))
 
     outputs = [output_dir]
@@ -215,11 +225,12 @@ def compile_asset_catalog(ctx, asset_files, output_dir, output_plist):
     args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
     legacy_actions.run(
-        ctx,
-        inputs = asset_files,
-        outputs = outputs,
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
-        mnemonic = "AssetCatalogCompile",
+        executable = xctoolrunner_executable,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = asset_files,
+        mnemonic = "AssetCatalogCompile",
+        outputs = outputs,
+        platform_prerequisites = platform_prerequisites,
     )
