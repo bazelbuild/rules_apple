@@ -47,10 +47,17 @@ load(
     "paths",
 )
 
-def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _framework_import_partial_impl(
+        *,
+        ctx,
+        actions,
+        label_name,
+        platform_prerequisites,
+        rule_executables,
+        targets,
+        targets_to_avoid):
     """Implementation for the framework import file processing partial."""
-    _ignored = [ctx]
-
     transitive_sets = [
         x[AppleFrameworkImportInfo].framework_imports
         for x in targets
@@ -116,14 +123,14 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         # Create a temporary path for intermediate files and the anticipated zip output.
         temp_path = paths.join("_imported_frameworks/", framework_basename)
         framework_zip = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            label_name,
             temp_path + ".zip",
         )
         temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
 
         # Pass through all binaries, files, and relevant info as args.
-        args = ctx.actions.args()
+        args = actions.args()
 
         for framework_binary in framework_binaries_by_framework[framework_basename]:
             args.add("--framework_binary", framework_binary.path)
@@ -138,6 +145,7 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         for file in files_by_framework[framework_basename]:
             args.add("--framework_file", file.path)
 
+        # TODO(b/161370390): Remove ctx from all instances of codesigning_support.codesigning_args.
         codesign_args = codesigning_support.codesigning_args(
             ctx,
             entitlements = None,
@@ -147,18 +155,19 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         args.add_all(codesign_args)
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
-        # current build's preferred architecture, plus a generated list of those binaries to prune
-        # their dependencies so that future changes to the app/extension/framework binaries do not
-        # force this action to re-run on incremental builds.
+        # current build's preferred architecture.
         apple_support.run(
-            ctx,
+            actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            arguments = [args],
+            executable = rule_executables._imported_dynamic_framework_processor,
             inputs = files_by_framework[framework_basename] +
                      framework_binaries_by_framework[framework_basename],
-            tools = [ctx.executable._codesigningtool],
-            executable = ctx.executable._imported_dynamic_framework_processor,
-            outputs = [framework_zip],
-            arguments = [args],
             mnemonic = "ImportedDynamicFrameworkProcessor",
+            outputs = [framework_zip],
+            tools = [rule_executables._codesigningtool],
+            xcode_config = platform_prerequisites.xcode_version_config,
+            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
 
         bundle_zips.append(
@@ -171,13 +180,24 @@ def _framework_import_partial_impl(ctx, targets, targets_to_avoid):
         signed_frameworks = depset(signed_frameworks_list),
     )
 
-def framework_import_partial(targets, targets_to_avoid = []):
+def framework_import_partial(
+        *,
+        actions,
+        label_name,
+        platform_prerequisites,
+        rule_executables,
+        targets,
+        targets_to_avoid = []):
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
     the framework_import_aspect aspect.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
+        label_name: Name of the target being built.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
             to be used when deduplicating frameworks already bundled.
@@ -187,6 +207,10 @@ def framework_import_partial(targets, targets_to_avoid = []):
     """
     return partial.make(
         _framework_import_partial_impl,
+        actions = actions,
+        label_name = label_name,
+        platform_prerequisites = platform_prerequisites,
+        rule_executables = rule_executables,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
     )

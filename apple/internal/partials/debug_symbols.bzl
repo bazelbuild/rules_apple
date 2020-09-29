@@ -15,10 +15,6 @@
 """Partial implementation for debug symbol file processing."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -51,12 +47,12 @@ Depset of `File` references to linkmap files if requested in the build with --ob
     },
 )
 
-def _collect_linkmaps(ctx, debug_provider, bundle_name):
+def _collect_linkmaps(*, actions, debug_outputs_provider, bundle_name):
     """Collects the available linkmaps from the binary.
 
     Args:
-      ctx: The target's rule context.
-      debug_provider: The AppleDebugOutput provider for the binary target.
+      actions: The actions provider from `ctx.actions`.
+      debug_outputs_provider: The AppleDebugOutput provider for the binary target.
       bundle_name: The name of the output bundle.
 
     Returns:
@@ -65,20 +61,24 @@ def _collect_linkmaps(ctx, debug_provider, bundle_name):
     outputs = []
 
     # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-    for arch in debug_provider.outputs_map:
-        arch_outputs = debug_provider.outputs_map[arch]
+    for arch in debug_outputs_provider.outputs_map:
+        arch_outputs = debug_outputs_provider.outputs_map[arch]
         linkmap = arch_outputs["linkmap"]
-        output_linkmap = ctx.actions.declare_file(
+        output_linkmap = actions.declare_file(
             "%s_%s.linkmap" % (bundle_name, arch),
         )
         outputs.append(output_linkmap)
-        ctx.actions.symlink(target_file = linkmap, output = output_linkmap)
+        actions.symlink(target_file = linkmap, output = output_linkmap)
 
     return outputs
 
-# TODO(kaipi): Investigate moving this actions into a tool so that we can use
-# tree artifacts instead, which should simplify parts of this file.
-def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
+def _bundle_dsym_files(
+        *,
+        actions,
+        bundle_extension = "",
+        bundle_name,
+        debug_outputs_provider,
+        rule_single_files):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -89,10 +89,11 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
     an empty list.
 
     Args:
-      ctx: The target's rule context.
-      debug_provider: The AppleDebugOutput provider for the binary target.
-      bundle_name: The name of the output bundle.
+      actions: The actions provider from `ctx.actions`.
       bundle_extension: The extension for the bundle.
+      bundle_name: The name of the output bundle.
+      debug_outputs_provider: The AppleDebugOutput provider for the binary target.
+      rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
 
     Returns:
       A list of files that comprise the .dSYM bundle, which should be returned as additional
@@ -104,10 +105,10 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
     outputs = []
 
     # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-    for arch in debug_provider.outputs_map:
-        arch_outputs = debug_provider.outputs_map[arch]
+    for arch in debug_outputs_provider.outputs_map:
+        arch_outputs = debug_outputs_provider.outputs_map[arch]
         dsym_binary = arch_outputs["dsym_binary"]
-        output_binary = ctx.actions.declare_file(
+        output_binary = actions.declare_file(
             "%s/Contents/Resources/DWARF/%s_%s" % (
                 dsym_bundle_name,
                 bundle_name,
@@ -119,7 +120,7 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
         # cp instead of symlink here because a dSYM with a symlink to the DWARF data will not be
         # recognized by spotlight which is key for lldb on mac to find a dSYM for a binary.
         # https://lldb.llvm.org/use/symbols.html
-        ctx.actions.run_shell(
+        actions.run_shell(
             inputs = [dsym_binary],
             outputs = [output_binary],
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
@@ -131,13 +132,13 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
     # so we regenerate it here rather than propagate the other one from the apple_binary. (See
     # https://github.com/llvm-mirror/llvm/blob/master/tools/dsymutil/dsymutil.cpp)
     if outputs:
-        dsym_plist = ctx.actions.declare_file(
+        dsym_plist = actions.declare_file(
             "%s/Contents/Info.plist" % dsym_bundle_name,
         )
         outputs.append(dsym_plist)
-        ctx.actions.expand_template(
+        actions.expand_template(
             output = dsym_plist,
-            template = ctx.file._dsym_info_plist_template,
+            template = rule_single_files._dsym_info_plist_template,
             substitutions = {
                 "%bundle_name_with_extension%": bundle_name_with_extension,
             },
@@ -145,7 +146,19 @@ def _bundle_dsym_files(ctx, debug_provider, bundle_name, bundle_extension = ""):
 
     return outputs
 
-def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_provider = None):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _debug_symbols_partial_impl(
+        *,
+        ctx,
+        actions,
+        bin_root_path,
+        bundle_extension,
+        bundle_name,
+        debug_dependencies = [],
+        debug_outputs_provider = None,
+        platform_prerequisites,
+        rule_label,
+        rule_single_files):
     """Implementation for the debug symbols processing partial."""
     deps_providers = [
         x[_AppleDebugInfo]
@@ -165,22 +178,19 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
 
     if debug_outputs_provider:
         output_providers.append(debug_outputs_provider)
-
-        bundle_name = bundling_support.bundle_name(ctx)
-
-        if ctx.fragments.objc.generate_dsym:
-            bundle_extension = bundling_support.bundle_extension(ctx)
+        if platform_prerequisites.objc_fragment.generate_dsym:
             dsym_files = _bundle_dsym_files(
-                ctx,
-                debug_outputs_provider,
-                bundle_name,
-                bundle_extension,
+                actions = actions,
+                bundle_name = bundle_name,
+                bundle_extension = bundle_extension,
+                debug_outputs_provider = debug_outputs_provider,
+                rule_single_files = rule_single_files,
             )
             direct_dsyms.extend(dsym_files)
 
             absolute_dsym_bundle_path = paths.join(
-                ctx.bin_dir.path,
-                ctx.label.package,
+                bin_root_path,
+                rule_label.package,
                 bundle_name + bundle_extension + ".dSYM",
             )
             dsym_bundles = depset(
@@ -188,16 +198,22 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
                 transitive = [dsym_bundles],
             )
 
-        if ctx.fragments.objc.generate_linkmap:
-            linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
+        if platform_prerequisites.objc_fragment.generate_linkmap:
+            linkmaps = _collect_linkmaps(
+                actions = actions,
+                debug_outputs_provider = debug_outputs_provider,
+                bundle_name = bundle_name,
+            )
             direct_linkmaps.extend(linkmaps)
 
     # Only output dependency debug files if requested.
     # TODO(b/131699846): Remove this.
+    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     propagate_embedded_extra_outputs = defines.bool_value(
-        ctx,
-        "apple.propagate_embedded_extra_outputs",
-        False,
+        ctx = ctx,
+        config_vars = platform_prerequisites.config_vars,
+        define_name = "apple.propagate_embedded_extra_outputs",
+        default = False,
     )
 
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
@@ -225,7 +241,17 @@ def _debug_symbols_partial_impl(ctx, debug_dependencies = [], debug_outputs_prov
         },
     )
 
-def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None):
+def debug_symbols_partial(
+        *,
+        actions,
+        bin_root_path,
+        bundle_extension,
+        bundle_name,
+        debug_dependencies = [],
+        debug_outputs_provider = None,
+        platform_prerequisites,
+        rule_label,
+        rule_single_files):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -237,16 +263,30 @@ def debug_symbols_partial(debug_dependencies = [], debug_outputs_provider = None
     section of a successful build.
 
     Args:
+      actions: The actions provider from `ctx.actions`.
+      bin_root_path: The path to the root `-bin` directory.
+      bundle_extension: The extension for the bundle.
+      bundle_name: The name of the output bundle.
       debug_dependencies: List of targets from which to collect the transitive dependency debug
         information to propagate them upstream.
       debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
         outputs of this target's binary.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      rule_label: The label of the target being analyzed.
+      rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
     """
     return partial.make(
         _debug_symbols_partial_impl,
+        actions = actions,
+        bin_root_path = bin_root_path,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         debug_dependencies = debug_dependencies,
         debug_outputs_provider = debug_outputs_provider,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = rule_label,
+        rule_single_files = rule_single_files,
     )

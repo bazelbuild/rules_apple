@@ -15,10 +15,6 @@
 """Partial implementation for AppleDynamicFrameworkInfo configuration."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -27,28 +23,34 @@ load(
     "paths",
 )
 
-def _framework_provider_partial_impl(ctx, binary_provider):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _framework_provider_partial_impl(
+        *,
+        ctx,
+        actions,
+        bin_root_path,
+        binary_provider,
+        bundle_name,
+        rule_label):
     """Implementation for the framework provider partial."""
     binary_file = binary_provider.binary
-
-    bundle_name = bundling_support.bundle_name(ctx)
 
     # Create a directory structure that the linker can use to reference this
     # framework. It follows the pattern of
     # any_path/MyFramework.framework/MyFramework. The absolute path and files are
     # propagated using the AppleDynamicFrameworkInfo provider.
     framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
-    framework_file = ctx.actions.declare_file(
+    framework_file = actions.declare_file(
         paths.join(framework_dir, bundle_name),
     )
-    ctx.actions.symlink(
+    actions.symlink(
         target_file = binary_file,
         output = framework_file,
     )
 
     absolute_framework_dir = paths.join(
-        ctx.bin_dir.path,
-        ctx.label.package,
+        bin_root_path,
+        rule_label.package,
         framework_dir,
     )
 
@@ -70,7 +72,13 @@ def _framework_provider_partial_impl(ctx, binary_provider):
         providers = [framework_provider],
     )
 
-def framework_provider_partial(binary_provider):
+def framework_provider_partial(
+        *,
+        actions,
+        bin_root_path,
+        binary_provider,
+        bundle_name,
+        rule_label):
     """Constructor for the framework provider partial.
 
     This partial propagates the AppleDynamicFrameworkInfo provider required by
@@ -79,7 +87,11 @@ def framework_provider_partial(binary_provider):
     framework bundles.
 
     Args:
+      actions: The actions provider from `ctx.actions`.
+      bin_root_path: The path to the root `-bin` directory.
       binary_provider: The AppleDylibBinary provider containing this target's binary.
+      bundle_name: The name of the output bundle.
+      rule_label: The label of the target being analyzed.
 
     Returns:
       A partial that returns the AppleDynamicFrameworkInfo provider used to link
@@ -87,5 +99,9 @@ def framework_provider_partial(binary_provider):
     """
     return partial.make(
         _framework_provider_partial_impl,
+        actions = actions,
+        bin_root_path = bin_root_path,
         binary_provider = binary_provider,
+        bundle_name = bundle_name,
+        rule_label = rule_label,
     )

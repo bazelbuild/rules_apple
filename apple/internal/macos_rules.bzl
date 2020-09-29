@@ -79,6 +79,7 @@ def _macos_application_impl(ctx):
     embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
@@ -88,6 +89,8 @@ def _macos_application_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
+    rule_single_files = ctx.file
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -107,19 +110,40 @@ def _macos_application_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = embedded_targets,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.framework_import_partial(
+            actions = actions,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            rule_executables = rule_executables,
             targets = ctx.attr.deps + embedded_targets,
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -130,9 +154,9 @@ def _macos_application_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = ctx.executable,
+            rule_executables = rule_executables,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
             top_level_attrs = [
                 "app_icons",
                 "strings",
@@ -140,18 +164,24 @@ def _macos_application_impl(ctx):
             ],
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
-            dependency_targets = embedded_targets,
             bundle_dylibs = True,
+            dependency_targets = embedded_targets,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -198,6 +228,7 @@ def _macos_bundle_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -206,6 +237,7 @@ def _macos_bundle_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -233,15 +265,32 @@ def _macos_bundle_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
             plugins = [archive],
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -253,7 +302,7 @@ def _macos_bundle_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
             top_level_attrs = [
                 "app_icons",
                 "strings",
@@ -261,16 +310,22 @@ def _macos_bundle_impl(ctx):
             ],
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -293,6 +348,7 @@ def _macos_extension_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -301,6 +357,7 @@ def _macos_extension_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -328,13 +385,32 @@ def _macos_extension_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
-        partials.embedded_bundles_partial(plugins = [archive]),
-        partials.macos_additional_contents_partial(),
+        partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
+            plugins = [archive],
+        ),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -346,7 +422,7 @@ def _macos_extension_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
             top_level_attrs = [
                 "app_icons",
                 "strings",
@@ -354,16 +430,22 @@ def _macos_extension_impl(ctx):
             ],
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -387,6 +469,7 @@ def _macos_quick_look_plugin_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -395,6 +478,7 @@ def _macos_quick_look_plugin_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -424,15 +508,32 @@ def _macos_quick_look_plugin_impl(ctx):
         ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Quick Look plugins, or if
         # they can be skipped.
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive],
+            platform_prerequisites = platform_prerequisites,
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -444,23 +545,29 @@ def _macos_quick_look_plugin_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
             top_level_attrs = [
                 "strings",
                 "resources",
             ],
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -478,6 +585,7 @@ def _macos_kernel_extension_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -486,6 +594,7 @@ def _macos_kernel_extension_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -513,15 +622,32 @@ def _macos_kernel_extension_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
             plugins = [archive],
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -533,20 +659,26 @@ def _macos_kernel_extension_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
             top_level_attrs = ["resources"],
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -566,6 +698,7 @@ def _macos_spotlight_importer_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -574,6 +707,7 @@ def _macos_spotlight_importer_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -601,15 +735,32 @@ def _macos_spotlight_importer_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
             plugins = [archive],
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -621,19 +772,25 @@ def _macos_spotlight_importer_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -653,6 +810,7 @@ def _macos_xpc_service_impl(ctx):
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     entitlements = getattr(ctx.attr, "entitlements", None)
@@ -661,6 +819,7 @@ def _macos_xpc_service_impl(ctx):
     predeclared_outputs = ctx.outputs
     product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -688,15 +847,32 @@ def _macos_xpc_service_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = ctx.features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
             xpc_services = [archive],
         ),
-        partials.macos_additional_contents_partial(),
+        partials.macos_additional_contents_partial(
+            additional_contents = ctx.attr.additional_contents,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -708,19 +884,25 @@ def _macos_xpc_service_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_executables = ctx.executable,
             rule_label = label,
-            rule_single_files = ctx.file,
+            rule_single_files = rule_single_files,
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
     ]
 
     if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
-                profile_artifact = ctx.file.provisioning_profile,
+                actions = actions,
                 extension = "provisionprofile",
                 location = processor.location.content,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
             ),
         )
 
@@ -735,12 +917,25 @@ def _macos_xpc_service_impl(ctx):
 
 def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
+    actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    label = ctx.label
+    rule_single_files = ctx.file
 
     debug_outputs_partial = partials.debug_symbols_partial(
+        actions = actions,
+        bin_root_path = bin_root_path,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         debug_outputs_provider = debug_outputs_provider,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = label,
+        rule_single_files = rule_single_files,
     )
 
     processor_result = processor.process(
@@ -748,7 +943,7 @@ def _macos_command_line_application_impl(ctx):
         [debug_outputs_partial],
         bundle_post_process_and_sign = False,
     )
-    output_file = ctx.actions.declare_file(ctx.label.name)
+    output_file = actions.declare_file(label.name)
     codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
@@ -768,12 +963,25 @@ def _macos_command_line_application_impl(ctx):
 
 def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
+    actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    label = ctx.label
+    rule_single_files = ctx.file
 
     debug_outputs_partial = partials.debug_symbols_partial(
+        actions = actions,
+        bin_root_path = bin_root_path,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         debug_outputs_provider = debug_outputs_provider,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = label,
+        rule_single_files = rule_single_files,
     )
 
     processor_result = processor.process(
@@ -781,7 +989,7 @@ def _macos_dylib_impl(ctx):
         [debug_outputs_partial],
         bundle_post_process_and_sign = False,
     )
-    output_file = ctx.actions.declare_file(ctx.label.name + ".dylib")
+    output_file = actions.declare_file(label.name + ".dylib")
     codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [

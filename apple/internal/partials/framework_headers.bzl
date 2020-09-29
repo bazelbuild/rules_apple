@@ -23,17 +23,16 @@ load(
     "partial",
 )
 
-def _framework_headers_partial_impl(ctx, hdrs):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _framework_headers_partial_impl(*, ctx, hdrs):
     """Implementation for the framework headers partial."""
-    _ignore = [ctx]
-
     return struct(
         bundle_files = [
             (processor.location.bundle, "Headers", depset(hdrs)),
         ],
     )
 
-def framework_headers_partial(hdrs):
+def framework_headers_partial(*, hdrs):
     """Constructor for the framework headers partial.
 
     This partial bundles the headers for dynamic frameworks.
