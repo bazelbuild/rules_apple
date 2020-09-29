@@ -5,12 +5,14 @@ load(
     "ios_application",
     "ios_extension",
     "ios_framework",
+    "ios_dynamic_framework",
     "ios_imessage_application",
     "ios_static_framework",
     "ios_sticker_pack_extension",
     "ios_ui_test",
     "ios_unit_test",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 licenses(["notice"])
 
@@ -1830,5 +1832,271 @@ ios_unit_test(
     test_host = ":dedupe_test_app",
     deps = [
         ":test_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_lib",
+    module_name = "BasicFramework",
+    srcs = [
+        "//test/starlark_tests/resources:BasicFramework.swift",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework",
+    bundle_name = "BasicFramework",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_direct_dependency_lib",
+    module_name = "DirectDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:DirectDependencyTest.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_direct_dependency",
+    bundle_name = "DirectDependencyTest",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_transitive_dependency_lib",
+    module_name = "TransitiveDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework",
+        ":basic_framework_with_direct_dependency",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_transitive_dependency",
+    bundle_name = "TransitiveDependencyTest",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_transitive_dependency_lib",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "dynamic_framework_with_resources",
+    bundle_name = "swift_lib_with_resources",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-application_extension"],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_resources",
+    ],
+)
+
+ios_application(
+    name = "app_with_dynamic_framework_and_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [
+        ":dynamic_framework_with_resources",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "swift_common_lib_framework",
+    bundle_name = "swift_common_lib",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = ["//test/starlark_tests/resources:swift_common_lib"]
+)
+
+ios_dynamic_framework(
+    name = "swift_shared_lib_framework",
+    bundle_name = "swift_shared_lib",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:swift_shared_lib",
+        "//test/starlark_tests/resources:framework_resources_lib",
+    ]
+)
+
+ios_dynamic_framework(
+    name = "swift_transitive_lib_framework",
+    bundle_name = "swift_transitive_lib",
+    frameworks = [":swift_shared_lib_framework"],
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = ["//test/starlark_tests/resources:swift_transitive_lib"]
+)
+
+ios_application(
+    name = "app_with_dynamic_framework_with_dynamic_framework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":swift_transitive_lib_framework"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:ios_non_localized_assets_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "dynamic_fmwk_with_imported_fmwk",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/testdata/frameworks:iOSImportedDynamicFramework",
+    ],
+)
+
+ios_application(
+    name = "app_with_inner_and_outer_dynamic_framework",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [
+        ":dynamic_fmwk_with_imported_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

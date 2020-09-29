@@ -6,6 +6,7 @@ load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
+load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_imessage_application_tests.bzl", "ios_imessage_application_test_suite")
 load(":ios_sticker_pack_extension_tests.bzl", "ios_sticker_pack_extension_test_suite")
 load(":ios_ui_test_tests.bzl", "ios_ui_test_test_suite")
@@ -46,6 +47,8 @@ ios_app_clip_test_suite()
 ios_extension_test_suite()
 
 ios_framework_test_suite()
+
+ios_dynamic_framework_test_suite()
 
 ios_imessage_application_test_suite()
 

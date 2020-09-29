@@ -46,6 +46,7 @@ load(
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
+    _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
@@ -120,6 +121,39 @@ def ios_framework(name, **kwargs):
     bundling_args.pop("entitlements", None)
 
     _ios_framework(
+        name = name,
+        extension_safe = kwargs.get("extension_safe"),
+        **bundling_args
+    )
+
+def ios_dynamic_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Builds and bundles an iOS dynamic framework."""
+    linkopts = kwargs.get("linkopts", [])
+
+    # Can't read this from the descriptor, since it requires the bundle name as argument. Once this
+    # is migrated to be a rule, we can move this to the rule implementation.
+    bundle_name = kwargs.get("bundle_name", name)
+    linkopts += [
+        "-install_name",
+        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
+    kwargs["linkopts"] = linkopts
+
+    # Link the executable from any library deps and sources provided.
+    bundling_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.ios),
+        apple_product_type.framework,
+        binary_type = "dylib",
+        suppress_entitlements = True,
+        **kwargs
+    )
+
+    # Remove any kwargs that shouldn't be passed to the underlying rule.
+    bundling_args.pop("entitlements", None)
+
+    _ios_dynamic_framework(
         name = name,
         extension_safe = kwargs.get("extension_safe"),
         **bundling_args

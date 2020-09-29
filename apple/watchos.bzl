@@ -26,6 +26,14 @@ load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
     "binary_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
+    _watchos_dynamic_framework = "watchos_dynamic_framework",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
 
 # Alias the internal rules when we load them. This lets the rules keep their
 # original name in queries and logs since they collide with the wrapper macros.
@@ -65,6 +73,39 @@ def watchos_extension(name, **kwargs):
         **bundling_args
     )
 
+def watchos_dynamic_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Builds and bundles a watchOS dynamic framework."""
+    linkopts = kwargs.get("linkopts", [])
+
+    # Can't read this from the descriptor, since it requires the bundle name as argument. Once this
+    # is migrated to be a rule, we can move this to the rule implementation.
+    bundle_name = kwargs.get("bundle_name", name)
+    linkopts += [
+        "-install_name",
+        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
+    kwargs["linkopts"] = linkopts
+
+    # Link the executable from any library deps and sources provided.
+    bundling_args = binary_support.create_binary(
+        name,
+        str(apple_common.platform_type.watchos),
+        apple_product_type.framework,
+        binary_type = "dylib",
+        suppress_entitlements = True,
+        **kwargs
+    )
+
+    # Remove any kwargs that shouldn't be passed to the underlying rule.
+    bundling_args.pop("entitlements", None)
+
+    _watchos_dynamic_framework(
+        name = name,
+        extension_safe = kwargs.get("extension_safe"),
+        **bundling_args
+    )
+    
 watchos_build_test = apple_build_test_rule(
     doc = """\
 Test rule to check that the given library targets (Swift, Objective-C, C++)

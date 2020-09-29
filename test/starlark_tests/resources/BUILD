@@ -1,3 +1,4 @@
+test/starlark_tests/resources/BUILD
 load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:resources.bzl",
@@ -68,6 +69,57 @@ swift_library(
     tags = [
         "manual",
     ],
+)
+
+swift_library(
+    name = "swift_lib_with_resources",
+    module_name = "swift_lib_with_resources",
+    srcs = [
+        "Shared.swift",
+    ],
+    data = [
+        ":structured_resources",
+    ],
+    testonly = True,
+)
+
+swift_library(
+    name = "swift_common_lib",
+    module_name = "swift_common_lib",
+    srcs = ["Common.swift"],
+    testonly = True,
+)
+
+swift_library(
+    name = "swift_shared_lib",
+    module_name = "swift_shared_lib",
+    srcs = ["Shared.swift"],
+    deps = [
+        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
+    ],
+    testonly = True,
+)
+
+swift_library(
+    name = "swift_transitive_lib",
+    module_name = "swift_transitive_lib",
+    srcs = ["Transitives.swift"],
+    deps = [
+        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
+        "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
+    ],
+    testonly = True,
+)
+
+swift_library(
+    name = "swift_lib_with_transitives",
+    module_name = "dynamic_framework_with_resources",
+    srcs = ["Shared.swift"],
+    data = [
+        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
+        "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
+    ],
+    testonly = True,
 )
 
 swift_library(

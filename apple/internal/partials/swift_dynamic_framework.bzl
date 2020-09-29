@@ -1,0 +1,129 @@
+# Copyright 2019 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Partial implementation for Swift dynamic frameworks."""
+
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+
+def _get_header_imports(framework_imports):
+    """Get the header files from the list of framework imports"""
+
+    header_imports = []    
+    for file in framework_imports:
+        file_short_path = file.short_path
+        if file_short_path.endswith(".h"):
+            header_imports.append(file)
+
+    return header_imports
+
+def _swift_dynamic_framework_partial_impl(ctx, swift_dynamic_framework_info):
+    """Implementation for the Swift static framework processing partial."""
+
+    expected_module_name = bundling_support.bundle_name(ctx)
+    if expected_module_name != swift_dynamic_framework_info.module_name:
+        fail("""
+error: Found swift_library with module name {} but expected {}. Swift dynamic \
+frameworks expect a single swift_library dependency with `module_name` set to the same \
+`bundle_name` as the dynamic framework target.\
+""".format(swift_dynamic_framework_info.module_name, expected_module_name))
+
+    generated_header = swift_dynamic_framework_info.generated_header
+    swiftdocs = swift_dynamic_framework_info.swiftdocs
+    swiftmodules = swift_dynamic_framework_info.swiftmodules
+    modulemapFile = swift_dynamic_framework_info.modulemap
+
+    bundle_files = []
+    modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
+
+    for arch, swiftdoc in swiftdocs.items():
+        bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftdoc".format(arch))
+        ctx.actions.symlink(target_file = swiftdoc, output = bundle_doc)
+        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
+    
+    for arch, swiftmodule in swiftmodules.items():
+        bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftmodule".format(arch))
+        ctx.actions.symlink(target_file = swiftmodule, output = bundle_doc)
+        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
+
+    if generated_header:
+        bundle_header = intermediates.file(
+            ctx.actions,
+            ctx.label.name,
+            "{}.h".format(expected_module_name),
+        )
+        ctx.actions.symlink(target_file = generated_header, output = bundle_header)
+        bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
+
+    if modulemapFile:
+        modulemap = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")
+        ctx.actions.symlink(target_file = modulemapFile, output = modulemap)
+        bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
+
+    providers = []
+    all_files = []
+    for bundle, path, files in bundle_files:
+        all_files += files.to_list()
+
+    header_imports = _get_header_imports(all_files)
+
+    cc_info_provider = CcInfo(
+        compilation_context = cc_common.create_compilation_context(
+            headers = depset(header_imports),
+        ),
+    )
+
+    providers.append(cc_info_provider)
+
+    return struct(
+        bundle_files = bundle_files,
+        providers = providers
+    )
+
+def swift_dynamic_framework_partial(swift_dynamic_framework_info):
+    """Constructor for the Swift dynamic framework processing partial.
+
+    This partial collects and bundles the necessary files to construct a Swift based dynamic
+    framework.
+
+    Args:
+        swift_dynamic_framework_info: The SwiftDynamicFrameworkInfo provider containing the required
+            artifacts.
+
+    Returns:
+        A partial that returns the bundle location of the supporting Swift artifacts needed in a
+        Swift based static framework.
+    """
+    return partial.make(
+        _swift_dynamic_framework_partial_impl,
+        swift_dynamic_framework_info = swift_dynamic_framework_info,
+    )

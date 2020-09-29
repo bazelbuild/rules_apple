@@ -63,6 +63,10 @@ load(
     "SwiftStaticFrameworkInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "SwiftDynamicFrameworkInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
@@ -576,6 +580,157 @@ def _ios_extension_impl(ctx):
         binary_target[apple_common.AppleExecutableBinary],
     ] + processor_result.providers
 
+def _ios_dynamic_framework_impl(ctx):
+    """Experimental implementation of ios_dynamic_framework."""
+    
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
+
+    actions = ctx.actions
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    entitlements = getattr(ctx.attr, "entitlements", None)
+    executable_name = bundling_support.executable_name(ctx)
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    product_type = ctx.attr._product_type
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    signed_frameworks = []
+    if getattr(ctx.file, "provisioning_profile", None):
+        signed_frameworks = [
+            bundle_name + rule_descriptor.bundle_extension,
+        ]
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        executable_name = executable_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = product_type,
+        ),
+        
+
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.bitcode_symbols_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
+        # the can be skipped.
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [archive_for_embedding],
+            embeddable_targets = ctx.attr.frameworks,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
+        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
+        partials.framework_provider_partial(
+            binary_provider = binary_target[apple_common.AppleDylibBinary],
+        ),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
+            version_keys_required = False,
+            top_level_attrs = ["resources"],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        partials.swift_dynamic_framework_partial(
+            swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+        ),
+    ]
+
+    processor_result = processor.process(ctx, processor_partials)
+    providers = processor_result.providers
+
+    framework_dir = depset()
+    framework_files = depset()
+    desired_path = ""
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            framework_dir = provider.framework_dirs
+            framework_files = provider.framework_files
+            full_path = framework_dir.to_list()[0]
+            path_parts = full_path.split("/")
+            for part in path_parts:
+                if part != path_parts[len(path_parts)-1]:
+                    desired_path = desired_path + part + "/"
+                else:
+                    desired_path = desired_path[0:len(desired_path)-1]
+    desired_framework_dir = depset([desired_path])
+
+    #===========================================================================================================
+    # TODO: Create the complete CcInfo in a partial, OR just do it here like so (feels hacky)
+    # As of right now we have a parital CcInfo being created in the dynamic_framework_partial
+    # But we need the framework_dir from the AppleDynamicFramework returned by the framework_provider_partial
+    # To be included so the transitive dependencies will work properly
+    # This feels like the wrong place to do this logic, but it's the only place we had access to all the data
+    #===========================================================================================================
+
+    # Make the ObjC provider
+    objc_provider_fields = {}
+    objc_provider_fields["dynamic_framework_file"] = framework_files
+    objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
+
+    # Add everything but CcInfo provider so we can make a new one
+    new_providers = []
+    for provider in providers:
+        if type(provider) != "CcInfo":
+            new_providers.append(provider)
+        else:
+            cc_info = CcInfo(
+                compilation_context = cc_common.create_compilation_context(
+                    headers = provider.compilation_context.headers,
+                    framework_includes = desired_framework_dir,
+                ),
+            )
+            new_providers.append(cc_info)
+
+    new_providers.append(objc_provider)
+
+    providers = [
+        DefaultInfo(files = processor_result.output_files),
+        IosFrameworkBundleInfo(),
+    ] + new_providers
+
+    return providers
+
 def _ios_static_framework_impl(ctx):
     """Experimental implementation of ios_static_framework."""
 
@@ -947,6 +1102,13 @@ ios_framework = rule_factory.create_apple_bundling_rule(
     platform_type = "ios",
     product_type = apple_product_type.framework,
     doc = "Builds and bundles an iOS Dynamic Framework.",
+)
+
+ios_dynamic_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_dynamic_framework_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles an iOS Dynamic Framework consumable in Xcode.",
 )
 
 ios_static_framework = rule_factory.create_apple_bundling_rule(

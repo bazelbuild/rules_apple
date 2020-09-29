@@ -39,6 +39,10 @@ load(
     "swift_static_framework_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "swift_dynamic_framework_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
@@ -233,7 +237,7 @@ true.
     ),
 }
 
-def _common_binary_linking_attrs(rule_descriptor):
+def _common_binary_linking_attrs(rule_descriptor, platform_type):
     deps_aspects = [
         apple_common.objc_proto_aspect,
         apple_resource_aspect,
@@ -245,6 +249,8 @@ def _common_binary_linking_attrs(rule_descriptor):
 
     if rule_descriptor.product_type == apple_product_type.static_framework:
         deps_aspects.append(swift_static_framework_aspect)
+    if rule_descriptor.product_type == apple_product_type.framework and (platform_type == "ios" or platform_type == "watchos"):
+        deps_aspects.append(swift_dynamic_framework_aspect)
 
     return {
         "binary_type": attr.string(
@@ -876,6 +882,39 @@ ignored.
 """,
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.framework:
+        attrs.append({
+            # TODO: This attribute is not publicly documented, but it is tested in
+            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
+            # what to do with this.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+    If true, compiles and links this framework with `-application-extension`, restricting the binary to
+    use only extension-safe APIs.
+    """,
+            ),
+        })
+
+        if rule_descriptor.requires_deps:
+            extra_args = {}
+            if rule_descriptor.product_type == apple_product_type.application:
+                extra_args["aspects"] = [framework_import_aspect]
+
+            attrs.append({
+                "frameworks": attr.label_list(
+                    providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                    doc = """
+    A list of framework targets (see
+    [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+    that this target depends on.
+    """,
+                    **extra_args
+                ),
+            })
 
     return attrs
 
@@ -956,7 +995,7 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
     rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
 
     if rule_descriptor.requires_deps:
-        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
+        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor, platform_type))
 
     rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
 
@@ -997,7 +1036,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:
-        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
+        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor, platform_type))
 
     is_test_product_type = _is_test_product_type(rule_descriptor.product_type)
     if is_test_product_type:

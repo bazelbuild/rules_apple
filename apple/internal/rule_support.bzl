@@ -756,6 +756,20 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../Frameworks",
             ],
         ),
+        # watchos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            mandatory_families = True,
+            product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
     },
 }
 

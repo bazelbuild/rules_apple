@@ -63,6 +63,124 @@ load(
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "SwiftDynamicFrameworkInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "IosFrameworkBundleInfo",
+)
+
+def _watchos_dynamic_framework_impl(ctx):
+    """Experimental implementation of watchos_dynamic_framework."""
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
+    binary_target = ctx.attr.deps[0]
+    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
+
+    bundle_id = ctx.attr.bundle_id
+
+    signed_frameworks = []
+    if getattr(ctx.file, "provisioning_profile", None):
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+        signed_frameworks = [
+            bundling_support.bundle_name(ctx) + rule_descriptor.bundle_extension,
+        ]
+    
+    dynamic_framework_partial = partials.swift_dynamic_framework_partial(
+                swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+            )
+    processor_partials = [
+        partials.apple_bundle_info_partial(bundle_id = bundle_id),
+        partials.binary_partial(binary_artifact = binary_artifact),
+        partials.bitcode_symbols_partial(
+            actions = ctx.actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            label_name = ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        # TODO: Check if clang_rt dylibs are needed in Frameworks, or if
+        # the can be skipped.
+        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.debug_symbols_partial(
+            debug_dependencies = ctx.attr.frameworks,
+            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [outputs.archive(ctx)],
+            embeddable_targets = ctx.attr.frameworks,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
+        partials.framework_provider_partial(
+            binary_provider = binary_target[apple_common.AppleDylibBinary],
+        ),
+        partials.resources_partial(
+            bundle_id = bundle_id,
+            plist_attrs = ["infoplists"],
+            targets_to_avoid = ctx.attr.frameworks,
+            version_keys_required = False,
+            top_level_attrs = ["resources"],
+        ),
+        partials.swift_dylibs_partial(
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+        ),
+        dynamic_framework_partial,
+    ]
+
+    processor_result = processor.process(ctx, processor_partials)
+    providers = processor_result.providers
+
+    framework_dir = depset()
+    framework_files = depset()
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            framework_dir = provider.framework_dirs
+            framework_files = provider.framework_files
+
+    #===========================================================================================================
+    # TODO: Create the complete CcInfo in a partial, OR just do it here like so (feels hacky)
+    # As of right now we have a parital CcInfo being created in the dynamic_framework_partial
+    # But we need the framework_dir from the AppleDynamicFramework returned by the framework_provider_partial
+    # To be included so the transitive dependencies will work properly
+    # This feels like the wrong place to do this logic, but it's the only place we had access to all the data
+    #===========================================================================================================
+
+    # Make the ObjC provider
+    objc_provider_fields = {}
+    objc_provider_fields["dynamic_framework_file"] = framework_files
+    objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
+
+    # Add everything but CcInfo provider so we can make a new one
+    new_providers = []
+    for provider in providers:
+        if type(provider) != "CcInfo":
+            new_providers.append(provider)
+        else:
+            cc_info = CcInfo(
+                compilation_context = cc_common.create_compilation_context(
+                    headers = provider.compilation_context.headers,
+                    framework_includes = framework_dir,
+                ),
+            )
+            new_providers.append(cc_info)
+
+    new_providers.append(objc_provider)
+
+    providers = [
+        DefaultInfo(files = processor_result.output_files),
+        IosFrameworkBundleInfo(),
+    ] + new_providers
+
+    return providers
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
@@ -296,4 +414,11 @@ watchos_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "watchos",
     product_type = apple_product_type.watch2_extension,
     doc = "Builds and bundles an watchOS Extension.",
+)
+
+watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _watchos_dynamic_framework_impl,
+    platform_type = "watchos",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles an iOS Dynamic Framework consumable in Xcode.",
 )
