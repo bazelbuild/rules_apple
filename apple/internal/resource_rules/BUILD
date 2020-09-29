@@ -15,7 +15,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple:utils",
         "//apple/internal:resources",
         "@bazel_skylib//lib:partial",
     ],
