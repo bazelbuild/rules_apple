@@ -98,7 +98,7 @@ def _bundle_dsym_files(
         bundle_extension = "",
         bundle_name,
         debug_outputs_provider,
-        rule_single_files):
+        dsym_info_plist_template):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -113,7 +113,7 @@ def _bundle_dsym_files(
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       debug_outputs_provider: The AppleDebugOutput provider for the binary target.
-      rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
+      dsym_info_plist_template: File referencing a plist template for dSYM bundles.
 
     Returns:
       A list of files that comprise the .dSYM bundle, which should be returned as additional
@@ -179,7 +179,7 @@ def _bundle_dsym_files(
         outputs.append(dsym_plist)
         actions.expand_template(
             output = dsym_plist,
-            template = rule_single_files._dsym_info_plist_template,
+            template = dsym_info_plist_template,
             substitutions = {
                 "%bundle_name_with_extension%": bundle_name_with_extension,
             },
@@ -197,10 +197,10 @@ def _debug_symbols_partial_impl(
         bundle_name,
         debug_dependencies = [],
         debug_outputs_provider = None,
+        dsym_info_plist_template,
         package_symbols = False,
         platform_prerequisites,
-        rule_label,
-        rule_single_files):
+        rule_label):
     """Implementation for the debug symbols processing partial."""
     deps_providers = [
         x[_AppleDebugInfo]
@@ -229,7 +229,7 @@ def _debug_symbols_partial_impl(
                 bundle_name = bundle_name,
                 bundle_extension = bundle_extension,
                 debug_outputs_provider = debug_outputs_provider,
-                rule_single_files = rule_single_files,
+                dsym_info_plist_template = dsym_info_plist_template,
             )
             direct_dsyms.extend(dsym_files)
 
@@ -356,10 +356,10 @@ def debug_symbols_partial(
         bundle_name,
         debug_dependencies = [],
         debug_outputs_provider = None,
+        dsym_info_plist_template,
         package_symbols = False,
         platform_prerequisites,
-        rule_label,
-        rule_single_files):
+        rule_label):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -379,10 +379,10 @@ def debug_symbols_partial(
         information to propagate them upstream.
       debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
         outputs of this target's binary.
+      dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       package_symbols: Whether the partial should package the symbols files for all binaries.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_label: The label of the target being analyzed.
-      rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
@@ -395,8 +395,8 @@ def debug_symbols_partial(
         bundle_name = bundle_name,
         debug_dependencies = debug_dependencies,
         debug_outputs_provider = debug_outputs_provider,
+        dsym_info_plist_template = dsym_info_plist_template,
         package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
         rule_label = rule_label,
-        rule_single_files = rule_single_files,
     )

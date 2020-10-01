@@ -19,16 +19,26 @@ load(
     "AppleEntitlementsInfo",
 )
 
-def _entitlements(ctx):
-    """Returns the entitlement file to be used for codesigning."""
+def _entitlements(*, entitlements_attr, entitlements_file):
+    """Returns the entitlements file to be used for codesigning.
 
-    # Use the entitlements from the internal provider if it's present (to support
-    # rules that manipulate them before passing them to the bundler); otherwise,
-    # use the file that was provided instead.
-    if getattr(ctx.attr, "entitlements", None):
-        if AppleEntitlementsInfo in ctx.attr.entitlements:
-            return ctx.attr.entitlements[AppleEntitlementsInfo].final_entitlements
-        return ctx.file.entitlements
+    This returns the entitlements from the internal provider if it's present to support rules that
+    manipulate them before passing them to the bundler. Otherwise, it will return the entitlements
+    from the file that was provided instead.
+
+    Args:
+        entitlements_attr: Attribute for the entitlements provider. Typically from
+            `ctx.attr.entitlements`.
+        entitlements_file: File for the entitlements of this target. Typically from
+            `ctx.file.entitlements`.
+
+    Returns:
+        The preferred entitlements file for codesigning between all given sources.
+    """
+    if entitlements_attr:
+        if AppleEntitlementsInfo in entitlements_attr:
+            return entitlements_attr[AppleEntitlementsInfo].final_entitlements
+        return entitlements_file
     return None
 
 entitlements_support = struct(
