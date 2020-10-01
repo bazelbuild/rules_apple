@@ -239,7 +239,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":bundling_support",
         ":experimental",
         ":intermediates",
         "@bazel_skylib//lib:paths",
