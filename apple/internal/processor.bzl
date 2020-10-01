@@ -254,6 +254,8 @@ def _bundle_partial_outputs_files(
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
     config_vars = platform_prerequisites.config_vars
     requested_locales_flag = config_vars.get("apple.locales_to_include")
+
+    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     trim_locales = defines.bool_value(
         ctx = None,
         config_vars = config_vars,
@@ -547,7 +549,6 @@ def _bundle_post_process_and_sign(
         )
 
         has_different_embedding_archive = outputs.has_different_embedding_archive(
-            ctx = ctx,
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
         )
