@@ -19,69 +19,42 @@ load(
     "rule_support",
 )
 
-# TODO(b/161370390): Move all instances of bundle_name, bundle_extension, and
-# bundle_name_with_extension to use this macro instead, from the rule declarations and nowhere else.
-#
-# Eliminate bundle_name, bundle_extension and bundle_name_from_extension and move the implementation
-# of bundle_name and bundle_extension into this macro once that is done.
-def _bundle_full_name_from_rule_ctx(ctx):
-    """Returns a tuple containing information on the bundle file name from a rule context.
+def _bundle_full_name(*, custom_bundle_extension, custom_bundle_name, label_name, rule_descriptor):
+    """Returns a tuple containing information on the bundle file name.
 
     Args:
-      ctx: The Starlark context for a rule.
+      custom_bundle_extension: A custom bundle extension. If one is not provided, the default
+          bundle extension from the `rule_descriptor` will be used instead. Optional.
+      custom_bundle_name: A custom bundle name. If one is not provided, the name of the target as
+          given by `label_name` will be used instead. Optional.
+      label_name: The name of the target.
+      rule_descriptor: The rule descriptor for the given rule.
 
     Returns:
       A tuple representing the default bundle file name and extension for that rule context.
     """
-    return (_bundle_name(ctx), _bundle_extension(ctx))
-
-def _bundle_name(ctx):
-    """Returns the name of the bundle.
-
-    The name of the bundle is the value of the `bundle_name` attribute if it was
-    given; if not, then the name of the target will be used instead.
-
-    Args:
-      ctx: The Starlark context.
-
-    Returns:
-      The bundle name.
-    """
-    bundle_name = getattr(ctx.attr, "bundle_name", None)
+    bundle_name = custom_bundle_name
     if not bundle_name:
-        bundle_name = ctx.label.name
-    return bundle_name
+        bundle_name = label_name
 
-def _bundle_extension(ctx):
-    """Returns the bundle extension.
-
-    Args:
-      ctx: The Starlark context.
-
-    Returns:
-      The bundle extension.
-    """
-    ext = getattr(ctx.attr, "bundle_extension", "")
-    if ext:
+    bundle_extension = custom_bundle_extension
+    if bundle_extension:
         # When the *user* specifies the bundle extension in a public attribute, we
         # do *not* require them to include the leading dot, so we add it here.
-        ext = "." + ext
+        bundle_extension = "." + bundle_extension
     else:
-        rule_descriptor = rule_support.rule_descriptor(ctx)
-        ext = rule_descriptor.bundle_extension
+        bundle_extension = rule_descriptor.bundle_extension
 
-    return ext
+    return (bundle_name, bundle_extension)
 
-def _bundle_name_with_extension(ctx):
-    """Returns the name of the bundle with its extension.
-
-    Args:
-      ctx: The Starlark context.
-
-    Returns:
-      The bundle name with its extension.
-    """
-    return _bundle_name(ctx) + _bundle_extension(ctx)
+def _bundle_full_name_from_rule_ctx(ctx):
+    """Returns a tuple containing information on the bundle file name based on the rule context."""
+    return _bundle_full_name(
+        custom_bundle_extension = getattr(ctx.attr, "bundle_extension", ""),
+        custom_bundle_name = getattr(ctx.attr, "bundle_name", None),
+        label_name = ctx.label.name,
+        rule_descriptor = rule_support.rule_descriptor(ctx),
+    )
 
 def _executable_name(ctx):
     """Returns the executable name of the bundle.
@@ -99,7 +72,7 @@ def _executable_name(ctx):
     """
     executable_name = getattr(ctx.attr, "executable_name", None)
     if not executable_name:
-        executable_name = _bundle_name(ctx)
+        (executable_name, _) = _bundle_full_name_from_rule_ctx(ctx)
     return executable_name
 
 def _validate_bundle_id(bundle_id):
@@ -231,10 +204,8 @@ def _ensure_path_format(attr, files, path_fragments_list, message = None):
 
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
+    bundle_full_name = _bundle_full_name,
     bundle_full_name_from_rule_ctx = _bundle_full_name_from_rule_ctx,
-    bundle_name = _bundle_name,
-    bundle_extension = _bundle_extension,
-    bundle_name_with_extension = _bundle_name_with_extension,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
     executable_name = _executable_name,
