@@ -274,12 +274,13 @@ def _resources_partial_impl(
         bundle_id,
         bundle_name,
         bundle_verification_targets,
+        environment_plist,
+        launch_storyboard,
         platform_prerequisites,
         plist_attrs,
         rule_attrs,
         rule_descriptor,
         rule_executables,
-        rule_single_files,
         rule_label,
         targets_to_avoid,
         top_level_attrs,
@@ -457,9 +458,9 @@ def _resources_partial_impl(
                 bundle_name = bundle_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
-                environment_plist = rule_single_files._environment_plist,
+                environment_plist = environment_plist,
                 input_plists = infoplists,
-                launch_storyboard = getattr(rule_single_files, "launch_storyboard", None),
+                launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
                 platform_prerequisites = platform_prerequisites,
                 plisttool = rule_executables._plisttool,
@@ -479,13 +480,14 @@ def resources_partial(
         bundle_id = None,
         bundle_name,
         bundle_verification_targets = [],
+        environment_plist,
+        launch_storyboard,
         platform_prerequisites,
         plist_attrs = [],
         rule_attrs,
         rule_descriptor,
         rule_executables,
         rule_label,
-        rule_single_files,
         targets_to_avoid = [],
         top_level_attrs = [],
         version_keys_required = True):
@@ -506,6 +508,9 @@ def resources_partial(
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
+        environment_plist: File referencing a plist with the required variables about the versions
+            the target is being built for and with.
+        launch_storyboard: A file to be used as a launch screen for the application.
         platform_prerequisites: Struct containing information on the platform being targeted.
         plist_attrs: List of attributes that should be processed as Info plists that should be
             merged and processed.
@@ -513,7 +518,6 @@ def resources_partial(
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         rule_label: The label of the target being analyzed.
-        rule_single_files: List of single files defined by the rule. Typically from `ctx.file`.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_attrs: List of attributes containing resources that need to be processed from the
@@ -531,12 +535,13 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         bundle_verification_targets = bundle_verification_targets,
+        environment_plist = environment_plist,
+        launch_storyboard = launch_storyboard,
         platform_prerequisites = platform_prerequisites,
         plist_attrs = plist_attrs,
         rule_attrs = rule_attrs,
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
-        rule_single_files = rule_single_files,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,

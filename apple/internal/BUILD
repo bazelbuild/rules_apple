@@ -161,6 +161,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -218,6 +219,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":codesigning_support",
+        ":entitlements_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -293,14 +295,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":bundling_support",
         ":codesigning_support",
-        ":entitlements_support",
         ":experimental",
         ":intermediates",
         ":outputs",
-        ":platform_support",
-        ":rule_support",
         "//apple/internal/utils:bundle_paths",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:dicts",
@@ -427,6 +425,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -449,6 +448,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
         ":linking_support",
         ":outputs",
         ":partials",

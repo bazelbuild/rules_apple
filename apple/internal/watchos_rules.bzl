@@ -27,6 +27,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -77,13 +81,15 @@ def _watchos_application_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = getattr(ctx.attr, "entitlements", None)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
-    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_single_files = ctx.file
+    rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
@@ -119,7 +125,7 @@ def _watchos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = product_type,
+            product_type = rule_descriptor.product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -147,9 +153,9 @@ def _watchos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = [ctx.attr.extension],
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
-            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -163,13 +169,14 @@ def _watchos_application_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
+            environment_plist = ctx.file._environment_plist,
+            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = ctx.executable,
+            rule_executables = rule_executables,
             rule_label = label,
-            rule_single_files = rule_single_files,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
@@ -197,7 +204,20 @@ def _watchos_application_impl(ctx):
             ),
         )
 
-    processor_result = processor.process(ctx, processor_partials)
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
 
     return [
         DefaultInfo(
@@ -251,14 +271,15 @@ def _watchos_extension_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = getattr(ctx.attr, "entitlements", None)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
-    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
     rule_executables = ctx.executable
-    rule_single_files = ctx.file
 
     archive = outputs.archive(
         actions = actions,
@@ -278,7 +299,7 @@ def _watchos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = product_type,
+            product_type = rule_descriptor.product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -307,9 +328,9 @@ def _watchos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_outputs_provider = debug_outputs_provider,
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
-            rule_single_files = rule_single_files,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -330,13 +351,14 @@ def _watchos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             rule_label = label,
-            rule_single_files = rule_single_files,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
@@ -357,7 +379,20 @@ def _watchos_extension_impl(ctx):
             ),
         )
 
-    processor_result = processor.process(ctx, processor_partials)
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
 
     return [
         DefaultInfo(
