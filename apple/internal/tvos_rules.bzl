@@ -79,9 +79,9 @@ def _tvos_application_impl(ctx):
         "resources",
     ]
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -258,18 +258,23 @@ def _tvos_application_impl(ctx):
                 files = [archive, ctx.file._std_redirect_dylib],
             ),
         ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
         TvosApplicationBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_descriptor.provider,
+        link_result.binary_provider,
     ] + processor_result.providers
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    binary_provider = binary_descriptor.provider
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -363,7 +368,7 @@ def _tvos_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
-            binary_provider = binary_provider,
+            binary_provider = link_result.binary_provider,
             bundle_name = bundle_name,
             rule_label = label,
         ),
@@ -413,6 +418,12 @@ def _tvos_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
         TvosFrameworkBundleInfo(),
     ] + processor_result.providers
 
@@ -424,9 +435,9 @@ def _tvos_extension_impl(ctx):
         "resources",
     ]
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -563,6 +574,12 @@ def _tvos_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
         TvosExtensionBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
@@ -666,6 +683,7 @@ def _tvos_static_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
+        OutputGroupInfo(**processor_result.output_groups),
         TvosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 

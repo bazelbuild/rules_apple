@@ -76,9 +76,9 @@ load(
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
 
@@ -242,14 +242,20 @@ def _macos_application_impl(ctx):
             ),
         ),
         MacosApplicationBundleInfo(),
-        binary_descriptor.provider,
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        link_result.binary_provider,
     ] + processor_result.providers
 
 def _macos_bundle_impl(ctx):
     """Implementation of macos_bundle."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -380,6 +386,12 @@ def _macos_bundle_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosBundleBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_extension_impl(ctx):
@@ -387,9 +399,9 @@ def _macos_extension_impl(ctx):
     extra_linkopts = []
     if not ctx.attr.provides_main:
         extra_linkopts.extend(["-e", "_NSExtensionMain"])
-    binary_descriptor = linking_support.register_linking_action(ctx, extra_linkopts)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx, extra_linkopts)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -520,7 +532,13 @@ def _macos_extension_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosExtensionBundleInfo(),
-        binary_descriptor.provider,
+        link_result.binary_provider,
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_quick_look_plugin_impl(ctx):
@@ -529,9 +547,9 @@ def _macos_quick_look_plugin_impl(ctx):
         "-install_name",
         "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
-    binary_descriptor = linking_support.register_linking_action(ctx, extra_linkopts)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx, extra_linkopts)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -661,13 +679,19 @@ def _macos_quick_look_plugin_impl(ctx):
     return [
         DefaultInfo(files = processor_result.output_files),
         MacosQuickLookPluginBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_kernel_extension_impl(ctx):
     """Implementation of macos_kernel_extension."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -794,13 +818,19 @@ def _macos_kernel_extension_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosKernelExtensionBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_spotlight_importer_impl(ctx):
     """Implementation of macos_spotlight_importer."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -926,13 +956,19 @@ def _macos_spotlight_importer_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosSpotlightImporterBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_xpc_service_impl(ctx):
     """Implementation of macos_xpc_service."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -1058,17 +1094,24 @@ def _macos_xpc_service_impl(ctx):
             files = processor_result.output_files,
         ),
         MacosXPCServiceBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
@@ -1121,18 +1164,25 @@ def _macos_command_line_application_impl(ctx):
                 processor_result.output_files,
             ]),
         ),
-        binary_descriptor.provider,
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        link_result.binary_provider,
     ] + processor_result.providers
 
 def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
@@ -1182,7 +1232,13 @@ def _macos_dylib_impl(ctx):
             depset([output_file]),
             processor_result.output_files,
         ])),
-        binary_descriptor.provider,
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        link_result.binary_provider,
     ] + processor_result.providers
 
 macos_application = rule_factory.create_apple_bundling_rule(
