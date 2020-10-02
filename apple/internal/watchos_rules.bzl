@@ -223,6 +223,7 @@ def _watchos_application_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
+        OutputGroupInfo(**processor_result.output_groups),
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
@@ -260,12 +261,12 @@ def _watchos_extension_impl(ctx):
     else:
         extra_linkopts = []
 
-    binary_descriptor = linking_support.register_linking_action(
+    link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
     )
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -397,6 +398,12 @@ def _watchos_extension_impl(ctx):
     return [
         DefaultInfo(
             files = processor_result.output_files,
+        ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
         ),
         WatchosExtensionBundleInfo(),
     ] + processor_result.providers

@@ -93,10 +93,6 @@ load(
     "apple_support",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -637,9 +633,10 @@ def _process(
       rule_label: The label of the target being analyzed.
 
     Returns:
-      A struct with the results of the processing. The files to make outputs of
-      the rule are contained under the `output_files` field, and the providers to
-      return are contained under the `providers` field.
+      A `struct` with the results of the processing. The files to make outputs of
+      the rule are contained under the `output_files` field, the providers to
+      return are contained under the `providers` field, and a dictionary containing
+      any additional output groups is in the `output_groups` field.
     """
 
     # TODO(b/161370390): Remove the ctx kwarg passed to this call once ctx is removed from the args
@@ -683,14 +680,9 @@ def _process(
         if hasattr(partial_output, "output_groups"):
             output_group_dicts.append(partial_output.output_groups)
 
-    if output_group_dicts:
-        # TODO(kaipi): Add support for merging keys. Currently the last one wins, but because
-        # there's only one partial that supports this, it's ok.
-        merged_output_groups = dicts.add(*output_group_dicts)
-        providers.append(OutputGroupInfo(**merged_output_groups))
-
     return struct(
         output_files = depset(transitive = transitive_output_files),
+        output_groups = outputs.merge_output_groups(*output_group_dicts),
         providers = providers,
     )
 
