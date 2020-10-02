@@ -222,9 +222,9 @@ def _test_host_bundle_id(test_host):
 
 def _apple_test_bundle_impl(ctx, extra_providers = []):
     """Implementation for bundling XCTest bundles."""
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     test_host_bundle_id = _test_host_bundle_id(ctx.attr.test_host)
     if ctx.attr.bundle_id:
@@ -421,6 +421,12 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         ),
         AppleExtraOutputsInfo(files = depset(filtered_outputs)),
         DefaultInfo(files = output_files),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ])
 
     return providers

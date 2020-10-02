@@ -99,12 +99,12 @@ def _ios_application_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    binary_descriptor = linking_support.register_linking_action(
+    link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
     )
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -318,9 +318,15 @@ def _ios_application_impl(ctx):
             ),
         ),
         IosApplicationBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_descriptor.provider,
+        link_result.binary_provider,
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
@@ -332,9 +338,9 @@ def _ios_app_clip_impl(ctx):
         "resources",
     ]
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -522,9 +528,15 @@ def _ios_app_clip_impl(ctx):
             ),
         ),
         IosAppClipBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_descriptor.provider,
+        link_result.binary_provider,
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
@@ -535,13 +547,12 @@ def _ios_framework_impl(ctx):
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
-    binary_descriptor = linking_support.register_linking_action(
+    link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
     )
-    binary_artifact = binary_descriptor.artifact
-    binary_provider = binary_descriptor.provider
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -642,7 +653,7 @@ def _ios_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
-            binary_provider = binary_provider,
+            binary_provider = link_result.binary_provider,
             bundle_name = bundle_name,
             rule_label = label,
         ),
@@ -693,6 +704,12 @@ def _ios_framework_impl(ctx):
     return [
         DefaultInfo(files = processor_result.output_files),
         IosFrameworkBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
@@ -710,12 +727,13 @@ def _ios_extension_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    binary_descriptor = linking_support.register_linking_action(
+    link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
     )
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+    output_groups = link_result.output_groups
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -867,7 +885,13 @@ def _ios_extension_impl(ctx):
         IosExtensionBundleInfo(),
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
-        binary_descriptor.provider,
+        link_result.binary_provider,
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _ios_static_framework_impl(ctx):
@@ -966,6 +990,7 @@ def _ios_static_framework_impl(ctx):
     return [
         DefaultInfo(files = processor_result.output_files),
         IosStaticFrameworkBundleInfo(),
+        OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
 def _ios_imessage_application_impl(ctx):
@@ -1099,6 +1124,7 @@ def _ios_imessage_application_impl(ctx):
             files = processor_result.output_files,
         ),
         IosImessageApplicationBundleInfo(),
+        OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
 def _ios_imessage_extension_impl(ctx):
@@ -1109,9 +1135,9 @@ def _ios_imessage_extension_impl(ctx):
         "resources",
     ]
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     bin_root_path = ctx.bin_dir.path
@@ -1264,6 +1290,12 @@ def _ios_imessage_extension_impl(ctx):
         ),
         IosExtensionBundleInfo(),
         IosImessageExtensionBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _ios_sticker_pack_extension_impl(ctx):
@@ -1388,6 +1420,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         ),
         IosExtensionBundleInfo(),
         IosStickerPackExtensionBundleInfo(),
+        OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
 # Rule definitions for rules that use the Starlark linking API and the new rule_factory support.
