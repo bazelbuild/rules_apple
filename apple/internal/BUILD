@@ -142,6 +142,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "features_support",
+    srcs = ["features_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:sets",
+    ],
+)
+
+bzl_library(
     name = "intermediates",
     srcs = ["intermediates.bzl"],
     visibility = [
@@ -162,6 +173,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -220,6 +232,7 @@ bzl_library(
         ":bundling_support",
         ":codesigning_support",
         ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -423,6 +436,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -446,6 +460,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
