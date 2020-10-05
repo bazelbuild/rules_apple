@@ -31,6 +31,10 @@ load(
     "entitlements_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -85,6 +89,10 @@ def _watchos_application_impl(ctx):
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
@@ -145,7 +153,7 @@ def _watchos_application_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -280,6 +288,10 @@ def _watchos_extension_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -324,7 +336,7 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
