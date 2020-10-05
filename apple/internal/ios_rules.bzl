@@ -27,6 +27,10 @@ load(
     "entitlements_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -112,6 +116,10 @@ def _ios_application_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -165,7 +173,7 @@ def _ios_application_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -333,6 +341,10 @@ def _ios_app_clip_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
     entitlements = entitlements_support.entitlements(
@@ -390,7 +402,7 @@ def _ios_app_clip_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -531,6 +543,10 @@ def _ios_framework_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -585,7 +601,7 @@ def _ios_framework_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -703,6 +719,10 @@ def _ios_extension_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -754,7 +774,7 @@ def _ios_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -1087,6 +1107,10 @@ def _ios_imessage_extension_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -1140,7 +1164,7 @@ def _ios_imessage_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             clangrttool = ctx.executable._clangrttool,
-            features = ctx.features,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),

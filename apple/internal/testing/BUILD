@@ -30,6 +30,7 @@ bzl_library(
         "//apple/internal:bundling_support",
         "//apple/internal:entitlements_support",
         "//apple/internal:experimental",
+        "//apple/internal:features_support",
         "//apple/internal:linking_support",
         "//apple/internal:outputs",
         "//apple/internal:partials",
