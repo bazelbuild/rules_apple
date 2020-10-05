@@ -388,9 +388,16 @@ def _ios_app_clip_impl(ctx):
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
-    # TODO(kaipi): Add support for packaging headers.
 
-    binary_descriptor = linking_support.register_linking_action(ctx)
+    # TODO(kaipi): Add support for packaging headers.
+    extra_linkopts = []
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    binary_descriptor = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
     binary_artifact = binary_descriptor.artifact
     binary_provider = binary_descriptor.provider
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
