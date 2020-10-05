@@ -123,10 +123,7 @@ def ios_app_clip_test_suite(name = "ios_app_clip"):
         contains = [
             "$BUNDLE_ROOT/AppClips/app_clip.app/embedded.mobileprovision",
         ],
-        tags = [
-            name,
-            "manual",  # TODO: re-enable once fixed, requires bazel clean to reproduce flakiness
-        ],
+        tags = [name],
     )
 
     native.test_suite(
