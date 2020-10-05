@@ -480,6 +480,7 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
             embedding_archive_paths = _archive_paths(ctx, embedding = True)
             embedding_archive_codesigning_path = embedding_archive_paths[_LOCATION_ENUM.bundle]
             embedding_frameworks_path = embedding_archive_paths[_LOCATION_ENUM.framework]
+            embedding_archive_root_path = outputs.root_path_from_archive(archive = embedding_archive)
             unprocessed_embedded_archive = intermediates.file(
                 ctx.actions,
                 ctx.label.name,
@@ -492,7 +493,7 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
                 embedding_frameworks_path,
                 unprocessed_embedded_archive,
                 embedding_archive,
-                output_archive_root_path,
+                embedding_archive_root_path,
                 transitive_signed_frameworks,
                 entitlements = entitlements,
             )
