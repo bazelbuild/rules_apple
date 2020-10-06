@@ -340,9 +340,7 @@ bzl_library(
 bzl_library(
     name = "resources",
     srcs = ["resources.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
+    visibility = ["//apple:__subpackages__"],
     deps = [
         "//apple:providers",
         "//apple/internal/partials/support:resources_support",
