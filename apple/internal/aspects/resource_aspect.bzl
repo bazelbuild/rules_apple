@@ -67,13 +67,6 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
-    elif ctx.rule.kind == "apple_binary":
-        # Set the binary targets as the default_owner to avoid losing ownership information when
-        # aggregating dependencies resources that have an owners on one branch, and that don't have
-        # an owner on another branch. When rules_apple stops using apple_binary intermediaries this
-        # should be removed as there would not be an intermediate aggregator.
-        owner = str(ctx.label)
-
     # Collect all resource files related to this target.
     files = resources.collect(ctx.rule.attr, **collect_args)
     if files:
@@ -124,8 +117,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    # TODO(kaipi): The aspect should also propagate through the data attribute.
-    attr_aspects = ["bundles", "deps"],
+    attr_aspects = ["bundles", "data", "deps"],
     attrs = apple_support.action_required_attrs(),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
