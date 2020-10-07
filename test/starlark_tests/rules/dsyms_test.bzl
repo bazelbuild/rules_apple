@@ -41,14 +41,23 @@ def _dsyms_test_impl(ctx):
         for x in ctx.attr.expected_dsyms
     ]
 
-    expected_binaries = [
-        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
-            package,
-            x,
-            paths.split_extension(x)[0],
-        )
-        for x in ctx.attr.expected_dsyms
-    ]
+    if ctx.attr.expected_binaries:
+        expected_binaries = [
+            "{0}/{1}".format(
+                package,
+                x,
+            )
+            for x in ctx.attr.expected_binaries
+        ]
+    else:
+        expected_binaries = [
+            "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
+                package,
+                x,
+                paths.split_extension(x)[0],
+            )
+            for x in ctx.attr.expected_dsyms
+        ]
 
     for expected in expected_infoplists + expected_binaries:
         asserts.true(
@@ -70,6 +79,14 @@ dsyms_test = analysistest.make(
             doc = """
 List of bundle names in the format <bundle_name>.<bundle_extension> to verify that dSYMs bundles are
 created for them.
+""",
+        ),
+        "expected_binaries": attr.string_list(
+            mandatory = False,
+            doc = """
+List of expected binaries in dSYMs bundles in the format
+<bundle_name>.<bundle_extension>/Contents/Resources/DWARF/<executable_name> to
+verify that dSYMs binaries are created with the correct names.
 """,
         ),
     },

@@ -297,6 +297,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             debug_dependencies = debug_dependencies,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
         ),
