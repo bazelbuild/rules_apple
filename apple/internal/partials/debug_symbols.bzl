@@ -99,6 +99,7 @@ def _bundle_dsym_files(
         bundle_name,
         debug_outputs_provider,
         dsym_info_plist_template,
+        executable_name,
         platform_prerequisites):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
 
@@ -115,6 +116,7 @@ def _bundle_dsym_files(
       bundle_name: The name of the output bundle.
       debug_outputs_provider: The AppleDebugOutput provider for the binary target.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      executable_name: The name of the output DWARF executable.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
@@ -127,7 +129,7 @@ def _bundle_dsym_files(
     output_binary = actions.declare_file(
         "%s/Contents/Resources/DWARF/%s" % (
             dsym_bundle_name,
-            bundle_name,
+            executable_name,
         ),
     )
     outputs = [output_binary]
@@ -202,6 +204,7 @@ def _debug_symbols_partial_impl(
         debug_dependencies = [],
         debug_outputs_provider = None,
         dsym_info_plist_template,
+        executable_name,
         package_symbols = False,
         platform_prerequisites,
         rule_label):
@@ -234,6 +237,7 @@ def _debug_symbols_partial_impl(
                 bundle_extension = bundle_extension,
                 debug_outputs_provider = debug_outputs_provider,
                 dsym_info_plist_template = dsym_info_plist_template,
+                executable_name = executable_name,
                 platform_prerequisites = platform_prerequisites,
             )
             direct_dsyms.extend(dsym_files)
@@ -359,6 +363,7 @@ def debug_symbols_partial(
         debug_dependencies = [],
         debug_outputs_provider = None,
         dsym_info_plist_template,
+        executable_name,
         package_symbols = False,
         platform_prerequisites,
         rule_label):
@@ -382,6 +387,7 @@ def debug_symbols_partial(
       debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
         outputs of this target's binary.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      executable_name: The name of the output DWARF executable.
       package_symbols: Whether the partial should package the symbols files for all binaries.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_label: The label of the target being analyzed.
@@ -398,6 +404,7 @@ def debug_symbols_partial(
         debug_dependencies = debug_dependencies,
         debug_outputs_provider = debug_outputs_provider,
         dsym_info_plist_template = dsym_info_plist_template,
+        executable_name = executable_name,
         package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
         rule_label = rule_label,
