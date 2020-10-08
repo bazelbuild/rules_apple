@@ -81,7 +81,7 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     """Aspect implementation for Swift dynamic framework support."""
 
     swiftdeps = [x for x in ctx.rule.attr.deps if SwiftInfo in x]
-
+    ccinfos = [x for x in ctx.rule.attr.deps if CcInfo in x]
     # If there are no Swift dependencies, return nothing.
     if not swiftdeps:
         return []
@@ -107,9 +107,13 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
 
         swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list().pop()
         swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list().pop()
-        
-        modulemap_file = ctx.actions.declare_file("{}File.modulemap".format(module_name))
+        modulemap_file = ctx.actions.declare_file("{}_file.modulemap".format(module_name))
         ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
+
+    for dep in ccinfos:
+        headers = dep[CcInfo].compilation_context.headers.to_list()
+        if headers:
+            generated_header = headers.pop(0)
 
     # Make sure that all dictionaries contain at least one module before returning the provider.
     if all([module_name, generated_header, swiftdocs, swiftmodules, modulemap_file]):

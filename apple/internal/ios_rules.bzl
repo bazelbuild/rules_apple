@@ -679,57 +679,29 @@ def _ios_dynamic_framework_impl(ctx):
     processor_result = processor.process(ctx, processor_partials)
     providers = processor_result.providers
 
-    framework_dir = depset()
-    framework_files = depset()
-    desired_path = ""
-    for provider in providers:
-        if type(provider) == "AppleDynamicFramework":
-            framework_dir = provider.framework_dirs
-            framework_files = provider.framework_files
-            full_path = framework_dir.to_list()[0]
-            path_parts = full_path.split("/")
-            for part in path_parts:
-                if part != path_parts[len(path_parts)-1]:
-                    desired_path = desired_path + part + "/"
-                else:
-                    desired_path = desired_path[0:len(desired_path)-1]
-    desired_framework_dir = depset([desired_path])
-
     #===========================================================================================================
-    # TODO: Create the complete CcInfo in a partial, OR just do it here like so (feels hacky)
-    # As of right now we have a parital CcInfo being created in the dynamic_framework_partial
-    # But we need the framework_dir from the AppleDynamicFramework returned by the framework_provider_partial
-    # To be included so the transitive dependencies will work properly
+    # TODO: Create the objc_provider in a partial, OR just do it here like so (feels hacky)
+    # In order for swift_dynamic_framework to be used as a dependency of swift_library,
+    # It needs to pass an objc_provider with a reference to the dynamic_framework_file.
+    # During the swift_dynamic_framework partial, we don't have access to that file, since it is processed
+    # in the framework_provider_partial and returned in the AppleDynamicFramework provider
     # This feels like the wrong place to do this logic, but it's the only place we had access to all the data
     #===========================================================================================================
+    framework_files = depset()
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            framework_files = provider.framework_files
 
-    # Make the ObjC provider
     objc_provider_fields = {}
     objc_provider_fields["dynamic_framework_file"] = framework_files
     objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
 
-    # Add everything but CcInfo provider so we can make a new one
-    new_providers = []
-    for provider in providers:
-        if type(provider) != "CcInfo":
-            new_providers.append(provider)
-        else:
-            cc_info = CcInfo(
-                compilation_context = cc_common.create_compilation_context(
-                    headers = provider.compilation_context.headers,
-                    framework_includes = desired_framework_dir,
-                ),
-            )
-            new_providers.append(cc_info)
+    providers.append(objc_provider)
 
-    new_providers.append(objc_provider)
-
-    providers = [
+    return [
         DefaultInfo(files = processor_result.output_files),
         IosFrameworkBundleInfo(),
-    ] + new_providers
-
-    return providers
+    ] + providers
 
 def _ios_static_framework_impl(ctx):
     """Experimental implementation of ios_static_framework."""

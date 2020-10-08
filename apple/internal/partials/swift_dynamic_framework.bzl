@@ -89,24 +89,8 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         ctx.actions.symlink(target_file = modulemap_file, output = modulemap)
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
-    providers = []
-    all_files = []
-    for bundle, path, files in bundle_files:
-        all_files += files.to_list()
-
-    header_imports = _get_header_imports(all_files)
-
-    cc_info_provider = CcInfo(
-        compilation_context = cc_common.create_compilation_context(
-            headers = depset(header_imports),
-        ),
-    )
-
-    providers.append(cc_info_provider)
-
     return struct(
         bundle_files = bundle_files,
-        providers = providers
     )
 
 def swift_dynamic_framework_partial(swift_dynamic_framework_info):

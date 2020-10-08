@@ -80,6 +80,7 @@ swift_library(
         ":structured_resources",
     ],
     testonly = True,
+    features = ["swift.no_generated_module_map"],
 )
 
 swift_library(
@@ -87,6 +88,7 @@ swift_library(
     module_name = "swift_common_lib",
     srcs = ["Common.swift"],
     testonly = True,
+    features = ["swift.no_generated_module_map"],
 )
 
 swift_library(
@@ -97,6 +99,7 @@ swift_library(
         "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
     ],
     testonly = True,
+    features = ["swift.no_generated_module_map"],
 )
 
 swift_library(
@@ -108,6 +111,7 @@ swift_library(
         "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
     ],
     testonly = True,
+    features = ["swift.no_generated_module_map"],
 )
 
 swift_library(
@@ -119,6 +123,7 @@ swift_library(
         "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
     ],
     testonly = True,
+    features = ["swift.no_generated_module_map"],
 )
 
 swift_library(

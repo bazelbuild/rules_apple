@@ -1842,6 +1842,7 @@ swift_library(
         "//test/starlark_tests/resources:BasicFramework.swift",
     ],
     visibility = ["//visibility:public"],
+    features = ["swift.no_generated_module_map"],
 )
 
 ios_dynamic_framework(
@@ -1875,6 +1876,7 @@ swift_library(
     deps = [
         ":basic_framework",
     ],
+    features = ["swift.no_generated_module_map"],
 )
 
 ios_dynamic_framework(
@@ -1909,6 +1911,7 @@ swift_library(
         ":basic_framework",
         ":basic_framework_with_direct_dependency",
     ],
+    features = ["swift.no_generated_module_map"],
 )
 
 ios_dynamic_framework(
