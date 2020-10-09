@@ -1843,6 +1843,9 @@ swift_library(
     ],
     visibility = ["//visibility:public"],
     features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
 )
 
 ios_dynamic_framework(
@@ -1877,6 +1880,9 @@ swift_library(
         ":basic_framework",
     ],
     features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
 )
 
 ios_dynamic_framework(
@@ -1912,6 +1918,9 @@ swift_library(
         ":basic_framework_with_direct_dependency",
     ],
     features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
 )
 
 ios_dynamic_framework(
