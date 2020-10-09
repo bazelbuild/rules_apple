@@ -115,6 +115,11 @@ apple_resource_bundle(
 )
 
 apple_resource_bundle(
+    name = "resource_bundle_with_structured_resource_group",
+    resources = [":structured_resources"],
+)
+
+apple_resource_bundle(
     name = "localization",
     resources = [
         "en.lproj/files.stringsdict",
@@ -135,6 +140,11 @@ filegroup(
         "nested/nested.txt",
         "non_nested.txt",
     ],
+)
+
+apple_resource_group(
+    name = "resources_with_resource_bundle",
+    resources = [":resource_bundle"],
 )
 
 apple_resource_group(

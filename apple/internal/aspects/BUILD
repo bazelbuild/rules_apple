@@ -23,12 +23,14 @@ bzl_library(
     srcs = ["resource_aspect.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
+        "//apple/internal/resource_rules:__pkg__",
     ],
     deps = [
         "//apple:providers",
         "//apple/internal:platform_support",
         "//apple/internal:resources",
         "//apple/internal:swift_support",
+        "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
     ],

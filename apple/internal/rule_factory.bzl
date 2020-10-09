@@ -421,6 +421,7 @@ in the bundle.
         ),
         "resources": attr.label_list(
             allow_files = True,
+            aspects = [apple_resource_aspect],
             doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within the bundle.
