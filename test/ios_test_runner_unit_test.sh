@@ -124,6 +124,11 @@ function create_ios_unit_tests() {
   XCTAssertEqual(1, 1, @"should pass");
 }
 
+- (void)testPassEnvVariable {
+  XCTAssertEqual([NSProcessInfo processInfo].environment[@"SomeVariable1"], @"Its My First Variable", @"should pass");
+  XCTAssertEqual([NSProcessInfo processInfo].environment[@"SomeVariable2"], @"Its My Second Variable", @"should pass");
+}
+
 @end
 EOF
 
@@ -193,6 +198,10 @@ ios_unit_test(
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
     minimum_os_version = "9.0",
+    env = {
+      "SomeVariable1": "Its My First Variable",
+      "SomeVariable2": "Its My Second Variable"
+    },
     runner = ":ios_x86_64_sim_runner",
 )
 
