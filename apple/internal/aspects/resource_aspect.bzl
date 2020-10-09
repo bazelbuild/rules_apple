@@ -38,6 +38,30 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+
+def _platform_prerequisites_for_aspect(target, aspect_ctx):
+    """Return the set of platform prerequisites that can be determined from this aspect."""
+    deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
+    uses_swift = swift_support.uses_swift(deps_and_target)
+
+    # TODO(b/161370390): Support device_families when rule_descriptor can be accessed from an
+    # aspect, or the list of allowed device families can be determined independently of the
+    # rule_descriptor.
+    return platform_support.platform_prerequisites(
+        apple_fragment = aspect_ctx.fragments.apple,
+        config_vars = aspect_ctx.var,
+        device_families = None,
+        explicit_minimum_os = None,
+        objc_fragment = None,
+        platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
+        uses_swift = uses_swift,
+        xcode_path_wrapper = aspect_ctx.executable._xcode_path_wrapper,
+        xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
@@ -47,9 +71,15 @@ def _apple_resource_aspect_impl(target, ctx):
         return []
 
     providers = []
-
-    bucketize_args = {}
+    bucketize_args = {
+        "actions": ctx.actions,
+        "bundle_id": None,
+        "product_type": None,
+        "rule_executables": ctx.executable,
+        "rule_label": ctx.label,
+    }
     collect_args = {}
+    collect_structured_args = {}
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
@@ -67,42 +97,49 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
-    # Collect all resource files related to this target.
-    files = resources.collect(ctx.rule.attr, **collect_args)
-    if files:
-        deps = getattr(ctx.attr, "deps", None)
-        uses_swift = swift_support.uses_swift(deps) if deps else False
+    elif ctx.rule.kind == "apple_resource_group":
+        collect_args["res_attrs"] = ["resources"]
+        collect_structured_args["res_attrs"] = ["structured_resources"]
 
-        # TODO(b/161370390): Support device_families when rule_descriptor can be accessed from an
-        # aspect, or the list of allowed device families can be determined independently of the
-        # rule_descriptor.
-        platform_prerequisites = platform_support.platform_prerequisites(
-            apple_fragment = ctx.fragments.apple,
-            config_vars = ctx.var,
-            device_families = None,
-            explicit_minimum_os = getattr(ctx.attr, "minimum_os_version", None),
-            objc_fragment = None,
-            platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
-            uses_swift = uses_swift,
-            xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
-            xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-        )
+    # Collect all resource files related to this target.
+    resource_files = resources.collect(ctx.rule.attr, **collect_args)
+    if resource_files:
         providers.append(
             resources.bucketize_with_processing(
-                actions = ctx.actions,
-                bundle_id = getattr(ctx.attr, "bundle_id", None),
                 owner = owner,
-                platform_prerequisites = platform_prerequisites,
-                product_type = getattr(ctx.attr, "_product_type", None),
-                resources = files,
-                rule_executables = ctx.rule.executable,
-                rule_label = ctx.label,
+                platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                resources = resource_files,
                 **bucketize_args
             ),
         )
 
-    # Get the providers from dependencies.
-    for attr in ["deps", "data"]:
+    if collect_structured_args:
+        # `structured_resources` requires an explicit parent directory, requiring them to be
+        # processed differently from `resources` and resources inherited from other fields.
+        #
+        # `structured_resources` also does not support propagating resource providers from
+        # apple_resource_group or apple_bundle_import targets, unlike `resources`. If a target is
+        # referenced by `structured_resources` that already propagates a resource provider, it will
+        # be ignored.
+        structured_files = resources.collect(ctx.rule.attr, **collect_structured_args)
+        if structured_files:
+            # Avoid processing PNG files that are referenced through the structured_resources
+            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
+            structured_resources_provider = resources.bucketize_with_processing(
+                allowed_buckets = ["strings", "plists"],
+                owner = owner,
+                parent_dir_param = partial.make(
+                    resources.structured_resources_parent_dir,
+                ),
+                platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                resources = structured_files,
+                **bucketize_args
+            )
+            providers.append(structured_resources_provider)
+
+    # Get the providers from dependencies, referenced by deps and locations for resources.
+    provider_deps = ["deps"] + collect_args.get("res_attrs", [])
+    for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             providers.extend([
                 x[AppleResourceInfo]
@@ -117,7 +154,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["bundles", "data", "deps"],
+    attr_aspects = ["data", "deps", "resources", "structured_resources"],
     attrs = apple_support.action_required_attrs(),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level

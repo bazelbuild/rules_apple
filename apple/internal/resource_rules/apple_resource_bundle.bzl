@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -98,25 +102,25 @@ def _apple_resource_bundle_impl(ctx):
             ctx.attr,
             res_attrs = ["structured_resources"],
         )
-
-        # Avoid processing PNG files that are referenced through the structured_resources
-        # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-        providers.append(
-            resources.bucketize_with_processing(
-                actions = actions,
-                allowed_buckets = ["strings", "plists"],
-                bundle_id = None,
-                parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                    parent_dir = bundle_name,
+        if structured_files:
+            # Avoid processing PNG files that are referenced through the structured_resources
+            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
+            providers.append(
+                resources.bucketize_with_processing(
+                    actions = actions,
+                    allowed_buckets = ["strings", "plists"],
+                    bundle_id = None,
+                    parent_dir_param = partial.make(
+                        resources.structured_resources_parent_dir,
+                        parent_dir = bundle_name,
+                    ),
+                    platform_prerequisites = platform_prerequisites,
+                    product_type = None,
+                    resources = structured_files,
+                    rule_executables = rule_executables,
+                    rule_label = rule_label,
                 ),
-                platform_prerequisites = platform_prerequisites,
-                product_type = None,
-                resources = structured_files,
-                rule_executables = rule_executables,
-                rule_label = rule_label,
-            ),
-        )
+            )
 
     # Find any targets added through resources which might propagate the AppleResourceInfo
     # provider, for example, apple_resource_bundle or apple_bundle_import targets.
@@ -177,6 +181,7 @@ non-RFC1034-compliant characters with -.
         "resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
+            aspects = [apple_resource_aspect],
             doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have

@@ -14,114 +14,16 @@
 
 """Implementation of apple_resource_group rule."""
 
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-
 def _apple_resource_group_impl(ctx):
-    """Implementation of the apple_resource_group rule."""
-    actions = ctx.actions
-    rule_executables = ctx.executable
-    rule_label = ctx.label
-
-    deps = getattr(ctx.attr, "deps", None)
-    uses_swift = swift_support.uses_swift(deps) if deps else False
-
-    # TODO(b/168721966): Move all resource processing below into the resource aspect. This will
-    # avoid issues with being able to determine platform information from these rules, where we do
-    # not have sufficient knowledge to fill out all of the platform prerequisites.
-    platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        config_vars = ctx.var,
-        device_families = None,
-        objc_fragment = None,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
-        uses_swift = uses_swift,
-        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-
-    resource_providers = []
-
-    if ctx.attr.resources:
-        resource_files = resources.collect(ctx.attr, res_attrs = ["resources"])
-        if resource_files:
-            resource_providers.append(
-                resources.bucketize_with_processing(
-                    actions = actions,
-                    bundle_id = None,
-                    platform_prerequisites = platform_prerequisites,
-                    product_type = None,
-                    resources = resource_files,
-                    rule_executables = rule_executables,
-                    rule_label = rule_label,
-                ),
-            )
-    if ctx.attr.structured_resources:
-        structured_files = resources.collect(
-            ctx.attr,
-            res_attrs = ["structured_resources"],
-        )
-
-        # Avoid processing PNG files that are referenced through the structured_resources
-        # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-        resource_providers.append(
-            resources.bucketize_with_processing(
-                actions = actions,
-                allowed_buckets = ["strings", "plists"],
-                bundle_id = None,
-                parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                ),
-                platform_prerequisites = platform_prerequisites,
-                product_type = None,
-                resources = structured_files,
-                rule_executables = rule_executables,
-                rule_label = rule_label,
-            ),
-        )
-
-    # Find any targets added through resources which might propagate the AppleResourceInfo
-    # provider, for example, other apple_resource_group and apple_resource_bundle targets.
-    resource_providers.extend([
-        x[AppleResourceInfo]
-        for x in ctx.attr.resources
-        if AppleResourceInfo in x
-    ])
-
-    if resource_providers:
-        # If any providers were collected, merge them.
-        return [resources.merge_providers(resource_providers)]
+    # All of the resource processing logic for this rule exists in the apple_resource_aspect.
+    #
+    # To transform the attributes referenced by this rule into resource providers, that aspect must
+    # be used to iterate through all relevant instances of this rule in the build graph.
     return []
 
 apple_resource_group = rule(
     implementation = _apple_resource_group_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
+    attrs = {
         "resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
@@ -147,8 +49,7 @@ bundle root in the same structure passed to this argument, so ["res/foo.png"] wi
 res/foo.png inside the bundle.
 """,
         ),
-    }),
-    fragments = ["apple"],
+    },
     doc = """
 This rule encapsulates a target which provides resources to dependents. An
 apple_resource_group's resources are put in the top-level Apple bundle dependent.
