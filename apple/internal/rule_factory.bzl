@@ -233,22 +233,22 @@ true.
     ),
 }
 
-def _common_binary_linking_attrs(rule_descriptor):
+def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     deps_aspects = [
         apple_common.objc_proto_aspect,
         apple_resource_aspect,
         framework_import_aspect,
         swift_usage_aspect,
     ]
-    if _is_test_product_type(rule_descriptor.product_type):
-        deps_aspects.append(apple_test_info_aspect)
-
-    if rule_descriptor.product_type == apple_product_type.static_framework:
-        deps_aspects.append(swift_static_framework_aspect)
+    if product_type:
+        if _is_test_product_type(product_type):
+            deps_aspects.append(apple_test_info_aspect)
+        if product_type == apple_product_type.static_framework:
+            deps_aspects.append(swift_static_framework_aspect)
 
     return {
         "binary_type": attr.string(
-            default = rule_descriptor.binary_type,
+            default = default_binary_type,
             doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
@@ -276,7 +276,7 @@ A list of strings representing extra flags that should be passed to the linker.
         ),
         "deps": attr.label_list(
             aspects = deps_aspects,
-            cfg = rule_descriptor.deps_cfg,
+            cfg = deps_cfg,
             doc = """
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
@@ -941,13 +941,6 @@ and is embedded into the binary. Please see
 for what is supported.
 """,
         ),
-        "minimum_os_version": attr.string(
-            mandatory = True,
-            doc = """
-A required string indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "10.11").
-""",
-        ),
         "version": attr.label(
             providers = [[AppleBundleVersionInfo]],
             doc = """
@@ -959,34 +952,86 @@ An `apple_bundle_version` target that represents the version for this target. Se
 
     return attrs
 
-def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
+def _create_apple_binary_rule(
+        implementation,
+        doc,
+        additional_attrs = {},
+        implicit_outputs = None,
+        platform_type = None,
+        product_type = None):
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
-            # TODO(kaipi): Make this attribute private. It is required by the native linking
-            # API.
-            "platform_type": attr.string(default = platform_type),
-            "_product_type": attr.string(default = product_type),
-            "_environment_plist": attr.label(
-                allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
+            "minimum_os_version": attr.string(
+                mandatory = True,
+                doc = """
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "10.11").
+""",
+            ),
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
         },
+        _COMMON_PRIVATE_TOOL_ATTRS,
     ]
 
-    rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
-    rule_attrs.append(_COMMON_PRIVATE_TOOL_ATTRS)
+    if platform_type:
+        rule_attrs.append({
+            # TODO(kaipi): Make this attribute private when a platform_type is
+            # specified. It is required by the native linking API.
+            "platform_type": attr.string(default = platform_type),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(
+                    platform_type,
+                ),
+            ),
+        })
+    else:
+        rule_attrs.append({
+            "platform_type": attr.string(
+                doc = """
+The target Apple platform for which to create a binary. This dictates which SDK
+is used for compilation/linking and which flag is used to determine the
+architectures to target. For example, if `ios` is specified, then the output
+binaries/libraries will be created combining all architectures specified by
+`--ios_multi_cpus`. Options are:
 
-    if rule_descriptor.requires_deps:
-        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
+*   `ios`: architectures gathered from `--ios_multi_cpus`.
+*   `macos`: architectures gathered from `--macos_cpus`.
+*   `tvos`: architectures gathered from `--tvos_cpus`.
+*   `watchos`: architectures gathered from `--watchos_cpus`.
+""",
+                mandatory = True,
+            ),
+        })
 
-    rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
+    if platform_type and product_type:
+        rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
+        is_executable = rule_descriptor.is_executable
 
-    rule_attrs.append({
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
-    })
+        if rule_descriptor.requires_deps:
+            rule_attrs.append(_common_binary_linking_attrs(
+                default_binary_type = rule_descriptor.binary_type,
+                deps_cfg = rule_descriptor.deps_cfg,
+                product_type = product_type,
+            ))
+
+        rule_attrs.extend(
+            [
+                {"_product_type": attr.string(default = product_type)},
+            ] + _get_macos_binary_attrs(rule_descriptor),
+        )
+    else:
+        is_executable = False
+        rule_attrs.append(_common_binary_linking_attrs(
+            default_binary_type = "executable",
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = None,
+        ))
+
+    rule_attrs.append(additional_attrs)
 
     return rule(
         implementation = implementation,
@@ -994,8 +1039,9 @@ def _create_apple_binary_rule(implementation, platform_type, product_type, doc):
         attrs = dicts.add(*rule_attrs),
         cfg = transition_support.apple_rule_transition,
         doc = doc,
-        executable = rule_descriptor.is_executable,
+        executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
+        outputs = implicit_outputs,
     )
 
 def _create_apple_bundling_rule(implementation, platform_type, product_type, doc):
@@ -1019,7 +1065,11 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     rule_attrs.extend(_get_common_bundling_attributes(rule_descriptor))
 
     if rule_descriptor.requires_deps:
-        rule_attrs.append(_common_binary_linking_attrs(rule_descriptor))
+        rule_attrs.append(_common_binary_linking_attrs(
+            default_binary_type = rule_descriptor.binary_type,
+            deps_cfg = rule_descriptor.deps_cfg,
+            product_type = product_type,
+        ))
 
     is_test_product_type = _is_test_product_type(rule_descriptor.product_type)
     if is_test_product_type:

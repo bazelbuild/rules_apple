@@ -90,14 +90,17 @@ def _register_linking_action(ctx, extra_linkopts = []):
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
-    rpaths = rule_descriptor.rpaths
     linkopts = []
-    if rpaths:
-        linkopts.extend(collections.before_each("-rpath", rpaths))
 
-    linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+    # Compatibility path for `apple_binary`, which does not have a product type.
+    if hasattr(ctx.attr, "_product_type"):
+        rule_descriptor = rule_support.rule_descriptor(ctx)
+
+        rpaths = rule_descriptor.rpaths
+        if rpaths:
+            linkopts.extend(collections.before_each("-rpath", rpaths))
+
+        linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
 
     return apple_common.link_multi_arch_binary(
         ctx = ctx,
