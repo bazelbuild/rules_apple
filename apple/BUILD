@@ -35,6 +35,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_binary",
+    srcs = ["apple_binary.bzl"],
+    deps = [
+        "//apple/internal:linking_support",
+        "//apple/internal:rule_factory",
+    ],
+)
+
+bzl_library(
     name = "common",
     srcs = ["common.bzl"],
 )
