@@ -34,10 +34,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_runtime_linkopts",
 )
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
 
 def _create_swift_runtime_linkopts_target(
         name,
@@ -244,7 +240,7 @@ def _create_binary(
     rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
 
     linkopts = kwargs.pop("linkopts", [])
-    linkopts = linkopts + collections.before_each("-rpath", rule_descriptor.rpaths)
+    linkopts = linkopts + ["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths]
     linkopts = linkopts + rule_descriptor.extra_linkopts
     if extension_safe:
         linkopts = linkopts + ["-application_extension"]

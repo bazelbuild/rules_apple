@@ -509,10 +509,7 @@ _RULE_TYPE_DESCRIPTORS = {
             # stripping is better-handled. It's redundant with an option added in the CROSSTOOL
             # for the "kernel_extension" feature, but for now it's necessary to detect kext
             # linking so CompilationSupport.java can apply the correct type of symbol stripping.
-            extra_linkopts = [
-                "-Xlinker",
-                "-kext",
-            ],
+            extra_linkopts = ["-Wl,-kext"],
             product_type = apple_product_type.kernel_extension,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
