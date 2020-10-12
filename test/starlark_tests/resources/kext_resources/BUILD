@@ -24,7 +24,6 @@ cc_library(
     copts = [
         "-mkernel",
         "-fapple-kext",
-        "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/PrivateHeaders",
         "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/Headers",
     ],
     tags = [
