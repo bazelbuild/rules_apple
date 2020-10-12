@@ -269,6 +269,11 @@ This attribute is public as an implementation detail while we migrate the archit
 Do not change its value.
     """,
         ),
+        "signopts": attr.string_list(
+            doc = """
+A list of strings representing extra flags that should be passed to `codesign`.
+    """,
+        ),
         "linkopts": attr.string_list(
             doc = """
 A list of strings representing extra flags that should be passed to the linker.
