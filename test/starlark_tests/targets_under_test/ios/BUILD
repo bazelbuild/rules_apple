@@ -1024,6 +1024,20 @@ ios_extension(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "app_with_codesignopts",
+    bundle_id = "com.google.example",
+    codesignopts = ["--digest-algorithm=sha1", "--digest-algorithm=sha384"],
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_fmwk",
     bundle_id = "com.google.example",
     families = [

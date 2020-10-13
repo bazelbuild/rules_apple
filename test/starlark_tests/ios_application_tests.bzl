@@ -75,6 +75,14 @@ def ios_application_test_suite(name = "ios_application"):
     )
 
     apple_verification_test(
+        name = "{}_codesignopts_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_codesignopts",
+        verifier_script = "verifier_scripts/codesignopts_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
