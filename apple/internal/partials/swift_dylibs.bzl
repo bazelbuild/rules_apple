@@ -87,7 +87,7 @@ def _swift_dylib_action(
         platform_name,
         platform_prerequisites,
         swift_stdlib_tool,
-        strip_bitcode = False):
+        strip_bitcode):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
     swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
@@ -168,7 +168,7 @@ def _swift_dylibs_partial_impl(
         transitive = transitive_binary_sets,
     )
 
-    strip_bitcode = bitcode_support.bitcode_mode_string(ctx) == "none"
+    strip_bitcode = bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none"
 
     swift_support_requested = defines.bool_value(ctx, "apple.package_swift_support", True)
     needs_swift_support = platform_support.is_device_build(ctx) and swift_support_requested
@@ -213,7 +213,7 @@ def _swift_dylibs_partial_impl(
                         platform_name = platform_name,
                         platform_prerequisites = platform_prerequisites,
                         swift_stdlib_tool = swift_stdlib_tool,
-                        strip_bitcode = strip_bitcode,
+                        strip_bitcode = False,
                     )
                 else:
                     # When not building with bitcode, we can reuse Swift dylibs

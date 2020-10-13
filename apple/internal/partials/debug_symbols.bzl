@@ -98,7 +98,8 @@ def _bundle_dsym_files(
         bundle_extension = "",
         bundle_name,
         debug_outputs_provider,
-        dsym_info_plist_template):
+        dsym_info_plist_template,
+        platform_prerequisites):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -114,6 +115,7 @@ def _bundle_dsym_files(
       bundle_name: The name of the output bundle.
       debug_outputs_provider: The AppleDebugOutput provider for the binary target.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
       A list of files that comprise the .dSYM bundle, which should be returned as additional
@@ -166,6 +168,8 @@ def _bundle_dsym_files(
             outputs = outputs,
             arguments = [args],
             mnemonic = "DsymLipo",
+            apple_fragment = platform_prerequisites.apple_fragment,
+            xcode_config = platform_prerequisites.xcode_version_config,
         )
 
     # If we found any outputs, create the Info.plist for the bundle as well; otherwise, we just
@@ -230,6 +234,7 @@ def _debug_symbols_partial_impl(
                 bundle_extension = bundle_extension,
                 debug_outputs_provider = debug_outputs_provider,
                 dsym_info_plist_template = dsym_info_plist_template,
+                platform_prerequisites = platform_prerequisites,
             )
             direct_dsyms.extend(dsym_files)
 
@@ -249,13 +254,6 @@ def _debug_symbols_partial_impl(
                 False,
             )
 
-        if platform_prerequisites.objc_fragment.generate_linkmap:
-            linkmaps = _collect_linkmaps(
-                actions = actions,
-                debug_outputs_provider = debug_outputs_provider,
-                bundle_name = bundle_name,
-            )
-
             if include_symbols:
                 symbols = _generate_symbols(
                     ctx,
@@ -263,8 +261,12 @@ def _debug_symbols_partial_impl(
                 )
                 direct_symbols.extend(symbols)
 
-        if ctx.fragments.objc.generate_linkmap:
-            linkmaps = _collect_linkmaps(ctx, debug_outputs_provider, bundle_name)
+        if platform_prerequisites.objc_fragment.generate_linkmap:
+            linkmaps = _collect_linkmaps(
+                actions = actions,
+                debug_outputs_provider = debug_outputs_provider,
+                bundle_name = bundle_name,
+            )
             direct_linkmaps.extend(linkmaps)
 
     # Only output dependency debug files if requested.

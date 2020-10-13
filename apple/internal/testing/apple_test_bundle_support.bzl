@@ -354,6 +354,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
