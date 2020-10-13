@@ -257,6 +257,31 @@ EOF
 }
 
 # Tests that linkopts get passed to the underlying apple_binary target.
+function test_codesignopts_passed_to_binary() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    codesignopts = ["--digest-algorithm=sha1", "--digest-algorithm=sha384"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  codesign -dvvv "test-bin/app/app.ipa" 2>&1 |
+      grep '^Hash choices=sha1,sha384$'  > /dev/null \
+      || fail ".ipa did not use SHA-1 and SHA-384 for its hash choices; " \
+              "codesignopts may have not propagated"
+}
+
+# Tests that linkopts get passed to the underlying apple_binary target.
 function test_linkopts_passed_to_binary() {
   # Bail out early if this is a Bitcode build; the -alias flag we use to test
   # this isn't compatible with Bitcode. That's ok; as long as the test passes
