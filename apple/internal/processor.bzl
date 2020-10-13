@@ -434,6 +434,7 @@ def _bundle_post_process_and_sign(
         bundle_extension,
         bundle_name,
         entitlements,
+        executable_name,
         output_archive,
         partial_outputs,
         platform_prerequisites,
@@ -450,6 +451,7 @@ def _bundle_post_process_and_sign(
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+        executable_name: The name of the output executable.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         partial_outputs: The outputs of the partials used to process this target's bundle.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -555,8 +557,9 @@ def _bundle_post_process_and_sign(
         if has_different_embedding_archive:
             embedding_archive = outputs.archive_for_embedding(
                 actions = actions,
-                bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
+                bundle_extension = bundle_extension,
+                executable_name = executable_name,
                 label_name = rule_label.name,
                 rule_descriptor = rule_descriptor,
                 platform_prerequisites = platform_prerequisites,
@@ -612,6 +615,7 @@ def _process(
         bundle_name,
         bundle_post_process_and_sign = True,
         entitlements,
+        executable_name,
         partials,
         platform_prerequisites,
         predeclared_outputs,
@@ -629,6 +633,7 @@ def _process(
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      executable_name: The name of the output executable.
       partials: The list of partials to process to construct the complete bundle.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
@@ -660,6 +665,7 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             entitlements = entitlements,
             output_archive = output_archive,
             partial_outputs = partial_outputs,

@@ -301,8 +301,10 @@ def _infoplists(
 
 def _metals(
         *,
-        ctx,
+        actions,
+        rule_label,
         parent_dir,
+        platform_prerequisites,
         files,
         output_filename = "default.metallib",
         **kwargs):
@@ -311,8 +313,10 @@ def _metals(
     The metal files will be compiled into a Metal library named `default.metallib`.
 
     Args:
-        ctx: The target's context.
+        actions: The actions provider from `ctx.actions`.
+        rule_label: The label of the target being analyzed.
         parent_dir: The path under which the library should be placed.
+        platform_prerequisites: Struct containing information on the platform being targeted.
         files: The metal files to process.
         output_filename: The output .metallib filename.
         **kwargs: Ignored
@@ -322,14 +326,15 @@ def _metals(
     """
     metallib_path = paths.join(parent_dir or "", output_filename)
     metallib_file = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        rule_label.name,
         metallib_path,
     )
     resource_actions.compile_metals(
-        ctx,
-        files.to_list(),
-        metallib_file,
+        actions = actions,
+        input_files = files.to_list(),
+        output_file = metallib_file,
+        platform_prerequisites = platform_prerequisites,
     )
 
     return struct(

@@ -266,6 +266,7 @@ def _ios_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -337,7 +338,7 @@ def _ios_app_clip_impl(ctx):
     embeddable_targets = ctx.attr.frameworks
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
-        executable_name = bundling_support.executable_name(ctx),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
     )
     label = ctx.label
     predeclared_outputs = ctx.outputs
@@ -464,6 +465,7 @@ def _ios_app_clip_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -662,6 +664,7 @@ def _ios_framework_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -827,6 +830,7 @@ def _ios_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -928,6 +932,7 @@ def _ios_static_framework_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         entitlements = entitlements,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1059,6 +1064,7 @@ def _ios_imessage_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1218,6 +1224,7 @@ def _ios_imessage_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1341,6 +1348,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,

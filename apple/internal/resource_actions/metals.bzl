@@ -23,16 +23,16 @@ load(
     "paths",
 )
 
-def _metal_apple_target_triple(ctx):
+def _metal_apple_target_triple(platform_prerequisites):
     """Returns a Metal target triple string for an Apple platform.
 
     Args:
-        ctx: The target's context.
+        platform_prerequisites: The target's platform_prerequisites.
     Returns:
         A target triple string describing the platform.
     """
-    platform = ctx.fragments.apple.single_arch_platform
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    platform = platform_prerequisites.apple_fragment.single_arch_platform
+    xcode_config = platform_prerequisites.xcode_version_config
     target_os_version = xcode_config.minimum_os_for_platform_type(
         platform.platform_type,
     )
@@ -49,28 +49,30 @@ def _metal_apple_target_triple(ctx):
         version = target_os_version,
     )
 
-def compile_metals(ctx, input_files, output_file):
+def compile_metals(*, actions, input_files, output_file, platform_prerequisites, **kwargs):
     """Creates actions that compile .metal files into a single .metallib file.
 
     Args:
-        ctx: The target's rule context.
+        actions: The actions provider from `ctx.actions`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
         input_files: The input metal files.
         output_file: The output metallib file.
+        **kwargs: Ignored
     """
     air_files = []
-    target = _metal_apple_target_triple(ctx)
+    target = _metal_apple_target_triple(platform_prerequisites)
 
     if not input_files:
         fail("Input .metal files can't be empty")
 
     # Compile each .metal file into a single .air file
     for input_metal in input_files:
-        air_file = ctx.actions.declare_file(
+        air_file = actions.declare_file(
             paths.replace_extension(input_metal.basename, ".air"),
         )
         air_files.append(air_file)
 
-        args = ctx.actions.args()
+        args = actions.args()
         args.add("metal")
         args.add("-c")
         args.add("-target", target)
@@ -79,26 +81,30 @@ def compile_metals(ctx, input_files, output_file):
         args.add(input_metal)
 
         apple_support.run(
-            ctx,
+            actions = actions,
             executable = "/usr/bin/xcrun",
             inputs = [input_metal],
             outputs = [air_file],
             arguments = [args],
             mnemonic = "MetalCompile",
+            apple_fragment = platform_prerequisites.apple_fragment,
+            xcode_config = platform_prerequisites.xcode_version_config,
         )
 
     # Compile .air files into a single .metallib file, which stores the Metal
     # library
-    args = ctx.actions.args()
+    args = actions.args()
     args.add("metallib")
     args.add("-o", output_file)
     args.add_all(air_files)
 
     apple_support.run(
-        ctx,
+        actions = actions,
         executable = "/usr/bin/xcrun",
         inputs = air_files,
         outputs = [output_file],
         arguments = [args],
         mnemonic = "MetallibCompile",
+        apple_fragment = platform_prerequisites.apple_fragment,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )

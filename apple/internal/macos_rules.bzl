@@ -201,6 +201,7 @@ def _macos_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -364,6 +365,7 @@ def _macos_bundle_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -503,6 +505,7 @@ def _macos_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -645,6 +648,7 @@ def _macos_quick_look_plugin_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -775,6 +779,7 @@ def _macos_kernel_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1038,6 +1043,7 @@ def _macos_xpc_service_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1091,6 +1097,7 @@ def _macos_command_line_application_impl(ctx):
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1124,6 +1131,7 @@ def _macos_dylib_impl(ctx):
     binary_descriptor = linking_support.register_linking_action(ctx)
     binary_artifact = binary_descriptor.artifact
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
     debug_outputs_provider = binary_descriptor.debug_outputs_provider
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
@@ -1153,6 +1161,7 @@ def _macos_dylib_impl(ctx):
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
         entitlements = entitlements,
+        executable_name = executable_name,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
