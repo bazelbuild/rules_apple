@@ -78,8 +78,8 @@ generate_import_framework(
 generate_import_framework(
     name = "iOSDynamicFrameworkWithBitcode",
     archs = ["x86_64"],
-    libtype = "dynamic",
     embed_bitcode = True,
+    libtype = "dynamic",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
 )
