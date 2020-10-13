@@ -455,8 +455,8 @@ ios_application(
 
 ios_static_framework(
     name = "swift_static_framework",
-    minimum_os_version = "9.0",
     bundle_name = "swift_framework_lib",
+    minimum_os_version = "9.0",
     deps = [
         "//test/starlark_tests/resources:swift_framework_lib",
     ],
