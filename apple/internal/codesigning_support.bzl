@@ -149,7 +149,7 @@ def _codesign_args_for_path(
                 maybe_double_quote(signed_framework),
             ])
 
-    extra_opts = getattr(ctx.attr, "signopts", [])
+    extra_opts = getattr(ctx.attr, "codesignopts", [])
     cmd_codesigning.append("--")
     cmd_codesigning.extend(extra_opts)
     return cmd_codesigning
