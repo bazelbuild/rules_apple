@@ -16,5 +16,5 @@
 
 set -eu
 
-# Assert that the bundle itself is signed.
+# Assert that the bundle itself is signed with the given codesignopts.
 codesign -dvvv "$BUNDLE_ROOT" 2>&1 | grep '^Hash choices=sha1,sha384$' > /dev/null
