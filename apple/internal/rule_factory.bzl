@@ -269,6 +269,14 @@ This attribute is public as an implementation detail while we migrate the archit
 Do not change its value.
     """,
         ),
+        "linker": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_single_file = True,
+            doc = """
+An executable to use for linking instead of the default linker
+    """,
+        ),
         "linkopts": attr.string_list(
             doc = """
 A list of strings representing extra flags that should be passed to the linker.

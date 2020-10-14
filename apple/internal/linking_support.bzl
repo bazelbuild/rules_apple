@@ -92,6 +92,8 @@ def _register_linking_action(ctx, extra_linkopts = []):
         linkopts.extend(collections.before_each("-rpath", rpaths))
 
     linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+    if hasattr(ctx.executable, "linker"):
+        linkopts.append("-fuse-ld=" + ctx.executable.linker.path)
 
     binary_provider_struct = apple_common.link_multi_arch_binary(
         ctx = ctx,
