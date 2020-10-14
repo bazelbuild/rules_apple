@@ -49,7 +49,7 @@ def _enable_apple_binary_native_protos(settings, platform_type):
     # FunctionTransitionUtil.java will fail with:
     #   Invalid value type for option 'enable_apple_binary_native_protos'
     # instead one has to return a String and let it be converted.
-    _platforms_to_force_starlark_protos = ["tvos"]
+    _platforms_to_force_starlark_protos = ["macos", "tvos"]
     if platform_type in _platforms_to_force_starlark_protos:
         return "false"
     if settings["//command_line_option:enable_apple_binary_native_protos"]:
