@@ -42,6 +42,20 @@ def _cpu_string(platform_type, settings):
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
 
+def _enable_apple_binary_native_protos(settings, platform_type):
+    # NOTE(b/170729565): Even though the value in `settings` for
+    # "//command_line_option:enable_apple_binary_native_protos" is a boolean
+    # (True/False), if the transition result includes a boolean,
+    # FunctionTransitionUtil.java will fail with:
+    #   Invalid value type for option 'enable_apple_binary_native_protos'
+    # instead one has to return a String and let it be converted.
+    _platforms_to_force_starlark_protos = ["tvos"]
+    if platform_type in _platforms_to_force_starlark_protos:
+        return "false"
+    if settings["//command_line_option:enable_apple_binary_native_protos"]:
+        return "true"
+    return "false"
+
 def _min_os_version_or_none(attr, platform):
     if attr.platform_type == platform:
         return attr.minimum_os_version
@@ -57,6 +71,9 @@ def _apple_rule_transition_impl(settings, attr):
         "//command_line_option:cpu": _cpu_string(attr.platform_type, settings),
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
+        ),
+        "//command_line_option:enable_apple_binary_native_protos": (
+            _enable_apple_binary_native_protos(settings, attr.platform_type)
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": settings["//command_line_option:apple_grte_top"],
@@ -77,6 +94,7 @@ _apple_rule_transition = transition(
         "//command_line_option:apple_crosstool_top",
         "//command_line_option:apple_grte_top",
         "//command_line_option:cpu",
+        "//command_line_option:enable_apple_binary_native_protos",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
@@ -89,6 +107,7 @@ _apple_rule_transition = transition(
         "//command_line_option:compiler",
         "//command_line_option:cpu",
         "//command_line_option:crosstool_top",
+        "//command_line_option:enable_apple_binary_native_protos",
         "//command_line_option:fission",
         "//command_line_option:grte_top",
         "//command_line_option:ios_minimum_os",
@@ -101,6 +120,9 @@ _apple_rule_transition = transition(
 def _static_framework_transition_impl(settings, attr):
     """Attribute transition for static frameworks to enable swiftinterface generation."""
     return {
+        "//command_line_option:enable_apple_binary_native_protos": (
+            _enable_apple_binary_native_protos(settings, attr.platform_type)
+        ),
         "@build_bazel_rules_swift//swift:emit_swiftinterface": True,
     }
 
@@ -111,8 +133,11 @@ def _static_framework_transition_impl(settings, attr):
 # rules.
 _static_framework_transition = transition(
     implementation = _static_framework_transition_impl,
-    inputs = [],
+    inputs = [
+        "//command_line_option:enable_apple_binary_native_protos",
+    ],
     outputs = [
+        "//command_line_option:enable_apple_binary_native_protos",
         "@build_bazel_rules_swift//swift:emit_swiftinterface",
     ],
 )
