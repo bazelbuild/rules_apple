@@ -125,7 +125,8 @@ def _platform_prerequisites(
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
     else:
-        minimum_os = xcode_version_config.minimum_os_for_platform_type(platform_type_attr)
+        # TODO(b/38006810): Use the SDK version instead of the flag value as a soft default.
+        minimum_os = str(xcode_version_config.minimum_os_for_platform_type(platform_type_attr))
 
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
