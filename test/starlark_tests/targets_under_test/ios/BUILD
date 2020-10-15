@@ -1032,6 +1032,10 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
