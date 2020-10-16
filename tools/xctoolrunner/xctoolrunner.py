@@ -233,16 +233,29 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  return_code, _, _ = execute.execute_and_filter_output(
+  #
+  # Note: `actool` is problematic on all Xcode 12 builds including to 12.1. 25%
+  # of the time, it fails with the error: "failed to open # liblaunch_sim.dylib`.
+  #
+  # This workaround adds a retry, and this works due to logic in `actool`.
+  #
+  # The first time `actool` runs, it spawns a dependent service as the current
+  # user. After a failure, `actool` spawns it in a way that subsequent
+  # invocations will not have the error. It only needs 1 retry.
+  return_code, stdout, stderr = execute.execute_and_filter_output(
       xcrunargs,
       trim_paths=True,
       filtering=actool_filtering,
-      print_output=True)
+      print_output=False)
 
+  # If there's a retry, don't print the first failing output.
   if return_code == 0:
+    if stdout:
+      sys.stdout.write("%s" % stdout)
+    if stderr:
+      sys.stderr.write("%s" % stderr)
       return return_code
 
-  # `actool` is problematic on Xcode 12 so retry
   return_code, _, _ = execute.execute_and_filter_output(
       xcrunargs,
       trim_paths=True,
