@@ -66,15 +66,15 @@ function tear_down() {
 # Test that the build label passed via --embed_label can be parsed out
 # correctly.
 function test_build_label_substitution() {
-  cat >> pkg/BUILD <<EOF
+  cat >> pkg/BUILD <<'EOF'
 apple_bundle_version(
     name = "bundle_version",
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     short_version_string = "{version}",
     capture_groups = {
-        "version": "\\d+\.\\d+",
-        "candidate": "\\d+",
+        "version": r"\d+\.\d+",
+        "candidate": r"\d+",
     },
 )
 EOF
@@ -89,7 +89,7 @@ EOF
 # Test that the fallback_build_label is *not* used when --embed_label *is*
 # passed on the build.
 function test_build_label_substitution_ignores_fallback_label() {
-  cat >> pkg/BUILD <<EOF
+  cat >> pkg/BUILD <<'EOF'
 apple_bundle_version(
     name = "bundle_version",
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
@@ -97,8 +97,8 @@ apple_bundle_version(
     fallback_build_label = "MyApp_99.99_RC99",
     short_version_string = "{version}",
     capture_groups = {
-        "version": "\\d+\.\\d+",
-        "candidate": "\\d+",
+        "version": r"\d+\.\d+",
+        "candidate": r"\d+",
     },
 )
 EOF
@@ -115,15 +115,15 @@ EOF
 # expression that is built after substituting the regex groups for the
 # placeholders. This fails during tool execution.
 function test_build_label_that_does_not_match_regex_fails() {
-  cat >> pkg/BUILD <<EOF
+  cat >> pkg/BUILD <<'EOF'
 apple_bundle_version(
     name = "bundle_version",
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     short_version_string = "{version}",
     capture_groups = {
-        "version": "\\d+\.\\d+\.\\d+",
-        "candidate": "\\d+",
+        "version": r"\d+\.\d+\.\d+",
+        "candidate": r"\d+",
     },
 )
 EOF
