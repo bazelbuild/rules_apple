@@ -238,6 +238,16 @@ def actool(_, toolargs):
       trim_paths=True,
       filtering=actool_filtering,
       print_output=True)
+
+  if return_code == 0:
+      return return_code
+
+  # `actool` is problematic on Xcode 12 so retry
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      trim_paths=True,
+      filtering=actool_filtering,
+      print_output=True)
   return return_code
 
 
