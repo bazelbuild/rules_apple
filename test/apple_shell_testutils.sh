@@ -179,7 +179,7 @@ EOF
     ],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
@@ -242,7 +242,7 @@ genrule(
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
@@ -284,7 +284,7 @@ genrule(
     outs = ["codesign_output"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_codesign.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
