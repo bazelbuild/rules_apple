@@ -235,10 +235,10 @@ def actool(_, toolargs):
   # based on the same codebase.
   #
   # Note: `actool` is problematic on all Xcode 12 builds including to 12.1. 25%
-  # of the time, it fails with the error: "failed to open # liblaunch_sim.dylib`.
+  # of the time, it fails with the error:
+  # "failed to open # liblaunch_sim.dylib"
   #
-  # This workaround adds a retry, and this works due to logic in `actool`.
-  #
+  # This workaround adds a retry it works due to logic in `actool`:
   # The first time `actool` runs, it spawns a dependent service as the current
   # user. After a failure, `actool` spawns it in a way that subsequent
   # invocations will not have the error. It only needs 1 retry.
@@ -254,7 +254,7 @@ def actool(_, toolargs):
       sys.stdout.write("%s" % stdout)
     if stderr:
       sys.stderr.write("%s" % stderr)
-      return return_code
+    return return_code
 
   return_code, _, _ = execute.execute_and_filter_output(
       xcrunargs,
