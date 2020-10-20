@@ -119,7 +119,7 @@ def archive_contents_test(
             "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
         },
         target_under_test = target_under_test,
-        verifier_script = "verifier_scripts/archive_contents_test.sh",
+        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/archive_contents_test.sh",
         **kwargs
     )
 
@@ -177,7 +177,7 @@ def binary_contents_test(
             "PLIST_TEST_VALUES": plist_test_values_list,
         },
         target_under_test = target_under_test,
-        verifier_script = "verifier_scripts/binary_contents_test.sh",
+        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/binary_contents_test.sh",
         **kwargs
     )
 
@@ -212,7 +212,7 @@ def bitcode_symbol_map_test(
             "PLATFORM": ["unused"],
         },
         target_under_test = target_under_test,
-        verifier_script = "verifier_scripts/bitcode_verifier.sh",
+        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/bitcode_verifier.sh",
         tags = tags + [
             # OSS Blocked by b/73546952
             "manual",  # disabled in oss
@@ -245,6 +245,6 @@ def entry_point_test(
             "ENTRY_POINT": [entry_point],
         },
         target_under_test = target_under_test,
-        verifier_script = "verifier_scripts/entry_point_verifier.sh",
+        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
         tags = tags,
     )
