@@ -264,7 +264,7 @@ def merge_root_infoplists(
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
-    if include_executable_name:
+    if include_executable_name and executable_name:
         substitutions["EXECUTABLE_NAME"] = executable_name
         forced_plists.append(struct(CFBundleExecutable = executable_name))
 
