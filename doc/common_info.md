@@ -224,15 +224,6 @@ One exception is XCTest bundles, those do need to be signed for the simulators
 to load them. The above `--define` does not change the behavior around signing
 of these bundles as a result.
 
-<!--
- Define not currently documented:
-
-   apple.experimental_bundling=[bundle_and_archive,bundle_only,off]
-
- Support for this option is tracked in b/35451264, but because of the tree
- artifact issues, it isn't really useful at the moment.
--->
-
 ### Localization Handling
 
 The Apple bundling rules have two flags for limiting which \*.lproj directories
