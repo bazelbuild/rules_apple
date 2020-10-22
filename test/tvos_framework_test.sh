@@ -1425,6 +1425,7 @@ EOF
 #define FRAMEWORK_FRAMEWORK_DEPENDENT_H_
 
 void frameworkDependent();
+#endif  // FRAMEWORK_FRAMEWORK_DEPENDENT_H_
 EOF
   cat > app/FrameworkDependent.m <<EOF
 #import <Foundation/Foundation.h>
