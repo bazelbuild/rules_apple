@@ -512,6 +512,29 @@ def ios_application_resources_test_suite(name = "ios_application_resources"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_with_resource_bundle_with_structured_resource_group_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resource_bundle_with_structured_resource_group",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle_with_structured_resource_group.bundle/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_resource_group_with_resource_bundle".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resource_group_with_resource_bundle",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+        ],
+        tags = [name],
+    )
+
     # Tests xcasset tool is passed the correct arguments.
     analysis_xcasset_argv_test(
         name = "{}_xcasset_actool_argv".format(name),

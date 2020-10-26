@@ -455,8 +455,8 @@ ios_application(
 
 ios_static_framework(
     name = "swift_static_framework",
-    minimum_os_version = "9.0",
     bundle_name = "swift_framework_lib",
+    minimum_os_version = "9.0",
     deps = [
         "//test/starlark_tests/resources:swift_framework_lib",
     ],
@@ -756,6 +756,44 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:bundle_library_apple_lib",
         "//test/starlark_tests/resources:bundle_library_ios_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_resource_bundle_with_structured_resource_group",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = ["//test/starlark_tests/resources:resource_bundle_with_structured_resource_group"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_resource_group_with_resource_bundle",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = ["//test/starlark_tests/resources:resources_with_resource_bundle"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

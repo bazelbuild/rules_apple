@@ -307,7 +307,7 @@ function verify_debugger_entitlements_with_params() {
 
   create_common_files
 
-  cat >> app/BUILD <<EOF
+  cat >> app/BUILD <<'EOF'
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -322,14 +322,14 @@ EOF
 
   # Use a local entitlements file so the default isn't extracted from the
   # provisioning profile (which likely has get-task-allow).
-  cat > app/entitlements.plist <<EOF
+  cat > app/entitlements.plist <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>keychain-access-groups</key>
   <array>
-    <string>\$(AppIdentifierPrefix)\$(CFBundleIdentifier)</string>
+    <string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
   </array>
 </dict>
 </plist>

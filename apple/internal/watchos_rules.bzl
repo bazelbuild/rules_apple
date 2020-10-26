@@ -27,6 +27,14 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -74,15 +82,23 @@ def _watchos_application_impl(ctx):
     ]
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = getattr(ctx.attr, "entitlements", None)
     executable_name = bundling_support.executable_name(ctx)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
-    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
         ctx,
@@ -119,7 +135,7 @@ def _watchos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = product_type,
+            product_type = rule_descriptor.product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -133,11 +149,29 @@ def _watchos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(debug_dependencies = [ctx.attr.extension]),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = [ctx.attr.extension],
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+        ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             embeddable_targets = [ctx.attr.extension],
+            platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
         partials.resources_partial(
@@ -147,34 +181,62 @@ def _watchos_application_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             bundle_verification_targets = bundle_verification_targets,
+            environment_plist = ctx.file._environment_plist,
+            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = ctx.executable,
+            rule_executables = rule_executables,
             rule_label = label,
-            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
-            dependency_targets = [ctx.attr.extension],
             bundle_dylibs = True,
+            dependency_targets = [ctx.attr.extension],
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
-        partials.watchos_stub_partial(binary_artifact = binary_artifact),
+        partials.watchos_stub_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            label_name = label.name,
+        ),
     ]
 
-    if platform_support.is_device_build(ctx):
+    if platform_prerequisites.platform.is_device:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                actions = actions,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
+            ),
         )
 
-    processor_result = processor.process(ctx, processor_partials)
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        executable_name = executable_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
 
     return [
         DefaultInfo(
             files = processor_result.output_files,
         ),
+        OutputGroupInfo(**processor_result.output_groups),
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
@@ -212,23 +274,31 @@ def _watchos_extension_impl(ctx):
     else:
         extra_linkopts = []
 
-    binary_descriptor = linking_support.register_linking_action(
+    link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
     )
-    binary_artifact = binary_descriptor.artifact
-    debug_outputs_provider = binary_descriptor.debug_outputs_provider
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = getattr(ctx.attr, "entitlements", None)
     executable_name = bundling_support.executable_name(ctx)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
-    product_type = ctx.attr._product_type
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
 
     archive = outputs.archive(
         actions = actions,
@@ -249,7 +319,7 @@ def _watchos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = product_type,
+            product_type = rule_descriptor.product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -264,43 +334,98 @@ def _watchos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
-        partials.debug_symbols_partial(
-            debug_outputs_provider = debug_outputs_provider,
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(plugins = [archive]),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_outputs_provider = debug_outputs_provider,
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+        ),
+        partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
+            plugins = [archive],
+        ),
         # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
         # framework, scoping dynamic frameworks only to the watch extension bundles:
         # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
-        partials.framework_import_partial(targets = ctx.attr.deps),
+        partials.framework_import_partial(
+            actions = actions,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            rule_executables = rule_executables,
+            targets = ctx.attr.deps,
+        ),
         partials.resources_partial(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
+            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = ctx.executable,
+            rule_executables = rule_executables,
             rule_label = label,
-            rule_single_files = ctx.file,
             top_level_attrs = top_level_attrs,
         ),
-        partials.swift_dylibs_partial(binary_artifact = binary_artifact),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+        ),
     ]
 
-    if platform_support.is_device_build(ctx):
+    if platform_prerequisites.platform.is_device:
         processor_partials.append(
-            partials.provisioning_profile_partial(profile_artifact = ctx.file.provisioning_profile),
+            partials.provisioning_profile_partial(
+                actions = actions,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
+            ),
         )
 
-    processor_result = processor.process(ctx, processor_partials)
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        executable_name = executable_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
 
     return [
         DefaultInfo(
             files = processor_result.output_files,
+        ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
         ),
         WatchosExtensionBundleInfo(),
     ] + processor_result.providers

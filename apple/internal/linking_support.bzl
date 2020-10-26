@@ -78,33 +78,33 @@ def _register_linking_action(ctx, extra_linkopts = []):
         extra_linkopts: Extra linkopts to add to the linking action.
 
     Returns:
-        A descriptor `struct` with the following fields:
-            * `provider`: The binary provider that represents the linked binary.
-            * `debug_outputs_provider`: The provider containing the debug symbols, if any were
-              requested.
-            * `artifact`: The final linked binary `File`.
+        The `struct` returned by `apple_common.link_multi_arch_binary`, which contains the
+        following fields:
+
+        *   `binary_provider`: A provider describing the binary that was linked. This is an
+            instance of either `AppleExecutableBinaryInfo`, `AppleDylibBinaryInfo`, or
+            `AppleLoadableBundleBinaryInfo`; all three have a `binary` field that is the linked
+            binary `File`.
+        *   `debug_outputs_provider`: An `AppleDebugOutputsInfo` provider that contains debug
+            outputs, such as linkmaps and dSYM binaries.
+        *   `output_groups`: A `dict` containing output groups that should be returned in the
+            `OutputGroupInfo` provider of the calling rule.
     """
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
-    rpaths = rule_descriptor.rpaths
     linkopts = []
-    if rpaths:
-        linkopts.extend(collections.before_each("-rpath", rpaths))
 
-    linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+    # Compatibility path for `apple_binary`, which does not have a product type.
+    if hasattr(ctx.attr, "_product_type"):
+        rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    binary_provider_struct = apple_common.link_multi_arch_binary(
+        rpaths = rule_descriptor.rpaths
+        if rpaths:
+            linkopts.extend(collections.before_each("-rpath", rpaths))
+
+        linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+
+    return apple_common.link_multi_arch_binary(
         ctx = ctx,
         extra_linkopts = linkopts,
-    )
-    binary_provider = binary_provider_struct.binary_provider
-    debug_outputs_provider = binary_provider_struct.debug_outputs_provider
-    binary_artifact = binary_provider.binary
-
-    return struct(
-        provider = binary_provider,
-        debug_outputs_provider = debug_outputs_provider,
-        artifact = binary_artifact,
     )
 
 linking_support = struct(

@@ -142,6 +142,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "features_support",
+    srcs = ["features_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:sets",
+    ],
+)
+
+bzl_library(
     name = "intermediates",
     srcs = ["intermediates.bzl"],
     visibility = [
@@ -161,6 +172,8 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -218,6 +231,8 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":codesigning_support",
+        ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -237,7 +252,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":bundling_support",
         ":experimental",
         ":intermediates",
         "@bazel_skylib//lib:paths",
@@ -293,14 +307,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":bundling_support",
         ":codesigning_support",
-        ":entitlements_support",
         ":experimental",
         ":intermediates",
         ":outputs",
-        ":platform_support",
-        ":rule_support",
         "//apple/internal/utils:bundle_paths",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:dicts",
@@ -324,16 +334,13 @@ bzl_library(
         "//apple/internal/resource_actions:plist",
         "//apple/internal/resource_actions:png",
         "//apple/internal/resource_actions:texture_atlas",
-        "//apple/internal/resource_actions:zip",
     ],
 )
 
 bzl_library(
     name = "resources",
     srcs = ["resources.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
+    visibility = ["//apple:__subpackages__"],
     deps = [
         "//apple:providers",
         "//apple/internal/partials/support:resources_support",
@@ -428,6 +435,8 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -450,6 +459,8 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":entitlements_support",
+        ":features_support",
         ":linking_support",
         ":outputs",
         ":partials",

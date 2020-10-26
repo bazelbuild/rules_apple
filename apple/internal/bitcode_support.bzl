@@ -14,10 +14,10 @@
 
 """Bitcode support."""
 
-def _bitcode_mode_string(ctx):
+def _bitcode_mode_string(apple_fragment):
     """Returns a string representing the current Bitcode mode."""
 
-    bitcode_mode = ctx.fragments.apple.bitcode_mode
+    bitcode_mode = apple_fragment.bitcode_mode
     if not bitcode_mode:
         fail("Internal error: Can't figure out bitcode_mode from apple " +
              "fragment")
