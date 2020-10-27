@@ -70,7 +70,7 @@ function test_objc_library_depends_on_dynamic_import() {
 objc_library(
     name = "main",
     srcs = ["main.m"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSImportedDynamicFramework"],
+    deps = ["@build_bazel_rules_apple//test/testdata/fmwk:iOSImportedDynamicFramework"],
 )
 EOF
 
@@ -91,19 +91,19 @@ EOF
 }
 
 function create_swift_static_framework() {
-  if [[ -f frameworks/BUILD ]]; then
+  if [[ -f fmwk/BUILD ]]; then
     return
   fi
 
   mkdir libraries
-  mkdir frameworks
+  mkdir fmwk
 
   cat >> libraries/BUILD <<EOF
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "iOSSwiftStaticFrameworkLibrary",
     module_name = "iOSSwiftStaticFramework",
-    srcs = ["@build_bazel_rules_apple//test/testdata/frameworks:swift_source"],
+    srcs = ["@build_bazel_rules_apple//test/testdata/fmwk:swift_source"],
 )
 EOF
 
@@ -113,7 +113,7 @@ EOF
     --apple_platform_type=ios \
     //libraries:iOSSwiftStaticFrameworkLibrary
 
-  local framework=frameworks/iOSSwiftStaticFramework.framework
+  local framework=fmwk/iOSSwiftStaticFramework.framework
   mkdir -p "$framework"
   cp test-bin/libraries/libiOSSwiftStaticFrameworkLibrary.a \
      "$framework/iOSSwiftStaticFramework"
@@ -124,7 +124,7 @@ EOF
   cp test-bin/libraries/iOSSwiftStaticFrameworkLibrary-Swift.h \
      "$framework/Headers/iOSSwiftStaticFramework.h"
 
-  cat >> frameworks/BUILD <<EOF
+  cat >> fmwk/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:apple.bzl", "apple_static_framework_import")
 apple_static_framework_import(
     name = "iOSSwiftStaticFramework",
@@ -141,7 +141,7 @@ function test_objc_library_depends_on_static_import() {
 objc_library(
     name = "main",
     srcs = ["main.m"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSImportedStaticFramework"],
+    deps = ["@build_bazel_rules_apple//test/testdata/fmwk:iOSImportedStaticFramework"],
 )
 EOF
 
@@ -167,7 +167,7 @@ function test_objc_library_depends_on_swift_static_import() {
 objc_library(
     name = "main",
     srcs = ["main.m"],
-    deps = ["//frameworks:iOSSwiftStaticFramework"],
+    deps = ["//fmwk:iOSSwiftStaticFramework"],
 )
 EOF
 
@@ -192,7 +192,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSImportedDynamicFramework"],
+    deps = ["@build_bazel_rules_apple//test/testdata/fmwk:iOSImportedDynamicFramework"],
 )
 EOF
 
@@ -217,7 +217,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
-    deps = ["@build_bazel_rules_apple//test/testdata/frameworks:iOSImportedStaticFramework"],
+    deps = ["@build_bazel_rules_apple//test/testdata/fmwk:iOSImportedStaticFramework"],
 )
 EOF
 
@@ -241,7 +241,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
-    deps = ["//frameworks:iOSSwiftStaticFramework"],
+    deps = ["//fmwk:iOSSwiftStaticFramework"],
 )
 EOF
 

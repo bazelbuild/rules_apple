@@ -385,7 +385,7 @@ ios_framework(
     ],
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/frameworks:iOSImportedDynamicFramework",
+        "//test/testdata/fmwk:iOSImportedDynamicFramework",
     ],
 )
 
@@ -427,7 +427,7 @@ ios_framework(
     ],
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/frameworks:iOSImportedStaticFramework",
+        "//test/testdata/fmwk:iOSImportedStaticFramework",
     ],
 )
 
@@ -1408,7 +1408,7 @@ ios_framework(
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    deps = ["//test/testdata/frameworks:iOSImportedDynamicFramework"],
+    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
 )
 
 # ---------------------------------------------------------------------------------------

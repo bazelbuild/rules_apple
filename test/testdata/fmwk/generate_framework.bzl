@@ -87,14 +87,14 @@ Minimum version of the OS corresponding to the SDK that this binary will support
         "src": attr.label(
             allow_single_file = True,
             default = Label(
-                "@build_bazel_rules_apple//test/testdata/frameworks:objc_source",
+                "@build_bazel_rules_apple//test/testdata/fmwk:objc_source",
             ),
             doc = "Source file for the generated framework.",
         ),
         "hdrs": attr.label(
             allow_files = True,
             default = Label(
-                "@build_bazel_rules_apple//test/testdata/frameworks:objc_headers",
+                "@build_bazel_rules_apple//test/testdata/fmwk:objc_headers",
             ),
             doc = "Header files for the generated framework.",
         ),
@@ -110,7 +110,7 @@ Determines if the framework will be built as a dynamic framework or a static fra
             cfg = "exec",
             allow_files = True,
             default = Label(
-                "@build_bazel_rules_apple//test/testdata/frameworks:generate_framework",
+                "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework",
             ),
         ),
     }),
