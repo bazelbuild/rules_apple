@@ -150,7 +150,7 @@ def _codesign_args_for_path(
             ])
 
     extra_opts_raw = getattr(ctx.attr, "codesignopts", [])
-    extra_opts = [opt.format(**ctx.var) for opt in extra_opts_raw]
+    extra_opts = [ctx.expand_make_variables("codesignopts", opt, {}) for opt in extra_opts_raw]
     cmd_codesigning.append("--")
     cmd_codesigning.extend(extra_opts)
     return cmd_codesigning
