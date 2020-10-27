@@ -3,9 +3,9 @@ load(
     "//apple:ios.bzl",
     "ios_app_clip",
     "ios_application",
+    "ios_dynamic_framework",
     "ios_extension",
     "ios_framework",
-    "ios_dynamic_framework",
     "ios_imessage_application",
     "ios_static_framework",
     "ios_sticker_pack_extension",
@@ -361,7 +361,7 @@ ios_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/frameworks:iOSImportedDynamicFramework",
+        "//test/testdata/fmwk:iOSImportedDynamicFramework",
     ],
 )
 
@@ -464,7 +464,7 @@ ios_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/frameworks:iOSImportedStaticFramework",
+        "//test/testdata/fmwk:iOSImportedStaticFramework",
     ],
 )
 
@@ -1350,7 +1350,7 @@ objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
-    deps = ["//test/testdata/frameworks:iOSImportedDynamicFramework"],
+    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1682,19 +1682,19 @@ ios_unit_test(
 
 swift_library(
     name = "basic_framework_lib",
-    module_name = "BasicFramework",
     srcs = [
         "//test/starlark_tests/resources:BasicFramework.swift",
     ],
-    visibility = ["//visibility:public"],
     features = ["swift.no_generated_module_map"],
+    module_name = "BasicFramework",
     tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
 )
 
 ios_dynamic_framework(
     name = "basic_framework",
-    bundle_name = "BasicFramework",
     bundle_id = "com.google.example.framework",
+    bundle_name = "BasicFramework",
     families = [
         "iphone",
         "ipad",
@@ -1711,22 +1711,22 @@ ios_dynamic_framework(
 
 swift_library(
     name = "basic_framework_with_direct_dependency_lib",
-    module_name = "DirectDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:DirectDependencyTest.swift",
     ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "DirectDependencyTest",
+    tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
     ],
-    features = ["swift.no_generated_module_map"],
-    tags = FIXTURE_TAGS,
 )
 
 ios_dynamic_framework(
     name = "basic_framework_with_direct_dependency",
-    bundle_name = "DirectDependencyTest",
     bundle_id = "com.google.example.framework",
+    bundle_name = "DirectDependencyTest",
     families = [
         "iphone",
         "ipad",
@@ -1743,23 +1743,23 @@ ios_dynamic_framework(
 
 swift_library(
     name = "basic_framework_with_transitive_dependency_lib",
-    module_name = "TransitiveDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
     ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "TransitiveDependencyTest",
+    tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
         ":basic_framework_with_direct_dependency_lib",
     ],
-    features = ["swift.no_generated_module_map"],
-    tags = FIXTURE_TAGS,
 )
 
 ios_dynamic_framework(
     name = "basic_framework_with_transitive_dependency",
-    bundle_name = "TransitiveDependencyTest",
     bundle_id = "com.google.example.framework",
+    bundle_name = "TransitiveDependencyTest",
     families = [
         "iphone",
         "ipad",
@@ -1776,8 +1776,8 @@ ios_dynamic_framework(
 
 ios_dynamic_framework(
     name = "dynamic_framework_with_resources",
-    bundle_name = "swift_lib_with_resources",
     bundle_id = "com.google.example.framework",
+    bundle_name = "swift_lib_with_resources",
     families = [
         "iphone",
         "ipad",
@@ -1807,15 +1807,15 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
-        "//test/starlark_tests/resources:swift_lib_with_resources",
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_with_resources",
     ],
 )
 
 ios_dynamic_framework(
     name = "swift_common_lib_framework",
-    bundle_name = "swift_common_lib",
     bundle_id = "com.google.example.framework",
+    bundle_name = "swift_common_lib",
     families = [
         "iphone",
         "ipad",
@@ -1825,13 +1825,13 @@ ios_dynamic_framework(
     ],
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
-    deps = ["//test/starlark_tests/resources:swift_common_lib"]
+    deps = ["//test/starlark_tests/resources:swift_common_lib"],
 )
 
 ios_dynamic_framework(
     name = "swift_shared_lib_framework",
-    bundle_name = "swift_shared_lib",
     bundle_id = "com.google.example.framework",
+    bundle_name = "swift_shared_lib",
     families = [
         "iphone",
         "ipad",
@@ -1843,24 +1843,24 @@ ios_dynamic_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_shared_lib",
-    ]
+    ],
 )
 
 ios_dynamic_framework(
     name = "swift_transitive_lib_framework",
-    bundle_name = "swift_transitive_lib",
-    frameworks = [":swift_shared_lib_framework"],
     bundle_id = "com.google.example.framework",
+    bundle_name = "swift_transitive_lib",
     families = [
         "iphone",
         "ipad",
     ],
+    frameworks = [":swift_shared_lib_framework"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
-    deps = ["//test/starlark_tests/resources:swift_transitive_lib"]
+    deps = ["//test/starlark_tests/resources:swift_transitive_lib"],
 )
 
 ios_application(
@@ -1920,12 +1920,12 @@ ios_application(
 
 ios_static_framework(
     name = "objc_static_framework",
-    bundle_name = "objc_static_framework",
-    minimum_os_version = "9.0",
-    tags = FIXTURE_TAGS,
     hdrs = [
         "//test/starlark_tests/resources:common.h",
     ],
+    bundle_name = "objc_static_framework",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_common_lib",
     ],
