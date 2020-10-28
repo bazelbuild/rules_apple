@@ -80,7 +80,10 @@ load(
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -256,7 +259,10 @@ def _macos_application_impl(ctx):
 
 def _macos_bundle_impl(ctx):
     """Implementation of macos_bundle."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -402,7 +408,11 @@ def _macos_extension_impl(ctx):
     extra_linkopts = []
     if not ctx.attr.provides_main:
         extra_linkopts.extend(["-e", "_NSExtensionMain"])
-    link_result = linking_support.register_linking_action(ctx, extra_linkopts)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -549,7 +559,11 @@ def _macos_quick_look_plugin_impl(ctx):
         "-install_name",
         "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
-    link_result = linking_support.register_linking_action(ctx, extra_linkopts)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -691,7 +705,10 @@ def _macos_quick_look_plugin_impl(ctx):
 
 def _macos_kernel_extension_impl(ctx):
     """Implementation of macos_kernel_extension."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -830,7 +847,10 @@ def _macos_kernel_extension_impl(ctx):
 
 def _macos_spotlight_importer_impl(ctx):
     """Implementation of macos_spotlight_importer."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -968,7 +988,10 @@ def _macos_spotlight_importer_impl(ctx):
 
 def _macos_xpc_service_impl(ctx):
     """Implementation of macos_xpc_service."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -1106,7 +1129,10 @@ def _macos_xpc_service_impl(ctx):
 
 def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -1175,7 +1201,10 @@ def _macos_command_line_application_impl(ctx):
 
 def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
