@@ -88,16 +88,16 @@ load(
 
 def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
-    
+
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 2
     # because of the swift_runtime_linkopts dep that comes with the swift_libray
     swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
     if len(swiftdeps) != 1 or len(ctx.attr.deps) > 2:
-                fail(
-                    """\
+        fail(
+            """\
     error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
-                )
+        )
 
     binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
     extra_linkopts = []
@@ -107,6 +107,7 @@ def _watchos_dynamic_framework_impl(ctx):
     link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
@@ -480,6 +481,7 @@ def _watchos_extension_impl(ctx):
     link_result = linking_support.register_linking_action(
         ctx,
         extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
@@ -550,7 +552,7 @@ def _watchos_extension_impl(ctx):
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_outputs_provider = debug_outputs_provider, 
+            debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = ctx.file._dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
