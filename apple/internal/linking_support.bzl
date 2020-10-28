@@ -63,7 +63,7 @@ def _exported_symbols_list_objc_provider(files):
         link_inputs = depset(files),
     )
 
-def _register_linking_action(ctx, extra_linkopts = []):
+def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -71,6 +71,11 @@ def _register_linking_action(ctx, extra_linkopts = []):
 
     Args:
         ctx: The rule context.
+        stamp: Whether to include build information in the linked binary. If 1, build
+            information is always included. If 0, the default build information is always
+            excluded. If -1, the default behavior is used, which may be overridden by the
+            `--[no]stamp` flag. This should be set to 0 when generating the executable output
+            for test rules.
         extra_linkopts: Extra linkopts to add to the linking action.
 
     Returns:
@@ -97,6 +102,7 @@ def _register_linking_action(ctx, extra_linkopts = []):
     return apple_common.link_multi_arch_binary(
         ctx = ctx,
         extra_linkopts = linkopts,
+        stamp = stamp,
     )
 
 linking_support = struct(

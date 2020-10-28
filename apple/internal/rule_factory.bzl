@@ -293,6 +293,8 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
         apple_common.objc_proto_aspect,
         swift_usage_aspect,
     ]
+
+    default_stamp = -1
     if product_type:
         deps_aspects.extend([
             apple_resource_aspect,
@@ -300,6 +302,7 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
         ])
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
+            default_stamp = 0
         if product_type == apple_product_type.static_framework:
             deps_aspects.append(swift_static_framework_aspect)
         if product_type == apple_product_type.framework:
@@ -341,6 +344,20 @@ A list of strings representing extra flags that should be passed to `codesign`.
 A list of strings representing extra flags that should be passed to the linker.
     """,
             ),
+            "stamp": attr.int(
+                default = default_stamp,
+                doc = """
+Enable link stamping. Whether to encode build information into the binary. Possible values:
+
+*   `stamp = 1`: Stamp the build information into the binary. Stamped binaries are only rebuilt
+    when their dependencies change. Use this if there are tests that depend on the build
+    information.
+*   `stamp = 0`: Always replace build information by constant values. This gives good build
+    result caching.
+*   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.
+""",
+                values = [-1, 0, 1],
+            ),
             "deps": attr.label_list(
                 aspects = deps_aspects,
                 cfg = deps_cfg,
@@ -348,7 +365,7 @@ A list of strings representing extra flags that should be passed to the linker.
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
 bundle.
-        """,
+""",
             ),
         },
     )

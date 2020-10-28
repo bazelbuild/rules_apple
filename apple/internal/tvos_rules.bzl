@@ -91,7 +91,10 @@ def _tvos_application_impl(ctx):
         "resources",
     ]
 
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -289,19 +292,22 @@ def _tvos_application_impl(ctx):
 
 def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
-    
+
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 2
     # because of the swift_runtime_linkopts dep that comes with the swift_libray
     swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
     if len(swiftdeps) != 1 or len(ctx.attr.deps) > 2:
-                fail(
-                    """\
+        fail(
+            """\
     error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
-                )
+        )
 
     binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -466,7 +472,10 @@ def _tvos_dynamic_framework_impl(ctx):
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
@@ -634,7 +643,10 @@ def _tvos_extension_impl(ctx):
         "resources",
     ]
 
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 

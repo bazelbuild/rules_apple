@@ -246,7 +246,10 @@ def _test_host_bundle_id(test_host):
 
 def _apple_test_bundle_impl(ctx, extra_providers = []):
     """Implementation for bundling XCTest bundles."""
-    link_result = linking_support.register_linking_action(ctx)
+    link_result = linking_support.register_linking_action(
+        ctx,
+        stamp = ctx.attr.stamp,
+    )
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
