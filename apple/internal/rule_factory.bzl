@@ -991,9 +991,6 @@ A required string indicating the minimum OS version supported by the target, rep
 dotted version number (for example, "10.11").
 """,
             ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
         },
     ]
 
@@ -1032,6 +1029,7 @@ binaries/libraries will be created combining all architectures specified by
             ),
         })
 
+    transition = transition_support.apple_rule_transition
     if platform_type and product_type:
         rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
         is_executable = rule_descriptor.is_executable
@@ -1048,6 +1046,15 @@ binaries/libraries will be created combining all architectures specified by
                 {"_product_type": attr.string(default = product_type)},
             ] + _get_macos_binary_attrs(rule_descriptor),
         )
+
+        if rule_descriptor.force_transition_allowlist:
+            rule_attrs.append({
+                "_allowlist_function_transition": attr.label(
+                    default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+                ),
+            })
+        else:
+            transition = None
     else:
         is_executable = False
         rule_attrs.append(_common_binary_linking_attrs(
@@ -1055,6 +1062,11 @@ binaries/libraries will be created combining all architectures specified by
             deps_cfg = apple_common.multi_arch_split,
             product_type = None,
         ))
+        rule_attrs.append({
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+        })
 
     rule_attrs.append(additional_attrs)
 
@@ -1062,7 +1074,7 @@ binaries/libraries will be created combining all architectures specified by
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = transition_support.apple_rule_transition,
+        cfg = transition,
         doc = doc,
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
@@ -1118,18 +1130,21 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     elif platform_type == "watchos":
         rule_attrs.extend(_get_watchos_attrs(rule_descriptor))
 
-    rule_attrs.append({
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
-    })
+    transition = None
+    if rule_descriptor.force_transition_allowlist:
+        transition = transition_support.apple_rule_transition
+        rule_attrs.append({
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+        })
 
     archive_name = "%{name}" + rule_descriptor.archive_extension
     return rule(
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = transition_support.apple_rule_transition,
+        cfg = transition,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],

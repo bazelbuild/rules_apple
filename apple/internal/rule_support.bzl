@@ -88,6 +88,7 @@ def _describe_rule_type(
         deps_cfg = None,
         extra_linkopts = [],
         expose_non_archive_relative_output = False,
+        force_transition_allowlist = False,
         has_infoplist = True,
         has_launch_images = False,
         has_settings_bundle = False,
@@ -135,6 +136,7 @@ def _describe_rule_type(
             the `archive_relative` bundle location, to permit embedding within another target. Has no
             effect if `archive_relative` is empty.
         extra_linkopts: Extra options to pass to the linker.
+        force_transition_allowlist: Whether to force a dependency on the transition allowlist.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
@@ -183,6 +185,7 @@ def _describe_rule_type(
         deps_cfg = deps_cfg,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
         extra_linkopts = extra_linkopts,
+        force_transition_allowlist = force_transition_allowlist,
         has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
@@ -351,6 +354,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
+            force_transition_allowlist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -432,6 +436,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = "",
             deps_cfg = apple_common.multi_arch_split,
+            force_transition_allowlist = True,
             is_executable = True,
             product_type = apple_product_type.tool,
             provisioning_profile_extension = ".provisionprofile",
@@ -444,6 +449,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "dylib",
             bundle_extension = "",
             deps_cfg = apple_common.multi_arch_split,
+            force_transition_allowlist = True,
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
         ),
@@ -654,6 +660,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "dylib",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
+            force_transition_allowlist = True,
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
