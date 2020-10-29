@@ -255,6 +255,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # ios_dylib
+        apple_product_type.dylib: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            binary_type = "dylib",
+            bundle_extension = "",
+            deps_cfg = apple_common.multi_arch_split,
+            mandatory_families = True,
+            product_type = apple_product_type.dylib,
+            rpaths = [
+                # Dylibs are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
         # ios_extension
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
