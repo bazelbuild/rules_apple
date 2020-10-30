@@ -44,7 +44,7 @@ def _find_codesign_allocate():
 
 
 def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
-                     disable_timestamp, full_path_to_sign):
+                     disable_timestamp, full_path_to_sign, extra):
   """Invokes the codesign tool on the given path to sign.
 
   Args:
@@ -66,6 +66,7 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
   if disable_timestamp:
     cmd.append("--timestamp=none")
   cmd.append(full_path_to_sign)
+  cmd.extend(extra)
 
   # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
   # version.
@@ -244,10 +245,20 @@ def generate_arg_parser():
       "--disable_timestamp", action="store_true", help="disables the use of "
       "timestamp services"
   )
+  parser.add_argument("extra", nargs = argparse.REMAINDER, help="additional "
+      "arguments that go directly to codesign, starting with a '--' argument")
   return parser
 
 
 def main(args):
+  extra = []
+  if args.extra:
+    if args.extra[0] != "--":
+      print(
+          "ERROR: unknown argument given: %s (the only unknown arguments "
+          "allowed are those following '--' and which go directly to "
+          "codesign)" % args.extra[0], file=sys.stderr)
+  extra = args.extra[1:]
   identity = args.identity
   if identity is None:
     identity = _find_codesign_identity(args.mobileprovision)
@@ -283,7 +294,7 @@ def main(args):
 
   for path_to_sign in all_paths_to_sign:
     _invoke_codesign(args.codesign, identity, args.entitlements, args.force,
-                     args.disable_timestamp, path_to_sign)
+                     args.disable_timestamp, path_to_sign, extra)
 
 
 if __name__ == "__main__":

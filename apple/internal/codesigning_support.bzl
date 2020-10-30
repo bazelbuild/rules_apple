@@ -153,6 +153,10 @@ def _codesign_args_for_path(
                 maybe_double_quote(signed_framework),
             ])
 
+    extra_opts_raw = getattr(ctx.attr, "codesignopts", [])
+    extra_opts = [ctx.expand_make_variables("codesignopts", opt, {}) for opt in extra_opts_raw]
+    cmd_codesigning.append("--")
+    cmd_codesigning.extend(extra_opts)
     return cmd_codesigning
 
 def _path_to_sign(path, is_directory = False, signed_frameworks = [], use_entitlements = True):

@@ -321,6 +321,11 @@ Do not change its value.
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
     """,
+        ),
+            "codesignopts": attr.string_list(
+                doc = """
+A list of strings representing extra flags that should be passed to `codesign`.
+    """,
             ),
             "linkopts": attr.string_list(
                 doc = """
