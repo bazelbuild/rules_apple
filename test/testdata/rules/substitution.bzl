@@ -1,3 +1,5 @@
+"""Variable substitution rule"""
+
 def _substitution_impl(ctx):
     return [
         platform_common.TemplateVariableInfo({
