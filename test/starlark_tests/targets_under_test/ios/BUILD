@@ -11,6 +11,7 @@ load(
     "ios_ui_test",
     "ios_unit_test",
 )
+load("//test/testdata/rules:substitution.bzl", "substitution")
 
 licenses(["notice"])
 
@@ -1061,10 +1062,16 @@ ios_extension(
 
 # ---------------------------------------------------------------------------------------
 
+substitution(
+    name = "resource_rules",
+    var_name = "RULES",
+    src = "//test/starlark_tests/resources:ResourceRules.plist",
+)
+
 ios_application(
     name = "app_with_codesignopts",
     bundle_id = "com.google.example",
-    codesignopts = ["--digest-algorithm=sha1", "--digest-algorithm=sha384"],
+    codesignopts = ["--digest-algorithm=sha1", "--digest-algorithm=sha384", "--resource-rules=$(RULES)"],
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1074,6 +1081,7 @@ ios_application(
         "manual",
         "notap",
     ],
+    toolchains = [":resource_rules"],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
