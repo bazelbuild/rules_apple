@@ -450,6 +450,10 @@ function do_action() {
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
       "--incompatible_objc_compile_info_migration"
+      # Disable this for now because apple_support currently relies on a
+      # workaround that needs to be able to pass a sequence of strings to
+      # actions.run_shell's 'command'.
+      "--incompatible_run_shell_command_string=false"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
