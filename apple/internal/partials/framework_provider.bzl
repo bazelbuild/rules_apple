@@ -31,6 +31,7 @@ def _framework_provider_partial_impl(
         bin_root_path,
         binary_provider,
         bundle_name,
+        bundle_only,
         rule_label):
     """Implementation for the framework provider partial."""
     binary_file = binary_provider.binary
@@ -57,7 +58,7 @@ def _framework_provider_partial_impl(
     # TODO(cparsons): These will no longer be necessary once apple_binary
     # uses the values in the dynamic framework provider.
     legacy_objc_provider = apple_common.new_objc_provider(
-        dynamic_framework_file = depset([framework_file]),
+        dynamic_framework_file = depset([] if bundle_only else [framework_file]),
         providers = [binary_provider.objc],
     )
 
@@ -78,6 +79,7 @@ def framework_provider_partial(
         bin_root_path,
         binary_provider,
         bundle_name,
+        bundle_only,
         rule_label):
     """Constructor for the framework provider partial.
 
@@ -91,6 +93,7 @@ def framework_provider_partial(
       bin_root_path: The path to the root `-bin` directory.
       binary_provider: The AppleDylibBinary provider containing this target's binary.
       bundle_name: The name of the output bundle.
+      bundle_only: Only include the bundle but do not link the framework
       rule_label: The label of the target being analyzed.
 
     Returns:
@@ -103,5 +106,6 @@ def framework_provider_partial(
         bin_root_path = bin_root_path,
         binary_provider = binary_provider,
         bundle_name = bundle_name,
+        bundle_only = bundle_only,
         rule_label = rule_label,
     )
