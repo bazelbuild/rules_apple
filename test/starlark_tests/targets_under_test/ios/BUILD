@@ -451,6 +451,7 @@ ios_application(
     ],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithDebugInfo",
         "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithDsym",
     ],
 )
