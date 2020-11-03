@@ -106,7 +106,7 @@ class Bundler(object):
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
     root_merge_zips = self._control.get('root_merge_zips', [])
 
-    with zipfile.ZipFile(output_path, 'w') as out_zip:
+    with zipfile.ZipFile(output_path, 'w', allowZip64 = True) as out_zip:
       for z in bundle_merge_zips:
         dest = os.path.normpath(os.path.join(bundle_path, z['dest']))
         self._add_zip_contents(z['src'], dest, out_zip)
@@ -163,7 +163,7 @@ class Bundler(object):
           underneath this path.
       out_zip: The `ZipFile` into which the files should be added.
     """
-    with zipfile.ZipFile(src, 'r') as src_zip:
+    with zipfile.ZipFile(src, 'r', allowZip64 = True) as src_zip:
       for src_zipinfo in src_zip.infolist():
         # Normalize the destination path to remove any extraneous internal
         # slashes or "." segments, but retain the final slash for directory
