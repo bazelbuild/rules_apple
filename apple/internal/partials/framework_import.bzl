@@ -92,12 +92,13 @@ def _framework_import_partial_impl(
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     # Collect the architectures that we are using for the build.
-    build_archs_found = [
-        build_arch
-        for x in targets
-        if AppleFrameworkImportInfo in x
-        for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list()
-    ]
+    build_archs_found_dict = dict()
+    for x in targets:
+        if not AppleFrameworkImportInfo in x:
+            continue
+        for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list():
+            build_archs_found_dict[build_arch] = None
+    build_archs_found = build_archs_found_dict.keys()
 
     # Start assembling our partial's outputs.
     bundle_zips = []
@@ -215,6 +216,7 @@ def _framework_import_partial_impl(
         ]
         symbols = _generate_symbols(
             ctx,
+            build_archs_found,
             files_by_framework,
             framework_binaries_by_framework,
             transitive_dsyms,
@@ -235,6 +237,7 @@ def _framework_import_partial_impl(
 
 def _generate_symbols(
     ctx,
+    build_archs_found,
     files_by_framework,
     framework_binaries_by_framework,
     transitive_dsyms):
@@ -277,14 +280,18 @@ def _generate_symbols(
     commands = ["mkdir -p \"${OUTPUT_DIR}\""]
 
     for binary in all_binaries:
-        # Just use "-arch all" here since we have yet to know the arch of each
-        # binary, and the binary might contain slices of multiple archs.
-        commands.append(
-            ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch all " +
-             "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{}\"").format(
-                binary.path,
-            ),
-        )
+        # If dSYMs are bundled with multiple non-fat binaries, the 'symbols'
+        # command may try to extract symbols from a binary that doesn't have a
+        # slice for an architecture, but it's fine since it won't return a
+        # non-zero code in that case.
+        for arch in build_archs_found:
+            commands.append(
+                ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {0} " +
+                 "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{1}\"").format(
+                    arch,
+                    binary.path,
+                ),
+            )
 
     apple_support.run_shell(
         ctx,
