@@ -516,14 +516,10 @@ def _sign_binary_action(ctx, input_binary, output_binary):
         ctx,
         inputs = [input_binary],
         outputs = [output_binary],
-        command = [
-            "/bin/bash",
-            "-c",
-            "cp {input_binary} {output_binary}".format(
-                input_binary = input_binary.path,
-                output_binary = output_binary.path,
-            ) + "\n" + signing_commands,
-        ],
+        command = "cp {input_binary} {output_binary}".format(
+            input_binary = input_binary.path,
+            output_binary = output_binary.path,
+        ) + "\n" + signing_commands,
         mnemonic = "SignBinary",
         execution_requirements = {
             # Added so that the output of this action is not cached remotely, in case multiple

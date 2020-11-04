@@ -22,10 +22,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
-load(
-    "@bazel_skylib//lib:types.bzl",
-    "types",
-)
 
 def _add_dicts(*dictionaries):
     """Adds a list of dictionaries into a single dictionary."""
@@ -143,16 +139,6 @@ def _run_shell(
       platform_prerequisites: Struct containing information on the platform being targeted.
       **kwargs: Arguments to be passed into ctx.actions.run_shell.
     """
-
-    # TODO(b/77637734) remove "workaround" once the bazel issue is resolved.
-    # Bazel doesn't always get the shell right for a single string `commands`;
-    # so work around that case by faking it as a list of strings that forces
-    # the shell correctly.
-    command = kwargs.get("command")
-    if command and types.is_string(command):
-        processed_args = dict(kwargs)
-        processed_args["command"] = ["/bin/sh", "-c", command]
-        kwargs = processed_args
 
     # TODO(b/161370390): Eliminate need to make actions and platform_prerequisites optional when all
     # calls to this method with a ctx argument are eliminated.
