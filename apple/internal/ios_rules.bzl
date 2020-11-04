@@ -200,6 +200,7 @@ def _ios_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             label_name = label.name,
+            package_symbols = True,
             platform_prerequisites = platform_prerequisites,
             rule_executables = rule_executables,
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
