@@ -112,6 +112,19 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_tvos_application
+  do_build tvos --objc_generate_linkmap //app:app || fail "Should build"
+
+  declare -a archs=( $(current_archs tvos) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/app_${arch}.linkmap"
+  done
+}
+
 # Tests that failures to extract from a provisioning profile are propertly
 # reported.
 function test_provisioning_profile_extraction_failure() {

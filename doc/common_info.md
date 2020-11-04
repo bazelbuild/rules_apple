@@ -107,7 +107,6 @@ mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
 -->
-<!-- Blocked on b/73547215
 
 ### linkmap Generation {#objc_generate_linkmap}
 
@@ -122,8 +121,6 @@ bazel build --objc_generate_linkmap //your/target
 By default, only the top level linkmap file is built when this flag is
 specified. If you require the linkmap file of the top level target dependencies,
 you'll need to specify the `--output_groups=+linkmaps` flag.
-
--->
 
 ### Debugging Entitlement Support {#apple.add_debugger_entitlement}
 
@@ -226,15 +223,6 @@ bazel build --define=apple.codesign_simulator_bundles=no //your/target
 One exception is XCTest bundles, those do need to be signed for the simulators
 to load them. The above `--define` does not change the behavior around signing
 of these bundles as a result.
-
-<!--
- Define not currently documented:
-
-   apple.experimental_bundling=[bundle_and_archive,bundle_only,off]
-
- Support for this option is tracked in b/35451264, but because of the tree
- artifact issues, it isn't really useful at the moment.
--->
 
 ### Localization Handling
 

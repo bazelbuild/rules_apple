@@ -19,10 +19,6 @@ registered to generate these files.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -36,62 +32,35 @@ load(
 )
 
 def _archive(
-        ctx = None,
         *,
-        actions = None,
-        bundle_extension = None,
-        bundle_name = None,
+        actions,
+        bundle_extension,
+        bundle_name,
         executable_name = None,
-        platform_prerequisites = None,
-        predeclared_outputs = None):
+        platform_prerequisites,
+        predeclared_outputs):
     """Returns a file reference for this target's archive."""
-    if not actions:
-        actions = ctx.actions
+    bundle_name_with_extension = bundle_name + bundle_extension
 
-    if bundle_name != None and bundle_extension != None:
-        bundle_name_with_extension = bundle_name + bundle_extension
-    else:
-        bundle_name_with_extension = (
-            bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
-        )
-
-    if platform_prerequisites != None:
-        tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-            config_vars = platform_prerequisites.config_vars,
-        )
-    else:
-        tree_artifact_enabled = is_experimental_tree_artifact_enabled(ctx = ctx)
-
-    if not predeclared_outputs:
-        predeclared_outputs = ctx.outputs
-
+    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
+        config_vars = platform_prerequisites.config_vars,
+    )
     if tree_artifact_enabled:
         return actions.declare_directory(bundle_name_with_extension)
-
-    # TODO(kaipi): Look into removing this rule implicit output and just return it using
-    # DefaultInfo.
     return predeclared_outputs.archive
 
 def _archive_for_embedding(
-        ctx = None,
-        rule_descriptor = None,
         *,
-        actions = None,
-        bundle_name = None,
-        bundle_extension = None,
-        executable_name = None,
-        label_name = None,
-        platform_prerequisites = None,
-        predeclared_outputs = None):
+        actions,
+        bundle_name,
+        bundle_extension,
+        executable_name,
+        label_name,
+        platform_prerequisites,
+        predeclared_outputs,
+        rule_descriptor):
     """Returns a files reference for this target's archive, when embedded in another target."""
-    if not actions:
-        actions = ctx.actions
-
-    if not label_name:
-        label_name = ctx.label.name
-
     has_different_embedding_archive = _has_different_embedding_archive(
-        ctx = ctx,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
     )
@@ -100,7 +69,6 @@ def _archive_for_embedding(
         return actions.declare_file("%s.embedding.zip" % label_name)
     else:
         return _archive(
-            ctx = ctx,
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -108,74 +76,69 @@ def _archive_for_embedding(
             predeclared_outputs = predeclared_outputs,
         )
 
-# TODO(b/161370390): Migrate all uses of this to root_path_from_archive.
-def _archive_root_path(
-        ctx = None,
-        *,
-        actions = None,
-        bundle_name = None,
-        bundle_extension = None,
-        platform_prerequisites = None,
-        predeclared_outputs = None):
-    """Returns the path to a directory reference for this target's archive root."""
-
-    archive = _archive(
-        ctx = ctx,
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-    )
-
-    return _root_path_from_archive(archive = archive)
-
 def _binary(ctx = None, *, actions = None, executable_name = None, label_name = None):
     """Returns a file reference for the binary that will be packaged into this target's archive. """
-    if not actions:
-        actions = ctx.actions
-
-    if not label_name:
-        label_name = ctx.label.name
-
-    if not executable_name:
-        executable_name = bundling_support.executable_name(ctx)
-
     return intermediates.file(actions, label_name, executable_name)
 
-def _executable(ctx = None, *, actions = None, label_name = None):
+def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
-    if not actions:
-        actions = ctx.actions
-
-    if not label_name:
-        label_name = ctx.label.name
-
     return actions.declare_file(label_name)
 
-def _infoplist(ctx = None, *, actions = None, label_name = None):
+def _infoplist(*, actions, label_name):
     """Returns a file reference for this target's Info.plist file."""
-    if not actions:
-        actions = ctx.actions
-
-    if not label_name:
-        label_name = ctx.label.name
-
     return intermediates.file(actions, label_name, "Info.plist")
 
-def _has_different_embedding_archive(ctx, rule_descriptor, *, platform_prerequisites = None):
+def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""
-    if platform_prerequisites != None:
-        tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-            config_vars = platform_prerequisites.config_vars,
-        )
-    else:
-        tree_artifact_enabled = is_experimental_tree_artifact_enabled(ctx = ctx)
-
+    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
+        config_vars = platform_prerequisites.config_vars,
+    )
     if tree_artifact_enabled:
         return False
-
     return rule_descriptor.bundle_locations.archive_relative != "" and rule_descriptor.expose_non_archive_relative_output
+
+def _merge_output_groups(*output_groups_list):
+    """Merges a list of output group dictionaries into a single dictionary.
+
+    In order to properly support use cases such as validation actions, which are represented as a
+    uniquely named output group, partials or other parts of the build should propagate their output
+    groups as raw dictionaries and collect them as lists of dictionaries and not wrap them into the
+    `OutputGroupInfo` provider until the very end of the rule or aspect implementation function.
+
+    In order to support this, this function merges these lists of output group dictionaries so that
+    the final dictionary contains the keys from all of the dictionaries that were given to it, and
+    furthermore, if two dictionaries in the list have the same key, the `depset`s for those keys
+    will be merged.
+
+    Args:
+        *output_groups_list: A list of dictionaries that represent output groups; that is, their
+            keys are strings (the names of the output groups) and their values are `depset`s of
+            `File`s.
+
+    Returns:
+        A new dictionary containing the union of all of the output groups.
+    """
+
+    # We collect the depsets for each key as a flat list and create a single transitive depset
+    # from all of them at the end, instead of creating a new chained depset each time we find a
+    # duplicate key. This prevents the depset depth from growing too large (even though in
+    # practice, this is unlikely for our uses of this function).
+    output_group_depsets = {}
+    for output_groups in output_groups_list:
+        for name, files in output_groups.items():
+            if name not in output_group_depsets:
+                output_group_depsets[name] = [files]
+            else:
+                output_group_depsets[name].append(files)
+
+    # We can unconditionally create a new depset here; if `depsets` has a length of 1, there is
+    # a fast-path that returns the same depset instead of constructing a new nested one.
+    merged_output_groups = {
+        name: depset(transitive = depsets)
+        for name, depsets in output_group_depsets.items()
+    }
+
+    return merged_output_groups
 
 def _root_path_from_archive(*, archive):
     """Given an archive, returns a path to a directory reference for this target's archive root."""
@@ -184,10 +147,10 @@ def _root_path_from_archive(*, archive):
 outputs = struct(
     archive = _archive,
     archive_for_embedding = _archive_for_embedding,
-    archive_root_path = _archive_root_path,
     binary = _binary,
     executable = _executable,
     infoplist = _infoplist,
+    merge_output_groups = _merge_output_groups,
     root_path_from_archive = _root_path_from_archive,
     has_different_embedding_archive = _has_different_embedding_archive,
 )

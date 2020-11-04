@@ -78,16 +78,16 @@ def watchos_dynamic_framework(name, **kwargs):
         "-install_name",
         "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
     ]
-    kwargs["linkopts"] = linkopts
+    binary_args["linkopts"] = linkopts
 
     # Link the executable from any library deps and sources provided.
-    bundling_args = binary_support.create_binary(
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
-        str(apple_common.platform_type.watchos),
-        apple_product_type.framework,
-        binary_type = "dylib",
-        suppress_entitlements = True,
-        **kwargs
+        include_entitlements = False,
+        platform_type = str(apple_common.platform_type.ios),
+        product_type = apple_product_type.framework,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
+        **binary_args
     )
 
     # Remove any kwargs that shouldn't be passed to the underlying rule.

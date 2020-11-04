@@ -241,6 +241,19 @@ EOF
   expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_minimal_watchos_application_with_companion
+  do_build watchos --objc_generate_linkmap \
+      //app:watch_ext || fail "Should build"
+
+  declare -a archs=( $(current_archs watchos) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/watch_ext_${arch}.linkmap"
+  done
+}
+
 # Tests that failures to extract from a provisioning profile are propertly
 # reported (from watchOS application profile).
 function test_provisioning_profile_extraction_failure_watch_application() {
@@ -270,10 +283,16 @@ EOF
 BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS
 EOF
 
-  ! do_build watchos //app:app || fail "Should fail"
-  # The fact that multiple things are tried is left as an impl detail and
-  # only the final message is looked for.
-  expect_log 'While processing target "//app:watch_app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  if is_device_build watchos ; then
+    ! do_build watchos //app:app || fail "Should fail"
+    # The fact that multiple things are tried is left as an impl detail and
+    # only the final message is looked for.
+    expect_log 'While processing target "//app:watch_app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  else
+    # For simulator builds, entitlements are added as a Mach-O section in
+    # the binary, so the build shouldn't fail.
+    do_build watchos //app:app || fail "Should build"
+  fi
 }
 
 # Tests that failures to extract from a provisioning profile are propertly

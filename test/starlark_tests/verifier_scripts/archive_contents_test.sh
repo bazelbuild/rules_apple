@@ -139,7 +139,9 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
 
   if [[ -n "${CODESIGN_INFO_CONTAINS-}" || -n "${CODESIGN_INFO_NOT_CONTAINS-}" ]]; then
     codesign_output="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
-    codesign --display --verbose=4 "$path" &> "$codesign_output"
+    if ! codesign --display --verbose=4 "$path" &> "$codesign_output"; then
+      fail "Expected codesign --display to pass$newline$(cat $codesign_output)"
+    fi
     if [[ -n "${CODESIGN_INFO_CONTAINS-}" ]]; then
       for test_codesign_info in "${CODESIGN_INFO_CONTAINS[@]}"
       do

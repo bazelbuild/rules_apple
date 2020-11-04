@@ -75,6 +75,14 @@ def ios_application_test_suite(name = "ios_application"):
     )
 
     apple_verification_test(
+        name = "{}_codesignopts_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_codesignopts",
+        verifier_script = "verifier_scripts/codesignopts_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
@@ -241,6 +249,16 @@ def ios_application_test_suite(name = "ios_application"):
         tags = [name],
     )
 
+    dsyms_test(
+        name = "{}_custom_executable_name_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
+        expected_dsyms = ["custom_bundle_name.app"],
+        expected_binaries  = [
+            "custom_bundle_name.app.dSYM/Contents/Resources/DWARF/app.exe",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
@@ -298,11 +316,7 @@ def ios_application_test_suite(name = "ios_application"):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        tags = [
-            name,
-            # OSS Blocked by b/73547215
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     # Test that Bitcode was removed from the imported framework when building

@@ -19,8 +19,20 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -37,9 +49,29 @@ load(
 )
 
 def _apple_resource_bundle_impl(ctx):
-    providers = []
+    actions = ctx.actions
     bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
+    rule_executables = ctx.executable
+    rule_label = ctx.label
 
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = swift_support.uses_swift(deps) if deps else False
+
+    # TODO(b/168721966): Move all resource processing below into the resource aspect. This will
+    # avoid issues with being able to determine platform information from these rules, where we do
+    # not have sufficient knowledge to fill out all of the platform prerequisites.
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        device_families = None,
+        objc_fragment = None,
+        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        uses_swift = uses_swift,
+        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    providers = []
     infoplists = resources.collect(ctx.attr, res_attrs = ["infoplists"])
     if infoplists:
         providers.append(
@@ -54,9 +86,14 @@ def _apple_resource_bundle_impl(ctx):
     if resource_files:
         providers.append(
             resources.bucketize_with_processing(
-                ctx,
-                resource_files,
+                actions = actions,
+                bundle_id = None,
                 parent_dir_param = bundle_name,
+                platform_prerequisites = platform_prerequisites,
+                product_type = None,
+                resources = resource_files,
+                rule_executables = rule_executables,
+                rule_label = rule_label,
             ),
         )
 
@@ -65,20 +102,25 @@ def _apple_resource_bundle_impl(ctx):
             ctx.attr,
             res_attrs = ["structured_resources"],
         )
-
-        # Avoid processing PNG files that are referenced through the structured_resources
-        # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-        providers.append(
-            resources.bucketize_with_processing(
-                ctx,
-                structured_files,
-                parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                    parent_dir = bundle_name,
+        if structured_files:
+            # Avoid processing PNG files that are referenced through the structured_resources
+            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
+            providers.append(
+                resources.bucketize_with_processing(
+                    actions = actions,
+                    allowed_buckets = ["strings", "plists"],
+                    bundle_id = None,
+                    parent_dir_param = partial.make(
+                        resources.structured_resources_parent_dir,
+                        parent_dir = bundle_name,
+                    ),
+                    platform_prerequisites = platform_prerequisites,
+                    product_type = None,
+                    resources = structured_files,
+                    rule_executables = rule_executables,
+                    rule_label = rule_label,
                 ),
-                allowed_buckets = ["strings", "plists"],
-            ),
-        )
+            )
 
     # Find any targets added through resources which might propagate the AppleResourceInfo
     # provider, for example, apple_resource_bundle or apple_bundle_import targets.
@@ -139,6 +181,7 @@ non-RFC1034-compliant characters with -.
         "resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
+            aspects = [apple_resource_aspect],
             doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have

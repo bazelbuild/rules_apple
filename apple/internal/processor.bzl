@@ -21,7 +21,8 @@ and will return information on how the bundles should be built.
 
 All partials handled by this processor must follow this API:
 
-  - The only expected argument has to be ctx.
+  - The only expected argument has to be ctx. This argument is deprecated and will be dropped in a
+    future revision to the rules (b/161370390).
   - The expected output is a struct with the following optional fields:
     * bundle_files: Contains tuples of the format
       (location_type, parent_dir, files) where location_type is a field of the
@@ -64,10 +65,6 @@ rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
@@ -80,10 +77,6 @@ load(
     "defines",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
-    "entitlements_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -92,24 +85,12 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -135,7 +116,7 @@ _LOCATION_ENUM = struct(
     xpc_service = "xpc_service",
 )
 
-def _invalid_top_level_directories_for_platform(platform_type):
+def _invalid_top_level_directories_for_platform(*, platform_type):
     """List of invalid top level directories for the given platform."""
 
     # As far as we know, there are no locations in macOS bundles that would break
@@ -149,7 +130,7 @@ def _invalid_top_level_directories_for_platform(platform_type):
     # better explains which files are incorrectly placed.
     return ["Resources"]
 
-def _is_parent_dir_valid(invalid_top_level_dirs, parent_dir):
+def _is_parent_dir_valid(*, invalid_top_level_dirs, parent_dir):
     """Validates that the files to bundle are not placed in invalid locations.
 
     codesign will complain when building a non macOS bundle that contains certain
@@ -171,18 +152,20 @@ def _is_parent_dir_valid(invalid_top_level_dirs, parent_dir):
             return False
     return True
 
-def _archive_paths(ctx, embedding = False):
+def _archive_paths(
+        *,
+        bundle_extension,
+        bundle_name,
+        embedding = False,
+        rule_descriptor,
+        tree_artifact_is_enabled):
     """Returns the map of location type to final archive path."""
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-
-    if is_experimental_tree_artifact_enabled(ctx):
+    if tree_artifact_is_enabled:
         # If experimental tree artifacts are enabled, base all the outputs to be relative to the
         # bundle path.
         bundle_path = ""
     else:
-        bundle_name_with_extension = (
-            bundling_support.bundle_name(ctx) + bundling_support.bundle_extension(ctx)
-        )
+        bundle_name_with_extension = bundle_name + bundle_extension
         if embedding:
             bundle_path = bundle_name_with_extension
         else:
@@ -232,32 +215,48 @@ def _archive_paths(ctx, embedding = False):
     }
 
 def _bundle_partial_outputs_files(
-        ctx,
-        partial_outputs,
-        output_file,
+        *,
+        actions,
+        bundle_extension,
+        bundle_name,
         codesigning_command = None,
         embedding = False,
-        extra_input_files = []):
+        extra_input_files = [],
+        label_name,
+        partial_outputs,
+        platform_prerequisites,
+        output_file,
+        rule_descriptor,
+        rule_executables):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
     Args:
-      ctx: The target's rule context.
-      partial_outputs: List of partial outputs from which to collect the files
-        that will be bundled inside the final archive.
-      output_file: The file where the final zipped bundle should be created.
+      actions: The actions provider from `ctx.actions`.
+      bundle_extension: The extension for the bundle.
+      bundle_name: The name of the output bundle.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
       embedding: Whether outputs are being bundled to be embedded.
       extra_input_files: Extra files to include in the bundling action.
+      label_name: The name of the target being built.
+      partial_outputs: List of partial outputs from which to collect the files
+        that will be bundled inside the final archive.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      output_file: The file where the final zipped bundle should be created.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
     """
-    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
-    requested_locales_flag = ctx.var.get("apple.locales_to_include")
+    config_vars = platform_prerequisites.config_vars
+    requested_locales_flag = config_vars.get("apple.locales_to_include")
+
+    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     trim_locales = defines.bool_value(
-        ctx,
-        "apple.trim_lproj_locales",
-        None,
+        ctx = None,
+        config_vars = config_vars,
+        default = None,
+        define_name = "apple.trim_lproj_locales",
     ) and rule_descriptor.allows_locale_trimming and requested_locales_flag == None
 
     control_files = []
@@ -276,15 +275,27 @@ def _bundle_partial_outputs_files(
                         if locale:
                             base_locales.append(locale)
 
-    location_to_paths = _archive_paths(ctx, embedding = embedding)
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
+        config_vars = config_vars,
+    )
 
-    platform_type = platform_support.platform_type(ctx)
-    invalid_top_level_dirs = _invalid_top_level_directories_for_platform(platform_type)
+    location_to_paths = _archive_paths(
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        embedding = embedding,
+        rule_descriptor = rule_descriptor,
+        tree_artifact_is_enabled = tree_artifact_is_enabled,
+    )
+
+    platform_type = platform_prerequisites.platform_type
+    invalid_top_level_dirs = _invalid_top_level_directories_for_platform(
+        platform_type = platform_type,
+    )
 
     processed_file_target_paths = {}
     for partial_output in partial_outputs:
         for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
-            if is_experimental_tree_artifact_enabled(ctx) and location == _LOCATION_ENUM.archive:
+            if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
                 # Skip bundling archive related files, as we're only building the bundle directory.
                 continue
 
@@ -294,8 +305,11 @@ def _bundle_partial_outputs_files(
                     # Skip files for locales that aren't in the locales for the base resources.
                     continue
 
-            if (invalid_top_level_dirs and
-                not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
+            parent_dir_is_valid = _is_parent_dir_valid(
+                invalid_top_level_dirs = invalid_top_level_dirs,
+                parent_dir = parent_dir,
+            )
+            if (invalid_top_level_dirs and not parent_dir_is_valid):
                 file_paths = "\n".join([f.path for f in files.to_list()])
                 fail(("Error: For %s bundles, the following top level " +
                       "directories are invalid: %s, check input files:\n%s") %
@@ -318,11 +332,15 @@ def _bundle_partial_outputs_files(
                 control_files.append(struct(src = source.path, dest = target_path))
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
-            if is_experimental_tree_artifact_enabled(ctx) and location == _LOCATION_ENUM.archive:
+            if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
                 # Skip bundling archive related files, as we're only building the bundle directory.
                 continue
-            if (invalid_top_level_dirs and
-                not _is_parent_dir_valid(invalid_top_level_dirs, parent_dir)):
+
+            parent_dir_is_valid = _is_parent_dir_valid(
+                invalid_top_level_dirs = invalid_top_level_dirs,
+                parent_dir = parent_dir,
+            )
+            if invalid_top_level_dirs and not parent_dir_is_valid:
                 fail(("Error: For %s bundles, the following top level " +
                       "directories are invalid: %s") %
                      (platform_type, ", ".join(invalid_top_level_dirs)))
@@ -334,7 +352,7 @@ def _bundle_partial_outputs_files(
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
                 control_zips.append(struct(src = source.path, dest = target_path))
 
-    post_processor = ctx.executable.ipa_post_processor
+    post_processor = rule_executables.ipa_post_processor
     post_processor_path = ""
 
     if post_processor:
@@ -354,11 +372,11 @@ def _bundle_partial_outputs_files(
         control_file_name = "bundletool_control.json"
 
     control_file = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        label_name,
         control_file_name,
     )
-    ctx.actions.write(
+    actions.write(
         output = control_file,
         content = control.to_json(),
     )
@@ -369,20 +387,18 @@ def _bundle_partial_outputs_files(
         "arguments": [control_file.path],
     }
 
-    if is_experimental_tree_artifact_enabled(ctx):
+    if tree_artifact_is_enabled:
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
 
-        bundling_tools = [ctx.executable._codesigningtool]
+        bundling_tools = [rule_executables._codesigningtool]
         if post_processor:
             bundling_tools.append(post_processor)
 
         apple_support.run(
-            ctx,
-            executable = ctx.executable._bundletool_experimental,
-            mnemonic = "BundleTreeApp",
-            progress_message = "Bundling, processing and signing %s" % ctx.label.name,
-            tools = bundling_tools,
+            actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            executable = rule_executables._bundletool_experimental,
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -391,43 +407,82 @@ def _bundle_partial_outputs_files(
                 # $HOME.
                 "no-sandbox": "1",
             },
+            mnemonic = "BundleTreeApp",
+            progress_message = "Bundling, processing and signing %s" % label_name,
+            tools = bundling_tools,
+            xcode_config = platform_prerequisites.xcode_version_config,
+            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
             **action_args
         )
     else:
-        ctx.actions.run(
-            executable = ctx.executable._bundletool,
+        actions.run(
+            executable = rule_executables._bundletool,
             mnemonic = "BundleApp",
-            progress_message = "Bundling %s" % ctx.label.name,
+            progress_message = "Bundling %s" % label_name,
             **action_args
         )
 
-def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
+# TODO(b/161370390): Remove ctx when codesigning_command no longer depends on ctx.
+def _bundle_post_process_and_sign(
+        *,
+        ctx,
+        actions,
+        bundle_extension,
+        bundle_name,
+        entitlements,
+        executable_name,
+        output_archive,
+        partial_outputs,
+        platform_prerequisites,
+        predeclared_outputs,
+        provisioning_profile,
+        rule_descriptor,
+        rule_executables,
+        rule_label):
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
-        ctx: The rule context.
-        partial_outputs: The outputs of the partials used to process this target's bundle.
+        ctx: The rule context. Deprecated.
+        actions: The actions provider from `ctx.actions`.
+        bundle_extension: The extension for the bundle.
+        bundle_name: The name of the output bundle.
+        entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+        executable_name: The name of the output executable.
         output_archive: The file representing the final bundled, post-processed and signed archive.
+        partial_outputs: The outputs of the partials used to process this target's bundle.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
+        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+        rule_label: The label of the target being analyzed.
     """
-    archive_paths = _archive_paths(ctx)
-    entitlements = entitlements_support.entitlements(ctx)
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
+        config_vars = platform_prerequisites.config_vars,
+    )
+    archive_paths = _archive_paths(
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        rule_descriptor = rule_descriptor,
+        tree_artifact_is_enabled = tree_artifact_is_enabled,
+    )
     signed_frameworks_depsets = []
     for partial_output in partial_outputs:
         if hasattr(partial_output, "signed_frameworks"):
             signed_frameworks_depsets.append(partial_output.signed_frameworks)
     transitive_signed_frameworks = depset(transitive = signed_frameworks_depsets)
 
-    if is_experimental_tree_artifact_enabled(ctx):
+    if tree_artifact_is_enabled:
         extra_input_files = []
 
         if entitlements:
             extra_input_files.append(entitlements)
 
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
         if provisioning_profile:
             extra_input_files.append(provisioning_profile)
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
+        # TODO(b/161370390): Remove ctx from all instances of codesigning_command.
         codesigning_command = codesigning_support.codesigning_command(
             ctx,
             entitlements = entitlements,
@@ -436,33 +491,50 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
         )
 
         _bundle_partial_outputs_files(
-            ctx,
-            partial_outputs,
-            output_archive,
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             codesigning_command = codesigning_command,
             extra_input_files = extra_input_files,
+            label_name = rule_label.name,
+            partial_outputs = partial_outputs,
+            platform_prerequisites = platform_prerequisites,
+            output_file = output_archive,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
         )
 
-        ctx.actions.write(
-            output = ctx.outputs.archive,
+        actions.write(
+            output = predeclared_outputs.archive,
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
         # This output, while an intermediate artifact not exposed through the AppleBundleInfo
         # provider, is used by Tulsi for custom processing logic. (b/120221708)
         unprocessed_archive = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            rule_label.name,
             "unprocessed_archive.zip",
         )
-        _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_archive)
+        _bundle_partial_outputs_files(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = rule_label.name,
+            partial_outputs = partial_outputs,
+            platform_prerequisites = platform_prerequisites,
+            output_file = unprocessed_archive,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
+        )
 
         archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
         frameworks_path = archive_paths[_LOCATION_ENUM.framework]
 
-        output_archive_root_path = outputs.archive_root_path(ctx)
+        output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (ios_application).
+        # TODO(b/161370390): Remove ctx from all instances of post_process_and_sign_archive_action.
         codesigning_support.post_process_and_sign_archive_action(
             ctx,
             archive_codesigning_path,
@@ -474,42 +546,103 @@ def _bundle_post_process_and_sign(ctx, partial_outputs, output_archive):
             entitlements = entitlements,
         )
 
-        rule_descriptor = rule_support.rule_descriptor(ctx)
-        if outputs.has_different_embedding_archive(ctx, rule_descriptor):
-            embedding_archive = outputs.archive_for_embedding(ctx, rule_descriptor)
-            embedding_archive_paths = _archive_paths(ctx, embedding = True)
+        has_different_embedding_archive = outputs.has_different_embedding_archive(
+            platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
+        )
+        if has_different_embedding_archive:
+            embedding_archive = outputs.archive_for_embedding(
+                actions = actions,
+                bundle_name = bundle_name,
+                bundle_extension = bundle_extension,
+                executable_name = executable_name,
+                label_name = rule_label.name,
+                rule_descriptor = rule_descriptor,
+                platform_prerequisites = platform_prerequisites,
+                predeclared_outputs = predeclared_outputs,
+            )
+            embedding_archive_paths = _archive_paths(
+                bundle_extension = bundle_extension,
+                bundle_name = bundle_name,
+                embedding = True,
+                rule_descriptor = rule_descriptor,
+                tree_artifact_is_enabled = tree_artifact_is_enabled,
+            )
             embedding_archive_codesigning_path = embedding_archive_paths[_LOCATION_ENUM.bundle]
             embedding_frameworks_path = embedding_archive_paths[_LOCATION_ENUM.framework]
+            embedding_archive_root_path = outputs.root_path_from_archive(archive = embedding_archive)
             unprocessed_embedded_archive = intermediates.file(
-                ctx.actions,
-                ctx.label.name,
+                actions,
+                rule_label.name,
                 "unprocessed_embedded_archive.zip",
             )
-            _bundle_partial_outputs_files(ctx, partial_outputs, unprocessed_embedded_archive, embedding = True)
+            _bundle_partial_outputs_files(
+                actions = actions,
+                bundle_extension = bundle_extension,
+                bundle_name = bundle_name,
+                embedding = True,
+                label_name = rule_label.name,
+                partial_outputs = partial_outputs,
+                platform_prerequisites = platform_prerequisites,
+                output_file = unprocessed_embedded_archive,
+                rule_descriptor = rule_descriptor,
+                rule_executables = rule_executables,
+            )
+
+            # TODO(b/161370390): Remove ctx from all instances of
+            # post_process_and_sign_archive_action.
             codesigning_support.post_process_and_sign_archive_action(
                 ctx,
                 embedding_archive_codesigning_path,
                 embedding_frameworks_path,
                 unprocessed_embedded_archive,
                 embedding_archive,
-                output_archive_root_path,
+                embedding_archive_root_path,
                 transitive_signed_frameworks,
                 entitlements = entitlements,
             )
 
-def _process(ctx, partials, bundle_post_process_and_sign = True):
+# TODO(b/161370390): Remove ctx when codesigning_support no longer depends on ctx.
+def _process(
+        *,
+        ctx,
+        actions,
+        bundle_extension,
+        bundle_name,
+        bundle_post_process_and_sign = True,
+        entitlements,
+        executable_name,
+        partials,
+        platform_prerequisites,
+        predeclared_outputs,
+        provisioning_profile,
+        rule_descriptor,
+        rule_executables,
+        rule_label):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
-      ctx: The ctx object for the target being processed.
-      partials: The list of partials to process to construct the complete bundle.
+      ctx: The ctx object for the target being processed. Deprecated.
+      actions: The actions provider from `ctx.actions`.
+      bundle_extension: The extension for the bundle.
+      bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
+      entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      executable_name: The name of the output executable.
+      partials: The list of partials to process to construct the complete bundle.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
+      provisioning_profile: File for the provisioning profile.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+      rule_label: The label of the target being analyzed.
 
     Returns:
-      A struct with the results of the processing. The files to make outputs of
-      the rule are contained under the `output_files` field, and the providers to
-      return are contained under the `providers` field.
+      A `struct` with the results of the processing. The files to make outputs of
+      the rule are contained under the `output_files` field, the providers to
+      return are contained under the `providers` field, and a dictionary containing
+      any additional output groups is in the `output_groups` field.
     """
 
     # TODO(b/161370390): Remove the ctx kwarg passed to this call once ctx is removed from the args
@@ -517,8 +650,29 @@ def _process(ctx, partials, bundle_post_process_and_sign = True):
     partial_outputs = [partial.call(p, ctx = ctx) for p in partials]
 
     if bundle_post_process_and_sign:
-        output_archive = outputs.archive(ctx)
-        _bundle_post_process_and_sign(ctx, partial_outputs, output_archive)
+        output_archive = outputs.archive(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+        )
+        _bundle_post_process_and_sign(
+            ctx = ctx,
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements,
+            output_archive = output_archive,
+            partial_outputs = partial_outputs,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
+            rule_label = rule_label,
+        )
         transitive_output_files = [depset([output_archive])]
     else:
         transitive_output_files = []
@@ -533,14 +687,9 @@ def _process(ctx, partials, bundle_post_process_and_sign = True):
         if hasattr(partial_output, "output_groups"):
             output_group_dicts.append(partial_output.output_groups)
 
-    if output_group_dicts:
-        # TODO(kaipi): Add support for merging keys. Currently the last one wins, but because
-        # there's only one partial that supports this, it's ok.
-        merged_output_groups = dicts.add(*output_group_dicts)
-        providers.append(OutputGroupInfo(**merged_output_groups))
-
     return struct(
         output_files = depset(transitive = transitive_output_files),
+        output_groups = outputs.merge_output_groups(*output_group_dicts),
         providers = providers,
     )
 

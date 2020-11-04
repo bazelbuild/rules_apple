@@ -88,7 +88,6 @@ def _describe_rule_type(
         deps_cfg = None,
         extra_linkopts = [],
         expose_non_archive_relative_output = False,
-        force_transition_allowlist = False,
         has_infoplist = True,
         has_launch_images = False,
         has_settings_bundle = False,
@@ -136,7 +135,6 @@ def _describe_rule_type(
             the `archive_relative` bundle location, to permit embedding within another target. Has no
             effect if `archive_relative` is empty.
         extra_linkopts: Extra options to pass to the linker.
-        force_transition_allowlist: Whether to force a dependency on the transition allowlist.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
@@ -185,7 +183,6 @@ def _describe_rule_type(
         deps_cfg = deps_cfg,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
         extra_linkopts = extra_linkopts,
-        force_transition_allowlist = force_transition_allowlist,
         has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
@@ -223,6 +220,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
+            deps_cfg = apple_common.multi_arch_split,
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,
@@ -245,6 +243,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_package_type = bundle_package_type.application,
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            deps_cfg = apple_common.multi_arch_split,
             expose_non_archive_relative_output = True,
             is_executable = True,
             mandatory_families = True,
@@ -264,10 +263,9 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
+            deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
-                # Migrate to -fapplication-extension, like the other rules, once ios_extension is
-                # migrated to a proper rule and not a macro with an apple_binary.
-                "-application_extension",
+                "-fapplication-extension",
             ],
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
@@ -280,9 +278,11 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
+            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            deps_cfg = apple_common.multi_arch_split,
             mandatory_families = True,
             product_type = apple_product_type.framework,
             rpaths = [
@@ -351,7 +351,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
-            force_transition_allowlist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -670,7 +669,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             deps_cfg = transition_support.static_framework_transition,
-            force_transition_allowlist = True,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,

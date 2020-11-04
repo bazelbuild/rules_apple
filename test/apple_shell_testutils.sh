@@ -179,7 +179,7 @@ EOF
     ],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
@@ -242,7 +242,7 @@ genrule(
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_plist.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
@@ -284,7 +284,7 @@ genrule(
     outs = ["codesign_output"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
-        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\(ipa\\|zip\\)\$\$\"\`;" +
+        "ZIP_INPUT=\`echo \$\${INPUTS} | tr \" \" \"\\\n\" | grep \"\\\\(ipa\\\\|zip\\\\)\$\$\"\`;" +
         "set -e && " +
         "temp=\$\$(mktemp -d \"\$\${TEST_TMPDIR:-/tmp}/dump_codesign.XXXXXX\") && " +
         "/usr/bin/unzip -q \$\${ZIP_INPUT} -d \$\${temp} && " +
@@ -450,6 +450,10 @@ function do_action() {
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
       "--incompatible_objc_compile_info_migration"
+      # Disable this for now because apple_support currently relies on a
+      # workaround that needs to be able to pass a sequence of strings to
+      # actions.run_shell's 'command'.
+      "--incompatible_run_shell_command_string=false"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then

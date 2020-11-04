@@ -214,6 +214,19 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_ios_application
+  do_build ios --objc_generate_linkmap //app:app || fail "Should build"
+
+  declare -a archs=( $(current_archs ios) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/app_${arch}.linkmap"
+  done
+}
+
 # Tests that the IPA post-processor is executed and can modify the bundle.
 function test_ipa_post_processor() {
   create_common_files
@@ -294,7 +307,7 @@ function verify_debugger_entitlements_with_params() {
 
   create_common_files
 
-  cat >> app/BUILD <<EOF
+  cat >> app/BUILD <<'EOF'
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -309,25 +322,27 @@ EOF
 
   # Use a local entitlements file so the default isn't extracted from the
   # provisioning profile (which likely has get-task-allow).
-  cat > app/entitlements.plist <<EOF
+  cat > app/entitlements.plist <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>keychain-access-groups</key>
   <array>
-    <string>\$(AppIdentifierPrefix)\$(CFBundleIdentifier)</string>
+    <string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
   </array>
 </dict>
 </plist>
 EOF
 
+  create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
+  readonly CODESIGN_OUTPUT="test-bin/app/codesign_output"
+
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
-    create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
-    readonly FILE_TO_CHECK="test-bin/app/codesign_output"
+    readonly FILE_TO_CHECK="${CODESIGN_OUTPUT}"
     readonly SHOULD_CONTAIN="${FOR_DEVICE}"
   else
     # For simulator builds, entitlements are added as a Mach-O section in
@@ -338,12 +353,26 @@ EOF
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
     readonly SHOULD_CONTAIN="${FOR_SIM}"
+
+    # Simulator builds also have entitlements in the codesign output,
+    # but only `com.apple.security.get-task-allow` and nothing else
+    do_build ios "$@" //app:dump_codesign || fail "Should build"
+
+    if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
+      assert_contains "<key>com.apple.security.get-task-allow</key>" "${CODESIGN_OUTPUT}"
+      assert_not_contains "<key>keychain-access-groups</key>" "${CODESIGN_OUTPUT}"
+    else
+      assert_not_contains "<key>com.apple.security.get-task-allow</key>" "${CODESIGN_OUTPUT}"
+      assert_not_contains "<key>keychain-access-groups</key>" "${CODESIGN_OUTPUT}"
+    fi
   fi
 
   if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
     assert_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_contains "<key>keychain-access-groups</key>" "${FILE_TO_CHECK}"
   else
     assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
+    assert_contains "<key>keychain-access-groups</key>" "${FILE_TO_CHECK}"
   fi
 }
 

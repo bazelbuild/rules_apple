@@ -19,20 +19,12 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -47,40 +39,50 @@ load(
     "shell",
 )
 
-def plisttool_action(ctx, inputs, outputs, control_file, mnemonic = None):
+def plisttool_action(
+        *,
+        actions,
+        control_file,
+        inputs,
+        mnemonic = None,
+        outputs,
+        platform_prerequisites,
+        plisttool):
     """Registers an action that invokes `plisttool`.
 
-    This function is a low-level helper that simply invokes `plisttool` with the
-    given arguments. It is intended to be called by other functions that register
-    actions for more specific resources, like Info.plist files or entitlements.
+    This function is a low-level helper that simply invokes `plisttool` with the given arguments.
+    It is intended to be called by other functions that register actions for more specific
+    resources, like Info.plist files or entitlements.
 
     Args:
-      ctx: The Starlark context.
-      inputs: Any `File`s that should be treated as inputs to the underlying
-          action.
-      outputs: Any `File`s that should be treated as outputs of the underlying
-          action.
-      control_file: The `File` containing the control struct to be passed to
-          plisttool.
-      mnemonic: The mnemonic to display when the action executes. Defaults to
-          None.
+      actions: The actions provider from `ctx.actions`.
+      control_file: The `File` containing the control struct to be passed to plisttool.
+      inputs: Any `File`s that should be treated as inputs to the underlying action.
+      mnemonic: The mnemonic to display when the action executes. Defaults to None.
+      outputs: Any `File`s that should be treated as outputs of the underlying action.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      plisttool: An executable file referencing the plist tool.
     """
     apple_support.run(
-        ctx,
-        inputs = inputs + [control_file],
-        outputs = outputs,
-        executable = ctx.executable._plisttool,
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
+        executable = plisttool,
+        inputs = inputs + [control_file],
         mnemonic = mnemonic,
+        outputs = outputs,
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
-def compile_plist(ctx, input_file, output_file):
+def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that compiles plist and strings files.
 
     Args:
-      ctx: The Starlark context.
+      actions: The actions provider from `ctx.actions`.
       input_file: The property list file that should be converted.
       output_file: The file reference for the output plist.
+      platform_prerequisites: Struct containing information on the platform being targeted.
     """
     if input_file.basename.endswith(".strings"):
         mnemonic = "CompileStrings"
@@ -100,25 +102,38 @@ def compile_plist(ctx, input_file, output_file):
         plutil_command = plutil_command,
     )
     apple_support.run_shell(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_file],
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         command = complete_command,
+        inputs = [input_file],
         mnemonic = mnemonic,
+        outputs = [output_file],
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
-def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
+def merge_resource_infoplists(
+        *,
+        actions,
+        bundle_name_with_extension,
+        input_files,
+        output_plist,
+        platform_prerequisites,
+        plisttool,
+        rule_label):
     """Merges a list of plist files for resource bundles with substitutions.
 
     Args:
-      ctx: The target's rule context.
-      bundle_name: The name of the bundle where the plist will be placed in.
+      actions: The actions provider from `ctx.actions`.
+      bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
       output_plist: The file reference for the output plist.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      plisttool: An executable file referencing the plist tool.
+      rule_label: The label of the target being analyzed.
     """
-    product_name = paths.replace_extension(bundle_name, "")
+    product_name = paths.replace_extension(bundle_name_with_extension, "")
     substitutions = {
-        "BUNDLE_NAME": bundle_name,
+        "BUNDLE_NAME": bundle_name_with_extension,
         "PRODUCT_NAME": product_name,
         "TARGET_NAME": product_name,
     }
@@ -129,7 +144,7 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
-    target = '%s (while bundling under "%s")' % (bundle_name, str(ctx.label))
+    target = '%s (while bundling under "%s")' % (bundle_name_with_extension, str(rule_label))
 
     control = struct(
         binary = True,
@@ -140,32 +155,45 @@ def merge_resource_infoplists(ctx, bundle_name, input_files, output_plist):
     )
 
     control_file = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
-        paths.join(bundle_name, "%s-control" % output_plist.basename),
+        actions,
+        rule_label.name,
+        paths.join(bundle_name_with_extension, "%s-control" % output_plist.basename),
     )
-    ctx.actions.write(
+    actions.write(
         output = control_file,
         content = control.to_json(),
     )
 
     plisttool_action(
-        ctx,
-        inputs = input_files,
-        outputs = [output_plist],
+        actions = actions,
         control_file = control_file,
+        inputs = input_files,
         mnemonic = "CompileInfoPlist",
+        outputs = [output_plist],
+        platform_prerequisites = platform_prerequisites,
+        plisttool = plisttool,
     )
 
 def merge_root_infoplists(
-        ctx,
-        input_plists,
-        output_plist,
-        output_pkginfo,
+        *,
+        actions,
+        bundle_name,
         bundle_id = None,
+        bundle_extension,
+        executable_name,
         child_plists = [],
         child_required_values = [],
+        environment_plist,
         include_executable_name = True,
+        input_plists,
+        launch_storyboard,
+        output_plist,
+        output_pkginfo,
+        platform_prerequisites,
+        plisttool,
+        rule_descriptor,
+        rule_label,
+        version,
         version_keys_required = False):
     """Creates an action that merges Info.plists and converts them to binary.
 
@@ -173,12 +201,11 @@ def merge_root_infoplists(
     compiles the final result into a single binary plist file.
 
     Args:
-      ctx: The target's rule context.
-      input_plists: The root plist files to merge.
-      output_plist: The file reference for the merged output plist.
-      output_pkginfo: The file reference for the PkgInfo file. Can be None if not
-        required.
+      actions: The actions provider from `ctx.actions`.
+      bundle_name: The name of the output bundle.
       bundle_id: The bundle identifier to set in the output plist.
+      bundle_extension: The extension for the bundle.
+      executable_name: The name of the output executable.
       child_plists: A list of plists from child targets (such as extensions
           or Watch apps) whose bundle IDs and version strings should be
           validated against the compiled plist for consistency.
@@ -186,9 +213,20 @@ def merge_root_infoplists(
           and the pairs to check. For more information on the second item in the
           pair, see plisttool's `child_plist_required_values`, as this is passed
           straight through to it.
+      environment_plist: An executable file referencing the environment_plist tool.
       include_executable_name: If True, the executable name will be added to
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
+      input_plists: The root plist files to merge.
+      launch_storyboard: A file to be used as a launch screen for the application.
+      output_pkginfo: The file reference for the PkgInfo file. Can be None if not
+        required.
+      output_plist: The file reference for the merged output plist.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      plisttool: An executable file referencing the plist tool.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_label: The label of the target being analyzed.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
       version_keys_required: If True, the merged Info.plist file must include
           entries for CFBundleShortVersionString and CFBundleVersion.
     """
@@ -205,14 +243,13 @@ def merge_root_infoplists(
     # plisttool options for merging the Info.plist file.
     info_plist_options = {}
 
-    bundle_name = bundling_support.bundle_name_with_extension(ctx)
-    executable_name = bundling_support.executable_name(ctx)
-    product_name = paths.replace_extension(bundle_name, "")
+    bundle_name_with_extension = bundle_name + bundle_extension
+    product_name = paths.replace_extension(bundle_name_with_extension, "")
 
     # Values for string replacement substitutions to perform in the merged
     # Info.plist
     substitutions = {
-        "BUNDLE_NAME": bundle_name,
+        "BUNDLE_NAME": bundle_name_with_extension,
         "PRODUCT_NAME": product_name,
     }
 
@@ -227,7 +264,7 @@ def merge_root_infoplists(
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
-    if include_executable_name:
+    if include_executable_name and executable_name:
         substitutions["EXECUTABLE_NAME"] = executable_name
         forced_plists.append(struct(CFBundleExecutable = executable_name))
 
@@ -250,10 +287,8 @@ def merge_root_infoplists(
             **{str(p.owner): v for (p, v) in child_required_values}
         )
 
-    if (hasattr(ctx.attr, "version") and
-        ctx.attr.version and
-        AppleBundleVersionInfo in ctx.attr.version):
-        version_info = ctx.attr.version[AppleBundleVersionInfo]
+    if (version != None and AppleBundleVersionInfo in version):
+        version_info = version[AppleBundleVersionInfo]
         input_files.append(version_info.version_file)
         info_plist_options["version_file"] = version_info.version_file.path
 
@@ -262,19 +297,19 @@ def merge_root_infoplists(
 
     # Keys to be forced into the Info.plist file.
     # b/67853874 - move this to the right platform specific rule(s).
-    launch_storyboard = getattr(ctx.file, "launch_storyboard", None)
     if launch_storyboard:
         short_name = paths.split_extension(launch_storyboard.basename)[0]
         forced_plists.append(struct(UILaunchStoryboardName = short_name))
 
     # Add any UIDeviceFamily entry needed.
-    families = platform_support.ui_device_family_plist_value(ctx)
+    families = platform_support.ui_device_family_plist_value(
+        platform_prerequisites = platform_prerequisites,
+    )
     if families:
         forced_plists.append(struct(UIDeviceFamily = families))
 
     # Collect any values for special product types that we have to manually put
     # in (duplicating what Xcode apparently does under the hood).
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     if rule_descriptor.additional_infoplist_values:
         forced_plists.append(
             struct(**rule_descriptor.additional_infoplist_values),
@@ -284,21 +319,22 @@ def merge_root_infoplists(
     if rule_descriptor.bundle_package_type:
         substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = rule_descriptor.bundle_package_type
 
-    if platform_support.platform_type(ctx) == apple_common.platform_type.macos:
+    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         plist_key = "LSMinimumSystemVersion"
     else:
         plist_key = "MinimumOSVersion"
 
-    input_files.append(ctx.file._environment_plist)
-    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
+    input_files.append(environment_plist)
+    platform = platform_prerequisites.platform
+    sdk_version = platform_prerequisites.sdk_version
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
     forced_plists.extend([
-        ctx.file._environment_plist.path,
+        environment_plist.path,
         struct(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),
             DTSDKName = platform_with_version,
-            **{plist_key: platform_support.minimum_os(ctx)}
+            **{plist_key: platform_prerequisites.minimum_os}
         ),
     ])
 
@@ -313,24 +349,26 @@ def merge_root_infoplists(
         info_plist_options = struct(**info_plist_options),
         output = output_plist.path,
         plists = plists,
-        target = str(ctx.label),
+        target = str(rule_label),
         variable_substitutions = struct(**substitutions),
     )
 
     control_file = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        rule_label.name,
         "%s-root-control" % output_plist.basename,
     )
-    ctx.actions.write(
+    actions.write(
         output = control_file,
         content = control.to_json(),
     )
 
     plisttool_action(
-        ctx,
-        inputs = input_files,
-        outputs = output_files,
+        actions = actions,
         control_file = control_file,
+        inputs = input_files,
         mnemonic = "CompileRootInfoPlist",
+        outputs = output_files,
+        platform_prerequisites = platform_prerequisites,
+        plisttool = plisttool,
     )

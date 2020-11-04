@@ -15,10 +15,6 @@
 """Partial implementation for Swift static frameworks."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -44,10 +40,17 @@ framework module {module_name} {{
 }}
 """.format(module_name = module_name)
 
-def _swift_static_framework_partial_impl(ctx, swift_static_framework_info):
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
+def _swift_static_framework_partial_impl(
+        *,
+        ctx,
+        actions,
+        bundle_name,
+        label_name,
+        swift_static_framework_info):
     """Implementation for the Swift static framework processing partial."""
 
-    expected_module_name = bundling_support.bundle_name(ctx)
+    expected_module_name = bundle_name
     if expected_module_name != swift_static_framework_info.module_name:
         fail("""
 error: Found swift_library with module name '{actual}' but expected '{expected}'. Swift static \
@@ -67,19 +70,19 @@ frameworks expect a single swift_library dependency with `module_name` set to th
 
     for arch, swiftinterface in swiftinterfaces.items():
         bundle_interface = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            label_name,
             "{}.swiftinterface".format(arch),
         )
-        ctx.actions.symlink(
+        actions.symlink(
             target_file = swiftinterface,
             output = bundle_interface,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
 
     for arch, swiftdoc in swiftdocs.items():
-        bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftdoc".format(arch))
-        ctx.actions.symlink(
+        bundle_doc = intermediates.file(actions, label_name, "{}.swiftdoc".format(arch))
+        actions.symlink(
             target_file = swiftdoc,
             output = bundle_doc,
         )
@@ -87,29 +90,37 @@ frameworks expect a single swift_library dependency with `module_name` set to th
 
     if generated_header:
         bundle_header = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
+            actions,
+            label_name,
             "{}.h".format(expected_module_name),
         )
-        ctx.actions.symlink(
+        actions.symlink(
             target_file = generated_header,
             output = bundle_header,
         )
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
-        modulemap = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")
-        ctx.actions.write(modulemap, _modulemap_contents(expected_module_name))
+        modulemap = intermediates.file(actions, label_name, "module.modulemap")
+        actions.write(modulemap, _modulemap_contents(expected_module_name))
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
     return struct(bundle_files = bundle_files)
 
-def swift_static_framework_partial(swift_static_framework_info):
+def swift_static_framework_partial(
+        *,
+        actions,
+        bundle_name,
+        label_name,
+        swift_static_framework_info):
     """Constructor for the Swift static framework processing partial.
 
     This partial collects and bundles the necessary files to construct a Swift based static
     framework.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
+        bundle_name: The name of the output bundle.
+        label_name: Name of the target being built.
         swift_static_framework_info: The SwiftStaticFrameworkInfo provider containing the required
             artifacts.
 
@@ -119,5 +130,8 @@ def swift_static_framework_partial(swift_static_framework_info):
     """
     return partial.make(
         _swift_static_framework_partial_impl,
+        actions = actions,
+        bundle_name = bundle_name,
+        label_name = label_name,
         swift_static_framework_info = swift_static_framework_info,
     )

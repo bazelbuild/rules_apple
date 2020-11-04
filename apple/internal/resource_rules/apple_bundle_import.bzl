@@ -23,22 +23,12 @@ load(
     "AppleResourceBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 
 def _apple_bundle_import_impl(ctx):
     """Implementation of the apple_bundle_import rule."""
-    bundle_groups = group_files_by_directory(
-        ctx.files.bundle_imports,
-        ["bundle"],
-        attr = "bundle_imports",
-    )
-
     parent_dir_param = partial.make(
         resources.bundle_relative_parent_dir,
         extension = "bundle",

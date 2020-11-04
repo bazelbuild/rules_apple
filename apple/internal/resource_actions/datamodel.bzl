@@ -22,30 +22,35 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
 
-def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_file):
+def compile_datamodels(
+        *,
+        actions,
+        datamodel_path,
+        input_files,
+        module_name,
+        output_file,
+        platform_prerequisites,
+        xctoolrunner_executable):
     """Creates an action that compiles datamodels.
 
     Args:
-        ctx: The target's rule context.
+        actions: The actions provider from `ctx.actions`.
         datamodel_path: The path to the directory containing the datamodels.
-        module_name: The module name to use when compiling the datamodels.
         input_files: The list of files to process for the given datamodel.
+        module_name: The module name to use when compiling the datamodels.
         output_file: The file reference to the compiled datamodel.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
-    platform = platform_support.platform(ctx)
+    platform = platform_prerequisites.platform
     platform_name = platform.name_in_plist.lower()
     deployment_target_option = "--%s-deployment-target" % platform_name
-    min_os = platform_support.minimum_os(ctx)
 
     args = [
         "momc",
         deployment_target_option,
-        min_os,
+        platform_prerequisites.minimum_os,
         "--module",
         module_name,
         xctoolrunner.prefixed_path(datamodel_path),
@@ -53,22 +58,32 @@ def compile_datamodels(ctx, datamodel_path, module_name, input_files, output_fil
     ]
 
     legacy_actions.run(
-        ctx,
-        inputs = input_files,
-        outputs = [output_file],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
+        executable = xctoolrunner_executable,
+        inputs = input_files,
         mnemonic = "MomCompile",
+        outputs = [output_file],
+        platform_prerequisites = platform_prerequisites,
     )
 
-def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
+def compile_mappingmodel(
+        *,
+        actions,
+        input_files,
+        mappingmodel_path,
+        output_file,
+        platform_prerequisites,
+        xctoolrunner_executable):
     """Creates an action that compiles CoreData mapping models.
 
     Args:
-        ctx: The target's rule context.
-        mappingmodel_path: The path to the directory containing the mapping model.
+        actions: The actions provider from `ctx.actions`.
         input_files: The list of files to process for the given mapping model.
+        mappingmodel_path: The path to the directory containing the mapping model.
         output_file: The file reference to the compiled mapping model.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
     args = [
         "mapc",
@@ -77,10 +92,11 @@ def compile_mappingmodel(ctx, mappingmodel_path, input_files, output_file):
     ]
 
     legacy_actions.run(
-        ctx,
-        inputs = input_files,
-        outputs = [output_file],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
+        executable = xctoolrunner_executable,
+        inputs = input_files,
         mnemonic = "MappingModelCompile",
+        outputs = [output_file],
+        platform_prerequisites = platform_prerequisites,
     )

@@ -16,7 +16,6 @@ bzl_library(
     deps = [
         "//apple:utils",
         "//apple/internal:apple_product_type",
-        "//apple/internal:platform_support",
         "//apple/internal/utils:legacy_actions",
         "//apple/internal/utils:xctoolrunner",
         "@bazel_skylib//lib:collections",
@@ -32,7 +31,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:platform_support",
         "//apple/internal/utils:legacy_actions",
         "//apple/internal/utils:xctoolrunner",
     ],
@@ -45,7 +43,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:platform_support",
         "//apple/internal/utils:legacy_actions",
         "//apple/internal/utils:xctoolrunner",
         "@bazel_skylib//lib:collections",
@@ -73,10 +70,8 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bundling_support",
         "//apple/internal:intermediates",
         "//apple/internal:platform_support",
-        "//apple/internal:rule_support",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -101,14 +96,6 @@ bzl_library(
     ],
     deps = [
         "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
-    name = "zip",
-    srcs = ["zip.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
     ],
 )
 

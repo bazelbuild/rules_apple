@@ -15,7 +15,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple:utils",
         "//apple/internal:resources",
         "@bazel_skylib//lib:partial",
     ],
@@ -28,7 +27,9 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
+        "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
@@ -43,7 +44,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:platform_support",
         "//apple/internal:resources",
+        "//apple/internal:swift_support",
+        "//apple/internal/aspects:resource_aspect",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
@@ -55,13 +59,6 @@ bzl_library(
     srcs = ["apple_resource_group.bzl"],
     visibility = [
         "//apple:__subpackages__",
-    ],
-    deps = [
-        "//apple:providers",
-        "//apple/internal:resources",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

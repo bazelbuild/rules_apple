@@ -118,12 +118,16 @@ def _codesign_args_for_path(
             maybe_quote(identity),
         ])
 
+    # The entitlements rule ensures that entitlements_file is None or a file
+    # containing only "com.apple.security.get-task-allow" when building for the
+    # simulator.
+    if path_to_sign.use_entitlements and entitlements_file:
+        cmd_codesigning.extend([
+            "--entitlements",
+            maybe_quote(entitlements_file.path),
+        ])
+
     if is_device:
-        if path_to_sign.use_entitlements and entitlements_file:
-            cmd_codesigning.extend([
-                "--entitlements",
-                maybe_quote(entitlements_file.path),
-            ])
         cmd_codesigning.append("--force")
     else:
         cmd_codesigning.extend([
@@ -149,6 +153,10 @@ def _codesign_args_for_path(
                 maybe_double_quote(signed_framework),
             ])
 
+    extra_opts_raw = getattr(ctx.attr, "codesignopts", [])
+    extra_opts = [ctx.expand_make_variables("codesignopts", opt, {}) for opt in extra_opts_raw]
+    cmd_codesigning.append("--")
+    cmd_codesigning.extend(extra_opts)
     return cmd_codesigning
 
 def _path_to_sign(path, is_directory = False, signed_frameworks = [], use_entitlements = True):

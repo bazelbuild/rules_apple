@@ -49,7 +49,8 @@ def _get_header_imports(framework_imports):
 def _swift_dynamic_framework_partial_impl(ctx, swift_dynamic_framework_info):
     """Implementation for the Swift static framework processing partial."""
 
-    expected_module_name = bundling_support.bundle_name(ctx)
+    expected_module_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+
     if expected_module_name != swift_dynamic_framework_info.module_name:
         fail("""
 error: Found swift_library with module name {} but expected {}. Swift dynamic \

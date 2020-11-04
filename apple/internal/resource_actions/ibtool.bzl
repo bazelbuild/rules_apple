@@ -23,10 +23,6 @@ load(
     "xctoolrunner",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@bazel_skylib//lib:collections.bzl",
     "collections",
 )
@@ -57,15 +53,24 @@ def _ibtool_arguments(min_os, families):
         families,
     )
 
-def compile_storyboard(ctx, swift_module, input_file, output_dir):
+def compile_storyboard(
+        *,
+        actions,
+        input_file,
+        output_dir,
+        platform_prerequisites,
+        swift_module,
+        xctoolrunner_executable):
     """Creates an action that compiles a storyboard.
 
     Args:
-      ctx: The target's rule context.
-      swift_module: The name of the Swift module to use when compiling the
-        storyboard.
+      actions: The actions provider from `ctx.actions`.
       input_file: The storyboard to compile.
       output_dir: The directory where the compiled outputs should be placed.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      swift_module: The name of the Swift module to use when compiling the
+        storyboard.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
     args = [
@@ -74,8 +79,8 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
         xctoolrunner.prefixed_path(output_dir.dirname),
     ]
 
-    min_os = platform_support.minimum_os(ctx)
-    families = platform_support.families(ctx)
+    min_os = platform_prerequisites.minimum_os
+    families = platform_prerequisites.device_families
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
         "--module",
@@ -84,16 +89,23 @@ def compile_storyboard(ctx, swift_module, input_file, output_dir):
     ])
 
     legacy_actions.run(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_dir],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
-        mnemonic = "StoryboardCompile",
+        executable = xctoolrunner_executable,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = [input_file],
+        mnemonic = "StoryboardCompile",
+        outputs = [output_dir],
+        platform_prerequisites = platform_prerequisites,
     )
 
-def link_storyboards(ctx, storyboardc_dirs, output_dir):
+def link_storyboards(
+        *,
+        actions,
+        output_dir,
+        platform_prerequisites,
+        storyboardc_dirs,
+        xctoolrunner_executable):
     """Creates an action that links multiple compiled storyboards.
 
     Storyboards that reference each other must be linked, and this operation also
@@ -101,14 +113,16 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
     the final bundle.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
+      output_dir: The directory where the linked outputs should be placed.
+      platform_prerequisites: Struct containing information on the platform being targeted.
       storyboardc_dirs: A list of `File`s that represent directories containing
         the compiled storyboards.
-      output_dir: The directory where the linked outputs should be placed.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
-    min_os = platform_support.minimum_os(ctx)
-    families = platform_support.families(ctx)
+    min_os = platform_prerequisites.minimum_os
+    families = platform_prerequisites.device_families
 
     args = [
         "ibtool",
@@ -122,28 +136,38 @@ def link_storyboards(ctx, storyboardc_dirs, output_dir):
     ])
 
     legacy_actions.run(
-        ctx,
-        inputs = storyboardc_dirs,
-        outputs = [output_dir],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
-        mnemonic = "StoryboardLink",
+        executable = xctoolrunner_executable,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = storyboardc_dirs,
+        mnemonic = "StoryboardLink",
+        outputs = [output_dir],
+        platform_prerequisites = platform_prerequisites,
     )
 
-def compile_xib(ctx, swift_module, input_file, output_dir):
+def compile_xib(
+        *,
+        actions,
+        input_file,
+        output_dir,
+        platform_prerequisites,
+        swift_module,
+        xctoolrunner_executable):
     """Creates an action that compiles a Xib file.
 
     Args:
-      ctx: The target's rule context.
-      swift_module: The name of the Swift module to use when compiling the
-        Xib file.
+      actions: The actions provider from `ctx.actions`.
       input_file: The Xib file to compile.
       output_dir: The file reference for the output directory.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      swift_module: The name of the Swift module to use when compiling the
+        Xib file.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
-    min_os = platform_support.minimum_os(ctx)
-    families = platform_support.families(ctx)
+    min_os = platform_prerequisites.minimum_os
+    families = platform_prerequisites.device_families
 
     nib_name = paths.replace_extension(paths.basename(input_file.short_path), ".nib")
 
@@ -160,11 +184,12 @@ def compile_xib(ctx, swift_module, input_file, output_dir):
     ])
 
     legacy_actions.run(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_dir],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
         arguments = args,
-        mnemonic = "XibCompile",
+        executable = xctoolrunner_executable,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = [input_file],
+        mnemonic = "XibCompile",
+        outputs = [output_dir],
+        platform_prerequisites = platform_prerequisites,
     )

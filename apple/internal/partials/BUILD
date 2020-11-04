@@ -82,7 +82,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:bundling_support",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -150,7 +149,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:bundling_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
@@ -210,7 +208,6 @@ bzl_library(
         "//apple/internal:processor",
         "//apple/internal:resource_actions",
         "//apple/internal:resources",
-        "//apple/internal:rule_support",
         "//apple/internal/partials/support:resources_support",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:new_sets",
@@ -241,7 +238,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:bundling_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "@bazel_skylib//lib:partial",
@@ -256,9 +252,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:intermediates",
-        "//apple/internal:platform_support",
         "//apple/internal:processor",
-        "//apple/internal:swift_support",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -274,7 +268,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:bundling_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "@bazel_skylib//lib:partial",

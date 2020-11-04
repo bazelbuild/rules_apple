@@ -595,6 +595,20 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
+# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
+# present.
+function test_linkmaps_generated() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+  do_build ios --objc_generate_linkmap \
+      //app:ext || fail "Should build"
+
+  declare -a archs=( $(current_archs ios) )
+  for arch in "${archs[@]}"; do
+    assert_exists "test-bin/app/ext_${arch}.linkmap"
+  done
+}
+
 # Tests that ios_extension cannot be a depenency of objc_library.
 function test_extension_under_library() {
 cat > app/BUILD <<EOF

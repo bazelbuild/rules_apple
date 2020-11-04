@@ -23,14 +23,23 @@ load(
     "xctoolrunner",
 )
 
-def compile_mlmodel(ctx, input_file, output_bundle, output_plist):
+def compile_mlmodel(
+        *,
+        actions,
+        input_file,
+        output_bundle,
+        output_plist,
+        platform_prerequisites,
+        xctoolrunner_executable):
     """Creates an action that compiles an mlmodel file into an mlmodelc bundle.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
       input_file: The input mlmodel file.
       output_bundle: The directory reference for the output mlmodelc bundle.
       output_plist: The file reference for the output plist from coremlc that needs to be merged.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
     args = [
         "coremlc",
@@ -42,22 +51,34 @@ def compile_mlmodel(ctx, input_file, output_bundle, output_plist):
     ]
 
     apple_support.run(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_bundle, output_plist],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        executable = xctoolrunner_executable,
+        inputs = [input_file],
         mnemonic = "MlmodelCompile",
+        outputs = [output_bundle, output_plist],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
-def generate_objc_mlmodel_sources(ctx, input_file, output_source, output_header):
+def generate_objc_mlmodel_sources(
+        *,
+        actions,
+        input_file,
+        output_source,
+        output_header,
+        platform_prerequisites,
+        xctoolrunner_executable):
     """Creates an action that generates sources for an mlmodel file.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
       input_file: The png file to be copied.
       output_source: The file reference for the generated ObjC source.
       output_header: The file reference for the generated ObjC header.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
     args = [
         "coremlc",
@@ -67,10 +88,13 @@ def generate_objc_mlmodel_sources(ctx, input_file, output_source, output_header)
     ]
 
     apple_support.run(
-        ctx,
-        inputs = [input_file],
-        outputs = [output_source, output_header],
-        executable = ctx.executable._xctoolrunner,
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        executable = xctoolrunner_executable,
+        inputs = [input_file],
         mnemonic = "MlmodelGenerate",
+        outputs = [output_source, output_header],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )

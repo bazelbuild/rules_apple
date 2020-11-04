@@ -19,6 +19,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -27,12 +31,20 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -58,30 +70,47 @@ def _macos_binary_infoplist_impl(ctx):
       A `struct` containing the `objc` provider that should be propagated to a
       binary that should have this plist embedded.
     """
+    actions = ctx.actions
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_id = ctx.attr.bundle_id
+    executable_name = bundling_support.executable_name(ctx)
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
     infoplists = ctx.files.infoplists
     if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
-        version = ctx.attr.version[AppleBundleVersionInfo]
+        version_found = True
     else:
-        version = None
+        version_found = False
 
-    if not bundle_id and not infoplists and not version:
+    if not bundle_id and not infoplists and not version_found:
         fail("Internal error: at least one of bundle_id, infoplists, or version " +
              "should have been provided")
 
     merged_infoplist = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        rule_label.name,
         "Info.plist",
     )
 
     resource_actions.merge_root_infoplists(
-        ctx,
-        input_plists = infoplists,
-        output_plist = merged_infoplist,
-        output_pkginfo = None,
+        actions = actions,
+        bundle_extension = bundle_extension,
         bundle_id = bundle_id,
+        bundle_name = bundle_name,
+        executable_name = executable_name,
+        environment_plist = ctx.file._environment_plist,
         include_executable_name = False,
+        input_plists = infoplists,
+        launch_storyboard = None,
+        output_pkginfo = None,
+        output_plist = merged_infoplist,
+        platform_prerequisites = platform_prerequisites,
+        plisttool = ctx.executable._plisttool,
+        rule_descriptor = rule_descriptor,
+        rule_label = rule_label,
+        version = ctx.attr.version,
     )
 
     return [
@@ -104,10 +133,6 @@ macos_binary_infoplist = rule(
                 allow_empty = True,
             ),
             "minimum_os_version": attr.string(mandatory = False),
-            # TODO(kaipi): Make this private when it isn't also used by
-            # apple_binary (when there is a linking api to use). It is public
-            # for consistency and because this rule is an internal
-            # implementation detail.
             "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),
             ),
@@ -123,22 +148,29 @@ macos_binary_infoplist = rule(
 )
 
 def _macos_command_line_launchdplist_impl(ctx):
+    actions = ctx.actions
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    rule_label = ctx.label
     launchdplists = ctx.files.launchdplists
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
 
     if not launchdplists:
         fail("Internal error: launchdplists should have been provided")
 
     merged_launchdplist = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        rule_label.name,
         "Launchd.plist",
     )
 
     resource_actions.merge_resource_infoplists(
-        ctx,
-        bundle_name = ctx.label.name,
+        actions = actions,
+        bundle_name_with_extension = bundle_name + bundle_extension,
         input_files = launchdplists,
         output_plist = merged_launchdplist,
+        platform_prerequisites = platform_prerequisites,
+        plisttool = ctx.executable._plisttool,
+        rule_label = rule_label,
     )
 
     return [
@@ -158,6 +190,11 @@ macos_command_line_launchdplist = rule(
                 allow_files = [".plist"],
                 mandatory = False,
             ),
+            "minimum_os_version": attr.string(mandatory = False),
+            "platform_type": attr.string(
+                default = str(apple_common.platform_type.macos),
+            ),
+            "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),
     fragments = ["apple", "objc"],
