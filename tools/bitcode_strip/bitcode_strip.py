@@ -26,7 +26,11 @@ def invoke(input_path, output_path):
                "-o",
                output_path]
 
-  execute.execute_and_filter_output(
+  _, stdout, stderr = execute.execute_and_filter_output(
       xcrunargs,
-      print_output=True,
       raise_on_failure=True)
+
+  if stdout:
+    print(stdout)
+  if stderr:
+    print(stderr)
