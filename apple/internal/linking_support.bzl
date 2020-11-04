@@ -18,10 +18,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
 
 def _sectcreate_objc_provider(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
