@@ -79,6 +79,7 @@ load(
     "AppleBinaryInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
+    "IosBundleBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
@@ -116,8 +117,8 @@ def _ios_application_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
-    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
+    bundle_verification_targets = [struct(target = bundle) for bundle in ctx.attr.extensions + ctx.attr.bundles]
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips + ctx.attr.bundles
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
@@ -208,7 +209,7 @@ def _ios_application_impl(ctx):
             package_symbols = True,
             platform_prerequisites = platform_prerequisites,
             rule_executables = rule_executables,
-            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
+            targets = ctx.attr.bundles + ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
@@ -354,13 +355,12 @@ def _ios_app_clip_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
-    embeddable_targets = ctx.attr.frameworks
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.bundles
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-    embeddable_targets = ctx.attr.frameworks
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
@@ -545,6 +545,153 @@ def _ios_app_clip_impl(ctx):
         # Propagate the binary provider so that this target can be used as bundle_loader in test
         # rules.
         link_result.binary_provider,
+    ] + processor_result.providers
+
+def _ios_bundle_impl(ctx):
+    """Implementation of ios_bundle."""
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
+    actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    embeddable_targets = ctx.attr.frameworks
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        executable_name = executable_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = embeddable_targets,
+            debug_outputs_provider = debug_outputs_provider,
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+        ),
+        partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
+            embeddable_targets = embeddable_targets,
+            custom_bundles = {getattr(ctx.attr, "bundle_location", ""): [archive]},
+        ),
+        partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
+            rule_label = label,
+            top_level_attrs = [
+                "app_icons",
+                "strings",
+                "resources",
+            ],
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = embeddable_targets,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+        ),
+    ]
+
+    if platform_prerequisites.platform.is_device:
+        processor_partials.append(
+            partials.provisioning_profile_partial(
+                actions = actions,
+                profile_artifact = ctx.file.provisioning_profile,
+                rule_label = label,
+            ),
+        )
+
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        executable_name = executable_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        IosBundleBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
     ] + processor_result.providers
 
 def _ios_dylib_impl(ctx):
@@ -1527,6 +1674,13 @@ ios_app_clip = rule_factory.create_apple_bundling_rule(
     platform_type = "ios",
     product_type = apple_product_type.app_clip,
     doc = "Builds and bundles an iOS App Clip.",
+)
+
+ios_bundle = rule_factory.create_apple_bundling_rule(
+    implementation = _ios_bundle_impl,
+    platform_type = "ios",
+    product_type = apple_product_type.bundle,
+    doc = "Builds and bundles an iOS Loadable Bundle.",
 )
 
 ios_dylib = rule_factory.create_apple_binary_rule(
