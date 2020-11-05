@@ -27,6 +27,10 @@ load(
     "bitcode_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:feature_names.bzl",
+    "APPLE_FEATURE_STRIP_SWIFT_SYMBOLS",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -83,7 +87,8 @@ def _swift_dylib_action(
         platform_name,
         platform_prerequisites,
         resolved_swift_stdlib_tool,
-        strip_bitcode):
+        strip_bitcode,
+        strip_swift_symbols):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
     swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
@@ -111,6 +116,9 @@ def _swift_dylib_action(
     if strip_bitcode:
         swift_stdlib_tool_args.append("--strip_bitcode")
 
+    if strip_swift_symbols:
+        swift_stdlib_tool_args.append("--strip_swift_symbols")
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
@@ -131,6 +139,7 @@ def _swift_dylibs_partial_impl(
         binary_artifact,
         bundle_dylibs,
         dependency_targets,
+        features,
         label_name,
         package_swift_support_if_needed,
         platform_prerequisites):
@@ -172,6 +181,8 @@ def _swift_dylibs_partial_impl(
     )
     needs_swift_support = platform_prerequisites.platform.is_device and swift_support_requested
 
+    strip_swift_symbols = APPLE_FEATURE_STRIP_SWIFT_SYMBOLS in features
+
     bundle_files = []
     if bundle_dylibs:
         propagated_binaries = depset()
@@ -191,6 +202,7 @@ def _swift_dylibs_partial_impl(
                 platform_prerequisites = platform_prerequisites,
                 resolved_swift_stdlib_tool = apple_toolchain_info.resolved_swift_stdlib_tool,
                 strip_bitcode = strip_bitcode,
+                strip_swift_symbols = strip_swift_symbols,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
@@ -213,6 +225,7 @@ def _swift_dylibs_partial_impl(
                         platform_prerequisites = platform_prerequisites,
                         resolved_swift_stdlib_tool = apple_toolchain_info.resolved_swift_stdlib_tool,
                         strip_bitcode = False,
+                        strip_swift_symbols = False,
                     )
                 else:
                     # When not building with bitcode, we can reuse Swift dylibs
@@ -256,6 +269,7 @@ def swift_dylibs_partial(
         binary_artifact,
         bundle_dylibs = False,
         dependency_targets = [],
+        features = [],
         label_name,
         package_swift_support_if_needed = False,
         platform_prerequisites):
@@ -271,6 +285,7 @@ def swift_dylibs_partial(
         target's bundle.
       dependency_targets: List of targets that should be checked for binaries that might contain
         Swift, so that the Swift dylibs can be collected.
+      features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for
         each dependency platform into the SwiftSupport directory at the root of the archive. It
@@ -288,6 +303,7 @@ def swift_dylibs_partial(
         binary_artifact = binary_artifact,
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,
+        features = features,
         label_name = label_name,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
