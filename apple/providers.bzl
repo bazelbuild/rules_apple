@@ -353,6 +353,19 @@ is an iOS app clip should use this provider to describe that requirement.
 """,
 )
 
+IosBundleBundleInfo = provider(
+    fields = [],
+    doc = """
+Denotes that a target is an iOS loadable bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an iOS loadable bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an iOS loadable bundle should use this provider to describe that
+requirement.
+""",
+)
+
 IosExtensionBundleInfo = provider(
     fields = [],
     doc = """

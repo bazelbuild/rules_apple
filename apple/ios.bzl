@@ -41,6 +41,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_bundle = "ios_bundle",
     _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
@@ -77,6 +78,26 @@ def ios_app_clip(name, **kwargs):
     _ios_app_clip(
         name = name,
         dylibs = kwargs.get("frameworks", []),
+        **bundling_args
+    )
+
+def ios_bundle(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages an iOS loadable bundle."""
+    binary_args = dict(kwargs)
+
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.ios),
+        product_type = apple_product_type.bundle,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
+        **binary_args
+    )
+
+    _ios_bundle(
+        name = name,
+        dylibs = kwargs.get("frameworks", []),
+        extension_safe = kwargs.get("extension_safe"),
         **bundling_args
     )
 
