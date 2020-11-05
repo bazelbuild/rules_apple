@@ -74,6 +74,7 @@ load(
     "AppleTestRunnerInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
+    "IosBundleBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
@@ -601,6 +602,12 @@ fashion, such as a Cocoapod.
 A list of iOS app clips to include in the final application bundle.
 """,
             ),
+            "bundles": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, IosBundleBundleInfo],
+                ],
+                doc = "A list of iOS loadable bundles to include in the final application bundle.",
+            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
                 doc = """
@@ -631,6 +638,12 @@ the application bundle.
         })
     elif rule_descriptor.product_type == apple_product_type.app_clip:
         attrs.append({
+            "bundles": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, IosBundleBundleInfo],
+                ],
+                doc = "A list of iOS loadable bundles to include in the final application bundle.",
+            ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],
                 doc = """
@@ -663,6 +676,22 @@ Info.plist under the key `UILaunchStoryboardName`.
                 aspects = [framework_import_aspect],
                 mandatory = test_host_mandatory,
                 providers = required_providers,
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.bundle:
+        attrs.append({
+            "bundle_location": attr.string(
+                mandatory = False,
+                doc = """
+The directiory within the packaging bundle that this bundle should be placed.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
             ),
         })
 

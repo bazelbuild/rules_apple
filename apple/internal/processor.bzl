@@ -108,6 +108,7 @@ _LOCATION_ENUM = struct(
     bundle = "bundle",
     content = "content",
     framework = "framework",
+    loadable_bundle = "loadable_bundle",
     plugin = "plugin",
     resource = "resource",
     watch = "watch",
@@ -199,6 +200,7 @@ def _archive_paths(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_frameworks,
         ),
+        _LOCATION_ENUM.loadable_bundle: contents_path,
         _LOCATION_ENUM.plugin: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_plugins,

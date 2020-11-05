@@ -23,6 +23,14 @@ load(
     "processor",
 )
 load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -35,6 +43,10 @@ top-level bundling rule will need to package.""",
         "app_clips": """
 A depset with the zipped archives of bundles that need to be expanded into the
 AppClips section of the packaging bundle.""",
+        "custom_bundles": """
+A dict of depsets of zipped archives of bundles that need to be expanded into
+custom locations of the packaging bundle, where the key is the path to the
+custom location.""",
         "frameworks": """
 A depset with the zipped archives of bundles that need to be expanded into the
 Frameworks section of the packaging bundle.""",
@@ -120,6 +132,54 @@ def _embedded_bundles_partial_impl(
                 transitive = transitive_bundles.get(bundle_type, []),
             )
 
+    # Process custom bundle locations
+    transitive_custom_bundles = dict()
+    for provider in embeddable_providers:
+        if hasattr(provider, "custom_bundles"):
+            custom_bundles = getattr(provider, "custom_bundles")
+            for bundle_location, input_bundles in custom_bundles.items():
+                transitive_custom_bundles.setdefault(
+                    bundle_location,
+                    default = [],
+                ).append(input_bundles)
+
+    if bundle_embedded_bundles:
+        # If this partial is configured to embed the transitive embeddable partials, collect
+        # them into a list to be returned by this partial.
+        for bundle_location, input_bundles_array in transitive_custom_bundles.items():
+            transitive_depset = depset(transitive = input_bundles_array)
+
+            # With tree artifacts, we need to set the parent_dir of the file to be the basename
+            # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
+            # be too many embedded targets per top-level bundle.
+            if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+                for bundle in transitive_depset.to_list():
+                    bundles_to_embed.append((
+                        processor.location.loadable_bundle,
+                        paths.join(bundle_location, bundle.basename),
+                        depset([bundle])
+                    ))
+            else:
+                bundles_to_embed.append((processor.location.loadable_bundle, bundle_location, transitive_depset))
+
+        # Clear the transitive list of custom bundles since they will be packaged
+        # in the bundle processing this partial and do not need to be propagated.
+        transitive_custom_bundles = dict()
+
+    # Construct the _AppleEmbeddableInfo provider field for the bundle type being processed.
+    # At this step, we inject the bundles that are inputs to this partial, since that propagates
+    # the info for a higher level bundle to embed this bundle.
+    direct_custom_bundles = input_bundles_by_type.get("custom_bundles", {})
+    bundle_locations = sets.to_list(sets.make(direct_custom_bundles.keys() + transitive_custom_bundles.keys()))
+    if bundle_locations:
+        embeddedable_info_fields["custom_bundles"] = {
+            bundle_location: depset(
+                direct_custom_bundles.get(bundle_location, []),
+                transitive = transitive_custom_bundles.get(bundle_location, []),
+            )
+            for bundle_location in bundle_locations
+        }
+
     # Construct the output files fields. If tree artifacts is enabled, propagate the bundles to
     # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
     # extracted.
@@ -165,6 +225,7 @@ def embedded_bundles_partial(
         *,
         app_clips = [],
         bundle_embedded_bundles = False,
+        custom_bundles = {},
         embeddable_targets = [],
         frameworks = [],
         platform_prerequisites,
@@ -185,6 +246,8 @@ def embedded_bundles_partial(
         bundle_embedded_bundles: If True, this target will embed all transitive embeddable_bundles
             _only_ propagated through the targets given in embeddable_targets. If False, the
             embeddable bundles will be propagated downstream for a top level target to bundle them.
+        custom_bundles: Dictionary of list of bundles that should be propagated downstream for a
+            top level target to bundle inside directories named by the dictionary key.
         embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
             propagate.
         frameworks: List of framework bundles that should be propagated downstream for a top level
@@ -206,6 +269,7 @@ def embedded_bundles_partial(
         _embedded_bundles_partial_impl,
         app_clips = app_clips,
         bundle_embedded_bundles = bundle_embedded_bundles,
+        custom_bundles = custom_bundles,
         embeddable_targets = embeddable_targets,
         frameworks = frameworks,
         platform_prerequisites = platform_prerequisites,
