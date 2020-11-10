@@ -1288,8 +1288,8 @@ def _macos_dylib_impl(ctx):
 
 def _macos_dynamic_framework_impl(ctx):
     """Experimental implementation of macos_framework."""
-    depsList = [deps for deps in ctx.attr.deps]
-    binary_target = depsList.pop()
+    deps_list = [deps for deps in ctx.attr.deps]
+    binary_target = deps_list.pop()
     link_result = linking_support.register_linking_action(ctx)
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider

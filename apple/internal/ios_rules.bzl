@@ -904,8 +904,8 @@ def _ios_extension_impl(ctx):
 
 def _ios_dynamic_framework_impl(ctx):
     """Experimental implementation of ios_dynamic_framework."""
-    depsList = [deps for deps in ctx.attr.deps]
-    binary_target = depsList.pop()
+    deps_list = [deps for deps in ctx.attr.deps]
+    binary_target = deps_list.pop()
     extra_linkopts = []
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
