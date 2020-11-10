@@ -43,23 +43,14 @@ load(
     "group_files_by_directory",
 )
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleFrameworkImportInfo",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftToolchainInfo",
     "SwiftUsageInfo",
     "swift_common",
-)
-
-AppleFrameworkImportInfo = provider(
-    doc = "Provider that propagates information about framework import targets.",
-    fields = {
-        "framework_imports": """
-Depset of Files that represent framework imports that need to be bundled in the top level
-application bundle under the Frameworks directory.
-""",
-        "build_archs": """
-Depset of strings that represent binary architectures reported from the current build.
-""",
-    },
 )
 
 def _is_swiftmodule(path):
@@ -178,12 +169,13 @@ def _transitive_framework_imports(deps):
         if hasattr(dep[AppleFrameworkImportInfo], "framework_imports")
     ]
 
-def _framework_import_info(transitive_sets, arch_found):
+def _framework_import_info(transitive_sets, arch_found, dsyms = []):
     """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs."""
     provider_fields = {}
     if transitive_sets:
         provider_fields["framework_imports"] = depset(transitive = transitive_sets)
     provider_fields["build_archs"] = depset([arch_found])
+    provider_fields["dsym_imports"] = depset(dsyms)
     return AppleFrameworkImportInfo(**provider_fields)
 
 def _is_debugging(ctx):
@@ -252,7 +244,13 @@ def _apple_dynamic_framework_import_impl(ctx):
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
     if bundling_imports:
         transitive_sets.append(depset(bundling_imports))
-    providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
+    providers.append(
+        _framework_import_info(
+            transitive_sets,
+            ctx.fragments.apple.single_arch_cpu,
+            ctx.files.dsym_imports,
+        ),
+    )
 
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
@@ -362,6 +360,12 @@ target.
             providers = [
                 [apple_common.Objc, AppleFrameworkImportInfo],
             ],
+        ),
+        "dsym_imports": attr.label_list(
+            allow_files = True,
+            doc = """
+The list of files under a .dSYM directory, that is the imported framework's dSYM bundle.
+""",
         ),
     },
     doc = """

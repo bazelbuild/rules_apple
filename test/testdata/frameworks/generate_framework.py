@@ -45,7 +45,7 @@ def _version_arg_for_sdk(sdk, minimum_os_version):
 
 
 def _build_library_binary(archs, sdk, minimum_os_version, embed_bitcode,
-                          source_file, output_path):
+                          embed_debug_info, source_file, output_path):
   """Builds the library binary from a source file, writes to output_path."""
   output_lib = os.path.join(os.path.dirname(output_path),
                             os.path.basename(source_file) + ".o")
@@ -57,6 +57,9 @@ def _build_library_binary(archs, sdk, minimum_os_version, embed_bitcode,
 
   if embed_bitcode:
     library_cmd.append("-fembed-bitcode")
+
+  if embed_debug_info:
+    library_cmd.append("-g")
 
   # Append archs.
   for arch in archs:
@@ -105,10 +108,12 @@ def _generate_dynamic_cmd(name, sdk, minimum_os_version, framework_path, archs):
 
 
 def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
-                            libtype, embed_bitcode, archs, source_file):
+                            libtype, embed_bitcode, embed_debug_info, archs,
+                            source_file):
   """Builds the framework binary from a source file, saves to framework_path."""
   output_lib = _build_library_binary(archs, sdk, minimum_os_version,
-                                     embed_bitcode, source_file, framework_path)
+                                     embed_bitcode, embed_debug_info,
+                                     source_file, framework_path)
 
   # Delete any existing framework files, if they are already there.
   if os.path.exists(framework_path):
@@ -253,6 +258,10 @@ def main():
       "bitcode in the final framework binary"
   )
   parser.add_argument(
+      "--embed_debug_info", action="store_true", default=False, help="embed "
+      "debug information in the framework binary"
+  )
+  parser.add_argument(
       "--framework_path", type=str, required=True, help="path to create the "
       "framework's contents in"
   )
@@ -275,7 +284,8 @@ def main():
                                         args.minimum_os_version,
                                         args.framework_path,
                                         args.libtype, args.embed_bitcode,
-                                        args.arch, args.source_file)
+                                        args.embed_debug_info, args.arch,
+                                        args.source_file)
   if status_code:
     return status_code
 

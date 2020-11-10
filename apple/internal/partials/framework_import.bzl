@@ -19,7 +19,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
+    "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
 )
 load(
@@ -39,6 +39,10 @@ load(
     "bundle_paths",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -50,6 +54,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
+)
 
 # TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _framework_import_partial_impl(
@@ -57,6 +65,7 @@ def _framework_import_partial_impl(
         ctx,
         actions,
         label_name,
+        package_symbols,
         platform_prerequisites,
         rule_executables,
         targets,
@@ -193,15 +202,112 @@ def _framework_import_partial_impl(
         )
         signed_frameworks_list.append(framework_basename)
 
+    symbols_requested = defines.bool_value(
+        ctx,
+        "apple.package_symbols",
+        False,
+    )
+    if package_symbols and symbols_requested:
+        transitive_dsyms = [
+            x[AppleFrameworkImportInfo].dsym_imports
+            for x in targets
+            if AppleFrameworkImportInfo in x
+        ]
+        symbols = _generate_symbols(
+            ctx,
+            build_archs_found,
+            files_by_framework,
+            framework_binaries_by_framework,
+            transitive_dsyms,
+        )
+        bundle_files = [(
+            processor.location.archive,
+            "Symbols",
+            depset(symbols),
+        )]
+    else:
+        bundle_files = []
+
     return struct(
+        bundle_files = bundle_files,
         bundle_zips = bundle_zips,
         signed_frameworks = depset(signed_frameworks_list),
     )
+
+def _generate_symbols(
+    ctx,
+    build_archs_found,
+    files_by_framework,
+    framework_binaries_by_framework,
+    transitive_dsyms):
+    # Collect dSYM binaries and framework binaries of frameworks that don't
+    # have dSYMs
+    all_binaries = []
+    # Keep track of frameworks that provide dSYM, so that we can avoid
+    # unnecessarily extracting symbols from said frameworks' binaries
+    has_dsym_framework_basenames = sets.make()
+
+    for file in depset(transitive = transitive_dsyms).to_list():
+        # Any files that aren't Info.plist are DWARF binaries. There may be
+        # more than one binary per framework depending on how the dSYM bundle
+        # is packaged.
+        if file.basename.lower() != "info.plist":
+            all_binaries.append(file)
+            # Update the set of frameworks that provide dSYMs
+            framework_dsym_path = bundle_paths.farthest_parent(
+                file.short_path,
+                "framework.dSYM",
+            )
+            framework_dsym_basename = paths.basename(framework_dsym_path)
+            framework_basename = framework_dsym_basename.rstrip(".dSYM")
+            sets.insert(has_dsym_framework_basenames, framework_basename)
+
+    # Find binaries of frameworks that don't provide dSYMs
+    for framework_basename in files_by_framework.keys():
+        for framework_binary in framework_binaries_by_framework[framework_basename]:
+            if not sets.contains(has_dsym_framework_basenames, framework_basename):
+                all_binaries.append(framework_binary)
+
+    temp_path = paths.join("_imported_frameworks", "symbols_files")
+    symbols_dir = intermediates.directory(
+        ctx.actions,
+        ctx.label.name,
+        temp_path,
+    )
+    outputs = [symbols_dir]
+
+    commands = ["mkdir -p \"${OUTPUT_DIR}\""]
+
+    for binary in all_binaries:
+        # If dSYMs are bundled with multiple non-fat binaries, the 'symbols'
+        # command may try to extract symbols from a binary that doesn't have a
+        # slice for an architecture, but it's fine since it won't return a
+        # non-zero code in that case.
+        for arch in build_archs_found:
+            commands.append(
+                ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {0} " +
+                 "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{1}\"").format(
+                    arch,
+                    binary.path,
+                ),
+            )
+
+    apple_support.run_shell(
+        ctx,
+        inputs = all_binaries,
+        outputs = outputs,
+        command = "\n".join(commands),
+        env = {"OUTPUT_DIR": symbols_dir.path},
+        mnemonic = "ImportedDynamicFrameworkSymbols",
+    )
+
+    return outputs
 
 def framework_import_partial(
         *,
         actions,
         label_name,
+        package_symbols = False,
         platform_prerequisites,
         rule_executables,
         targets,
@@ -214,6 +320,7 @@ def framework_import_partial(
     Args:
         actions: The actions provider from `ctx.actions`.
         label_name: Name of the target being built.
+        package_symbols: Whether the partial should package the symbols files for all binaries.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         targets: The list of targets through which to collect the framework import files.
@@ -227,6 +334,7 @@ def framework_import_partial(
         _framework_import_partial_impl,
         actions = actions,
         label_name = label_name,
+        package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
         rule_executables = rule_executables,
         targets = targets,

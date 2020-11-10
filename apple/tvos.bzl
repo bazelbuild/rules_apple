@@ -86,7 +86,7 @@ def tvos_framework(name, **kwargs):
     # these workarounds into the rule implementations.
     linkopts = binary_args.pop("linkopts", [])
     bundle_name = binary_args.get("bundle_name", name)
-    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
+    linkopts.append("-install_name,@rpath/%s.framework/%s" % (bundle_name, bundle_name))
     binary_args["linkopts"] = linkopts
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(

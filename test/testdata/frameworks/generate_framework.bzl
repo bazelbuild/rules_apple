@@ -26,6 +26,8 @@ def _generate_import_framework_impl(ctx):
     args.add("--libtype", ctx.attr.libtype)
     if ctx.attr.embed_bitcode:
         args.add("--embed_bitcode")
+    if ctx.attr.embed_debug_info:
+        args.add("--embed_debug_info")
     for arch in ctx.attr.archs:
         args.add("--arch", arch)
 
@@ -111,6 +113,13 @@ Determines if the framework will be built as a dynamic framework or a static fra
             default = False,
             doc = """
 Set to `True` to generate and embed bitcode in the final framework binary.
+""",
+        ),
+        "embed_debug_info": attr.bool(
+            default = False,
+            doc = """
+Set to `True` to generate and embed debug information in the framework
+binary.
 """,
         ),
         "_generate_framework": attr.label(
