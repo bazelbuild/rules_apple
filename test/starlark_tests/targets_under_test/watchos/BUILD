@@ -6,6 +6,7 @@ load(
 load(
     "//apple:watchos.bzl",
     "watchos_application",
+    "watchos_dynamic_framework",
     "watchos_extension",
 )
 load(
@@ -349,4 +350,106 @@ watchos_extension(
 swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],
+)
+
+# ---------------------------------------------------------------------------------------
+
+swift_library(
+    name = "basic_framework_lib",
+    module_name = "BasicFramework",
+    srcs = [
+        "//test/starlark_tests/resources:BasicFramework.swift",
+        "//test/starlark_tests/resources:main.swift",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+watchos_dynamic_framework(
+    name = "basic_framework",
+    bundle_name = "BasicFramework",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-watchos.plist",
+    ],
+    minimum_os_version = "6.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_direct_dependency_lib",
+    module_name = "DirectDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:DirectDependencyTest.swift",
+        # "//test/starlark_tests/resources:main.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework_lib",
+    ],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+watchos_dynamic_framework(
+    name = "basic_framework_with_direct_dependency",
+    bundle_name = "DirectDependencyTest",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-watchos.plist",
+    ],
+    minimum_os_version = "6.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_transitive_dependency_lib",
+    module_name = "TransitiveDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
+        # "//test/starlark_tests/resources:main.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework_lib",
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+watchos_dynamic_framework(
+    name = "basic_framework_with_transitive_dependency",
+    bundle_name = "TransitiveDependencyTest",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-watchos.plist",
+    ],
+    minimum_os_version = "6.0",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_transitive_dependency_lib",
+    ],
 )

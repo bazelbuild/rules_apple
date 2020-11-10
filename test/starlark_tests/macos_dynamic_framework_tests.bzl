@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ios_dynamic_framework Starlark tests."""
+"""macos_dynamic_framework Starlark tests."""
 
 load(
     ":rules/common_verification_tests.bzl",
@@ -23,8 +23,8 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
-    """Test suite for ios_dynamic_framework.
+def macos_dynamic_framework_test_suite(name = "macos_dynamic_framework"):
+    """Test suite for macos_dynamic_framework.
 
     Args:
         name: The name prefix for all the nested tests
@@ -33,7 +33,7 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
     archive_contents_test(
         name = "{}_archive_contents_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework",
         binary_test_file = "$BUNDLE_ROOT/BasicFramework",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/BasicFramework.framework/BasicFramework (offset 24)"],
@@ -50,23 +50,21 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
     
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework",
         expected_values = {
             "BuildMachineOSBuild": "*",
             "CFBundleExecutable": "BasicFramework",
             "CFBundleIdentifier": "com.google.example.framework",
             "CFBundleName": "BasicFramework",
-            "CFBundleSupportedPlatforms:0": "iPhone*",
+            "CFBundleSupportedPlatforms:0": "MacOSX*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",
-            "DTPlatformName": "iphone*",
+            "DTPlatformName": "macosx*",
             "DTPlatformVersion": "*",
             "DTSDKBuild": "*",
-            "DTSDKName": "iphone*",
+            "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
-            "UIDeviceFamily:0": "1",
         },
         tags = [name],
     )
@@ -74,7 +72,7 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
     archive_contents_test(
         name = "{}_direct_dependency_archive_contents_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_direct_dependency",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_direct_dependency",
         binary_test_file = "$BUNDLE_ROOT/DirectDependencyTest",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/DirectDependencyTest.framework/DirectDependencyTest (offset 24)"],
@@ -92,7 +90,7 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
     archive_contents_test(
         name = "{}_transitive_dependency_archive_contents_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_transitive_dependency",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_transitive_dependency",
         binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyTest",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/TransitiveDependencyTest.framework/TransitiveDependencyTest (offset 24)"],
@@ -104,59 +102,6 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule"
         ],
-        tags = [name],
-    )
-
-    # Tests that libraries that both apps and frameworks depend only have symbols
-    # present in the framework.
-    archive_contents_test(
-        name = "{}_symbols_from_shared_library_in_framework".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dynamic_framework_and_resources",
-        binary_test_architecture = "x86_64",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/swift_lib_with_resources.framework/swift_lib_with_resources",
-        binary_contains_symbols = ["_$s24swift_lib_with_resources16dontCallMeSharedyyF"],
-        tags = [name],
-    )
-
-    archive_contents_test(
-        name = "{}_symbols_from_shared_library_not_in_application".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dynamic_framework_and_resources",
-        binary_test_file = "$BUNDLE_ROOT/app_with_dynamic_framework_and_resources",
-        binary_test_architecture = "x86_64",
-        binary_not_contains_symbols = ["_$s24swift_lib_with_resources16dontCallMeSharedyyF"],
-        tags = [name],
-    )
-
-    archive_contents_test(
-        name = "{}_app_includes_transitive_framework_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dynamic_framework_with_dynamic_framework",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/swift_transitive_lib",
-        binary_test_architecture = "x86_64",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/swift_transitive_lib",
-            "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/swift_shared_lib.framework/swift_shared_lib",
-            "$BUNDLE_ROOT/Frameworks/swift_shared_lib.framework/Info.plist",
-        ],
-        not_contains = [
-            "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/Frameworks/",
-            "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/nonlocalized.plist",
-            "$BUNDLE_ROOT/framework_resources/nonlocalized.plist",
-        ],
-        binary_contains_symbols = ["_$s20swift_transitive_lib21anotherFunctionSharedyyF"],
-        tags = [name],
-    )
-
-    archive_contents_test(
-        name = "{}_app_includes_transitive_framework_symbols_not_in_app".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dynamic_framework_with_dynamic_framework",
-        binary_test_file = "$BUNDLE_ROOT/app_with_dynamic_framework_with_dynamic_framework",
-        binary_test_architecture = "x86_64",
-        binary_not_contains_symbols = ["_$s20swift_transitive_lib21anotherFunctionSharedyyF"],
         tags = [name],
     )
 

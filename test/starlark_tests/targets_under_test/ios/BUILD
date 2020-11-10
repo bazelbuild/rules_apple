@@ -1941,7 +1941,7 @@ swift_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":basic_framework",
+        ":basic_framework_lib",
     ],
     features = ["swift.no_generated_module_map"],
     tags = [
@@ -1978,8 +1978,8 @@ swift_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":basic_framework",
-        ":basic_framework_with_direct_dependency",
+        ":basic_framework_lib",
+        ":basic_framework_with_direct_dependency_lib",
     ],
     features = ["swift.no_generated_module_map"],
     tags = [
@@ -2089,7 +2089,6 @@ ios_dynamic_framework(
     ],
     deps = [
         "//test/starlark_tests/resources:swift_shared_lib",
-        "//test/starlark_tests/resources:framework_resources_lib",
     ]
 )
 

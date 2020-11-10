@@ -79,109 +79,180 @@ load(
 
 def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    depsList = [deps for deps in ctx.attr.deps]
+    binary_target = depsList.pop()
+    extra_linkopts = []
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
 
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleDylibBinary].binary
+    link_result = linking_support.register_linking_action(
+        ctx,
+        extra_linkopts = extra_linkopts,
+    )
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
+    actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
-        rule_descriptor = rule_support.rule_descriptor(ctx)
         signed_frameworks = [
-            bundling_support.bundle_name(ctx) + rule_descriptor.bundle_extension,
+            bundle_name + rule_descriptor.bundle_extension,
         ]
-    
-    dynamic_framework_partial = partials.swift_dynamic_framework_partial(
-                swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
-            )
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        executable_name = executable_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
     processor_partials = [
-        partials.apple_bundle_info_partial(bundle_id = bundle_id),
-        partials.binary_partial(binary_artifact = binary_artifact),
-        partials.bitcode_symbols_partial(
-            actions = ctx.actions,
-            binary_artifact = binary_artifact,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
-            label_name = ctx.label.name,
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            dependency_targets = ctx.attr.frameworks,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
         ),
-        # TODO: Check if clang_rt dylibs are needed in Frameworks, or if
-        # the can be skipped.
-        partials.clang_rt_dylibs_partial(binary_artifact = binary_artifact),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.bitcode_symbols_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = binary_target[apple_common.AppleDebugOutputs],
+            debug_outputs_provider = debug_outputs_provider,
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
         ),
         partials.embedded_bundles_partial(
-            frameworks = [outputs.archive(ctx)],
+            frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
             signed_frameworks = depset(signed_frameworks),
         ),
-        partials.extension_safe_validation_partial(is_extension_safe = ctx.attr.extension_safe),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
+        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
-            binary_provider = binary_target[apple_common.AppleDylibBinary],
+            actions = actions,
+            bin_root_path = bin_root_path,
+            binary_provider = link_result.binary_provider,
+            bundle_name = bundle_name,
+            rule_label = label,
         ),
         partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
             plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
+            rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            version_keys_required = False,
             top_level_attrs = ["resources"],
+            version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
+            actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
-        dynamic_framework_partial,
+        partials.swift_dynamic_framework_partial(
+            swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+        ),
     ]
 
-    processor_result = processor.process(ctx, processor_partials)
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        executable_name = executable_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
+
     providers = processor_result.providers
 
-    framework_dir = depset()
-    framework_files = depset()
-    for provider in providers:
-        if type(provider) == "AppleDynamicFramework":
-            framework_dir = provider.framework_dirs
-            framework_files = provider.framework_files
-
-    #===========================================================================================================
-    # TODO: Create the complete CcInfo in a partial, OR just do it here like so (feels hacky)
-    # As of right now we have a parital CcInfo being created in the dynamic_framework_partial
-    # But we need the framework_dir from the AppleDynamicFramework returned by the framework_provider_partial
-    # To be included so the transitive dependencies will work properly
-    # This feels like the wrong place to do this logic, but it's the only place we had access to all the data
-    #===========================================================================================================
-
-    # Make the ObjC provider
-    objc_provider_fields = {}
-    objc_provider_fields["dynamic_framework_file"] = framework_files
-    objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
-
-    # Add everything but CcInfo provider so we can make a new one
-    new_providers = []
-    for provider in providers:
-        if type(provider) != "CcInfo":
-            new_providers.append(provider)
-        else:
-            cc_info = CcInfo(
-                compilation_context = cc_common.create_compilation_context(
-                    headers = provider.compilation_context.headers,
-                    framework_includes = framework_dir,
-                ),
-            )
-            new_providers.append(cc_info)
-
-    new_providers.append(objc_provider)
-
-    providers = [
+    return [
         DefaultInfo(files = processor_result.output_files),
         IosFrameworkBundleInfo(),
-    ] + new_providers
-
-    return providers
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+    ] + providers
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""

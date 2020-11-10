@@ -102,7 +102,7 @@ swift_library(
     module_name = "swift_shared_lib",
     srcs = ["Shared.swift"],
     deps = [
-        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
+        "//test/starlark_tests/resources:swift_common_lib",
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],
@@ -116,8 +116,8 @@ swift_library(
     module_name = "swift_transitive_lib",
     srcs = ["Transitives.swift"],
     deps = [
-        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
-        "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
+        "//test/starlark_tests/resources:swift_common_lib",
+        "//test/starlark_tests/resources:swift_shared_lib",
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],

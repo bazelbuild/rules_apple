@@ -16,6 +16,7 @@ load(":macos_application_tests.bzl", "macos_application_test_suite")
 load(":macos_bundle_tests.bzl", "macos_bundle_test_suite")
 load(":macos_command_line_application_tests.bzl", "macos_command_line_application_test_suite")
 load(":macos_dylib_tests.bzl", "macos_dylib_test_suite")
+load(":macos_dynamic_framework_tests.bzl", "macos_dynamic_framework_test_suite")
 load(":macos_extension_tests.bzl", "macos_extension_test_suite")
 load(":macos_kernel_extension_tests.bzl", "macos_kernel_extension_test_suite")
 load(":macos_quick_look_plugin_tests.bzl", "macos_quick_look_plugin_test_suite")
@@ -23,6 +24,7 @@ load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
 load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
+load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
 load(":tvos_extension_tests.bzl", "tvos_extension_test_suite")
 load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
 load(":tvos_static_framework_tests.bzl", "tvos_static_framework_test_suite")
@@ -30,6 +32,7 @@ load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
 load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
 load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
+load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
 
 licenses(["notice"])
@@ -68,6 +71,8 @@ macos_command_line_application_test_suite()
 
 macos_dylib_test_suite()
 
+macos_dynamic_framework_test_suite()
+
 macos_extension_test_suite()
 
 macos_kernel_extension_test_suite()
@@ -84,6 +89,8 @@ tvos_application_test_suite()
 
 tvos_extension_test_suite()
 
+tvos_dynamic_framework_test_suite()
+
 tvos_framework_test_suite()
 
 tvos_static_framework_test_suite()
@@ -95,6 +102,8 @@ tvos_unit_test_test_suite()
 watchos_application_swift_test_suite()
 
 watchos_application_test_suite()
+
+watchos_dynamic_framework_test_suite()
 
 watchos_extension_test_suite()
 

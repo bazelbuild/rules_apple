@@ -15,6 +15,10 @@
 """Implementation of macOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "SwiftDynamicFrameworkInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -1282,6 +1286,152 @@ def _macos_dylib_impl(ctx):
         link_result.binary_provider,
     ] + processor_result.providers
 
+def _macos_dynamic_framework_impl(ctx):
+    """Experimental implementation of macos_framework."""
+    depsList = [deps for deps in ctx.attr.deps]
+    binary_target = depsList.pop()
+    link_result = linking_support.register_linking_action(ctx)
+    binary_artifact = link_result.binary_provider.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
+    actions = ctx.actions
+    bin_root_path = ctx.bin_dir.path
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    entitlements = entitlements_support.entitlements(
+        entitlements_attr = getattr(ctx.attr, "entitlements", None),
+        entitlements_file = getattr(ctx.file, "entitlements", None),
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    rule_executables = ctx.executable
+
+    signed_frameworks = []
+    if getattr(ctx.file, "provisioning_profile", None):
+        signed_frameworks = [
+            bundle_name + rule_descriptor.bundle_extension,
+        ]
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            clangrttool = ctx.executable._clangrttool,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_outputs_provider = debug_outputs_provider,
+            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            executable_name = executable_name,
+            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [archive],
+            platform_prerequisites = platform_prerequisites,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.framework_provider_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            binary_provider = link_result.binary_provider,
+            bundle_name = bundle_name,
+            rule_label = label,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            plist_attrs = ["infoplists"],
+            rule_attrs = ctx.attr,
+            rule_descriptor = rule_descriptor,
+            rule_executables = rule_executables,
+            rule_label = label,
+            top_level_attrs = ["resources"],
+            version_keys_required = False,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+        ),
+        partials.swift_dynamic_framework_partial(
+            swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+        ),
+    ]
+
+    processor_result = processor.process(
+        ctx = ctx,
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        executable_name = executable_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+        rule_executables = rule_executables,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+    ] + processor_result.providers
+
 macos_application = rule_factory.create_apple_bundling_rule(
     implementation = _macos_application_impl,
     platform_type = "macos",
@@ -1294,6 +1444,13 @@ macos_bundle = rule_factory.create_apple_bundling_rule(
     platform_type = "macos",
     product_type = apple_product_type.bundle,
     doc = "Builds and bundles a macOS Loadable Bundle.",
+)
+
+macos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_dynamic_framework_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles a macos dynamic framework.",
 )
 
 macos_extension = rule_factory.create_apple_bundling_rule(

@@ -5,6 +5,7 @@ load(
     "macos_bundle",
     "macos_command_line_application",
     "macos_dylib",
+    "macos_dynamic_framework",
     "macos_extension",
     "macos_kernel_extension",
     "macos_quick_look_plugin",
@@ -19,6 +20,7 @@ load(
     "//test/testdata/frameworks:generate_framework.bzl",
     "generate_import_framework",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 licenses(["notice"])
 
@@ -644,5 +646,104 @@ macos_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+swift_library(
+    name = "basic_framework_lib",
+    module_name = "BasicFramework",
+    srcs = [
+        "//test/starlark_tests/resources:BasicFramework.swift",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+macos_dynamic_framework(
+    name = "basic_framework",
+    bundle_name = "BasicFramework",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_direct_dependency_lib",
+    module_name = "DirectDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:DirectDependencyTest.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework_lib",
+    ],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+macos_dynamic_framework(
+    name = "basic_framework_with_direct_dependency",
+    bundle_name = "DirectDependencyTest",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_transitive_dependency_lib",
+    module_name = "TransitiveDependencyTest",
+    srcs = [
+        "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework_lib",
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+    features = ["swift.no_generated_module_map"],
+    tags = [
+        "manual",
+    ],
+)
+
+macos_dynamic_framework(
+    name = "basic_framework_with_transitive_dependency",
+    bundle_name = "TransitiveDependencyTest",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":basic_framework_with_transitive_dependency_lib",
     ],
 )
