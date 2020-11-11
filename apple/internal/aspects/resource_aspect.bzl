@@ -78,11 +78,15 @@ def _apple_resource_aspect_impl(target, ctx):
         "rule_executables": ctx.executable,
         "rule_label": ctx.label,
     }
+    collect_infoplists_args = {}
     collect_args = {}
     collect_structured_args = {}
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
+
+    # The name of the bundle directory to place resources within, if required.
+    bundle_name = None
 
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
@@ -101,17 +105,39 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
 
+    elif ctx.rule.kind == "apple_resource_bundle":
+        collect_infoplists_args["res_attrs"] = ["infoplists"]
+        collect_args["res_attrs"] = ["resources"]
+        collect_structured_args["res_attrs"] = ["structured_resources"]
+        bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
+
     # Collect all resource files related to this target.
-    resource_files = resources.collect(ctx.rule.attr, **collect_args)
-    if resource_files:
-        providers.append(
-            resources.bucketize_with_processing(
-                owner = owner,
-                platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
-                resources = resource_files,
-                **bucketize_args
-            ),
-        )
+    if collect_infoplists_args:
+        infoplists = resources.collect(ctx.rule.attr, **collect_infoplists_args)
+        if infoplists:
+            # TODO(b/168721966): Process resource Info.plists in the aspect, rather than simply
+            # bucket them for processing within the top level rule's resource partial.
+            providers.append(
+                resources.bucketize_typed(
+                    resources = infoplists,
+                    bucket_type = "infoplists",
+                    owner = owner,
+                    parent_dir_param = bundle_name,
+                ),
+            )
+
+    if collect_args:
+        resource_files = resources.collect(ctx.rule.attr, **collect_args)
+        if resource_files:
+            providers.append(
+                resources.bucketize_with_processing(
+                    owner = owner,
+                    parent_dir_param = bundle_name,
+                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    resources = resource_files,
+                    **bucketize_args
+                ),
+            )
 
     if collect_structured_args:
         # `structured_resources` requires an explicit parent directory, requiring them to be
@@ -123,14 +149,22 @@ def _apple_resource_aspect_impl(target, ctx):
         # be ignored.
         structured_files = resources.collect(ctx.rule.attr, **collect_structured_args)
         if structured_files:
+            if bundle_name:
+                structured_parent_dir_param = partial.make(
+                    resources.structured_resources_parent_dir,
+                    parent_dir = bundle_name,
+                )
+            else:
+                structured_parent_dir_param = partial.make(
+                    resources.structured_resources_parent_dir,
+                )
+
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
             structured_resources_provider = resources.bucketize_with_processing(
                 allowed_buckets = ["strings", "plists"],
                 owner = owner,
-                parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                ),
+                parent_dir_param = structured_parent_dir_param,
                 platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                 resources = structured_files,
                 **bucketize_args
@@ -138,14 +172,24 @@ def _apple_resource_aspect_impl(target, ctx):
             providers.append(structured_resources_provider)
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
+    inherited_providers = []
     provider_deps = ["deps"] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
-            providers.extend([
+            inherited_providers.extend([
                 x[AppleResourceInfo]
                 for x in getattr(ctx.rule.attr, attr)
                 if AppleResourceInfo in x
             ])
+    if inherited_providers and bundle_name:
+        # Nest the inherited resource providers within the bundle, if one is needed for this rule.
+        merged_inherited_provider = resources.merge_providers(
+            inherited_providers,
+            default_owner = owner,
+        )
+        providers.append(resources.nest_in_bundle(merged_inherited_provider, bundle_name))
+    elif inherited_providers:
+        providers.extend(inherited_providers)
 
     if providers:
         # If any providers were collected, merge them.
@@ -154,7 +198,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "resources", "structured_resources"],
+    attr_aspects = ["data", "deps", "resources"],
     attrs = apple_support.action_required_attrs(),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
