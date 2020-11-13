@@ -1646,7 +1646,7 @@ ios_dynamic_framework = rule_factory.create_apple_bundling_rule(
     implementation = _ios_dynamic_framework_impl,
     platform_type = "ios",
     product_type = apple_product_type.framework,
-    doc = "Builds and bundles an iOS Dynamic Framework consumable in Xcode.",
+    doc = "Builds and bundles an iOS dynamic framework that is consumable by Xcode.",
 )
 
 ios_static_framework = rule_factory.create_apple_bundling_rule(

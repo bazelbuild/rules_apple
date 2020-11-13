@@ -1287,7 +1287,7 @@ def _macos_dylib_impl(ctx):
     ] + processor_result.providers
 
 def _macos_dynamic_framework_impl(ctx):
-    """Experimental implementation of macos_framework."""
+    """Experimental implementation of macos_dynamic_framework."""
     deps_list = [deps for deps in ctx.attr.deps]
     binary_target = deps_list.pop()
     link_result = linking_support.register_linking_action(ctx)
@@ -1450,7 +1450,7 @@ macos_dynamic_framework = rule_factory.create_apple_bundling_rule(
     implementation = _macos_dynamic_framework_impl,
     platform_type = "macos",
     product_type = apple_product_type.framework,
-    doc = "Builds and bundles a macos dynamic framework.",
+    doc = "Builds and bundles a macOS Dynamic Framework that is consumable by Xcode.",
 )
 
 macos_extension = rule_factory.create_apple_bundling_rule(
