@@ -284,9 +284,9 @@ def _tvos_application_impl(ctx):
     ] + processor_result.providers
 
 def _tvos_dynamic_framework_impl(ctx):
-    """Experimental implementation of tvos_framework."""
-    depsList = [deps for deps in ctx.attr.deps]
-    binary_target = depsList.pop()
+    """Experimental implementation of tvos_dynamic_framework."""
+    deps_list = [deps for deps in ctx.attr.deps]
+    binary_target = deps_list.pop()
     link_result = linking_support.register_linking_action(ctx)
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider

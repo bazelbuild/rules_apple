@@ -47,6 +47,29 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:basic_framework",
+        expected_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleExecutable": "BasicFramework",
+            "CFBundleIdentifier": "com.google.example.framework",
+            "CFBundleName": "BasicFramework",
+            "CFBundleSupportedPlatforms:0": "WatchSimulator*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "watchsimulator*",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "watchsimulator*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "MinimumOSVersion": "6.0",
+            "UIDeviceFamily:0": "4",
+        },
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_direct_dependency_archive_contents_test".format(name),
         build_type = "simulator",

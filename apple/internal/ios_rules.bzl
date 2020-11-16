@@ -905,8 +905,8 @@ def _ios_extension_impl(ctx):
 
 def _ios_dynamic_framework_impl(ctx):
     """Experimental implementation of ios_dynamic_framework."""
-    depsList = [deps for deps in ctx.attr.deps]
-    binary_target = depsList.pop()
+    deps_list = [deps for deps in ctx.attr.deps]
+    binary_target = deps_list.pop()
     extra_linkopts = []
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
@@ -1646,7 +1646,7 @@ ios_dynamic_framework = rule_factory.create_apple_bundling_rule(
     implementation = _ios_dynamic_framework_impl,
     platform_type = "ios",
     product_type = apple_product_type.framework,
-    doc = "Builds and bundles an iOS Dynamic Framework consumable in Xcode.",
+    doc = "Builds and bundles an iOS dynamic framework that is consumable by Xcode.",
 )
 
 ios_static_framework = rule_factory.create_apple_bundling_rule(

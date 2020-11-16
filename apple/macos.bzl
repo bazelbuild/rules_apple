@@ -288,6 +288,7 @@ def macos_dylib(name, **kwargs):
 def macos_dynamic_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Builds and bundles an iOS dynamic framework."""
+
     binary_args = dict(kwargs)
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
