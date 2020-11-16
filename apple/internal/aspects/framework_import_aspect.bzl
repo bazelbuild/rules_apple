@@ -15,7 +15,7 @@
 """Implementation of the aspect that propagates framework import files."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
+    "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
 )
 
@@ -30,6 +30,7 @@ def _framework_import_aspect_impl(target, ctx):
     if AppleFrameworkImportInfo in target:
         return []
 
+    transitive_dsyms = []
     transitive_sets = []
     build_archs = []
     for attribute in _FRAMEWORK_IMPORT_ASPECT_ATTRS:
@@ -37,6 +38,8 @@ def _framework_import_aspect_impl(target, ctx):
             continue
         for dep_target in getattr(ctx.rule.attr, attribute):
             if AppleFrameworkImportInfo in dep_target:
+                if hasattr(dep_target[AppleFrameworkImportInfo], "dsym_imports"):
+                    transitive_dsyms.append(dep_target[AppleFrameworkImportInfo].dsym_imports)
                 if hasattr(dep_target[AppleFrameworkImportInfo], "framework_imports"):
                     transitive_sets.append(dep_target[AppleFrameworkImportInfo].framework_imports)
                 build_archs.append(dep_target[AppleFrameworkImportInfo].build_archs)
@@ -45,6 +48,7 @@ def _framework_import_aspect_impl(target, ctx):
         return []
 
     return [AppleFrameworkImportInfo(
+        dsym_imports = depset(transitive = transitive_dsyms),
         framework_imports = depset(transitive = transitive_sets),
         build_archs = depset(transitive = build_archs),
     )]

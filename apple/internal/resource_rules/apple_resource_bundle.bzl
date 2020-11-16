@@ -15,146 +15,24 @@
 """Implementation of apple_resource_bundle rule."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    "apple_resource_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceBundleInfo",
-    "AppleResourceInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _apple_resource_bundle_impl(ctx):
-    actions = ctx.actions
-    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
-    rule_executables = ctx.executable
-    rule_label = ctx.label
-
-    deps = getattr(ctx.attr, "deps", None)
-    uses_swift = swift_support.uses_swift(deps) if deps else False
-
-    # TODO(b/168721966): Move all resource processing below into the resource aspect. This will
-    # avoid issues with being able to determine platform information from these rules, where we do
-    # not have sufficient knowledge to fill out all of the platform prerequisites.
-    platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        config_vars = ctx.var,
-        device_families = None,
-        objc_fragment = None,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
-        uses_swift = uses_swift,
-        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-
-    providers = []
-    infoplists = resources.collect(ctx.attr, res_attrs = ["infoplists"])
-    if infoplists:
-        providers.append(
-            resources.bucketize_typed(
-                infoplists,
-                "infoplists",
-                parent_dir_param = bundle_name,
-            ),
-        )
-
-    resource_files = resources.collect(ctx.attr, res_attrs = ["resources"])
-    if resource_files:
-        providers.append(
-            resources.bucketize_with_processing(
-                actions = actions,
-                bundle_id = None,
-                parent_dir_param = bundle_name,
-                platform_prerequisites = platform_prerequisites,
-                product_type = None,
-                resources = resource_files,
-                rule_executables = rule_executables,
-                rule_label = rule_label,
-            ),
-        )
-
-    if ctx.attr.structured_resources:
-        structured_files = resources.collect(
-            ctx.attr,
-            res_attrs = ["structured_resources"],
-        )
-        if structured_files:
-            # Avoid processing PNG files that are referenced through the structured_resources
-            # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-            providers.append(
-                resources.bucketize_with_processing(
-                    actions = actions,
-                    allowed_buckets = ["strings", "plists"],
-                    bundle_id = None,
-                    parent_dir_param = partial.make(
-                        resources.structured_resources_parent_dir,
-                        parent_dir = bundle_name,
-                    ),
-                    platform_prerequisites = platform_prerequisites,
-                    product_type = None,
-                    resources = structured_files,
-                    rule_executables = rule_executables,
-                    rule_label = rule_label,
-                ),
-            )
-
-    # Find any targets added through resources which might propagate the AppleResourceInfo
-    # provider, for example, apple_resource_bundle or apple_bundle_import targets.
-    resource_providers = [
-        x[AppleResourceInfo]
-        for x in ctx.attr.resources
-        if AppleResourceInfo in x
-    ]
-    if resource_providers:
-        # Process resources that already have the AppleResourceInfo to add the nesting for the
-        # current apple_resource_bundle.
-        resources_merged_provider = resources.merge_providers(resource_providers)
-        providers.append(resources.nest_in_bundle(resources_merged_provider, bundle_name))
-
-    if providers:
-        complete_resource_provider = resources.merge_providers(providers)
-    else:
-        # If there were no resources to bundle, propagate an empty provider to signal that this
-        # target has already been processed anyways.
-        complete_resource_provider = AppleResourceInfo(
-            owners = depset(),
-            unowned_resources = depset(),
-        )
-
+    # All of the resource processing logic for this rule exists in the apple_resource_aspect.
+    #
+    # To transform the attributes referenced by this rule into resource providers, that aspect must
+    # be used to iterate through all relevant instances of this rule in the build graph.
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
-        complete_resource_provider,
         AppleResourceBundleInfo(),
     ]
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
+    attrs = {
         "bundle_name": attr.string(
             doc = """
 The desired name of the bundle (without the `.bundle` extension). If this attribute is not set,
@@ -181,7 +59,6 @@ non-RFC1034-compliant characters with -.
         "resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
-            aspects = [apple_resource_aspect],
             doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have
@@ -204,8 +81,7 @@ bundle root in the same structure passed to this argument, so ["res/foo.png"] wi
 res/foo.png inside the bundle.
 """,
         ),
-    }),
-    fragments = ["apple"],
+    },
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
 apple_resource_bundle's resources are put in a resource bundle in the top level Apple bundle

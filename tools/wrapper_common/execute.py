@@ -16,6 +16,7 @@
 """Common functionality for tool wrappers to execute jobs.
 """
 
+import io
 import os
 import re
 import subprocess
@@ -105,10 +106,23 @@ def execute_and_filter_output(
     print("ERROR:{stdout}\n\n{stderr}".format(stdout=stdout, stderr=stderr))
     raise subprocess.CalledProcessError(proc.returncode, cmd_args)
   elif print_output:
+    # The default encoding of stdout/stderr is 'ascii', so we need to reopen the
+    # streams in utf8 mode since some messages from Apple's tools use characters
+    # like curly quotes. (It would be nice to use the `reconfigure` method here,
+    # but that's only available in Python 3.7, which we can't guarantee.)
+    if _PY3:
+      try:
+        sys.stdout = open(
+            sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
+        sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
+      except io.UnsupportedOperation:
+        # When running under test, `fileno` is not supported.
+        pass
+
     if stdout:
-      sys.stdout.write("%s" % stdout)
+      sys.stdout.write(stdout)
     if stderr:
-      sys.stderr.write("%s" % stderr)
+      sys.stderr.write(stderr)
 
   return cmd_result, stdout, stderr
 
