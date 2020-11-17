@@ -470,9 +470,9 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["mac"],
+            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
-            binary_type = "dylib",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
@@ -665,9 +665,9 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["tv"],
+            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
-            binary_type = "dylib",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
@@ -772,8 +772,11 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["watch"],
+            binary_type = "dylib",
             bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in

@@ -38,16 +38,10 @@ load(
 def _get_header_imports(framework_imports):
     """Get the header files from the list of framework imports"""
 
-    header_imports = []    
-    for file in framework_imports:
-        file_short_path = file.short_path
-        if file_short_path.endswith(".h"):
-            header_imports.append(file)
-
-    return header_imports
+    return [file for file in framework_imports if file.short_path.endswith(".h")]
 
 def _swift_dynamic_framework_partial_impl(ctx, swift_dynamic_framework_info):
-    """Implementation for the Swift static framework processing partial."""
+    """Implementation for the Swift dynamic framework processing partial."""
 
     expected_module_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
 

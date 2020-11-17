@@ -79,6 +79,7 @@ framework module {module_name} {{
 
 def _swift_dynamic_framework_aspect_impl(target, ctx):
     """Aspect implementation for Swift dynamic framework support."""
+
     if not hasattr(ctx.rule.attr, "deps"):
         return []
     
@@ -87,6 +88,14 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     # If there are no Swift dependencies, return nothing.
     if not swiftdeps:
         return []
+
+    if len(swiftdeps) != len(ctx.rule.attr.deps):
+            fail(
+                """\
+error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
+single swift_library dependency.\
+""",
+            )
 
     # Collect all relevant artifacts for Swift dynamic framework generation.
     module_name = None
@@ -97,21 +106,19 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
 
+        # Use the module_name for the first swiftdep
+        # If there are transitive dependencies, more than one swiftdep will be returned
         if not module_name:
             module_name = swiftinfo.module_name
 
         arch = _swift_arch_for_dep(dep)
-
-        # Collect the interface artifacts.
-        if swiftinfo.transitive_generated_headers:
-            if not generated_header:
-                generated_header = swiftinfo.transitive_generated_headers.to_list().pop()
 
         swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list().pop()
         swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list().pop()
         modulemap_file = ctx.actions.declare_file("{}_file.modulemap".format(module_name))
         ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
 
+    # Get the generated_header using the CcInfo provider
     for dep in ccinfos:
         headers = dep[CcInfo].compilation_context.headers.to_list()
         if headers:

@@ -285,6 +285,7 @@ def _tvos_application_impl(ctx):
 
 def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
+    
     deps_list = [deps for deps in ctx.attr.deps]
     binary_target = deps_list.pop()
     link_result = linking_support.register_linking_action(ctx)
@@ -295,11 +296,11 @@ def _tvos_dynamic_framework_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    executable_name = bundling_support.executable_name(ctx)
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    executable_name = bundling_support.executable_name(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,

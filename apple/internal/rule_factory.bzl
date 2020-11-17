@@ -945,9 +945,6 @@ ignored.
 
         if rule_descriptor.requires_deps:
             extra_args = {}
-            if rule_descriptor.product_type == apple_product_type.application:
-                extra_args["aspects"] = [framework_import_aspect]
-
             attrs.append({
                 "frameworks": attr.label_list(
                     providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
