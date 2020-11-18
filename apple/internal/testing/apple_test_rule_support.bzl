@@ -185,6 +185,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_environment,
             test_host = test_host_archive,
         ),
+        is_executable = True,
     )
 
     # Add required data into the runfiles to make it available during test
