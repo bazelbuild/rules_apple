@@ -286,11 +286,13 @@ true.
 def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     deps_aspects = [
         apple_common.objc_proto_aspect,
-        apple_resource_aspect,
-        framework_import_aspect,
         swift_usage_aspect,
     ]
     if product_type:
+        deps_aspects.extend([
+            apple_resource_aspect,
+            framework_import_aspect,
+        ])
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
         if product_type == apple_product_type.static_framework:
