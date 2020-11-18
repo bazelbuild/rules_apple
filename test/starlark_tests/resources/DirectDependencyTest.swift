@@ -14,6 +14,7 @@
 
 import Foundation
 import BasicFramework
+
 public class DirectDependencyTest {
     public init() {}
     public func directDependencyTest() { 

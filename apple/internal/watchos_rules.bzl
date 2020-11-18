@@ -79,6 +79,7 @@ load(
 
 def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
+    
     deps_list = [deps for deps in ctx.attr.deps]
     binary_target = deps_list.pop()
     extra_linkopts = []

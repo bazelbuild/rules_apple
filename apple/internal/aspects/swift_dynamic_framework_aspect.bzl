@@ -105,12 +105,7 @@ single swift_library dependency.\
     modulemap_file = None
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
-
-        # Use the module_name for the first swiftdep
-        # If there are transitive dependencies, more than one swiftdep will be returned
-        if not module_name:
-            module_name = swiftinfo.module_name
-
+        module_name = swiftinfo.module_name
         arch = _swift_arch_for_dep(dep)
 
         swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list().pop()
