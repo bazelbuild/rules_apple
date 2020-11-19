@@ -928,36 +928,6 @@ ignored.
 """,
             ),
         })
-    elif rule_descriptor.product_type == apple_product_type.framework:
-        attrs.append({
-            # TODO: This attribute is not publicly documented, but it is tested in
-            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
-            # what to do with this.
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-            ),
-            "extension_safe": attr.bool(
-                default = False,
-                doc = """
-    If true, compiles and links this framework with `-application-extension`, restricting the binary to
-    use only extension-safe APIs.
-    """,
-            ),
-        })
-
-        if rule_descriptor.requires_deps:
-            extra_args = {}
-            attrs.append({
-                "frameworks": attr.label_list(
-                    providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
-                    doc = """
-    A list of framework targets (see
-    [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
-    that this target depends on.
-    """,
-                    **extra_args
-                ),
-            })
 
     return attrs
 

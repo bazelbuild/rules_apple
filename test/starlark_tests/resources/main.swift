@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+
 public class main {
     public init() {}
     public func main() { print("Hello from main") }

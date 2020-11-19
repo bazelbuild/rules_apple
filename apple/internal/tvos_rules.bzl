@@ -383,7 +383,6 @@ def _tvos_dynamic_framework_impl(ctx):
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
