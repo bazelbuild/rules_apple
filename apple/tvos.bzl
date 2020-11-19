@@ -161,6 +161,7 @@ def tvos_ui_test(name, **kwargs):
 def tvos_dynamic_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Builds and bundles a tvOS dynamic framework that is consumable by Xcode."""
+
     binary_args = dict(kwargs)
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
