@@ -595,13 +595,13 @@ def _ios_dylib_impl(ctx):
         rule_executables = rule_executables,
         rule_label = label,
     )
-    output_file = ctx.actions.declare_file(ctx.label.name + ".dylib")
+    output_file = actions.declare_file(ctx.label.name + ".dylib")
     codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
 
     return [
         AppleBinaryInfo(
             binary = output_file,
-            product_type = ctx.attr._product_type,
+            product_type = rule_descriptor.product_type,
         ),
         DefaultInfo(files = depset(transitive = [
             depset([output_file]),
@@ -1525,7 +1525,7 @@ ios_dylib = rule_factory.create_apple_binary_rule(
     implementation = _ios_dylib_impl,
     platform_type = "ios",
     product_type = apple_product_type.dylib,
-    doc = "Builds an iOS Dylib binary.",
+    doc = "Builds an iOS Dynamic Library.",
 )
 
 ios_extension = rule_factory.create_apple_bundling_rule(

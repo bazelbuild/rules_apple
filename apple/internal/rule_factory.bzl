@@ -1111,10 +1111,8 @@ binaries/libraries will be created combining all architectures specified by
             rule_attrs.extend(_get_ios_binary_attrs(rule_descriptor))
         elif platform_type == "macos":
             rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
-        elif platform_type == "tvos":
-            fail("ERROR: create_apple_binary_rule doesn't support tvOS.")
-        elif platform_type == "watchos":
-            fail("ERROR: create_apple_binary_rule doesn't support watchOS.")
+        else:
+            fail("ERROR: create_apple_binary_rule doesn't support {}.".format(platform_type))
     else:
         is_executable = False
         rule_attrs.append(_common_binary_linking_attrs(
