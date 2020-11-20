@@ -885,7 +885,7 @@ tvos_dynamic_framework = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_dynamic_framework_impl,
     platform_type = "tvos",
     product_type = apple_product_type.framework,
-    doc = "Builds and bundles a tvOS dynamic framework.",
+    doc = "Builds and bundles a tvOS dynamic framework that is consumable by Xcode.",
 )
 tvos_extension = rule_factory.create_apple_bundling_rule(
     implementation = _tvos_extension_impl,

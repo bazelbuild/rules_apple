@@ -128,7 +128,7 @@ def ios_framework(name, **kwargs):
 
 def ios_dynamic_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
-    """Builds and bundles an iOS dynamic framework."""
+    """Builds and bundles an iOS dynamic framework that is consumable by Xcode."""
 
     binary_args = dict(kwargs)
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
