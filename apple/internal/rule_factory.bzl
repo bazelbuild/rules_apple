@@ -930,12 +930,6 @@ ignored.
         })
     elif rule_descriptor.product_type == apple_product_type.framework:
         attrs.append({
-            # TODO: This attribute is not publicly documented, but it is tested in
-            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
-            # what to do with this.
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-            ),
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
