@@ -449,7 +449,6 @@ function do_action() {
       # Explicitly pass these flags to ensure the external testing infrastructure
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
-      "--incompatible_objc_compile_info_migration"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
