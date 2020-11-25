@@ -99,13 +99,20 @@ single swift_library dependency with no transitive swift_library dependencies.\
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
 
-            if len(swiftinfo.transitive_swiftinterfaces.to_list()) > 1:
-                fail(
-                    """\
+            swiftinterface = None
+            swiftdoc = None
+            for module in swiftinfo.transitive_modules.to_list():
+                if not module.swift:
+                    continue
+                if swiftinterface:
+                    fail(
+                        """\
 error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                )
+                    )
+                swiftinterface = module.swift.swiftmodule
+                swiftdoc = module.swift.swiftdoc
 
             if not module_name:
                 module_name = swiftinfo.module_name
@@ -128,8 +135,8 @@ swift_library dependency with no transitive swift_library dependencies.\
                     # just take any of them.
                     generated_header = swiftinfo.transitive_generated_headers.to_list()[0]
 
-            swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
-            swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
+            swiftdocs[arch] = swiftdoc
+            swiftinterfaces[arch] = swiftinterface
 
         # Make sure that all dictionaries contain at least one module before returning the provider.
         if all([module_name, swiftdocs, swiftinterfaces]):
