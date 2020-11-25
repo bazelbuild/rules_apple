@@ -124,9 +124,13 @@ def _apple_test_info_aspect_impl(target, ctx):
         includes.append(cc_info.compilation_context.quote_includes)
         includes.append(cc_info.compilation_context.system_includes)
 
-    if (SwiftInfo in target and
-        hasattr(target[SwiftInfo], "transitive_swiftmodules")):
-        swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
+    if SwiftInfo in target:
+        module_swiftmodules = [
+            module.swift.swiftmodule
+            for module in target[SwiftInfo].transitive_modules.to_list()
+            if module.swift
+        ]
+        swift_modules.append(depset(module_swiftmodules))
 
     # Collect sources from the current target. Note that we do not propagate
     # sources transitively as we intentionally only show test sources from the
