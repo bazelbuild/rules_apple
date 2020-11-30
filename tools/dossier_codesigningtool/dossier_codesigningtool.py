@@ -41,8 +41,7 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 # * signed bundle with Mach-O thin
 # * replacing existing signature
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r'(signed.*Mach-O (universal|thin)|.*: replacing existing signature)'
-)
+    r'(signed.*Mach-O (universal|thin)|.*: replacing existing signature)')
 
 # Keys used for manifest entries.
 _CODESIGN_IDENTITY_KEY = 'codesign_identity'
@@ -69,6 +68,7 @@ def generate_arg_parser():
   sign_parser.add_argument('--dossier', help='Path to input dossier directory')
   sign_parser.add_argument(
       '--codesign', required=True, type=str, help='Path to codesign binary')
+  sign_parser.add_argument('bundle', help='Path to the bundle')
   sign_parser.set_defaults(func=_sign_bundle)
 
   generate_parser = subparsers.add_parser(
@@ -77,9 +77,34 @@ def generate_arg_parser():
       '--output', help='Path to output manifest dossier directory')
   generate_parser.add_argument(
       '--codesign', required=True, type=str, help='Path to codesign binary')
+  generate_parser.add_argument('bundle', help='Path to the bundle')
   generate_parser.set_defaults(func=_generate_manifest_dossier)
 
-  parser.add_argument('bundle', help='Path to the app bundle')
+  create_parser = subparsers.add_parser('create', help='Create a dossier.')
+  create_parser.add_argument(
+      '--output',
+      required=True,
+      help='Path to output manifest dossier directory')
+  create_parser.add_argument(
+      '--codesign_identity',
+      required=True,
+      type=str,
+      help='Codesigning identity to be used.')
+  create_parser.add_argument(
+      '--provisioning_profile',
+      type=str,
+      help='Optional provisioning profile to be used.')
+  create_parser.add_argument(
+      '--entitlements_file',
+      type=str,
+      help='Optional path to optional entitlements')
+  create_parser.add_argument(
+      '--embedded_dossier',
+      action='append',
+      nargs=2,
+      help='Specifies an embedded bundle dossier to be included in created dossier. Should be in form [relative path of artifact dossier signs] [path to dossier]'
+  )
+  create_parser.set_defaults(func=_create_dossier)
 
   return parser
 
@@ -130,6 +155,57 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
   return output_file_name, cert_authority
 
 
+def _copy_entitlements_file(original_entitlements_file_path, output_directory,
+                            unique_id):
+  """Copies an entitlements file from an original path to an output directory.
+
+  Args:
+    original_entitlements_file_path: The absolute path to the original
+      entitlements file.
+    output_directory: The absolute path to the output directory the entitlements
+      should be placed in, it must already exist.
+    unique_id: Unique identifier to use for filename of extracted entitlements.
+
+  Returns:
+    The filename relative to output_directory the entitlements were copied to,
+    or if the original path does not exist it does nothing and will return
+    `None`.
+  """
+  if os.path.exists(original_entitlements_file_path):
+    dest_entitlements_filename = unique_id + '.entitlements'
+    dest_entitlements_path = os.path.join(output_directory,
+                                          dest_entitlements_filename)
+    shutil.copy(original_entitlements_file_path, dest_entitlements_path)
+    return dest_entitlements_filename
+  else:
+    return None
+
+
+def _copy_provisioning_profile(original_provisiong_profile_path,
+                               output_directory, unique_id):
+  """Copies a provisioning profile file from an original path to an output directory.
+
+  Args:
+    original_provisiong_profile_path: The absolute path to the original
+      provisioning profile file.
+    output_directory: The absolute path to the output directory the profile
+      should be placed in, it must already exist.
+    unique_id: Unique identifier to use for filename of extracted entitlements.
+
+  Returns:
+    The filename relative to output_directory the profile was copied to, or if
+    the original path does not exist it does nothing and will return `None`.
+  """
+  if os.path.exists(original_provisiong_profile_path):
+    dest_provisiong_profile_filename = unique_id + '.mobileprovision'
+    dest_provision_profile_path = os.path.join(
+        output_directory, dest_provisiong_profile_filename)
+    shutil.copy(original_provisiong_profile_path, dest_provision_profile_path)
+    return dest_provisiong_profile_filename
+  else:
+    return None
+
+
 def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
   """Extracts the provisioning profile for provided bundle to destination file name.
 
@@ -144,7 +220,7 @@ def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
     unique_id: Unique identifier to use for filename of extracted entitlements.
 
   Returns:
-    The filername relative to output_directory the entitlements were placed in,
+    The filename relative to output_directory the entitlements were placed in,
     or None if there were no entitlements found.
 
   Raises:
@@ -152,15 +228,8 @@ def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
   """
   original_provisiong_profile_path = os.path.join(bundle_path,
                                                   'embedded.mobileprovision')
-  if os.path.exists(
-      os.path.join(bundle_path, original_provisiong_profile_path)):
-    dest_provisiong_profile_filename = unique_id + '.mobileprovision'
-    dest_provision_profile_path = os.path.join(
-        output_directory, dest_provisiong_profile_filename)
-    shutil.copy(original_provisiong_profile_path, dest_provision_profile_path)
-    return dest_provisiong_profile_filename
-  else:
-    return None
+  return _copy_provisioning_profile(original_provisiong_profile_path,
+                                    output_directory, unique_id)
 
 
 def _generate_manifest(codesign_identity,
@@ -397,14 +466,76 @@ def _sign_bundle(args):
   codesign_path = args.codesign
   if not os.path.exists(bundle_path):
     raise OSError('Bundle doest not exist at path %s' % bundle_path)
-  if not os.path.exists(dossier_directory):
-    raise OSError('Manifest dossier does not exist at path %s' %
-                  dossier_directory)
-  manifest_file = open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'r')
-  manifest = json.load(manifest_file)
-  manifest_file.close()
+  manifest = _read_manifest_from_dossier(dossier_directory)
   _sign_bundle_with_manifest(bundle_path, manifest, dossier_directory,
                              codesign_path)
+
+
+def _read_manifest_from_dossier(dossier_directory):
+  """Reads the manifest from a dossier file.
+
+  Args:
+    dossier_directory: The path to the dossier.
+
+  Raises:
+    OSError: If bundle or manifest dossier can not be found.
+  """
+  manifest_file_path = os.path.join(dossier_directory, _MANIFEST_FILENAME)
+  if not os.path.exists(manifest_file_path):
+    raise OSError('Dossier doest not exist at path %s' % dossier_directory)
+  with open(manifest_file_path, 'r') as fp:
+    return json.load(fp)
+
+
+def _merge_dossier_contents(source_dossier_path, destination_dossier_path):
+  """Merges all of the files except the actual manifest from one dossier into another.
+
+  Args:
+    source_dossier_path: The path to the source dossier.
+    destination_dossier_path: The path to the destination dossier.
+  """
+  dossier_files = os.listdir(source_dossier_path)
+  for filename in dossier_files:
+    if filename == _MANIFEST_FILENAME:
+      continue
+    shutil.copy(
+        os.path.join(source_dossier_path, filename),
+        os.path.join(destination_dossier_path, filename))
+
+
+def _create_dossier(args):
+  """Creates a signing dossier.
+
+  Provided a set of args from generate sub-command, creates a new dossier.
+  """
+  dossier_directory = args.output
+  if not os.path.exists(dossier_directory):
+    os.makedirs(dossier_directory)
+  unique_id = str(uuid.uuid4())
+  entitlements_filename = None
+  if hasattr(args, 'entitlements_file'):
+    entitlements_filename = _copy_entitlements_file(args.entitlements_file,
+                                                    dossier_directory,
+                                                    unique_id)
+  provisioning_profile_filename = None
+  if hasattr(args, 'provisioning_profile'):
+    provisioning_profile_filename = _copy_provisioning_profile(
+        args.provisioning_profile, dossier_directory, unique_id)
+  embedded_manifests = []
+  if hasattr(args, 'embedded_dossier'):
+    for embedded_dossier in args.embedded_dossier:
+      embedded_dossier_bundle_relative_path = embedded_dossier[0]
+      embedded_dossier_path = embedded_dossier[1]
+      _merge_dossier_contents(embedded_dossier_path, dossier_directory)
+      embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
+      embedded_manifest[
+          _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+      embedded_manifests.append(embedded_manifest)
+  manifest = _generate_manifest(args.codesign_identity, entitlements_filename,
+                                provisioning_profile_filename,
+                                embedded_manifests)
+  with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:
+    fp.write(json.dumps(manifest, sort_keys=True))
 
 
 if __name__ == '__main__':
