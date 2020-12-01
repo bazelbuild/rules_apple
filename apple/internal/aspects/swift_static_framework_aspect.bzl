@@ -114,15 +114,15 @@ swift_library dependency with no transitive swift_library dependencies.\
                 swiftinterface = module.swift.swiftinterface
                 swiftdoc = module.swift.swiftdoc
 
-            if not module_name:
-                module_name = swiftinfo.module_name
-            elif module_name != swiftinfo.module_name:
-                fail(
-                    """\
+                if not module_name:
+                    module_name = module.name
+                elif module.name and module.name != module_name:
+                    fail(
+                        """\
 error: Found multiple direct swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                )
+                    )
 
             arch = _swift_arch_for_dep(dep)
             swiftdocs[arch] = swiftdoc
