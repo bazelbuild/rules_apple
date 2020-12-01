@@ -116,10 +116,7 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -378,10 +375,7 @@ ios_application(
     ],
     minimum_os_version = "9.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
         "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithBitcode",
@@ -400,10 +394,7 @@ ios_application(
     ],
     minimum_os_version = "9.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
         "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithDebugInfo",
@@ -423,10 +414,7 @@ ios_application(
     ],
     minimum_os_version = "9.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
     ],
@@ -436,6 +424,7 @@ ios_static_framework(
     name = "swift_static_framework",
     bundle_name = "swift_framework_lib",
     minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_framework_lib",
     ],
@@ -739,6 +728,7 @@ objc_library(
     data = [
         "//test/starlark_tests/resources:structured_resources",
     ],
+    tags = FIXTURE_TAGS,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -967,6 +957,7 @@ ios_extension(
 substitution(
     name = "resource_rules",
     src = "//test/starlark_tests/resources:ResourceRules.plist",
+    tags = FIXTURE_TAGS,
     var_name = "RULES",
 )
 
@@ -983,10 +974,7 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     toolchains = [":resource_rules"],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",

@@ -77,9 +77,7 @@ swift_library(
     name = "swift_framework_lib",
     srcs = ["//test/testdata/sources:main.swift"],
     module_name = "swift_framework_lib",
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(

@@ -266,12 +266,14 @@ tvos_framework(
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = FIXTURE_TAGS,
     deps = [":imported_tvos_dynamic_fmwk"],
 )
 
 apple_dynamic_framework_import(
     name = "imported_tvos_dynamic_fmwk",
     framework_imports = [":generated_tvos_dynamic_fmwk"],
+    tags = FIXTURE_TAGS,
 )
 
 generate_import_framework(
@@ -280,6 +282,7 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "9.0",
     sdk = "appletvsimulator",
+    tags = FIXTURE_TAGS,
 )
 
 # ---------------------------------------------------------------------------------------
