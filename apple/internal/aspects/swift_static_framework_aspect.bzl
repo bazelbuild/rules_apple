@@ -111,7 +111,7 @@ error: Found transitive swift_library dependencies. Swift static frameworks expe
 swift_library dependency with no transitive swift_library dependencies.\
 """,
                     )
-                swiftinterface = module.swift.swiftmodule
+                swiftinterface = module.swift.swiftinterface
                 swiftdoc = module.swift.swiftdoc
 
             if not module_name:
