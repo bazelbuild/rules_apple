@@ -11,6 +11,7 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
 )
+load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
@@ -37,10 +38,7 @@ watchos_application(
     ],
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 watchos_application(
@@ -52,10 +50,7 @@ watchos_application(
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     minimum_os_version = "4.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 watchos_extension(
@@ -72,10 +67,7 @@ watchos_extension(
         "//test/starlark_tests/resources:localization",
         "//test/starlark_tests/resources:resource_bundle",
     ],
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -91,10 +83,7 @@ watchos_extension(
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
@@ -109,10 +98,7 @@ watchos_extension(
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
     minimum_os_version = "4.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 ios_application(
@@ -124,10 +110,7 @@ ios_application(
     ],
     minimum_os_version = "8.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     watch_application = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -139,12 +122,14 @@ ios_application(
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = FIXTURE_TAGS,
     deps = [":imported_watchos_dynamic_fmwk"],
 )
 
 apple_dynamic_framework_import(
     name = "imported_watchos_dynamic_fmwk",
     framework_imports = [":generated_watchos_dynamic_fmwk"],
+    tags = FIXTURE_TAGS,
 )
 
 generate_import_framework(
@@ -153,6 +138,7 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "4.0",
     sdk = "watchsimulator",
+    tags = FIXTURE_TAGS,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -167,10 +153,7 @@ ios_application(
     ],
     minimum_os_version = "8.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_no_swift",
     deps = [
         ":swift_lib",
@@ -187,10 +170,7 @@ ios_application(
     ],
     minimum_os_version = "8.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_swift",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -207,10 +187,7 @@ ios_application(
     ],
     minimum_os_version = "8.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_swift",
     deps = [
         ":swift_lib",
@@ -227,10 +204,7 @@ ios_application(
     ],
     minimum_os_version = "12.2",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_swift_stable_abi",
     deps = [
         ":swift_lib",
@@ -248,10 +222,7 @@ watchos_application(
     ],
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 watchos_extension(
@@ -264,10 +235,7 @@ watchos_extension(
     ],
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -284,10 +252,7 @@ watchos_application(
     ],
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 watchos_extension(
@@ -300,10 +265,7 @@ watchos_extension(
     ],
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -320,10 +282,7 @@ watchos_application(
     ],
     minimum_os_version = "6.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 watchos_extension(
@@ -336,10 +295,7 @@ watchos_extension(
     ],
     minimum_os_version = "6.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -348,4 +304,5 @@ watchos_extension(
 swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],
+    tags = FIXTURE_TAGS,
 )
