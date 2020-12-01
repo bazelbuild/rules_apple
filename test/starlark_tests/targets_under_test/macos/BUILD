@@ -15,6 +15,7 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
 )
+load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/frameworks:generate_framework.bzl",
     "generate_import_framework",
@@ -45,10 +46,7 @@ macos_application(
         "//test/starlark_tests/resources:localization",
         "//test/starlark_tests/resources:resource_bundle",
     ],
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:apple_localized_assets_lib",
         "//test/starlark_tests/resources:apple_non_localized_assets_lib",
@@ -68,10 +66,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
     ],
@@ -85,10 +80,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -106,10 +98,7 @@ macos_application(
         "_linkopts_test_main",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -123,10 +112,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -140,10 +126,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -159,10 +142,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -179,10 +159,7 @@ macos_extension(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -200,10 +177,7 @@ macos_extension(
     ],
     minimum_os_version = "10.10",
     provides_main = True,
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -217,6 +191,7 @@ macos_application(
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = "10.11",
+    tags = FIXTURE_TAGS,
     deps = [
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
@@ -228,12 +203,14 @@ macos_application(
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = FIXTURE_TAGS,
     deps = [":imported_macos_dynamic_fmwk"],
 )
 
 apple_dynamic_framework_import(
     name = "imported_macos_dynamic_fmwk",
     framework_imports = [":generated_macos_dynamic_fmwk"],
+    tags = FIXTURE_TAGS,
 )
 
 generate_import_framework(
@@ -242,6 +219,7 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "10.11",
     sdk = "macosx",
+    tags = FIXTURE_TAGS,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -257,10 +235,7 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -274,10 +249,7 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -291,10 +263,7 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -315,10 +284,7 @@ macos_bundle(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -336,10 +302,7 @@ macos_bundle(
         "_linkopts_test_anotherFunctionShared",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -353,10 +316,7 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -367,10 +327,7 @@ macos_bundle(
 macos_command_line_application(
     name = "cmd_app_basic",
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -379,10 +336,7 @@ macos_command_line_application(
 macos_command_line_application(
     name = "cmd_app_basic_swift",
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
     ],
@@ -396,10 +350,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -417,10 +368,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:launchd.plist",
     ],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -434,10 +382,7 @@ macos_command_line_application(
         "_linkopts_test_main",
     ],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -450,10 +395,7 @@ macos_command_line_application(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -468,10 +410,7 @@ macos_dylib(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -488,10 +427,7 @@ macos_dylib(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.11",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
@@ -506,10 +442,7 @@ macos_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
     ],
     minimum_os_version = "10.13",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
@@ -526,10 +459,7 @@ macos_kernel_extension(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.13",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
         "//test/starlark_tests/resources/kext_resources:kext_lib",
@@ -549,10 +479,7 @@ macos_quick_look_plugin(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -573,10 +500,7 @@ macos_quick_look_plugin(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -594,10 +518,7 @@ macos_quick_look_plugin(
         "_linkopts_test_main",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -615,10 +536,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -637,10 +555,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
