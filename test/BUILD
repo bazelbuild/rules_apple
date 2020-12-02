@@ -122,6 +122,15 @@ apple_shell_test(
     shard_count = 4,
 )
 
+apple_shell_test(
+    name = "apple_intent_library_test",
+    size = "small",
+    src = "apple_intent_library_test.sh",
+    data = [
+        "//test/testdata/resources:intent_srcs",
+    ],
+)
+
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",

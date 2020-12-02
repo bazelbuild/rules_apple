@@ -28,6 +28,8 @@ Subcommands:
 
   ibtool [<args>...]
 
+  intentbuilderc [<args>....]
+
   mapc [<args>...]
 
   momc [<args>...]
@@ -36,6 +38,7 @@ Subcommands:
 import argparse
 import os
 import re
+import shutil
 import sys
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
@@ -44,6 +47,7 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 # apple/internal/utils/xctoolrunner.bzl
 _PATH_PREFIX = "[ABSOLUTE]"
 _PATH_PREFIX_LEN = len(_PATH_PREFIX)
+_HEADER_SUFFIX = ".h"
 
 
 def _apply_realpath(argv):
@@ -272,6 +276,40 @@ def coremlc(_, toolargs):
       print_output=True)
   return return_code
 
+def intentbuilderc(args, toolargs):
+  """Assemble the call to "xcrun intentbuilderc"."""
+  xcrunargs = ["xcrun", "intentbuilderc"]
+  _apply_realpath(toolargs)
+
+  srcs_path = os.path.realpath(os.path.join(args.output, args.moduleName))
+  hdrs_path = os.path.realpath(os.path.join(args.output_hdrs, args.moduleName))
+
+  # If there is a module name, create the nested directory
+  if args.moduleName:
+    for path in [srcs_path, hdrs_path]:
+      os.makedirs(path)
+
+  toolargs += [
+    "-moduleName",
+    args.moduleName,
+    "-output",
+    srcs_path,
+  ]
+  xcrunargs += toolargs
+
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      print_output=True)
+
+  if return_code != 0:
+    return return_code
+
+  for f in os.listdir(srcs_path):
+    if f.endswith(_HEADER_SUFFIX):
+      shutil.copy(os.path.join(srcs_path, f), os.path.join(hdrs_path, f))
+
+  return return_code
+
 def momc(_, toolargs):
   """Assemble the call to "xcrun momc"."""
   xcrunargs = ["xcrun", "momc"]
@@ -309,8 +347,15 @@ def main(argv):
   actool_parser.set_defaults(func=actool)
 
   # COREMLC Argument Parser
-  mapc_parser = subparsers.add_parser("coremlc")
-  mapc_parser.set_defaults(func=coremlc)
+  coremlc_parser = subparsers.add_parser("coremlc")
+  coremlc_parser.set_defaults(func=coremlc)
+
+  # INTENTBUILDERC Argument Parser
+  intentbuilderc_parser = subparsers.add_parser("intentbuilderc")
+  intentbuilderc_parser.set_defaults(func=intentbuilderc)
+  intentbuilderc_parser.add_argument('-output')
+  intentbuilderc_parser.add_argument('-output_hdrs')
+  intentbuilderc_parser.add_argument('-moduleName')
 
   # MOMC Argument Parser
   momc_parser = subparsers.add_parser("momc")

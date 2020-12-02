@@ -21,6 +21,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_intent_library",
+    srcs = ["apple_intent_library.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:platform_support",
+        "//apple/internal:resource_actions",
+        "//apple/internal:swift_support",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+
+bzl_library(
     name = "apple_core_ml_library",
     srcs = ["apple_core_ml_library.bzl"],
     visibility = [

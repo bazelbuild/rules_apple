@@ -24,6 +24,10 @@ load(
     _apple_core_ml_library = "apple_core_ml_library",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_intent_library.bzl",
+    _apple_intent_library = "apple_intent_library",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
     _apple_resource_bundle = "apple_resource_bundle",
 )
@@ -78,4 +82,52 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         sdk_frameworks = ["CoreML"],
         data = [mlmodel],
         **kwargs
+    )
+
+def objc_intent_library(
+    name,
+    srcs,
+    module_name = "",
+    tags = None,
+    testonly = False,
+    visibility = None,
+    language = None,
+    swift_version = None,
+    **kwargs):
+    intent_name = "{}.Intent".format(name)
+    intent_srcs = "{}.srcs".format(intent_name)
+    intent_hdrs = "{}.hdrs".format(intent_name)
+    _apple_intent_library(
+        name = intent_name,
+        srcs = srcs,
+        language = "Objective-C",
+        module_name = module_name,
+        tags = tags,
+        testonly = testonly,
+    )
+    native.filegroup(
+        name = intent_srcs,
+        srcs = [intent_name],
+        output_group = "srcs",
+        tags = tags,
+        testonly = testonly,
+    )
+    native.filegroup(
+        name = intent_hdrs,
+        srcs = [intent_name],
+        output_group = "hdrs",
+        tags = tags,
+        testonly = testonly,
+    )
+    objc_library(
+        name = name,
+        srcs = [intent_srcs],
+        hdrs = [intent_hdrs],
+        includes = ["{}.hdrs.h".format(intent_name)],
+        sdk_frameworks = ["Intents"],
+        module_name = module_name,
+        data = srcs,
+        tags = tags,
+        testonly = testonly,
+        visibility = visibility,
     )

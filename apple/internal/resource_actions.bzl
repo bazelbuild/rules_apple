@@ -30,6 +30,10 @@ load(
     _link_storyboards = "link_storyboards",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/resource_actions:intent.bzl",
+    _generate_intent_classes_sources = "generate_intent_classes_sources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:metals.bzl",
     _compile_metals = "compile_metals",
 )
@@ -65,6 +69,7 @@ resource_actions = struct(
     compile_texture_atlas = _compile_texture_atlas,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
+    generate_intent_classes_sources = _generate_intent_classes_sources,
     generate_objc_mlmodel_sources = _generate_objc_mlmodel_sources,
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
