@@ -26,6 +26,10 @@ load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
+load(
+    ":rules/output_group_test.bzl",
+    "output_group_test",
+)
 
 # buildifier: disable=unnamed-macro
 def macos_dylib_test_suite():
@@ -78,6 +82,13 @@ def macos_dylib_test_suite():
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
         expected_dsyms = ["dylib"],
+        tags = [name],
+    )
+
+    output_group_test(
+        name = "{}_output_group_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        expected_output_groups = ["dylib"],
         tags = [name],
     )
 

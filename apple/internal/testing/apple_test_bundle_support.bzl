@@ -124,9 +124,13 @@ def _apple_test_info_aspect_impl(target, ctx):
         includes.append(cc_info.compilation_context.quote_includes)
         includes.append(cc_info.compilation_context.system_includes)
 
-    if (SwiftInfo in target and
-        hasattr(target[SwiftInfo], "transitive_swiftmodules")):
-        swift_modules.append(target[SwiftInfo].transitive_swiftmodules)
+    if SwiftInfo in target:
+        module_swiftmodules = [
+            module.swift.swiftmodule
+            for module in target[SwiftInfo].transitive_modules.to_list()
+            if module.swift
+        ]
+        swift_modules.append(depset(module_swiftmodules))
 
     # Collect sources from the current target. Note that we do not propagate
     # sources transitively as we intentionally only show test sources from the
@@ -184,13 +188,15 @@ def _apple_test_info_provider(deps, test_bundle, test_host):
         transitive_sources.append(test_info.sources)
         transitive_swift_modules.append(test_info.swift_modules)
 
-    # Set module_name only for test targets with a single Swift dependency.
-    # This is not used if there are multiple Swift dependencies, as it will
-    # not be possible to reduce them into a single Swift module and picking
-    # an arbitrary one is fragile.
+    # Set module_name only for test targets with a single Swift dependency that
+    # contains a single Swift module. This is not used if there are multiple
+    # Swift dependencies/modules, as it will not be possible to reduce them into
+    # a single Swift module and picking an arbitrary one is fragile.
     module_name = None
     if len(swift_infos) == 1:
-        module_name = getattr(swift_infos[0], "module_name", None)
+        module_names = [x.name for x in swift_infos[0].direct_modules if x.swift]
+        if len(module_names) == 1:
+            module_name = module_names[0]
 
     return AppleTestInfo(
         deps = depset(dep_labels),

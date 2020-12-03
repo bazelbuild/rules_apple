@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 
 licenses(["notice"])
 
@@ -26,10 +27,6 @@ cc_library(
         "-fapple-kext",
         "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/Headers",
     ],
-    tags = [
-        "manual",
-        "nobuilder",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     alwayslink = 1,
 )

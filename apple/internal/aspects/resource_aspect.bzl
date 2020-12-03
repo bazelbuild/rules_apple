@@ -97,7 +97,8 @@ def _apple_resource_aspect_impl(target, ctx):
             owner = str(ctx.label)
 
     elif ctx.rule.kind == "swift_library":
-        bucketize_args["swift_module"] = target[SwiftInfo].module_name
+        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
+        bucketize_args["swift_module"] = module_names[0] if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 

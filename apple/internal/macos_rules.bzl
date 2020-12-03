@@ -1281,6 +1281,7 @@ def _macos_dylib_impl(ctx):
             **outputs.merge_output_groups(
                 link_result.output_groups,
                 processor_result.output_groups,
+                {"dylib": depset(direct = [output_file])},
             )
         ),
         link_result.binary_provider,

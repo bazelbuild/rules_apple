@@ -99,37 +99,49 @@ single swift_library dependency with no transitive swift_library dependencies.\
         for dep in swiftdeps:
             swiftinfo = dep[SwiftInfo]
 
-            if len(swiftinfo.transitive_swiftinterfaces.to_list()) > 1:
-                fail(
-                    """\
+            swiftinterface = None
+            swiftdoc = None
+            for module in swiftinfo.transitive_modules.to_list():
+                if not module.swift:
+                    continue
+                if swiftinterface:
+                    fail(
+                        """\
 error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                )
+                    )
+                swiftinterface = module.swift.swiftinterface
+                swiftdoc = module.swift.swiftdoc
 
-            if not module_name:
-                module_name = swiftinfo.module_name
-            elif module_name != swiftinfo.module_name:
-                fail(
-                    """\
+                if not module_name:
+                    module_name = module.name
+                elif module.name and module.name != module_name:
+                    fail(
+                        """\
 error: Found multiple direct swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                )
+                    )
 
             arch = _swift_arch_for_dep(dep)
+            swiftdocs[arch] = swiftdoc
+            swiftinterfaces[arch] = swiftinterface
 
             # Collect the interface artifacts. Only get the first element from each depset since
             # they should only contain 1. If there are transitive swift_library dependencies, this
             # aspect would have errored out before.
-            if swiftinfo.transitive_generated_headers:
-                if not generated_header:
-                    # If headers are generated, they should be generated equally for all archs, so
-                    # just take any of them.
-                    generated_header = swiftinfo.transitive_generated_headers.to_list()[0]
-
-            swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list()[0]
-            swiftinterfaces[arch] = swiftinfo.transitive_swiftinterfaces.to_list()[0]
+            #
+            # If headers are generated, they should be generated equally for all archs, so
+            # just take any of them.
+            if not generated_header:
+                for module in swiftinfo.direct_modules:
+                    # If this is both a Swift and a Clang module, then the header in its compilation
+                    # context is its Swift generated header.
+                    if module.swift and module.clang:
+                        headers = module.clang.compilation_context.headers.to_list()
+                        if headers:
+                            generated_header = headers[0]
 
         # Make sure that all dictionaries contain at least one module before returning the provider.
         if all([module_name, swiftdocs, swiftinterfaces]):

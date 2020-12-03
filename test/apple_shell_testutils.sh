@@ -449,8 +449,13 @@ function do_action() {
       # Explicitly pass these flags to ensure the external testing infrastructure
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
-      "--incompatible_objc_compile_info_migration"
   )
+
+  local bazel_version="$(bazel --version)"
+  local bazel_major_version="$(echo "${bazel_version#bazel }" | cut -f1 -d.)"
+  if [[ ( "${bazel_major_version}" != "no_version" ) && ( "${bazel_major_version}" -lt 4 ) ]]; then
+	bazel_options+=("--incompatible_objc_compile_info_migration")
+  fi
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
     local -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")

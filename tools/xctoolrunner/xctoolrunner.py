@@ -61,6 +61,36 @@ def _apply_realpath(argv):
       arg = arg[_PATH_PREFIX_LEN:]
       argv[i] = os.path.realpath(arg)
 
+def _execute_and_filter_with_retry(xcrunargs, filtering):
+  # Note: `actool`/`ibtool` is problematic on all Xcode 12 builds including to 12.1. 25%
+  # of the time, it fails with the error:
+  # "failed to open # liblaunch_sim.dylib"
+  #
+  # This workaround adds a retry it works due to logic in `actool`:
+  # The first time `actool` runs, it spawns a dependent service as the current
+  # user. After a failure, `actool` spawns it in a way that subsequent
+  # invocations will not have the error. It only needs 1 retry.
+  return_code, stdout, stderr = execute.execute_and_filter_output(
+      xcrunargs,
+      trim_paths=True,
+      filtering=filtering,
+      print_output=False)
+
+  # If there's a retry, don't print the first failing output.
+  if return_code == 0:
+    if stdout:
+      sys.stdout.write("%s" % stdout)
+    if stderr:
+      sys.stderr.write("%s" % stderr)
+    return return_code
+
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs,
+      trim_paths=True,
+      filtering=filtering,
+      print_output=True)
+  return return_code
+
 
 def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   """Filter messages from ibtool.
@@ -125,12 +155,7 @@ def ibtool(_, toolargs):
   # You may also see if
   #   IBToolNeverDeque=1
   # helps.
-  return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      trim_paths=True,
-      filtering=ibtool_filtering,
-      print_output=True)
-  return return_code
+  return _execute_and_filter_with_retry(xcrunargs=xcrunargs, filtering=ibtool_filtering)
 
 
 def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
@@ -233,35 +258,7 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  #
-  # Note: `actool` is problematic on all Xcode 12 builds including to 12.1. 25%
-  # of the time, it fails with the error:
-  # "failed to open # liblaunch_sim.dylib"
-  #
-  # This workaround adds a retry it works due to logic in `actool`:
-  # The first time `actool` runs, it spawns a dependent service as the current
-  # user. After a failure, `actool` spawns it in a way that subsequent
-  # invocations will not have the error. It only needs 1 retry.
-  return_code, stdout, stderr = execute.execute_and_filter_output(
-      xcrunargs,
-      trim_paths=True,
-      filtering=actool_filtering,
-      print_output=False)
-
-  # If there's a retry, don't print the first failing output.
-  if return_code == 0:
-    if stdout:
-      sys.stdout.write("%s" % stdout)
-    if stderr:
-      sys.stderr.write("%s" % stderr)
-    return return_code
-
-  return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      trim_paths=True,
-      filtering=actool_filtering,
-      print_output=True)
-  return return_code
+  return _execute_and_filter_with_retry(xcrunargs=xcrunargs, filtering=actool_filtering)
 
 
 def coremlc(_, toolargs):
