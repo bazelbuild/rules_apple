@@ -122,6 +122,7 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
         # Needed for the J2ObjC processing code that already exists in the implementation of
         # apple_common.link_multi_arch_binary.
         "_dummy_lib": attr.label(
+            cfg = apple_common.multi_arch_split,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
         "_googlemac_proto_compiler": attr.label(
