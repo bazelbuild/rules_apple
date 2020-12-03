@@ -404,9 +404,7 @@ swift_library(
     ],
     visibility = ["//visibility:public"],
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 tvos_dynamic_framework(
@@ -437,9 +435,7 @@ swift_library(
         ":basic_framework_lib",
     ],
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 tvos_dynamic_framework(
@@ -471,9 +467,7 @@ swift_library(
         ":basic_framework_with_direct_dependency_lib",
     ],
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 tvos_dynamic_framework(

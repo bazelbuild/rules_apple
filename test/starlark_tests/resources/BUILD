@@ -84,9 +84,7 @@ swift_library(
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
@@ -95,9 +93,7 @@ swift_library(
     srcs = ["Common.swift"],
     testonly = True,
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
@@ -109,9 +105,7 @@ swift_library(
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
@@ -124,9 +118,7 @@ swift_library(
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
@@ -139,9 +131,7 @@ swift_library(
     ],
     testonly = True,
     features = ["swift.no_generated_module_map"],
-    tags = [
-        "manual",
-    ],
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
