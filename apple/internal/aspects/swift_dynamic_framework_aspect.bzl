@@ -108,8 +108,16 @@ single swift_library dependency.\
         module_name = swiftinfo.module_name
         arch = _swift_arch_for_dep(dep)
 
-        swiftdocs[arch] = swiftinfo.transitive_swiftdocs.to_list().pop()
-        swiftmodules[arch] = swiftinfo.transitive_swiftmodules.to_list().pop()
+        swiftmodule = None
+        swiftdoc = None
+        for module in swiftinfo.transitive_modules.to_list():
+                if not module.swift:
+                    continue
+                swiftmodule = module.swift.swiftmodule
+                swiftdoc = module.swift.swiftdoc
+
+        swiftdocs[arch] = swiftdoc
+        swiftmodules[arch] = swiftmodule
         modulemap_file = ctx.actions.declare_file("{}_file.modulemap".format(module_name))
         ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
 

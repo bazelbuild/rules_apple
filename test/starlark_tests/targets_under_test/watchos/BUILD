@@ -347,7 +347,6 @@ swift_library(
     module_name = "DirectDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:DirectDependencyTest.swift",
-        # "//test/starlark_tests/resources:main.swift",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -381,7 +380,6 @@ swift_library(
     module_name = "TransitiveDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
-        # "//test/starlark_tests/resources:main.swift",
     ],
     visibility = ["//visibility:public"],
     deps = [
