@@ -15,10 +15,6 @@
 """Partial implementation for Swift dynamic frameworks."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
