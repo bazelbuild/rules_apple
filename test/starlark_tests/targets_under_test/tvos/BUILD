@@ -415,10 +415,7 @@ tvos_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "14.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_lib",
     ],
@@ -446,10 +443,7 @@ tvos_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "14.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_direct_dependency_lib",
     ],
@@ -478,10 +472,7 @@ tvos_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "14.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_transitive_dependency_lib",
     ],

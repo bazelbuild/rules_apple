@@ -331,10 +331,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_lib",
     ],
@@ -362,10 +359,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_direct_dependency_lib",
     ],
@@ -394,10 +388,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_transitive_dependency_lib",
     ],

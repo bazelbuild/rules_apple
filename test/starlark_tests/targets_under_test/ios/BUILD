@@ -1703,10 +1703,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_lib",
     ],
@@ -1738,10 +1735,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_direct_dependency_lib",
     ],
@@ -1774,10 +1768,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         ":basic_framework_with_transitive_dependency_lib",
     ],
@@ -1796,10 +1787,7 @@ ios_dynamic_framework(
     ],
     linkopts = ["-application_extension"],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_lib_with_resources",
     ],
@@ -1817,10 +1805,7 @@ ios_application(
     ],
     minimum_os_version = "11.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_lib_with_resources",
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1839,10 +1824,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = ["//test/starlark_tests/resources:swift_common_lib"]
 )
 
@@ -1858,10 +1840,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:swift_shared_lib",
     ]
@@ -1880,10 +1859,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = ["//test/starlark_tests/resources:swift_transitive_lib"]
 )
 
@@ -1899,10 +1875,7 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1920,10 +1893,7 @@ ios_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "8.0",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
         "//test/testdata/frameworks:iOSImportedDynamicFramework",
@@ -1942,10 +1912,7 @@ ios_application(
     ],
     minimum_os_version = "11.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
