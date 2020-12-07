@@ -40,17 +40,21 @@ def _get_header_imports(framework_imports):
 
     return [file for file in framework_imports if file.short_path.endswith(".h")]
 
-def _swift_dynamic_framework_partial_impl(ctx, swift_dynamic_framework_info):
+def _swift_dynamic_framework_partial_impl(
+        *,
+        ctx,
+        actions,
+        bundle_name,
+        label_name,
+        swift_dynamic_framework_info):
     """Implementation for the Swift dynamic framework processing partial."""
 
-    expected_module_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-
-    if expected_module_name != swift_dynamic_framework_info.module_name:
+    if bundle_name != swift_dynamic_framework_info.module_name:
         fail("""
 error: Found swift_library with module name {} but expected {}. Swift dynamic \
 frameworks expect a single swift_library dependency with `module_name` set to the same \
 `bundle_name` as the dynamic framework target.\
-""".format(swift_dynamic_framework_info.module_name, expected_module_name))
+""".format(swift_dynamic_framework_info.module_name, bundle_name))
 
     generated_header = swift_dynamic_framework_info.generated_header
     swiftdocs = swift_dynamic_framework_info.swiftdocs
@@ -58,43 +62,51 @@ frameworks expect a single swift_library dependency with `module_name` set to th
     modulemap_file = swift_dynamic_framework_info.modulemap
 
     bundle_files = []
-    modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
+    modules_parent = paths.join("Modules", "{}.swiftmodule".format(bundle_name))
 
     for arch, swiftdoc in swiftdocs.items():
-        bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftdoc".format(arch))
-        ctx.actions.symlink(target_file = swiftdoc, output = bundle_doc)
+        bundle_doc = intermediates.file(actions, label_name, "{}.swiftdoc".format(arch))
+        actions.symlink(target_file = swiftdoc, output = bundle_doc)
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
     
     for arch, swiftmodule in swiftmodules.items():
-        bundle_doc = intermediates.file(ctx.actions, ctx.label.name, "{}.swiftmodule".format(arch))
-        ctx.actions.symlink(target_file = swiftmodule, output = bundle_doc)
+        bundle_doc = intermediates.file(actions, label_name, "{}.swiftmodule".format(arch))
+        actions.symlink(target_file = swiftmodule, output = bundle_doc)
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
 
     if generated_header:
         bundle_header = intermediates.file(
-            ctx.actions,
-            ctx.label.name,
-            "{}.h".format(expected_module_name),
+            actions,
+            label_name,
+            "{}.h".format(bundle_name),
         )
-        ctx.actions.symlink(target_file = generated_header, output = bundle_header)
+        actions.symlink(target_file = generated_header, output = bundle_header)
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
     if modulemap_file:
-        modulemap = intermediates.file(ctx.actions, ctx.label.name, "module.modulemap")
-        ctx.actions.symlink(target_file = modulemap_file, output = modulemap)
+        modulemap = intermediates.file(actions, label_name, "module.modulemap")
+        actions.symlink(target_file = modulemap_file, output = modulemap)
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
     return struct(
         bundle_files = bundle_files,
     )
 
-def swift_dynamic_framework_partial(swift_dynamic_framework_info):
+def swift_dynamic_framework_partial(
+        *,
+        actions,
+        bundle_name,
+        label_name,
+        swift_dynamic_framework_info):
     """Constructor for the Swift dynamic framework processing partial.
 
     This partial collects and bundles the necessary files to construct a Swift based dynamic
     framework.
 
     Args:
+        actions: The actions provider from `ctx.actions`.
+        bundle_name: The name of the output bundle.
+        label_name: Name of the target being built.
         swift_dynamic_framework_info: The SwiftDynamicFrameworkInfo provider containing the required
             artifacts.
 
@@ -104,5 +116,8 @@ def swift_dynamic_framework_partial(swift_dynamic_framework_info):
     """
     return partial.make(
         _swift_dynamic_framework_partial_impl,
+        actions = actions,
+        bundle_name = bundle_name,
+        label_name = label_name,
         swift_dynamic_framework_info = swift_dynamic_framework_info,
     )

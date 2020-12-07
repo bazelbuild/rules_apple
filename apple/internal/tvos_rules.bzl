@@ -286,8 +286,7 @@ def _tvos_application_impl(ctx):
 def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
     
-    deps_list = [deps for deps in ctx.attr.deps]
-    binary_target = deps_list.pop()
+    binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
     link_result = linking_support.register_linking_action(ctx)
     binary_artifact = link_result.binary_provider.binary
     debug_outputs_provider = link_result.debug_outputs_provider
@@ -417,6 +416,9 @@ def _tvos_dynamic_framework_impl(ctx):
             swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
         ),
         partials.swift_dynamic_framework_partial(
+            actions = actions,
+            bundle_name = bundle_name,
+            label_name = label.name,
             swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
         ),
     ]
