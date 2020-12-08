@@ -36,6 +36,7 @@ def _get_header_imports(framework_imports):
 
     return [file for file in framework_imports if file.short_path.endswith(".h")]
 
+# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dynamic_framework_partial_impl(
         *,
         ctx,
@@ -108,7 +109,7 @@ def swift_dynamic_framework_partial(
 
     Returns:
         A partial that returns the bundle location of the supporting Swift artifacts needed in a
-        Swift based static framework.
+        Swift based dynamic framework.
     """
     return partial.make(
         _swift_dynamic_framework_partial_impl,
