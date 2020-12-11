@@ -102,6 +102,7 @@ def objc_intent_library(
     language = None,
     swift_version = None,
     **kwargs):
+    # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for intentdefiniton files."""
     if not module_name:
         module_name = modules.derive_name(native.package_name(), name)
@@ -160,10 +161,10 @@ def swift_intent_library(
     visibility = None,
     language = None,
     **kwargs):
+    # buildifier: disable=function-docstring-args
     """Macro to orchestrate an swift_library with generated sources for intentdefiniton files."""
     if not module_name:
         module_name = modules.derive_name(native.package_name(), name)
-    print("module_name", module_name)
     intent_name = "{}.Intent".format(name)
     _apple_intent_library(
         name = intent_name,

@@ -30,10 +30,6 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 
 def _apple_intent_library_impl(ctx):
     """Implementation of the apple_intent_library."""
@@ -124,6 +120,7 @@ Label to a single or multiple intentdefinition files from which to generate sour
             cfg = "host",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
+            doc = "Private attribute to specify the xctoolrunner executable.",
         ),
     }),
     output_to_genfiles = True,

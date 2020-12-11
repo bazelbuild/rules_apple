@@ -37,8 +37,7 @@ def generate_intent_classes_sources(
         module_name,
         platform_prerequisites,
         xctoolrunner_executable):
-    """Creates an action that code generates intent classes from an
-    intentdefinition file.
+    """Creates an action that cgenerates intent classes from an intentdefinition file.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -52,6 +51,7 @@ def generate_intent_classes_sources(
         class_visibility: Visibility attribute for the generated classes.
         module_name: The name of the module that contains generated classes.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
     is_swift = language == "Swift"
