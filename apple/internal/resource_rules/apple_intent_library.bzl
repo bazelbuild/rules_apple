@@ -37,8 +37,18 @@ load(
 
 def _apple_intent_library_impl(ctx):
     """Implementation of the apple_intent_library."""
-    output_srcs = ctx.actions.declare_directory("{}.srcs.m".format(ctx.attr.name))
-    output_hdrs = ctx.actions.declare_directory("{}.hdrs.h".format(ctx.attr.name))
+
+    is_swift = ctx.attr.language == "Swift"
+
+    swift_output_src = None
+    objc_output_srcs = None
+    objc_output_hdrs = None
+
+    if is_swift:
+        swift_output_src = ctx.actions.declare_file("{}.swift".format(ctx.attr.name))
+    else:
+        objc_output_srcs = ctx.actions.declare_directory("{}.srcs.m".format(ctx.attr.name))
+        objc_output_hdrs = ctx.actions.declare_directory("{}.hdrs.h".format(ctx.attr.name))
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -55,8 +65,9 @@ def _apple_intent_library_impl(ctx):
         resource_actions.generate_intent_classes_sources(
             actions = ctx.actions,
             input_file = src,
-            output_srcs_directory = output_srcs,
-            output_hdrs_directory = output_hdrs,
+            swift_output_src = swift_output_src,
+            objc_output_srcs = objc_output_srcs,
+            objc_output_hdrs = objc_output_hdrs,
             language = ctx.attr.language,
             class_prefix = ctx.attr.class_prefix,
             swift_version = ctx.attr.swift_version,
@@ -66,13 +77,18 @@ def _apple_intent_library_impl(ctx):
             xctoolrunner_executable = ctx.executable._xctoolrunner,
         )
 
+    if is_swift:
+        return [
+            DefaultInfo(files = depset([swift_output_src])),
+        ]
+
     return [
         DefaultInfo(
-            files = depset([output_srcs, output_hdrs]),
+            files = depset([objc_output_srcs, objc_output_hdrs]),
         ),
         OutputGroupInfo(
-            srcs = depset([output_srcs]),
-            hdrs = depset([output_hdrs]),
+            srcs = depset([objc_output_srcs]),
+            hdrs = depset([objc_output_hdrs]),
         ),
     ]
 

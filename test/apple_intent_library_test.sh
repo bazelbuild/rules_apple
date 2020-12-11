@@ -30,54 +30,53 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_apple//apple:resources.bzl", "objc_intent_library")
+load("@build_bazel_rules_apple//apple:resources.bzl", "objc_intent_library", "swift_intent_library")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-objc_library(
-    name = "app_lib",
-    srcs = ["main.m"],
-    deps = [":objc_lib"],
+objc_intent_library(
+    name = "SampleIntentObjc",
+    srcs = ["@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition"],
 )
 
 objc_library(
     name = "objc_lib",
     srcs = ["objc_lib.m"],
-    deps = [":SampleIntent"],
-)
-
-# swift_library(
-#     name = "swift_lib",
-#     srcs = ["swift_lib.swift"],
-#     # Apple's generated code triggers this warning, so we need to disable it,
-#     # smh.
-#     copts = ["-Xcc", "-Wno-nullability"],
-#     deps = [":SampleIntent"],
-# )
-
-objc_intent_library(
-    name = "SampleIntent",
-    srcs = ["@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition"],
+    deps = [":SampleIntentObjc"],
 )
 
 ios_application(
-    name = "app",
+    name = "app_objc",
     bundle_id = "my.bundle.id",
     families = ["iphone", "ipad"],
     infoplists = ["Info.plist"],
     minimum_os_version = "12",
-    deps = [":app_lib"],
+    deps = [":objc_lib"],
 )
-EOF
 
-  cat > app/main.m <<EOF
-int main(int argc, char **argv) {
-  return 0;
-}
+swift_intent_library(
+    name = "SampleIntentSwift",
+    srcs = ["@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition"],
+)
+
+swift_library(
+    name = "swift_lib",
+    srcs = ["swift_lib.swift"],
+    deps = [":SampleIntentSwift"],
+)
+
+ios_application(
+    name = "app_swift",
+    bundle_id = "my.bundle.id",
+    families = ["iphone", "ipad"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "12",
+    deps = [":swift_lib"],
+)
 EOF
 
   cat > app/objc_lib.m <<EOF
 #import <Foundation/Foundation.h>
-#import "app/SampleIntentIntent.h"
+#import "app_SampleIntentObjc/SampleIntentIntent.h"
 
 @interface ObjcLib: NSObject
 @end
@@ -87,14 +86,22 @@ EOF
   NSLog(@"%@", intent);
 }
 @end
+
+int main(int argc, char **argv) {
+  return 0;
+}
 EOF
 
   cat > app/swift_lib.swift <<EOF
 import Foundation
-import app_SampleCoreML
+import app_SampleIntentSwift
 
-public struct SwiftLib {
-  public var mySample = sample()
+@main
+class MyApp {
+  public var mySample = SampleIntentIntent()
+
+  static func main() {
+  }
 }
 EOF
 
@@ -114,9 +121,11 @@ function test_intentdefinition_builds() {
   create_common_files
   pwd
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app_objc || fail "Should build"
+  assert_zip_contains "test-bin/app/app_objc.ipa" "Payload/app_objc.app/intent2.intentdefinition"
 
-  # assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/sample.mlmodelc/"
+  do_build ios //app:app_swift || fail "Should build"
+  assert_zip_contains "test-bin/app/app_swift.ipa" "Payload/app_swift.app/intent2.intentdefinition"
 }
 
 # run_suite "apple_intent_library tests"

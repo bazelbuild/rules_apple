@@ -95,6 +95,17 @@ def _execute_and_filter_with_retry(xcrunargs, filtering):
       print_output=True)
   return return_code
 
+def _ensure_clean_path(path):
+  """Ensure a directory is exists and is empty."""
+  if os.path.exists(path):
+    os.removedirs(path)
+  os.makedirs(path)
+
+def _listdir_full(path):
+  """List a directory but output the full path to the files instead of only the
+  file names."""
+  for f in os.listdir(path):
+    yield os.path.join(path, f)
 
 def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   """Filter messages from ibtool.
@@ -280,20 +291,32 @@ def intentbuilderc(args, toolargs):
   """Assemble the call to "xcrun intentbuilderc"."""
   xcrunargs = ["xcrun", "intentbuilderc"]
   _apply_realpath(toolargs)
+  is_swift = args.language == "Swift"
 
-  srcs_path = os.path.realpath(os.path.join(args.output, args.moduleName))
-  hdrs_path = os.path.realpath(os.path.join(args.output_hdrs, args.moduleName))
+  output_path = None
+  objc_output_srcs = None
+  objc_output_hdrs = None
 
-  # If there is a module name, create the nested directory
-  if args.moduleName:
-    for path in [srcs_path, hdrs_path]:
-      os.makedirs(path)
+  # If the language is Swift, create a temporary directory for codegen output.
+  # If the language is Objective-C, ensure the module name directory and headers
+  # are created and empty (clean).
+  if is_swift:
+    output_path = "{}.out.tmp".format(args.swift_output_src)
+  else:
+    output_path = os.path.join(args.objc_output_srcs, args.moduleName)
+    objc_output_hdrs = os.path.join(args.objc_output_hdrs, args.moduleName)
+    _ensure_clean_path(objc_output_hdrs)
+
+  _ensure_clean_path(output_path)
+  output_path = os.path.realpath(output_path)
 
   toolargs += [
+    "-language",
+    args.language,
     "-moduleName",
     args.moduleName,
     "-output",
-    srcs_path,
+    output_path,
   ]
   xcrunargs += toolargs
 
@@ -304,9 +327,20 @@ def intentbuilderc(args, toolargs):
   if return_code != 0:
     return return_code
 
-  for f in os.listdir(srcs_path):
-    if f.endswith(_HEADER_SUFFIX):
-      shutil.copy(os.path.join(srcs_path, f), os.path.join(hdrs_path, f))
+  # If the language is Swift, concatenate all the output files into one.
+  # If the language is Objective-C, put the headers into the pre-declared
+  # headers directory. Because the .m files reference headers via quotes, copy
+  # them instead of moving them and doing some -iquote fu.
+  if is_swift:
+    with open(args.swift_output_src, "w") as output_src:
+      for src in _listdir_full(output_path):
+        with open(src) as intput_src:
+          shutil.copyfileobj(intput_src, output_src)
+    os.removedirs(output_path)
+  else:
+    for f in _listdir_full(output_path):
+      if f.endswith(_HEADER_SUFFIX):
+        shutil.copy(f, os.path.join(objc_output_hdrs, os.path.basename(f)))
 
   return return_code
 
@@ -353,9 +387,11 @@ def main(argv):
   # INTENTBUILDERC Argument Parser
   intentbuilderc_parser = subparsers.add_parser("intentbuilderc")
   intentbuilderc_parser.set_defaults(func=intentbuilderc)
-  intentbuilderc_parser.add_argument('-output')
-  intentbuilderc_parser.add_argument('-output_hdrs')
-  intentbuilderc_parser.add_argument('-moduleName')
+  intentbuilderc_parser.add_argument("-language")
+  intentbuilderc_parser.add_argument("-objc_output_srcs")
+  intentbuilderc_parser.add_argument("-objc_output_hdrs")
+  intentbuilderc_parser.add_argument("-swift_output_src")
+  intentbuilderc_parser.add_argument("-moduleName")
 
   # MOMC Argument Parser
   momc_parser = subparsers.add_parser("momc")

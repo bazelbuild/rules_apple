@@ -35,10 +35,16 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:modules.bzl",
+    _modules = "modules",
+)
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
+modules = _modules
 
 # TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
@@ -87,13 +93,17 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
 def objc_intent_library(
     name,
     srcs,
-    module_name = "",
+    class_prefix = None,
+    class_visibility = None,
+    module_name = None,
     tags = None,
     testonly = False,
     visibility = None,
     language = None,
     swift_version = None,
     **kwargs):
+    if not module_name:
+        module_name = modules.derive_name(native.package_name(), name)
     intent_name = "{}.Intent".format(name)
     intent_srcs = "{}.srcs".format(intent_name)
     intent_hdrs = "{}.hdrs".format(intent_name)
@@ -101,6 +111,7 @@ def objc_intent_library(
         name = intent_name,
         srcs = srcs,
         language = "Objective-C",
+        class_prefix = class_prefix,
         module_name = module_name,
         tags = tags,
         testonly = testonly,
@@ -130,4 +141,42 @@ def objc_intent_library(
         tags = tags,
         testonly = testonly,
         visibility = visibility,
+    )
+
+def swift_intent_library(
+    name,
+    srcs,
+    class_prefix = None,
+    class_visibility = None,
+    module_name = None,
+    swift_version = None,
+    tags = None,
+    testonly = False,
+    visibility = None,
+    language = None,
+    **kwargs):
+    if not module_name:
+        module_name = modules.derive_name(native.package_name(), name)
+    print("module_name", module_name)
+    intent_name = "{}.Intent".format(name)
+    _apple_intent_library(
+        name = intent_name,
+        srcs = srcs,
+        language = "Swift",
+        class_prefix = class_prefix,
+        class_visibility = class_visibility,
+        swift_version = swift_version,
+        module_name = module_name,
+        tags = tags,
+        testonly = testonly,
+    )
+    swift_library(
+        name = name,
+        srcs = [intent_name],
+        module_name = module_name,
+        data = srcs,
+        tags = tags,
+        testonly = testonly,
+        visibility = visibility,
+        **kwargs,
     )

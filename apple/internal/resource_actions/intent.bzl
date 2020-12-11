@@ -27,8 +27,9 @@ def generate_intent_classes_sources(
         *,
         actions,
         input_file,
-        output_srcs_directory,
-        output_hdrs_directory,
+        swift_output_src,
+        objc_output_srcs,
+        objc_output_hdrs,
         language,
         class_prefix,
         swift_version,
@@ -51,35 +52,50 @@ def generate_intent_classes_sources(
         platform_prerequisites: Struct containing information on the platform being targeted.
     """
 
+    is_swift = language == "Swift"
+
+    arguments = [
+        "intentbuilderc",
+        "generate",
+        "-input",
+        xctoolrunner.prefixed_path(input_file.path),
+        "-language",
+        language,
+        "-classPrefix",
+        class_prefix,
+        "-swiftVersion",
+        swift_version,
+        "-visibility",
+        class_visibility,
+        "-moduleName",
+        module_name,
+    ]
+
+    outputs = []
+    if is_swift:
+        arguments += [
+            "-swift_output_src",
+            swift_output_src.path,
+        ]
+        outputs = [swift_output_src]
+    else:
+        arguments += [
+            "-objc_output_srcs",
+            objc_output_srcs.path,
+            # Custom to rules_apple
+            "-objc_output_hdrs",
+            objc_output_hdrs.path,
+        ]
+        outputs = [objc_output_srcs, objc_output_hdrs]
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = [
-            "intentbuilderc",
-            "generate",
-            "-input",
-            xctoolrunner.prefixed_path(input_file.path),
-            "-output",
-            output_srcs_directory.path,
-            "-language",
-            language,
-            "-classPrefix",
-            class_prefix,
-            "-swiftVersion",
-            swift_version,
-            "-visibility",
-            class_visibility,
-            "-moduleName",
-            module_name,
-
-            # Custom to rules_apple
-            "-output_hdrs",
-            output_hdrs_directory.path,
-        ],
+        arguments = arguments,
         executable = xctoolrunner_executable,
         inputs = [input_file],
         mnemonic = "IntentGenerate",
-        outputs = [output_srcs_directory, output_hdrs_directory],
+        outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
         xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
