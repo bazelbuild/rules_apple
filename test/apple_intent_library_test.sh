@@ -122,10 +122,10 @@ function test_intentdefinition_builds() {
   pwd
 
   do_build ios //app:app_objc || fail "Should build"
-  assert_zip_contains "test-bin/app/app_objc.ipa" "Payload/app_objc.app/intent2.intentdefinition"
+  assert_zip_contains "test-bin/app/app_objc.ipa" "Payload/app_objc.app/intent.intentdefinition"
 
   do_build ios //app:app_swift || fail "Should build"
-  assert_zip_contains "test-bin/app/app_swift.ipa" "Payload/app_swift.app/intent2.intentdefinition"
+  assert_zip_contains "test-bin/app/app_swift.ipa" "Payload/app_swift.app/intent.intentdefinition"
 }
 
-# run_suite "apple_intent_library tests"
+run_suite "apple_intent_library tests"
