@@ -244,3 +244,143 @@ to library targets through the `data` attribute, or to other
     </tr>
   </tbody>
 </table>
+
+
+<a name="objc_intent_library"></a>
+## objc_intent_library
+
+```python
+objc_intent_library(name, src, [module_name, class_prefix, class_visibility])
+```
+
+This rule supports the integration of Intents `.intentdefinition` files into Apple rules.
+It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
+`swift_library` targets.
+If no `module_name` is provided, one is derived from the target's path in a similar fashion as `objc_library`.
+Headers are put in a `<module_name>/` directory. For example, if this target's label is `//my/package:intent`, you can
+import the `SampleIntent` type's header as `#import "my_package_intent/SampleIntentIntent.h"`.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>src</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>Reference to the <code>.intentdefiniton</code> file to process.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>The name of the module that contains generated classes.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>class_prefix</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>Class prefix to use for the generated classes.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>class_visibility</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>)</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>The name of the module that contains generated classes.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<a name="swift_intent_library"></a>
+## swift_intent_library
+
+```python
+swift_intent_library(name, src, [module_name, class_prefix, class_visibility])
+```
+
+This rule supports the integration of Intents `.intentdefinition` files into Apple rules.
+It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
+`swift_library` targets.
+If no `module_name` is provided, one is derived from the target's path in a similar fashion as `swift_library`.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
+        <p>A unique name for the target.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>src</code></td>
+      <td>
+        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
+        <p>Reference to the <code>.intentdefiniton</code> file to process.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>The name of the module that contains generated classes.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>class_prefix</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>Class prefix to use for the generated classes.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>class_visibility</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>)</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String</a>; optional</code></p>
+        <p>The name of the module that contains generated classes.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
