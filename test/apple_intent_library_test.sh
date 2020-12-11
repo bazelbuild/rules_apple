@@ -35,7 +35,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 objc_intent_library(
     name = "SampleIntentObjc",
-    srcs = ["@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition"],
+    src = "@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition",
 )
 
 objc_library(
@@ -55,7 +55,7 @@ ios_application(
 
 swift_intent_library(
     name = "SampleIntentSwift",
-    srcs = ["@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition"],
+    src = "@build_bazel_rules_apple//test/testdata/resources:intent.intentdefinition",
 )
 
 swift_library(

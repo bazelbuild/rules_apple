@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,7 +43,9 @@ def generate_intent_classes_sources(
     Args:
         actions: The actions provider from `ctx.actions`.
         input_file: The intent definition file.
-        output_directory: Output directory.
+        swift_output_src: The output file when generating Swift sources.
+        objc_output_srcs: The output sources directory when generating ObjC.
+        objc_output_hdrs: The output headers directory when generating ObjC.
         language: Language of generated classes ("Objective-C", "Swift").
         class_prefix: Class prefix to use for the generated classes.
         swift_version: Version of Swift to use for the generated classes.
@@ -82,7 +84,6 @@ def generate_intent_classes_sources(
         arguments += [
             "-objc_output_srcs",
             objc_output_srcs.path,
-            # Custom to rules_apple
             "-objc_output_hdrs",
             objc_output_hdrs.path,
         ]

@@ -336,7 +336,6 @@ def intentbuilderc(args, toolargs):
       for src in _listdir_full(output_path):
         with open(src) as intput_src:
           shutil.copyfileobj(intput_src, output_src)
-    os.removedirs(output_path)
   else:
     for f in _listdir_full(output_path):
       if f.endswith(_HEADER_SUFFIX):

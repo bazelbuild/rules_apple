@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,21 +61,20 @@ def _apple_intent_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    for src in ctx.files.srcs:
-        resource_actions.generate_intent_classes_sources(
-            actions = ctx.actions,
-            input_file = src,
-            swift_output_src = swift_output_src,
-            objc_output_srcs = objc_output_srcs,
-            objc_output_hdrs = objc_output_hdrs,
-            language = ctx.attr.language,
-            class_prefix = ctx.attr.class_prefix,
-            swift_version = ctx.attr.swift_version,
-            class_visibility = ctx.attr.class_visibility,
-            module_name = ctx.attr.module_name,
-            platform_prerequisites = platform_prerequisites,
-            xctoolrunner_executable = ctx.executable._xctoolrunner,
-        )
+    resource_actions.generate_intent_classes_sources(
+        actions = ctx.actions,
+        input_file = ctx.file.src,
+        swift_output_src = swift_output_src,
+        objc_output_srcs = objc_output_srcs,
+        objc_output_hdrs = objc_output_hdrs,
+        language = ctx.attr.language,
+        class_prefix = ctx.attr.class_prefix,
+        swift_version = ctx.attr.swift_version,
+        class_visibility = ctx.attr.class_visibility,
+        module_name = ctx.attr.module_name,
+        platform_prerequisites = platform_prerequisites,
+        xctoolrunner_executable = ctx.executable._xctoolrunner,
+    )
 
     if is_swift:
         return [
@@ -95,8 +94,8 @@ def _apple_intent_library_impl(ctx):
 apple_intent_library = rule(
     implementation = _apple_intent_library_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
-        "srcs": attr.label_list(
-            allow_files = [".intentdefinition"],
+        "src": attr.label(
+            allow_single_file = [".intentdefinition"],
             mandatory = True,
             doc = """
 Label to a single or multiple intentdefinition files from which to generate sources files.
@@ -130,13 +129,12 @@ Label to a single or multiple intentdefinition files from which to generate sour
     output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
-This rule takes a single mlmodel file and creates a target that can be added as a dependency from
-objc_library or swift_library targets. For Swift, just import like any other objc_library target.
-For objc_library, this target generates a header named `<target_name>.h` that can be imported from
-within the package where this target resides. For example, if this target's label is
-`//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
-
-This rule currently only returns an ObjC interface since the Swift generated files do not have the
-necessary public interfaces to export its symbols outside of the module.
+This rule takes a single `.intentdefinition` file and creates a target that can be added as a dependency from
+objc_library or swift_library targets.
+If the `language` is `Objective-C`, this target generates type headers in a `<module_name>/` directory. If no
+`module_name` is provided, one is derived from the target's path in a similar fashion as `objc_library` or
+`swift_library`.
+For example, if this target's label is `//my/package:intent`, you can import the `SampleIntent` type's header as
+`#import "my_package_intent/SampleIntentIntent.h"`.
 """,
 )

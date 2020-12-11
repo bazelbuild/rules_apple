@@ -92,7 +92,7 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
 
 def objc_intent_library(
     name,
-    srcs,
+    src,
     class_prefix = None,
     class_visibility = None,
     module_name = None,
@@ -102,6 +102,7 @@ def objc_intent_library(
     language = None,
     swift_version = None,
     **kwargs):
+    """Macro to orchestrate an objc_library with generated sources for intentdefiniton files."""
     if not module_name:
         module_name = modules.derive_name(native.package_name(), name)
     intent_name = "{}.Intent".format(name)
@@ -109,7 +110,7 @@ def objc_intent_library(
     intent_hdrs = "{}.hdrs".format(intent_name)
     _apple_intent_library(
         name = intent_name,
-        srcs = srcs,
+        src = src,
         language = "Objective-C",
         class_prefix = class_prefix,
         module_name = module_name,
@@ -134,18 +135,22 @@ def objc_intent_library(
         name = name,
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],
+        # I wished there was something cleaner.
         includes = ["{}.hdrs.h".format(intent_name)],
         sdk_frameworks = ["Intents"],
         module_name = module_name,
-        data = srcs,
+        data = [src],
         tags = tags,
         testonly = testonly,
         visibility = visibility,
     )
 
+# Note: rules_apples depends on rules_swift, not the other way around. This means
+# that apple_intent_library could not be imported in rules_swift and thus this
+# macro must live here in rules_apple.
 def swift_intent_library(
     name,
-    srcs,
+    src,
     class_prefix = None,
     class_visibility = None,
     module_name = None,
@@ -155,13 +160,14 @@ def swift_intent_library(
     visibility = None,
     language = None,
     **kwargs):
+    """Macro to orchestrate an swift_library with generated sources for intentdefiniton files."""
     if not module_name:
         module_name = modules.derive_name(native.package_name(), name)
     print("module_name", module_name)
     intent_name = "{}.Intent".format(name)
     _apple_intent_library(
         name = intent_name,
-        srcs = srcs,
+        src = src,
         language = "Swift",
         class_prefix = class_prefix,
         class_visibility = class_visibility,
@@ -174,7 +180,7 @@ def swift_intent_library(
         name = name,
         srcs = [intent_name],
         module_name = module_name,
-        data = srcs,
+        data = [src],
         tags = tags,
         testonly = testonly,
         visibility = visibility,
