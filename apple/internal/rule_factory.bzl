@@ -39,6 +39,10 @@ load(
     "swift_static_framework_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "swift_dynamic_framework_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
@@ -297,6 +301,8 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
             deps_aspects.append(apple_test_info_aspect)
         if product_type == apple_product_type.static_framework:
             deps_aspects.append(swift_static_framework_aspect)
+        if product_type == apple_product_type.framework:
+            deps_aspects.append(swift_dynamic_framework_aspect)
 
     return dicts.add(
         _COMMON_ATTRS,
@@ -922,6 +928,30 @@ ignored.
 """,
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.framework:
+        attrs.append({
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+    If true, compiles and links this framework with `-application-extension`, restricting the binary to
+    use only extension-safe APIs.
+    """,
+            ),
+        })
+
+        if rule_descriptor.requires_deps:
+            extra_args = {}
+            attrs.append({
+                "frameworks": attr.label_list(
+                    providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                    doc = """
+    A list of framework targets (see
+    [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+    that this target depends on.
+    """,
+                    **extra_args
+                ),
+            })
 
     return attrs
 

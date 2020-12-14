@@ -74,6 +74,67 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_lib_with_resources",
+    module_name = "swift_lib_with_resources",
+    srcs = [
+        "Shared.swift",
+    ],
+    data = [
+        ":structured_resources",
+    ],
+    testonly = True,
+    features = ["swift.no_generated_module_map"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_common_lib",
+    module_name = "swift_common_lib",
+    srcs = ["Common.swift"],
+    testonly = True,
+    features = ["swift.no_generated_module_map"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_shared_lib",
+    module_name = "swift_shared_lib",
+    srcs = ["Shared.swift"],
+    deps = [
+        "//test/starlark_tests/resources:swift_common_lib",
+    ],
+    testonly = True,
+    features = ["swift.no_generated_module_map"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_transitive_lib",
+    module_name = "swift_transitive_lib",
+    srcs = ["Transitives.swift"],
+    deps = [
+        "//test/starlark_tests/resources:swift_common_lib",
+        "//test/starlark_tests/resources:swift_shared_lib",
+    ],
+    testonly = True,
+    features = ["swift.no_generated_module_map"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_with_transitives",
+    module_name = "dynamic_framework_with_resources",
+    srcs = ["Shared.swift"],
+    data = [
+        "//test/starlark_tests/targets_under_test/ios:swift_common_lib_framework",
+        "//test/starlark_tests/targets_under_test/ios:swift_shared_lib_framework",
+    ],
+    testonly = True,
+    features = ["swift.no_generated_module_map"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
     name = "swift_framework_lib",
     srcs = ["//test/testdata/sources:main.swift"],
     module_name = "swift_framework_lib",

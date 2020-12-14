@@ -6,6 +6,7 @@ load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
+load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_imessage_application_tests.bzl", "ios_imessage_application_test_suite")
 load(":ios_sticker_pack_extension_tests.bzl", "ios_sticker_pack_extension_test_suite")
 load(":ios_ui_test_tests.bzl", "ios_ui_test_test_suite")
@@ -22,6 +23,7 @@ load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
 load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
+load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
 load(":tvos_extension_tests.bzl", "tvos_extension_test_suite")
 load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
 load(":tvos_static_framework_tests.bzl", "tvos_static_framework_test_suite")
@@ -29,6 +31,7 @@ load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
 load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
 load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
+load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
 
 licenses(["notice"])
@@ -46,6 +49,8 @@ ios_app_clip_test_suite()
 ios_extension_test_suite()
 
 ios_framework_test_suite()
+
+ios_dynamic_framework_test_suite()
 
 ios_imessage_application_test_suite()
 
@@ -81,6 +86,8 @@ tvos_application_test_suite()
 
 tvos_extension_test_suite()
 
+tvos_dynamic_framework_test_suite()
+
 tvos_framework_test_suite()
 
 tvos_static_framework_test_suite()
@@ -92,6 +99,8 @@ tvos_unit_test_test_suite()
 watchos_application_swift_test_suite()
 
 watchos_application_test_suite()
+
+watchos_dynamic_framework_test_suite()
 
 watchos_extension_test_suite()
 

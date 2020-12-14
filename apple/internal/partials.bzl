@@ -87,6 +87,10 @@ load(
     _swift_dylibs_partial = "swift_dylibs_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:swift_dynamic_framework.bzl",
+    _swift_dynamic_framework_partial = "swift_dynamic_framework_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:swift_static_framework.bzl",
     _swift_static_framework_partial = "swift_static_framework_partial",
 )
@@ -114,6 +118,7 @@ partials = struct(
     settings_bundle_partial = _settings_bundle_partial,
     static_framework_header_modulemap_partial = _static_framework_header_modulemap_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
+    swift_dynamic_framework_partial = _swift_dynamic_framework_partial,
     swift_static_framework_partial = _swift_static_framework_partial,
     watchos_stub_partial = _watchos_stub_partial,
 )

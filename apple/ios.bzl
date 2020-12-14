@@ -46,6 +46,7 @@ load(
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
+    _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
@@ -122,6 +123,36 @@ def ios_framework(name, **kwargs):
     _ios_framework(
         name = name,
         dylibs = binary_args.get("frameworks", []),
+        **bundling_args
+    )
+
+def ios_dynamic_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Builds and bundles an iOS dynamic framework that is consumable by Xcode."""
+
+    binary_args = dict(kwargs)
+    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
+    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
+    # these workarounds into the rule implementations.
+    linkopts = binary_args.pop("linkopts", [])
+    bundle_name = binary_args.get("bundle_name", name)
+    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
+    binary_args["linkopts"] = linkopts
+    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        include_entitlements = False,
+        platform_type = str(apple_common.platform_type.ios),
+        product_type = apple_product_type.framework,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
+        **binary_args
+    )
+
+    # Remove any kwargs that shouldn't be passed to the underlying rule.
+    bundling_args.pop("entitlements", None)
+
+    _ios_dynamic_framework(
+        name = name,
+        extension_safe = kwargs.get("extension_safe"),
         **bundling_args
     )
 
