@@ -114,7 +114,7 @@ def objc_intent_library(
         src = src,
         language = "Objective-C",
         class_prefix = class_prefix,
-        module_name = module_name,
+        header_name = name,
         tags = tags,
         testonly = testonly,
     )
@@ -136,8 +136,6 @@ def objc_intent_library(
         name = name,
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],
-        # I wished there was something cleaner.
-        includes = ["{}.hdrs.h".format(intent_name)],
         sdk_frameworks = ["Intents"],
         module_name = module_name,
         data = [src],
@@ -173,7 +171,6 @@ def swift_intent_library(
         class_prefix = class_prefix,
         class_visibility = class_visibility,
         swift_version = swift_version,
-        module_name = module_name,
         tags = tags,
         testonly = testonly,
     )

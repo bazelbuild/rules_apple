@@ -22,6 +22,8 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
 )
+load("@bazel_skylib//lib:versions.bzl", "versions")
+
 
 def generate_intent_classes_sources(
         *,
@@ -30,11 +32,11 @@ def generate_intent_classes_sources(
         swift_output_src,
         objc_output_srcs,
         objc_output_hdrs,
+        objc_public_header,
         language,
         class_prefix,
         swift_version,
         class_visibility,
-        module_name,
         platform_prerequisites,
         xctoolrunner_executable):
     """Creates an action that cgenerates intent classes from an intentdefinition file.
@@ -45,11 +47,11 @@ def generate_intent_classes_sources(
         swift_output_src: The output file when generating Swift sources.
         objc_output_srcs: The output sources directory when generating ObjC.
         objc_output_hdrs: The output headers directory when generating ObjC.
+        objc_public_header: The output public header.
         language: Language of generated classes ("Objective-C", "Swift").
         class_prefix: Class prefix to use for the generated classes.
         swift_version: Version of Swift to use for the generated classes.
         class_visibility: Visibility attribute for the generated classes.
-        module_name: The name of the module that contains generated classes.
         platform_prerequisites: Struct containing information on the platform being targeted.
         xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
@@ -67,11 +69,15 @@ def generate_intent_classes_sources(
         class_prefix,
         "-swiftVersion",
         swift_version,
-        "-visibility",
-        class_visibility,
-        "-moduleName",
-        module_name,
     ]
+
+    # Starting Xcode 12, intentbuilderc accepts new parameters
+    xcode_version = str(platform_prerequisites.xcode_version_config.xcode_version())
+    if versions.is_at_least("12.0.0", xcode_version):
+        arguments += [
+            "-visibility",
+            class_visibility,
+        ]
 
     outputs = []
     if is_swift:
@@ -86,8 +92,10 @@ def generate_intent_classes_sources(
             objc_output_srcs.path,
             "-objc_output_hdrs",
             objc_output_hdrs.path,
+            "-objc_public_header",
+            objc_public_header.path,
         ]
-        outputs = [objc_output_srcs, objc_output_hdrs]
+        outputs = [objc_output_srcs, objc_output_hdrs, objc_public_header]
 
     apple_support.run(
         actions = actions,

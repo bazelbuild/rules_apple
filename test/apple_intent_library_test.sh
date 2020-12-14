@@ -76,7 +76,7 @@ EOF
 
   cat > app/objc_lib.m <<EOF
 #import <Foundation/Foundation.h>
-#import "app_SampleIntentObjc/SampleIntentIntent.h"
+#import "app/SampleIntentObjc.h"
 
 @interface ObjcLib: NSObject
 @end

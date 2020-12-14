@@ -303,9 +303,8 @@ def intentbuilderc(args, toolargs):
   if is_swift:
     output_path = "{}.out.tmp".format(args.swift_output_src)
   else:
-    output_path = os.path.join(args.objc_output_srcs, args.moduleName)
-    objc_output_hdrs = os.path.join(args.objc_output_hdrs, args.moduleName)
-    _ensure_clean_path(objc_output_hdrs)
+    output_path = args.objc_output_srcs
+    _ensure_clean_path(args.objc_output_hdrs)
 
   _ensure_clean_path(output_path)
   output_path = os.path.realpath(output_path)
@@ -313,11 +312,10 @@ def intentbuilderc(args, toolargs):
   toolargs += [
     "-language",
     args.language,
-    "-moduleName",
-    args.moduleName,
     "-output",
     output_path,
   ]
+
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
@@ -337,9 +335,12 @@ def intentbuilderc(args, toolargs):
         with open(src) as intput_src:
           shutil.copyfileobj(intput_src, output_src)
   else:
-    for f in _listdir_full(output_path):
-      if f.endswith(_HEADER_SUFFIX):
-        shutil.copy(f, os.path.join(objc_output_hdrs, os.path.basename(f)))
+    with open(args.objc_public_header, "w") as public_header_f:
+      for source_file in _listdir_full(output_path):
+        if source_file.endswith(_HEADER_SUFFIX):
+          out_hdr = os.path.join(args.objc_output_hdrs, os.path.basename(source_file))
+          shutil.copy(source_file, out_hdr)
+          public_header_f.write("#import \"{}\"\n".format(os.path.relpath(out_hdr)))
 
   return return_code
 
@@ -389,8 +390,8 @@ def main(argv):
   intentbuilderc_parser.add_argument("-language")
   intentbuilderc_parser.add_argument("-objc_output_srcs")
   intentbuilderc_parser.add_argument("-objc_output_hdrs")
+  intentbuilderc_parser.add_argument("-objc_public_header")
   intentbuilderc_parser.add_argument("-swift_output_src")
-  intentbuilderc_parser.add_argument("-moduleName")
 
   # MOMC Argument Parser
   momc_parser = subparsers.add_parser("momc")
