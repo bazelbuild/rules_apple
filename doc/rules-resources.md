@@ -250,15 +250,15 @@ to library targets through the `data` attribute, or to other
 ## objc_intent_library
 
 ```python
-objc_intent_library(name, src, [module_name, class_prefix, class_visibility])
+objc_intent_library(name, src, [module_name, class_prefix, class_visibility], **objc_library_kwargs)
 ```
 
 This rule supports the integration of Intents `.intentdefinition` files into Apple rules.
 It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
-`swift_library` targets.
-If no `module_name` is provided, one is derived from the target's path in a similar fashion as `objc_library`.
-Headers are put in a `<module_name>/` directory. For example, if this target's label is `//my/package:intent`, you can
-import the `SampleIntent` type's header as `#import "my_package_intent/SampleIntentIntent.h"`.
+`swift_library` targets. It accepts the regular `objc_library` attributes too.
+This target generates a header named `<target_name>.h` that can be imported from within the package where this target
+resides. For example, if this target's label is `//my/package:intent`, you can import the header as
+`#import "my/package/intent.h"`.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -286,13 +286,6 @@ import the `SampleIntent` type's header as `#import "my_package_intent/SampleInt
       </td>
     </tr>
     <tr>
-      <td><code>module_name</code></td>
-      <td>
-        <p><code>String</a>; optional</code></p>
-        <p>The name of the module that contains generated classes.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>class_prefix</code></td>
       <td>
         <p><code>String</a>; optional</code></p>
@@ -303,14 +296,7 @@ import the `SampleIntent` type's header as `#import "my_package_intent/SampleInt
       <td><code>class_visibility</code></td>
       <td>
         <p><code>String</a>; optional</code></p>
-        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>)</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>module_name</code></td>
-      <td>
-        <p><code>String</a>; optional</code></p>
-        <p>The name of the module that contains generated classes.</p>
+        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>).</p>
       </td>
     </tr>
   </tbody>
@@ -321,13 +307,13 @@ import the `SampleIntent` type's header as `#import "my_package_intent/SampleInt
 ## swift_intent_library
 
 ```python
-swift_intent_library(name, src, [module_name, class_prefix, class_visibility])
+swift_intent_library(name, src, [class_prefix, class_visibility], **swift_library_kwargs)
 ```
 
 This rule supports the integration of Intents `.intentdefinition` files into Apple rules.
 It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
 `swift_library` targets.
-If no `module_name` is provided, one is derived from the target's path in a similar fashion as `swift_library`.
+It accepts the regular `swift_library` attributes too.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -355,13 +341,6 @@ If no `module_name` is provided, one is derived from the target's path in a simi
       </td>
     </tr>
     <tr>
-      <td><code>module_name</code></td>
-      <td>
-        <p><code>String</a>; optional</code></p>
-        <p>The name of the module that contains generated classes.</p>
-      </td>
-    </tr>
-    <tr>
       <td><code>class_prefix</code></td>
       <td>
         <p><code>String</a>; optional</code></p>
@@ -372,14 +351,7 @@ If no `module_name` is provided, one is derived from the target's path in a simi
       <td><code>class_visibility</code></td>
       <td>
         <p><code>String</a>; optional</code></p>
-        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>)</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>module_name</code></td>
-      <td>
-        <p><code>String</a>; optional</code></p>
-        <p>The name of the module that contains generated classes.</p>
+        <p>Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>).</p>
       </td>
     </tr>
   </tbody>

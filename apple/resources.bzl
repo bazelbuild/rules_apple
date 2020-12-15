@@ -95,17 +95,11 @@ def objc_intent_library(
     src,
     class_prefix = None,
     class_visibility = None,
-    module_name = None,
-    tags = None,
     testonly = False,
-    visibility = None,
-    language = None,
     swift_version = None,
     **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for intentdefiniton files."""
-    if not module_name:
-        module_name = modules.derive_name(native.package_name(), name)
     intent_name = "{}.Intent".format(name)
     intent_srcs = "{}.srcs".format(intent_name)
     intent_hdrs = "{}.hdrs".format(intent_name)
@@ -115,21 +109,21 @@ def objc_intent_library(
         language = "Objective-C",
         class_prefix = class_prefix,
         header_name = name,
-        tags = tags,
+        tags = ["manual"],
         testonly = testonly,
     )
     native.filegroup(
         name = intent_srcs,
         srcs = [intent_name],
         output_group = "srcs",
-        tags = tags,
+        tags = ["manual"],
         testonly = testonly,
     )
     native.filegroup(
         name = intent_hdrs,
         srcs = [intent_name],
         output_group = "hdrs",
-        tags = tags,
+        tags = ["manual"],
         testonly = testonly,
     )
     objc_library(
@@ -137,11 +131,9 @@ def objc_intent_library(
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],
         sdk_frameworks = ["Intents"],
-        module_name = module_name,
         data = [src],
-        tags = tags,
         testonly = testonly,
-        visibility = visibility,
+        **kwargs
     )
 
 # Note: rules_apples depends on rules_swift, not the other way around. This means
@@ -152,17 +144,11 @@ def swift_intent_library(
     src,
     class_prefix = None,
     class_visibility = None,
-    module_name = None,
     swift_version = None,
-    tags = None,
     testonly = False,
-    visibility = None,
-    language = None,
     **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an swift_library with generated sources for intentdefiniton files."""
-    if not module_name:
-        module_name = modules.derive_name(native.package_name(), name)
     intent_name = "{}.Intent".format(name)
     _apple_intent_library(
         name = intent_name,
@@ -171,16 +157,13 @@ def swift_intent_library(
         class_prefix = class_prefix,
         class_visibility = class_visibility,
         swift_version = swift_version,
-        tags = tags,
+        tags = ["manual"],
         testonly = testonly,
     )
     swift_library(
         name = name,
         srcs = [intent_name],
-        module_name = module_name,
         data = [src],
-        tags = tags,
         testonly = testonly,
-        visibility = visibility,
         **kwargs,
     )
