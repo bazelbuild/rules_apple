@@ -22,7 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
 )
-load("@bazel_skylib//lib:versions.bzl", "versions")
+load(
+    "@bazel_skylib//lib:versions.bzl",
+    "versions",
+)
 
 
 def generate_intent_classes_sources(
