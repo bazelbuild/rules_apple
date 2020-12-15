@@ -93,15 +93,12 @@ int main(int argc, char **argv) {
 EOF
 
   cat > app/swift_lib.swift <<EOF
-import Foundation
+import UIKit
 import app_SampleIntentSwift
 
-@main
-class MyApp {
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
   public var mySample = SampleIntentIntent()
-
-  static func main() {
-  }
 }
 EOF
 
