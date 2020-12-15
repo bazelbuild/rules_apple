@@ -35,16 +35,11 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:modules.bzl",
-    _modules = "modules",
-)
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
-modules = _modules
 
 # TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.

@@ -40,14 +40,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "modules",
-    srcs = ["modules.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-)
-
-bzl_library(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.bzl"],
     visibility = [
