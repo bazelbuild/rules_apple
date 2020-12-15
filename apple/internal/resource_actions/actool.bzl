@@ -147,15 +147,37 @@ def _actool_args_for_special_file_types(
 
     return args
 
+def _alticonstool_args(
+        *,
+        alticons_files,
+        input_plist,
+        output_plist):
+    alticons_dirs = group_files_by_directory(
+        alticons_files,
+        ["alticon"],
+        attr = "alternate_icons",
+    ).keys()
+    args = [
+        "--input",
+        input_plist.path,
+        "--output",
+        output_plist.path,
+    ]
+    for alticon in alticons_dirs:
+        args += ["--alticon", alticon]
+    return args
+
 def compile_asset_catalog(
         *,
         actions,
+        alternate_icons,
         asset_files,
         bundle_id,
         output_dir,
         output_plist,
         platform_prerequisites,
         product_type,
+        resolved_alticonstool,
         resolved_xctoolrunner):
     """Creates an action that compiles asset catalogs.
 
@@ -166,6 +188,7 @@ def compile_asset_catalog(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      alternate_icons: Alternate icons files, organized in .alticon directories.
       asset_files: An iterable of files in all asset catalogs that should be
           packaged as part of this catalog. This should include transitive
           dependencies (i.e., assets not just from the application target, but
@@ -177,6 +200,7 @@ def compile_asset_catalog(
         into Info.plist. May be None if the output plist is not desired.
       platform_prerequisites: Struct containing information on the platform being targeted.
       product_type: The product type identifier used to describe the current bundle type.
+      resolved_alticonstool: A struct referencing the resolved alticonstool tool.
       resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
     """
     platform = platform_prerequisites.platform
@@ -208,12 +232,21 @@ def compile_asset_catalog(
         platform_prerequisites.device_families,
     ))
 
-    outputs = [output_dir]
+    alticons_outputs = []
+    actool_output_plist = None
+    actool_outputs = [output_dir]
     if output_plist:
-        outputs.append(output_plist)
+        if alternate_icons:
+            alticons_outputs = [output_plist]
+            actool_output_plist = actions.declare_file("{}.noalticon.plist".format(output_plist.basename), sibling = output_plist)
+            actool_outputs.append(actool_output_plist)
+        else:
+            actool_output_plist = output_plist
+
+        actool_outputs.append(actool_output_plist)
         args.extend([
             "--output-partial-info-plist",
-            xctoolrunner.prefixed_path(output_plist.path),
+            xctoolrunner.prefixed_path(actool_output_plist.path),
         ])
 
     xcassets = group_files_by_directory(
@@ -232,6 +265,22 @@ def compile_asset_catalog(
         inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "AssetCatalogCompile",
-        outputs = outputs,
+        outputs = actool_outputs,
         platform_prerequisites = platform_prerequisites,
     )
+
+    if alternate_icons:
+        legacy_actions.run(
+            actions = actions,
+            arguments = _alticonstool_args(
+                input_plist = actool_output_plist,
+                output_plist = output_plist,
+                alticons_files = alternate_icons,
+            ),
+            executable = resolved_alticonstool.executable,
+            inputs = depset([actool_output_plist] + alternate_icons, transitive = [resolved_alticonstool.inputs]),
+            input_manifests = resolved_alticonstool.input_manifests,
+            mnemonic = "AlternateIconsInsert",
+            outputs = alticons_outputs,
+            platform_prerequisites = platform_prerequisites,
+        )

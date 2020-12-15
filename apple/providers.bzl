@@ -158,6 +158,7 @@ AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items
     fields = {
+        "alternate_icons": "Alternate icons to be included in the App bundle.",
         "asset_catalogs": "Resources that need to be embedded into Assets.car.",
         "datamodels": "Datamodel files.",
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
@@ -207,6 +208,10 @@ A `File` referencing a plist template for dSYM bundles.
 """,
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
+""",
+        "resolved_alticonstool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to insert alternate icons entries in the App
+bundle's `Info.plist`.
 """,
         "resolved_bundletool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of

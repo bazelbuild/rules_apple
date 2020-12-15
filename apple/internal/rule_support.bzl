@@ -88,6 +88,7 @@ def _describe_rule_type(
         deps_cfg = None,
         extra_linkopts = [],
         expose_non_archive_relative_output = False,
+        has_alternate_icons = False,
         has_infoplist = True,
         has_launch_images = False,
         has_settings_bundle = False,
@@ -135,6 +136,7 @@ def _describe_rule_type(
             the `archive_relative` bundle location, to permit embedding within another target. Has no
             effect if `archive_relative` is empty.
         extra_linkopts: Extra options to pass to the linker.
+        has_alternate_icons: Wether the rule supports alternate icons.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
@@ -183,6 +185,7 @@ def _describe_rule_type(
         deps_cfg = deps_cfg,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
         extra_linkopts = extra_linkopts,
+        has_alternate_icons = has_alternate_icons,
         has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
@@ -221,6 +224,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
             deps_cfg = apple_common.multi_arch_split,
+            has_alternate_icons = True,
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,

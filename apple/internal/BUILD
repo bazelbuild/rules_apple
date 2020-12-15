@@ -14,6 +14,7 @@ licenses(["notice"])
 
 apple_support_toolchain(
     name = "toolchain_support",
+    alticonstool = "//tools/alticonstool",
     bundletool = "//tools/bundletool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
