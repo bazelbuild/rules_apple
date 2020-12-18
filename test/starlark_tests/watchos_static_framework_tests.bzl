@@ -35,6 +35,7 @@ def watchos_static_framework_test_suite(name = "watchos_static_framework"):
             "$BUNDLE_ROOT/Headers/static_fmwk.h",
             "$BUNDLE_ROOT/Headers/shared.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/static_fmwk",
         ],
         tags = [name],
     )
