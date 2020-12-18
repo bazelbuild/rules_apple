@@ -933,9 +933,9 @@ ignored.
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
-    If true, compiles and links this framework with `-application-extension`, restricting the binary to
-    use only extension-safe APIs.
-    """,
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
             ),
         })
 
@@ -945,13 +945,47 @@ ignored.
                 "frameworks": attr.label_list(
                     providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                     doc = """
-    A list of framework targets (see
-    [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
-    that this target depends on.
-    """,
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
                     **extra_args
                 ),
             })
+    elif rule_descriptor.product_type == apple_product_type.static_framework:
+        attrs.append({
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+            "avoid_deps": attr.label_list(
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+        })
 
     return attrs
 

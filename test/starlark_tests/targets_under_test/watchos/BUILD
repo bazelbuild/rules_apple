@@ -8,6 +8,7 @@ load(
     "watchos_application",
     "watchos_dynamic_framework",
     "watchos_extension",
+    "watchos_static_framework",
 )
 load(
     "//apple:apple.bzl",
@@ -116,6 +117,20 @@ ios_application(
     watch_application = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+watchos_static_framework(
+    name = "static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = "4.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
