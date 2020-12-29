@@ -109,6 +109,7 @@ def _create_umbrella_header(actions, output, bundle_name, headers):
     Args:
       actions: The `actions` module from a rule or aspect context.
       output: A declared `File` to which the umbrella header will be written.
+      bundle_name: The name of the output bundle.
       headers: A list of header files to be imported by the umbrella header.
     """
     import_lines = ["#import <%s/%s>" % (bundle_name, f.basename) for f in headers]
