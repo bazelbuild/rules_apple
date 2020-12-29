@@ -67,6 +67,8 @@ def _framework_import_partial_impl(
         label_name,
         package_symbols,
         platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor,
         rule_executables,
         targets,
         targets_to_avoid):
@@ -161,12 +163,13 @@ def _framework_import_partial_impl(
         for file in files_by_framework[framework_basename]:
             args.add("--framework_file", file.path)
 
-        # TODO(b/161370390): Remove ctx from all instances of codesigning_support.codesigning_args.
         codesign_args = codesigning_support.codesigning_args(
-            ctx,
             entitlements = None,
             full_archive_path = temp_framework_bundle_path,
             is_framework = True,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
         )
         args.add_all(codesign_args)
 
@@ -177,7 +180,6 @@ def _framework_import_partial_impl(
         # provisioning profile if the current build targets real devices.
         inputs = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
 
-        provisioning_profile = codesigning_support.provisioning_profile(ctx)
         execution_requirements = {}
         if provisioning_profile:
             inputs.append(provisioning_profile)
@@ -309,6 +311,8 @@ def framework_import_partial(
         label_name,
         package_symbols = False,
         platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor,
         rule_executables,
         targets,
         targets_to_avoid = []):
@@ -322,6 +326,8 @@ def framework_import_partial(
         label_name: Name of the target being built.
         package_symbols: Whether the partial should package the symbols files for all binaries.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
@@ -336,6 +342,8 @@ def framework_import_partial(
         label_name = label_name,
         package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
