@@ -213,7 +213,6 @@ def _watchos_application_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -221,6 +220,7 @@ def _watchos_application_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -357,6 +357,8 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             targets = ctx.attr.deps,
         ),
@@ -394,7 +396,6 @@ def _watchos_extension_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -402,6 +403,7 @@ def _watchos_extension_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,

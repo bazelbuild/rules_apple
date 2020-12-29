@@ -67,7 +67,6 @@ bzl_library(
     ],
     deps = [
         ":intermediates",
-        ":platform_support",
         ":rule_support",
         "//apple/internal/utils:defines",
         "//apple/internal/utils:legacy_actions",

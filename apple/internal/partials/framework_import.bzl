@@ -54,6 +54,8 @@ def _framework_import_partial_impl(
         actions,
         label_name,
         platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor,
         rule_executables,
         targets,
         targets_to_avoid):
@@ -145,12 +147,13 @@ def _framework_import_partial_impl(
         for file in files_by_framework[framework_basename]:
             args.add("--framework_file", file.path)
 
-        # TODO(b/161370390): Remove ctx from all instances of codesigning_support.codesigning_args.
         codesign_args = codesigning_support.codesigning_args(
-            ctx,
             entitlements = None,
             full_archive_path = temp_framework_bundle_path,
             is_framework = True,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
         )
         args.add_all(codesign_args)
 
@@ -185,6 +188,8 @@ def framework_import_partial(
         actions,
         label_name,
         platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor,
         rule_executables,
         targets,
         targets_to_avoid = []):
@@ -197,6 +202,8 @@ def framework_import_partial(
         actions: The actions provider from `ctx.actions`.
         label_name: Name of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
@@ -210,6 +217,8 @@ def framework_import_partial(
         actions = actions,
         label_name = label_name,
         platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         targets = targets,
         targets_to_avoid = targets_to_avoid,

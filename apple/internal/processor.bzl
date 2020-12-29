@@ -422,10 +422,8 @@ def _bundle_partial_outputs_files(
             **action_args
         )
 
-# TODO(b/161370390): Remove ctx when codesigning_command no longer depends on ctx.
 def _bundle_post_process_and_sign(
         *,
-        ctx,
         actions,
         bundle_extension,
         bundle_name,
@@ -434,6 +432,7 @@ def _bundle_post_process_and_sign(
         partial_outputs,
         platform_prerequisites,
         predeclared_outputs,
+        process_and_sign_template,
         provisioning_profile,
         rule_descriptor,
         rule_executables,
@@ -441,7 +440,6 @@ def _bundle_post_process_and_sign(
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
-        ctx: The rule context. Deprecated.
         actions: The actions provider from `ctx.actions`.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
@@ -450,6 +448,7 @@ def _bundle_post_process_and_sign(
         partial_outputs: The outputs of the partials used to process this target's bundle.
         platform_prerequisites: Struct containing information on the platform being targeted.
         predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
+        process_and_sign_template: A template for a shell script to process and sign as a file.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
@@ -480,11 +479,13 @@ def _bundle_post_process_and_sign(
             extra_input_files.append(provisioning_profile)
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
-        # TODO(b/161370390): Remove ctx from all instances of codesigning_command.
         codesigning_command = codesigning_support.codesigning_command(
-            ctx,
+            codesigningtool = rule_executables._codesigningtool,
             entitlements = entitlements,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
 
@@ -532,16 +533,22 @@ def _bundle_post_process_and_sign(
         output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (ios_application).
-        # TODO(b/161370390): Remove ctx from all instances of post_process_and_sign_archive_action.
         codesigning_support.post_process_and_sign_archive_action(
-            ctx,
-            archive_codesigning_path,
-            frameworks_path,
-            unprocessed_archive,
-            output_archive,
-            output_archive_root_path,
-            transitive_signed_frameworks,
+            actions = actions,
+            archive_codesigning_path = archive_codesigning_path,
+            codesigningtool = rule_executables._codesigningtool,
             entitlements = entitlements,
+            frameworks_path = frameworks_path,
+            input_archive = unprocessed_archive,
+            ipa_post_processor = rule_executables.ipa_post_processor,
+            label_name = rule_label.name,
+            output_archive = output_archive,
+            output_archive_root_path = output_archive_root_path,
+            platform_prerequisites = platform_prerequisites,
+            process_and_sign_template = process_and_sign_template,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            signed_frameworks = transitive_signed_frameworks,
         )
 
         has_different_embedding_archive = outputs.has_different_embedding_archive(
@@ -588,23 +595,26 @@ def _bundle_post_process_and_sign(
                 rule_executables = rule_executables,
             )
 
-            # TODO(b/161370390): Remove ctx from all instances of
-            # post_process_and_sign_archive_action.
             codesigning_support.post_process_and_sign_archive_action(
-                ctx,
-                embedding_archive_codesigning_path,
-                embedding_frameworks_path,
-                unprocessed_embedded_archive,
-                embedding_archive,
-                embedding_archive_root_path,
-                transitive_signed_frameworks,
+                actions = actions,
+                archive_codesigning_path = embedding_archive_codesigning_path,
+                codesigningtool = rule_executables._codesigningtool,
                 entitlements = entitlements,
+                frameworks_path = embedding_frameworks_path,
+                input_archive = unprocessed_embedded_archive,
+                ipa_post_processor = rule_executables.ipa_post_processor,
+                label_name = rule_label.name,
+                output_archive = embedding_archive,
+                output_archive_root_path = embedding_archive_root_path,
+                platform_prerequisites = platform_prerequisites,
+                process_and_sign_template = process_and_sign_template,
+                provisioning_profile = provisioning_profile,
+                rule_descriptor = rule_descriptor,
+                signed_frameworks = transitive_signed_frameworks,
             )
 
-# TODO(b/161370390): Remove ctx when codesigning_support no longer depends on ctx.
 def _process(
         *,
-        ctx,
         actions,
         bundle_extension,
         bundle_name,
@@ -613,6 +623,7 @@ def _process(
         partials,
         platform_prerequisites,
         predeclared_outputs,
+        process_and_sign_template,
         provisioning_profile,
         rule_descriptor,
         rule_executables,
@@ -620,7 +631,6 @@ def _process(
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
-      ctx: The ctx object for the target being processed. Deprecated.
       actions: The actions provider from `ctx.actions`.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
@@ -630,6 +640,7 @@ def _process(
       partials: The list of partials to process to construct the complete bundle.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
+      process_and_sign_template: A template for a shell script to process and sign as a file.
       provisioning_profile: File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
@@ -644,7 +655,7 @@ def _process(
 
     # TODO(b/161370390): Remove the ctx kwarg passed to this call once ctx is removed from the args
     # of all of the partials.
-    partial_outputs = [partial.call(p, ctx = ctx) for p in partials]
+    partial_outputs = [partial.call(p, ctx = None) for p in partials]
 
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(
@@ -655,7 +666,6 @@ def _process(
             predeclared_outputs = predeclared_outputs,
         )
         _bundle_post_process_and_sign(
-            ctx = ctx,
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -664,6 +674,7 @@ def _process(
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
+            process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
