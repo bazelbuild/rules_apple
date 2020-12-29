@@ -378,6 +378,17 @@ def ios_framework_test_suite(name = "ios_framework"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_angle_bracketed_import_in_umbrella_header".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework",
+        text_test_file = "$BUNDLE_ROOT/Headers/objc_static_framework.h",
+        text_test_values = [
+            "#import <objc_static_framework/common.h>",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

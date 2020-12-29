@@ -1917,3 +1917,16 @@ ios_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+ios_static_framework(
+    name = "objc_static_framework",
+    bundle_name = "objc_static_framework",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    hdrs = [
+        "//test/starlark_tests/resources:common.h",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib",
+    ],
+)
