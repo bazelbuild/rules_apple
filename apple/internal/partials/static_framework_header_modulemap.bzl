@@ -103,7 +103,7 @@ def _create_modulemap(
     )
     actions.write(output = output, content = content)
 
-def _create_umbrella_header(actions, output, headers):
+def _create_umbrella_header(actions, output, bundle_name, headers):
     """Creates an umbrella header that imports a list of other headers.
 
     Args:
@@ -111,7 +111,7 @@ def _create_umbrella_header(actions, output, headers):
       output: A declared `File` to which the umbrella header will be written.
       headers: A list of header files to be imported by the umbrella header.
     """
-    import_lines = ['#import "%s"' % f.basename for f in headers]
+    import_lines = ['#import <%s/%s>' % (bundle_name, f.basename) for f in headers]
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
@@ -140,6 +140,7 @@ def _static_framework_header_modulemap_partial_impl(
         _create_umbrella_header(
             actions,
             umbrella_header_file,
+            bundle_name,
             sorted(hdrs),
         )
 
