@@ -88,6 +88,48 @@ def archive_contents_test(
             appear in the binary file specified in `binary_test_file`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
+    if any([plist_test_file, plist_test_values]) and not all([plist_test_file, plist_test_values]):
+        fail("Need both plist_test_file and plist_test_values")
+
+    got_asset_catalog_tests = any([asset_catalog_test_contains, asset_catalog_test_not_contains])
+    if any([asset_catalog_test_file, got_asset_catalog_tests]) and not all([
+        asset_catalog_test_file,
+        got_asset_catalog_tests,
+    ]):
+        fail("Need asset_catalog_test_file along with " +
+             "asset_catalog_test_contains and/or asset_catalog_test_not_contains")
+
+    if any([text_test_file, text_test_values]) and not all([text_test_file, text_test_values]):
+        fail("Need both text_test_file and text_test_values")
+
+    if binary_test_file:
+        if any([binary_contains_symbols, binary_not_contains_symbols]) and (
+            not binary_test_architecture
+        ):
+            fail("Need binary_test_architecture when checking symbols")
+        elif binary_test_architecture and not any([
+            binary_contains_symbols,
+            binary_not_contains_symbols,
+        ]):
+            fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking " +
+                 "for symbols")
+    else:
+        if any([binary_contains_symbols, binary_not_contains_symbols, binary_test_architecture]):
+            fail("Need binary_test_file to check the binary for symbols")
+        if any([macho_load_commands_contain, macho_load_commands_not_contain]):
+            fail("Need binary_test_file to check macho load commands")
+
+    if not any([
+        contains,
+        not_contains,
+        is_binary_plist,
+        is_not_binary_plist,
+        plist_test_file,
+        asset_catalog_test_file,
+        text_test_file,
+        binary_test_file,
+    ]):
+        fail("There are no tests for the archive")
 
     # Concatenate the keys and values of the test values so they can be passed as env vars.
     plist_test_values_list = []
@@ -157,6 +199,14 @@ def binary_contents_test(
             Defaults to `__info_plist`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
+    if any([binary_contains_symbols, binary_not_contains_symbols]) and not binary_test_architecture:
+        fail("Need binary_test_architecture when checking symbols")
+    elif binary_test_architecture and not any([binary_contains_symbols, binary_not_contains_symbols]):
+        fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking an " +
+             "architecture")
+
+    if not any([binary_test_file, embedded_plist_test_values]):
+        fail("There are no tests for the binary")
 
     # Concatenate the keys and values of the test values so they can be passed as env vars.
     plist_test_values_list = []

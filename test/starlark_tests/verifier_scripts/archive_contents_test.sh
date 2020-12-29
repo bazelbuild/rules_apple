@@ -51,10 +51,13 @@ newline=$'\n'
 #  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
 #      not be present.
 
+something_tested=false
+
 # Test that the archive contains the specified files in the CONTAIN env var.
 if [[ -n "${CONTAINS-}" ]]; then
   for path in "${CONTAINS[@]}"
   do
+    something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ ! -e $expanded_path ]]; then
       fail "Archive did not contain \"$expanded_path\"" \
@@ -73,11 +76,17 @@ if [[ -n "${TEXT_TEST_FILE-}" ]]; then
   fi
   for test_regexp in "${TEXT_TEST_VALUES[@]}"
   do
+    something_tested=true
     if [[ $(grep -c "$test_regexp" "$path") == 0 ]]; then
       fail "Expected regexp \"$test_regexp\" did not match" \
         "contents of text file at \"$path\""
     fi
   done
+else
+  if [[ -n "${TEXT_TEST_VALUES-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for values in a file," \
+        "but no file was set to check: ${TEXT_TEST_VALUES[@]}"
+  fi
 fi
 
 # Test that the archive contains and does not contain the specified symbols.
@@ -99,6 +108,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -117,6 +127,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -131,6 +142,15 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
         fi
       done
     fi
+  else
+    if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for symbols," \
+        "but no arch was set to check: ${BINARY_CONTAINS_SYMBOLS[@]}"
+    fi
+    if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for missing symbols," \
+        "but no arch was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+    fi
   fi
 
   if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" || -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
@@ -141,6 +161,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
       for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -160,6 +181,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
       for test_symbol in "${MACHO_LOAD_COMMANDS_NOT_CONTAIN[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -176,12 +198,34 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       done
     fi
   fi
+else
+  if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+    fail "Rule Misconfigured: Binary arch was set," \
+      "but no binary was set to check: ${BINARY_TEST_ARCHITECTURE}"
+  fi
+  if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for symbols," \
+      "but no binary was set to check: ${BINARY_CONTAINS_SYMBOLS[@]}"
+  fi
+  if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for missing symbols," \
+      "but no binary was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+  fi
+  if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for macho load commands," \
+      "but no binary was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+  fi
+  if [[ -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for missing macho load commands," \
+      "but no binary was set to check: ${MACHO_LOAD_COMMANDS_NOT_CONTAIN[@]}"
+  fi
 fi
 
 # Test that the archive doesn't contains the specified files in NOT_CONTAINS.
 if [[ -n "${NOT_CONTAINS-}" ]]; then
   for path in "${NOT_CONTAINS[@]}"
   do
+    something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ -e $expanded_path ]]; then
       fail "Archive did contain \"$expanded_path\""
@@ -193,6 +237,7 @@ fi
 if [[ -n "${IS_BINARY_PLIST-}" ]]; then
   for path in "${IS_BINARY_PLIST[@]}"
   do
+    something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ ! -e $expanded_path ]]; then
       fail "Archive did not contain plist \"$expanded_path\"" \
@@ -208,6 +253,7 @@ fi
 if [[ -n "${IS_NOT_BINARY_PLIST-}" ]]; then
   for path in "${IS_NOT_BINARY_PLIST[@]}"
   do
+    something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ ! -e $expanded_path ]]; then
       fail "Archive did not contain plist \"$expanded_path\"" \
@@ -231,6 +277,7 @@ if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
   fi
   for test_values in "${PLIST_TEST_VALUES[@]}"
   do
+    something_tested=true
     # Keys and expected-values are in the format "KEY VALUE".
     IFS=' ' read -r key expected_value <<< "$test_values"
     value="$(/usr/libexec/PlistBuddy -c "Print $key" $path 2>/dev/null || true)"
@@ -261,6 +308,7 @@ if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
   if [[ -n "${ASSET_CATALOG_CONTAINS-}" ]]; then
     for expected_name in "${ASSET_CATALOG_CONTAINS[@]}"
     do
+      something_tested=true
       name_found=false
       # Loop over the known asset names. `while read` loops loop over lines.
       while read -r actual_name
@@ -280,6 +328,7 @@ if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
   if [[ -n "${ASSET_CATALOG_NOT_CONTAINS-}" ]]; then
     for unexpected_name in "${ASSET_CATALOG_NOT_CONTAINS[@]}"
     do
+      something_tested=true
       name_found=false
       # Loop over the known asset names. `while read` loops loop over lines.
       while read -r actual_name
@@ -294,4 +343,8 @@ if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
       fi
     done
   fi
+fi
+
+if [[ "$something_tested" = false ]]; then
+  fail "Rule Misconfigured: Nothing was configured to be tested in archive: \"$path\""
 fi

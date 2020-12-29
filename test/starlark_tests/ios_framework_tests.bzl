@@ -55,7 +55,6 @@ def ios_framework_test_suite():
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",
         binary_test_file = "$BUNDLE_ROOT/fmwk",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/fmwk.framework/fmwk (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/fmwk",
