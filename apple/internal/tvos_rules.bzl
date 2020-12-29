@@ -184,6 +184,8 @@ def _tvos_application_impl(ctx):
             actions = actions,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             targets = ctx.attr.deps + embeddable_targets,
         ),
@@ -233,7 +235,6 @@ def _tvos_application_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -242,6 +243,7 @@ def _tvos_application_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -611,7 +613,6 @@ def _tvos_framework_impl(ctx):
     ]
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -620,6 +621,7 @@ def _tvos_framework_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -773,7 +775,6 @@ def _tvos_extension_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -782,6 +783,7 @@ def _tvos_extension_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -884,7 +886,6 @@ def _tvos_static_framework_impl(ctx):
         ))
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -893,6 +894,7 @@ def _tvos_static_framework_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,

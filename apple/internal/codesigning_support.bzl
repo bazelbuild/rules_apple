@@ -27,10 +27,6 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -59,20 +55,21 @@ def _no_op(x):
     return x
 
 def _codesign_args_for_path(
-        ctx,
-        path_to_sign,
-        provisioning_profile,
+        *,
         entitlements_file,
+        path_to_sign,
+        platform_prerequisites,
+        provisioning_profile,
         shell_quote = True):
     """Returns a command line for the codesigning tool wrapper script.
 
     Args:
-      ctx: The Starlark context.
-      path_to_sign: A struct indicating the path that should be signed and its
-          optionality (see `_path_to_sign`).
-      provisioning_profile: The provisioning profile file. May be `None`.
       entitlements_file: The entitlements file to pass to codesign. May be `None`
           for non-app binaries (e.g. test bundles).
+      path_to_sign: A struct indicating the path that should be signed and its
+          optionality (see `_path_to_sign`).
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: The provisioning profile file. May be `None`.
       shell_quote: Sanitizes the arguments to be evaluated in a shell.
 
     Returns:
@@ -92,7 +89,7 @@ def _codesign_args_for_path(
         "/usr/bin/codesign",
     ]
 
-    is_device = platform_support.is_device_build(ctx)
+    is_device = platform_prerequisites.platform.is_device
 
     # Add quotes for sanitizing inputs when they're invoked directly from a shell script, for
     # instance when using this string to assemble the output of codesigning_command.
@@ -101,7 +98,7 @@ def _codesign_args_for_path(
 
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
     # use an ad hoc identity.
-    identity = ctx.fragments.objc.signing_certificate_name if is_device else "-"
+    identity = platform_prerequisites.objc_fragment.signing_certificate_name if is_device else "-"
     if not identity:
         if provisioning_profile:
             cmd_codesigning.extend([
@@ -159,7 +156,7 @@ def _codesign_args_for_path(
     cmd_codesigning.extend(extra_opts)
     return cmd_codesigning
 
-def _path_to_sign(path, is_directory = False, signed_frameworks = [], use_entitlements = True):
+def _path_to_sign(*, path, is_directory = False, signed_frameworks = [], use_entitlements = True):
     """Returns a "path to sign" value to be passed to `_signing_command_lines`.
 
     Args:
@@ -183,24 +180,28 @@ def _path_to_sign(path, is_directory = False, signed_frameworks = [], use_entitl
         use_entitlements = use_entitlements,
     )
 
-def _provisioning_profile(ctx):
+def _validate_provisioning_profile(
+        *,
+        rule_descriptor,
+        platform_prerequisites,
+        provisioning_profile):
     # Verify that a provisioning profile was provided for device builds on
     # platforms that require it.
-    is_device = platform_support.is_device_build(ctx)
-    provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
-    rule_descriptor = rule_support.rule_descriptor(ctx)
+    is_device = platform_prerequisites.platform.is_device
     if (is_device and
         rule_descriptor.requires_signing_for_device and
         not provisioning_profile):
         fail("The provisioning_profile attribute must be set for device " +
              "builds on this platform (%s)." %
-             platform_support.platform_type(ctx))
-    return provisioning_profile
+             platform_prerequisites.platform_type)
 
 def _signing_command_lines(
-        ctx,
+        *,
+        codesigningtool,
+        entitlements_file,
         paths_to_sign,
-        entitlements_file):
+        platform_prerequisites,
+        provisioning_profile):
     """Returns a multi-line string with codesign invocations for the bundle.
 
     For any signing identity other than ad hoc, the identity is verified as being
@@ -208,66 +209,66 @@ def _signing_command_lines(
     used for signing for any reason.
 
     Args:
-      ctx: The Starlark context.
+      codesigningtool: The `File` representing the code signing tool.
+      entitlements_file: The entitlements file to pass to codesign.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
           paths that should be code-signed.
-      entitlements_file: The entitlements file to pass to codesign.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: The provisioning profile file. May be `None`.
 
     Returns:
       A multi-line string with codesign invocations for the bundle.
     """
-    provisioning_profile = _provisioning_profile(ctx)
-
     commands = []
 
     # Use of the entitlements file is not recommended for the signing of frameworks. As long as
     # this remains the case, we do have to split the "paths to sign" between multiple invocations
     # of codesign.
     for path_to_sign in paths_to_sign:
-        codesign_command = [ctx.executable._codesigningtool.path]
+        codesign_command = [codesigningtool.path]
         codesign_command.extend(_codesign_args_for_path(
-            ctx,
-            path_to_sign,
-            provisioning_profile,
-            entitlements_file,
+            entitlements_file = entitlements_file,
+            path_to_sign = path_to_sign,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
         ))
         commands.append(" ".join(codesign_command))
     return "\n".join(commands)
 
-def _should_sign_simulator_bundles(ctx):
+def _should_sign_simulator_bundles(
+        *,
+        config_vars,
+        rule_descriptor):
     """Check if a main bundle should be codesigned.
 
     The Frameworks/* bundles should *always* be signed, this is just for
     the other bundles.
 
     Args:
-      ctx: The Starlark context.
 
     Returns:
       True/False for if the bundle should be signed.
 
     """
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     if not rule_descriptor.skip_simulator_signing_allowed:
         return True
 
     # Default is to sign.
     return defines.bool_value(
-        ctx,
-        "apple.codesign_simulator_bundles",
-        True,
+        ctx = None,
+        config_vars = config_vars,
+        define_name = "apple.codesign_simulator_bundles",
+        default = True,
     )
 
-def _should_sign_bundles(ctx):
+def _should_sign_bundles(*, provisioning_profile, rule_descriptor):
     should_sign_bundles = True
 
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     codesigning_exceptions = rule_descriptor.codesigning_exceptions
     if (codesigning_exceptions ==
         rule_support.codesigning_exceptions.sign_with_provisioning_profile):
         # If the rule doesn't have a provisioning profile, do not sign the binary or its
         # frameworks.
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
         if not provisioning_profile:
             should_sign_bundles = False
     elif codesigning_exceptions == rule_support.codesigning_exceptions.skip_signing:
@@ -278,57 +279,92 @@ def _should_sign_bundles(ctx):
     return should_sign_bundles
 
 def _codesigning_args(
-        ctx,
+        *,
         entitlements,
         full_archive_path,
-        is_framework = False):
+        is_framework = False,
+        platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor):
     """Returns a set of codesigning arguments to be passed to the codesigning tool.
 
     Args:
-        ctx: The rule context.
         entitlements: The entitlements file to sign with. Can be None.
         full_archive_path: The full path to the codesigning target.
         is_framework: If the target is a framework. False by default.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
 
     Returns:
         A list containing the arguments to pass to the codesigning tool.
     """
-    if not _should_sign_bundles(ctx):
+    should_sign_bundles = _should_sign_bundles(
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
+    if not should_sign_bundles:
         return []
 
-    is_device = platform_support.is_device_build(ctx)
-    if not is_framework and not is_device and not _should_sign_simulator_bundles(ctx):
+    is_device = platform_prerequisites.platform.is_device
+    should_sign_sim_bundles = _should_sign_simulator_bundles(
+        config_vars = platform_prerequisites.config_vars,
+        rule_descriptor = rule_descriptor,
+    )
+    if not is_framework and not is_device and not should_sign_sim_bundles:
         return []
+
+    _validate_provisioning_profile(
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
 
     return _codesign_args_for_path(
-        ctx,
-        _path_to_sign(full_archive_path),
-        provisioning_profile = _provisioning_profile(ctx),
         entitlements_file = entitlements,
+        path_to_sign = _path_to_sign(path = full_archive_path),
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
         shell_quote = False,
     )
 
 def _codesigning_command(
-        ctx,
+        *,
+        bundle_path = "",
+        codesigningtool,
         entitlements,
         frameworks_path,
-        signed_frameworks,
-        bundle_path = ""):
+        platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor,
+        signed_frameworks):
     """Returns a codesigning command that includes framework embedded bundles.
 
     Args:
-        ctx: The rule context.
+        bundle_path: The location of the bundle, relative to the archive.
+        codesigningtool: The `File` representing the code signing tool.
         entitlements: The entitlements file to sign with. Can be None.
         frameworks_path: The location of the Frameworks directory, relative to the archive.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
         signed_frameworks: A depset containing each framework that has already been signed.
-        bundle_path: The location of the bundle, relative to the archive.
 
     Returns:
         A string containing the codesigning commands.
     """
-    if not _should_sign_bundles(ctx):
+    should_sign_bundles = _should_sign_bundles(
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
+    if not should_sign_bundles:
         return ""
 
+    _validate_provisioning_profile(
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
     paths_to_sign = []
 
     # The command returned by this function is executed as part of a bundling shell script.
@@ -343,67 +379,87 @@ def _codesigning_command(
 
         paths_to_sign.append(
             _path_to_sign(
-                framework_root,
+                path = framework_root,
                 is_directory = True,
                 signed_frameworks = full_signed_frameworks,
                 use_entitlements = False,
             ),
         )
-
-    is_device = platform_support.is_device_build(ctx)
-    if is_device or _should_sign_simulator_bundles(ctx):
+    should_sign_sim_bundles = _should_sign_simulator_bundles(
+        config_vars = platform_prerequisites.config_vars,
+        rule_descriptor = rule_descriptor,
+    )
+    if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
         path_to_sign = paths.join("$WORK_DIR", bundle_path)
         paths_to_sign.append(
-            _path_to_sign(path_to_sign),
+            _path_to_sign(path = path_to_sign),
         )
     return _signing_command_lines(
-        ctx,
-        paths_to_sign = paths_to_sign,
+        codesigningtool = codesigningtool,
         entitlements_file = entitlements,
+        paths_to_sign = paths_to_sign,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
     )
 
 def _post_process_and_sign_archive_action(
-        ctx,
+        *,
+        actions,
         archive_codesigning_path,
+        codesigningtool,
+        entitlements = None,
         frameworks_path,
         input_archive,
+        ipa_post_processor,
+        label_name,
         output_archive,
         output_archive_root_path,
-        signed_frameworks,
-        entitlements = None):
+        platform_prerequisites,
+        process_and_sign_template,
+        provisioning_profile,
+        rule_descriptor,
+        signed_frameworks):
     """Post-processes and signs an archived bundle.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
+      codesigningtool: The `File` representing the code signing tool.
+      entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
           that has not yet been processed or signed.
+      ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+      label_name: Name of the target being built.
       output_archive: The `File` representing the processed and signed archive.
       output_archive_root_path: The `string` path to where the processed, uncompressed archive
           should be located.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      process_and_sign_template: A template for a shell script to process and sign as a file.
+      provisioning_profile: The provisioning profile file. May be `None`.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
       signed_frameworks: Depset containing each framework that has already been signed.
-      entitlements: Optional file representing the entitlements to sign with.
     """
     input_files = [input_archive]
     processing_tools = []
 
     signing_command_lines = _codesigning_command(
-        ctx,
-        entitlements,
-        frameworks_path,
-        signed_frameworks,
         bundle_path = archive_codesigning_path,
+        codesigningtool = codesigningtool,
+        entitlements = entitlements,
+        frameworks_path = frameworks_path,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        signed_frameworks = signed_frameworks,
     )
     if signing_command_lines:
-        processing_tools.append(ctx.executable._codesigningtool)
+        processing_tools.append(codesigningtool)
         if entitlements:
             input_files.append(entitlements)
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None)
         if provisioning_profile:
             input_files.append(provisioning_profile)
 
-    ipa_post_processor = ctx.executable.ipa_post_processor
     ipa_post_processor_path = ""
     if ipa_post_processor:
         processing_tools.append(ipa_post_processor)
@@ -411,37 +467,43 @@ def _post_process_and_sign_archive_action(
 
     # Only compress the IPA for optimized (release) builds or when requested.
     # For debug builds, zip without compression, which will speed up the build.
-    compression_requested = defines.bool_value(ctx, "apple.compress_ipa", False)
-    should_compress = (ctx.var["COMPILATION_MODE"] == "opt") or compression_requested
+    config_vars = platform_prerequisites.config_vars
+    compression_requested = defines.bool_value(
+        ctx = None,
+        config_vars = config_vars,
+        define_name = "apple.compress_ipa",
+        default = False,
+    )
+    should_compress = (config_vars["COMPILATION_MODE"] == "opt") or compression_requested
 
     # TODO(b/163217926): These are kept the same for the three different actions
     # that could be run to ensure anything keying off these values continues to
     # work. After some data is collected, the values likely can be revisited and
     # changed.
     mnemonic = "ProcessAndSign"
-    progress_message = "Processing and signing %s" % ctx.label.name
+    progress_message = "Processing and signing %s" % label_name
 
     # If there is no work to be done, skip the processing/signing action, just
     # copy the file over.
     has_work = any([signing_command_lines, ipa_post_processor_path, should_compress])
     if not has_work:
-        ctx.actions.run_shell(
-            inputs = [input_archive],
-            outputs = [output_archive],
-            mnemonic = mnemonic,
-            progress_message = progress_message,
+        actions.run_shell(
             command = "cp -p '%s' '%s'" % (input_archive.path, output_archive.path),
+            inputs = [input_archive],
+            mnemonic = mnemonic,
+            outputs = [output_archive],
+            progress_message = progress_message,
         )
         return
 
-    process_and_sign_template = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+    process_and_sign_expanded_template = intermediates.file(
+        actions,
+        label_name,
         "process-and-sign-%s.sh" % hash(output_archive.path),
     )
-    ctx.actions.expand_template(
-        template = ctx.file._process_and_sign_template,
-        output = process_and_sign_template,
+    actions.expand_template(
+        template = process_and_sign_template,
+        output = process_and_sign_expanded_template,
         is_executable = True,
         substitutions = {
             "%ipa_post_processor%": ipa_post_processor_path or "",
@@ -466,13 +528,9 @@ def _post_process_and_sign_archive_action(
     run_on_darwin = any([signing_command_lines, ipa_post_processor_path])
     if run_on_darwin:
         legacy_actions.run(
-            ctx,
-            inputs = input_files,
-            outputs = [output_archive],
-            executable = process_and_sign_template,
+            actions = actions,
             arguments = arguments,
-            mnemonic = mnemonic,
-            progress_message = progress_message,
+            executable = process_and_sign_expanded_template,
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -481,46 +539,67 @@ def _post_process_and_sign_archive_action(
                 # $HOME.
                 "no-sandbox": "1",
             },
+            inputs = input_files,
+            mnemonic = mnemonic,
+            outputs = [output_archive],
+            platform_prerequisites = platform_prerequisites,
+            progress_message = progress_message,
             tools = processing_tools,
         )
     else:
-        ctx.actions.run(
-            inputs = input_files,
-            outputs = [output_archive],
-            executable = process_and_sign_template,
+        actions.run(
             arguments = arguments,
+            executable = process_and_sign_expanded_template,
+            inputs = input_files,
             mnemonic = mnemonic,
+            outputs = [output_archive],
             progress_message = progress_message,
         )
 
-def _sign_binary_action(ctx, input_binary, output_binary):
+def _sign_binary_action(
+        *,
+        actions,
+        codesigningtool,
+        input_binary,
+        output_binary,
+        platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor):
     """Signs the input binary file, copying it into the given output binary file.
 
     Args:
-      ctx: The target's rule context.
+      actions: The actions provider from `ctx.actions`.
+      codesigningtool: The `File` representing the code signing tool.
       input_binary: The `File` representing the binary to be signed.
       output_binary: The `File` representing signed binary.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: The provisioning profile file. May be `None`.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
     """
+    _validate_provisioning_profile(
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
 
     # It's not hermetic to sign the binary that was built by the apple_binary
     # target that this rule takes as an input, so we copy it and then execute the
     # code signing commands on that copy in the same action.
-    path_to_sign = _path_to_sign(output_binary.path)
+    path_to_sign = _path_to_sign(path = output_binary.path)
     signing_commands = _signing_command_lines(
-        ctx,
-        [path_to_sign],
-        None,
+        codesigningtool = codesigningtool,
+        entitlements_file = None,
+        paths_to_sign = [path_to_sign],
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
     )
 
     legacy_actions.run_shell(
-        ctx,
-        inputs = [input_binary],
-        outputs = [output_binary],
+        actions = actions,
         command = "cp {input_binary} {output_binary}".format(
             input_binary = input_binary.path,
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
-        mnemonic = "SignBinary",
         execution_requirements = {
             # Added so that the output of this action is not cached remotely, in case multiple
             # developers sign the same artifact with different identities.
@@ -529,15 +608,16 @@ def _sign_binary_action(ctx, input_binary, output_binary):
             # $HOME.
             "no-sandbox": "1",
         },
-        tools = [
-            ctx.executable._codesigningtool,
-        ],
+        inputs = [input_binary],
+        mnemonic = "SignBinary",
+        outputs = [output_binary],
+        platform_prerequisites = platform_prerequisites,
+        tools = [codesigningtool],
     )
 
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
-    provisioning_profile = _provisioning_profile,
     sign_binary_action = _sign_binary_action,
 )

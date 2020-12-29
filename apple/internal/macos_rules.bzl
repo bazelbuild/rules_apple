@@ -158,6 +158,8 @@ def _macos_application_impl(ctx):
             actions = actions,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             targets = ctx.attr.deps + embedded_targets,
         ),
@@ -208,7 +210,6 @@ def _macos_application_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -217,6 +218,7 @@ def _macos_application_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -386,7 +388,6 @@ def _macos_bundle_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -395,6 +396,7 @@ def _macos_bundle_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -541,7 +543,6 @@ def _macos_extension_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -550,6 +551,7 @@ def _macos_extension_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -699,7 +701,6 @@ def _macos_quick_look_plugin_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -708,6 +709,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -844,7 +846,6 @@ def _macos_kernel_extension_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -853,6 +854,7 @@ def _macos_kernel_extension_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -991,7 +993,6 @@ def _macos_spotlight_importer_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -999,6 +1000,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -1136,7 +1138,6 @@ def _macos_xpc_service_impl(ctx):
         )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -1145,6 +1146,7 @@ def _macos_xpc_service_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -1200,7 +1202,6 @@ def _macos_command_line_application_impl(ctx):
     )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -1210,13 +1211,22 @@ def _macos_command_line_application_impl(ctx):
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         rule_label = label,
     )
     output_file = actions.declare_file(label.name)
-    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(
+        actions = actions,
+        codesigningtool = ctx.executable._codesigningtool,
+        input_binary = binary_artifact,
+        output_binary = output_file,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+    )
 
     return [
         AppleBinaryInfo(
@@ -1275,7 +1285,6 @@ def _macos_dylib_impl(ctx):
     )
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -1285,13 +1294,22 @@ def _macos_dylib_impl(ctx):
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         rule_label = label,
     )
     output_file = actions.declare_file(label.name + ".dylib")
-    codesigning_support.sign_binary_action(ctx, binary_artifact, output_file)
+    codesigning_support.sign_binary_action(
+        actions = actions,
+        codesigningtool = ctx.executable._codesigningtool,
+        input_binary = binary_artifact,
+        output_binary = output_file,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        rule_descriptor = rule_descriptor,
+    )
 
     return [
         AppleBinaryInfo(
