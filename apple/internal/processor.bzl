@@ -21,8 +21,6 @@ and will return information on how the bundles should be built.
 
 All partials handled by this processor must follow this API:
 
-  - The only expected argument has to be ctx. This argument is deprecated and will be dropped in a
-    future revision to the rules (b/161370390).
   - The expected output is a struct with the following optional fields:
     * bundle_files: Contains tuples of the format
       (location_type, parent_dir, files) where location_type is a field of the
