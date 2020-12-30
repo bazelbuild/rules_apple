@@ -90,6 +90,19 @@ def _collect_files(rule_attr, attr_names):
 
     return depset(transitive = transitive_files)
 
+def _is_swift_target(target):
+    """Returns whether a target directly exports a Swift module."""
+    if SwiftInfo not in target:
+        return False
+
+    # Containing a SwiftInfo provider is insufficient to determine whether a target exports Swift -
+    # need check whether it contains at least one Swift direct module.
+    for module in target[SwiftInfo].direct_modules:
+        if module.swift != None:
+            return True
+
+    return False
+
 def _apple_test_info_aspect_impl(target, ctx):
     """See `test_info_aspect` for full documentation."""
     includes = []
@@ -114,23 +127,28 @@ def _apple_test_info_aspect_impl(target, ctx):
         objc_provider = target[apple_common.Objc]
         includes.append(objc_provider.strict_include)
 
-        # Module maps should only be used by Swift targets.
-        if SwiftInfo in target:
-            module_maps.append(objc_provider.module_map)
-
     if CcInfo in target:
         cc_info = target[CcInfo]
         includes.append(cc_info.compilation_context.includes)
         includes.append(cc_info.compilation_context.quote_includes)
         includes.append(cc_info.compilation_context.system_includes)
 
-    if SwiftInfo in target:
+    if _is_swift_target(target):
+        all_modules = target[SwiftInfo].transitive_modules.to_list()
+
         module_swiftmodules = [
             module.swift.swiftmodule
-            for module in target[SwiftInfo].transitive_modules.to_list()
+            for module in all_modules
             if module.swift
         ]
         swift_modules.append(depset(module_swiftmodules))
+
+        module_module_maps = [
+            module.clang.module_map
+            for module in all_modules
+            if module.clang and type(module.clang.module_map) == "File"
+        ]
+        module_maps.append(depset(module_module_maps))
 
     # Collect sources from the current target. Note that we do not propagate
     # sources transitively as we intentionally only show test sources from the
