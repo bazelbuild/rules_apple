@@ -116,10 +116,8 @@ def _create_umbrella_header(actions, output, bundle_name, headers):
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _static_framework_header_modulemap_partial_impl(
         *,
-        ctx,
         actions,
         binary_objc_provider,
         bundle_name,

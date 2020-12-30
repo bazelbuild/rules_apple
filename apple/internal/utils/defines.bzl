@@ -14,13 +14,12 @@
 
 """Support functions for common --define operations."""
 
-def _bool_value(ctx, define_name, default, *, config_vars = None):
+def _bool_value(define_name, default, *, config_vars = None):
     """Looks up a define on ctx for a boolean value.
 
     Will also report an error if the value is not a supported value.
 
     Args:
-      ctx: A Starlark context. Deprecated.
       define_name: The name of the define to look up.
       default: The value to return if the define isn't found.
       config_vars: A dictionary (String to String) of configuration variables. Can be from ctx.var.
@@ -28,9 +27,6 @@ def _bool_value(ctx, define_name, default, *, config_vars = None):
     Returns:
       True/False or the default value if the define wasn't found.
     """
-    if not config_vars:
-        config_vars = ctx.var
-
     value = config_vars.get(define_name, None)
     if value != None:
         if value.lower() in ("true", "yes", "1"):

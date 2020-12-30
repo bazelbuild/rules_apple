@@ -18,10 +18,6 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
 
 def _add_dicts(*dictionaries):
     """Adds a list of dictionaries into a single dictionary."""
@@ -34,7 +30,6 @@ def _add_dicts(*dictionaries):
     return result
 
 def _kwargs_for_apple_platform(
-        ctx,
         *,
         platform_prerequisites,
         **kwargs):
@@ -47,19 +42,11 @@ def _kwargs_for_apple_platform(
         env_dicts.append(original_env)
 
     # This is where things differ from apple_support.
-
-    # TODO(b/161370390): Eliminate need to make platform_prerequisites optional when all calls to
-    # run and run_shell with a ctx argument are eliminated.
-    if platform_prerequisites:
-        platform = platform_prerequisites.platform
-        xcode_config = platform_prerequisites.xcode_version_config
-        action_execution_requirements = apple_support.action_required_execution_requirements(
-            xcode_config = xcode_config,
-        )
-    else:
-        platform = platform_support.platform(ctx)
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-        action_execution_requirements = apple_support.action_required_execution_requirements(ctx)
+    platform = platform_prerequisites.platform
+    xcode_config = platform_prerequisites.xcode_version_config
+    action_execution_requirements = apple_support.action_required_execution_requirements(
+        xcode_config = xcode_config,
+    )
 
     env_dicts.append(apple_common.apple_host_system_env(xcode_config))
     env_dicts.append(apple_common.target_apple_env(xcode_config, platform))
@@ -78,10 +65,9 @@ def _kwargs_for_apple_platform(
     return processed_args
 
 def _run(
-        ctx = None,
         *,
-        actions = None,
-        platform_prerequisites = None,
+        actions,
+        platform_prerequisites,
         **kwargs):
     """Executes a Darwin-only action with the necessary platform environment.
 
@@ -97,28 +83,19 @@ def _run(
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Starlark context. Deprecated.
       actions: The actions provider from ctx.actions.
       platform_prerequisites: Struct containing information on the platform being targeted.
       **kwargs: Arguments to be passed into ctx.actions.run.
     """
-
-    # TODO(b/161370390): Eliminate need to make actions and platform_prerequisites optional when all
-    # calls to this method with a ctx argument are eliminated.
-    if not actions:
-        actions = ctx.actions
-
     actions.run(**_kwargs_for_apple_platform(
-        ctx = ctx,
         platform_prerequisites = platform_prerequisites,
         **kwargs
     ))
 
 def _run_shell(
-        ctx = None,
         *,
-        actions = None,
-        platform_prerequisites = None,
+        actions,
+        platform_prerequisites,
         **kwargs):
     """Executes a Darwin-only action with the necessary platform environment.
 
@@ -134,19 +111,11 @@ def _run_shell(
     rule context gets the correct platform value configured.
 
     Args:
-      ctx: The Starlark context. Deprecated.
       actions: The actions provider from ctx.actions.
       platform_prerequisites: Struct containing information on the platform being targeted.
       **kwargs: Arguments to be passed into ctx.actions.run_shell.
     """
-
-    # TODO(b/161370390): Eliminate need to make actions and platform_prerequisites optional when all
-    # calls to this method with a ctx argument are eliminated.
-    if not actions:
-        actions = ctx.actions
-
     actions.run_shell(**_kwargs_for_apple_platform(
-        ctx = ctx,
         platform_prerequisites = platform_prerequisites,
         **kwargs
     ))

@@ -40,10 +40,8 @@ framework module {module_name} {{
 }}
 """.format(module_name = module_name)
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_static_framework_partial_impl(
         *,
-        ctx,
         actions,
         bundle_name,
         label_name,

@@ -59,10 +59,8 @@ load(
     "sets",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _framework_import_partial_impl(
         *,
-        ctx,
         actions,
         label_name,
         package_symbols,

@@ -33,7 +33,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple/internal:platform_support",
         "@bazel_skylib//lib:types",
         "@build_bazel_apple_support//lib:apple_support",
     ],

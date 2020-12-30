@@ -47,10 +47,8 @@ def _should_package_clang_runtime(*, features):
             return True
     return False
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _clang_rt_dylibs_partial_impl(
         *,
-        ctx,
         actions,
         binary_artifact,
         clangrttool,

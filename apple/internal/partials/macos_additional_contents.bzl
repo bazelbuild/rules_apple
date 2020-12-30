@@ -36,8 +36,7 @@ load(
     "paths",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
-def _macos_additional_contents_partial_impl(*, ctx, additional_contents):
+def _macos_additional_contents_partial_impl(*, additional_contents):
     """Implementation for the additional contents processing partial."""
 
     if not additional_contents:

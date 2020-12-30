@@ -23,10 +23,8 @@ load(
     "paths",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _framework_provider_partial_impl(
         *,
-        ctx,
         actions,
         bin_root_path,
         binary_provider,

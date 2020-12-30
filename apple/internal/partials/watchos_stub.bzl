@@ -39,10 +39,8 @@ archive.
     },
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _watchos_stub_partial_impl(
         *,
-        ctx,
         actions,
         binary_artifact,
         label_name,
