@@ -70,100 +70,90 @@ def _swift_static_framework_aspect_impl(target, ctx):
     # rules (i.e. ios_static_framework) are still macros and not rules.
     # Once the static framework rules are migrated to rules instead of macros, this aspect can be
     # removed.
-    if ctx.rule.kind == "apple_static_library":
-        swiftdeps = [x for x in ctx.rule.attr.deps if SwiftInfo in x]
+    if ctx.rule.kind != "apple_static_library":
+        fail("Internal Error: Should only see the the apple_static_library as a dependency.")
 
-        # If there are no Swift dependencies, return nothing.
-        if not swiftdeps:
-            return []
+    swiftdeps = [x for x in ctx.rule.attr.deps if SwiftInfo in x]
 
-        # If there's a different number of swift_library dependencies than all the declared
-        # dependencies, then there must be a mix of dependency types, which is not allowed for Swift
-        # based frameworks. We can't check that the count is exactly one since ctx.rule.attr.deps
-        # might return multiple configured targets for the same target based on the split.
-        # ctx.rule does not support split_attr, which seems to be an oversight. b/141931700 to track
-        # this.
-        if len(swiftdeps) != len(ctx.rule.attr.deps):
-            fail(
-                """\
-error: Found a mix of swift_library and other rule dependencies. Swift static frameworks expect a \
-single swift_library dependency with no transitive swift_library dependencies.\
-""",
-            )
+    # If there are no Swift dependencies, return nothing.
+    if not swiftdeps:
+        return []
 
-        # Collect all relevant artifacts for Swift static framework generation.
-        module_name = None
-        generated_header = None
-        swiftdocs = {}
-        swiftinterfaces = {}
-        for dep in swiftdeps:
-            swiftinfo = dep[SwiftInfo]
+    # There can only be one (transitively) exposed swift_library in when wanting to expose a Swift
+    # from the framework. And there can't really be exposed ObjC since it wouldn't be importable by
+    # a Swift consumer, but don't bother checking that since it can be useful for other
+    # libraries/sdks to add implementation detail objc_library instances that aren't exposed, but
+    # need to be linked to provide a complete library.
 
-            swiftinterface = None
-            swiftdoc = None
-            for module in swiftinfo.transitive_modules.to_list():
-                if not module.swift:
-                    continue
-                if swiftinterface:
-                    fail(
-                        """\
+    # Collect all relevant artifacts for Swift static framework generation.
+    module_name = None
+    generated_header = None
+    swiftdocs = {}
+    swiftinterfaces = {}
+    for dep in swiftdeps:
+        swiftinfo = dep[SwiftInfo]
+
+        swiftinterface = None
+        swiftdoc = None
+        for module in swiftinfo.transitive_modules.to_list():
+            if not module.swift:
+                continue
+            if swiftinterface:
+                fail(
+                    """\
 error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                    )
-                swiftinterface = module.swift.swiftinterface
-                swiftdoc = module.swift.swiftdoc
+                )
+            swiftinterface = module.swift.swiftinterface
+            swiftdoc = module.swift.swiftdoc
 
-                if not module_name:
-                    module_name = module.name
-                elif module.name and module.name != module_name:
-                    fail(
-                        """\
+            if not module_name:
+                module_name = module.name
+            elif module.name and module.name != module_name:
+                fail(
+                    """\
 error: Found multiple direct swift_library dependencies. Swift static frameworks expect a single \
 swift_library dependency with no transitive swift_library dependencies.\
 """,
-                    )
+                )
 
-            arch = _swift_arch_for_dep(dep)
-            swiftdocs[arch] = swiftdoc
-            swiftinterfaces[arch] = swiftinterface
+        arch = _swift_arch_for_dep(dep)
+        swiftdocs[arch] = swiftdoc
+        swiftinterfaces[arch] = swiftinterface
 
-            # Collect the interface artifacts. Only get the first element from each depset since
-            # they should only contain 1. If there are transitive swift_library dependencies, this
-            # aspect would have errored out before.
-            #
-            # If headers are generated, they should be generated equally for all archs, so
-            # just take any of them.
-            if not generated_header:
-                for module in swiftinfo.direct_modules:
-                    # If this is both a Swift and a Clang module, then the header in its compilation
-                    # context is its Swift generated header.
-                    if module.swift and module.clang:
-                        headers = module.clang.compilation_context.headers.to_list()
-                        if headers:
-                            generated_header = headers[0]
+        # Collect the interface artifacts. Only get the first element from each depset since
+        # they should only contain 1. If there are transitive swift_library dependencies, this
+        # aspect would have errored out before.
+        #
+        # If headers are generated, they should be generated equally for all archs, so
+        # just take any of them.
+        if not generated_header:
+            for module in swiftinfo.direct_modules:
+                # If this is both a Swift and a Clang module, then the header in its compilation
+                # context is its Swift generated header.
+                if module.swift and module.clang:
+                    headers = module.clang.compilation_context.headers.to_list()
+                    if headers:
+                        generated_header = headers[0]
 
-        # Make sure that all dictionaries contain at least one module before returning the provider.
-        if all([module_name, swiftdocs, swiftinterfaces]):
-            return [
-                SwiftStaticFrameworkInfo(
-                    module_name = module_name,
-                    generated_header = generated_header,
-                    swiftdocs = swiftdocs,
-                    swiftinterfaces = swiftinterfaces,
-                ),
-            ]
-        else:
-            fail(
-                """\
+    # Make sure that all dictionaries contain at least one module before returning the provider.
+    if all([module_name, swiftdocs, swiftinterfaces]):
+        return [
+            SwiftStaticFrameworkInfo(
+                module_name = module_name,
+                generated_header = generated_header,
+                swiftdocs = swiftdocs,
+                swiftinterfaces = swiftinterfaces,
+            ),
+        ]
+
+    fail(
+        """\
 error: Could not find all required artifacts and information to build a Swift static framework. \
 Please file an issue with a reproducible error case.\
 """,
-            )
-
-    # If the current target is not an apple_static_library, or there was nothing to propagate,
-    # return nothing.
-    return []
+    )
 
 swift_static_framework_aspect = aspect(
     implementation = _swift_static_framework_aspect_impl,
