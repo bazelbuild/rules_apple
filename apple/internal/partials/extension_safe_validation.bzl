@@ -26,10 +26,8 @@ _AppleExtensionSafeValidationInfo = provider(
     },
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _extension_safe_validation_partial_impl(
         *,
-        ctx,
         is_extension_safe,
         rule_label,
         targets_to_validate):

@@ -123,10 +123,8 @@ def _swift_dylib_action(
         xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dylibs_partial_impl(
         *,
-        ctx,
         actions,
         binary_artifact,
         bundle_dylibs,
@@ -167,7 +165,6 @@ def _swift_dylibs_partial_impl(
     strip_bitcode = bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none"
 
     swift_support_requested = defines.bool_value(
-        ctx = None,
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.package_swift_support",
         default = True,

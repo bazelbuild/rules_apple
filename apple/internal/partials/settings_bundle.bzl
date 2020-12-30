@@ -35,10 +35,8 @@ load(
     "partial",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _settings_bundle_partial_impl(
         *,
-        ctx,
         actions,
         platform_prerequisites,
         rule_label,

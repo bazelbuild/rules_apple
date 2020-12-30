@@ -27,10 +27,8 @@ load(
     "partial",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _apple_bundle_info_partial_impl(
         *,
-        ctx,
         actions,
         bundle_id,
         bundle_extension,

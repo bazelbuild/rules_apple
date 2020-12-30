@@ -23,8 +23,7 @@ load(
     "partial",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
-def _framework_headers_partial_impl(*, ctx, hdrs):
+def _framework_headers_partial_impl(*, hdrs):
     """Implementation for the framework headers partial."""
     return struct(
         bundle_files = [

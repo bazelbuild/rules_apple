@@ -27,8 +27,7 @@ load(
     "partial",
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
-def _binary_partial_impl(ctx, actions, binary_artifact, executable_name, label_name):
+def _binary_partial_impl(*, actions, binary_artifact, executable_name, label_name):
     """Implementation for the binary processing partial."""
 
     # Create intermediate file with proper name for the binary.

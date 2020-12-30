@@ -272,7 +272,6 @@ def _should_sign_simulator_bundles(
 
     # Default is to sign.
     return defines.bool_value(
-        ctx = None,
         config_vars = config_vars,
         define_name = "apple.codesign_simulator_bundles",
         default = True,
@@ -493,7 +492,6 @@ def _post_process_and_sign_archive_action(
     # For debug builds, zip without compression, which will speed up the build.
     config_vars = platform_prerequisites.config_vars
     compression_requested = defines.bool_value(
-        ctx = None,
         config_vars = config_vars,
         define_name = "apple.compress_ipa",
         default = False,

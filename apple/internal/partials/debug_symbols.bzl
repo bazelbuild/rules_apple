@@ -193,10 +193,8 @@ def _bundle_dsym_files(
 
     return outputs
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _debug_symbols_partial_impl(
         *,
-        ctx,
         actions,
         bin_root_path,
         bundle_extension,
@@ -278,9 +276,7 @@ def _debug_symbols_partial_impl(
 
     # Only output dependency debug files if requested.
     # TODO(b/131699846): Remove this.
-    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     propagate_embedded_extra_outputs = defines.bool_value(
-        ctx = None,
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.propagate_embedded_extra_outputs",
         default = False,
