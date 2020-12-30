@@ -61,7 +61,7 @@ def _settings_bundle_partial_impl(
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
 
             if field in ["plists", "strings"]:
-                # TODO(b/161370390): This might already be dead code as the workflow appears to be
+                # TODO(b/176548747): This might already be dead code as the workflow appears to be
                 # handled by the resource aspect. Confirm this in follow up work.
                 compiled_files = resources_support.plists_and_strings(
                     actions = actions,
