@@ -23,11 +23,13 @@ load(
     "intermediates",
 )
 
-def _create_stub_binary(ctx, xcode_stub_path):
+def _create_stub_binary(*, actions, platform_prerequisites, rule_label, xcode_stub_path):
     """Returns a symlinked stub binary from the Xcode distribution.
 
     Args:
-        ctx: The rule context.
+        actions: The actions provider from `ctx.actions`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        rule_label: The label of the target being analyzed.
         xcode_stub_path: The Xcode SDK root relative path to where the stub binary is to be copied
             from.
 
@@ -35,21 +37,22 @@ def _create_stub_binary(ctx, xcode_stub_path):
         A File reference to the stub binary artifact.
     """
     binary_artifact = intermediates.file(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        rule_label.name,
         "StubBinary",
     )
 
     # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
     legacy_actions.run_shell(
-        ctx,
-        outputs = [binary_artifact],
+        actions = actions,
         command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
             output_path = binary_artifact.path,
             xcode_stub_path = xcode_stub_path,
         ),
         mnemonic = "CopyStubExecutable",
-        progress_message = "Copying stub executable for %s" % (ctx.label),
+        outputs = [binary_artifact],
+        platform_prerequisites = platform_prerequisites,
+        progress_message = "Copying stub executable for %s" % (rule_label),
     )
     return binary_artifact
 

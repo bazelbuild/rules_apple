@@ -22,9 +22,7 @@ load(
 def is_experimental_tree_artifact_enabled(*, config_vars):
     """Returns whether tree artifact outputs experiment is enabled."""
 
-    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     return defines.bool_value(
-        ctx = None,
         config_vars = config_vars,
         define_name = "apple.experimental.tree_artifact_outputs",
         default = False,

@@ -115,10 +115,8 @@ def _swift_dylib_action(
         xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dylibs_partial_impl(
         *,
-        ctx,
         actions,
         binary_artifact,
         bundle_dylibs,
@@ -181,9 +179,7 @@ def _swift_dylibs_partial_impl(
             swift_support_file = (platform_name, output_dir)
             transitive_swift_support_files.append(swift_support_file)
 
-        # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
         swift_support_requested = defines.bool_value(
-            ctx = ctx,
             config_vars = platform_prerequisites.config_vars,
             define_name = "apple.package_swift_support",
             default = True,

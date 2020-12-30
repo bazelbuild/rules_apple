@@ -993,7 +993,9 @@ def _ios_imessage_application_impl(ctx):
     rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
-        ctx,
+        actions = actions,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = label,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
 
@@ -1292,7 +1294,9 @@ def _ios_sticker_pack_extension_impl(ctx):
     rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
-        ctx,
+        actions = actions,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = label,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
 

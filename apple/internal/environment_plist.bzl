@@ -34,18 +34,32 @@ load(
 )
 
 def _environment_plist(ctx):
-    platform, sdk_version = platform_support.platform_and_sdk_version(ctx)
-    platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
+    # Only need as much platform information as this rule is able to give, for environment plist
+    # processing.
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        device_families = None,
+        explicit_minimum_os = None,
+        objc_fragment = None,
+        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        uses_swift = False,
+        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+    platform = platform_prerequisites.platform
+    sdk_version = platform_prerequisites.sdk_version
     legacy_actions.run(
-        ctx,
-        outputs = [ctx.outputs.plist],
-        executable = ctx.executable._environment_plist_tool,
+        actions = ctx.actions,
         arguments = [
             "--platform",
-            platform_with_version,
+            platform.name_in_plist.lower() + str(sdk_version),
             "--output",
             ctx.outputs.plist.path,
         ],
+        executable = ctx.executable._environment_plist_tool,
+        outputs = [ctx.outputs.plist],
+        platform_prerequisites = platform_prerequisites,
     )
 
 environment_plist = rule(

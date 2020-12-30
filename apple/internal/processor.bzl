@@ -251,9 +251,7 @@ def _bundle_partial_outputs_files(
     config_vars = platform_prerequisites.config_vars
     requested_locales_flag = config_vars.get("apple.locales_to_include")
 
-    # TODO(b/161370390): Remove ctx from all invocations of defines.bool_value.
     trim_locales = defines.bool_value(
-        ctx = None,
         config_vars = config_vars,
         default = None,
         define_name = "apple.trim_lproj_locales",
@@ -653,9 +651,7 @@ def _process(
       any additional output groups is in the `output_groups` field.
     """
 
-    # TODO(b/161370390): Remove the ctx kwarg passed to this call once ctx is removed from the args
-    # of all of the partials.
-    partial_outputs = [partial.call(p, ctx = None) for p in partials]
+    partial_outputs = [partial.call(p) for p in partials]
 
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(

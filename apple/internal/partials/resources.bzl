@@ -274,7 +274,6 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
 
 def _resources_partial_impl(
         *,
-        ctx,
         actions,
         bundle_extension,
         bundle_id,

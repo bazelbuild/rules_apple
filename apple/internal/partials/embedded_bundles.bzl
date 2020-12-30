@@ -52,10 +52,8 @@ of the packaging bundle. Only applicable for macOS applications.""",
     },
 )
 
-# TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _embedded_bundles_partial_impl(
         *,
-        ctx,
         bundle_embedded_bundles,
         embeddable_targets,
         platform_prerequisites,
