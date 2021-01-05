@@ -51,6 +51,7 @@ import os
 import os.path
 import platform
 import plistlib
+import shutil
 import subprocess
 import tempfile
 import time
@@ -417,7 +418,14 @@ def extracted_app(ios_application_output_path, app_name):
   """
   if os.path.isdir(ios_application_output_path):
     logger.debug("Found app directory: %s", ios_application_output_path)
-    yield os.path.realpath(ios_application_output_path)
+    with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
+      temp_app_path = os.path.join(temp_dir, app_name + ".app")
+      shutil.copytree(ios_application_output_path, temp_app_path)
+      for root, dirs, _ in os.walk(temp_app_path):
+        for directory in dirs:
+          os.chmod(os.path.join(root, directory), 0o777)
+      os.chmod(temp_app_path, 0o777)
+      yield temp_app_path
   else:
     with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
       logger.debug("Unzipping IPA from %s to %s", ios_application_output_path,
