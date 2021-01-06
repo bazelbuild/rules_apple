@@ -15,10 +15,6 @@
 """Partial implementation for processing the settings bundle for iOS apps."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -57,21 +53,7 @@ def _settings_bundle_partial_impl(
         for parent_dir, _, files in getattr(provider, field):
             bundle_name = bundle_paths.farthest_parent(parent_dir, "bundle")
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
-
-            if field in ["plists", "strings"]:
-                # TODO(b/176548747): This might already be dead code as the workflow appears to be
-                # handled by the resource aspect. Confirm this in follow up work.
-                compiled_files = resources_support.plists_and_strings(
-                    actions = actions,
-                    files = files,
-                    force_binary = True,
-                    parent_dir = parent_dir,
-                    platform_prerequisites = platform_prerequisites,
-                    rule_label = rule_label,
-                )
-                bundle_files.extend(compiled_files.files)
-            else:
-                bundle_files.append((processor.location.resource, parent_dir, files))
+            bundle_files.append((processor.location.resource, parent_dir, files))
 
     return struct(bundle_files = bundle_files)
 
