@@ -40,6 +40,8 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   if [[ ! -e "$path" ]]; then
     fail "Could not find binary at \"$path\""
   fi
+  something_tested=false
+
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
     if [[ ! -n $arch ]]; then
@@ -52,6 +54,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -70,6 +73,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
       do
+        something_tested=true
         symbol_found=false
         for actual_symbol in "${actual_symbols[@]}"
         do
@@ -84,21 +88,29 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
         fi
       done
     fi
+  else
+    if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for symbols," \
+        "but no arch was set to check: ${BINARY_CONTAINS_SYMBOLS[@]}"
+    fi
+    if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for missing symbols," \
+        "but no arch was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+    fi
   fi
 
   # Use `launchctl plist` to test for key/value pairs in an embedded plist file.
   if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
     for test_values in "${PLIST_TEST_VALUES[@]}"
     do
+      something_tested=true
       # Keys and expected-values are in the format "KEY VALUE".
       IFS=' ' read -r key expected_value <<< "$test_values"
-      # Choose which plist slice we'd like to test, default to embedded
-      # Info.plist.
-      if [[ -n "${PLIST_SECTION_NAME-}" ]]; then
-        plist_section_name="__TEXT,$PLIST_SECTION_NAME"
-      else
-        plist_section_name="__TEXT,__info_plist"
+      if [[ -z "${PLIST_SECTION_NAME-}" ]]; then
+        fail "Rule Misconfigured: missing plist section," \
+         "but not supposed to check for values: ${PLIST_TEST_VALUES}"
       fi
+      plist_section_name="__TEXT,$PLIST_SECTION_NAME"
       # Replace wildcard "*" characters with a sed-friendly ".*" wildcard.
       expected_value=${expected_value/"*"/".*"}
       value="$(launchctl plist $plist_section_name $path | sed -nE "s/.*\"$key\" = \"($expected_value)\";.*/\1/p" || true)"
@@ -108,5 +120,14 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
             "contents:$newline$(launchctl plist $plist_section_name $path)"
       fi
     done
+  else
+    # Don't error if PLIST_SECTION_NAME is set because the rule defaults it.
+    true
   fi
+
+  if [[ "$something_tested" = false ]]; then
+    fail "Rule Misconfigured: Nothing was configured to be validated on the binary \"$path\""
+  fi
+else
+  fail "Rule Misconfigured: No binary was set to be inspected"
 fi

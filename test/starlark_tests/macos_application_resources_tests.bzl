@@ -68,7 +68,6 @@ def macos_application_resources_test_suite():
             "$RESOURCE_ROOT/it.lproj/localized.strings",
             "$RESOURCE_ROOT/it.lproj/localized.plist",
         ],
-        plist_test_file = "$CONTENT_ROOT/Info.plist",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         tags = [name],
     )
