@@ -105,6 +105,7 @@ single swift_library dependency.\
     modulemap_file = None
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
+        module_name = swiftinfo.module_name
         arch = _swift_arch_for_dep(dep)
 
         swiftmodule = None
@@ -114,7 +115,6 @@ single swift_library dependency.\
                     continue
                 swiftmodule = module.swift.swiftmodule
                 swiftdoc = module.swift.swiftdoc
-                module_name = module.name
 
         swiftdocs[arch] = swiftdoc
         swiftmodules[arch] = swiftmodule
