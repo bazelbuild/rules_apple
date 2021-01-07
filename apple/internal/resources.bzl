@@ -411,7 +411,7 @@ def _process_bucketized_data(
             # Store each origin as a tuple in an array, to keep this knowledge as a low-memory
             # reference within a depset.
             for processed_resource, processed_origin in result.processed_origins.items():
-                processed_origins.append((processed_resource, processed_origin))
+                processed_origins.append((processed_resource, tuple(processed_origin)))
 
             processed_field = {}
             for _, _, processed_file in result.files:
