@@ -380,7 +380,7 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithBitcode",
+        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithBitcode",
     ],
 )
 
@@ -399,8 +399,8 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithDebugInfo",
-        "//test/testdata/frameworks:iOSImportedDynamicFrameworkWithDsym",
+        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo",
+        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDsym",
     ],
 )
 
@@ -1896,7 +1896,7 @@ ios_dynamic_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/frameworks:iOSImportedDynamicFramework",
+        "//test/testdata/fmwk:iOSImportedDynamicFramework",
     ],
 )
 
