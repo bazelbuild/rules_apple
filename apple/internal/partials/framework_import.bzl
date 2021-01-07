@@ -180,7 +180,6 @@ def _framework_import_partial_impl(
         # provisioning profile if the current build targets real devices.
         inputs = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
 
-        provisioning_profile = codesigning_support.provisioning_profile(ctx)
         execution_requirements = {}
         if provisioning_profile:
             inputs.append(provisioning_profile)
