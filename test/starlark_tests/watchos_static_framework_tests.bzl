@@ -40,6 +40,15 @@ def watchos_static_framework_test_suite(name = "watchos_static_framework"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_angle_bracketed_import_in_umbrella_header".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:static_fmwk",
+        text_test_file = "$BUNDLE_ROOT/Headers/static_fmwk.h",
+        text_test_values = ["#import <static_fmwk/shared.h>"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
