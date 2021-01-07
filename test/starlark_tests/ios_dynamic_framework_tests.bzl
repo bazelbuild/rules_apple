@@ -35,7 +35,6 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework",
         binary_test_file = "$BUNDLE_ROOT/BasicFramework",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/BasicFramework.framework/BasicFramework (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/BasicFramework",
@@ -76,7 +75,6 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_direct_dependency",
         binary_test_file = "$BUNDLE_ROOT/DirectDependencyTest",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/DirectDependencyTest.framework/DirectDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/DirectDependencyTest",
@@ -94,7 +92,6 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_transitive_dependency",
         binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyTest",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/TransitiveDependencyTest.framework/TransitiveDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/TransitiveDependencyTest",
