@@ -54,9 +54,7 @@ def _ios_test_runner_impl(ctx):
             test_environment = ctx.attr.test_environment,
         ),
         DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [ctx.file._testrunner],
-            ),
+            runfiles = ctx.attr._testrunner[DefaultInfo].default_runfiles,
         ),
     ]
 
@@ -101,9 +99,8 @@ into the XCTest invocation.
         ),
         "_testrunner": attr.label(
             default = Label(
-                "@xctestrunner//file",
+                "@xctestrunner//:ios_test_runner",
             ),
-            allow_single_file = True,
             executable = True,
             cfg = "host",
             doc = """

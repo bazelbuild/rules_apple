@@ -20,6 +20,8 @@ filegroup(
         "//tools:for_bazel_tests",
         "@build_bazel_apple_support//:for_bazel_tests",
         "@build_bazel_rules_swift//:for_bazel_tests",
+        "@subpar//:subpar.bzl",
+        "@xctestrunner//:for_bazel_tests",
     ],
     visibility = ["//:__subpackages__"],
 )

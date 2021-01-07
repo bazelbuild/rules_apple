@@ -14,7 +14,7 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -127,10 +127,23 @@ def apple_rules_dependencies(ignore_version_differences = False):
     )
 
     _maybe(
-        http_file,
+        http_archive,
+        name = "subpar",
+        urls = [
+            "https://github.com/google/subpar/archive/2.0.0.tar.gz",
+        ],
+        strip_prefix = "subpar-2.0.0",
+        sha256 = "b80297a1b8d38027a86836dbadc22f55dc3ecad56728175381aa6330705ac10f",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
         name = "xctestrunner",
-        executable = 1,
-        sha256 = "298846d5ad7607eba33e786149c2b642ffe39508d4a99468a8280871d902fe5d",
-        urls = ["https://github.com/google/xctestrunner/releases/download/0.2.14/ios_test_runner.par"],
+        urls = [
+            "https://github.com/google/xctestrunner/archive/64a9be0b6fa833b4b2371729c5c8cdd2c6f7775b.tar.gz",
+        ],
+        strip_prefix = "xctestrunner-64a9be0b6fa833b4b2371729c5c8cdd2c6f7775b",
+        sha256 = "c03e91efc01a1fa2f6c7764b93f5312e20c9c4fae124de2fc398871e46d4244d",
         ignore_version_differences = ignore_version_differences,
     )
