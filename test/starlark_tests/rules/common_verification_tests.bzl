@@ -124,6 +124,8 @@ def archive_contents_test(
             fail("Need binary_test_file to check the binary for symbols")
         if any([macho_load_commands_contain, macho_load_commands_not_contain]):
             fail("Need binary_test_file to check macho load commands")
+        if any([codesign_info_contains, codesign_info_not_contains]):
+            fail("Need binary_test_file to check codesign info")
 
     if not any([
         contains,

@@ -165,6 +165,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${CODESIGN_INFO_CONTAINS-}" ]]; then
       for test_codesign_info in "${CODESIGN_INFO_CONTAINS[@]}"
       do
+        something_tested=true
         codesign_info_found=false
         if grep -sq "$test_codesign_info" "$codesign_output"; then
           codesign_info_found=true
@@ -181,6 +182,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${CODESIGN_INFO_NOT_CONTAINS-}" ]]; then
       for test_codesign_info in "${CODESIGN_INFO_NOT_CONTAINS[@]}"
       do
+        something_tested=true
         codesign_info_found=false
         if grep -sq "$test_codesign_info" "$codesign_output"; then
           codesign_info_found=true
