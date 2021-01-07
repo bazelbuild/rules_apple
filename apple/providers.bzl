@@ -175,7 +175,7 @@ and bundled at the top level.""",
         "unprocessed": "Generic resources not mapped to the other types.",
         "xibs": "XIB Interface files.",
         "owners": """Depset of (resource, owner) pairs.""",
-        "processed_origins": """Depset of (processed resource, resource) pairs.""",
+        "processed_origins": """Depset of (processed resource, resource list) pairs.""",
         "unowned_resources": """Depset of unowned resources.""",
     },
 )
