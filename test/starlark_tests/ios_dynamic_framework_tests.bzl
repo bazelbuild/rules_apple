@@ -43,11 +43,11 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule"
+            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
-    
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework",
@@ -84,7 +84,7 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule"
+            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
@@ -102,7 +102,7 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule"
+            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
