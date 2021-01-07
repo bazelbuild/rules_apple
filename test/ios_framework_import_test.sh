@@ -140,7 +140,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "framework_lib",
     module_name = "bazel_framework",
-    srcs = ["@build_bazel_rules_apple//test/testdata/frameworks:swift_source"],
+    srcs = ["@build_bazel_rules_apple//test/testdata/fmwk:swift_source"],
 )
 
 ios_static_framework(

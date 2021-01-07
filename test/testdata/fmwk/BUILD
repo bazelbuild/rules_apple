@@ -9,7 +9,7 @@ load(
     "generate_import_framework",
 )
 load(
-    "//test/testdata/frameworks:generate_framework_dsym.bzl",
+    "//test/testdata/fmwk:generate_framework_dsym.bzl",
     "generate_import_framework_dsym",
 )
 
