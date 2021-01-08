@@ -910,7 +910,7 @@ def _ios_extension_impl(ctx):
 
 def _ios_dynamic_framework_impl(ctx):
     """Experimental implementation of ios_dynamic_framework."""
-    
+
     binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
     extra_linkopts = []
     if ctx.attr.extension_safe:
@@ -1059,7 +1059,6 @@ def _ios_dynamic_framework_impl(ctx):
     ]
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -1068,6 +1067,7 @@ def _ios_dynamic_framework_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,

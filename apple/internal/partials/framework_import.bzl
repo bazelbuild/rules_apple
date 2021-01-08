@@ -205,9 +205,10 @@ def _framework_import_partial_impl(
         signed_frameworks_list.append(framework_basename)
 
     symbols_requested = defines.bool_value(
-        ctx,
-        "apple.package_symbols",
-        False,
+        ctx = None,
+        config_vars = platform_prerequisites.config_vars,
+        define_name = "apple.package_symbols",
+        default = False,
     )
     if package_symbols and symbols_requested:
         transitive_dsyms = [
@@ -237,14 +238,15 @@ def _framework_import_partial_impl(
     )
 
 def _generate_symbols(
-    ctx,
-    build_archs_found,
-    files_by_framework,
-    framework_binaries_by_framework,
-    transitive_dsyms):
+        ctx,
+        build_archs_found,
+        files_by_framework,
+        framework_binaries_by_framework,
+        transitive_dsyms):
     # Collect dSYM binaries and framework binaries of frameworks that don't
     # have dSYMs
     all_binaries = []
+
     # Keep track of frameworks that provide dSYM, so that we can avoid
     # unnecessarily extracting symbols from said frameworks' binaries
     has_dsym_framework_basenames = sets.make()
@@ -255,6 +257,7 @@ def _generate_symbols(
         # is packaged.
         if file.basename.lower() != "info.plist":
             all_binaries.append(file)
+
             # Update the set of frameworks that provide dSYMs
             framework_dsym_path = bundle_paths.farthest_parent(
                 file.short_path,

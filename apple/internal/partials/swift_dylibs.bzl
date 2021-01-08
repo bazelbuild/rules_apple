@@ -170,8 +170,13 @@ def _swift_dylibs_partial_impl(
 
     strip_bitcode = bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none"
 
-    swift_support_requested = defines.bool_value(ctx, "apple.package_swift_support", True)
-    needs_swift_support = platform_support.is_device_build(ctx) and swift_support_requested
+    swift_support_requested = defines.bool_value(
+        ctx = None,
+        config_vars = platform_prerequisites.config_vars,
+        define_name = "apple.package_swift_support",
+        default = True,
+    )
+    needs_swift_support = platform_prerequisites.platform.is_device and swift_support_requested
 
     bundle_files = []
     if bundle_dylibs:
@@ -202,8 +207,8 @@ def _swift_dylibs_partial_impl(
                     # Swift Support, so we register another action for copying
                     # them without stripping bitcode.
                     swift_support_output_dir = intermediates.directory(
-                        ctx.actions,
-                        ctx.label.name,
+                        actions,
+                        label_name,
                         "swiftlibs_for_swiftsupport",
                     )
                     _swift_dylib_action(

@@ -84,7 +84,7 @@ load(
 
 def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
-    
+
     binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
     extra_linkopts = []
     if ctx.attr.extension_safe:
@@ -233,7 +233,6 @@ def _watchos_dynamic_framework_impl(ctx):
     ]
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -242,6 +241,7 @@ def _watchos_dynamic_framework_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -536,7 +536,7 @@ def _watchos_extension_impl(ctx):
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_outputs_provider = debug_outputs_provider, 
+            debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = ctx.file._dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
@@ -701,7 +701,6 @@ def _watchos_static_framework_impl(ctx):
         ))
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -710,6 +709,7 @@ def _watchos_static_framework_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
