@@ -19,9 +19,12 @@ load(
     "archive_contents_test",
 )
 
-def ios_static_framework_test_suite():
-    """Test suite for ios_static_framework."""
-    name = "ios_static_framework"
+def ios_static_framework_test_suite(name = "ios_static_framework"):
+    """Test suite for ios_static_framework.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     # Test that it's permitted for a static framework to have multiple
     # `swift_library` dependencies if only one module remains after excluding
