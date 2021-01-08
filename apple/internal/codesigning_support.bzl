@@ -60,6 +60,7 @@ def _codesign_args_for_path(
         path_to_sign,
         platform_prerequisites,
         provisioning_profile,
+        codesignopts,
         shell_quote = True):
     """Returns a command line for the codesigning tool wrapper script.
 
@@ -70,6 +71,7 @@ def _codesign_args_for_path(
           optionality (see `_path_to_sign`).
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
+      codesignopts: Extra options to pass to the `codesign` tool
       shell_quote: Sanitizes the arguments to be evaluated in a shell.
 
     Returns:
@@ -150,10 +152,8 @@ def _codesign_args_for_path(
                 maybe_double_quote(signed_framework),
             ])
 
-    extra_opts_raw = getattr(ctx.attr, "codesignopts", [])
-    extra_opts = [ctx.expand_make_variables("codesignopts", opt, {}) for opt in extra_opts_raw]
     cmd_codesigning.append("--")
-    cmd_codesigning.extend(extra_opts)
+    cmd_codesigning.extend(codesignopts)
     return cmd_codesigning
 
 def _path_to_sign(*, path, is_directory = False, signed_frameworks = [], use_entitlements = True):
@@ -198,6 +198,7 @@ def _validate_provisioning_profile(
 def _signing_command_lines(
         *,
         codesigningtool,
+        codesignopts,
         entitlements_file,
         paths_to_sign,
         platform_prerequisites,
@@ -210,6 +211,7 @@ def _signing_command_lines(
 
     Args:
       codesigningtool: The `File` representing the code signing tool.
+      codesignopts: Extra options to pass to the `codesign` tool
       entitlements_file: The entitlements file to pass to codesign.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
           paths that should be code-signed.
@@ -231,6 +233,7 @@ def _signing_command_lines(
             path_to_sign = path_to_sign,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
+            codesignopts = codesignopts,
         ))
         commands.append(" ".join(codesign_command))
     return "\n".join(commands)
@@ -326,12 +329,14 @@ def _codesigning_args(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         shell_quote = False,
+        codesignopts = [],
     )
 
 def _codesigning_command(
         *,
         bundle_path = "",
         codesigningtool,
+        codesignopts,
         entitlements,
         frameworks_path,
         platform_prerequisites,
@@ -343,6 +348,7 @@ def _codesigning_command(
     Args:
         bundle_path: The location of the bundle, relative to the archive.
         codesigningtool: The `File` representing the code signing tool.
+        codesignopts: Extra options to pass to the `codesign` tool
         entitlements: The entitlements file to sign with. Can be None.
         frameworks_path: The location of the Frameworks directory, relative to the archive.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -400,6 +406,7 @@ def _codesigning_command(
         paths_to_sign = paths_to_sign,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
+        codesignopts = codesignopts,
     )
 
 def _post_process_and_sign_archive_action(
@@ -407,6 +414,7 @@ def _post_process_and_sign_archive_action(
         actions,
         archive_codesigning_path,
         codesigningtool,
+        codesignopts,
         entitlements = None,
         frameworks_path,
         input_archive,
@@ -425,6 +433,7 @@ def _post_process_and_sign_archive_action(
       actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
       codesigningtool: The `File` representing the code signing tool.
+      codesignopts: Extra options to pass to the `codesign` tool
       entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
@@ -446,6 +455,7 @@ def _post_process_and_sign_archive_action(
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
         codesigningtool = codesigningtool,
+        codesignopts = codesignopts,
         entitlements = entitlements,
         frameworks_path = frameworks_path,
         platform_prerequisites = platform_prerequisites,
@@ -592,6 +602,7 @@ def _sign_binary_action(
         paths_to_sign = [path_to_sign],
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
+        codesignopts = [],
     )
 
     legacy_actions.run_shell(

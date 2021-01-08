@@ -290,6 +290,7 @@ def _ios_application_impl(ctx):
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
         rule_label = label,
+        codesignopts = [ctx.expand_make_variables("codesignopts", opt, {}) for opt in ctx.attr.codesignopts],
     )
 
     executable = outputs.executable(

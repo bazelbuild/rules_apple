@@ -440,7 +440,8 @@ def _bundle_post_process_and_sign(
         provisioning_profile,
         rule_descriptor,
         rule_executables,
-        rule_label):
+        rule_label,
+        codesignopts):
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
@@ -458,6 +459,7 @@ def _bundle_post_process_and_sign(
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         rule_label: The label of the target being analyzed.
+        codesignopts: Extra options to pass to the `codesign` tool
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         config_vars = platform_prerequisites.config_vars,
@@ -492,6 +494,7 @@ def _bundle_post_process_and_sign(
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
+            codesignopts = codesignopts,
         )
 
         _bundle_partial_outputs_files(
@@ -542,6 +545,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
             codesigningtool = rule_executables._codesigningtool,
+            codesignopts = codesignopts,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
@@ -603,6 +607,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
                 codesigningtool = rule_executables._codesigningtool,
+                codesignopts = codesignopts,
                 entitlements = entitlements,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
@@ -632,7 +637,8 @@ def _process(
         provisioning_profile,
         rule_descriptor,
         rule_executables,
-        rule_label):
+        rule_label,
+        codesignopts = []):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
@@ -651,6 +657,7 @@ def _process(
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
       rule_label: The label of the target being analyzed.
+      codesignopts: Extra options to pass to the `codesign` tool
 
     Returns:
       A `struct` with the results of the processing. The files to make outputs of
@@ -686,6 +693,7 @@ def _process(
             rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             rule_label = rule_label,
+            codesignopts = codesignopts,
         )
         transitive_output_files = [depset([output_archive])]
     else:
