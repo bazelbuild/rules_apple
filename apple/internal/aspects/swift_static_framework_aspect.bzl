@@ -18,6 +18,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
+load("@bazel_skylib//lib:sets.bzl", "sets")
 
 SwiftStaticFrameworkInfo = provider(
     fields = {
@@ -79,6 +80,16 @@ def _swift_static_framework_aspect_impl(target, ctx):
     if not swiftdeps:
         return []
 
+    # Collect the names of any Swift modules reachable from `avoid_deps`. These
+    # will be ignored when checking for a single `swift_library` below.
+    avoid_swiftinfos = [t[SwiftInfo] for t in ctx.rule.attr.avoid_deps if SwiftInfo in t]
+    avoid_modules = sets.make()
+    for swiftinfo in avoid_swiftinfos:
+        for module in swiftinfo.transitive_modules.to_list():
+            if not module.swift:
+                continue
+            sets.insert(avoid_modules, module.name)
+
     # There can only be one (transitively) exposed swift_library in when wanting to expose a Swift
     # from the framework. And there can't really be exposed ObjC since it wouldn't be importable by
     # a Swift consumer, but don't bother checking that since it can be useful for other
@@ -96,7 +107,7 @@ def _swift_static_framework_aspect_impl(target, ctx):
         swiftinterface = None
         swiftdoc = None
         for module in swiftinfo.transitive_modules.to_list():
-            if not module.swift:
+            if not module.swift or sets.contains(avoid_modules, module.name):
                 continue
             if swiftinterface:
                 fail(
