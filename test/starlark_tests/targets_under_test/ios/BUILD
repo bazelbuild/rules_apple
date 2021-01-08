@@ -12,7 +12,10 @@ load(
     "ios_ui_test",
     "ios_unit_test",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 
@@ -1929,4 +1932,45 @@ ios_static_framework(
     deps = [
         "//test/starlark_tests/resources:objc_common_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for iOS static framework tests.
+
+ios_static_framework(
+    name = "static_fmwk_with_swift_and_avoid_deps",
+    avoid_deps = [":StaticFmwkLowerLib"],
+    bundle_name = "StaticFmwkUpperLib",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":StaticFmwkUpperLib"],
+)
+
+genrule(
+    name = "dummy_swift_src",
+    outs = ["Dummy.swift"],
+    cmd = "echo 'public struct Dummy {}' > $@",
+)
+
+swift_library(
+    name = "StaticFmwkUpperLib",
+    srcs = ["Dummy.swift"],
+    module_name = "StaticFmwkUpperLib",
+    tags = FIXTURE_TAGS,
+    deps = [":StaticFmwkLowerLib"],
+)
+
+swift_library(
+    name = "StaticFmwkLowerLib",
+    srcs = ["Dummy.swift"],
+    module_name = "StaticFmwkLowerLib",
+    tags = FIXTURE_TAGS,
+    deps = [":StaticFmwkLowestLib"],
+)
+
+swift_library(
+    name = "StaticFmwkLowestLib",
+    srcs = ["Dummy.swift"],
+    module_name = "StaticFmwkLowestLib",
+    tags = FIXTURE_TAGS,
 )
