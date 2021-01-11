@@ -69,7 +69,7 @@ objc_library(
         "**/*.h",
         "**/*.m",
     ]),
-    data = [
+    resources = [
         ":Main.storyboard",
     ],
 )

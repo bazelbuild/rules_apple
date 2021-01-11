@@ -61,11 +61,13 @@ def _swift_target_for_dep(dep):
                     return arg
                 if arg == "-target":
                     target_found = True
-    fail("error: Expected at least one Swift compilation action for target {}.".format(dep.label))
+    return ""
 
 def _swift_arch_for_dep(dep):
     """Returns the architecture for which the dependency was built."""
     target = _swift_target_for_dep(dep)
+    if target == "":
+        return ""
     return target.split("-", 1)[0]
 
 def _modulemap_contents(module_name):
@@ -82,21 +84,20 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
 
     if not hasattr(ctx.rule.attr, "deps"):
         return []
-
+    
     swiftdeps = [x for x in ctx.rule.attr.deps if SwiftInfo in x]
     ccinfos = [x for x in ctx.rule.attr.deps if CcInfo in x]
-
     # If there are no Swift dependencies, return nothing.
     if not swiftdeps:
         return []
 
     if len(swiftdeps) != len(ctx.rule.attr.deps):
-        fail(
-            """\
+            fail(
+                """\
 error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
 single swift_library dependency.\
 """,
-        )
+            )
 
     # Collect all relevant artifacts for Swift dynamic framework generation.
     module_name = None
@@ -106,16 +107,16 @@ single swift_library dependency.\
     modulemap_file = None
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
+        module_name = swiftinfo.module_name
         arch = _swift_arch_for_dep(dep)
 
         swiftmodule = None
         swiftdoc = None
         for module in swiftinfo.transitive_modules.to_list():
-            if not module.swift:
-                continue
-            module_name = module.name
-            swiftmodule = module.swift.swiftmodule
-            swiftdoc = module.swift.swiftdoc
+                if not module.swift:
+                    continue
+                swiftmodule = module.swift.swiftmodule
+                swiftdoc = module.swift.swiftdoc
 
         swiftdocs[arch] = swiftdoc
         swiftmodules[arch] = swiftmodule

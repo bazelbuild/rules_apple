@@ -60,18 +60,15 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:tvos_cpus": "arm64",
             "//command_line_option:watchos_cpus": "armv7k",
         })
-    existing_features = settings.get("//command_line_option:features") or []
     if attr.sanitizer != "none":
-        output_dictionary["//command_line_option:features"] = existing_features + [attr.sanitizer]
+        output_dictionary["//command_line_option:features"] = [attr.sanitizer]
     else:
-        output_dictionary["//command_line_option:features"] = existing_features
+        output_dictionary["//command_line_option:features"] = []
     return output_dictionary
 
 apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
-    inputs = [
-        "//command_line_option:features",
-    ],
+    inputs = [],
     outputs = [
         "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",

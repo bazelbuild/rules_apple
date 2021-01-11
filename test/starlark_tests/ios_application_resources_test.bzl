@@ -87,7 +87,7 @@ def ios_application_resources_test_suite(name = "ios_application_resources"):
     analysis_failure_message_test(
         name = "{}_invalid_top_level_directory_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_structured_resources_in_resources_folder",
-        expected_error = "For ios bundles, the following top level directories are invalid (case-insensitive): resources",
+        expected_error = "For ios bundles, the following top level directories are invalid: Resources",
         tags = [name],
     )
 

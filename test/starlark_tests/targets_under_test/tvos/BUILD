@@ -15,7 +15,7 @@ load(
 )
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
-    "//test/testdata/fmwk:generate_framework.bzl",
+    "//test/testdata/frameworks:generate_framework.bzl",
     "generate_import_framework",
 )
 load(

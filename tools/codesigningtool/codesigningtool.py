@@ -32,13 +32,8 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 # * signed app bundle with Mach-O universal
 # * signed bundle with Mach-O thin
 # * replacing existing signature
-# * using the deprecated --resource-rules flag
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r'('
-    r'signed.*Mach-O (universal|thin)|'
-    r'replacing existing signature|'
-    r'Warning: --resource-rules has been deprecated'
-    r')'
+    r'(signed.*Mach-O (universal|thin)|replacing existing signature)'
 )
 
 

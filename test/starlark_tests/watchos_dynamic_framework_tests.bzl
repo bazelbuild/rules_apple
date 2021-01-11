@@ -34,6 +34,8 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         name = "{}_archive_contents_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:basic_framework",
+        binary_test_file = "$BUNDLE_ROOT/BasicFramework",
+        binary_test_architecture = "i386",
         contains = [
             "$BUNDLE_ROOT/BasicFramework",
             "$BUNDLE_ROOT/Headers/BasicFramework.h",
@@ -72,6 +74,8 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         name = "{}_direct_dependency_archive_contents_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:basic_framework_with_direct_dependency",
+        binary_test_file = "$BUNDLE_ROOT/DirectDependencyTest",
+        binary_test_architecture = "i386",
         contains = [
             "$BUNDLE_ROOT/DirectDependencyTest",
             "$BUNDLE_ROOT/Headers/DirectDependencyTest.h",
@@ -88,6 +92,8 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         name = "{}_transitive_dependency_archive_contents_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:basic_framework_with_transitive_dependency",
+        binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyTest",
+        binary_test_architecture = "i386",
         contains = [
             "$BUNDLE_ROOT/TransitiveDependencyTest",
             "$BUNDLE_ROOT/Headers/TransitiveDependencyTest.h",

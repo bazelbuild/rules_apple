@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""tvos_static_framework Starlark tests."""
+"""tvos_framework Starlark tests."""
 
 load(
     ":rules/common_verification_tests.bzl",
