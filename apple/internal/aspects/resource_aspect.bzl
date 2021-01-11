@@ -39,6 +39,10 @@ load(
     "SwiftInfo",
 )
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -48,7 +52,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
-    # TODO(b/161370390): Support device_families when rule_descriptor can be accessed from an
+    # TODO(b/176548199): Support device_families when rule_descriptor can be accessed from an
     # aspect, or the list of allowed device families can be determined independently of the
     # rule_descriptor.
     return platform_support.platform_prerequisites(
@@ -71,7 +75,8 @@ def _apple_resource_aspect_impl(target, ctx):
         return []
 
     providers = []
-    bucketize_args = {
+    bucketize_args = {}
+    process_args = {
         "actions": ctx.actions,
         "bundle_id": None,
         "product_type": None,
@@ -114,29 +119,49 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:
-        infoplists = resources.collect(ctx.rule.attr, **collect_infoplists_args)
+        infoplists = resources.collect(
+            attr = ctx.rule.attr,
+            **collect_infoplists_args
+        )
         if infoplists:
-            # TODO(b/168721966): Process resource Info.plists in the aspect, rather than simply
-            # bucket them for processing within the top level rule's resource partial.
+            bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+                bucket_type = "infoplists",
+                owner = owner,
+                parent_dir_param = bundle_name,
+                resources = infoplists,
+                **bucketize_args
+            )
             providers.append(
-                resources.bucketize_typed(
-                    resources = infoplists,
-                    bucket_type = "infoplists",
-                    owner = owner,
-                    parent_dir_param = bundle_name,
+                resources.process_bucketized_data(
+                    bucketized_owners = bucketized_owners,
+                    buckets = buckets,
+                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    processing_owner = owner,
+                    unowned_resources = unowned_resources,
+                    **process_args
                 ),
             )
 
     if collect_args:
-        resource_files = resources.collect(ctx.rule.attr, **collect_args)
+        resource_files = resources.collect(
+            attr = ctx.rule.attr,
+            **collect_args
+        )
         if resource_files:
+            bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
+                resources = resource_files,
+                owner = owner,
+                parent_dir_param = bundle_name,
+                **bucketize_args
+            )
             providers.append(
-                resources.bucketize_with_processing(
-                    owner = owner,
-                    parent_dir_param = bundle_name,
+                resources.process_bucketized_data(
+                    bucketized_owners = bucketized_owners,
+                    buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
-                    resources = resource_files,
-                    **bucketize_args
+                    processing_owner = owner,
+                    unowned_resources = unowned_resources,
+                    **process_args
                 ),
             )
 
@@ -148,7 +173,10 @@ def _apple_resource_aspect_impl(target, ctx):
         # apple_resource_group or apple_bundle_import targets, unlike `resources`. If a target is
         # referenced by `structured_resources` that already propagates a resource provider, it will
         # be ignored.
-        structured_files = resources.collect(ctx.rule.attr, **collect_structured_args)
+        structured_files = resources.collect(
+            attr = ctx.rule.attr,
+            **collect_structured_args
+        )
         if structured_files:
             if bundle_name:
                 structured_parent_dir_param = partial.make(
@@ -162,15 +190,23 @@ def _apple_resource_aspect_impl(target, ctx):
 
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-            structured_resources_provider = resources.bucketize_with_processing(
+            bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
                 allowed_buckets = ["strings", "plists"],
                 owner = owner,
                 parent_dir_param = structured_parent_dir_param,
-                platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                 resources = structured_files,
                 **bucketize_args
             )
-            providers.append(structured_resources_provider)
+            providers.append(
+                resources.process_bucketized_data(
+                    bucketized_owners = bucketized_owners,
+                    buckets = buckets,
+                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    processing_owner = owner,
+                    unowned_resources = unowned_resources,
+                    **process_args
+                ),
+            )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
     inherited_providers = []
@@ -185,22 +221,35 @@ def _apple_resource_aspect_impl(target, ctx):
     if inherited_providers and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.
         merged_inherited_provider = resources.merge_providers(
-            inherited_providers,
             default_owner = owner,
+            providers = inherited_providers,
         )
-        providers.append(resources.nest_in_bundle(merged_inherited_provider, bundle_name))
+        providers.append(resources.nest_in_bundle(
+            provider_to_nest = merged_inherited_provider,
+            nesting_bundle_dir = bundle_name,
+        ))
     elif inherited_providers:
         providers.extend(inherited_providers)
 
     if providers:
         # If any providers were collected, merge them.
-        return [resources.merge_providers(providers, default_owner = owner)]
+        return [resources.merge_providers(
+            default_owner = owner,
+            providers = providers,
+        )]
     return []
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = ["data", "deps", "resources"],
-    attrs = apple_support.action_required_attrs(),
+    attrs = dicts.add(apple_support.action_required_attrs(), {
+        # TODO(b/162832260): Share this and other Apple BUILD rules tools via a shareable toolchain.
+        "_plisttool": attr.label(
+            cfg = "host",
+            default = Label("@build_bazel_rules_apple//tools/plisttool"),
+            executable = True,
+        ),
+    }),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
 bundling rule.""",

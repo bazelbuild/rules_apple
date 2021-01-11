@@ -59,7 +59,6 @@ def ios_framework_test_suite(name = "ios_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",
         binary_test_file = "$BUNDLE_ROOT/fmwk",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/fmwk.framework/fmwk (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/fmwk",
@@ -374,6 +373,17 @@ def ios_framework_test_suite(name = "ios_framework"):
         ],
         not_contains = [
             "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_angle_bracketed_import_in_umbrella_header".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework",
+        text_test_file = "$BUNDLE_ROOT/Headers/objc_static_framework.h",
+        text_test_values = [
+            "#import <objc_static_framework/common.h>",
         ],
         tags = [name],
     )

@@ -175,7 +175,7 @@ and bundled at the top level.""",
         "unprocessed": "Generic resources not mapped to the other types.",
         "xibs": "XIB Interface files.",
         "owners": """Depset of (resource, owner) pairs.""",
-        "processed_origins": """Depset of (processed resource, resource) pairs.""",
+        "processed_origins": """Depset of (processed resource, resource list) pairs.""",
         "unowned_resources": """Depset of unowned resources.""",
     },
 )
@@ -579,5 +579,18 @@ a "marker" to indicate that a target is specifically a watchOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
+""",
+)
+
+WatchosStaticFrameworkBundleInfo = provider(
+    fields = [],
+    doc = """
+Denotes that a target is an watchOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a watchOS static framework should use this provider to describe
+that requirement.
 """,
 )

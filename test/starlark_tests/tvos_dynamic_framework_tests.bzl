@@ -35,7 +35,10 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:basic_framework",
         binary_test_file = "$BUNDLE_ROOT/BasicFramework",
+<<<<<<< HEAD
         binary_test_architecture = "x86_64",
+=======
+>>>>>>> 214fb6dcec83fcfd9dbd9e069c33b3433aac8926
         macho_load_commands_contain = ["name @rpath/BasicFramework.framework/BasicFramework (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/BasicFramework",
@@ -43,11 +46,19 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftdoc",
+<<<<<<< HEAD
             "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule"
         ],
         tags = [name],
     )
     
+=======
+            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
+>>>>>>> 214fb6dcec83fcfd9dbd9e069c33b3433aac8926
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:basic_framework",
@@ -76,7 +87,6 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:basic_framework_with_direct_dependency",
         binary_test_file = "$BUNDLE_ROOT/DirectDependencyTest",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/DirectDependencyTest.framework/DirectDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/DirectDependencyTest",
@@ -84,7 +94,7 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule"
+            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
@@ -94,7 +104,6 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:basic_framework_with_transitive_dependency",
         binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyTest",
-        binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["name @rpath/TransitiveDependencyTest.framework/TransitiveDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/TransitiveDependencyTest",
@@ -102,7 +111,7 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule"
+            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )

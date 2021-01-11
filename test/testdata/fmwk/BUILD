@@ -5,11 +5,11 @@ load(
     "apple_static_framework_import",
 )
 load(
-    "//test/testdata/frameworks:generate_framework.bzl",
+    "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
 )
 load(
-    "//test/testdata/frameworks:generate_framework_dsym.bzl",
+    "//test/testdata/fmwk:generate_framework_dsym.bzl",
     "generate_import_framework_dsym",
 )
 

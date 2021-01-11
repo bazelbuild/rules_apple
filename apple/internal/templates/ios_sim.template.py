@@ -51,6 +51,7 @@ import os
 import os.path
 import platform
 import plistlib
+import shutil
 import subprocess
 import tempfile
 import time
@@ -334,8 +335,7 @@ def wait_for_sim_to_boot(simctl_path, udid):
   return False
 
 
-@contextlib.contextmanager
-def booted_simulator(developer_path, simctl_path, udid):
+def boot_simulator(developer_path, simctl_path, udid):
   """Launches the iOS simulator for the given identifier.
 
   Ensures the Simulator process is in the foreground.
@@ -345,25 +345,26 @@ def booted_simulator(developer_path, simctl_path, udid):
     simctl_path: The path to the `simctl` binary.
     udid: The identifier of the simulator to wait for.
 
-  Yields:
-    A running subprocess.Popen object for the simulator.
-
   Raises:
     Exception: if the simulator did not launch within 60 seconds.
   """
   logger.info("Launching simulator with udid: %s", udid)
-  simulator_path = os.path.join(
-      developer_path, "Applications/Simulator.app/Contents/MacOS/Simulator")
-  with subprocess.Popen([simulator_path, "-CurrentDeviceUDID", udid],
-                        stdout=subprocess.DEVNULL) as simulator_process:
-    logger.debug("Simulator launched.")
-    if not wait_for_sim_to_boot(simctl_path, udid):
-      raise Exception("Failed to launch simulator with UDID: " + udid)
-    # Bring the Simulator process to the foreground.
-    subprocess.run(
-        ["osascript", "-e", "tell application \"Simulator\" to activate"],
-        check=True)
-    yield simulator_process
+  # Using subprocess.Popen() to launch Simulator.app and then
+  # `osascript -e "tell application \"Simulator\" to activate" is racy
+  # and can fail with:
+  #
+  #   Simulator got an error: Connection is invalid. (-609)
+  #
+  # This is likely because the newly-spawned Simulator.app process
+  # hasn't had time to connect to the Apple Events system which
+  # `osascript` relies on.
+  simulator_path = os.path.join(developer_path, "Applications/Simulator.app")
+  subprocess.run(
+      ["open", "-a", simulator_path, "--args", "-CurrentDeviceUDID", udid],
+      check=True)
+  logger.debug("Simulator launched.")
+  if not wait_for_sim_to_boot(simctl_path, udid):
+    raise Exception("Failed to launch simulator with UDID: " + udid)
 
 
 @contextlib.contextmanager
@@ -417,7 +418,14 @@ def extracted_app(ios_application_output_path, app_name):
   """
   if os.path.isdir(ios_application_output_path):
     logger.debug("Found app directory: %s", ios_application_output_path)
-    yield os.path.realpath(ios_application_output_path)
+    with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
+      temp_app_path = os.path.join(temp_dir, app_name + ".app")
+      shutil.copytree(ios_application_output_path, temp_app_path)
+      for root, dirs, _ in os.walk(temp_app_path):
+        for directory in dirs:
+          os.chmod(os.path.join(root, directory), 0o777)
+      os.chmod(temp_app_path, 0o777)
+      yield temp_app_path
   else:
     with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
       logger.debug("Unzipping IPA from %s to %s", ios_application_output_path,
@@ -488,8 +496,8 @@ def run_app_in_simulator(simulator_udid, developer_path, simctl_path,
     ios_application_output_path: Path to the output of an `ios_application()`.
     app_name: The name of the application (e.g. "Foo" for "Foo.app").
   """
-  with booted_simulator(developer_path, simctl_path, simulator_udid) as _, \
-       extracted_app(ios_application_output_path, app_name) as app_path:
+  boot_simulator(developer_path, simctl_path, simulator_udid)
+  with extracted_app(ios_application_output_path, app_name) as app_path:
     logger.debug("Installing app %s to simulator %s", app_path, simulator_udid)
     subprocess.run([simctl_path, "install", simulator_udid, app_path],
                    check=True)

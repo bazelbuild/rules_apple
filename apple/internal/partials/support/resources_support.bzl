@@ -277,15 +277,18 @@ def _infoplists(
         `infoplists` field with the plists that need to be merged for the root Info.plist
     """
     if parent_dir:
+        input_files = files.to_list()
+        processed_origins = {}
         out_plist = intermediates.file(
             actions,
             rule_label.name,
             paths.join(parent_dir, "Info.plist"),
         )
+        processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
             bundle_name_with_extension = paths.basename(parent_dir),
-            input_files = files.to_list(),
+            input_files = input_files,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
             plisttool = executables._plisttool,
@@ -295,6 +298,7 @@ def _infoplists(
             files = [
                 (processor.location.resource, parent_dir, depset(direct = [out_plist])),
             ],
+            processed_origins = processed_origins,
         )
     else:
         return struct(files = [], infoplists = files.to_list())
@@ -439,7 +443,7 @@ def _plists_and_strings(
             rule_label.name,
             paths.join(parent_dir or "", file.basename),
         )
-        processed_origins[plist_file.short_path] = file.short_path
+        processed_origins[plist_file.short_path] = [file.short_path]
         resource_actions.compile_plist(
             actions = actions,
             input_file = file,
@@ -483,7 +487,7 @@ def _pngs(
     for file in files.to_list():
         png_path = paths.join(parent_dir or "", file.basename)
         png_file = intermediates.file(actions, rule_label.name, png_path)
-        processed_origins[png_file.short_path] = file.short_path
+        processed_origins[png_file.short_path] = [file.short_path]
         resource_actions.copy_png(
             actions = actions,
             input_file = file,
@@ -637,7 +641,7 @@ def _noop(
     """Registers files to be bundled as is."""
     processed_origins = {}
     for file in files.to_list():
-        processed_origins[file.short_path] = file.short_path
+        processed_origins[file.short_path] = [file.short_path]
     return struct(
         files = [(processor.location.resource, parent_dir, files)],
         processed_origins = processed_origins,

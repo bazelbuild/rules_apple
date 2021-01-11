@@ -225,7 +225,6 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:processor",
         "//apple/internal:resources",
-        "//apple/internal/partials/support:resources_support",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
     ],

@@ -76,7 +76,7 @@ filegroup(
     testonly = 1,
     srcs = [
         "@bazel_skylib//:test_deps",
-        "@xctestrunner//file",
+        "@xctestrunner//:ios_test_runner",
     ],
 )
 
@@ -114,10 +114,10 @@ apple_shell_test(
     size = "medium",
     src = "ios_framework_import_test.sh",
     data = [
-        "//test/testdata/frameworks:ios_framework_generators",
-        "//test/testdata/frameworks:objc_headers",
-        "//test/testdata/frameworks:objc_source",
-        "//test/testdata/frameworks:swift_source",
+        "//test/testdata/fmwk:ios_framework_generators",
+        "//test/testdata/fmwk:objc_headers",
+        "//test/testdata/fmwk:objc_source",
+        "//test/testdata/fmwk:swift_source",
     ],
     shard_count = 4,
 )
