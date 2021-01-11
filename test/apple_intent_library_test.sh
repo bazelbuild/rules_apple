@@ -16,7 +16,7 @@
 
 set -eu
 
-# Integration tests for apple_core_ml_library.
+# Integration tests for objc_intent_library and swift_intent_library.
 
 function set_up() {
   mkdir -p app
@@ -26,7 +26,8 @@ function tear_down() {
   rm -rf app
 }
 
-# Creates common source, targets, and basic plist for macOS loadable bundles.
+# Creates common source and targets for objc_intent_library and
+# swift_intent_library in an iOS app.
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
