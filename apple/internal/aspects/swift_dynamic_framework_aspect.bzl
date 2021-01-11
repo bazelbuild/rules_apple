@@ -61,11 +61,13 @@ def _swift_target_for_dep(dep):
                     return arg
                 if arg == "-target":
                     target_found = True
-    fail("error: Expected at least one Swift compilation action for target {}.".format(dep.label))
+    return ""
 
 def _swift_arch_for_dep(dep):
     """Returns the architecture for which the dependency was built."""
     target = _swift_target_for_dep(dep)
+    if target == "":
+        return ""
     return target.split("-", 1)[0]
 
 def _modulemap_contents(module_name):
