@@ -41,6 +41,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_dylib = "ios_dylib",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
     _ios_imessage_application = "ios_imessage_application",
@@ -78,6 +79,37 @@ def ios_app_clip(name, **kwargs):
         name = name,
         dylibs = kwargs.get("frameworks", []),
         **bundling_args
+    )
+
+def ios_dylib(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Builds a iOS dylib."""
+
+    # Xcode will happily apply entitlements during code signing for a dylib even
+    # though it doesn't have a Capabilities tab in the project settings.
+    # Until there's official support for it, we'll fail if we see those attributes
+    # (which are added to the rule because of the code_signing_attributes usage in
+    # the rule definition).
+    if "entitlements" in kwargs or "provisioning_profile" in kwargs:
+        fail("ios_dylib does not support entitlements or provisioning " +
+             "profiles at this time")
+
+    binary_args = dict(kwargs)
+
+    dylib_args = binary_support.add_entitlements_and_swift_linkopts(
+        name,
+        platform_type = str(apple_common.platform_type.ios),
+        product_type = apple_product_type.dylib,
+        link_swift_statically = True,
+        include_entitlements = False,
+        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
+        **binary_args
+    )
+
+    _ios_dylib(
+        name = name,
+        dylibs = binary_args.pop("frameworks", None),
+        **dylib_args
     )
 
 def ios_extension(name, **kwargs):

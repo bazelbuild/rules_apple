@@ -990,6 +990,64 @@ fashion, such as a Cocoapod.
 
     return attrs
 
+def _get_ios_binary_attrs(rule_descriptor):
+    """Returns a list of dictionaries with attributes for iOS binary rules."""
+    attrs = []
+
+    if rule_descriptor.requires_provisioning_profile:
+        attrs.append({
+            "provisioning_profile": attr.label(
+                allow_single_file = [rule_descriptor.provisioning_profile_extension],
+                doc = """
+The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
+optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
+required for device builds.
+""".format(profile_extension = rule_descriptor.provisioning_profile_extension),
+            ),
+        })
+
+    attrs.append({
+        "minimum_os_version": attr.string(
+            mandatory = True,
+            doc = """
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "10.11").
+""",
+        ),
+    })
+
+    if len(rule_descriptor.allowed_device_families) > 1:
+        extra_args = {}
+        if not rule_descriptor.mandatory_families:
+            extra_args["default"] = rule_descriptor.allowed_device_families
+        attrs.append({
+            "families": attr.string_list(
+                mandatory = rule_descriptor.mandatory_families,
+                allow_empty = False,
+                doc = """
+A list of device families supported by this extension. Valid values are `iphone` and `ipad`; at
+least one must be specified.
+""",
+                **extra_args
+            ),
+        })
+
+    # TODO: Once all platforms have framework rules, move this into
+    # _common_binary_linking_attrs().
+    if rule_descriptor.requires_deps:
+        attrs.append({
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+        })
+
+    return attrs
+
 def _get_macos_binary_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for macOS binary rules."""
     attrs = []
@@ -1113,8 +1171,15 @@ binaries/libraries will be created combining all architectures specified by
         rule_attrs.extend(
             [
                 {"_product_type": attr.string(default = product_type)},
-            ] + _get_macos_binary_attrs(rule_descriptor),
+            ],
         )
+
+        if platform_type == "ios":
+            rule_attrs.extend(_get_ios_binary_attrs(rule_descriptor))
+        elif platform_type == "macos":
+            rule_attrs.extend(_get_macos_binary_attrs(rule_descriptor))
+        else:
+            fail("ERROR: create_apple_binary_rule doesn't support {}.".format(platform_type))
     else:
         is_executable = False
         rule_attrs.append(_common_binary_linking_attrs(
