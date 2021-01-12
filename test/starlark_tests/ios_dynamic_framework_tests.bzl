@@ -157,6 +157,40 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_apple_dynamic_framework_import_in_framework_compiles".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_dynamic_framework_import",
+        binary_test_file = "$BUNDLE_ROOT/DynamicFrameworkImportTest",
+        macho_load_commands_contain = ["name @rpath/DynamicFrameworkImportTest.framework/DynamicFrameworkImportTest (offset 24)"],
+        contains = [
+            "$BUNDLE_ROOT/DynamicFrameworkImportTest",
+            "$BUNDLE_ROOT/Headers/DynamicFrameworkImportTest.h",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/Modules/DynamicFrameworkImportTest.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/DynamicFrameworkImportTest.swiftmodule/x86_64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_apple_static_framework_import_in_framework_compiles".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_static_framework_import",
+        binary_test_file = "$BUNDLE_ROOT/StaticFrameworkImportTest",
+        macho_load_commands_contain = ["name @rpath/StaticFrameworkImportTest.framework/StaticFrameworkImportTest (offset 24)"],
+        contains = [
+            "$BUNDLE_ROOT/StaticFrameworkImportTest",
+            "$BUNDLE_ROOT/Headers/StaticFrameworkImportTest.h",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/Modules/StaticFrameworkImportTest.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/StaticFrameworkImportTest.swiftmodule/x86_64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

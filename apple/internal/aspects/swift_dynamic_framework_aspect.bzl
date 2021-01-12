@@ -61,13 +61,13 @@ def _swift_target_for_dep(dep):
                     return arg
                 if arg == "-target":
                     target_found = True
-    return ""
+    return None
 
 def _swift_arch_for_dep(dep):
     """Returns the architecture for which the dependency was built."""
     target = _swift_target_for_dep(dep)
-    if target == "":
-        return ""
+    if not target:
+        return None
     return target.split("-", 1)[0]
 
 def _modulemap_contents(module_name):
@@ -109,6 +109,8 @@ single swift_library dependency.\
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
         arch = _swift_arch_for_dep(dep)
+        if not arch:
+            return []
 
         swiftmodule = None
         swiftdoc = None
