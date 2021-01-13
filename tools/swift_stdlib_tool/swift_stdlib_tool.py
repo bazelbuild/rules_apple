@@ -66,6 +66,9 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
       [os.path.join(source_path, f) for f in exec_files]
   )
 
+  # Ensure directory for remote execution
+  os.makedirs(destination_path, exist_ok=True)
+
   # Copy or lipo each file as needed, from source to destination.
   for exec_file in exec_files:
     exec_file_source_path = os.path.join(source_path, exec_file)
