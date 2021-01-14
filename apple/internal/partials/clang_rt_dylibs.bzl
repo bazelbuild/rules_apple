@@ -50,11 +50,11 @@ def _should_package_clang_runtime(*, features):
 def _clang_rt_dylibs_partial_impl(
         *,
         actions,
+        apple_toolchain_info,
         binary_artifact,
         features,
         label_name,
-        platform_prerequisites,
-        rule_executables):
+        platform_prerequisites):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
     if _should_package_clang_runtime(features = features):
@@ -64,7 +64,7 @@ def _clang_rt_dylibs_partial_impl(
             "clang_rt.zip",
         )
 
-        resolved_clangrttool = rule_executables.resolved_clangrttool
+        resolved_clangrttool = apple_toolchain_info.resolved_clangrttool
         legacy_actions.run(
             actions = actions,
             arguments = [
@@ -92,20 +92,20 @@ def _clang_rt_dylibs_partial_impl(
 def clang_rt_dylibs_partial(
         *,
         actions,
+        apple_toolchain_info,
         binary_artifact,
         features,
         label_name,
-        platform_prerequisites,
-        rule_executables):
+        platform_prerequisites):
     """Constructor for the Clang runtime dylibs processing partial.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      rule_executables: List of tool executables defined by the rule.
 
     Returns:
       A partial that returns the bundle location of the Clang runtime dylibs, if there were any to
@@ -114,9 +114,9 @@ def clang_rt_dylibs_partial(
     return partial.make(
         _clang_rt_dylibs_partial_impl,
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         binary_artifact = binary_artifact,
         features = features,
         label_name = label_name,
         platform_prerequisites = platform_prerequisites,
-        rule_executables = rule_executables,
     )
