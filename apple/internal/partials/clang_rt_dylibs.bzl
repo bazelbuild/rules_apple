@@ -51,10 +51,10 @@ def _clang_rt_dylibs_partial_impl(
         *,
         actions,
         binary_artifact,
-        clangrttool,
         features,
         label_name,
-        platform_prerequisites):
+        platform_prerequisites,
+        rule_executables):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
     if _should_package_clang_runtime(features = features):
@@ -64,16 +64,18 @@ def _clang_rt_dylibs_partial_impl(
             "clang_rt.zip",
         )
 
+        resolved_clangrttool = rule_executables.resolved_clangrttool
         legacy_actions.run(
             actions = actions,
             arguments = [
                 binary_artifact.path,
                 clang_rt_zip.path,
             ],
-            executable = clangrttool,
+            executable = resolved_clangrttool.executable,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
-            inputs = [binary_artifact],
+            inputs = depset([binary_artifact], transitive = [resolved_clangrttool.inputs]),
+            input_manifests = resolved_clangrttool.input_manifests,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
             platform_prerequisites = platform_prerequisites,
@@ -91,19 +93,19 @@ def clang_rt_dylibs_partial(
         *,
         actions,
         binary_artifact,
-        clangrttool,
         features,
         label_name,
-        platform_prerequisites):
+        platform_prerequisites,
+        rule_executables):
     """Constructor for the Clang runtime dylibs processing partial.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       binary_artifact: The main binary artifact for this target.
-      clangrttool: A reference to a tool to find all Clang runtime libs linked to a binary.
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      rule_executables: List of tool executables defined by the rule.
 
     Returns:
       A partial that returns the bundle location of the Clang runtime dylibs, if there were any to
@@ -113,8 +115,8 @@ def clang_rt_dylibs_partial(
         _clang_rt_dylibs_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
-        clangrttool = clangrttool,
         features = features,
         label_name = label_name,
         platform_prerequisites = platform_prerequisites,
+        rule_executables = rule_executables,
     )

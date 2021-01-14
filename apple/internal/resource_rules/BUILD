@@ -44,6 +44,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:apple_support_toolchain",
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
         "//apple/internal:swift_support",

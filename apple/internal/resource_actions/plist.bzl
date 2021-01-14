@@ -47,7 +47,7 @@ def plisttool_action(
         mnemonic = None,
         outputs,
         platform_prerequisites,
-        plisttool):
+        resolved_plisttool):
     """Registers an action that invokes `plisttool`.
 
     This function is a low-level helper that simply invokes `plisttool` with the given arguments.
@@ -61,14 +61,15 @@ def plisttool_action(
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      plisttool: An executable file referencing the plist tool.
+      resolved_plisttool: A struct referencing the resolved plist tool.
     """
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
-        executable = plisttool,
-        inputs = inputs + [control_file],
+        executable = resolved_plisttool.executable,
+        inputs = depset(inputs + [control_file], transitive = [resolved_plisttool.inputs]),
+        input_manifests = resolved_plisttool.input_manifests,
         mnemonic = mnemonic,
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -118,7 +119,7 @@ def merge_resource_infoplists(
         input_files,
         output_plist,
         platform_prerequisites,
-        plisttool,
+        resolved_plisttool,
         rule_label):
     """Merges a list of plist files for resource bundles with substitutions.
 
@@ -128,7 +129,7 @@ def merge_resource_infoplists(
       input_files: The list of plists to merge.
       output_plist: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      plisttool: An executable file referencing the plist tool.
+      resolved_plisttool: A struct referencing the resolved plist tool.
       rule_label: The label of the target being analyzed.
     """
     product_name = paths.replace_extension(bundle_name_with_extension, "")
@@ -171,7 +172,7 @@ def merge_resource_infoplists(
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
         platform_prerequisites = platform_prerequisites,
-        plisttool = plisttool,
+        resolved_plisttool = resolved_plisttool,
     )
 
 def merge_root_infoplists(
@@ -190,7 +191,7 @@ def merge_root_infoplists(
         output_plist,
         output_pkginfo,
         platform_prerequisites,
-        plisttool,
+        resolved_plisttool,
         rule_descriptor,
         rule_label,
         version,
@@ -223,7 +224,7 @@ def merge_root_infoplists(
         required.
       output_plist: The file reference for the merged output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      plisttool: An executable file referencing the plist tool.
+      resolved_plisttool: A struct referencing the resolved plist tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
@@ -370,5 +371,5 @@ def merge_root_infoplists(
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
         platform_prerequisites = platform_prerequisites,
-        plisttool = plisttool,
+        resolved_plisttool = resolved_plisttool,
     )

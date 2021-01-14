@@ -171,28 +171,38 @@ def _framework_import_partial_impl(
         )
         args.add_all(codesign_args)
 
+        resolved_codesigningtool = rule_executables.resolved_codesigningtool
+        resolved_imported_dynamic_framework_processor = rule_executables.resolved_imported_dynamic_framework_processor
+
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, plus a generated list of those binaries to prune
         # their dependencies so that future changes to the app/extension/framework binaries do not
         # force this action to re-run on incremental builds, plus the top-level target's
         # provisioning profile if the current build targets real devices.
-        inputs = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
+        input_files = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
 
         execution_requirements = {}
         if provisioning_profile:
-            inputs.append(provisioning_profile)
+            input_files.append(provisioning_profile)
             execution_requirements = {"no-sandbox": "1"}
+
+        transitive_inputs = [
+            resolved_imported_dynamic_framework_processor.inputs,
+            resolved_codesigningtool.inputs,
+        ]
 
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
-            executable = rule_executables._imported_dynamic_framework_processor,
+            executable = resolved_imported_dynamic_framework_processor.executable,
             execution_requirements = execution_requirements,
-            inputs = inputs,
+            inputs = depset(input_files, transitive = transitive_inputs),
+            input_manifests = resolved_imported_dynamic_framework_processor.input_manifests +
+                              resolved_codesigningtool.input_manifests,
             mnemonic = "ImportedDynamicFrameworkProcessor",
             outputs = [framework_zip],
-            tools = [rule_executables._codesigningtool],
+            tools = [resolved_codesigningtool.executable],
             xcode_config = platform_prerequisites.xcode_version_config,
             xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
@@ -334,7 +344,7 @@ def framework_import_partial(
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+        rule_executables: List of tool executables defined by the rule.
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
             to be used when deduplicating frameworks already bundled.

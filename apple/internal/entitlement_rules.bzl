@@ -27,6 +27,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
+    "apple_support_toolchain_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -345,12 +349,15 @@ def _entitlements_impl(ctx):
 
     resource_actions.plisttool_action(
         actions = actions,
+        control_file = control_file,
         inputs = inputs,
+        mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
         platform_prerequisites = platform_prerequisites,
-        plisttool = ctx.executable._plisttool,
-        control_file = control_file,
-        mnemonic = "ProcessEntitlementsFiles",
+        resolved_plisttool = apple_support_toolchain_utils.resolve_tools_for_executable(
+            attr_name = "_plisttool",
+            rule_ctx = ctx,
+        ),
     )
 
     # Only propagate linkopts for simulator builds to embed the entitlements into

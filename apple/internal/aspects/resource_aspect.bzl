@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
+    "apple_support_toolchain_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -33,6 +37,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
+    "AppleSupportToolchainInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -80,7 +85,7 @@ def _apple_resource_aspect_impl(target, ctx):
         "actions": ctx.actions,
         "bundle_id": None,
         "product_type": None,
-        "rule_executables": ctx.executable,
+        "rule_executables": ctx.attr._toolchain[AppleSupportToolchainInfo],
         "rule_label": ctx.label,
     }
     collect_infoplists_args = {}
@@ -242,14 +247,10 @@ def _apple_resource_aspect_impl(target, ctx):
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = ["data", "deps", "resources"],
-    attrs = dicts.add(apple_support.action_required_attrs(), {
-        # TODO(b/162832260): Share this and other Apple BUILD rules tools via a shareable toolchain.
-        "_plisttool": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/plisttool"),
-            executable = True,
-        ),
-    }),
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        apple_support_toolchain_utils.shared_attrs(),
+    ),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
 bundling rule.""",

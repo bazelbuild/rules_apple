@@ -59,8 +59,8 @@ def _compile_datamodels(
         label_name,
         parent_dir,
         platform_prerequisites,
-        swift_module,
-        xctoolrunner_executable):
+        resolved_xctoolrunner,
+        swift_module):
     "Compiles datamodels into mom files."
     output_files = []
     module_name = swift_module or label_name
@@ -90,7 +90,7 @@ def _compile_datamodels(
             module_name = module_name,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner_executable = xctoolrunner_executable,
+            resolved_xctoolrunner = resolved_xctoolrunner,
         )
         output_files.append(
             (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
@@ -105,7 +105,7 @@ def _compile_mappingmodels(
         mappingmodel_groups,
         parent_dir,
         platform_prerequisites,
-        xctoolrunner_executable):
+        resolved_xctoolrunner):
     """Compiles mapping models into cdm files."""
     output_files = []
     for mappingmodel_path, input_files in mappingmodel_groups.items():
@@ -118,11 +118,11 @@ def _compile_mappingmodels(
 
         resource_actions.compile_mappingmodel(
             actions = actions,
-            input_files = input_files,
+            input_files = input_files.to_list(),
             mappingmodel_path = mappingmodel_path,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner_executable = xctoolrunner_executable,
+            resolved_xctoolrunner = resolved_xctoolrunner,
         )
 
         output_files.append(
@@ -172,7 +172,7 @@ def _asset_catalogs(
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
-        xctoolrunner_executable = executables._xctoolrunner,
+        resolved_xctoolrunner = executables.resolved_xctoolrunner,
     )
 
     return struct(
@@ -234,7 +234,7 @@ def _datamodels(
         swift_module = swift_module,
         datamodel_groups = datamodel_groups,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner_executable = executables._xctoolrunner,
+        resolved_xctoolrunner = executables.resolved_xctoolrunner,
     ))
     output_files.extend(_compile_mappingmodels(
         actions = actions,
@@ -242,7 +242,7 @@ def _datamodels(
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner_executable = executables._xctoolrunner,
+        resolved_xctoolrunner = executables.resolved_xctoolrunner,
     ))
 
     return struct(files = output_files)
@@ -291,7 +291,7 @@ def _infoplists(
             input_files = input_files,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            plisttool = executables._plisttool,
+            resolved_plisttool = executables.resolved_plisttool,
             rule_label = rule_label,
         )
         return struct(
@@ -382,7 +382,7 @@ def _mlmodels(
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner_executable = executables._xctoolrunner,
+            resolved_xctoolrunner = executables.resolved_xctoolrunner,
         )
 
         mlmodel_bundles.append(
@@ -538,8 +538,8 @@ def _storyboards(
             input_file = storyboard,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
+            resolved_xctoolrunner = executables.resolved_xctoolrunner,
             swift_module = swift_module,
-            xctoolrunner_executable = executables._xctoolrunner,
         )
         compiled_storyboardcs.append(storyboardc_dir)
 
@@ -554,8 +554,8 @@ def _storyboards(
         actions = actions,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
+        resolved_xctoolrunner = executables.resolved_xctoolrunner,
         storyboardc_dirs = compiled_storyboardcs,
-        xctoolrunner_executable = executables._xctoolrunner,
     )
     return struct(
         files = [
@@ -626,8 +626,8 @@ def _xibs(
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
+            resolved_xctoolrunner = executables.resolved_xctoolrunner,
             swift_module = swift_module,
-            xctoolrunner_executable = executables._xctoolrunner,
         )
         nib_files.append(out_dir)
 

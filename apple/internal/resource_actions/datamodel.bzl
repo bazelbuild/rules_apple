@@ -31,7 +31,7 @@ def compile_datamodels(
         module_name,
         output_file,
         platform_prerequisites,
-        xctoolrunner_executable):
+        resolved_xctoolrunner):
     """Creates an action that compiles datamodels.
 
     Args:
@@ -41,7 +41,7 @@ def compile_datamodels(
         module_name: The module name to use when compiling the datamodels.
         output_file: The file reference to the compiled datamodel.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
+        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
     """
     platform = platform_prerequisites.platform
     platform_name = platform.name_in_plist.lower()
@@ -60,8 +60,9 @@ def compile_datamodels(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
-        inputs = input_files,
+        executable = resolved_xctoolrunner.executable,
+        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MomCompile",
         outputs = [output_file],
         platform_prerequisites = platform_prerequisites,
@@ -74,7 +75,7 @@ def compile_mappingmodel(
         mappingmodel_path,
         output_file,
         platform_prerequisites,
-        xctoolrunner_executable):
+        resolved_xctoolrunner):
     """Creates an action that compiles CoreData mapping models.
 
     Args:
@@ -83,7 +84,7 @@ def compile_mappingmodel(
         mappingmodel_path: The path to the directory containing the mapping model.
         output_file: The file reference to the compiled mapping model.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
+        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
     """
     args = [
         "mapc",
@@ -94,8 +95,9 @@ def compile_mappingmodel(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
-        inputs = input_files,
+        executable = resolved_xctoolrunner.executable,
+        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MappingModelCompile",
         outputs = [output_file],
         platform_prerequisites = platform_prerequisites,

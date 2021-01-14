@@ -80,6 +80,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleSupportToolchainInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
@@ -120,6 +121,7 @@ def _ios_application_impl(ctx):
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -138,7 +140,6 @@ def _ios_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
@@ -187,10 +188,10 @@ def _ios_application_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -199,7 +200,7 @@ def _ios_application_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             package_symbols = True,
             platform_prerequisites = platform_prerequisites,
@@ -217,7 +218,7 @@ def _ios_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
@@ -233,7 +234,7 @@ def _ios_application_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -252,7 +253,7 @@ def _ios_application_impl(ctx):
             label_name = label.name,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -292,13 +293,14 @@ def _ios_application_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -310,10 +312,10 @@ def _ios_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        file = ctx.file,
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        runner_template = apple_toolchain_info.runner_template,
     )
 
     archive = outputs.archive(
@@ -332,7 +334,7 @@ def _ios_application_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive, ctx.file._std_redirect_dylib],
+                files = [archive, apple_toolchain_info.std_redirect_dylib],
             ),
         ),
         IosApplicationBundleInfo(),
@@ -364,6 +366,7 @@ def _ios_app_clip_impl(ctx):
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -382,7 +385,6 @@ def _ios_app_clip_impl(ctx):
     label = ctx.label
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -431,10 +433,10 @@ def _ios_app_clip_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -443,7 +445,7 @@ def _ios_app_clip_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
@@ -460,7 +462,7 @@ def _ios_app_clip_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             targets = ctx.attr.deps + ctx.attr.frameworks,
         ),
         partials.resources_partial(
@@ -475,7 +477,7 @@ def _ios_app_clip_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -488,7 +490,7 @@ def _ios_app_clip_impl(ctx):
             label_name = label.name,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -508,13 +510,14 @@ def _ios_app_clip_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -522,15 +525,14 @@ def _ios_app_clip_impl(ctx):
         actions = actions,
         label_name = label.name,
     )
-
     run_support.register_simulator_executable(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        file = ctx.file,
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        runner_template = apple_toolchain_info.runner_template,
     )
 
     archive = outputs.archive(
@@ -549,7 +551,7 @@ def _ios_app_clip_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive, ctx.file._std_redirect_dylib],
+                files = [archive, apple_toolchain_info.std_redirect_dylib],
             ),
         ),
         IosAppClipBundleInfo(),
@@ -581,6 +583,7 @@ def _ios_framework_impl(ctx):
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -597,7 +600,6 @@ def _ios_framework_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
@@ -648,10 +650,10 @@ def _ios_framework_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -660,7 +662,7 @@ def _ios_framework_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
@@ -697,7 +699,7 @@ def _ios_framework_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = ["resources"],
@@ -709,7 +711,7 @@ def _ios_framework_impl(ctx):
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -720,13 +722,14 @@ def _ios_framework_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -766,6 +769,7 @@ def _ios_extension_impl(ctx):
     output_groups = link_result.output_groups
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -782,7 +786,6 @@ def _ios_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -830,10 +833,10 @@ def _ios_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -842,7 +845,7 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
@@ -869,7 +872,7 @@ def _ios_extension_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -880,7 +883,7 @@ def _ios_extension_impl(ctx):
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -900,13 +903,14 @@ def _ios_extension_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -1125,6 +1129,7 @@ def _ios_static_framework_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
     entitlements = entitlements_support.entitlements(
@@ -1135,7 +1140,6 @@ def _ios_static_framework_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -1191,7 +1195,7 @@ def _ios_static_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
         ))
 
@@ -1202,13 +1206,14 @@ def _ios_static_framework_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         executable_name = executable_name,
         entitlements = entitlements,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -1227,6 +1232,7 @@ def _ios_imessage_application_impl(ctx):
     ]
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -1240,7 +1246,6 @@ def _ios_imessage_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -1284,7 +1289,7 @@ def _ios_imessage_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             targets = [ctx.attr.extension],
         ),
         partials.messages_stub_partial(
@@ -1307,7 +1312,7 @@ def _ios_imessage_application_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
@@ -1319,7 +1324,7 @@ def _ios_imessage_application_impl(ctx):
             label_name = label.name,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -1338,13 +1343,14 @@ def _ios_imessage_application_impl(ctx):
         bundle_name = bundle_name,
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -1372,6 +1378,7 @@ def _ios_imessage_extension_impl(ctx):
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -1388,7 +1395,6 @@ def _ios_imessage_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1438,10 +1444,10 @@ def _ios_imessage_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -1450,7 +1456,7 @@ def _ios_imessage_extension_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
@@ -1477,7 +1483,7 @@ def _ios_imessage_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
             top_level_attrs = top_level_attrs,
@@ -1488,7 +1494,7 @@ def _ios_imessage_extension_impl(ctx):
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -1508,13 +1514,14 @@ def _ios_imessage_extension_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -1541,6 +1548,7 @@ def _ios_sticker_pack_extension_impl(ctx):
     ]
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -1552,7 +1560,6 @@ def _ios_sticker_pack_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -1614,7 +1621,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
@@ -1640,13 +1647,14 @@ def _ios_sticker_pack_extension_impl(ctx):
         bundle_name = bundle_name,
         entitlements = entitlements,
         executable_name = executable_name,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
