@@ -1107,6 +1107,24 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":fmwk_with_multiple_objc_library_and_swift_library_deps"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_framework(
     name = "fmwk_no_version",
     hdrs = ["//test/starlark_tests/resources:common.h"],
@@ -1122,6 +1140,24 @@ ios_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_multiple_objc_library_and_swift_library_deps",
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )

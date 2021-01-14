@@ -82,6 +82,9 @@ framework module {module_name} {{
 def _swift_dynamic_framework_aspect_impl(target, ctx):
     """Aspect implementation for Swift dynamic framework support."""
 
+    if not ctx.rule.kind == "ios_dynamic_framework" or not ctx.rule.kind == "tvos_dynamic_framework" or not ctx.rule.kind == "watchos_dynamic_framework":
+        return []
+
     if not hasattr(ctx.rule.attr, "deps"):
         return []
 
