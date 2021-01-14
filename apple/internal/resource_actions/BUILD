@@ -51,6 +51,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "intent",
+    srcs = ["intent.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "mlmodel",
     srcs = ["mlmodel.bzl"],
     visibility = [

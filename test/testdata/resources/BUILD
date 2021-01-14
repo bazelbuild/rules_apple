@@ -11,6 +11,7 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 exports_files([
+    "intent.intentdefinition",
     "launch_screen_ios.storyboard",
     "launch_screen_ios.xib",
     "nonlocalized.plist",
@@ -21,6 +22,15 @@ exports_files([
     "storyboard_ios.storyboard",
     "view_ios.xib",
 ])
+
+filegroup(
+    name = "intent_srcs",
+    srcs = [
+        "BUILD",
+        "intent.intentdefinition",
+    ],
+)
+
 
 # A convenience target that can be passed into the data attribute of an Apple
 # shell test to make the mlmodel file available to builds under test.
