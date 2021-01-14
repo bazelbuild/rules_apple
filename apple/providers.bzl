@@ -205,9 +205,6 @@ files used as script templates for the purposes of executing Apple actions. Defi
         "dsym_info_plist_template": """\
 A `File` referencing a plist template for dSYM bundles.
 """,
-        "macos_runner_template": """\
-A `File` referencing a template to run the given macOS target.
-""",
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
 """,
@@ -244,9 +241,6 @@ A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper fo
         "resolved_swift_stdlib_tool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
 for the target to run.
-""",
-        "runner_template": """\
-A `File` referencing a template to run the given Apple target.
 """,
         "std_redirect_dylib": """\
 A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.

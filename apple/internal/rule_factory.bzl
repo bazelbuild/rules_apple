@@ -613,6 +613,11 @@ A `watchos_application` target that represents an Apple Watch application that s
 the application bundle.
 """,
             ),
+            "_runner_template": attr.label(
+                cfg = "host",
+                allow_single_file = True,
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
         })
     elif rule_descriptor.product_type == apple_product_type.app_clip:
         attrs.append({
@@ -624,6 +629,11 @@ provided file will be compiled into the appropriate format (`.storyboardc` or `.
 the root of the final bundle. The generated file will also be registered in the bundle's
 Info.plist under the key `UILaunchStoryboardName`.
 """,
+            ),
+            "_runner_template": attr.label(
+                cfg = "host",
+                allow_single_file = True,
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
     elif rule_descriptor.product_type == apple_product_type.app_extension:
@@ -734,6 +744,11 @@ set, then the default extension is determined by the application's product_type.
                 ],
                 doc = "A list of macOS XPC Services to include in the final application bundle.",
             ),
+            "_runner_template": attr.label(
+                cfg = "host",
+                allow_single_file = True,
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
+            ),
         })
 
     elif rule_descriptor.product_type == apple_product_type.app_extension:
@@ -765,6 +780,13 @@ def _get_tvos_attrs(rule_descriptor):
                     [AppleBundleInfo, TvosExtensionBundleInfo],
                 ],
                 doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+            "_runner_template": attr.label(
+                cfg = "host",
+                allow_single_file = True,
+                # Currently using the iOS Simulator template for tvOS, as tvOS does not require
+                # significantly different sim runner logic from iOS.
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
     elif rule_descriptor.product_type == apple_product_type.framework:
