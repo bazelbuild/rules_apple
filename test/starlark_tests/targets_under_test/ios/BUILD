@@ -1683,6 +1683,9 @@ ios_unit_test(
     ],
 )
 
+# ---------------------------------------------------------------------------------------
+# Targets for iOS dynamic framework tests.
+
 swift_library(
     name = "basic_framework_lib",
     srcs = [
@@ -1931,6 +1934,70 @@ ios_static_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_common_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_dynamic_framework_import_lib",
+    srcs = [
+        "//test/starlark_tests/resources:BasicFramework.swift",
+    ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "DynamicFrameworkImportTest",
+    tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//test/testdata/fmwk:iOSImportedDynamicFramework",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_dynamic_framework_import",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "DynamicFrameworkImportTest",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":basic_framework_with_dynamic_framework_import_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_static_framework_import_lib",
+    srcs = [
+        "//test/starlark_tests/resources:BasicFramework.swift",
+    ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "StaticFrameworkImportTest",
+    tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//test/testdata/fmwk:iOSImportedStaticFramework",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_static_framework_import",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "StaticFrameworkImportTest",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":basic_framework_with_static_framework_import_lib",
     ],
 )
 
