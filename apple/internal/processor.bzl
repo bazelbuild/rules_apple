@@ -225,6 +225,7 @@ def _bundle_partial_outputs_files(
         codesigning_command = None,
         embedding = False,
         extra_input_files = [],
+        ipa_post_processor = None,
         label_name,
         partial_outputs,
         platform_prerequisites,
@@ -241,13 +242,14 @@ def _bundle_partial_outputs_files(
           bundle.
       embedding: Whether outputs are being bundled to be embedded.
       extra_input_files: Extra files to include in the bundling action.
+      ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: The name of the target being built.
       partial_outputs: List of partial outputs from which to collect the files
         that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
       output_file: The file where the final zipped bundle should be created.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
-      rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+      rule_executables: List of tool executables defined by the rule.
     """
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
@@ -353,7 +355,7 @@ def _bundle_partial_outputs_files(
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
                 control_zips.append(struct(src = source.path, dest = target_path))
 
-    post_processor = rule_executables.ipa_post_processor
+    post_processor = ipa_post_processor
     post_processor_path = ""
 
     if post_processor:
@@ -382,24 +384,31 @@ def _bundle_partial_outputs_files(
         content = control.to_json(),
     )
 
+    bundletool_inputs = input_files + [control_file] + extra_input_files
+
     action_args = {
-        "inputs": input_files + [control_file] + extra_input_files,
-        "outputs": [output_file],
         "arguments": [control_file.path],
+        "outputs": [output_file],
     }
 
     if tree_artifact_is_enabled:
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
 
-        bundling_tools = [rule_executables._codesigningtool]
+        resolved_bundletool = rule_executables.resolved_bundletool_experimental
+
+        # Required to satisfy an implicit dependency, when the codesigning commands are executed by
+        # the experimental bundle tool script.
+        resolved_codesigningtool = rule_executables.resolved_codesigningtool
+
+        bundling_tools = [resolved_bundletool.executable, resolved_codesigningtool.executable]
         if post_processor:
             bundling_tools.append(post_processor)
 
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            executable = rule_executables._bundletool_experimental,
+            executable = resolved_bundletool.executable,
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -408,6 +417,12 @@ def _bundle_partial_outputs_files(
                 # $HOME.
                 "no-sandbox": "1",
             },
+            inputs = depset(bundletool_inputs, transitive = [
+                resolved_bundletool.inputs,
+                resolved_codesigningtool.inputs,
+            ]),
+            input_manifests = resolved_bundletool.input_manifests +
+                              resolved_codesigningtool.input_manifests,
             mnemonic = "BundleTreeApp",
             progress_message = "Bundling, processing and signing %s" % label_name,
             tools = bundling_tools,
@@ -416,8 +431,11 @@ def _bundle_partial_outputs_files(
             **action_args
         )
     else:
+        resolved_bundletool = rule_executables.resolved_bundletool
         actions.run(
-            executable = rule_executables._bundletool,
+            executable = resolved_bundletool.executable,
+            inputs = depset(bundletool_inputs, transitive = [resolved_bundletool.inputs]),
+            input_manifests = resolved_bundletool.input_manifests,
             mnemonic = "BundleApp",
             progress_message = "Bundling %s" % label_name,
             **action_args
@@ -431,6 +449,7 @@ def _bundle_post_process_and_sign(
         codesignopts,
         entitlements,
         executable_name,
+        ipa_post_processor,
         output_archive,
         partial_outputs,
         platform_prerequisites,
@@ -449,6 +468,7 @@ def _bundle_post_process_and_sign(
         codesignopts: Extra options to pass to the `codesign` tool
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         executable_name: The name of the output executable.
+        ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         partial_outputs: The outputs of the partials used to process this target's bundle.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -456,7 +476,7 @@ def _bundle_post_process_and_sign(
         process_and_sign_template: A template for a shell script to process and sign as a file.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+        rule_executables: List of tool executables defined by the rule.
         rule_label: The label of the target being analyzed.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
@@ -485,7 +505,7 @@ def _bundle_post_process_and_sign(
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
-            codesigningtool = rule_executables._codesigningtool,
+            codesigningtool = rule_executables.resolved_codesigningtool.executable,
             entitlements = entitlements,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
             platform_prerequisites = platform_prerequisites,
@@ -501,6 +521,7 @@ def _bundle_post_process_and_sign(
             bundle_name = bundle_name,
             codesigning_command = codesigning_command,
             extra_input_files = extra_input_files,
+            ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
@@ -525,6 +546,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
@@ -542,18 +564,18 @@ def _bundle_post_process_and_sign(
         codesigning_support.post_process_and_sign_archive_action(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
-            codesigningtool = rule_executables._codesigningtool,
             codesignopts = codesignopts,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
-            ipa_post_processor = rule_executables.ipa_post_processor,
+            ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             output_archive = output_archive,
             output_archive_root_path = output_archive_root_path,
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
+            resolved_codesigningtool = rule_executables.resolved_codesigningtool,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
@@ -593,6 +615,7 @@ def _bundle_post_process_and_sign(
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 embedding = True,
+                ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
                 partial_outputs = partial_outputs,
                 platform_prerequisites = platform_prerequisites,
@@ -604,18 +627,18 @@ def _bundle_post_process_and_sign(
             codesigning_support.post_process_and_sign_archive_action(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
-                codesigningtool = rule_executables._codesigningtool,
                 codesignopts = codesignopts,
                 entitlements = entitlements,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
-                ipa_post_processor = rule_executables.ipa_post_processor,
+                ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
                 output_archive = embedding_archive,
                 output_archive_root_path = embedding_archive_root_path,
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
+                resolved_codesigningtool = rule_executables.resolved_codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
             )
@@ -629,6 +652,7 @@ def _process(
         codesignopts = [],
         entitlements,
         executable_name,
+        ipa_post_processor,
         partials,
         platform_prerequisites,
         predeclared_outputs,
@@ -648,13 +672,14 @@ def _process(
       codesignopts: Extra options to pass to the `codesign` tool
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       executable_name: The name of the output executable.
+      ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       partials: The list of partials to process to construct the complete bundle.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       process_and_sign_template: A template for a shell script to process and sign as a file.
       provisioning_profile: File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
-      rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
+      rule_executables: List of tool executables defined by the rule.
       rule_label: The label of the target being analyzed.
 
     Returns:
@@ -681,6 +706,7 @@ def _process(
             codesignopts = codesignopts,
             executable_name = executable_name,
             entitlements = entitlements,
+            ipa_post_processor = ipa_post_processor,
             output_archive = output_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,

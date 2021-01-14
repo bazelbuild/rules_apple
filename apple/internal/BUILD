@@ -5,8 +5,20 @@ load(
     "environment_plist",
 )
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//apple/internal:apple_support_toolchain.bzl",
+    "apple_support_toolchain",
+)
 
 licenses(["notice"])
+
+apple_support_toolchain(
+    name = "toolchain_support",
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
 
 bzl_library(
     name = "apple_framework_import",
@@ -31,6 +43,18 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
         "//test/starlark_tests:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "apple_support_toolchain",
+    srcs = ["apple_support_toolchain.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+        "//test/starlark_tests:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
     ],
 )
 
@@ -91,6 +115,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_support_toolchain",
         ":bundling_support",
         ":linking_support",
         ":platform_support",
@@ -367,6 +392,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_support_toolchain",
         ":entitlement_rules",
         ":rule_support",
         "//apple:common",

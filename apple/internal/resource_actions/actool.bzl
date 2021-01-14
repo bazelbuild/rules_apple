@@ -156,7 +156,7 @@ def compile_asset_catalog(
         output_plist,
         platform_prerequisites,
         product_type,
-        xctoolrunner_executable):
+        resolved_xctoolrunner):
     """Creates an action that compiles asset catalogs.
 
     This action populates a directory with compiled assets that must be merged
@@ -177,7 +177,7 @@ def compile_asset_catalog(
         into Info.plist. May be None if the output plist is not desired.
       platform_prerequisites: Struct containing information on the platform being targeted.
       product_type: The product type identifier used to describe the current bundle type.
-      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
+      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
@@ -227,9 +227,10 @@ def compile_asset_catalog(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
+        executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = asset_files,
+        inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "AssetCatalogCompile",
         outputs = outputs,
         platform_prerequisites = platform_prerequisites,

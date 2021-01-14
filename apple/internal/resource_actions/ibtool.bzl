@@ -59,8 +59,8 @@ def compile_storyboard(
         input_file,
         output_dir,
         platform_prerequisites,
-        swift_module,
-        xctoolrunner_executable):
+        resolved_xctoolrunner,
+        swift_module):
     """Creates an action that compiles a storyboard.
 
     Args:
@@ -68,9 +68,9 @@ def compile_storyboard(
       input_file: The storyboard to compile.
       output_dir: The directory where the compiled outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
       swift_module: The name of the Swift module to use when compiling the
         storyboard.
-      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
     args = [
@@ -91,9 +91,10 @@ def compile_storyboard(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
+        executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = [input_file],
+        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardCompile",
         outputs = [output_dir],
         platform_prerequisites = platform_prerequisites,
@@ -104,8 +105,8 @@ def link_storyboards(
         actions,
         output_dir,
         platform_prerequisites,
-        storyboardc_dirs,
-        xctoolrunner_executable):
+        resolved_xctoolrunner,
+        storyboardc_dirs):
     """Creates an action that links multiple compiled storyboards.
 
     Storyboards that reference each other must be linked, and this operation also
@@ -116,9 +117,9 @@ def link_storyboards(
       actions: The actions provider from `ctx.actions`.
       output_dir: The directory where the linked outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
       storyboardc_dirs: A list of `File`s that represent directories containing
         the compiled storyboards.
-      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -138,9 +139,10 @@ def link_storyboards(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
+        executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = storyboardc_dirs,
+        inputs = depset(storyboardc_dirs, transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardLink",
         outputs = [output_dir],
         platform_prerequisites = platform_prerequisites,
@@ -152,8 +154,8 @@ def compile_xib(
         input_file,
         output_dir,
         platform_prerequisites,
-        swift_module,
-        xctoolrunner_executable):
+        resolved_xctoolrunner,
+        swift_module):
     """Creates an action that compiles a Xib file.
 
     Args:
@@ -161,9 +163,9 @@ def compile_xib(
       input_file: The Xib file to compile.
       output_dir: The file reference for the output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
       swift_module: The name of the Swift module to use when compiling the
         Xib file.
-      xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -186,9 +188,10 @@ def compile_xib(
     legacy_actions.run(
         actions = actions,
         arguments = args,
-        executable = xctoolrunner_executable,
+        executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = [input_file],
+        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "XibCompile",
         outputs = [output_dir],
         platform_prerequisites = platform_prerequisites,

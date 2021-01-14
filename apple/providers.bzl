@@ -193,6 +193,67 @@ requirement.
     fields = [],
 )
 
+AppleSupportToolchainInfo = provider(
+    doc = """
+Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
+
+This provider exists as an internal detail for the rules to reference common, executable tools and
+files used as script templates for the purposes of executing Apple actions. Defined by the
+`apple_support_toolchain` rule.
+""",
+    fields = {
+        "dsym_info_plist_template": """\
+A `File` referencing a plist template for dSYM bundles.
+""",
+        "macos_runner_template": """\
+A `File` referencing a template to run the given macOS target.
+""",
+        "process_and_sign_template": """\
+A `File` referencing a template for a shell script to process and sign.
+""",
+        "resolved_bundletool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
+files/ZIPs and destinations paths to build the directory structure for those files.
+""",
+        "resolved_bundletool_experimental": """\
+A `struct` from `ctx.resolve_tools` referencing an experimental tool to create an Apple bundle by
+combining the bundling, post-processing, and signing steps into a single action that eliminates the
+archiving step.
+""",
+        "resolved_clangrttool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to find all Clang runtime libs linked to a
+binary.
+""",
+        "resolved_codesigningtool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
+for Apple apps and Apple executable bundles.
+""",
+        "resolved_imported_dynamic_framework_processor": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
+such that the given framework only contains the same slices as the app binary, every file belonging
+to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
+and zipped as a cacheable artifact.
+""",
+        "resolved_plisttool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
+substitution, merging, and conversion of plist files to binary format.
+""",
+        "resolved_xctoolrunner": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
+""",
+        "resolved_swift_stdlib_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
+for the target to run.
+""",
+        "runner_template": """\
+A `File` referencing a template to run the given Apple target.
+""",
+        "std_redirect_dylib": """\
+A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
+""",
+    },
+)
+
 AppleTestInfo = provider(
     doc = """
 Provider that test targets propagate to be used for IDE integration.
