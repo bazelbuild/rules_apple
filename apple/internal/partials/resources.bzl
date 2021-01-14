@@ -275,6 +275,7 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
 def _resources_partial_impl(
         *,
         actions,
+        apple_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
@@ -285,7 +286,6 @@ def _resources_partial_impl(
         plist_attrs,
         rule_attrs,
         rule_descriptor,
-        rule_executables,
         rule_label,
         targets_to_avoid,
         top_level_attrs,
@@ -419,8 +419,8 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
+                "apple_toolchain_info": apple_toolchain_info,
                 "bundle_id": bundle_id,
-                "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
@@ -480,7 +480,7 @@ def _resources_partial_impl(
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = rule_executables.resolved_plisttool,
+                resolved_plisttool = apple_toolchain_info.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = getattr(rule_attrs, "version", None),
@@ -493,6 +493,7 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
+        apple_toolchain_info,
         bundle_extension,
         bundle_id = None,
         bundle_name,
@@ -503,7 +504,6 @@ def resources_partial(
         plist_attrs = [],
         rule_attrs,
         rule_descriptor,
-        rule_executables,
         rule_label,
         targets_to_avoid = [],
         top_level_attrs = [],
@@ -515,6 +515,7 @@ def resources_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
@@ -533,7 +534,6 @@ def resources_partial(
             merged and processed.
         rule_attrs: List of attributes defined by the rule. Typically from `ctx.attr`.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         rule_label: The label of the target being analyzed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
@@ -548,6 +548,7 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
@@ -558,7 +559,6 @@ def resources_partial(
         plist_attrs = plist_attrs,
         rule_attrs = rule_attrs,
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
         top_level_attrs = top_level_attrs,

@@ -119,13 +119,13 @@ def _swift_dylib_action(
 def _swift_dylibs_partial_impl(
         *,
         actions,
+        apple_toolchain_info,
         binary_artifact,
         bundle_dylibs,
         dependency_targets,
         label_name,
         package_swift_support_if_needed,
-        platform_prerequisites,
-        rule_executables):
+        platform_prerequisites):
     """Implementation for the Swift dylibs processing partial."""
 
     # Collect transitive data.
@@ -172,7 +172,7 @@ def _swift_dylibs_partial_impl(
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                resolved_swift_stdlib_tool = rule_executables.resolved_swift_stdlib_tool,
+                resolved_swift_stdlib_tool = apple_toolchain_info.resolved_swift_stdlib_tool,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
@@ -215,19 +215,20 @@ def _swift_dylibs_partial_impl(
 def swift_dylibs_partial(
         *,
         actions,
+        apple_toolchain_info,
         binary_artifact,
         bundle_dylibs = False,
         dependency_targets = [],
         label_name,
         package_swift_support_if_needed = False,
-        platform_prerequisites,
-        rule_executables):
+        platform_prerequisites):
     """Constructor for the Swift dylibs processing partial.
 
     This partial handles the Swift dylibs that may need to be packaged or propagated.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
       bundle_dylibs: Whether the partial should return the Swift files to be bundled inside the
         target's bundle.
@@ -238,7 +239,6 @@ def swift_dylibs_partial(
         each dependency platform into the SwiftSupport directory at the root of the archive. It
         might still not be included depending on what it is being built for.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      rule_executables: List of tool executables defined by the rule.
 
     Returns:
       A partial that returns the bundle location of the Swift dylibs and propagates dylib
@@ -247,11 +247,11 @@ def swift_dylibs_partial(
     return partial.make(
         _swift_dylibs_partial_impl,
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         binary_artifact = binary_artifact,
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,
         label_name = label_name,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
-        rule_executables = rule_executables,
     )
