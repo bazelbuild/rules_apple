@@ -347,13 +347,13 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
 def _process_bucketized_data(
         *,
         actions,
+        apple_toolchain_info,
         bucketized_owners = [],
         buckets,
         bundle_id,
         platform_prerequisites,
         processing_owner = None,
         product_type,
-        rule_executables,
         rule_label,
         unowned_resources = []):
     """Registers actions for cacheable resource types, given bucketized groupings of data.
@@ -365,6 +365,7 @@ def _process_bucketized_data(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
         buckets: A dictionary with bucketized resources organized by resource type.
         bundle_id: The bundle ID to configure for this target.
@@ -372,7 +373,6 @@ def _process_bucketized_data(
         processing_owner: An optional string that has a unique identifier to the target that should
             own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         product_type: The product type identifier used to describe the current bundle type.
-        rule_executables: List of tool executables defined by the rule.
         rule_label: The label of the target being analyzed.
         unowned_resources: A list of "unowned" resources.
 
@@ -392,8 +392,8 @@ def _process_bucketized_data(
 
             processing_args = {
                 "actions": actions,
+                "apple_toolchain_info": apple_toolchain_info,
                 "bundle_id": bundle_id,
-                "executables": rule_executables,
                 "files": files,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,

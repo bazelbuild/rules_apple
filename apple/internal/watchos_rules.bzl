@@ -365,11 +365,11 @@ def _watchos_application_impl(ctx):
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -390,6 +390,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -401,18 +402,17 @@ def _watchos_application_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = [ctx.attr.extension],
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            rule_executables = apple_toolchain_info,
         ),
         partials.watchos_stub_partial(
             actions = actions,
@@ -432,6 +432,7 @@ def _watchos_application_impl(ctx):
 
     processor_result = processor.process(
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -443,7 +444,6 @@ def _watchos_application_impl(ctx):
         process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -552,11 +552,11 @@ def _watchos_extension_impl(ctx):
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -578,15 +578,16 @@ def _watchos_extension_impl(ctx):
         # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
         partials.framework_import_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            rule_executables = apple_toolchain_info,
             targets = ctx.attr.deps,
         ),
         partials.resources_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -597,16 +598,15 @@ def _watchos_extension_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -621,6 +621,7 @@ def _watchos_extension_impl(ctx):
 
     processor_result = processor.process(
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
@@ -633,7 +634,6 @@ def _watchos_extension_impl(ctx):
         process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 

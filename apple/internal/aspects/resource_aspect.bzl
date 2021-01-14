@@ -83,9 +83,9 @@ def _apple_resource_aspect_impl(target, ctx):
     bucketize_args = {}
     process_args = {
         "actions": ctx.actions,
+        "apple_toolchain_info": ctx.attr._toolchain[AppleSupportToolchainInfo],
         "bundle_id": None,
         "product_type": None,
-        "rule_executables": ctx.attr._toolchain[AppleSupportToolchainInfo],
         "rule_label": ctx.label,
     }
     collect_infoplists_args = {}

@@ -62,12 +62,12 @@ load(
 def _framework_import_partial_impl(
         *,
         actions,
+        apple_toolchain_info,
         label_name,
         package_symbols,
         platform_prerequisites,
         provisioning_profile,
         rule_descriptor,
-        rule_executables,
         targets,
         targets_to_avoid):
     """Implementation for the framework import file processing partial."""
@@ -171,8 +171,8 @@ def _framework_import_partial_impl(
         )
         args.add_all(codesign_args)
 
-        resolved_codesigningtool = rule_executables.resolved_codesigningtool
-        resolved_imported_dynamic_framework_processor = rule_executables.resolved_imported_dynamic_framework_processor
+        resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool
+        resolved_imported_dynamic_framework_processor = apple_toolchain_info.resolved_imported_dynamic_framework_processor
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, plus a generated list of those binaries to prune
@@ -324,12 +324,12 @@ def _generate_symbols(
 def framework_import_partial(
         *,
         actions,
+        apple_toolchain_info,
         label_name,
         package_symbols = False,
         platform_prerequisites,
         provisioning_profile,
         rule_descriptor,
-        rule_executables,
         targets,
         targets_to_avoid = []):
     """Constructor for the framework import file processing partial.
@@ -339,12 +339,12 @@ def framework_import_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         label_name: Name of the target being built.
         package_symbols: Whether the partial should package the symbols files for all binaries.
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        rule_executables: List of tool executables defined by the rule.
         targets: The list of targets through which to collect the framework import files.
         targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
             to be used when deduplicating frameworks already bundled.
@@ -355,12 +355,12 @@ def framework_import_partial(
     return partial.make(
         _framework_import_partial_impl,
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         label_name = label_name,
         package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
     )
