@@ -46,7 +46,6 @@ def _apple_support_toolchain_impl(ctx):
     return [
         AppleSupportToolchainInfo(
             dsym_info_plist_template = ctx.file._dsym_info_plist_template,
-            macos_runner_template = ctx.file._macos_runner_template,
             process_and_sign_template = ctx.file._process_and_sign_template,
             resolved_bundletool = _resolve_tools_for_executable(
                 attr_name = "_bundletool",
@@ -80,9 +79,6 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "_xctoolrunner",
                 rule_ctx = ctx,
             ),
-            # TODO(b/74731511): Refactor the runner_template attribute into being specified for each
-            # platform.
-            runner_template = ctx.file._runner_template,
             std_redirect_dylib = ctx.file._std_redirect_dylib,
         ),
         DefaultInfo(),
@@ -125,11 +121,6 @@ apple_support_toolchain = rule(
             cfg = "host",
             executable = True,
             default = Label("@build_bazel_rules_apple//tools/imported_dynamic_framework_processor"),
-        ),
-        "_macos_runner_template": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
         ),
         "_plisttool": attr.label(
             cfg = "host",

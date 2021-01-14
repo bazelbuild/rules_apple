@@ -295,7 +295,7 @@ def _ios_application_impl(ctx):
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        runner_template = apple_toolchain_info.runner_template,
+        runner_template = ctx.file._runner_template,
     )
 
     archive = outputs.archive(
@@ -504,7 +504,7 @@ def _ios_app_clip_impl(ctx):
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        runner_template = apple_toolchain_info.runner_template,
+        runner_template = ctx.file._runner_template,
     )
 
     archive = outputs.archive(
