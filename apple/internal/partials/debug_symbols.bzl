@@ -60,9 +60,7 @@ def _collect_linkmaps(*, actions, debug_outputs_provider, bundle_name):
     """
     outputs = []
 
-    # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-    for arch in debug_outputs_provider.outputs_map:
-        arch_outputs = debug_outputs_provider.outputs_map[arch]
+    for (arch, arch_outputs) in debug_outputs_provider.outputs_map.items():
         linkmap = arch_outputs["linkmap"]
         output_linkmap = actions.declare_file(
             "%s_%s.linkmap" % (bundle_name, arch),
@@ -104,9 +102,7 @@ def _bundle_dsym_files(
 
     outputs = []
 
-    # TODO(b/36174487): Iterate over .items() once the Map/dict problem is fixed.
-    for arch in debug_outputs_provider.outputs_map:
-        arch_outputs = debug_outputs_provider.outputs_map[arch]
+    for (arch, arch_outputs) in debug_outputs_provider.outputs_map.items():
         dsym_binary = arch_outputs["dsym_binary"]
         output_binary = actions.declare_file(
             "%s/Contents/Resources/DWARF/%s_%s" % (
