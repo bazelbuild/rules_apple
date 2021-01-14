@@ -23,6 +23,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
+    "apple_support_toolchain_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
     "AppleEntitlementsInfo",
 )
@@ -149,81 +153,6 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
             cfg = "host",
             executable = True,
             default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-        ),
-    },
-)
-
-# Private attributes on every rule that provide access to bundling tools and other file
-# dependencies.
-_COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
-    {
-        "_bundletool": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool"),
-        ),
-        "_bundletool_experimental": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
-        ),
-        "_clangrttool": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/clangrttool"),
-        ),
-        "_codesigningtool": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/codesigningtool"),
-        ),
-        "_dsym_info_plist_template": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label(
-                "@build_bazel_rules_apple//apple/internal/templates:dsym_info_plist_template",
-            ),
-        ),
-        "_plisttool": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/plisttool"),
-            executable = True,
-        ),
-        "_process_and_sign_template": attr.label(
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
-        ),
-        # TODO(b/74731511): Refactor this attribute into being specified for each
-        # platform.
-        "_runner_template": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
-        ),
-        "_macos_runner_template": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
-        ),
-        "_std_redirect_dylib": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
-        ),
-        "_swift_stdlib_tool": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
-            executable = True,
-        ),
-        "_xctoolrunner": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
-        ),
-        "_imported_dynamic_framework_processor": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/imported_dynamic_framework_processor"),
         ),
     },
 )
@@ -1009,7 +938,7 @@ dotted version number (for example, "10.11").
     if platform_type:
         rule_attrs.extend([
             _COMMON_ATTRS,
-            _COMMON_PRIVATE_TOOL_ATTRS,
+            apple_support_toolchain_utils.shared_attrs(),
             {
                 # TODO(kaipi): Make this attribute private when a platform_type is
                 # specified. It is required by the native linking API.
@@ -1098,7 +1027,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
     rule_attrs.extend(
         [
             _COMMON_ATTRS,
-            _COMMON_PRIVATE_TOOL_ATTRS,
+            apple_support_toolchain_utils.shared_attrs(),
         ] + _get_common_bundling_attributes(rule_descriptor),
     )
 
@@ -1158,7 +1087,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         implementation = implementation,
         attrs = dicts.add(
             _COMMON_ATTRS,
-            _COMMON_PRIVATE_TOOL_ATTRS,
+            apple_support_toolchain_utils.shared_attrs(),
             _COMMON_TEST_ATTRS,
             *extra_attrs
         ),
@@ -1169,7 +1098,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
 rule_factory = struct(
     common_tool_attributes = dicts.add(
         _COMMON_ATTRS,
-        _COMMON_PRIVATE_TOOL_ATTRS,
+        apple_support_toolchain_utils.shared_attrs(),
     ),
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,

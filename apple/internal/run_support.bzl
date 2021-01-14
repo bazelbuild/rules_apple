@@ -24,20 +24,20 @@ def _register_simulator_executable(
         actions,
         bundle_extension,
         bundle_name,
-        file,
         output,
         platform_prerequisites,
-        predeclared_outputs):
+        predeclared_outputs,
+        runner_template):
     """Registers an action that runs the bundled app in the iOS simulator.
 
     Args:
       actions: The actions provider from ctx.actions.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
-      file: The file provider from ctx.file.
       output: The `File` representing where the executable should be generated.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
+      runner_template: The simulator runner template as a `File`.
     """
 
     sim_device = str(platform_prerequisites.objc_fragment.ios_simulator_device or "")
@@ -54,7 +54,7 @@ def _register_simulator_executable(
     actions.expand_template(
         output = output,
         is_executable = True,
-        template = file._runner_template,
+        template = runner_template,
         substitutions = {
             "%app_name%": bundle_name,
             "%ipa_file%": archive.short_path,
@@ -69,20 +69,20 @@ def _register_macos_executable(
         actions,
         bundle_extension,
         bundle_name,
-        file,
         output,
         platform_prerequisites,
-        predeclared_outputs):
+        predeclared_outputs,
+        runner_template):
     """Registers an action that runs the bundled macOS app.
 
     Args:
       actions: The actions provider from ctx.actions.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
-      file: The file provider from ctx.file.
       output: The `File` representing where the executable should be generated.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
+      runner_template: The macos runner template as a `File`.
     """
 
     archive = outputs.archive(
@@ -96,7 +96,7 @@ def _register_macos_executable(
     actions.expand_template(
         output = output,
         is_executable = True,
-        template = file._macos_runner_template,
+        template = runner_template,
         substitutions = {
             "%app_name%": bundle_name,
             "%app_path%": archive.short_path,

@@ -78,7 +78,7 @@ def _swift_dylib_action(
         output_dir,
         platform_name,
         platform_prerequisites,
-        swift_stdlib_tool):
+        resolved_swift_stdlib_tool):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
 
     swift_dylibs_path = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
@@ -107,8 +107,9 @@ def _swift_dylib_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = swift_stdlib_tool_args,
-        executable = swift_stdlib_tool,
-        inputs = binary_files,
+        executable = resolved_swift_stdlib_tool.executable,
+        inputs = depset(binary_files, transitive = [resolved_swift_stdlib_tool.inputs]),
+        input_manifests = resolved_swift_stdlib_tool.input_manifests,
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -124,7 +125,7 @@ def _swift_dylibs_partial_impl(
         label_name,
         package_swift_support_if_needed,
         platform_prerequisites,
-        swift_stdlib_tool):
+        rule_executables):
     """Implementation for the Swift dylibs processing partial."""
 
     # Collect transitive data.
@@ -171,7 +172,7 @@ def _swift_dylibs_partial_impl(
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                swift_stdlib_tool = swift_stdlib_tool,
+                resolved_swift_stdlib_tool = rule_executables.resolved_swift_stdlib_tool,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
@@ -220,7 +221,7 @@ def swift_dylibs_partial(
         label_name,
         package_swift_support_if_needed = False,
         platform_prerequisites,
-        swift_stdlib_tool):
+        rule_executables):
     """Constructor for the Swift dylibs processing partial.
 
     This partial handles the Swift dylibs that may need to be packaged or propagated.
@@ -237,7 +238,7 @@ def swift_dylibs_partial(
         each dependency platform into the SwiftSupport directory at the root of the archive. It
         might still not be included depending on what it is being built for.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      swift_stdlib_tool: A reference to a tool to copy Swift stdlibs required by the binaries.
+      rule_executables: List of tool executables defined by the rule.
 
     Returns:
       A partial that returns the bundle location of the Swift dylibs and propagates dylib
@@ -252,5 +253,5 @@ def swift_dylibs_partial(
         label_name = label_name,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
-        swift_stdlib_tool = swift_stdlib_tool,
+        rule_executables = rule_executables,
     )

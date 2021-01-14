@@ -15,6 +15,10 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
+    "apple_support_toolchain_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -77,7 +81,10 @@ def _apple_core_ml_library_impl(ctx):
         output_source = coremlc_source,
         output_header = coremlc_header,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner_executable = rule_executables._xctoolrunner,
+        resolved_xctoolrunner = apple_support_toolchain_utils.resolve_tools_for_executable(
+            attr_name = "_xctoolrunner",
+            rule_ctx = ctx,
+        ),
     )
 
     # But we would like our ObjC clients to use <target_name>.h instead, so we create that header

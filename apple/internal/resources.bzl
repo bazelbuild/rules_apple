@@ -370,7 +370,7 @@ def _process_bucketized_data(
         processing_owner: An optional string that has a unique identifier to the target that should
             own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         product_type: The product type identifier used to describe the current bundle type.
-        rule_executables: Struct containing executable files defined by a rule.
+        rule_executables: List of tool executables defined by the rule.
         rule_label: The label of the target being analyzed.
         unowned_resources: A list of "unowned" resources.
 

@@ -68,6 +68,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleSupportToolchainInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
@@ -82,6 +83,7 @@ def _watchos_application_impl(ctx):
     ]
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -97,7 +99,6 @@ def _watchos_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -152,10 +153,10 @@ def _watchos_application_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -163,7 +164,7 @@ def _watchos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = [ctx.attr.extension],
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
         ),
@@ -185,7 +186,7 @@ def _watchos_application_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
@@ -196,7 +197,7 @@ def _watchos_application_impl(ctx):
             dependency_targets = [ctx.attr.extension],
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
         partials.watchos_stub_partial(
             actions = actions,
@@ -219,13 +220,14 @@ def _watchos_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 
@@ -280,6 +282,7 @@ def _watchos_extension_impl(ctx):
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -295,7 +298,6 @@ def _watchos_extension_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
-    rule_executables = ctx.executable
 
     archive = outputs.archive(
         actions = actions,
@@ -333,10 +335,10 @@ def _watchos_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            clangrttool = ctx.executable._clangrttool,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            rule_executables = apple_toolchain_info,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -344,7 +346,7 @@ def _watchos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_outputs_provider = debug_outputs_provider,
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
+            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
         ),
@@ -361,7 +363,7 @@ def _watchos_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             targets = ctx.attr.deps,
         ),
         partials.resources_partial(
@@ -375,7 +377,7 @@ def _watchos_extension_impl(ctx):
             plist_attrs = ["infoplists"],
             rule_attrs = ctx.attr,
             rule_descriptor = rule_descriptor,
-            rule_executables = rule_executables,
+            rule_executables = apple_toolchain_info,
             rule_label = label,
             top_level_attrs = top_level_attrs,
         ),
@@ -384,7 +386,7 @@ def _watchos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            swift_stdlib_tool = ctx.executable._swift_stdlib_tool,
+            rule_executables = apple_toolchain_info,
         ),
     ]
 
@@ -402,13 +404,14 @@ def _watchos_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = ctx.file._process_and_sign_template,
+        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
-        rule_executables = rule_executables,
+        rule_executables = apple_toolchain_info,
         rule_label = label,
     )
 

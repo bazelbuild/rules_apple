@@ -201,7 +201,7 @@ def _signing_command_lines(
     used for signing for any reason.
 
     Args:
-      codesigningtool: The `File` representing the code signing tool.
+      codesigningtool: The executable `File` representing the code signing tool.
       entitlements_file: The entitlements file to pass to codesign.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
           paths that should be code-signed.
@@ -333,7 +333,7 @@ def _codesigning_command(
 
     Args:
         bundle_path: The location of the bundle, relative to the archive.
-        codesigningtool: The `File` representing the code signing tool.
+        codesigningtool: The executable `File` representing the code signing tool.
         entitlements: The entitlements file to sign with. Can be None.
         frameworks_path: The location of the Frameworks directory, relative to the archive.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -397,7 +397,6 @@ def _post_process_and_sign_archive_action(
         *,
         actions,
         archive_codesigning_path,
-        codesigningtool,
         entitlements = None,
         frameworks_path,
         input_archive,
@@ -408,6 +407,7 @@ def _post_process_and_sign_archive_action(
         platform_prerequisites,
         process_and_sign_template,
         provisioning_profile,
+        resolved_codesigningtool,
         rule_descriptor,
         signed_frameworks):
     """Post-processes and signs an archived bundle.
@@ -415,7 +415,6 @@ def _post_process_and_sign_archive_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
-      codesigningtool: The `File` representing the code signing tool.
       entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
@@ -428,6 +427,7 @@ def _post_process_and_sign_archive_action(
       platform_prerequisites: Struct containing information on the platform being targeted.
       process_and_sign_template: A template for a shell script to process and sign as a file.
       provisioning_profile: The provisioning profile file. May be `None`.
+      resolved_codesigningtool: The `struct` from resolve_tools representing the code signing tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       signed_frameworks: Depset containing each framework that has already been signed.
     """
@@ -436,7 +436,7 @@ def _post_process_and_sign_archive_action(
 
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
-        codesigningtool = codesigningtool,
+        codesigningtool = resolved_codesigningtool.executable,
         entitlements = entitlements,
         frameworks_path = frameworks_path,
         platform_prerequisites = platform_prerequisites,
@@ -445,7 +445,7 @@ def _post_process_and_sign_archive_action(
         signed_frameworks = signed_frameworks,
     )
     if signing_command_lines:
-        processing_tools.append(codesigningtool)
+        processing_tools.append(resolved_codesigningtool.executable)
         if entitlements:
             input_files.append(entitlements)
         if provisioning_profile:
@@ -529,7 +529,8 @@ def _post_process_and_sign_archive_action(
                 # $HOME.
                 "no-sandbox": "1",
             },
-            inputs = input_files,
+            inputs = depset(input_files, transitive = [resolved_codesigningtool.inputs]),
+            input_manifests = resolved_codesigningtool.input_manifests,
             mnemonic = mnemonic,
             outputs = [output_archive],
             platform_prerequisites = platform_prerequisites,
@@ -549,21 +550,21 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
-        codesigningtool,
         input_binary,
         output_binary,
         platform_prerequisites,
         provisioning_profile,
+        resolved_codesigningtool,
         rule_descriptor):
     """Signs the input binary file, copying it into the given output binary file.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      codesigningtool: The `File` representing the code signing tool.
       input_binary: The `File` representing the binary to be signed.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
+      resolved_codesigningtool: The `struct` from resolve_tools representing the code signing tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
     """
     _validate_provisioning_profile(
@@ -577,7 +578,7 @@ def _sign_binary_action(
     # code signing commands on that copy in the same action.
     path_to_sign = _path_to_sign(path = output_binary.path)
     signing_commands = _signing_command_lines(
-        codesigningtool = codesigningtool,
+        codesigningtool = resolved_codesigningtool.executable,
         entitlements_file = None,
         paths_to_sign = [path_to_sign],
         platform_prerequisites = platform_prerequisites,
@@ -602,11 +603,12 @@ def _sign_binary_action(
             # $HOME.
             "no-sandbox": "1",
         },
-        inputs = [input_binary],
+        inputs = depset([input_binary], transitive = [resolved_codesigningtool.inputs]),
+        input_manifests = resolved_codesigningtool.input_manifests,
         mnemonic = "SignBinary",
         outputs = [output_binary],
         platform_prerequisites = platform_prerequisites,
-        tools = [codesigningtool],
+        tools = [resolved_codesigningtool.executable],
     )
 
 codesigning_support = struct(

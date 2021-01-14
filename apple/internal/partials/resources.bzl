@@ -480,7 +480,7 @@ def _resources_partial_impl(
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
                 platform_prerequisites = platform_prerequisites,
-                plisttool = rule_executables._plisttool,
+                resolved_plisttool = rule_executables.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = getattr(rule_attrs, "version", None),
