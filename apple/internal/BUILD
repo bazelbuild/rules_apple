@@ -14,10 +14,21 @@ licenses(["notice"])
 
 apple_support_toolchain(
     name = "toolchain_support",
+    bundletool = "//tools/bundletool",
+    bundletool_experimental = "//tools/bundletool:bundletool_experimental",
+    clangrttool = "//tools/clangrttool",
+    codesigningtool = "//tools/codesigningtool",
+    dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
+    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
+    plisttool = "//tools/plisttool",
+    process_and_sign_template = "//tools/bundletool:process_and_sign_template",
+    std_redirect_dylib = "@bazel_tools//tools/objc:StdRedirect.dylib",
+    swift_stdlib_tool = "//tools/swift_stdlib_tool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    xctoolrunner = "//tools/xctoolrunner",
 )
 
 bzl_library(

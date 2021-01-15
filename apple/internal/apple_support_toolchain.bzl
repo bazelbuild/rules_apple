@@ -45,112 +45,119 @@ def _resolve_tools_for_executable(*, rule_ctx, attr_name):
 def _apple_support_toolchain_impl(ctx):
     return [
         AppleSupportToolchainInfo(
-            dsym_info_plist_template = ctx.file._dsym_info_plist_template,
-            process_and_sign_template = ctx.file._process_and_sign_template,
+            dsym_info_plist_template = ctx.file.dsym_info_plist_template,
+            process_and_sign_template = ctx.file.process_and_sign_template,
             resolved_bundletool = _resolve_tools_for_executable(
-                attr_name = "_bundletool",
+                attr_name = "bundletool",
                 rule_ctx = ctx,
             ),
             resolved_bundletool_experimental = _resolve_tools_for_executable(
-                attr_name = "_bundletool_experimental",
+                attr_name = "bundletool_experimental",
                 rule_ctx = ctx,
             ),
             resolved_codesigningtool = _resolve_tools_for_executable(
-                attr_name = "_codesigningtool",
+                attr_name = "codesigningtool",
                 rule_ctx = ctx,
             ),
             resolved_clangrttool = _resolve_tools_for_executable(
-                attr_name = "_clangrttool",
+                attr_name = "clangrttool",
                 rule_ctx = ctx,
             ),
             resolved_imported_dynamic_framework_processor = _resolve_tools_for_executable(
-                attr_name = "_imported_dynamic_framework_processor",
+                attr_name = "imported_dynamic_framework_processor",
                 rule_ctx = ctx,
             ),
             resolved_plisttool = _resolve_tools_for_executable(
-                attr_name = "_plisttool",
+                attr_name = "plisttool",
                 rule_ctx = ctx,
             ),
             resolved_swift_stdlib_tool = _resolve_tools_for_executable(
-                attr_name = "_swift_stdlib_tool",
+                attr_name = "swift_stdlib_tool",
                 rule_ctx = ctx,
             ),
             resolved_xctoolrunner = _resolve_tools_for_executable(
-                attr_name = "_xctoolrunner",
+                attr_name = "xctoolrunner",
                 rule_ctx = ctx,
             ),
-            std_redirect_dylib = ctx.file._std_redirect_dylib,
+            std_redirect_dylib = ctx.file.std_redirect_dylib,
         ),
         DefaultInfo(),
     ]
 
 # Define an Apple toolchain rule with tools built in the default configuration.
 apple_support_toolchain = rule(
-    # TODO(b/162832260): Make these attributes within the toolchain public, for the purposes of
-    # being able to specify them in the BUILD file. Will need to clean up the runner template usage
-    # first and other bits such that these individual tool targets don't need public visibility.
     attrs = {
-        "_bundletool": attr.label(
+        "bundletool": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool"),
+            doc = """
+A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
+paths to build the directory structure for those files.
+""",
         ),
-        "_bundletool_experimental": attr.label(
+        "bundletool_experimental": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool:bundletool_experimental"),
+            doc = """
+A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
+post-processing, and signing steps into a single action that eliminates the archiving step.
+""",
         ),
-        "_clangrttool": attr.label(
+        "clangrttool": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/clangrttool"),
+            doc = "A `File` referencing a tool to find all Clang runtime libs linked to a binary.",
         ),
-        "_codesigningtool": attr.label(
+        "codesigningtool": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/codesigningtool"),
+            doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
-        "_dsym_info_plist_template": attr.label(
+        "dsym_info_plist_template": attr.label(
             cfg = "host",
             allow_single_file = True,
-            default = Label(
-                "@build_bazel_rules_apple//apple/internal/templates:dsym_info_plist_template",
-            ),
+            doc = "A `File` referencing a plist template for dSYM bundles.",
         ),
-        "_imported_dynamic_framework_processor": attr.label(
+        "imported_dynamic_framework_processor": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/imported_dynamic_framework_processor"),
+            doc = """
+A `File` referencing a tool to process an imported dynamic framework such that the given framework
+only contains the same slices as the app binary, every file belonging to the dynamic framework is
+copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable
+artifact.
+""",
         ),
-        "_plisttool": attr.label(
+        "plisttool": attr.label(
             cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/plisttool"),
             executable = True,
+            doc = """
+A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
+conversion of plist files to binary format.
+""",
         ),
-        "_process_and_sign_template": attr.label(
+        "process_and_sign_template": attr.label(
             allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//tools/bundletool:process_and_sign_template"),
+            doc = "A `File` referencing a template for a shell script to process and sign.",
         ),
-        # TODO(b/74731511): Refactor _runner_template into being specified for each platform.
-        "_runner_template": attr.label(
+        "std_redirect_dylib": attr.label(
             cfg = "host",
             allow_single_file = True,
-            default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            doc = """
+A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
+""",
         ),
-        "_std_redirect_dylib": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            default = Label("@bazel_tools//tools/objc:StdRedirect.dylib"),
-        ),
-        "_swift_stdlib_tool": attr.label(
-            cfg = "host",
-            default = Label("@build_bazel_rules_apple//tools/swift_stdlib_tool"),
-            executable = True,
-        ),
-        "_xctoolrunner": attr.label(
+        "swift_stdlib_tool": attr.label(
             cfg = "host",
             executable = True,
-            default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
+            doc = """
+A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.
+""",
+        ),
+        "xctoolrunner": attr.label(
+            cfg = "host",
+            executable = True,
+            doc = "A `File` referencing a tool that acts as a wrapper for xcrun actions.",
         ),
     },
     doc = """Represents an Apple support toolchain""",
