@@ -165,7 +165,7 @@ cat > tvos/Framework.plist << EOF
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleInfoDictionaryVersion = "6.0";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
+  CFBundlePackageType = "FMWK";
   CFBundleShortVersionString = "1.0.0";
   CFBundleVersion = "1.0.0";
 }

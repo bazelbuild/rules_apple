@@ -74,6 +74,16 @@ EOF
   CFBundleVersion = "1.0";
 }
 EOF
+
+  cat > app/TestInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "BNDL";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+}
+EOF
 }
 
 # Usage: create_minimal_tvos_application_with_tests [test_bundle_id] [test_linkopts]
@@ -298,7 +308,7 @@ objc_library(
 
 tvos_unit_test(
     name = "test",
-    infoplists = ["Info.plist"],
+    infoplists = ["TestInfo.plist"],
     minimum_os_version = "9.0",
     deps = [":test_lib"],
 )
@@ -318,6 +328,16 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/TestInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "BNDL";
+  CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
 EOF
@@ -369,7 +389,7 @@ objc_library(
 
 tvos_unit_test(
     name = "test",
-    infoplists = ["Info.plist"],
+    infoplists = ["TestInfo.plist"],
     minimum_os_version = "9.0",
     deps = [":test_lib"],
 )
@@ -389,6 +409,16 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/TestInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "BNDL";
+  CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
 EOF
@@ -457,7 +487,7 @@ tvos_application(
 
 tvos_unit_test(
     name = "test",
-    infoplists = ["Info.plist"],
+    infoplists = ["TestInfo.plist"],
     minimum_os_version = "9.0",
     test_host = ":app",
     deps = [":test_lib"],
@@ -478,6 +508,16 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/TestInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "BNDL";
+  CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
 EOF
@@ -556,7 +596,7 @@ tvos_application(
 
 tvos_unit_test(
     name = "test",
-    infoplists = ["Info.plist"],
+    infoplists = ["TestInfo.plist"],
     minimum_os_version = "9.0",
     test_host = ":app",
     deps = [":test_lib"],
@@ -577,6 +617,16 @@ EOF
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1";
+  CFBundleVersion = "1.0";
+}
+EOF
+
+  cat > app/TestInfo.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "BNDL";
+  CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
 EOF

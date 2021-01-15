@@ -304,6 +304,10 @@ def merge_root_infoplists(
             struct(**rule_descriptor.additional_infoplist_values),
         )
 
+    # Replace PRODUCT_BUNDLE_PACKAGE_TYPE based on info in rule descriptor
+    if rule_descriptor.bundle_package_type:
+        substitutions["PRODUCT_BUNDLE_PACKAGE_TYPE"] = rule_descriptor.bundle_package_type
+
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         plist_key = "LSMinimumSystemVersion"
     else:

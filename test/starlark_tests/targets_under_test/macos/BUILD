@@ -259,7 +259,7 @@ macos_bundle(
     bundle_id = "com.google.example",
     bundle_loader = ":cmd_app_basic",
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = "10.10",
     tags = FIXTURE_TAGS,
@@ -346,7 +346,7 @@ macos_command_line_application(
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = "10.11",
     tags = FIXTURE_TAGS,
@@ -360,7 +360,7 @@ macos_command_line_application(
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     launchdplists = [
         "//test/starlark_tests/resources:Another.plist",
@@ -406,7 +406,7 @@ macos_dylib(
     name = "dylib",
     bundle_id = "com.google.example",
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = "10.11",
     tags = FIXTURE_TAGS,
@@ -422,7 +422,7 @@ macos_dylib(
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = "10.11",

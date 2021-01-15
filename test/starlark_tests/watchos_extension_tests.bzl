@@ -120,6 +120,7 @@ def watchos_extension_test_suite():
             "CFBundleExecutable": "ext",
             "CFBundleIdentifier": "com.google.example.ext",
             "CFBundleName": "ext",
+            "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

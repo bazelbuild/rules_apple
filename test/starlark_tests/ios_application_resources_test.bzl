@@ -198,6 +198,7 @@ def ios_application_resources_test_suite():
         plist_test_values = {
             "CFBundleIdentifier": "org.bazel.bundle-library-ios",
             "CFBundleName": "bundle_library_ios.bundle",
+            "CFBundlePackageType": "BNDL",
             "TargetName": "bundle_library_ios",
         },
         contains = [

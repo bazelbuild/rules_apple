@@ -26,6 +26,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundle_package_type.bzl",
+    "bundle_package_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
@@ -77,6 +81,7 @@ def _describe_rule_type(
         binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
+        bundle_package_type = None,
         codesigning_exceptions = _CODESIGNING_EXCEPTIONS.none,
         default_infoplist = None,
         default_test_runner = None,
@@ -111,6 +116,7 @@ def _describe_rule_type(
             that should hold the icon sets (e.g. .xcassets or .xcstickers).
         archive_extension: Extension for the archive output of the rule.
         binary_infoplist: Whether the Info.plist output should be in binary form.
+        bundle_package_type: Four-character code representing the bundle type.
         binary_type: Binary type to use for the binary_type attribute in the bundling rules. This
             attribute is read by apple_common.link_multi_arch_binary, so rules that use apple_binary
             underneath are not affected.
@@ -170,6 +176,7 @@ def _describe_rule_type(
         binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
+        bundle_package_type = bundle_package_type,
         codesigning_exceptions = codesigning_exceptions,
         default_infoplist = default_infoplist,
         default_test_runner = default_test_runner,
@@ -212,6 +219,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            bundle_package_type = bundle_package_type.application,
             deps_cfg = apple_common.multi_arch_split,
             has_launch_images = True,
             has_settings_bundle = True,
@@ -234,6 +242,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            bundle_package_type = bundle_package_type.application,
             deps_cfg = apple_common.multi_arch_split,
             expose_non_archive_relative_output = True,
             is_executable = True,
@@ -253,6 +262,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-fapplication-extension",
@@ -270,6 +280,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             binary_type = "dylib",
             bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
             mandatory_families = True,
@@ -290,6 +301,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             archive_extension = ".ipa",
             bundle_extension = ".app",
+            bundle_package_type = bundle_package_type.application,
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             mandatory_families = True,
             product_type = apple_product_type.messages_application,
@@ -304,6 +316,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-fapplication-extension",
@@ -325,6 +338,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcstickers",
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             mandatory_families = True,
             product_type = apple_product_type.messages_sticker_pack_extension,
             requires_deps = False,
@@ -347,6 +361,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -370,6 +385,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -398,6 +414,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.application,
             deps_cfg = apple_common.multi_arch_split,
             is_executable = True,
             product_type = apple_product_type.application,
@@ -438,6 +455,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.app_extension,
             provisioning_profile_extension = ".provisionprofile",
@@ -455,6 +473,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "dylib",
             bundle_extension = ".qlgenerator",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.quicklook_plugin,
             provisioning_profile_extension = ".provisionprofile",
@@ -469,6 +488,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.bundle,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.bundle,
             provisioning_profile_extension = ".provisionprofile",
@@ -486,6 +506,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_infoplist = False,
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.kernel_extension,
             deps_cfg = apple_common.multi_arch_split,
             # This was added for b/122473338, and should be removed eventually once symbol
             # stripping is better-handled. It's redundant with an option added in the CROSSTOOL
@@ -505,6 +526,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".mdimporter",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.spotlight_importer,
             provisioning_profile_extension = ".provisionprofile",
@@ -516,6 +538,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".xpc",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.xpc_service,
             provisioning_profile_extension = ".provisionprofile",
@@ -535,6 +558,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -559,6 +583,7 @@ _RULE_TYPE_DESCRIPTORS = {
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -588,6 +613,7 @@ _RULE_TYPE_DESCRIPTORS = {
             archive_extension = ".ipa",
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            bundle_package_type = bundle_package_type.application,
             deps_cfg = apple_common.multi_arch_split,
             has_launch_images = True,
             has_settings_bundle = True,
@@ -605,6 +631,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             allows_locale_trimming = True,
             bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-e",
@@ -624,6 +651,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
             binary_type = "dylib",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             deps_cfg = apple_common.multi_arch_split,
@@ -651,6 +679,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -674,6 +703,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
             deps_cfg = apple_common.multi_arch_split,
@@ -701,6 +731,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
             bundle_extension = ".app",
+            bundle_package_type = bundle_package_type.application,
             product_type = apple_product_type.watch2_application,
             requires_deps = False,
             requires_pkginfo = True,
@@ -711,6 +742,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             allows_locale_trimming = True,
             bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-fapplication-extension",

@@ -59,6 +59,7 @@ def watchos_application_test_suite():
             "CFBundleExecutable": "app",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "app",
+            "CFBundlePackageType": "APPL",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

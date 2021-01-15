@@ -47,7 +47,7 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "BNDL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
@@ -81,7 +81,7 @@ function test_missing_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "BNDL";
+  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
 }
 EOF
@@ -102,7 +102,7 @@ function test_missing_short_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "BNDL";
+  CFBundlePackageType = "XPC!";
   CFBundleVersion = "1.0";
 }
 EOF

@@ -37,11 +37,11 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
 EOF
+
 
   cat > app/app.strings <<EOF
 "my_string" = "I should be at the top level!";

@@ -35,6 +35,7 @@ def tvos_framework_test_suite():
             "CFBundleExecutable": "fmwk",
             "CFBundleIdentifier": "com.google.example.framework",
             "CFBundleName": "fmwk",
+            "CFBundlePackageType": "FMWK",
             "CFBundleSupportedPlatforms:0": "AppleTVSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",

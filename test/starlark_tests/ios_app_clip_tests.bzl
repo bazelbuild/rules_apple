@@ -24,6 +24,10 @@ load(
     "bitcode_symbol_map_test",
 )
 load(
+    ":rules/infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
+load(
     ":rules/linkmap_test.bzl",
     "linkmap_test",
 )
@@ -99,6 +103,31 @@ def ios_app_clip_test_suite():
             # OSS Blocked by b/73547215
             "manual",  # disabled in oss
         ],
+    )
+
+    # Verifies that Info.plist contains correct package type
+    infoplist_contents_test(
+        name = "{}_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
+        expected_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleExecutable": "app_clip",
+            "CFBundleIdentifier": "com.google.example.clip",
+            "CFBundleName": "app_clip",
+            "CFBundlePackageType": "APPL",
+            "CFBundleSupportedPlatforms:0": "iPhone*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "iphone*",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "iphone*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "MinimumOSVersion": "14.0",
+            "UIDeviceFamily:0": "1",
+        },
+        tags = [name],
     )
 
     # Tests that the provisioning profile is present when built for device.

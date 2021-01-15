@@ -10,6 +10,8 @@
 	<string>1.0</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
   <key>WKCompanionAppBundleIdentifier</key>
   <string>com.google</string>
 </dict>
