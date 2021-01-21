@@ -77,6 +77,10 @@ load(
     "TvosFrameworkBundleInfo",
     "TvosStaticFrameworkBundleInfo",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
 
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
@@ -286,6 +290,17 @@ def _tvos_application_impl(ctx):
 def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
     
+    # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 2
+    # because of the swift_runtime_linkopts dep that comes with the swift_libray
+    swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
+    if len(swiftdeps) != 1 or len(ctx.attr.deps) > 2:
+                fail(
+                    """\
+    error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
+    single swift_library dependency.\
+    """,
+                )
+
     binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
     link_result = linking_support.register_linking_action(ctx)
     binary_artifact = link_result.binary_provider.binary

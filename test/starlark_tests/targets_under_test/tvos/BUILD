@@ -477,3 +477,30 @@ tvos_dynamic_framework(
         ":basic_framework_with_transitive_dependency_lib",
     ],
 )
+
+tvos_dynamic_framework(
+    name = "dynamic_fmwk_with_multiple_dependencies",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":basic_framework_lib",
+        ":basic_framework_with_direct_dependency_lib",
+    ],
+)
+
+tvos_dynamic_framework(
+    name = "dynamic_fmwk_with_objc_library",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_with_resources",
+    ],
+)
