@@ -92,9 +92,15 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     if not swiftdeps:
         return []
 
+    # Get the generated_header using the CcInfo provider
+    generated_header = None
+    for dep in ccinfos:
+        headers = dep[CcInfo].compilation_context.headers.to_list()
+        if headers:
+            generated_header = headers.pop(0)
+
     # Collect all relevant artifacts for Swift dynamic framework generation.
     module_name = None
-    generated_header = None
     swiftdocs = {}
     swiftmodules = {}
     modulemap_file = None
@@ -115,17 +121,13 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
 
         swiftdocs[arch] = swiftdoc
         swiftmodules[arch] = swiftmodule
-        modulemap_file = ctx.actions.declare_file("{}_file.modulemap".format(module_name))
-        ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
 
-    # Get the generated_header using the CcInfo provider
-    for dep in ccinfos:
-        headers = dep[CcInfo].compilation_context.headers.to_list()
-        if headers:
-            generated_header = headers.pop(0)
+        if generated_header:
+            modulemap_file = ctx.actions.declare_file("{}_file.modulemap".format(module_name))
+            ctx.actions.write(modulemap_file, _modulemap_contents(module_name))
 
     # Make sure that all dictionaries contain at least one module before returning the provider.
-    if all([module_name, swiftdocs, swiftmodules, modulemap_file]):
+    if all([module_name, swiftdocs, swiftmodules]):
         return [
             SwiftDynamicFrameworkInfo(
                 module_name = module_name,
