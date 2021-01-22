@@ -95,8 +95,7 @@ def _watchos_dynamic_framework_impl(ctx):
     if len(swiftdeps) != 1 or len(ctx.attr.deps) > 2:
                 fail(
                     """\
-    error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
-    single swift_library dependency.\
+    error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
                 )
 

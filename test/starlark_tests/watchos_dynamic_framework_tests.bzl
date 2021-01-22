@@ -107,8 +107,7 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         name = "{}_multiple_deps_in_dynamic_framework_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:dynamic_fmwk_with_multiple_dependencies",
         expected_error = """\
-    error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
-    single swift_library dependency.\
+    error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
         tags = [name],
     )
@@ -117,8 +116,7 @@ def watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework"):
         name = "{}_non_swiftlib_dep_in_dynamic_framework_fail".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:dynamic_fmwk_with_objc_library",
         expected_error = """\
-    error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
-    single swift_library dependency.\
+    error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
         tags = [name],
     )
