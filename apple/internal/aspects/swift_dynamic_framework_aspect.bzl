@@ -125,7 +125,7 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
             generated_header = headers.pop(0)
 
     # Make sure that all dictionaries contain at least one module before returning the provider.
-    if all([module_name, generated_header, swiftdocs, swiftmodules, modulemap_file]):
+    if all([module_name, swiftdocs, swiftmodules, modulemap_file]):
         return [
             SwiftDynamicFrameworkInfo(
                 module_name = module_name,
