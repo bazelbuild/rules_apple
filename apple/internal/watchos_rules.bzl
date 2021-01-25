@@ -524,6 +524,8 @@ def _watchos_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -547,6 +549,7 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.extensions,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -563,6 +566,7 @@ def _watchos_extension_impl(ctx):
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.extensions,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
@@ -570,7 +574,9 @@ def _watchos_extension_impl(ctx):
             rule_label = label,
         ),
         partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
             platform_prerequisites = platform_prerequisites,
+            embeddable_targets = ctx.attr.extensions,
             plugins = [archive],
         ),
         # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
@@ -589,6 +595,7 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
             bundle_extension = bundle_extension,
+            bundle_verification_targets = bundle_verification_targets,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
@@ -606,6 +613,7 @@ def _watchos_extension_impl(ctx):
             apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            dependency_targets = ctx.attr.extensions,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
