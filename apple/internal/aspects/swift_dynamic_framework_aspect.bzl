@@ -92,14 +92,6 @@ def _swift_dynamic_framework_aspect_impl(target, ctx):
     if not swiftdeps:
         return []
 
-    if len(swiftdeps) != len(ctx.rule.attr.deps):
-        fail(
-            """\
-error: Found a mix of swift_library and other rule dependencies. Swift dynamic frameworks expect a \
-single swift_library dependency.\
-""",
-        )
-
     # Collect all relevant artifacts for Swift dynamic framework generation.
     module_name = None
     generated_header = None
