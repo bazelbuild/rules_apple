@@ -430,6 +430,7 @@ def _bundle_post_process_and_sign(
         actions,
         bundle_extension,
         bundle_name,
+        codesignopts,
         entitlements,
         executable_name,
         output_archive,
@@ -440,14 +441,14 @@ def _bundle_post_process_and_sign(
         provisioning_profile,
         rule_descriptor,
         rule_executables,
-        rule_label,
-        codesignopts):
+        rule_label):
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
+        codesignopts: Extra options to pass to the `codesign` tool
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         executable_name: The name of the output executable.
         output_archive: The file representing the final bundled, post-processed and signed archive.
@@ -459,7 +460,6 @@ def _bundle_post_process_and_sign(
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
         rule_label: The label of the target being analyzed.
-        codesignopts: Extra options to pass to the `codesign` tool
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         config_vars = platform_prerequisites.config_vars,
@@ -628,6 +628,7 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
+        codesignopts,
         entitlements,
         executable_name,
         partials,
@@ -637,8 +638,7 @@ def _process(
         provisioning_profile,
         rule_descriptor,
         rule_executables,
-        rule_label,
-        codesignopts = []):
+        rule_label):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
@@ -647,6 +647,7 @@ def _process(
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
+      codesignopts: Extra options to pass to the `codesign` tool
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       executable_name: The name of the output executable.
       partials: The list of partials to process to construct the complete bundle.
@@ -657,7 +658,6 @@ def _process(
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_executables: List of executables defined by the rule. Typically from `ctx.executable`.
       rule_label: The label of the target being analyzed.
-      codesignopts: Extra options to pass to the `codesign` tool
 
     Returns:
       A `struct` with the results of the processing. The files to make outputs of
@@ -682,6 +682,7 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            codesignopts = codesignopts,
             executable_name = executable_name,
             entitlements = entitlements,
             output_archive = output_archive,
@@ -693,7 +694,6 @@ def _process(
             rule_descriptor = rule_descriptor,
             rule_executables = rule_executables,
             rule_label = rule_label,
-            codesignopts = codesignopts,
         )
         transitive_output_files = [depset([output_archive])]
     else:

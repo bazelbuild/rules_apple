@@ -54,24 +54,38 @@ def _no_op(x):
     """Helper that does not nothing be return the result."""
     return x
 
+def _codesignopts_from_rule_ctx(ctx):
+    """Get the expanded codesign opts from the rule context
+
+    Args:
+      ctx: The rule context to fetch the options and expand from
+
+    Returns:
+      The list of codesignopts
+    """
+    return [
+        ctx.expand_make_variables("codesignopts", opt, {})
+        for opt in ctx.attr.codesignopts
+    ]
+
 def _codesign_args_for_path(
         *,
+        codesignopts,
         entitlements_file,
         path_to_sign,
         platform_prerequisites,
         provisioning_profile,
-        codesignopts,
         shell_quote = True):
     """Returns a command line for the codesigning tool wrapper script.
 
     Args:
+      codesignopts: Extra options to pass to the `codesign` tool
       entitlements_file: The entitlements file to pass to codesign. May be `None`
           for non-app binaries (e.g. test bundles).
       path_to_sign: A struct indicating the path that should be signed and its
           optionality (see `_path_to_sign`).
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
-      codesignopts: Extra options to pass to the `codesign` tool
       shell_quote: Sanitizes the arguments to be evaluated in a shell.
 
     Returns:
@@ -570,6 +584,7 @@ def _sign_binary_action(
         *,
         actions,
         codesigningtool,
+        codesignopts,
         input_binary,
         output_binary,
         platform_prerequisites,
@@ -580,6 +595,7 @@ def _sign_binary_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       codesigningtool: The `File` representing the code signing tool.
+      codesignopts: Extra options to pass to the `codesign` tool
       input_binary: The `File` representing the binary to be signed.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -602,7 +618,7 @@ def _sign_binary_action(
         paths_to_sign = [path_to_sign],
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
-        codesignopts = [],
+        codesignopts = codesignopts,
     )
 
     legacy_actions.run_shell(
@@ -629,6 +645,7 @@ def _sign_binary_action(
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
+    codesignopts_from_rule_ctx = _codesignopts_from_rule_ctx,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     sign_binary_action = _sign_binary_action,
 )
