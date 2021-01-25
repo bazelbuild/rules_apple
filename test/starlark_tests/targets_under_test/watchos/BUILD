@@ -144,6 +144,71 @@ generate_import_framework(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "ios_watchos_with_watchos_extension",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    watch_application = ":watchos_app_with_extension",
+    deps = [
+        ":swift_lib",
+    ],
+)
+
+watchos_extension(
+    name = "watchos_app_extension",
+    bundle_id = "com.google.example.watchosext.nestedwatchosext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "watchos_ext_with_extension",
+    bundle_id = "com.google.example.watchosext",
+    bundle_name = "ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensions = [":watchos_app_extension"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+watchos_application(
+    name = "watchos_app_with_extension",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    bundle_name = "app",
+    extension = ":watchos_ext_with_extension",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "4.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
     name = "ios_with_swift_watchos_no_swift",
     bundle_id = "com.google",
     bundle_name = "companion",
