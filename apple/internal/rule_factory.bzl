@@ -855,6 +855,13 @@ def _get_watchos_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for the watchOS platform."""
     attrs = []
 
+    if rule_descriptor.product_type == apple_product_type.watch2_extension:
+        attrs.append({"extensions": attr.label_list(
+            providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+            doc = """
+A list of watchOS application extensions to include in the final watch extension bundle.
+""",
+        )})
     if rule_descriptor.product_type == apple_product_type.watch2_application:
         attrs.append({
             "extension": attr.label(

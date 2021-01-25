@@ -100,6 +100,17 @@ def watchos_application_test_suite(name = "watchos_application"):
         tags = [name],
     )
 
+    # Tests inclusion of extensions within Watch extensions
+    archive_contents_test(
+        name = "{}_contains_watchos_extension_extension".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
