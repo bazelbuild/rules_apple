@@ -1006,6 +1006,25 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_bundle_only_fmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":bundle_only_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:ios_non_localized_assets_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_two_fmwk_provisioned",
     bundle_id = "com.google.example",
     families = [
@@ -1173,6 +1192,26 @@ ios_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
+    name = "bundle_only_fmwk",
+    hdrs = ["//test/starlark_tests/resources:common.h"],
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    bundle_only = True,
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
     deps = [
