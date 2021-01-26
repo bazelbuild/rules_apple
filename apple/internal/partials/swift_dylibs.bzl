@@ -211,7 +211,7 @@ def _swift_dylibs_partial_impl(
                         output_dir = swift_support_output_dir,
                         platform_name = platform_name,
                         platform_prerequisites = platform_prerequisites,
-                        swift_stdlib_tool = swift_stdlib_tool,
+                        resolved_swift_stdlib_tool = rule_executables.resolved_swift_stdlib_tool,
                         strip_bitcode = False,
                     )
                 else:
