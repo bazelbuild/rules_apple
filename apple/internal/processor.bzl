@@ -430,6 +430,7 @@ def _bundle_post_process_and_sign(
         actions,
         bundle_extension,
         bundle_name,
+        codesignopts,
         entitlements,
         executable_name,
         output_archive,
@@ -447,6 +448,7 @@ def _bundle_post_process_and_sign(
         actions: The actions provider from `ctx.actions`.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
+        codesignopts: Extra options to pass to the `codesign` tool
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         executable_name: The name of the output executable.
         output_archive: The file representing the final bundled, post-processed and signed archive.
@@ -492,6 +494,7 @@ def _bundle_post_process_and_sign(
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
+            codesignopts = codesignopts,
         )
 
         _bundle_partial_outputs_files(
@@ -542,6 +545,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
             codesigningtool = rule_executables._codesigningtool,
+            codesignopts = codesignopts,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
@@ -603,6 +607,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
                 codesigningtool = rule_executables._codesigningtool,
+                codesignopts = codesignopts,
                 entitlements = entitlements,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
@@ -623,6 +628,7 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
+        codesignopts = [],
         entitlements,
         executable_name,
         partials,
@@ -641,6 +647,7 @@ def _process(
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
+      codesignopts: Extra options to pass to the `codesign` tool
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       executable_name: The name of the output executable.
       partials: The list of partials to process to construct the complete bundle.
@@ -675,6 +682,7 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            codesignopts = codesignopts,
             executable_name = executable_name,
             entitlements = entitlements,
             output_archive = output_archive,

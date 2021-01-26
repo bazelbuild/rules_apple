@@ -27,6 +27,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -238,6 +242,7 @@ def _tvos_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         executable_name = executable_name,
         entitlements = entitlements,
         partials = processor_partials,
@@ -447,15 +452,16 @@ def _tvos_dynamic_framework_impl(ctx):
     ]
 
     processor_result = processor.process(
-        ctx = ctx,
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = ctx.file._process_and_sign_template,
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_executables = rule_executables,
@@ -616,6 +622,7 @@ def _tvos_framework_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
         partials = processor_partials,
@@ -778,6 +785,7 @@ def _tvos_extension_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
         partials = processor_partials,
@@ -889,6 +897,7 @@ def _tvos_static_framework_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
         partials = processor_partials,

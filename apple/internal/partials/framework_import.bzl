@@ -205,9 +205,10 @@ def _framework_import_partial_impl(
         signed_frameworks_list.append(framework_basename)
 
     symbols_requested = defines.bool_value(
-        ctx,
-        "apple.package_symbols",
-        False,
+        ctx = None,
+        config_vars = platform_prerequisites.config_vars,
+        define_name = "apple.package_symbols",
+        default = False,
     )
     if package_symbols and symbols_requested:
         transitive_dsyms = [
@@ -216,11 +217,13 @@ def _framework_import_partial_impl(
             if AppleFrameworkImportInfo in x
         ]
         symbols = _generate_symbols(
-            ctx,
+            actions,
             build_archs_found,
             files_by_framework,
             framework_binaries_by_framework,
             transitive_dsyms,
+            label_name,
+            platform_prerequisites,
         )
         bundle_files = [(
             processor.location.archive,
@@ -237,14 +240,17 @@ def _framework_import_partial_impl(
     )
 
 def _generate_symbols(
-    ctx,
-    build_archs_found,
-    files_by_framework,
-    framework_binaries_by_framework,
-    transitive_dsyms):
+        actions,
+        build_archs_found,
+        files_by_framework,
+        framework_binaries_by_framework,
+        transitive_dsyms,
+        label_name,
+        platform_prerequisites):
     # Collect dSYM binaries and framework binaries of frameworks that don't
     # have dSYMs
     all_binaries = []
+
     # Keep track of frameworks that provide dSYM, so that we can avoid
     # unnecessarily extracting symbols from said frameworks' binaries
     has_dsym_framework_basenames = sets.make()
@@ -255,6 +261,7 @@ def _generate_symbols(
         # is packaged.
         if file.basename.lower() != "info.plist":
             all_binaries.append(file)
+
             # Update the set of frameworks that provide dSYMs
             framework_dsym_path = bundle_paths.farthest_parent(
                 file.short_path,
@@ -272,8 +279,8 @@ def _generate_symbols(
 
     temp_path = paths.join("_imported_frameworks", "symbols_files")
     symbols_dir = intermediates.directory(
-        ctx.actions,
-        ctx.label.name,
+        actions,
+        label_name,
         temp_path,
     )
     outputs = [symbols_dir]
@@ -295,7 +302,9 @@ def _generate_symbols(
             )
 
     apple_support.run_shell(
-        ctx,
+        actions = actions,
+        xcode_config = platform_prerequisites.xcode_version_config,
+        apple_fragment = platform_prerequisites.apple_fragment,
         inputs = all_binaries,
         outputs = outputs,
         command = "\n".join(commands),
