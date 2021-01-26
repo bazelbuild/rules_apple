@@ -333,7 +333,7 @@ Do not change its value.
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
     """,
-        ),
+            ),
             "codesignopts": attr.string_list(
                 doc = """
 A list of strings representing extra flags that should be passed to `codesign`.
@@ -610,6 +610,13 @@ Required.
                 doc = """
 If true, compiles and links this framework with `-application-extension`, restricting the binary to
 use only extension-safe APIs.
+""",
+            ),
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
 """,
             ),
         })
