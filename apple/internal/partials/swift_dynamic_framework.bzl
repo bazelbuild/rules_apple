@@ -39,7 +39,6 @@ def _get_header_imports(framework_imports):
 # TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dynamic_framework_partial_impl(
         *,
-        ctx,
         actions,
         bundle_name,
         label_name,
@@ -65,7 +64,7 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         bundle_doc = intermediates.file(actions, label_name, "{}.swiftdoc".format(arch))
         actions.symlink(target_file = swiftdoc, output = bundle_doc)
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
-    
+
     for arch, swiftmodule in swiftmodules.items():
         bundle_doc = intermediates.file(actions, label_name, "{}.swiftmodule".format(arch))
         actions.symlink(target_file = swiftmodule, output = bundle_doc)

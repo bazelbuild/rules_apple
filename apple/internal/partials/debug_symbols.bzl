@@ -251,7 +251,6 @@ def _debug_symbols_partial_impl(
             )
 
             include_symbols = defines.bool_value(
-                ctx = None,
                 config_vars = platform_prerequisites.config_vars,
                 define_name = "apple.package_symbols",
                 default = False,

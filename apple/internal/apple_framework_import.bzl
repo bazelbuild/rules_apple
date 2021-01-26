@@ -71,7 +71,7 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
 
     return module
 
-def _classify_framework_imports(ctx, framework_imports):
+def _classify_framework_imports(config_vars, framework_imports):
     """Classify a list of framework files into bundling, header, or module_map."""
 
     bundling_imports = []
@@ -91,7 +91,11 @@ def _classify_framework_imports(ctx, framework_imports):
             # statements for imported framework by adding module map to
             # header_imports so that they are included in Obj-C compilation but
             # they aren't processed in any way.
-            if defines.bool_value(ctx, "apple.incompatible.objc_framework_propagate_modulemap", False):
+            if defines.bool_value(
+                config_vars = config_vars,
+                define_name = "apple.incompatible.objc_framework_propagate_modulemap",
+                default = False,
+            ):
                 header_imports.append(file)
             module_map_imports.append(file)
             continue
@@ -238,7 +242,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     framework_imports = ctx.files.framework_imports
     bundling_imports, header_imports, module_map_imports = (
-        _classify_framework_imports(ctx, framework_imports)
+        _classify_framework_imports(ctx.var, framework_imports)
     )
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
@@ -278,7 +282,7 @@ def _apple_static_framework_import_impl(ctx):
     providers = []
 
     framework_imports = ctx.files.framework_imports
-    _, header_imports, module_map_imports = _classify_framework_imports(ctx, framework_imports)
+    _, header_imports, module_map_imports = _classify_framework_imports(ctx.var, framework_imports)
 
     transitive_sets = _transitive_framework_imports(ctx.attr.deps)
     providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
