@@ -357,7 +357,7 @@ def _entitlements_impl(ctx):
     # the binary; for device builds, the entitlements are applied during signing.
     if not platform_prerequisites.platform.is_device:
         simulator_entitlements = None
-        if _include_debug_entitlements(ctx):
+        if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
             simulator_entitlements = ctx.actions.declare_file(
                 "%s.simulator.entitlements" % ctx.label.name,
             )
@@ -367,7 +367,11 @@ def _entitlements_impl(ctx):
                 output = simulator_entitlements.path,
                 target = str(ctx.label),
             )
-            simulator_control_file = _new_entitlements_artifact(ctx, "simulator-plisttool-control")
+            simulator_control_file = _new_entitlements_artifact(
+                actions = actions,
+                extension = "simulator-plisttool-control",
+                label_name = ctx.label.name,
+            )
             ctx.actions.write(
                 output = simulator_control_file,
                 content = simulator_control.to_json(),
