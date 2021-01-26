@@ -16,8 +16,16 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+)
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
+load(
+    "//test/testdata/fmwk:generate_framework.bzl",
+    "generate_import_framework",
+)
 
 licenses(["notice"])
 
@@ -1006,7 +1014,7 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_bundle_only_fmwk",
+    name = "app_with_bundle_only_fmwks",
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -1019,6 +1027,7 @@ ios_application(
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
     deps = [
+        ":bundle_only_imported_fmwk",
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -1176,8 +1185,8 @@ ios_framework(
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
     deps = [
-        "//test/starlark_tests/resources:swift_shared_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
+        "//test/starlark_tests/resources:swift_shared_lib",
     ],
 )
 
@@ -1204,6 +1213,7 @@ ios_framework(
     name = "bundle_only_fmwk",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
+    bundle_only = True,
     families = [
         "iphone",
         "ipad",
@@ -1211,7 +1221,6 @@ ios_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    bundle_only = True,
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
     deps = [
@@ -2113,5 +2122,21 @@ swift_library(
     name = "StaticFmwkLowestLib",
     srcs = ["Dummy.swift"],
     module_name = "StaticFmwkLowestLib",
+    tags = FIXTURE_TAGS,
+)
+
+apple_dynamic_framework_import(
+    name = "bundle_only_imported_fmwk",
+    bundle_only = True,
+    framework_imports = [":generated_ios_dynamic_fmwk"],
+    tags = FIXTURE_TAGS,
+)
+
+generate_import_framework(
+    name = "generated_ios_dynamic_fmwk",
+    archs = ["x86_64"],
+    libtype = "dynamic",
+    minimum_os_version = "8.0",
+    sdk = "iphonesimulator",
     tags = FIXTURE_TAGS,
 )

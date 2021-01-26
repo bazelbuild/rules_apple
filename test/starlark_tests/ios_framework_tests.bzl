@@ -71,12 +71,16 @@ def ios_framework_test_suite(name = "ios_framework"):
     archive_contents_test(
         name = "{}_app_load_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_bundle_only_fmwk",
-        binary_test_file = "$BUNDLE_ROOT/app_with_bundle_only_fmwk",
-        macho_load_commands_not_contain = ["name @rpath/bundle_only_fmwk.framework/bundle_only_fmwk (offset 24)"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_bundle_only_fmwks",
+        binary_test_file = "$BUNDLE_ROOT/app_with_bundle_only_fmwks",
+        macho_load_commands_not_contain = [
+            "name @rpath/bundle_only_fmwk.framework/bundle_only_fmwk (offset 24)",
+            "name @rpath/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk (offset 24)",
+        ],
         contains = [
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/bundle_only_fmwk",
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk",
         ],
         tags = [name],
     )
