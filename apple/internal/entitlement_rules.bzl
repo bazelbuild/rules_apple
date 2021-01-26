@@ -385,12 +385,15 @@ def _entitlements_impl(ctx):
             )
             resource_actions.plisttool_action(
                 actions = actions,
+                control_file = simulator_control_file,
                 inputs = [],
+                mnemonic = "ProcessSimulatorEntitlementsFile",
                 outputs = [simulator_entitlements],
                 platform_prerequisites = platform_prerequisites,
-                plisttool = ctx.executable._plisttool,
-                control_file = simulator_control_file,
-                mnemonic = "ProcessSimulatorEntitlementsFile",
+                resolved_plisttool = apple_support_toolchain_utils.resolve_tools_for_executable(
+                    attr_name = "_plisttool",
+                    rule_ctx = ctx,
+                ),
             )
 
         return [

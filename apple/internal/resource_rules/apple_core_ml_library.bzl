@@ -47,7 +47,6 @@ def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
-    rule_executables = ctx.executable
 
     deps = getattr(ctx.attr, "deps", None)
     uses_swift = swift_support.uses_swift(deps) if deps else False
@@ -69,7 +68,7 @@ def _apple_core_ml_library_impl(ctx):
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
-        xcode_path_wrapper = rule_executables._xcode_path_wrapper,
+        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
