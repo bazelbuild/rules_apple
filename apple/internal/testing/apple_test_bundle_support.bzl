@@ -23,6 +23,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )

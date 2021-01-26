@@ -628,7 +628,7 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
-        codesignopts,
+        codesignopts = [],
         entitlements,
         executable_name,
         partials,
