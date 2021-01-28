@@ -229,7 +229,7 @@ Passes a sanitizer to the target under test.
         ),
         "verifier_script": attr.label(
             mandatory = True,
-            allow_single_file = [".sh"],
+            allow_single_file = True,
             doc = """
 Shell script containing the verification code. This script can expect the following environment
 variables to exist:

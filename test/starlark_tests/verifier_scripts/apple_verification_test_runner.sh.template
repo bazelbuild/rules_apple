@@ -25,26 +25,26 @@ STANDALONE_BINARY="%{standalone_binary}s"
 if [[ -n "$ARCHIVE_PATH" ]]; then
 
   # Unzip the archive into a temporary location.
-  ARCHIVE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bundle_tmp_dir.XXXXXX")"
+  export ARCHIVE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bundle_tmp_dir.XXXXXX")"
 
   trap 'rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 
   unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
 
   # Define common bundle locations to be used by the verifier scripts.
-  BINARY="$ARCHIVE_ROOT/%{archive_relative_binary}s"
-  BUNDLE_ROOT="$ARCHIVE_ROOT/%{archive_relative_bundle}s"
-  CONTENT_ROOT="$ARCHIVE_ROOT/%{archive_relative_contents}s"
-  RESOURCE_ROOT="$ARCHIVE_ROOT/%{archive_relative_resources}s"
+  export BINARY="$ARCHIVE_ROOT/%{archive_relative_binary}s"
+  export BUNDLE_ROOT="$ARCHIVE_ROOT/%{archive_relative_bundle}s"
+  export CONTENT_ROOT="$ARCHIVE_ROOT/%{archive_relative_contents}s"
+  export RESOURCE_ROOT="$ARCHIVE_ROOT/%{archive_relative_resources}s"
 
 elif [[ -n "$STANDALONE_BINARY" ]]; then
 
   # If only a binary was provided instead of an archive, treat that as the root
   # element for all root "bundle" locations used by the verifier scripts.
-  BINARY="$STANDALONE_BINARY"
-  BUNDLE_ROOT="$STANDALONE_BINARY"
-  CONTENT_ROOT="$STANDALONE_BINARY"
-  RESOURCE_ROOT="$STANDALONE_BINARY"
+  export BINARY="$STANDALONE_BINARY"
+  export BUNDLE_ROOT="$STANDALONE_BINARY"
+  export CONTENT_ROOT="$STANDALONE_BINARY"
+  export RESOURCE_ROOT="$STANDALONE_BINARY"
 
 else
   fail "Internal Error: Test did not assign an archive or a binary value."
@@ -67,4 +67,4 @@ if [[ -n "${APPLE_TEST_ENV_KEYS-}" ]]; then
 fi
 
 # Invoke the verifier script.
-source %{verifier_script}s
+%{verifier_script}s
