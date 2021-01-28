@@ -128,7 +128,4 @@ bzl_library(
     ],
 )
 
-exports_files([
-    "verifier_scripts/apple_verification_test_runner.sh.template",
-    "verifier_scripts/archive_contents_test.sh"
-])
+exports_files(glob(["verifier_scripts/*.sh"]))
