@@ -195,6 +195,7 @@ def _ios_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -440,6 +441,7 @@ def _ios_app_clip_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -657,6 +659,7 @@ def _ios_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -840,6 +843,7 @@ def _ios_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1029,6 +1033,7 @@ def _ios_dynamic_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1452,6 +1457,7 @@ def _ios_imessage_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,

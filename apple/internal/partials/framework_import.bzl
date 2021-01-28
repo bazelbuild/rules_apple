@@ -231,6 +231,7 @@ def _framework_import_partial_impl(
             transitive_dsyms,
             label_name,
             platform_prerequisites,
+            apple_toolchain_info.resolved_symbols_tool,
         )
         bundle_files = [(
             processor.location.archive,
@@ -253,7 +254,8 @@ def _generate_symbols(
         framework_binaries_by_framework,
         transitive_dsyms,
         label_name,
-        platform_prerequisites):
+        platform_prerequisites,
+        resolved_symbols_tool):
     # Collect dSYM binaries and framework binaries of frameworks that don't
     # have dSYMs
     all_binaries = []
@@ -284,6 +286,10 @@ def _generate_symbols(
             if not sets.contains(has_dsym_framework_basenames, framework_basename):
                 all_binaries.append(framework_binary)
 
+    # Skip the action if there're no binaries that can provide symbols
+    if not all_binaries:
+        return []
+
     temp_path = paths.join("_imported_frameworks", "symbols_files")
     symbols_dir = intermediates.directory(
         actions,
@@ -292,7 +298,8 @@ def _generate_symbols(
     )
     outputs = [symbols_dir]
 
-    commands = ["mkdir -p \"${OUTPUT_DIR}\""]
+    args = actions.args()
+    args.add("--output_dir", symbols_dir.path)
 
     for binary in all_binaries:
         # If dSYMs are bundled with multiple non-fat binaries, the 'symbols'
@@ -300,23 +307,19 @@ def _generate_symbols(
         # slice for an architecture, but it's fine since it won't return a
         # non-zero code in that case.
         for arch in build_archs_found:
-            commands.append(
-                ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {0} " +
-                 "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{1}\"").format(
-                    arch,
-                    binary.path,
-                ),
-            )
+            args.add("--arch", arch)
+            args.add("--binary", binary)
 
-    apple_support.run_shell(
+    apple_support.run(
         actions = actions,
-        xcode_config = platform_prerequisites.xcode_version_config,
         apple_fragment = platform_prerequisites.apple_fragment,
-        inputs = all_binaries,
-        outputs = outputs,
-        command = "\n".join(commands),
-        env = {"OUTPUT_DIR": symbols_dir.path},
+        arguments = [args],
+        executable = resolved_symbols_tool.executable,
+        input_manifests = resolved_symbols_tool.input_manifests,
+        inputs = depset(all_binaries, transitive = [resolved_symbols_tool.inputs]),
         mnemonic = "ImportedDynamicFrameworkSymbols",
+        outputs = outputs,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     return outputs

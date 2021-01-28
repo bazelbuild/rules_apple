@@ -242,6 +242,10 @@ A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper fo
 A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
 for the target to run.
 """,
+        "resolved_symbols_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that generates `.symbols` files from dSYM
+ binaries.
+""",
         "std_redirect_dylib": """\
 A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
 """,

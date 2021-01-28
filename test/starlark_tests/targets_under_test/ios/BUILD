@@ -410,7 +410,10 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+        # Depend on more than one framework to test the command iteration in
+        # tools/symbols_tool/symbols_tool.py
         "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo",
+        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo_2",
         "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDsym",
     ],
 )

@@ -35,6 +35,11 @@ apple_dynamic_framework_import(
 )
 
 apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithDebugInfo_2",
+    framework_imports = [":iOSDynamicFrameworkWithDebugInfo_2"],
+)
+
+apple_dynamic_framework_import(
     name = "iOSImportedDynamicFrameworkWithDsym",
     dsym_imports = [":iOSDynamicFrameworkDsym"],
     framework_imports = [":iOSDynamicFramework"],
@@ -93,6 +98,15 @@ generate_import_framework(
 
 generate_import_framework(
     name = "iOSDynamicFrameworkWithDebugInfo",
+    archs = ["x86_64"],
+    embed_debug_info = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+)
+
+generate_import_framework(
+    name = "iOSDynamicFrameworkWithDebugInfo_2",
     archs = ["x86_64"],
     embed_debug_info = True,
     libtype = "dynamic",

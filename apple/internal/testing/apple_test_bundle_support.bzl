@@ -331,6 +331,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,

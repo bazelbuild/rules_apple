@@ -75,6 +75,10 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "swift_stdlib_tool",
                 rule_ctx = ctx,
             ),
+            resolved_symbols_tool = _resolve_tools_for_executable(
+                attr_name = "symbols_tool",
+                rule_ctx = ctx,
+            ),
             resolved_xctoolrunner = _resolve_tools_for_executable(
                 attr_name = "xctoolrunner",
                 rule_ctx = ctx,
@@ -152,6 +156,13 @@ A `File` referencing a dynamic library used to redirect stdout and stderr when n
             executable = True,
             doc = """
 A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.
+""",
+        ),
+        "symbols_tool": attr.label(
+            cfg = "host",
+            executable = True,
+            doc = """
+A `File` referencing a tool that generates `.symbols` files from dSYM binaries.
 """,
         ),
         "xctoolrunner": attr.label(

@@ -139,6 +139,7 @@ def _macos_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -333,6 +334,7 @@ def _macos_bundle_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -490,6 +492,7 @@ def _macos_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -651,6 +654,7 @@ def _macos_quick_look_plugin_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -801,6 +805,7 @@ def _macos_kernel_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -951,6 +956,7 @@ def _macos_spotlight_importer_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1098,6 +1104,7 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
+            apple_toolchain_info = apple_toolchain_info,
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1206,6 +1213,7 @@ def _macos_command_line_application_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bin_root_path = bin_root_path,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -1292,6 +1300,7 @@ def _macos_dylib_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bin_root_path = bin_root_path,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,

@@ -31,10 +31,6 @@ load(
     "defines",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -194,6 +190,7 @@ def _bundle_dsym_files(
 def _debug_symbols_partial_impl(
         *,
         actions,
+        apple_toolchain_info,
         bin_root_path,
         bundle_extension,
         bundle_name,
@@ -260,6 +257,7 @@ def _debug_symbols_partial_impl(
                     label_name = rule_label.name,
                     debug_provider = debug_outputs_provider,
                     platform_prerequisites = platform_prerequisites,
+                    resolved_symbols_tool = apple_toolchain_info.resolved_symbols_tool,
                 )
                 direct_symbols.extend(symbols)
 
@@ -321,7 +319,8 @@ def _generate_symbols(
         actions,
         label_name,
         debug_provider,
-        platform_prerequisites):
+        platform_prerequisites,
+        resolved_symbols_tool):
     dsym_binaries = []
 
     symbols_dir = intermediates.directory(
@@ -331,27 +330,25 @@ def _generate_symbols(
     )
     outputs = [symbols_dir]
 
-    commands = ["mkdir -p \"${OUTPUT_DIR}\""]
+    args = actions.args()
+    args.add("--output_dir", symbols_dir.path)
 
     for (arch, arch_outputs) in debug_provider.outputs_map.items():
         dsym_binary = arch_outputs["dsym_binary"]
         dsym_binaries.append(dsym_binary)
-        commands.append(
-            ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {arch} " +
-             "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{dsym_binary}\"").format(
-                arch = arch,
-                dsym_binary = dsym_binary.path,
-            ),
-        )
+        args.add("--arch", arch)
+        args.add("--binary", dsym_binary)
 
-    legacy_actions.run_shell(
+    apple_support.run(
         actions = actions,
-        inputs = dsym_binaries,
-        outputs = outputs,
-        command = "\n".join(commands),
-        env = {"OUTPUT_DIR": symbols_dir.path},
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = [args],
+        executable = resolved_symbols_tool.executable,
+        inputs = depset(dsym_binaries, transitive = [resolved_symbols_tool.inputs]),
+        input_manifests = resolved_symbols_tool.input_manifests,
         mnemonic = "GenerateSymbolsFiles",
-        platform_prerequisites = platform_prerequisites,
+        outputs = outputs,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     return outputs
@@ -359,6 +356,7 @@ def _generate_symbols(
 def debug_symbols_partial(
         *,
         actions,
+        apple_toolchain_info,
         bin_root_path,
         bundle_extension,
         bundle_name,
@@ -381,6 +379,7 @@ def debug_symbols_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
       bin_root_path: The path to the root `-bin` directory.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
@@ -400,6 +399,7 @@ def debug_symbols_partial(
     return partial.make(
         _debug_symbols_partial_impl,
         actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
         bin_root_path = bin_root_path,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
