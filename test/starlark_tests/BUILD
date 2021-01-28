@@ -127,3 +127,8 @@ bzl_library(
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
+
+exports_files([
+    "verifier_scripts/apple_verification_test_runner.sh.template",
+    "verifier_scripts/archive_contents_test.sh"
+])
