@@ -128,4 +128,4 @@ bzl_library(
     ],
 )
 
-exports_files(glob(["verifier_scripts/*.sh"]))
+exports_files(glob(["verifier_scripts/*"]))
