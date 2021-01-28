@@ -17,8 +17,7 @@
 set -eu
 
 # Loads the unittest framework for common assert methods.
-source test/unittest.bash
-source test/apple_shell_testutils.sh
+%{dependencies}s
 
 ARCHIVE_PATH="%{archive}s"
 STANDALONE_BINARY="%{standalone_binary}s"

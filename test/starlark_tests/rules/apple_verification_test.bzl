@@ -140,12 +140,17 @@ def _apple_verification_test_impl(ctx):
         fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
              target_under_test.label)
 
+    source_dependencies = ""
+    for dep in ctx.attr._test_deps.files.to_list():
+        source_dependencies += "source {}\n".format(dep.short_path)
+
     output_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
     ctx.actions.expand_template(
         template = ctx.file._runner_script,
         output = output_script,
         substitutions = {
             "%{archive}s": archive_short_path,
+            "%{dependencies}s": source_dependencies,
             "%{standalone_binary}s": standalone_binary_short_path,
             "%{archive_relative_binary}s": archive_relative_binary,
             "%{archive_relative_bundle}s": archive_relative_bundle,
