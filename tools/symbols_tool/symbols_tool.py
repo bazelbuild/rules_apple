@@ -26,7 +26,7 @@ _TIMING_INFO_PATTERN = r"(.*\s\[.*,\s.*\sseconds\]:)"
 
 
 def _generate_symbols(args):
-  """Generate argument parser for tool."""
+  """Generate `.symbols` from given archs and binaries."""
   output_dir = args.output_dir
   archs = args.arch
   binaries = args.binary
@@ -78,6 +78,7 @@ def _is_spurious_message(line):
 
 
 def generate_arg_parser():
+  """Generate argument parser for tool."""
   parser = argparse.ArgumentParser(
       description="Wrapper for the `symbols` tool")
   parser.add_argument(
