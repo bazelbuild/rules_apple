@@ -174,13 +174,6 @@ def ios_application_test_suite(name = "ios_application"):
     apple_verification_test(
         name = "{}_package_symbols_test".format(name),
         build_type = "simulator",
-        env = {
-            "BINARY_PATHS": [
-                "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/app_with_imported_dynamic_fmwk_with_dsym",
-                "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
-                "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/Frameworks/iOSDynamicFrameworkWithDebugInfo.framework/iOSDynamicFrameworkWithDebugInfo",
-            ],
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_dsym",
         verifier_script = "verifier_scripts/symbols_verifier.sh",
         tags = [
@@ -265,7 +258,7 @@ def ios_application_test_suite(name = "ios_application"):
         name = "{}_custom_executable_name_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
         expected_dsyms = ["custom_bundle_name.app"],
-        expected_binaries  = [
+        expected_binaries = [
             "custom_bundle_name.app.dSYM/Contents/Resources/DWARF/app.exe",
         ],
         tags = [name],
