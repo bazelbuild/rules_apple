@@ -25,7 +25,15 @@ _TIMING_INFO_MSG = ("path/to/binary.dwarf [arm64, 0.988856 seconds]:\n")
 class TestSymbolsTool(unittest.TestCase):
 
   def testFiltering(self):
-    out = symbols_tool._filter_symbols_output(_TIMING_INFO_MSG)
+    stdout = _TIMING_INFO_MSG
+    stderr = ""
+    tool_exit_status = 0
+
+    out, _ = symbols_tool._filter_symbols_tool_output(
+        tool_exit_status,
+        stdout,
+        stderr)
+
     self.assertEqual(out, "")
 
 
