@@ -30,6 +30,7 @@ def _generate_symbols(args):
   output_dir = args.output_dir
   archs = args.arch
   binaries = args.binary
+  assert len(archs) == len(binaries)
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
