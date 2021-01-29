@@ -35,22 +35,27 @@ def _generate_symbols(args):
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-  cmd = ["/bin/bash", "-c"]
-  symbols_cmds = []
   for i, arch in enumerate(archs):
-    symbols_cmds += ["xcrun symbols -noTextInSOD -noDaemon -arch {arch} \
-        -symbolsPackageDir {output_dir} {binary}".format(
-            arch=arch,
-            output_dir=output_dir,
-            binary=binaries[i],
-        )]
-  cmd.append("\n".join(symbols_cmds))
-  execute.execute_and_filter_output(
-      cmd,
-      filtering=_filter_symbols_tool_output,
-      raise_on_failure=True,
-      print_output=True)
-
+    cmd = ["xcrun",
+           "symbols",
+           "-noTextInSOD",
+           "-noDaemon",
+           "-arch",
+           arch,
+           "-symbolsPackageDir",
+           output_dir,
+           binaries[i]]
+    _, stdout, stderr = execute.execute_and_filter_output(
+        cmd,
+        raise_on_failure=True)
+    if stdout:
+      filtered_stdout = _filter_symbols_output(stdout)
+      if filtered_stdout:
+        print(filtered_stdout)
+    if stderr:
+      filtered_stderr = _filter_symbols_output(stderr)
+      if filtered_stderr:
+        print(filtered_stderr)
 
 def _filter_symbols_output(output):
   """Filters the symbols output which can be extra verbose."""
@@ -59,11 +64,6 @@ def _filter_symbols_output(output):
     if line and not _is_spurious_message(line):
       filtered_lines.append(line)
   return "\n".join(filtered_lines)
-
-
-def _filter_symbols_tool_output(exit_status, stdout, stderr):
-  """Filters the output from executing the symbols tool."""
-  return _filter_symbols_output(stdout), _filter_symbols_output(stderr)
 
 
 def _is_spurious_message(line):
