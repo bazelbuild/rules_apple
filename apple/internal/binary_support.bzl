@@ -141,7 +141,7 @@ def _add_entitlements_and_swift_linkopts(
                 name,
                 deps,
                 link_swift_statically,
-                is_test or testonly,
+                bool(is_test or testonly),
                 tags = tags,
                 testonly = testonly,
             ),
