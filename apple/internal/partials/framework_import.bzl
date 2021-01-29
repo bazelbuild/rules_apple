@@ -299,7 +299,7 @@ def _generate_symbols(
     outputs = [symbols_dir]
 
     args = actions.args()
-    args.add("--output_dir", symbols_dir.path)
+    args.add_all("--output_dir", outputs, expand_directories = False)
 
     for binary in all_binaries:
         # If dSYMs are bundled with multiple non-fat binaries, the 'symbols'
