@@ -161,7 +161,7 @@ def _static_framework_header_modulemap_partial_impl(
 
     # Create a module map if there is a need for one (that is, if there are
     # headers or if there are dylibs/frameworks that the target depends on).
-    if any([sdk_dylibs, sdk_dylibs, umbrella_header_name]):
+    if any([sdk_dylibs, sdk_frameworks, umbrella_header_name]):
         modulemap_file = intermediates.file(
             actions,
             paths.join(label_name, label_name + ".modulemaps"),

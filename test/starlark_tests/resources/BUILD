@@ -67,6 +67,22 @@ objc_library(
     tags = FIXTURE_TAGS,
 )
 
+objc_library(
+    name = "objc_lib_with_sdk_dylibs",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_dylibs = ["libz"],
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
+    name = "objc_lib_with_sdk_fmwks",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_frameworks = ["CoreData"],
+    tags = FIXTURE_TAGS,
+)
+
 swift_library(
     name = "swift_main_lib",
     srcs = ["//test/testdata/sources:main.swift"],
