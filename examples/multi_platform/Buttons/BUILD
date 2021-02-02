@@ -117,12 +117,13 @@ ios_static_framework(
 
 ## Tests
 
-ios_unit_test(
-    name = "ButtonsTests",
-    minimum_os_version = "9.0",
-    test_host = ":Buttons",
-    deps = [":ButtonsTestsLib"],
-)
+# TODO(b/179158311): Re-enable after test runner fixed.
+#ios_unit_test(
+#    name = "ButtonsTests",
+#    minimum_os_version = "9.0",
+#    test_host = ":Buttons",
+#    deps = [":ButtonsTestsLib"],
+#)
 
 ios_unit_test(
     name = "ButtonsLogicTests",
@@ -141,7 +142,7 @@ test_suite(
     name = "iOSButtonsTestSuite",
     tests = [
         ":ButtonsLogicTests",
-        ":ButtonsTests",
+        #        ":ButtonsTests",
         ":ButtonsUITests",
     ],
 )
