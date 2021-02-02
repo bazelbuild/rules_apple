@@ -92,12 +92,11 @@ def _framework_import_partial_impl(
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     # Collect the architectures that we are using for the build.
-    build_archs_found = [
-        build_arch
+    build_archs_found = depset(transitive = [
+        x[AppleFrameworkImportInfo].build_archs
         for x in targets
         if AppleFrameworkImportInfo in x
-        for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list()
-    ]
+    ]).to_list()
 
     # Start assembling our partial's outputs.
     bundle_zips = []
