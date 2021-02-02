@@ -226,7 +226,6 @@ true.
 
 def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     deps_aspects = [
-        apple_common.objc_proto_aspect,
         swift_usage_aspect,
     ]
 
@@ -254,7 +253,6 @@ Do not change its value.
     """,
             ),
             "bundle_loader": attr.label(
-                aspects = [apple_common.objc_proto_aspect],
                 providers = [[apple_common.AppleExecutableBinary]],
                 doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
@@ -262,7 +260,6 @@ Do not change its value.
     """,
             ),
             "dylibs": attr.label_list(
-                aspects = [apple_common.objc_proto_aspect],
                 doc = """
 This attribute is public as an implementation detail while we migrate the architecture of the rules.
 Do not change its value.
