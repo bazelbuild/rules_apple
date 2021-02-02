@@ -51,6 +51,51 @@ def ios_static_framework_test_suite(name = "ios_static_framework"):
         tags = [name],
     )
 
+    # Test that no module map is generated if the target does not have headers
+    # and does not depend on any system dylibs/frameworks.
+    archive_contents_test(
+        name = "{}_no_module_map_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_without_modulemap",
+        not_contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
+        tags = [name],
+    )
+
+    # Test that a module map is generated if the target depends on system
+    # dylibs.
+    archive_contents_test(
+        name = "{}_module_map_with_sdk_dylibs_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_with_sdk_dylibs_dep",
+        contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
+        tags = [name],
+        text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
+        text_test_values = [" link \"z\""],
+    )
+
+    # Test that a module map is generated if the target depends on system
+    # frameworks.
+    archive_contents_test(
+        name = "{}_module_map_with_sdk_fmwks_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_with_sdk_fmwks_dep",
+        contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
+        tags = [name],
+        text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
+        text_test_values = [" link framework \"CoreData\""],
+    )
+
+    # Test that a module map is generated if the target's `hdrs` is not empty.
+    archive_contents_test(
+        name = "{}_module_map_with_hdrs_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework",
+        contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
+        tags = [name],
+        text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
+        text_test_values = [" umbrella header \"objc_static_framework.h\""],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

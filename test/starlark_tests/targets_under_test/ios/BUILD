@@ -2020,6 +2020,36 @@ ios_static_framework(
     ],
 )
 
+ios_static_framework(
+    name = "objc_static_framework_without_modulemap",
+    bundle_name = "objc_static_framework_without_modulemap",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib",
+    ],
+)
+
+ios_static_framework(
+    name = "objc_static_framework_with_sdk_dylibs_dep",
+    bundle_name = "objc_static_framework_with_sdk_dylibs_dep",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_with_sdk_dylibs",
+    ],
+)
+
+ios_static_framework(
+    name = "objc_static_framework_with_sdk_fmwks_dep",
+    bundle_name = "objc_static_framework_with_sdk_fmwks_dep",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_with_sdk_fmwks",
+    ],
+)
+
 swift_library(
     name = "basic_framework_with_dynamic_framework_import_lib",
     srcs = [
