@@ -184,6 +184,7 @@ def _apple_verification_test_impl(ctx):
                         ctx.attr._test_deps.files.to_list(),
             ),
         ),
+        target_under_test[OutputGroupInfo],
     ]
 
 apple_verification_test = rule(
