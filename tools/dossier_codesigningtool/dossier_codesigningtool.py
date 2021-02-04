@@ -29,9 +29,34 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import uuid
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
+
+
+class DossierDirectory(object):
+  """Class to manage dossier directories.
+
+  Must used as a context manager.
+
+  Attributes:
+    path: The string path to the directory.
+    unzipped: A boolean indicating if the dossier was unzipped or already was a
+      directory.
+  """
+
+  def __init__(self, path, unzipped):
+    self.path = path
+    self.unzipped = unzipped
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exception_type, exception_value, traceback):
+    if self.unzipped:
+      shutil.rmtree(self.path)
+
 
 # Regex with benign codesign messages that can be safely ignored.
 # It matches the following benign outputs:
@@ -66,7 +91,9 @@ def generate_arg_parser():
 
   sign_parser = subparsers.add_parser(
       'sign', help='Sign an apple bundle using a dossier.')
-  sign_parser.add_argument('--dossier', help='Path to input dossier directory')
+  sign_parser.add_argument(
+      '--dossier',
+      help='Path to input dossier location. Can be a directory or .zip file.')
   sign_parser.add_argument(
       '--codesign', required=True, type=str, help='Path to codesign binary')
   sign_parser.add_argument('bundle', help='Path to the bundle')
@@ -75,7 +102,13 @@ def generate_arg_parser():
   generate_parser = subparsers.add_parser(
       'generate', help='Generate a dossier from a signed bundle.')
   generate_parser.add_argument(
-      '--output', help='Path to output manifest dossier directory')
+      '--output',
+      required=True,
+      help='Path to output manifest dossier location.')
+  generate_parser.add_argument(
+      '--zip',
+      action='store_true',
+      help='Zip the final dossier into a file at specified location.')
   generate_parser.add_argument(
       '--codesign', required=True, type=str, help='Path to codesign binary')
   generate_parser.add_argument('bundle', help='Path to the bundle')
@@ -85,7 +118,11 @@ def generate_arg_parser():
   create_parser.add_argument(
       '--output',
       required=True,
-      help='Path to output manifest dossier directory')
+      help='Path to output manifest dossier location.')
+  create_parser.add_argument(
+      '--zip',
+      action='store_true',
+      help='Zip the final dossier into a file at specified location.')
   create_parser.add_argument(
       '--codesign_identity',
       required=True,
@@ -112,7 +149,7 @@ def generate_arg_parser():
       help='Embeds a dossier into an existing dossier. Only supports embedding at the top level of the existing dossier.'
   )
   embed_parser.add_argument(
-      '--dossier', required=True, help='Path to dossier directory to edit.')
+      '--dossier', required=True, help='Path to dossier location to edit.')
   embed_parser.add_argument(
       '--embedded_relative_artifact_path',
       required=True,
@@ -362,6 +399,10 @@ def _generate_manifest_dossier(args):
   """Generate a manifest dossier for provided args."""
   bundle_path = args.bundle
   dossier_directory = args.output
+  packaging_required = False
+  if args.zip:
+    dossier_directory = tempfile.mkdtemp()
+    packaging_required = True
   codesign_path = args.codesign
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
@@ -370,6 +411,9 @@ def _generate_manifest_dossier(args):
   manifest_file = open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w')
   manifest_file.write(json.dumps(manifest, sort_keys=True))
   manifest_file.close()
+  if packaging_required:
+    _zip_dossier(dossier_directory, args.output)
+    shutil.rmtree(dossier_directory)
 
 
 def _find_codesign_allocate():
@@ -466,28 +510,79 @@ def _sign_bundle_with_manifest(root_bundle_path, manifest, dossier_directory,
       full_path_to_sign=root_bundle_path)
 
 
+def _extract_zipped_dossier(zipped_dossier_path):
+  """Unpacks a zipped dossier.
+
+  Args:
+    zipped_dossier_path: The path to the zipped dossier.
+
+  Returns:
+    The temporary directory storing the unzipped dossier. Caller is
+    responsible for deleting this directory when finished using it.
+
+  Raises:
+    OSError: If unable to execute the unpacking command.
+  """
+  dossier_path = tempfile.mkdtemp()
+  command = ('/usr/bin/unzip', '-q', zipped_dossier_path, '-d', dossier_path)
+  process = subprocess.Popen(
+      command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  _, stderr = process.communicate()
+  if process.poll() != 0:
+    raise OSError('Fail to unzip dossier at path: %s' % stderr)
+  return dossier_path
+
+
+def _extract_zipped_dossier_if_required(dossier_path):
+  """Unpacks a dossier if the provided path is a zipped dossier.
+
+  Args:
+    dossier_path: The path to the potentially zipped dossier.
+
+  Returns:
+    A DossierDirectory object that has the path to this dossier's directory.
+  """
+  # Assume if the path is a file instead of a directory we should unzip
+  if os.path.isfile(dossier_path):
+    return DossierDirectory(_extract_zipped_dossier(dossier_path), True)
+  return DossierDirectory(dossier_path, False)
+
+
+def _zip_dossier(dossier_path, destination_path):
+  """Zips a dossier into a file.
+
+  Args:
+    dossier_path: The path to the unzipped dossier.
+    destination_path: The file path to place the zipped dossier.
+
+  Raises:
+    OSError: If unable to execute packaging command
+  """
+  command = ('/usr/bin/zip', '-r', '-j', '-qX', '-0', destination_path,
+             dossier_path)
+  process = subprocess.Popen(
+      command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  _, stderr = process.communicate()
+  if process.poll() != 0:
+    raise OSError('Fail to zip dossier: %s' % stderr)
+
+
 def _sign_bundle(args):
   """Signing a bundle with a dossier.
 
-  Provided a set of args from generate sub-command, signs a bundle.
-
-  Args:
-    bundle_path: The absolute path to the bundle that will be signed.
-    dossier_directory: The absolute path to the output dossier directory that
-      will be used to sign this bundle.
-    codesign_path: Path to the codesign tool as a string.
+  Provided a set of args from sign sub-command, signs a bundle.
 
   Raises:
     OSError: If bundle or manifest dossier can not be found.
   """
   bundle_path = args.bundle
-  dossier_directory = args.dossier
   codesign_path = args.codesign
-  if not os.path.exists(bundle_path):
-    raise OSError('Bundle doest not exist at path %s' % bundle_path)
-  manifest = _read_manifest_from_dossier(dossier_directory)
-  _sign_bundle_with_manifest(bundle_path, manifest, dossier_directory,
-                             codesign_path)
+  with _extract_zipped_dossier_if_required(args.dossier) as dossier_directory:
+    if not os.path.exists(bundle_path):
+      raise OSError('Bundle doest not exist at path %s' % bundle_path)
+    manifest = _read_manifest_from_dossier(dossier_directory.path)
+    _sign_bundle_with_manifest(bundle_path, manifest, dossier_directory.path,
+                               codesign_path)
 
 
 def _read_manifest_from_dossier(dossier_directory):
@@ -528,6 +623,10 @@ def _create_dossier(args):
   Provided a set of args from generate sub-command, creates a new dossier.
   """
   dossier_directory = args.output
+  packaging_required = False
+  if args.zip:
+    dossier_directory = tempfile.mkdtemp()
+    packaging_required = True
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
   unique_id = str(uuid.uuid4())
@@ -544,17 +643,22 @@ def _create_dossier(args):
   if hasattr(args, 'embedded_dossier') and args.embedded_dossier:
     for embedded_dossier in args.embedded_dossier:
       embedded_dossier_bundle_relative_path = embedded_dossier[0]
-      embedded_dossier_path = embedded_dossier[1]
-      _merge_dossier_contents(embedded_dossier_path, dossier_directory)
-      embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
-      embedded_manifest[
-          _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-      embedded_manifests.append(embedded_manifest)
+      with _extract_zipped_dossier_if_required(
+          embedded_dossier[1]) as embedded_dossier_directory:
+        embedded_dossier_path = embedded_dossier_directory.path
+        _merge_dossier_contents(embedded_dossier_path, dossier_directory)
+        embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
+        embedded_manifest[
+            _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+        embedded_manifests.append(embedded_manifest)
   manifest = _generate_manifest(args.codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
   with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:
     fp.write(json.dumps(manifest, sort_keys=True))
+  if packaging_required:
+    _zip_dossier(dossier_directory, args.output)
+    shutil.rmtree(dossier_directory)
 
 
 def _embed_dossier(args):
@@ -566,22 +670,30 @@ def _embed_dossier(args):
   Raises:
     OSError: If any of specified dossiers are not found.
   """
-  dossier_directory = args.dossier
   embedded_dossier_bundle_relative_path = args.embedded_relative_artifact_path
-  embedded_dossier_path = args.embedded_dossier_path
+  with _extract_zipped_dossier_if_required(
+      args.dossier) as dossier_directory, _extract_zipped_dossier_if_required(
+          args.embedded_dossier_path) as embedded_dossier_directory:
+    embedded_dossier_path = embedded_dossier_directory.path
+    dossier_directory_path = dossier_directory.path
 
-  if not os.path.isdir(dossier_directory):
-    raise OSError('Dossier does not exist at path %s' % dossier_directory)
-  if not os.path.isdir(embedded_dossier_path):
-    raise OSError('Embedded dossier does not exist at path %s' % embedded_dossier_path)
-  manifest = _read_manifest_from_dossier(dossier_directory)
-  embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
-  _merge_dossier_contents(embedded_dossier_path, dossier_directory)
-  embedded_manifest[
-      _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-  manifest[_EMBEDDED_BUNDLE_MANIFESTS_KEY].append(embedded_manifest)
-  with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:
-    fp.write(json.dumps(manifest, sort_keys=True))
+    if not os.path.isdir(dossier_directory_path):
+      raise OSError('Dossier does not exist at path %s' %
+                    dossier_directory_path)
+    if not os.path.isdir(embedded_dossier_path):
+      raise OSError('Embedded dossier does not exist at path %s' %
+                    embedded_dossier_path)
+    manifest = _read_manifest_from_dossier(dossier_directory_path)
+    embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
+    _merge_dossier_contents(embedded_dossier_path, dossier_directory_path)
+    embedded_manifest[
+        _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+    manifest[_EMBEDDED_BUNDLE_MANIFESTS_KEY].append(embedded_manifest)
+    with open(os.path.join(dossier_directory_path, _MANIFEST_FILENAME),
+              'w') as fp:
+      fp.write(json.dumps(manifest, sort_keys=True))
+    if dossier_directory.unzipped:
+      _zip_dossier(dossier_directory_path, args.dossier)
 
 
 if __name__ == '__main__':
