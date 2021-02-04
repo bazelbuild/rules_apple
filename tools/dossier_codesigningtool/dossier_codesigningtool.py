@@ -60,7 +60,8 @@ _EMBEDDED_BUNDLE_DIRECTORY_NAMES = ['AppClips', 'PlugIns', 'Frameworks']
 def generate_arg_parser():
   """Generate argument parser for tool."""
   parser = argparse.ArgumentParser(
-      description='Tool for signing iOS bundles using dossiers.')
+      description='Tool for signing iOS bundles using dossiers.',
+      fromfile_prefix_chars='@')
   subparsers = parser.add_subparsers(help='Sub-commands')
 
   sign_parser = subparsers.add_parser(
@@ -105,6 +106,24 @@ def generate_arg_parser():
       help='Specifies an embedded bundle dossier to be included in created dossier. Should be in form [relative path of artifact dossier signs] [path to dossier]'
   )
   create_parser.set_defaults(func=_create_dossier)
+
+  embed_parser = subparsers.add_parser(
+      'embed',
+      help='Embeds a dossier into an existing dossier. Only supports embedding at the top level of the existing dossier.'
+  )
+  embed_parser.add_argument(
+      '--dossier', required=True, help='Path to dossier directory to edit.')
+  embed_parser.add_argument(
+      '--embedded_relative_artifact_path',
+      required=True,
+      type=str,
+      help='Relative path of artifact the dossier to be embedded signs')
+  embed_parser.add_argument(
+      '--embedded_dossier_path',
+      required=True,
+      type=str,
+      help='Path to dossier to be embedded')
+  embed_parser.set_defaults(func=_embed_dossier)
 
   return parser
 
@@ -522,7 +541,7 @@ def _create_dossier(args):
     provisioning_profile_filename = _copy_provisioning_profile(
         args.provisioning_profile, dossier_directory, unique_id)
   embedded_manifests = []
-  if hasattr(args, 'embedded_dossier'):
+  if hasattr(args, 'embedded_dossier') and args.embedded_dossier:
     for embedded_dossier in args.embedded_dossier:
       embedded_dossier_bundle_relative_path = embedded_dossier[0]
       embedded_dossier_path = embedded_dossier[1]
@@ -534,6 +553,33 @@ def _create_dossier(args):
   manifest = _generate_manifest(args.codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
+  with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:
+    fp.write(json.dumps(manifest, sort_keys=True))
+
+
+def _embed_dossier(args):
+  """Embeds an existing dossier into the specified dossier.
+
+  Provided a set of args from generate sub-command, embeds a dossier in a
+  dossier.
+
+  Raises:
+    OSError: If any of specified dossiers are not found.
+  """
+  dossier_directory = args.dossier
+  embedded_dossier_bundle_relative_path = args.embedded_relative_artifact_path
+  embedded_dossier_path = args.embedded_dossier_path
+
+  if not os.path.isdir(dossier_directory):
+    raise OSError('Dossier does not exist at path %s' % dossier_directory)
+  if not os.path.isdir(embedded_dossier_path):
+    raise OSError('Embedded dossier does not exist at path %s' % embedded_dossier_path)
+  manifest = _read_manifest_from_dossier(dossier_directory)
+  embedded_manifest = _read_manifest_from_dossier(embedded_dossier_path)
+  _merge_dossier_contents(embedded_dossier_path, dossier_directory)
+  embedded_manifest[
+      _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+  manifest[_EMBEDDED_BUNDLE_MANIFESTS_KEY].append(embedded_manifest)
   with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:
     fp.write(json.dumps(manifest, sort_keys=True))
 
