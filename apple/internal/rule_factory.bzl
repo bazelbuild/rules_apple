@@ -129,10 +129,22 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
             cfg = apple_common.multi_arch_split,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
+        "_googlemac_proto_compiler": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_wrapper"),
+        ),
+        "_googlemac_proto_compiler_support": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_compiler_support"),
+        ),
         # Needed for the J2ObjC processing code that already exists in the implementation of
         # apple_common.link_multi_arch_binary.
         "_j2objc_dead_code_pruner": attr.label(
             default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
+        ),
+        "_protobuf_well_known_types": attr.label(
+            cfg = "host",
+            default = Label("@bazel_tools//tools/objc:protobuf_well_known_types"),
         ),
         # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
         # apple_common.link_multi_arch_binary requires this attribute.
