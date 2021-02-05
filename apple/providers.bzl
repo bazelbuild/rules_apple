@@ -225,6 +225,9 @@ binary.
 A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
 for Apple apps and Apple executable bundles.
 """,
+        "resolved_dossier_codesigningtool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
+""",
         "resolved_imported_dynamic_framework_processor": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
 such that the given framework only contains the same slices as the app binary, every file belonging
