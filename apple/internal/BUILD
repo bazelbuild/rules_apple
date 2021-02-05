@@ -18,6 +18,7 @@ apple_support_toolchain(
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
     codesigningtool = "//tools/codesigningtool",
+    dossier_codesigningtool = "//tools/dossier_codesigningtool",
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
     plisttool = "//tools/plisttool",

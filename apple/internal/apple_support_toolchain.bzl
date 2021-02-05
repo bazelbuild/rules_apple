@@ -59,6 +59,10 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "codesigningtool",
                 rule_ctx = ctx,
             ),
+            resolved_dossier_codesigningtool = _resolve_tools_for_executable(
+                attr_name = "dossier_codesigningtool",
+                rule_ctx = ctx,
+            ),
             resolved_clangrttool = _resolve_tools_for_executable(
                 attr_name = "clangrttool",
                 rule_ctx = ctx,
@@ -112,6 +116,11 @@ post-processing, and signing steps into a single action that eliminates the arch
             cfg = "host",
             executable = True,
             doc = "A `File` referencing a tool to assist in signing bundles.",
+        ),
+        "dossier_codesigningtool": attr.label(
+            cfg = "host",
+            executable = True,
+            doc = "A `File` referencing a tool to assist in generating signing dossiers.",
         ),
         "dsym_info_plist_template": attr.label(
             cfg = "host",
