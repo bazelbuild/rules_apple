@@ -9,6 +9,7 @@ py_library(
     visibility = [
         "//apple/internal:__pkg__",
         "//test/testdata/fmwk:__pkg__",
+        "//tools/bitcode_strip:__pkg__",
         "//tools/codesigningtool:__pkg__",
         "//tools/dossier_codesigningtool:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
