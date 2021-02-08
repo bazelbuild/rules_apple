@@ -79,6 +79,7 @@ filegroup(
 py_binary(
     name = "generate_framework",
     srcs = ["generate_framework.py"],
+    python_version = "PY3",
     srcs_version = "PY2AND3",
     deps = ["//tools/wrapper_common:execute"],
 )
