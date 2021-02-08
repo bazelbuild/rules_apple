@@ -4,10 +4,9 @@ py_binary(
     name = "swift_stdlib_tool",
     srcs = ["swift_stdlib_tool.py"],
     srcs_version = "PY2AND3",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
     deps = [
         "//tools/bitcode_strip",
         "//tools/wrapper_common:execute",
