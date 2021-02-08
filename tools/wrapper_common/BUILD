@@ -6,10 +6,14 @@ py_library(
     name = "execute",
     srcs = ["execute.py"],
     srcs_version = "PY2AND3",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//apple/internal:__pkg__",
+        "//test/testdata/fmwk:__pkg__",
+        "//tools/codesigningtool:__pkg__",
+        "//tools/dossier_codesigningtool:__pkg__",
+        "//tools/swift_stdlib_tool:__pkg__",
+        "//tools/xctoolrunner:__pkg__",
+    ],
 )
 
 py2and3_test(
