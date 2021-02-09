@@ -4,7 +4,6 @@ py_binary(
     name = "imported_dynamic_framework_processor",
     srcs = ["imported_dynamic_framework_processor.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
     visibility = [
         "//apple/internal:__pkg__",
     ],

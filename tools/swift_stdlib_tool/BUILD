@@ -4,7 +4,6 @@ py_binary(
     name = "swift_stdlib_tool",
     srcs = ["swift_stdlib_tool.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
