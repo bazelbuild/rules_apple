@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A tool to find all Clang runtime libraries linked into a Mach-O binary.
 
 Some Clang features, such as Address Sanitizer, require a runtime library to be
@@ -22,16 +21,12 @@ references to such libraries, and copies them into a ZIP archive that can then
 be merged into an IPA product.
 """
 
-import json
 import os
+import subprocess
 import sys
 import zipfile
 
-# Third party imports
-
-from macholib import mach_o
-from macholib.MachO import MachO
-from macholib.ptypes import sizeof
+_PY3 = sys.version_info[0] == 3
 
 
 class ClangRuntimeToolError(RuntimeError):
@@ -64,15 +59,7 @@ class ClangRuntimeTool(object):
     self._binary_path = binary_path
     self._output_zip_path = output_zip_path
 
-  def _get_rpath(self, header):
-    """Returns a generator of RPATH string values in the header."""
-    for (idx, (lc, cmd, data)) in enumerate(header.commands):
-      if lc.cmd == mach_o.LC_RPATH:
-        ofs = cmd.path - sizeof(lc.__class__) - sizeof(cmd.__class__)
-        yield data[ofs:data.find(b'\x00', ofs)].decode(
-            sys.getfilesystemencoding())
-
-  def _get_xcode_clang_path(self, header):
+  def _get_xcode_clang_path_and_clang_libs(self, objdump_output):
     """Returns the path to the clang directory inside of Xcode.
 
     Each version of Xcode comes with clang packaged under a versioned directory
@@ -84,46 +71,52 @@ class ClangRuntimeTool(object):
       Load command 24
             cmd LC_RPATH
         cmdsize 136
-          path /Applications/Xcode.app/.../lib/clang/X.Y.Z/lib/darwin (offset 12)
+          path /Applications/Xcode.app/.../lib/clang/X.Y.Z/lib/darwin (offset
+          12)
 
     This method uses a simple heuristic to find the Xcode path amongst all RPATH
-    entries on the given header. While not ideal, this approach let's us support
+    entries on the given header. While not ideal, this approach lets us support
     any version of Xcode, installed into any location on the system.
 
     Args:
       header: A Mach-O header object to parse.
 
     Returns:
-      A string representing the path to the clang's lib directory, or `None` if
-      one cannot be found.
+      A tuple with the first element as a string representing the path to the
+      clang's lib directory, or `None` if one cannot be found and the second
+      element as a set of library names.
     """
-    for rpath in self._get_rpath(header):
-      if not rpath.startswith('@') and 'lib/clang' in rpath:
-        return rpath
-
-  def _get_clang_libraries(self, header):
-    """Returns the set of clang runtime libraries linked.
-
-    Args:
-      header: A Mach-O header object to parse.
-    Returns:
-      A set of library names.
-    """
-
+    found_rpath = None
     libs = set()
-    for _, _, other in header.walkRelocatables():
-      if other.startswith("@rpath/libclang_rt"):
-        libs.add(other.lstrip("@rpath/"))
-    return libs
+    for index, line in enumerate(objdump_output):
+      if line.endswith(" LC_RPATH"):
+        rpath_line = objdump_output[index + 2].strip()
+        rpath_segments = rpath_line.split(" ")
+        if len(rpath_segments) != 4:
+          raise ClangRuntimeToolError("Unexpected objdump format.")
+        rpath = rpath_segments[1]
+        if not rpath.startswith("@") and "lib/clang" in rpath:
+          found_rpath = rpath
+      elif line.endswith(" LC_LOAD_DYLIB"):
+        library_line = objdump_output[index + 2].strip()
+        library_segments = library_line.split(" ")
+        if len(library_segments) != 4:
+          raise ClangRuntimeToolError("Unexpected objdump format.")
+        library = library_segments[1]
+        if library.startswith("@rpath/libclang_rt"):
+          libs.add(library[len("@rpath/"):])
+
+    return rpath, libs
 
   def run(self):
-    clang_libraries = set()
-    clang_lib_path = None
-    m = MachO(binary_path)
-    for header in m.headers:
-      clang_lib_path = self._get_xcode_clang_path(header)
-      clang_libraries.update(self._get_clang_libraries(header))
-
+    objdump_output = subprocess.check_output(
+        ["xcrun", "llvm-objdump", "-macho", "-private-headers", binary_path])
+    # For Python 3 the output is a byte string that requires decoding, we use
+    # UTF-8 and replace invalid characters.
+    if _PY3:
+      objdump_output = objdump_output.decode("utf8", "replace")
+    objdump_output = [x.strip() for x in objdump_output.splitlines()]
+    clang_lib_path, clang_libraries = self._get_xcode_clang_path_and_clang_libs(objdump_output)
     if not clang_lib_path:
       raise ClangRuntimeToolError("Could not find clang library path.")
 
@@ -139,7 +132,8 @@ class ClangRuntimeTool(object):
           out_zip.write(full_path, arcname=lib)
         else:
           raise ClangRuntimeToolError("Could not read library at %s." %
-              full_path)
+                                      full_path)
+
 
 if __name__ == "__main__":
   binary_path = sys.argv[1]
@@ -150,5 +144,5 @@ if __name__ == "__main__":
     tool.run()
   except ClangRuntimeToolError as e:
     # Log tools errors cleanly for build output.
-    sys.stderr.write('ERROR: %s\n' % e)
+    sys.stderr.write("ERROR: %s\n" % e)
     sys.exit(1)
