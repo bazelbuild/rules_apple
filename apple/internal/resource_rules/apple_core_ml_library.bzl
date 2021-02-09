@@ -15,8 +15,12 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleSupportToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -29,10 +33,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -72,6 +72,8 @@ def _apple_core_ml_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
     resource_actions.generate_objc_mlmodel_sources(
@@ -80,10 +82,7 @@ def _apple_core_ml_library_impl(ctx):
         output_source = coremlc_source,
         output_header = coremlc_header,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_support_toolchain_utils.resolve_tools_for_executable(
-            attr_name = "_xctoolrunner",
-            rule_ctx = ctx,
-        ),
+        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
     )
 
     # But we would like our ObjC clients to use <target_name>.h instead, so we create that header
@@ -118,10 +117,9 @@ Label to a single mlmodel file from which to generate sources and compile into m
             mandatory = True,
             doc = "Private attribute to configure the ObjC header name to be exported.",
         ),
-        "_xctoolrunner": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
+        "_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
+            providers = [[AppleSupportToolchainInfo]],
         ),
     }),
     output_to_genfiles = True,
