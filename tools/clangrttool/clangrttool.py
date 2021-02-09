@@ -24,9 +24,14 @@ be merged into an IPA product.
 
 import json
 import os
-import subprocess
 import sys
 import zipfile
+
+# Third party imports
+
+from macholib import mach_o
+from macholib.MachO import MachO
+from macholib.ptypes import sizeof
 
 
 class ClangRuntimeToolError(RuntimeError):
@@ -59,7 +64,15 @@ class ClangRuntimeTool(object):
     self._binary_path = binary_path
     self._output_zip_path = output_zip_path
 
-  def _get_xcode_clang_path(self, otool_output):
+  def _get_rpath(self, header):
+    """Returns a generator of RPATH string values in the header."""
+    for (idx, (lc, cmd, data)) in enumerate(header.commands):
+      if lc.cmd == mach_o.LC_RPATH:
+        ofs = cmd.path - sizeof(lc.__class__) - sizeof(cmd.__class__)
+        yield data[ofs:data.find(b'\x00', ofs)].decode(
+            sys.getfilesystemencoding())
+
+  def _get_xcode_clang_path(self, header):
     """Returns the path to the clang directory inside of Xcode.
 
     Each version of Xcode comes with clang packaged under a versioned directory
@@ -84,14 +97,11 @@ class ClangRuntimeTool(object):
       A string representing the path to the clang's lib directory, or `None` if
       one cannot be found.
     """
-    for index, line in enumerate(otool_output):
-      if line.strip().endswith(" LC_RPATH"):
-        rpath_line = otool_output[index + 2].strip()
-        rpath = rpath_line.split(" ")[1]
-        if not rpath.startswith('@') and 'lib/clang' in rpath:
-          return rpath
+    for rpath in self._get_rpath(header):
+      if not rpath.startswith('@') and 'lib/clang' in rpath:
+        return rpath
 
-  def _get_clang_libraries(self, otool_output):
+  def _get_clang_libraries(self, header):
     """Returns the set of clang runtime libraries linked.
 
     Args:
@@ -101,20 +111,19 @@ class ClangRuntimeTool(object):
     """
 
     libs = set()
-    for index, line in enumerate(otool_output):
-      if line.strip().endswith(" LC_LOAD_DYLIB"):
-        library_line = otool_output[index + 2].strip()
-        library = library_line.split(" ")[1]
-        if library.startswith("@rpath/libclang_rt"):
-          libs.add(library[len("@rpath/"):])
-
+    for _, _, other in header.walkRelocatables():
+      if other.startswith("@rpath/libclang_rt"):
+        libs.add(other.lstrip("@rpath/"))
     return libs
 
   def run(self):
-    otool_output = subprocess.check_output(
-      ["otool", "-l", binary_path]).splitlines()
-    clang_lib_path = self._get_xcode_clang_path(otool_output)
-    clang_libraries = self._get_clang_libraries(otool_output)
+    clang_libraries = set()
+    clang_lib_path = None
+    m = MachO(binary_path)
+    for header in m.headers:
+      clang_lib_path = self._get_xcode_clang_path(header)
+      clang_libraries.update(self._get_clang_libraries(header))
+
     if not clang_lib_path:
       raise ClangRuntimeToolError("Could not find clang library path.")
 
