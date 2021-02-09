@@ -24,7 +24,6 @@ py2and3_test(
     srcs = ["versiontool_unittest.py"],
     deps = [
         ":versiontool_lib",
-        "//:py_init_shim",
     ],
 )
 

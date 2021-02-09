@@ -32,7 +32,6 @@ py2and3_test(
     srcs = ["bundletool_unittest.py"],
     deps = [
         ":bundletool_lib",
-        "//:py_init_shim",
     ],
 )
 

@@ -26,7 +26,6 @@ py2and3_test(
     srcs = ["plisttool_unittest.py"],
     deps = [
         ":plisttool_lib",
-        "//:py_init_shim",
     ],
 )
 

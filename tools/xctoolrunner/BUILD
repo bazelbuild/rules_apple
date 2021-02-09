@@ -24,7 +24,6 @@ py2and3_test(
     srcs = ["xctoolrunner_test.py"],
     deps = [
         ":xctoolrunner_lib",
-        "//:py_init_shim",
     ],
 )
 
