@@ -109,14 +109,17 @@ class ClangRuntimeTool(object):
     return rpath, libs
 
   def run(self):
-    objdump_output = subprocess.check_output(
-        ["xcrun", "llvm-objdump", "-macho", "-private-headers", binary_path])
+    objdump_output = subprocess.check_output([
+        "xcrun", "llvm-objdump", "-macho", "-private-headers", "-non-verbose",
+        binary_path
+    ])
     # For Python 3 the output is a byte string that requires decoding, we use
     # UTF-8 and replace invalid characters.
     if _PY3:
       objdump_output = objdump_output.decode("utf8", "replace")
     objdump_output = [x.strip() for x in objdump_output.splitlines()]
-    clang_lib_path, clang_libraries = self._get_xcode_clang_path_and_clang_libs(objdump_output)
+    clang_lib_path, clang_libraries = self._get_xcode_clang_path_and_clang_libs(
+        objdump_output)
     if not clang_lib_path:
       raise ClangRuntimeToolError("Could not find clang library path.")
 
