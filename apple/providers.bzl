@@ -214,12 +214,12 @@ and zipped as a cacheable artifact.
 A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
-        "resolved_xctoolrunner": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
-""",
         "resolved_swift_stdlib_tool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
 for the target to run.
+""",
+        "resolved_xctoolrunner": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
 """,
         "std_redirect_dylib": """\
 A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
