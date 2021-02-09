@@ -22,7 +22,6 @@ py2and3_test(
     srcs = ["execute_test.py"],
     deps = [
         ":execute",
-        "//:py_init_shim",
     ],
 )
 
