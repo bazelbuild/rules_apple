@@ -15,6 +15,10 @@
 """Implementation of ObjC/Swift Intent library rule."""
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleSupportToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -62,6 +66,7 @@ def _apple_intent_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     resource_actions.generate_intent_classes_sources(
         actions = ctx.actions,
         input_file = ctx.file.src,
@@ -74,7 +79,7 @@ def _apple_intent_library_impl(ctx):
         swift_version = ctx.attr.swift_version,
         class_visibility = ctx.attr.class_visibility,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner_executable = ctx.executable._xctoolrunner,
+        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
     )
 
     if is_swift:
@@ -121,11 +126,9 @@ Label to a single or multiple intentdefinition files from which to generate sour
         "header_name": attr.string(
             doc = "Name of the public header file (only when using Objective-C).",
         ),
-        "_xctoolrunner": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@build_bazel_rules_apple//tools/xctoolrunner"),
-            doc = "Private attribute to specify the xctoolrunner executable.",
+        "_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
+            providers = [[AppleSupportToolchainInfo]],
         ),
     }),
     output_to_genfiles = True,
