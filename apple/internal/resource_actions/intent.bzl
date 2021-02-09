@@ -27,7 +27,6 @@ load(
     "versions",
 )
 
-
 def generate_intent_classes_sources(
         *,
         actions,
@@ -41,7 +40,7 @@ def generate_intent_classes_sources(
         swift_version,
         class_visibility,
         platform_prerequisites,
-        xctoolrunner_executable):
+        resolved_xctoolrunner):
     """Creates an action that cgenerates intent classes from an intentdefinition file.
 
     Args:
@@ -56,7 +55,7 @@ def generate_intent_classes_sources(
         swift_version: Version of Swift to use for the generated classes.
         class_visibility: Visibility attribute for the generated classes.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
+        resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
     """
 
     is_swift = language == "Swift"
@@ -104,8 +103,8 @@ def generate_intent_classes_sources(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = arguments,
-        executable = xctoolrunner_executable,
-        inputs = [input_file],
+        executable = resolved_xctoolrunner.executable,
+        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         mnemonic = "IntentGenerate",
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
