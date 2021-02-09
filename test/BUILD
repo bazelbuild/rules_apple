@@ -124,7 +124,7 @@ apple_shell_test(
 
 apple_shell_test(
     name = "apple_intent_library_test",
-    size = "small",
+    size = "medium",
     src = "apple_intent_library_test.sh",
     data = [
         "//test/testdata/resources:intent_srcs",
