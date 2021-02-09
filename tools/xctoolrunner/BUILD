@@ -6,7 +6,6 @@ py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
     visibility = [
         "//apple/internal:__pkg__",
     ],

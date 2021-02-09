@@ -6,7 +6,6 @@ py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
@@ -23,7 +22,6 @@ py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
     python_version = "PY3",
-    srcs_version = "PY2AND3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
