@@ -34,6 +34,8 @@ import uuid
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
+_PY3 = sys.version_info[0] == 3
+
 
 class DossierDirectory(object):
   """Class to manage dossier directories.
@@ -79,7 +81,9 @@ _EMBEDDED_RELATIVE_PATH_KEY = 'embedded_relative_path'
 _MANIFEST_FILENAME = 'manifest.json'
 
 # Directories within a bundle that embedded bundles may be present in.
-_EMBEDDED_BUNDLE_DIRECTORY_NAMES = ['AppClips', 'PlugIns', 'Frameworks']
+_EMBEDDED_BUNDLE_DIRECTORY_NAMES = [
+    'AppClips', 'PlugIns', 'Frameworks', 'Watch'
+]
 
 
 def generate_arg_parser():
@@ -123,11 +127,14 @@ def generate_arg_parser():
       '--zip',
       action='store_true',
       help='Zip the final dossier into a file at specified location.')
-  create_parser.add_argument(
-      '--codesign_identity',
-      required=True,
-      type=str,
-      help='Codesigning identity to be used.')
+  identity_group = create_parser.add_mutually_exclusive_group(required=True)
+  identity_group.add_argument(
+      '--codesign_identity', type=str, help='Codesigning identity to be used.')
+  identity_group.add_argument(
+      '--infer_identity',
+      action='store_true',
+      help='Infer the codesigning identity based on provisioning profile at signing time. If this option is passed, the provisioning profile is mandatory.'
+  )
   create_parser.add_argument(
       '--provisioning_profile',
       type=str,
@@ -165,6 +172,94 @@ def generate_arg_parser():
   return parser
 
 
+def _plist_from_bytes(byte_content):
+  # To support both PY2/PY3 we attempt to load using the Python 3 method, and
+  # should that fail fallback to using the Python 2 only API.
+  try:
+    return plistlib.loads(byte_content)
+  except AttributeError:
+    return plistlib.readPlistFromString(byte_content)
+
+
+def _parse_provisioning_profile(provisioning_profile_path):
+  """Reads and parses a mobileprovision file."""
+  plist_xml = subprocess.check_output([
+      'security',
+      'cms',
+      '-D',
+      '-i',
+      provisioning_profile_path,
+  ])
+  return _plist_from_bytes(plist_xml)
+
+
+def _certificate_fingerprint(identity):
+  """Extracts a fingerprint given identity in a mobileprovision file."""
+  openssl_command = [
+      'openssl',
+      'x509',
+      '-inform',
+      'DER',
+      '-noout',
+      '-fingerprint',
+  ]
+  _, fingerprint, _ = execute.execute_and_filter_output(
+      openssl_command, inputstr=identity, raise_on_failure=True)
+  fingerprint = fingerprint.strip()
+  fingerprint = fingerprint.replace('SHA1 Fingerprint=', '')
+  fingerprint = fingerprint.replace(':', '')
+  return fingerprint
+
+
+def _find_codesign_identities(identity=None):
+  """Finds code signing identities on the current system."""
+  ids = []
+  execute_command = [
+      'security',
+      'find-identity',
+      '-v',
+      '-p',
+      'codesigning',
+  ]
+  _, output, _ = execute.execute_and_filter_output(execute_command,
+                                                   raise_on_failure=True)
+  output = output.strip()
+  pattern = '(?P<hash>[A-F0-9]{40})'
+  if identity:
+    name_requirement = re.escape(identity)
+    pattern += r'\s+".*?{}.*?"'.format(name_requirement)
+  regex = re.compile(pattern)
+  for line in output.splitlines():
+    # CSSMERR_TP_CERT_REVOKED comes from Security.framework/cssmerr.h
+    if 'CSSMERR_TP_CERT_REVOKED' in line:
+      continue
+    m = regex.search(line)
+    if m:
+      groups = m.groupdict()
+      id = groups['hash']
+      ids.append(id)
+  return ids
+
+
+def _find_codesign_identity(provisioning_profile_path):
+  """Finds a valid identity on the system given a mobileprovision file."""
+  mpf = _parse_provisioning_profile(provisioning_profile_path)
+  ids_codesign = set(_find_codesign_identities())
+  for id_mpf in _get_identities_from_provisioning_profile(mpf):
+    if id_mpf in ids_codesign:
+      return id_mpf
+
+
+def _get_identities_from_provisioning_profile(provisioning_profile):
+  """Iterates through all the identities in a provisioning profile, lazily."""
+  for identity in provisioning_profile['DeveloperCertificates']:
+    if not isinstance(identity, bytes):
+      # Old versions of plistlib return the deprecated plistlib.Data type
+      # instead of bytes.
+      identity = identity.data
+    yield _certificate_fingerprint(identity)
+
+
 def _extract_codesign_data(bundle_path, output_directory, unique_id,
                            codesign_path):
   """Extracts the codesigning data for provided bundle to output directory.
@@ -195,12 +290,16 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
     raise OSError('Fail to extract entitlements from bundle: %s' % stderr)
   if not output:
     return None, None
+  if _PY3:
+    stderr = stderr.decode('utf8', 'replace')
   signing_info = re.search(r'^Authority=(.*)$', str(stderr), re.MULTILINE)
   if signing_info:
     cert_authority = signing_info.group(1)
   else:
     cert_authority = None
-  plist = plistlib.readPlistFromString(output)
+  plist = _plist_from_bytes(output)
+  if _PY3:
+    output = output.decode('utf8', 'replace')
   if not plist:
     return None, cert_authority
   output_file_name = unique_id + '.entitlements'
@@ -288,7 +387,7 @@ def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
                                     output_directory, unique_id)
 
 
-def _generate_manifest(codesign_identity,
+def _generate_manifest(codesign_identity=None,
                        entitlement_file=None,
                        provisioning_profile_file=None,
                        embedded_bundle_manifests=None):
@@ -299,7 +398,10 @@ def _generate_manifest(codesign_identity,
 
   Args:
     codesign_identity: The string representing the codesigning identity to be
-      used for signing this bundle.
+      used for signing this bundle. If None is specified, the identity will be
+      inferred from the provisioning profile based on the available identities
+      when the `sign` command is given. If None is passed, the provisioning
+      profile becomes mandatory.
     entitlement_file: The absolute path to the entitlements file to use for
       signing this bundle, or None if no entitlements need to be included.
     provisioning_profile_file: The absolute path to the provisioning profile to
@@ -310,7 +412,9 @@ def _generate_manifest(codesign_identity,
   Returns:
     The manifest contents.
   """
-  manifest = {_CODESIGN_IDENTITY_KEY: codesign_identity}
+  manifest = {}
+  if codesign_identity:
+    manifest[_CODESIGN_IDENTITY_KEY] = codesign_identity
   if entitlement_file is not None:
     manifest[_ENTITLEMENTS_KEY] = entitlement_file
   if provisioning_profile_file is not None:
@@ -472,8 +576,25 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
       print_output=True)
 
 
-def _sign_bundle_with_manifest(root_bundle_path, manifest, dossier_directory,
-                               codesign_path):
+def _fetch_preferred_signing_identity(manifest,
+                                      provisioning_profile_file_path=None):
+  """Returns the preferred signing identity.
+
+  Provided a manifest and an optional path to a provisioning profile will
+  attempt to resolve what codesigning identity should be used. Will return
+  the resolved codesigning identity or None if no identity could be resolved.
+  """
+  codesign_identity = manifest.get(_CODESIGN_IDENTITY_KEY)
+  if not codesign_identity and provisioning_profile_file_path:
+    codesign_identity = _find_codesign_identity(provisioning_profile_file_path)
+  return codesign_identity
+
+
+def _sign_bundle_with_manifest(root_bundle_path,
+                               manifest,
+                               dossier_directory,
+                               codesign_path,
+                               override_codesign_identity=None):
   """Signing a bundle with a dossier.
 
   Provided a bundle, dossier path, and the path to the codesign tool, will sign
@@ -484,23 +605,36 @@ def _sign_bundle_with_manifest(root_bundle_path, manifest, dossier_directory,
     manifest: The contents of the manifest in this dossier.
     dossier_directory: Directory of dossier to be used for signing.
     codesign_path: Path to the codesign tool as a string.
+    override_codesign_identity: If set, this will override the identity
+      specified in the manifest. This is primarily useful when signing an
+      embedded bundle, as all bundles must use the same codesigning identity,
+      and so lookup logic can be short circuited.
   """
-  codesign_identity = manifest[_CODESIGN_IDENTITY_KEY]
-  entitlements_filename = manifest[_ENTITLEMENTS_KEY]
-  provisioning_profile_filename = manifest[_PROVISIONING_PROFILE_KEY]
-  entitlements_file_path = os.path.join(dossier_directory,
-                                        entitlements_filename)
+  codesign_identity = override_codesign_identity
+  provisioning_profile_filename = manifest.get(_PROVISIONING_PROFILE_KEY)
   provisioning_profile_file_path = os.path.join(dossier_directory,
                                                 provisioning_profile_filename)
+  if not codesign_identity:
+    codesign_identity = _fetch_preferred_signing_identity(
+        manifest, provisioning_profile_file_path)
+  if not codesign_identity:
+    raise SystemExit(
+        'Signing failed - codesigning identity not specified in manifest and unable to infer identity.'
+    )
+  entitlements_filename = manifest.get(_ENTITLEMENTS_KEY)
+  entitlements_file_path = os.path.join(dossier_directory,
+                                        entitlements_filename)
   for embedded_manifest in manifest.get(_EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
     embedded_relative_path = embedded_manifest[_EMBEDDED_RELATIVE_PATH_KEY]
     embedded_bundle_path = os.path.join(root_bundle_path,
                                         embedded_relative_path)
     _sign_bundle_with_manifest(embedded_bundle_path, embedded_manifest,
-                               dossier_directory, codesign_path)
-  dest_provisioning_profile_path = os.path.join(root_bundle_path,
-                                                'embedded.mobileprovision')
-  shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
+                               dossier_directory, codesign_path,
+                               codesign_identity)
+  if provisioning_profile_file_path:
+    dest_provisioning_profile_path = os.path.join(root_bundle_path,
+                                                  'embedded.mobileprovision')
+    shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
   _invoke_codesign(
       codesign_path=codesign_path,
       identity=codesign_identity,
@@ -639,6 +773,9 @@ def _create_dossier(args):
   if hasattr(args, 'provisioning_profile'):
     provisioning_profile_filename = _copy_provisioning_profile(
         args.provisioning_profile, dossier_directory, unique_id)
+  if args.infer_identity and provisioning_profile_filename is None:
+    raise SystemExit(
+        'A provisioning profile must be provided to infer the signing identity')
   embedded_manifests = []
   if hasattr(args, 'embedded_dossier') and args.embedded_dossier:
     for embedded_dossier in args.embedded_dossier:
@@ -651,7 +788,10 @@ def _create_dossier(args):
         embedded_manifest[
             _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
         embedded_manifests.append(embedded_manifest)
-  manifest = _generate_manifest(args.codesign_identity, entitlements_filename,
+  codesign_identity = None
+  if hasattr(args, 'codesign_identity'):
+    codesign_identity = args.codesign_identity
+  manifest = _generate_manifest(codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
   with open(os.path.join(dossier_directory, _MANIFEST_FILENAME), 'w') as fp:

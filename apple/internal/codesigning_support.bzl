@@ -449,7 +449,7 @@ def _generate_codesigning_dossier_action(
       provisioning_profile: The provisioning profile file. May be `None`.
       resolved_codesigning_dossier_tool: The `struct` from resolve_tools representing the code signing tool.
     """
-    input_files = [x.dossier_path for x in embedded_dossiers]
+    input_files = [x.dossier_file for x in embedded_dossiers]
 
     mnemonic = "GenerateCodesigningDossier"
     progress_message = "Generating codesigning dossier for %s" % label_name
