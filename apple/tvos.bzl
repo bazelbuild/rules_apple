@@ -84,10 +84,10 @@ def tvos_framework(name, **kwargs):
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
     # these workarounds into the rule implementations.
-    linkopts = binary_args.pop("linkopts", [])
     bundle_name = binary_args.get("bundle_name", name)
-    linkopts.append("-install_name,@rpath/%s.framework/%s" % (bundle_name, bundle_name))
-    binary_args["linkopts"] = linkopts
+    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
+        "-install_name,@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -163,13 +163,15 @@ def tvos_dynamic_framework(name, **kwargs):
     """Builds and bundles a tvOS dynamic framework that is consumable by Xcode."""
 
     binary_args = dict(kwargs)
+
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
     # these workarounds into the rule implementations.
-    linkopts = binary_args.pop("linkopts", [])
     bundle_name = binary_args.get("bundle_name", name)
-    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
-    binary_args["linkopts"] = linkopts
+    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
+        "-install_name",
+        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         include_entitlements = False,
