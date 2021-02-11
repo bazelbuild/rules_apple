@@ -32,8 +32,8 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
-    _watchos_extension = "watchos_extension",
     _watchos_dynamic_framework = "watchos_dynamic_framework",
+    _watchos_extension = "watchos_extension",
     _watchos_static_framework = "watchos_static_framework",
 )
 
@@ -72,13 +72,15 @@ def watchos_dynamic_framework(name, **kwargs):
     """Builds and bundles a watchOS dynamic framework that is consumable by Xcode."""
 
     binary_args = dict(kwargs)
+
     # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
     # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
     # these workarounds into the rule implementations.
-    linkopts = binary_args.pop("linkopts", [])
     bundle_name = binary_args.get("bundle_name", name)
-    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
-    binary_args["linkopts"] = linkopts
+    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
+        "-install_name",
+        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
+    ]
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
         include_entitlements = False,
@@ -96,7 +98,7 @@ def watchos_dynamic_framework(name, **kwargs):
         extension_safe = kwargs.get("extension_safe"),
         **bundling_args
     )
-    
+
 watchos_build_test = apple_build_test_rule(
     doc = """\
 Test rule to check that the given library targets (Swift, Objective-C, C++)
