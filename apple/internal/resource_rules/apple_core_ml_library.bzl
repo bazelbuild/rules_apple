@@ -65,6 +65,7 @@ def _apple_core_ml_library_impl(ctx):
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
         device_families = None,
+        explicit_minimum_os = None,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,

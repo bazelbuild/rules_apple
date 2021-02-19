@@ -66,8 +66,8 @@ def _platform_prerequisites(
         apple_fragment,
         config_vars,
         device_families,
-        explicit_minimum_os = None,
-        objc_fragment = None,
+        explicit_minimum_os,
+        objc_fragment,
         platform_type_string,
         uses_swift,
         xcode_path_wrapper,
@@ -78,8 +78,8 @@ def _platform_prerequisites(
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       device_families: The list of device families that apply to the target being built.
-      explicit_minimum_os: A dotted version string indicating minimum OS desired. Optional.
-      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
+      explicit_minimum_os: A dotted version string indicating minimum OS desired.
+      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_path_wrapper: The Xcode path wrapper script. Can be none if and only we don't need to
