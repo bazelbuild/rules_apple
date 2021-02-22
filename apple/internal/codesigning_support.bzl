@@ -456,6 +456,12 @@ def _generate_codesigning_dossier_action(
 
     dossier_arguments = ["--output", output_dossier.path, "--zip"]
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+
     is_device = platform_prerequisites.platform.is_device
     fragment = platform_prerequisites.objc_fragment
     codesign_identity = fragment.signing_certificate_name if is_device else "-"
@@ -469,6 +475,11 @@ def _generate_codesigning_dossier_action(
     if provisioning_profile:
         input_files.append(provisioning_profile)
         dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
+        if is_device:
+            # Added so that the output of this action is not cached remotely,
+            # in case multiple developers sign the same artifact with different
+            # identities.
+            execution_requirements["no-cache"] = "1"
 
     for embedded_dossier in embedded_dossiers:
         input_files.append(embedded_dossier.dossier_file)
@@ -493,14 +504,7 @@ def _generate_codesigning_dossier_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         executable = resolved_codesigning_dossier_tool.executable,
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
+        execution_requirements = execution_requirements,
         inputs = depset(input_files, transitive = [resolved_codesigning_dossier_tool.inputs]),
         input_manifests = resolved_codesigning_dossier_tool.input_manifests,
         mnemonic = mnemonic,
