@@ -555,8 +555,8 @@ def _post_process_and_sign_archive_action(
     processing_tools = []
 
     execution_requirements = {
-        # Unsure, but may be needed for keychain access, especially for files that live in
-        # $HOME.
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
         "no-sandbox": "1",
     }
 
