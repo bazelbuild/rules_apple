@@ -577,7 +577,7 @@ def _post_process_and_sign_archive_action(
             input_files.append(entitlements)
         if provisioning_profile:
             input_files.append(provisioning_profile)
-            if platform_support.is_device_build(ctx):
+            if platform_prerequisites.platform.is_device:
                 # Added so that the output of this action is not cached
                 # remotely, in case multiple developers sign the same artifact
                 # with different identities.
@@ -718,7 +718,7 @@ def _sign_binary_action(
         # that live in $HOME.
         "no-sandbox": "1",
     }
-    if platform_support.is_device_build(ctx) and provisioning_profile:
+    if platform_prerequisites.platform.is_device and provisioning_profile:
         # Added so that the output of this action is not cached remotely,
         # in case multiple developers sign the same artifact with different
         # identities.
