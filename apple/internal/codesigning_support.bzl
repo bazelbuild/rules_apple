@@ -255,6 +255,7 @@ def _signing_command_lines(
 def _should_sign_simulator_bundles(
         *,
         config_vars,
+        features,
         rule_descriptor):
     """Check if a main bundle should be codesigned.
 
@@ -267,6 +268,13 @@ def _should_sign_simulator_bundles(
       True/False for if the bundle should be signed.
 
     """
+    if "apple.codesign_simulator_bundles" in config_vars:
+        # buildifier: disable=print
+        print("warning: --define apple.codesign_simulator_bundles is deprecated, please switch to --features=apple.skip_codesign_simulator_bundles")
+
+    if "apple.skip_codesign_simulator_bundles" in features:
+        return False
+
     if not rule_descriptor.skip_simulator_signing_allowed:
         return True
 
@@ -325,6 +333,7 @@ def _codesigning_args(
     is_device = platform_prerequisites.platform.is_device
     should_sign_sim_bundles = _should_sign_simulator_bundles(
         config_vars = platform_prerequisites.config_vars,
+        features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
     if not is_framework and not is_device and not should_sign_sim_bundles:
@@ -406,6 +415,7 @@ def _codesigning_command(
         )
     should_sign_sim_bundles = _should_sign_simulator_bundles(
         config_vars = platform_prerequisites.config_vars,
+        features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
     if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
