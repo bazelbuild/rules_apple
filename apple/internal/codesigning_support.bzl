@@ -456,6 +456,12 @@ def _generate_codesigning_dossier_action(
 
     dossier_arguments = ["--output", output_dossier.path, "--zip"]
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+
     is_device = platform_prerequisites.platform.is_device
     fragment = platform_prerequisites.objc_fragment
     codesign_identity = fragment.signing_certificate_name if is_device else "-"
@@ -469,6 +475,11 @@ def _generate_codesigning_dossier_action(
     if provisioning_profile:
         input_files.append(provisioning_profile)
         dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
+        if is_device:
+            # Added so that the output of this action is not cached remotely,
+            # in case multiple developers sign the same artifact with different
+            # identities.
+            execution_requirements["no-cache"] = "1"
 
     for embedded_dossier in embedded_dossiers:
         input_files.append(embedded_dossier.dossier_file)
@@ -493,14 +504,7 @@ def _generate_codesigning_dossier_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         executable = resolved_codesigning_dossier_tool.executable,
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
+        execution_requirements = execution_requirements,
         inputs = depset(input_files, transitive = [resolved_codesigning_dossier_tool.inputs]),
         input_manifests = resolved_codesigning_dossier_tool.input_manifests,
         mnemonic = mnemonic,
@@ -554,6 +558,12 @@ def _post_process_and_sign_archive_action(
     input_files = [input_archive]
     processing_tools = []
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
         codesigningtool = resolved_codesigningtool.executable,
@@ -571,6 +581,11 @@ def _post_process_and_sign_archive_action(
             input_files.append(entitlements)
         if provisioning_profile:
             input_files.append(provisioning_profile)
+            if platform_prerequisites.platform.is_device:
+                # Added so that the output of this action is not cached
+                # remotely, in case multiple developers sign the same artifact
+                # with different identities.
+                execution_requirements["no-cache"] = "1"
 
     ipa_post_processor_path = ""
     if ipa_post_processor:
@@ -642,14 +657,7 @@ def _post_process_and_sign_archive_action(
             actions = actions,
             arguments = arguments,
             executable = process_and_sign_expanded_template,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-cache": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
+            execution_requirements = execution_requirements,
             inputs = depset(input_files, transitive = [resolved_codesigningtool.inputs]),
             input_manifests = resolved_codesigningtool.input_manifests,
             mnemonic = mnemonic,
@@ -709,20 +717,24 @@ def _sign_binary_action(
         codesignopts = codesignopts,
     )
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+    if platform_prerequisites.platform.is_device and provisioning_profile:
+        # Added so that the output of this action is not cached remotely,
+        # in case multiple developers sign the same artifact with different
+        # identities.
+        execution_requirements["no-cache"] = "1"
+
     legacy_actions.run_shell(
         actions = actions,
         command = "cp {input_binary} {output_binary}".format(
             input_binary = input_binary.path,
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
+        execution_requirements = execution_requirements,
         inputs = depset([input_binary], transitive = [resolved_codesigningtool.inputs]),
         input_manifests = resolved_codesigningtool.input_manifests,
         mnemonic = "SignBinary",
