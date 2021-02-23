@@ -15,6 +15,10 @@
 """Support functions for working with Apple platforms and device families."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -66,7 +70,9 @@ def _platform_prerequisites(
         apple_fragment,
         config_vars,
         device_families,
+        disabled_features,
         explicit_minimum_os,
+        features,
         objc_fragment,
         platform_type_string,
         uses_swift,
@@ -78,7 +84,9 @@ def _platform_prerequisites(
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       device_families: The list of device families that apply to the target being built.
+      disabled_features: The list of disabled features applied to the target.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
+      features: The list of features applied to the target.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
@@ -99,15 +107,21 @@ def _platform_prerequisites(
         minimum_os = str(xcode_version_config.minimum_os_for_platform_type(platform_type_attr))
 
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
+    features = features_support.compute_enabled_features(
+        requested_features = features or [],
+        unsupported_features = disabled_features or [],
+    )
 
     return struct(
         apple_fragment = apple_fragment,
         config_vars = config_vars,
         device_families = device_families,
+        disabled_features = disabled_features,
+        features = features,
         minimum_os = minimum_os,
+        objc_fragment = objc_fragment,
         platform = platform,
         platform_type = platform_type_attr,
-        objc_fragment = objc_fragment,
         sdk_version = sdk_version,
         uses_swift = uses_swift,
         xcode_path_wrapper = xcode_path_wrapper,
@@ -135,7 +149,9 @@ def _platform_prerequisites_from_rule_ctx(ctx):
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
         device_families = device_families,
+        disabled_features = ctx.disabled_features,
         explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = ctx.features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
         uses_swift = uses_swift,
