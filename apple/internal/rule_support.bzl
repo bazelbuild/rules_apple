@@ -136,7 +136,7 @@ def _describe_rule_type(
             the `archive_relative` bundle location, to permit embedding within another target. Has no
             effect if `archive_relative` is empty.
         extra_linkopts: Extra options to pass to the linker.
-        has_alternate_icons: Wether the rule supports alternate icons.
+        has_alternate_icons: Whether the rule supports alternate icons.
         has_infoplist: Whether the rule should place an Info.plist file at the root of the bundle.
         has_launch_images: Whether the rule supports launch images.
         has_settings_bundle: Whether the rule supports a settings bundle.
