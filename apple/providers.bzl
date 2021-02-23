@@ -210,7 +210,7 @@ A `File` referencing a plist template for dSYM bundles.
 A `File` referencing a template for a shell script to process and sign.
 """,
         "resolved_alticonstool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to insert alternate icons entries in the App
+A `struct` from `ctx.resolve_tools` referencing a tool to insert alternate icons entries in the app
 bundle's `Info.plist`.
 """,
         "resolved_bundletool": """\
