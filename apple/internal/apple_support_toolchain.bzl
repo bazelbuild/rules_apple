@@ -95,7 +95,7 @@ apple_support_toolchain = rule(
             cfg = "host",
             executable = True,
             doc = """
-A `File` referencing a tool to insert alternate icons entries in the App bundle's `Info.plist`.
+A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
 """,
         ),
         "bundletool": attr.label(
