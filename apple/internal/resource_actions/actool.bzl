@@ -162,15 +162,15 @@ def _alticonstool_args(
         ["alticon"],
         attr = "alternate_icons",
     ).keys()
-    args = [
+    args = actions.args()
+    args.add_all([
         "--input",
-        input_plist.path,
+        input_plist,
         "--output",
-        output_plist.path,
-    ]
-    for alticon in alticons_dirs:
-        args += ["--alticon", alticon]
-    return args
+        output_plist,
+    ])
+    args.add_all(alticons_dirs, before_each = "--alticon")
+    return [args]
 
 def compile_asset_catalog(
         *,
@@ -283,6 +283,7 @@ def compile_asset_catalog(
         legacy_actions.run(
             actions = actions,
             arguments = _alticonstool_args(
+                actions = actions,
                 input_plist = actool_output_plist,
                 output_plist = output_plist,
                 alticons_files = alternate_icons,
