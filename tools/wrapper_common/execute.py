@@ -12,9 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Common functionality for tool wrappers to execute jobs.
-"""
+"""Common functionality for tool wrappers to execute jobs."""
 
 import io
 import os
@@ -25,45 +23,36 @@ import sys
 _PY3 = sys.version_info[0] == 3
 
 
-def execute_and_filter_output(
-    cmd_args,
-    filtering=None,
-    trim_paths=False,
-    custom_env=None,
-    inputstr=None,
-    print_output=False,
-    raise_on_failure=False):
+def execute_and_filter_output(cmd_args,
+                              filtering=None,
+                              trim_paths=False,
+                              custom_env=None,
+                              inputstr=None,
+                              print_output=False,
+                              raise_on_failure=False):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
     cmd_args: A list of strings beginning with the command to execute followed
-        by its arguments.
-
+      by its arguments.
     filtering: Optionally specify a filter for stdout/stderr. It must be
-        callable and have the following signature:
-
-          myFilter(tool_exit_status, stdout_string, stderr_string) ->
-             (stdout_string, stderr_string)
-
-        The filter can then use the tool's exit status to process the
-        output as they wish, returning what ever should be used.
-
+        callable and have the following signature:  myFilter(tool_exit_status,
+          stdout_string, stderr_string) -> (stdout_string, stderr_string)  The
+          filter can then use the tool's exit status to process the output as
+          they wish, returning what ever should be used.
     trim_paths: Optionally specify whether or not to trim the current working
-        directory from any paths in the output. Based on output after filtering,
-        if a filter has been specified.
-
+      directory from any paths in the output. Based on output after filtering,
+      if a filter has been specified.
     custom_env: A dictionary of custom environment variables for this session.
-
     inputstr: Data to send directly to the child process as input.
-
     print_output: Wheither to always print the output of stdout and stderr for
-        this subprocess.
-
+      this subprocess.
     raise_on_failure: Raises an exception if the subprocess does not return a
-        successful result.
+      successful result.
 
   Returns:
-    The result of running the command.
+    A tuple consisting of the result of running the command, stdout output from
+    the command as a string, and the stderr output from the command as a string.
 
   Raises:
     CalledProcessError: If the process did not indicate a successful result and
@@ -80,7 +69,6 @@ def execute_and_filter_output(
       env=env)
   stdout, stderr = proc.communicate(input=inputstr)
   cmd_result = proc.returncode
-
   # Only decode the output for Py3 so that the output type matches
   # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
   # in Py2.
@@ -110,11 +98,19 @@ def execute_and_filter_output(
     # streams in utf8 mode since some messages from Apple's tools use characters
     # like curly quotes. (It would be nice to use the `reconfigure` method here,
     # but that's only available in Python 3.7, which we can't guarantee.)
+    # It is essential that we only attempt to re-open stdout and stderr once
+    # to avoid potential error conditions, and as this may invalidate the buffer
+    # depending on the version of Python, it is also essential that we flush
+    # the pending buffers prior to re-opening.
     if _PY3:
       try:
-        sys.stdout = open(
-            sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
-        sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
+        if sys.stdout.encoding != "utf8":
+          sys.stdout.flush()
+          sys.stdout = open(
+              sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
+        if sys.stderr.encoding != "utf8":
+          sys.stderr.flush()
+          sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
       except io.UnsupportedOperation:
         # When running under test, `fileno` is not supported.
         pass

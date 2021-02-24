@@ -15,6 +15,10 @@
 """Actions related to codesigning."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -422,6 +426,95 @@ def _codesigning_command(
         codesignopts = codesignopts,
     )
 
+def _generate_codesigning_dossier_action(
+        actions,
+        label_name,
+        resolved_codesigning_dossier_tool,
+        output_dossier,
+        platform_prerequisites,
+        embedded_dossiers = [],
+        entitlements = None,
+        provisioning_profile = None):
+    """Generates a codesigning dossier based on parameters.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      embedded_dossiers: An optional List of Structs generated from
+         `embedded_codesigning_dossier` that should also be included in this
+          dossier.
+      entitlements: Optional file representing the entitlements to sign with.
+      label_name: Name of the target being built.
+      output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: The provisioning profile file. May be `None`.
+      resolved_codesigning_dossier_tool: The `struct` from resolve_tools representing the code signing tool.
+    """
+    input_files = [x.dossier_file for x in embedded_dossiers]
+
+    mnemonic = "GenerateCodesigningDossier"
+    progress_message = "Generating codesigning dossier for %s" % label_name
+
+    dossier_arguments = ["--output", output_dossier.path, "--zip"]
+
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+
+    is_device = platform_prerequisites.platform.is_device
+    fragment = platform_prerequisites.objc_fragment
+    codesign_identity = fragment.signing_certificate_name if is_device else "-"
+    if not codesign_identity and not provisioning_profile:
+        codesign_identity = "-"
+    if codesign_identity:
+        dossier_arguments.extend(["--codesign_identity", codesign_identity])
+    if entitlements:
+        input_files.append(entitlements)
+        dossier_arguments.extend(["--entitlements_file", entitlements.path])
+    if provisioning_profile:
+        input_files.append(provisioning_profile)
+        dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
+        if is_device:
+            # Added so that the output of this action is not cached remotely,
+            # in case multiple developers sign the same artifact with different
+            # identities.
+            execution_requirements["no-cache"] = "1"
+
+    for embedded_dossier in embedded_dossiers:
+        input_files.append(embedded_dossier.dossier_file)
+        dossier_arguments.extend(["--embedded_dossier", embedded_dossier.relative_bundle_path, embedded_dossier.dossier_file.path])
+
+    args_file = intermediates.file(
+        actions,
+        label_name,
+        "dossier_arguments",
+    )
+    actions.write(
+        output = args_file,
+        content = "\n".join(dossier_arguments),
+    )
+
+    input_files.append(args_file)
+    args_path_argument = "@%s" % args_file.path
+    args = ["create", args_path_argument]
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = args,
+        executable = resolved_codesigning_dossier_tool.executable,
+        execution_requirements = execution_requirements,
+        inputs = depset(input_files, transitive = [resolved_codesigning_dossier_tool.inputs]),
+        input_manifests = resolved_codesigning_dossier_tool.input_manifests,
+        mnemonic = mnemonic,
+        outputs = [output_dossier],
+        progress_message = progress_message,
+        tools = [resolved_codesigning_dossier_tool.executable],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
+    )
+
 def _post_process_and_sign_archive_action(
         *,
         actions,
@@ -465,6 +558,12 @@ def _post_process_and_sign_archive_action(
     input_files = [input_archive]
     processing_tools = []
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
         codesigningtool = resolved_codesigningtool.executable,
@@ -482,6 +581,11 @@ def _post_process_and_sign_archive_action(
             input_files.append(entitlements)
         if provisioning_profile:
             input_files.append(provisioning_profile)
+            if platform_prerequisites.platform.is_device:
+                # Added so that the output of this action is not cached
+                # remotely, in case multiple developers sign the same artifact
+                # with different identities.
+                execution_requirements["no-cache"] = "1"
 
     ipa_post_processor_path = ""
     if ipa_post_processor:
@@ -553,14 +657,7 @@ def _post_process_and_sign_archive_action(
             actions = actions,
             arguments = arguments,
             executable = process_and_sign_expanded_template,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-cache": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
+            execution_requirements = execution_requirements,
             inputs = depset(input_files, transitive = [resolved_codesigningtool.inputs]),
             input_manifests = resolved_codesigningtool.input_manifests,
             mnemonic = mnemonic,
@@ -620,20 +717,24 @@ def _sign_binary_action(
         codesignopts = codesignopts,
     )
 
+    execution_requirements = {
+        # Unsure, but may be needed for keychain access, especially for files
+        # that live in $HOME.
+        "no-sandbox": "1",
+    }
+    if platform_prerequisites.platform.is_device and provisioning_profile:
+        # Added so that the output of this action is not cached remotely,
+        # in case multiple developers sign the same artifact with different
+        # identities.
+        execution_requirements["no-cache"] = "1"
+
     legacy_actions.run_shell(
         actions = actions,
         command = "cp {input_binary} {output_binary}".format(
             input_binary = input_binary.path,
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
+        execution_requirements = execution_requirements,
         inputs = depset([input_binary], transitive = [resolved_codesigningtool.inputs]),
         input_manifests = resolved_codesigningtool.input_manifests,
         mnemonic = "SignBinary",
@@ -642,10 +743,23 @@ def _sign_binary_action(
         tools = [resolved_codesigningtool.executable],
     )
 
+def _embedded_codesigning_dossier(relative_bundle_path, dossier_file):
+    """Returns a struct describing a dossier to be embedded in another dossier.
+
+    Args:
+      dossier_file: The File representing the zipped dossier to be embedded.
+      relative_bundle_path: The string path of the artifact this dossier
+        describes relative to the root of the bundle it is embedded in.
+        E.g. 'PlugIns/NetworkExtension.appex'
+    """
+    return struct(relative_bundle_path = relative_bundle_path, dossier_file = dossier_file)
+
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
     codesignopts_from_rule_ctx = _codesignopts_from_rule_ctx,
+    embedded_codesigning_dossier = _embedded_codesigning_dossier,
+    generate_codesigning_dossier_action = _generate_codesigning_dossier_action,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     sign_binary_action = _sign_binary_action,
 )
