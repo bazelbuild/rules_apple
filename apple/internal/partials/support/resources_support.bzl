@@ -200,6 +200,7 @@ def _asset_catalogs(
         product_type = product_type,
         resolved_alticonstool = apple_toolchain_info.resolved_alticonstool,
         resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        rule_label = rule_label,
     )
 
     return struct(

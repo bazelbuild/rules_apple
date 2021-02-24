@@ -19,6 +19,10 @@ load(
     "xcode_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
     "legacy_actions",
 )
@@ -149,6 +153,7 @@ def _actool_args_for_special_file_types(
 
 def _alticonstool_args(
         *,
+        actions,
         alticons_files,
         input_plist,
         output_plist):
@@ -178,7 +183,8 @@ def compile_asset_catalog(
         platform_prerequisites,
         product_type,
         resolved_alticonstool,
-        resolved_xctoolrunner):
+        resolved_xctoolrunner,
+        rule_label):
     """Creates an action that compiles asset catalogs.
 
     This action populates a directory with compiled assets that must be merged
@@ -202,6 +208,7 @@ def compile_asset_catalog(
       product_type: The product type identifier used to describe the current bundle type.
       resolved_alticonstool: A struct referencing the resolved alticonstool tool.
       resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+      rule_label: The label of the target being analyzed.
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
@@ -238,8 +245,11 @@ def compile_asset_catalog(
     if output_plist:
         if alternate_icons:
             alticons_outputs = [output_plist]
-            actool_output_plist = actions.declare_file("{}.noalticon.plist".format(output_plist.basename), sibling = output_plist)
-            actool_outputs.append(actool_output_plist)
+            actool_output_plist= intermediates.file(
+                actions,
+                rule_label.name,
+                "{}.noalticon.plist".format(output_plist.basename),
+            )
         else:
             actool_output_plist = output_plist
 
