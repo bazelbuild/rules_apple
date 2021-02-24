@@ -440,6 +440,16 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
             ),
         })
 
+    if rule_descriptor.has_alternate_icons:
+        attrs.append({
+            "alternate_icons": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the alternate app icons for the application. Each file must have a containing directory
+named after the alternate icon identifier.""",
+            ),
+        })
+
     if rule_descriptor.has_launch_images:
         attrs.append({
             "launch_images": attr.label_list(

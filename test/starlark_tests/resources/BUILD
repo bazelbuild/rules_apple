@@ -291,6 +291,11 @@ filegroup(
 )
 
 filegroup(
+    name = "alternate_icons_ios",
+    srcs = glob(["alticons/**"]),
+)
+
+filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )

@@ -32,6 +32,15 @@ Builds and bundles an iOS application.
       </td>
     </tr>
     <tr>
+      <td><code>alternate_icons</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
+        <p>Files that comprise the alternate app icons for the application. Each icon
+        must have a containing directory named <code>*.alticon</code> where the name of
+        the directory is the alternate icon identifier.</p>
+      </td>
+    </tr>
+    <tr>
       <td><code>app_icons</code></td>
       <td>
         <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>

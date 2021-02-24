@@ -47,6 +47,10 @@ def _apple_support_toolchain_impl(ctx):
         AppleSupportToolchainInfo(
             dsym_info_plist_template = ctx.file.dsym_info_plist_template,
             process_and_sign_template = ctx.file.process_and_sign_template,
+            resolved_alticonstool = _resolve_tools_for_executable(
+                attr_name = "alticonstool",
+                rule_ctx = ctx,
+            ),
             resolved_bundletool = _resolve_tools_for_executable(
                 attr_name = "bundletool",
                 rule_ctx = ctx,
@@ -91,6 +95,13 @@ def _apple_support_toolchain_impl(ctx):
 # Define an Apple toolchain rule with tools built in the default configuration.
 apple_support_toolchain = rule(
     attrs = {
+        "alticonstool": attr.label(
+            cfg = "host",
+            executable = True,
+            doc = """
+A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
+""",
+        ),
         "bundletool": attr.label(
             cfg = "host",
             executable = True,
