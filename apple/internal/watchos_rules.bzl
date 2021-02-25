@@ -273,6 +273,17 @@ def _watchos_dynamic_framework_impl(ctx):
 
     providers = processor_result.providers
 
+    new_providers = []
+    for provider in providers:
+        new_providers.append(provider)
+        if type(provider) == "AppleDynamicFramework":
+            # Make the ObjC provider using the framework_files depset found in the AppleDynamicFramework provider
+            # This is to make the watchos_dynamic_framework usable as a dependency in swift_library
+            objc_provider_fields = {}
+            objc_provider_fields["dynamic_framework_file"] = provider.framework_files
+            objc_provider = apple_common.new_objc_provider(**objc_provider_fields)
+            new_providers.append(objc_provider)
+
     return [
         DefaultInfo(files = processor_result.output_files),
         IosFrameworkBundleInfo(),
@@ -282,7 +293,7 @@ def _watchos_dynamic_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-    ] + providers
+    ] + new_providers
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
