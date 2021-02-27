@@ -111,7 +111,7 @@ ios_extension(
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
-    bundle_name = "ButtonsStaticFramework",
+    bundle_name = "Buttons",
     minimum_os_version = "8.0",
     deps = [":ButtonsLib"],
 )
@@ -258,7 +258,7 @@ tvos_extension(
 
 tvos_static_framework(
     name = "ButtonsTVStaticFramework",
-    bundle_name = "ButtonsTVStaticFramework",
+    bundle_name = "ButtonsTV",
     minimum_os_version = "10.0",
     deps = [":ButtonsTVLib"],
 )
@@ -358,9 +358,11 @@ build_test(
     name = "ExamplesBuildTest",
     targets = [
         ":Buttons",
+        ":ButtonsStaticFramework",
         ":ButtonsMac",
         ":ButtonsTV",
         ":ButtonsTVExtension",
+        ":ButtonsTVStaticFramework",
         ":ButtonsWatch",
         ":ButtonsWatchExtension",
     ],
