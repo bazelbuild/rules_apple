@@ -111,7 +111,7 @@ ios_extension(
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
-    bundle_name = "ButtonsStaticFramework",
+    bundle_name = "Buttons",
     minimum_os_version = "8.0",
     deps = [":ButtonsLib"],
 )
@@ -358,6 +358,7 @@ build_test(
     name = "ExamplesBuildTest",
     targets = [
         ":Buttons",
+        ":ButtonsStaticFramework",
         ":ButtonsMac",
         ":ButtonsTV",
         ":ButtonsTVExtension",
