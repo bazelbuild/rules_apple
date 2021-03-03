@@ -479,7 +479,7 @@ def _generate_codesigning_dossier_action(
             # Added so that the output of this action is not cached remotely,
             # in case multiple developers sign the same artifact with different
             # identities.
-            execution_requirements["no-cache"] = "1"
+            execution_requirements["no-remote"] = "1"
 
     for embedded_dossier in embedded_dossiers:
         input_files.append(embedded_dossier.dossier_file)
@@ -585,7 +585,7 @@ def _post_process_and_sign_archive_action(
                 # Added so that the output of this action is not cached
                 # remotely, in case multiple developers sign the same artifact
                 # with different identities.
-                execution_requirements["no-cache"] = "1"
+                execution_requirements["no-remote"] = "1"
 
     ipa_post_processor_path = ""
     if ipa_post_processor:
@@ -726,7 +726,7 @@ def _sign_binary_action(
         # Added so that the output of this action is not cached remotely,
         # in case multiple developers sign the same artifact with different
         # identities.
-        execution_requirements["no-cache"] = "1"
+        execution_requirements["no-remote"] = "1"
 
     legacy_actions.run_shell(
         actions = actions,
