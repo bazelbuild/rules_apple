@@ -1,4 +1,4 @@
-# Lint as: python2, python3
+#!/usr/bin/env python3
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,8 @@ from __future__ import print_function
 import argparse
 import os
 import shutil
+import subprocess
 import sys
-
-from build_bazel_rules_apple.tools.wrapper_common import execute
 
 
 _LIBTYPE_ARG = [
@@ -80,12 +79,7 @@ def _build_library_binary(archs, sdk, minimum_os_version, embed_bitcode,
   ])
 
   # Run the command to assemble the output library.
-  _, stdout, stderr = execute.execute_and_filter_output(library_cmd,
-                                                        raise_on_failure=True)
-  if stdout:
-    print(stdout)
-  if stderr:
-    print(stderr)
+  subprocess.check_call(library_cmd, env=os.environ.copy())
   return output_lib
 
 
@@ -121,15 +115,14 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
   os.makedirs(framework_path)
 
   # Run the command to assemble the framework output.
-  framework_cmd = ""
-  custom_env = None
+  custom_env = os.environ.copy()
 
   if libtype == "dynamic":
     framework_cmd = _generate_dynamic_cmd(name, sdk, minimum_os_version,
                                           framework_path, archs)
   elif libtype == "static":
     framework_cmd = ["xcrun", "libtool"]
-    custom_env = {"ZERO_AR_DATE": "1"}
+    custom_env.update({"ZERO_AR_DATE": "1"})
   else:
     print("Internal Error: Unexpected library type: {}".format(libtype))
     return 1
@@ -139,6 +132,7 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
       os.path.join(framework_path, name),
   ])
 
+<<<<<<< HEAD
   if embed_bitcode:
     bcsymbolmap_path = os.path.join(os.path.dirname(framework_path),
                                     os.path.basename(name) + ".bcsymbolmap")
@@ -161,6 +155,9 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
     print(stdout)
   if stderr:
     print(stderr)
+=======
+  subprocess.check_call(framework_cmd, env=custom_env)
+>>>>>>> 5798d77... Move to Python3 only.
   return 0
 
 

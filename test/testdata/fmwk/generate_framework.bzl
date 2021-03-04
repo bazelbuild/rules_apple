@@ -19,6 +19,12 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _generate_import_framework_impl(ctx):
+    # The script has to run on a Mac, so just like the issues in the rule's
+    # tools, a py_binary doesn't always work, it is a plain file that gets
+    # invoked and has a shebang to force it to run under python3.
+    if len(ctx.files._generate_framework_script) != 1:
+        fail("Internal Error: Didn't get a single file for the script")
+
     args = ctx.actions.args()
     args.add("--name", ctx.label.name)
     args.add("--sdk", ctx.attr.sdk)
@@ -62,7 +68,8 @@ def _generate_import_framework_impl(ctx):
         ctx,
         inputs = input_files,
         outputs = output_files,
-        executable = ctx.executable._generate_framework,
+        executable = ctx.files._generate_framework_script[0],
+        tools = ctx.files._generate_framework_script,
         arguments = [args],
         mnemonic = "GenerateImportedAppleFramework",
     )
@@ -109,6 +116,7 @@ Possible values are `dynamic` or `static`.
 Determines if the framework will be built as a dynamic framework or a static framework.
 """,
         ),
+<<<<<<< HEAD
         "embed_bitcode": attr.bool(
             default = False,
             doc = """
@@ -125,9 +133,13 @@ binary.
         "_generate_framework": attr.label(
             executable = True,
             cfg = "exec",
+=======
+        "_generate_framework_script": attr.label(
+            cfg = "host",
+>>>>>>> 5798d77... Move to Python3 only.
             allow_files = True,
             default = Label(
-                "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework",
+                "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework.py",
             ),
         ),
     }),

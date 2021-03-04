@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +24,8 @@ import unittest
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
-try:
-  import StringIO  # Doesn't exist in Python 3
-except ImportError:
-  StringIO = None
-
 _PY3 = sys.version_info[0] == 3
+assert _PY3
 
 _INVALID_UTF8 = b'\xa0\xa1'
 
@@ -54,10 +49,7 @@ class ExecuteTest(unittest.TestCase):
       stdout = mock_stdout.getvalue()
       stderr = mock_stderr.getvalue()
 
-    if _PY3:
-      expected = bytes_out.decode('utf8', 'replace')
-    else:
-      expected = bytes_out
+    expected = bytes_out.decode('utf8', 'replace')
 
     expected += ' filtered'
     self.assertEqual(expected, stdout)
@@ -68,14 +60,8 @@ class ExecuteTest(unittest.TestCase):
     orig_stdout = sys.stdout
     orig_stderr = sys.stderr
 
-    # io.StringIO() only accepts unicode in Py2, so use the older
-    # StringIO.StringIO for Py2, which accepts str/unicode
-    if StringIO:
-      mock_stdout = StringIO.StringIO()
-      mock_stderr = StringIO.StringIO()
-    else:
-      mock_stdout = io.StringIO()
-      mock_stderr = io.StringIO()
+    mock_stdout = io.StringIO()
+    mock_stderr = io.StringIO()
 
     try:
       sys.stdout = mock_stdout

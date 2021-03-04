@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +26,7 @@ import sys
 import zipfile
 
 _PY3 = sys.version_info[0] == 3
+assert _PY3
 
 
 class ClangRuntimeToolError(RuntimeError):
@@ -113,10 +113,9 @@ class ClangRuntimeTool(object):
         "xcrun", "llvm-objdump", "-macho", "-private-headers", "-non-verbose",
         binary_path
     ])
-    # For Python 3 the output is a byte string that requires decoding, we use
-    # UTF-8 and replace invalid characters.
-    if _PY3:
-      objdump_output = objdump_output.decode("utf8", "replace")
+    # The output is a byte string that requires decoding, we use UTF-8 and
+    # replace invalid characters.
+    objdump_output = objdump_output.decode("utf8", "replace")
     objdump_output = [x.strip() for x in objdump_output.splitlines()]
     clang_lib_path, clang_libraries = self._get_xcode_clang_path_and_clang_libs(
         objdump_output)

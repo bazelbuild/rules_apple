@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -154,14 +153,9 @@ import re
 import subprocess
 import sys
 
-# Python 2/3 compatibility setup.
-# We don't want to depend on `six`, so we recreate the bits we need here.
-try:
-  _string_types = basestring
-  _integer_types = int, long
-except NameError:
-  _string_types = str
-  _integer_types = int
+_PY3 = sys.version_info[0] == 3
+assert _PY3
+
 
 # Format strings for errors that are raised, exposed here to the tests
 # can validate against them.
@@ -498,7 +492,7 @@ def GetWithKeyPath(a_dict, key_path):
   value = a_dict
   try:
     for key in key_path:
-      if isinstance(value, (_string_types, _integer_types, float)):
+      if isinstance(value, (str, int, float)):
         # There are leaf types, can't keep pathing down
         return None
       value = value[key]
@@ -531,7 +525,7 @@ def _load_json(string_or_file):
   Returns:
     The object graph loaded.
   """
-  if isinstance(string_or_file, _string_types):
+  if isinstance(string_or_file, str):
     with open(string_or_file) as f:
       return json.load(f)
   return json.load(string_or_file)
@@ -625,7 +619,8 @@ class SubstitutionEngine(object):
     return self._internal_apply_subs(value)
 
   def _internal_apply_subs(self, value):
-    if isinstance(value, _string_types):
+    if isinstance(value, str):
+
       def sub_helper(match_obj):
         return self._substitutions[match_obj.group(0)]
       return self._substitutions_re.sub(sub_helper, value)
@@ -658,7 +653,7 @@ class SubstitutionEngine(object):
         additions[k + ':rfc1034identifier'] = v
 
     def _helper(key_name, value):
-      if isinstance(value, _string_types):
+      if isinstance(value, str):
         m = VARIABLE_REFERENCE_RE.search(value)
         if m:
           variable_name = ExtractVariableFromMatch(m)
@@ -719,7 +714,7 @@ class PlistIO(object):
     if isinstance(p, dict):
       return p
 
-    if isinstance(p, _string_types):
+    if isinstance(p, str):
       with open(p, 'rb') as plist_file:
         return self._read_plist(plist_file, p, target)
 
@@ -775,7 +770,7 @@ class PlistIO(object):
           in binary form.
     """
     if hasattr(plistlib, 'dump'):
-      if isinstance(path_or_file, _string_types):
+      if isinstance(path_or_file, str):
         with open(path_or_file, 'wb') as fp:
           plistlib.dump(plist, fp)
       else:
@@ -783,7 +778,7 @@ class PlistIO(object):
     else:
       plistlib.writePlist(plist, path_or_file)
 
-    if binary and isinstance(path_or_file, _string_types):
+    if binary and isinstance(path_or_file, str):
       subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
 
 
@@ -899,7 +894,7 @@ class InfoPlistTask(PlistToolTask):
 
     pkginfo_file = self.options.get('pkginfo')
     if pkginfo_file:
-      if isinstance(pkginfo_file, _string_types):
+      if isinstance(pkginfo_file, str):
         with open(pkginfo_file, 'wb') as p:
           self._write_pkginfo(p, plist)
       else:
@@ -1014,7 +1009,7 @@ class InfoPlistTask(PlistToolTask):
       otherwise, '????' is returned instead.
     """
     try:
-      if not isinstance(value, _string_types):
+      if not isinstance(value, str):
         return b'????'
 
       if isinstance(value, bytes):
