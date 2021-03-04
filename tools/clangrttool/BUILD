@@ -4,6 +4,7 @@ py_binary(
     name = "clangrttool",
     srcs = ["clangrttool.py"],
     python_version = "PY3",
+    srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
     ],

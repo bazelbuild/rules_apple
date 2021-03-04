@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +34,7 @@ import uuid
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
 _PY3 = sys.version_info[0] == 3
+assert _PY3
 
 
 class DossierDirectory(object):
@@ -172,15 +172,6 @@ def generate_arg_parser():
   return parser
 
 
-def _plist_from_bytes(byte_content):
-  # To support both PY2/PY3 we attempt to load using the Python 3 method, and
-  # should that fail fallback to using the Python 2 only API.
-  try:
-    return plistlib.loads(byte_content)
-  except AttributeError:
-    return plistlib.readPlistFromString(byte_content)
-
-
 def _parse_provisioning_profile(provisioning_profile_path):
   """Reads and parses a mobileprovision file."""
   plist_xml = subprocess.check_output([
@@ -190,7 +181,7 @@ def _parse_provisioning_profile(provisioning_profile_path):
       '-i',
       provisioning_profile_path,
   ])
-  return _plist_from_bytes(plist_xml)
+  return plistlib.loads(plist_xml)
 
 
 def _certificate_fingerprint(identity):
@@ -290,16 +281,14 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
     raise OSError('Fail to extract entitlements from bundle: %s' % stderr)
   if not output:
     return None, None
-  if _PY3:
-    stderr = stderr.decode('utf8', 'replace')
+  stderr = stderr.decode('utf8', 'replace')
   signing_info = re.search(r'^Authority=(.*)$', str(stderr), re.MULTILINE)
   if signing_info:
     cert_authority = signing_info.group(1)
   else:
     cert_authority = None
-  plist = _plist_from_bytes(output)
-  if _PY3:
-    output = output.decode('utf8', 'replace')
+  plist = plistlib.loads(output)
+  output = output.decode('utf8', 'replace')
   if not plist:
     return None, cert_authority
   output_file_name = unique_id + '.entitlements'

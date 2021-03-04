@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +20,7 @@ import subprocess
 import sys
 
 _PY3 = sys.version_info[0] == 3
+assert _PY3
 
 
 def execute_and_filter_output(cmd_args,
@@ -69,16 +69,15 @@ def execute_and_filter_output(cmd_args,
       env=env)
   stdout, stderr = proc.communicate(input=inputstr)
   cmd_result = proc.returncode
-  # Only decode the output for Py3 so that the output type matches
-  # the native string-literal type. This prevents Unicode{Encode,Decode}Errors
-  # in Py2.
-  if _PY3:
-    # The invoked tools don't specify what encoding they use, so for lack of a
-    # better option, just use utf8 with error replacement. This will replace
-    # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-    # from raising.
-    stdout = stdout.decode("utf8", "replace")
-    stderr = stderr.decode("utf8", "replace")
+  # Decode the output for PY3 so that the output type matches
+  # the native string-literal type.
+  #
+  # The invoked tools don't specify what encoding they use, so for lack of a
+  # better option, just use utf8 with error replacement. This will replace
+  # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
+  # from raising.
+  stdout = stdout.decode("utf8", "replace")
+  stderr = stderr.decode("utf8", "replace")
 
   if (stdout or stderr) and filtering:
     if not callable(filtering):
@@ -102,18 +101,17 @@ def execute_and_filter_output(cmd_args,
     # to avoid potential error conditions, and as this may invalidate the buffer
     # depending on the version of Python, it is also essential that we flush
     # the pending buffers prior to re-opening.
-    if _PY3:
-      try:
-        if sys.stdout.encoding != "utf8":
-          sys.stdout.flush()
-          sys.stdout = open(
-              sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
-        if sys.stderr.encoding != "utf8":
-          sys.stderr.flush()
-          sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
-      except io.UnsupportedOperation:
-        # When running under test, `fileno` is not supported.
-        pass
+    try:
+      if sys.stdout.encoding != "utf8":
+        sys.stdout.flush()
+        sys.stdout = open(
+            sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
+      if sys.stderr.encoding != "utf8":
+        sys.stderr.flush()
+        sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
+    except io.UnsupportedOperation:
+      # When running under test, `fileno` is not supported.
+      pass
 
     if stdout:
       sys.stdout.write(stdout)
