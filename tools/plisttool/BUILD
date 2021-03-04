@@ -1,11 +1,10 @@
-load("//tools:py2and3_test.bzl", "py2and3_test")
-
 licenses(["notice"])
 
 py_binary(
     name = "plisttool",
     srcs = ["plisttool.py"],
     python_version = "PY3",
+    srcs_version = "PY3",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -18,12 +17,13 @@ py_library(
     srcs = [
         "plisttool.py",
     ],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
 )
 
-py2and3_test(
+py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
+    python_version = "PY3",
     deps = [
         ":plisttool_lib",
     ],

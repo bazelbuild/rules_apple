@@ -4,6 +4,7 @@ py_binary(
     name = "codesigningtool",
     srcs = ["codesigningtool.py"],
     python_version = "PY3",
+    srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
@@ -13,7 +14,7 @@ py_binary(
 py_library(
     name = "codesigningtool_lib",
     srcs = ["codesigningtool.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = [
         "//tools:__subpackages__",
     ],

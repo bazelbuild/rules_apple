@@ -1,11 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 licenses(["notice"])
-
-bzl_library(
-    name = "py2and3_test",
-    srcs = ["py2and3_test.bzl"],
-)
 
 # Consumed by bazel tests.
 filegroup(

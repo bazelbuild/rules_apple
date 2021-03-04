@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # coding=utf-8
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
