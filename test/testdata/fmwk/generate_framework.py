@@ -132,7 +132,6 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
       os.path.join(framework_path, name),
   ])
 
-<<<<<<< HEAD
   if embed_bitcode:
     bcsymbolmap_path = os.path.join(os.path.dirname(framework_path),
                                     os.path.basename(name) + ".bcsymbolmap")
@@ -148,16 +147,7 @@ def _build_framework_binary(name, sdk, minimum_os_version, framework_path,
         bcsymbolmap_path,
     ])
 
-  _, stdout, stderr = execute.execute_and_filter_output(framework_cmd,
-                                                        custom_env=custom_env,
-                                                        raise_on_failure=True)
-  if stdout:
-    print(stdout)
-  if stderr:
-    print(stderr)
-=======
   subprocess.check_call(framework_cmd, env=custom_env)
->>>>>>> 5798d77... Move to Python3 only.
   return 0
 
 
