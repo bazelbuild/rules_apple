@@ -5,12 +5,7 @@ py_library(
     srcs = ["execute.py"],
     srcs_version = "PY3",
     visibility = [
-<<<<<<< HEAD
-        "//apple/internal:__pkg__",
-        "//test/testdata/fmwk:__pkg__",
         "//tools/bitcode_strip:__pkg__",
-=======
->>>>>>> 5798d77... Move to Python3 only.
         "//tools/codesigningtool:__pkg__",
         "//tools/dossier_codesigningtool:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",

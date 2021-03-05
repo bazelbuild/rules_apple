@@ -116,7 +116,6 @@ Possible values are `dynamic` or `static`.
 Determines if the framework will be built as a dynamic framework or a static framework.
 """,
         ),
-<<<<<<< HEAD
         "embed_bitcode": attr.bool(
             default = False,
             doc = """
@@ -130,13 +129,8 @@ Set to `True` to generate and embed debug information in the framework
 binary.
 """,
         ),
-        "_generate_framework": attr.label(
-            executable = True,
-            cfg = "exec",
-=======
         "_generate_framework_script": attr.label(
             cfg = "host",
->>>>>>> 5798d77... Move to Python3 only.
             allow_files = True,
             default = Label(
                 "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework.py",
