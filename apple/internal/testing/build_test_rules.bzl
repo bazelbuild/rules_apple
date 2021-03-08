@@ -14,6 +14,11 @@
 
 """Rules for writing build tests for libraries that target Apple platforms."""
 
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+
 _PASSING_TEST_SCRIPT = """\
 #!/bin/bash
 exit 0
@@ -89,8 +94,12 @@ number (for example, `"9.0"`).
             # the user has not modified it.
             "platform_type": attr.string(default = platform_type),
             "_platform_type": attr.string(default = platform_type),
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
         },
         doc = doc,
         implementation = _apple_build_test_rule_impl,
         test = True,
+        cfg = transition_support.apple_rule_transition,
     )

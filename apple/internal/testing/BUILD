@@ -60,6 +60,9 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
+    deps = [
+        "//apple/internal:transition_support",
+    ],
 )
 
 bzl_library(
