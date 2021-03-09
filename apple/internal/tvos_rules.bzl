@@ -478,7 +478,7 @@ def _tvos_dynamic_framework_impl(ctx):
         if type(provider) == "AppleDynamicFramework":
             # Make the ObjC provider using the framework_files depset found
             # in the AppleDynamicFramework provider. This is to make the
-            # ios_dynamic_framework usable as a dependency in swift_library
+            # tvos_dynamic_framework usable as a dependency in swift_library
             objc_provider = apple_common.new_objc_provider(**{"dynamic_framework_file": provider.framework_files})
             new_providers.append(objc_provider)
 
