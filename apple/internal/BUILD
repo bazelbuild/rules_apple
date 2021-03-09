@@ -42,6 +42,7 @@ bzl_library(
     deps = [
         ":resources",
         "//apple:utils",
+        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
