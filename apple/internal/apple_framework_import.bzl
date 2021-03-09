@@ -15,6 +15,10 @@
 """Implementation of framework import rules."""
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -134,7 +138,16 @@ def _grouped_framework_files(framework_imports):
         attr = "framework_imports",
     )
 
-    # TODO(b/120920467): Add validation to ensure only a single framework is being imported.
+    # Only check for unique basenames of these keys, since it's possible to
+    # have targets that glob files from different locations but with the same
+    # `.framework` name, causing them to be merged into the same framework
+    # during bundling.
+    unique_frameworks = collections.uniq(
+        [paths.basename(path) for path in framework_groups.keys()],
+    )
+    if len(unique_frameworks) > 1:
+        fail("A framework import target may only include files for a " +
+             "single '.framework' bundle.", attr = "framework_imports")
 
     return framework_groups
 
