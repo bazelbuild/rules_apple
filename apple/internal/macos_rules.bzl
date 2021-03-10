@@ -423,12 +423,8 @@ def _macos_bundle_impl(ctx):
 
 def _macos_extension_impl(ctx):
     """Experimental implementation of macos_extension."""
-    extra_linkopts = []
-    if not ctx.attr.provides_main:
-        extra_linkopts.extend(["-e", "_NSExtensionMain"])
     link_result = linking_support.register_linking_action(
         ctx,
-        extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary

@@ -753,8 +753,6 @@ def _ios_extension_impl(ctx):
     ]
 
     extra_linkopts = []
-    if not ctx.attr.provides_main:
-        extra_linkopts.extend(["-e", "_NSExtensionMain"])
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
