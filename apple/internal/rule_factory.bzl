@@ -198,20 +198,12 @@ AppleTestRunnerInfo provider.
     ),
 }
 
+# TODO(b/182307780): Remove after removing usage.
 _EXTENSION_PROVIDES_MAIN_ATTRS = {
     "provides_main": attr.bool(
         default = False,
         doc = """
-A value indicating whether one of this extension's dependencies provides a `main` entry point.
-
-This is false by default, because most app extensions provide their implementation by specifying a
-principal class or main storyboard in their `Info.plist` file, and the executable's entry point is
-actually in a system framework that delegates to it.
-
-However, some modern extensions (such as SwiftUI widget extensions introduced in iOS 14 and macOS
-11) use the `@main` attribute to identify their primary type, which generates a traditional `main`
-function that passes control to that type. For these extensions, this attribute should be set to
-true.
+No-op and deprecated. Has no function, previously used to denote a `_main` is provided.
 """,
         mandatory = False,
     ),
