@@ -266,6 +266,8 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
                 "-fapplication-extension",
+                "-e",
+                "_NSExtensionMain",
             ],
             mandatory_families = True,
             product_type = apple_product_type.app_extension,
@@ -457,6 +459,10 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
+            extra_linkopts = [
+                "-e",
+                "_NSExtensionMain",
+            ],
             product_type = apple_product_type.app_extension,
             provisioning_profile_extension = ".provisionprofile",
             requires_signing_for_device = False,

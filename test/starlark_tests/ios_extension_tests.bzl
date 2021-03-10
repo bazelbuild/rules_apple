@@ -170,9 +170,9 @@ def ios_extension_test_suite():
     )
 
     entry_point_test(
-        name = "{}_entry_point_main_test".format(name),
+        name = "{}_provides_main_no_function_test".format(name),
         build_type = "simulator",
-        entry_point = "_main",
+        entry_point = "_NSExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_main",
         tags = [name],
     )
