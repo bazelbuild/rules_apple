@@ -72,6 +72,10 @@ extension-safe APIs only.
         "infoplist": """
 `File`. The complete (binary-formatted) `Info.plist` file for the bundle.
 """,
+        "minimum_deployment_os_version": """
+`string`. The minimum deployment OS version (as a dotted version
+number like "9.0") that this bundle was built to support.
+""",
         "minimum_os_version": """
 `string`. The minimum OS version (as a dotted version
 number like "9.0") that this bundle was built to support.

@@ -339,7 +339,7 @@ def merge_root_infoplists(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),
             DTSDKName = platform_with_version,
-            **{plist_key: platform_prerequisites.minimum_os}
+            **{plist_key: platform_prerequisites.minimum_deployment_os}
         ),
     ])
 

@@ -363,6 +363,13 @@ Any changes made by the tool must be made in this directory, and the tool's exec
 hermetic given these inputs to ensure that the result can be safely cached.
 """,
         ),
+        "minimum_deployment_os_version": attr.string(
+            mandatory = False,
+            doc = """
+A required string indicating the minimum deployment OS version supported by the target, represented
+as a dotted version number (for example, "9.0").
+""",
+        ),
         "minimum_os_version": attr.string(
             mandatory = True,
             doc = """
@@ -1052,6 +1059,13 @@ def _create_apple_binary_rule(
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
+            "minimum_deployment_os_version": attr.string(
+                mandatory = False,
+                doc = """
+A required string indicating the minimum deployment OS version supported by the target, represented as a
+dotted version number (for example, "9.0").
+""",
+            ),
             "minimum_os_version": attr.string(
                 mandatory = True,
                 doc = """

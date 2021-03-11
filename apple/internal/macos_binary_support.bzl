@@ -133,6 +133,7 @@ macos_binary_infoplist = rule(
                 mandatory = False,
                 allow_empty = True,
             ),
+            "minimum_deployment_os_version": attr.string(mandatory = False),
             "minimum_os_version": attr.string(mandatory = False),
             "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),
@@ -192,6 +193,7 @@ macos_command_line_launchdplist = rule(
                 allow_files = [".plist"],
                 mandatory = False,
             ),
+            "minimum_deployment_os_version": attr.string(mandatory = False),
             "minimum_os_version": attr.string(mandatory = False),
             "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),

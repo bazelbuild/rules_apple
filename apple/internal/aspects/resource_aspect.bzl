@@ -65,6 +65,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         config_vars = aspect_ctx.var,
         device_families = None,
         disabled_features = aspect_ctx.disabled_features,
+        explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
         features = aspect_ctx.features,
         objc_fragment = None,

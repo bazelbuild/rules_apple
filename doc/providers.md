@@ -43,8 +43,9 @@ specific to any particular binary type.
 
 <pre>
 AppleBundleInfo(<a href="#AppleBundleInfo-archive">archive</a>, <a href="#AppleBundleInfo-archive_root">archive_root</a>, <a href="#AppleBundleInfo-binary">binary</a>, <a href="#AppleBundleInfo-bundle_extension">bundle_extension</a>, <a href="#AppleBundleInfo-bundle_id">bundle_id</a>, <a href="#AppleBundleInfo-bundle_name">bundle_name</a>,
-                <a href="#AppleBundleInfo-executable_name">executable_name</a>, <a href="#AppleBundleInfo-entitlements">entitlements</a>, <a href="#AppleBundleInfo-extension_safe">extension_safe</a>, <a href="#AppleBundleInfo-infoplist">infoplist</a>, <a href="#AppleBundleInfo-minimum_os_version">minimum_os_version</a>,
-                <a href="#AppleBundleInfo-platform_type">platform_type</a>, <a href="#AppleBundleInfo-product_type">product_type</a>, <a href="#AppleBundleInfo-uses_swift">uses_swift</a>)
+                <a href="#AppleBundleInfo-executable_name">executable_name</a>, <a href="#AppleBundleInfo-entitlements">entitlements</a>, <a href="#AppleBundleInfo-extension_safe">extension_safe</a>, <a href="#AppleBundleInfo-infoplist">infoplist</a>,
+                <a href="#AppleBundleInfo-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#AppleBundleInfo-minimum_os_version">minimum_os_version</a>, <a href="#AppleBundleInfo-platform_type">platform_type</a>, <a href="#AppleBundleInfo-product_type">product_type</a>,
+                <a href="#AppleBundleInfo-uses_swift">uses_swift</a>)
 </pre>
 
 
@@ -70,6 +71,7 @@ It is propagated by most bundling rulesâapplications, extensions, framework
 | <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used to codesign, if any.    |
 | <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  Boolean. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
 | <a id="AppleBundleInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> file for the bundle.    |
+| <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  <code>string</code>. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support.    |
 | <a id="AppleBundleInfo-minimum_os_version"></a>minimum_os_version |  <code>string</code>. The minimum OS version (as a dotted version number like "9.0") that this bundle was built to support.    |
 | <a id="AppleBundleInfo-platform_type"></a>platform_type |  <code>string</code>. The platform type for the bundle (i.e. <code>ios</code> for iOS bundles).    |
 | <a id="AppleBundleInfo-product_type"></a>product_type |  <code>string</code>. The dot-separated product type identifier associated with the bundle (for example, <code>com.apple.product-type.application</code>).    |

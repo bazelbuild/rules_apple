@@ -73,6 +73,7 @@ def _platform_prerequisites(
         device_families,
         disabled_features,
         explicit_minimum_os,
+        explicit_minimum_deployment_os,
         features,
         objc_fragment,
         platform_type_string,
@@ -88,6 +89,7 @@ def _platform_prerequisites(
       device_families: The list of device families that apply to the target being built.
       disabled_features: The list of disabled features applied to the target.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
+      explicit_minimum_deployment_os: A dotted version string indicating minimum deployment OS desired.
       features: The list of features applied to the target.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
       platform_type_string: The platform type for the current target as a string.
@@ -108,6 +110,11 @@ def _platform_prerequisites(
         # TODO(b/38006810): Use the SDK version instead of the flag value as a soft default.
         minimum_os = str(xcode_version_config.minimum_os_for_platform_type(platform_type_attr))
 
+    if explicit_minimum_deployment_os:
+        minimum_deployment_os = explicit_minimum_deployment_os
+    else:
+        minimum_deployment_os = minimum_os
+
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
     features = features_support.compute_enabled_features(
         requested_features = features or [],
@@ -122,6 +129,7 @@ def _platform_prerequisites(
         disabled_features = disabled_features,
         features = features,
         minimum_os = minimum_os,
+        minimum_deployment_os = minimum_deployment_os,
         objc_fragment = objc_fragment,
         platform = platform,
         platform_type = platform_type_attr,
@@ -155,6 +163,7 @@ def _platform_prerequisites_from_rule_ctx(ctx):
         device_families = device_families,
         disabled_features = ctx.disabled_features,
         explicit_minimum_os = ctx.attr.minimum_os_version,
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
         features = ctx.features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
