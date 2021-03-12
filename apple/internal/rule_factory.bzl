@@ -198,17 +198,6 @@ AppleTestRunnerInfo provider.
     ),
 }
 
-# TODO(b/182307780): Remove after removing usage.
-_EXTENSION_PROVIDES_MAIN_ATTRS = {
-    "provides_main": attr.bool(
-        default = False,
-        doc = """
-No-op and deprecated. Has no function, previously used to denote a `_main` is provided.
-""",
-        mandatory = False,
-    ),
-}
-
 def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     deps_aspects = [
         apple_common.objc_proto_aspect,
@@ -638,8 +627,6 @@ Info.plist under the key `UILaunchStoryboardName`.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
-    elif rule_descriptor.product_type == apple_product_type.app_extension:
-        attrs.append(_EXTENSION_PROVIDES_MAIN_ATTRS)
     elif _is_test_product_type(rule_descriptor.product_type):
         required_providers = [
             [AppleBundleInfo, IosApplicationBundleInfo],
@@ -752,9 +739,6 @@ set, then the default extension is determined by the application's product_type.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
             ),
         })
-
-    elif rule_descriptor.product_type == apple_product_type.app_extension:
-        attrs.append(_EXTENSION_PROVIDES_MAIN_ATTRS)
 
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
