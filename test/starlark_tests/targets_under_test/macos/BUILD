@@ -165,24 +165,6 @@ macos_extension(
     ],
 )
 
-macos_extension(
-    name = "ext_with_main",
-    additional_contents = {
-        "//test/starlark_tests/resources:additional.txt": "Additional",
-        "//test/starlark_tests/resources:all_nested": "Nested",
-    },
-    bundle_id = "com.google.example.ext",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = "10.10",
-    provides_main = True,
-    tags = FIXTURE_TAGS,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
 macos_application(
     name = "app_with_imported_fmwk",
     bundle_id = "com.google.example",
