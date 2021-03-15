@@ -1113,9 +1113,8 @@ def _ios_dynamic_framework_impl(ctx):
 
     providers = processor_result.providers
 
-    new_providers = []
+    additional_providers = []
     for provider in providers:
-        new_providers.append(provider)
         if type(provider) == "AppleDynamicFramework":
             # Make the ObjC provider using the framework_files depset found
             # in the AppleDynamicFramework provider. This is to make the
@@ -1123,7 +1122,8 @@ def _ios_dynamic_framework_impl(ctx):
             objc_provider = apple_common.new_objc_provider(
                 dynamic_framework_file = provider.framework_files
             )
-            new_providers.append(objc_provider)
+            additional_providers.append(objc_provider)
+    providers.extend(additional_providers)
 
     return [
         DefaultInfo(files = processor_result.output_files),
@@ -1134,7 +1134,7 @@ def _ios_dynamic_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-    ] + new_providers
+    ] + providers
 
 def _ios_static_framework_impl(ctx):
     """Experimental implementation of ios_static_framework."""
