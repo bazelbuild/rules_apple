@@ -1866,6 +1866,71 @@ ios_dynamic_framework(
     ],
 )
 
+swift_library(
+    name = "basic_framework_with_dynamic_framework_dependency_lib",
+    srcs = [
+        "//test/starlark_tests/resources:DirectDependencyTest.swift",
+    ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "DirectDependencyWithDynamicFrameworkTest",
+    tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_dynamic_framework_dependency",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "DirectDependencyWithDynamicFrameworkTest",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":basic_framework_with_dynamic_framework_dependency_lib",
+    ],
+)
+
+swift_library(
+    name = "basic_framework_with_transitive_dependency_with_dynamic_frameworks_lib",
+    srcs = [
+        "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
+    ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "TransitiveDependencyWithDynamicFrameworksTest",
+    tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":basic_framework",
+        ":basic_framework_with_direct_dependency",
+    ],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_transitive_dependency_with_dynamic_frameworks",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "TransitiveDependencyWithDynamicFrameworksTest",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":basic_framework_with_transitive_dependency_with_dynamic_frameworks_lib",
+    ],
+)
+
 ios_dynamic_framework(
     name = "dynamic_framework_with_resources",
     bundle_id = "com.google.example.framework",
