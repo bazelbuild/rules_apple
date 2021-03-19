@@ -25,9 +25,6 @@ import subprocess
 import sys
 import zipfile
 
-_PY3 = sys.version_info[0] == 3
-assert _PY3
-
 
 class ClangRuntimeToolError(RuntimeError):
   """Raised for all errors.
@@ -112,10 +109,9 @@ class ClangRuntimeTool(object):
     objdump_output = subprocess.check_output([
         "xcrun", "llvm-objdump", "-macho", "-private-headers", "-non-verbose",
         binary_path
-    ])
-    # The output is a byte string that requires decoding, we use UTF-8 and
-    # replace invalid characters.
-    objdump_output = objdump_output.decode("utf8", "replace")
+    ],
+                                             encoding="utf8",
+                                             errors="replace")
     objdump_output = [x.strip() for x in objdump_output.splitlines()]
     clang_lib_path, clang_libraries = self._get_xcode_clang_path_and_clang_libs(
         objdump_output)

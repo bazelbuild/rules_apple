@@ -143,8 +143,6 @@ satisfied, an error will be raised:
 # feed a stable input, the output might not be deterministic when run on
 # different machines and/or different macOS versions.
 
-from __future__ import absolute_import
-from __future__ import print_function
 import copy
 import datetime
 import json
@@ -152,9 +150,6 @@ import plistlib
 import re
 import subprocess
 import sys
-
-_PY3 = sys.version_info[0] == 3
-assert _PY3
 
 
 # Format strings for errors that are raised, exposed here to the tests

@@ -19,9 +19,6 @@ import re
 import subprocess
 import sys
 
-_PY3 = sys.version_info[0] == 3
-assert _PY3
-
 
 def execute_and_filter_output(cmd_args,
                               filtering=None,
@@ -66,18 +63,15 @@ def execute_and_filter_output(cmd_args,
       stdin=subprocess.PIPE,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
-      env=env)
+      env=env,
+      # The invoked tools don't specify what encoding they use, so for lack of a
+      # better option, just use utf8 with error replacement. This will replace
+      # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
+      # from raising.
+      encoding="utf8",
+      errors="replace")
   stdout, stderr = proc.communicate(input=inputstr)
   cmd_result = proc.returncode
-  # Decode the output for PY3 so that the output type matches
-  # the native string-literal type.
-  #
-  # The invoked tools don't specify what encoding they use, so for lack of a
-  # better option, just use utf8 with error replacement. This will replace
-  # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-  # from raising.
-  stdout = stdout.decode("utf8", "replace")
-  stderr = stderr.decode("utf8", "replace")
 
   if (stdout or stderr) and filtering:
     if not callable(filtering):

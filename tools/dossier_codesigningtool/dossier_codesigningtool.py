@@ -16,9 +16,6 @@ Provides functionality to generate codesigning dossiers from bundles, and sign
 bundles using codesigning dossiers.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 import argparse
 import json
 import os
@@ -32,9 +29,6 @@ import tempfile
 import uuid
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
-
-_PY3 = sys.version_info[0] == 3
-assert _PY3
 
 
 class DossierDirectory(object):
@@ -275,20 +269,22 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
   """
   command = (codesign_path, '-dvv', '--entitlements', ':-', bundle_path)
   process = subprocess.Popen(
-      command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      command,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      encoding='utf8',
+      errors='replace')
   output, stderr = process.communicate()
   if process.poll() != 0:
     raise OSError('Fail to extract entitlements from bundle: %s' % stderr)
   if not output:
     return None, None
-  stderr = stderr.decode('utf8', 'replace')
   signing_info = re.search(r'^Authority=(.*)$', str(stderr), re.MULTILINE)
   if signing_info:
     cert_authority = signing_info.group(1)
   else:
     cert_authority = None
   plist = plistlib.loads(output)
-  output = output.decode('utf8', 'replace')
   if not plist:
     return None, cert_authority
   output_file_name = unique_id + '.entitlements'
