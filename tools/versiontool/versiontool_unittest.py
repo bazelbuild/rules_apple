@@ -19,9 +19,6 @@ import json
 import sys
 import unittest
 
-_PY3 = sys.version_info[0] == 3
-assert _PY3
-
 from build_bazel_rules_apple.tools.versiontool import versiontool
 
 

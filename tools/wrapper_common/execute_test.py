@@ -13,19 +13,12 @@
 # limitations under the License.
 """Tests for wrapper_common.execute."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import contextlib
 import io
 import sys
 import unittest
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
-
-_PY3 = sys.version_info[0] == 3
-assert _PY3
 
 _INVALID_UTF8 = b'\xa0\xa1'
 

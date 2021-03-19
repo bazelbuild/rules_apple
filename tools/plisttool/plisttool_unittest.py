@@ -15,8 +15,6 @@
 
 """Tests for PlistTool."""
 
-from __future__ import absolute_import
-
 import datetime
 import io
 import json

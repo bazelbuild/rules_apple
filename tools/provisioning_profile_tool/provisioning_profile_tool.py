@@ -39,8 +39,6 @@ import plistlib
 import subprocess
 import sys
 
-_PY3 = sys.version_info[0] == 3
-assert _PY3
 
 UNKNOWN_CONTROL_KEYS_MSG = (
     'Target "%s" used a control structure with unknown key(s): %s'
