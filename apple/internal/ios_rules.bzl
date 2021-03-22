@@ -698,7 +698,7 @@ def _ios_bundle_impl(ctx):
         ),
     ]
 
-    if platform_prerequisites.platform.is_device:
+    if ctx.file.provisioning_profile:
         processor_partials.append(
             partials.provisioning_profile_partial(
                 actions = actions,

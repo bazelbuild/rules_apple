@@ -270,6 +270,7 @@ _RULE_TYPE_DESCRIPTORS = {
             deps_cfg = apple_common.multi_arch_split,
             mandatory_families = True,
             product_type = apple_product_type.bundle,
+            requires_signing_for_device = False,
             rpaths = [
                 # Bundle binaries are loaded from the executable location and application binaries
                 # live in Application.app/Application
