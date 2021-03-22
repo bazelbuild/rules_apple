@@ -184,6 +184,11 @@ def _framework_import_partial_impl(
         if provisioning_profile:
             input_files.append(provisioning_profile)
             execution_requirements = {"no-sandbox": "1"}
+            if platform_prerequisites.platform.is_device:
+                # Added so that the output of this action is not cached
+                # remotely, in case multiple developers sign the same artifact
+                # with different identities.
+                execution_requirements["no-remote"] = "1"
 
         transitive_inputs = [
             resolved_imported_dynamic_framework_processor.inputs,
