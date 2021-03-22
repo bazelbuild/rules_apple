@@ -619,6 +619,12 @@ the application bundle.
         })
     elif rule_descriptor.product_type == apple_product_type.app_clip:
         attrs.append({
+            "bundles": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, IosBundleBundleInfo],
+                ],
+                doc = "A list of iOS loadable bundles to include in the final application bundle.",
+            ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],
                 doc = """
@@ -657,6 +663,13 @@ Info.plist under the key `UILaunchStoryboardName`.
                 mandatory = False,
                 doc = """
 The directiory within the packaging bundle that this bundle should be placed.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
 """,
             ),
         })
