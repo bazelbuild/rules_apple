@@ -199,25 +199,6 @@ AppleTestRunnerInfo provider.
     ),
 }
 
-_EXTENSION_PROVIDES_MAIN_ATTRS = {
-    "provides_main": attr.bool(
-        default = False,
-        doc = """
-A value indicating whether one of this extension's dependencies provides a `main` entry point.
-
-This is false by default, because most app extensions provide their implementation by specifying a
-principal class or main storyboard in their `Info.plist` file, and the executable's entry point is
-actually in a system framework that delegates to it.
-
-However, some modern extensions (such as SwiftUI widget extensions introduced in iOS 14 and macOS
-11) use the `@main` attribute to identify their primary type, which generates a traditional `main`
-function that passes control to that type. For these extensions, this attribute should be set to
-true.
-""",
-        mandatory = False,
-    ),
-}
-
 def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     deps_aspects = [
         apple_common.objc_proto_aspect,
@@ -441,6 +422,16 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
             ),
         })
 
+    if rule_descriptor.has_alternate_icons:
+        attrs.append({
+            "alternate_icons": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the alternate app icons for the application. Each file must have a containing directory
+named after the alternate icon identifier.""",
+            ),
+        })
+
     if rule_descriptor.has_launch_images:
         attrs.append({
             "launch_images": attr.label_list(
@@ -643,8 +634,6 @@ Info.plist under the key `UILaunchStoryboardName`.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
-    elif rule_descriptor.product_type == apple_product_type.app_extension:
-        attrs.append(_EXTENSION_PROVIDES_MAIN_ATTRS)
     elif _is_test_product_type(rule_descriptor.product_type):
         required_providers = [
             [AppleBundleInfo, IosApplicationBundleInfo],
@@ -766,9 +755,6 @@ set, then the default extension is determined by the application's product_type.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
             ),
         })
-
-    elif rule_descriptor.product_type == apple_product_type.app_extension:
-        attrs.append(_EXTENSION_PROVIDES_MAIN_ATTRS)
 
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle

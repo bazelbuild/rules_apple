@@ -232,6 +232,7 @@ def _bundle_partial_outputs_files(
         label_name,
         partial_outputs,
         platform_prerequisites,
+        provisioning_profile,
         output_file,
         rule_descriptor):
     """Invokes bundletool to bundle the files specified by the partial outputs.
@@ -250,6 +251,7 @@ def _bundle_partial_outputs_files(
       partial_outputs: List of partial outputs from which to collect the files
         that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: File for the provisioning profile.
       output_file: The file where the final zipped bundle should be created.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
     """
@@ -407,18 +409,23 @@ def _bundle_partial_outputs_files(
         if post_processor:
             bundling_tools.append(post_processor)
 
+        execution_requirements = {
+            # Unsure, but may be needed for keychain access, especially for
+            # files that live in $HOME.
+            "no-sandbox": "1",
+        }
+
+        if platform_prerequisites.platform.is_device and provisioning_profile:
+            # Added so that the output of this action is not cached remotely,
+            # in case multiple developers sign the same artifact with different
+            # identities.
+            execution_requirements["no-remote"] = "1"
+
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             executable = resolved_bundletool.executable,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-remote": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
+            execution_requirements = execution_requirements,
             inputs = depset(bundletool_inputs, transitive = [
                 resolved_bundletool.inputs,
                 resolved_codesigningtool.inputs,
@@ -528,6 +535,7 @@ def _bundle_post_process_and_sign(
             label_name = rule_label.name,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
             output_file = output_archive,
             rule_descriptor = rule_descriptor,
         )
@@ -553,6 +561,7 @@ def _bundle_post_process_and_sign(
             label_name = rule_label.name,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
             output_file = unprocessed_archive,
             rule_descriptor = rule_descriptor,
         )
@@ -622,6 +631,7 @@ def _bundle_post_process_and_sign(
                 label_name = rule_label.name,
                 partial_outputs = partial_outputs,
                 platform_prerequisites = platform_prerequisites,
+                provisioning_profile = provisioning_profile,
                 output_file = unprocessed_embedded_archive,
                 rule_descriptor = rule_descriptor,
             )

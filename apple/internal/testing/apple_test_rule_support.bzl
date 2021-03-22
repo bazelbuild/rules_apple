@@ -43,6 +43,9 @@ if when coverage collecting is enabled.
     },
 )
 
+# Key to extract all values for inserting into the binary at load time.
+INSERT_LIBRARIES_KEY = "DYLD_INSERT_LIBRARIES"
+
 def _coverage_files_aspect_impl(target, ctx):
     """Implementation for the `coverage_files_aspect` aspect."""
 
@@ -133,11 +136,7 @@ def _apple_test_rule_impl(ctx, test_type):
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
-    test_environment = dicts.add(
-        ctx.configuration.test_env,
-        ctx.attr.env,
-        getattr(runner, "test_environment", {}),
-    )
+    test_environment = _get_simulator_test_environment(ctx, runner)
 
     # Environment variables for the Bazel test action itself.
     execution_environment = dict(getattr(runner, "execution_environment", {}))
@@ -214,3 +213,45 @@ def _apple_test_rule_impl(ctx, test_type):
 apple_test_rule_support = struct(
     apple_test_rule_impl = _apple_test_rule_impl,
 )
+
+def _get_simulator_test_environment(ctx, runner):
+    """Returns the test environment for the current process running in the simulator
+
+    All DYLD_INSERT_LIBRARIES key-value pairs are merged from the command-line, test
+    rule and test runner.
+    """
+
+    # Get mutable copies of the different test environment dicts.
+    command_line_test_env = dicts.add(ctx.configuration.test_env)
+    rule_test_env = dicts.add(ctx.attr.env)
+    runner_test_env = dicts.add(getattr(runner, "test_environment", {}))
+
+    # Combine all DYLD_INSERT_LIBRARIES values in a list ordered as per the source:
+    # 1. Command line test-env
+    # 2. Test Rule test-env
+    # 3. Test Runner test-env
+    insert_libraries_values = []
+    command_line_values = command_line_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
+    if command_line_values:
+        insert_libraries_values.append(command_line_values)
+    rule_values = rule_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
+    if rule_values:
+        insert_libraries_values.append(rule_values)
+    runner_values = runner_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
+    if runner_values:
+        insert_libraries_values.append(runner_values)
+
+    # Combine all DYLD_INSERT_LIBRARIES values in a single string separated by ":" and then save it
+    # to a dict to be combined with other test_env pairs.
+    insert_libraries_values_joined = ":".join(insert_libraries_values)
+    test_env_dyld_insert_pairs = {}
+    if insert_libraries_values_joined:
+        test_env_dyld_insert_pairs = {INSERT_LIBRARIES_KEY: insert_libraries_values_joined}
+
+    # Combine all the environments with the DYLD_INSERT_LIBRARIES values merged together.
+    return dicts.add(
+        command_line_test_env,
+        rule_test_env,
+        runner_test_env,
+        test_env_dyld_insert_pairs,
+    )

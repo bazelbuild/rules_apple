@@ -1,14 +1,10 @@
-load("//tools:py2and3_test.bzl", "py2and3_test")
-
 licenses(["notice"])
 
 py_library(
     name = "execute",
     srcs = ["execute.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = [
-        "//apple/internal:__pkg__",
-        "//test/testdata/fmwk:__pkg__",
         "//tools/bitcode_strip:__pkg__",
         "//tools/codesigningtool:__pkg__",
         "//tools/dossier_codesigningtool:__pkg__",
@@ -17,9 +13,10 @@ py_library(
     ],
 )
 
-py2and3_test(
+py_test(
     name = "execute_test",
     srcs = ["execute_test.py"],
+    python_version = "PY3",
     deps = [
         ":execute",
         "//:py_init_shim",
@@ -29,7 +26,7 @@ py2and3_test(
 py_library(
     name = "lipo",
     srcs = ["lipo.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = [
         "//tools:__subpackages__",
     ],

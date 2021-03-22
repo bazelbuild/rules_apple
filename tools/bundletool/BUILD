@@ -1,11 +1,10 @@
-load("//tools:py2and3_test.bzl", "py2and3_test")
-
 licenses(["notice"])
 
 py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
     python_version = "PY3",
+    srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
@@ -15,21 +14,23 @@ py_binary(
 py_library(
     name = "bundletool_lib",
     srcs = ["bundletool.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
 )
 
 py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
     python_version = "PY3",
+    srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
     ],
 )
 
-py2and3_test(
+py_test(
     name = "bundletool_unittest",
     srcs = ["bundletool_unittest.py"],
+    python_version = "PY3",
     deps = [
         ":bundletool_lib",
         "//:py_init_shim",

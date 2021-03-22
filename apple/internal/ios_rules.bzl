@@ -100,6 +100,7 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
     top_level_attrs = [
+        "alternate_icons",
         "app_icons",
         "launch_images",
         "launch_storyboard",
@@ -921,8 +922,6 @@ def _ios_extension_impl(ctx):
     ]
 
     extra_linkopts = []
-    if not ctx.attr.provides_main:
-        extra_linkopts.extend(["-e", "_NSExtensionMain"])
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
@@ -1280,6 +1279,18 @@ def _ios_dynamic_framework_impl(ctx):
     )
 
     providers = processor_result.providers
+
+    additional_providers = []
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            # Make the ObjC provider using the framework_files depset found
+            # in the AppleDynamicFramework provider. This is to make the
+            # ios_dynamic_framework usable as a dependency in swift_library
+            objc_provider = apple_common.new_objc_provider(
+                dynamic_framework_file = provider.framework_files
+            )
+            additional_providers.append(objc_provider)
+    providers.extend(additional_providers)
 
     return [
         DefaultInfo(files = processor_result.output_files),

@@ -14,6 +14,7 @@ licenses(["notice"])
 
 apple_support_toolchain(
     name = "toolchain_support",
+    alticonstool = "//tools/alticonstool",
     bundletool = "//tools/bundletool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
@@ -41,6 +42,7 @@ bzl_library(
     deps = [
         ":resources",
         "//apple:utils",
+        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

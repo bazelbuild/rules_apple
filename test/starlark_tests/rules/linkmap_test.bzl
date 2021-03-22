@@ -48,17 +48,20 @@ def _linkmap_test_impl(ctx):
     target_name = target_under_test.label.name
     linkmap_name = "{}_{}.linkmap".format(target_name, architecture)
 
-    expected_linkmaps = [paths.join(package, linkmap_name)]
+    expected_linkmap = paths.join(package, linkmap_name)
 
-    for expected in expected_linkmaps:
-        asserts.true(
-            env,
-            expected in outputs,
-            msg = "Expected\n\n{0}\n\nto be built. Contents were:\n\n{1}\n\n".format(
-                expected,
-                "\n".join(outputs.keys()),
-            ),
-        )
+    workspace = target_under_test.label.workspace_name
+    if workspace != "":
+        expected_linkmap = paths.join("..", workspace, expected_linkmap)
+
+    asserts.true(
+        env,
+        expected_linkmap in outputs,
+        msg = "Expected\n\n{0}\n\nto be built. Contents were:\n\n{1}\n\n".format(
+            expected_linkmap,
+            "\n".join(outputs.keys()),
+        ),
+    )
 
     return analysistest.end(env)
 

@@ -131,6 +131,28 @@ def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
     )
 
     archive_contents_test(
+        name = "{}_symbols_from_shared_library_not_in_framework_with_dynamic_framework_dependency".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_dynamic_framework_dependency",
+        binary_test_file = "$BUNDLE_ROOT/DirectDependencyWithDynamicFrameworkTest",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_$s40DirectDependencyWithDynamicFrameworkTestMXM"],
+        binary_not_contains_symbols = ["_$s14BasicFrameworkAAC10HelloWorldyyF"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_symbols_from_shared_library_not_in_framework_with_transitive_dependencies_and_dynamic_framework_dependencies".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_transitive_dependency_with_dynamic_frameworks",
+        binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyWithDynamicFrameworksTest",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_$s45TransitiveDependencyWithDynamicFrameworksTestMXM"],
+        binary_not_contains_symbols = ["_$s14BasicFrameworkAAC10HelloWorldyyF", "_$s40DirectDependencyWithDynamicFrameworkTestMXM"],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_app_includes_transitive_framework_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dynamic_framework_with_dynamic_framework",

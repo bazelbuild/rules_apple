@@ -457,6 +457,24 @@ def ios_application_resources_test_suite(name = "ios_application_resources"):
         tags = [name],
     )
 
+    # Test that an application with alternate icons properly embeds the icons PNGs and has the
+    # correct entries set in the Info.plist.
+    archive_contents_test(
+        name = "{}_with_alternate_icons".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon_one.png",
+            "$BUNDLE_ROOT/app_icon_two.png",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundleAlternateIcons:one:CFBundleIconFiles:0": "app_icon_one",
+            "CFBundleIcons:CFBundleAlternateIcons:two:CFBundleIconFiles:0": "app_icon_two",
+        },
+        tags = [name],
+    )
+
     # Tests that multiple references to a structured resource will be successfully deduplicated.
     archive_contents_test(
         name = "{}_with_multiple_refs_to_same_structured_resources_test".format(name),

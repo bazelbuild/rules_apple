@@ -1,4 +1,3 @@
-# Lint as: python2, python3
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +16,14 @@
 
 import io
 import json
+import sys
 import unittest
 
-try:
-  import StringIO  # Doesn't exist in Python 3
-except ImportError:
-  StringIO = None
+_PY3 = sys.version_info[0] == 3
+assert _PY3
 
 from build_bazel_rules_apple.tools.versiontool import versiontool
 
-
-def _str_io(*args, **kwargs):
-  """Helper for PY2/Py3 StringIO"""
-  if StringIO:
-    return StringIO.StringIO(*args, **kwargs)
-  return io.StringIO(*args, **kwargs)
 
 class VersionToolTest(unittest.TestCase):
 
@@ -66,59 +58,62 @@ class VersionToolTest(unittest.TestCase):
     })
 
   def test_build_label_substitution(self):
-    self._assert_versiontool_result({
-        'build_info_path': _str_io(
-            'BUILD_EMBED_LABEL app_3.1_RC41'
-        ),
-        'build_label_pattern': 'app_{version}_RC{candidate}',
-        'build_version_pattern': '{version}.{candidate}',
-        'capture_groups': {
-            'version': r'\d+\.\d+',
-            'candidate': r'\d+',
-        },
-        'short_version_string_pattern': '{version}',
-    }, {
-        'build_version': '3.1.41',
-        'short_version_string': '3.1',
-    })
+    self._assert_versiontool_result(
+        {
+            'build_info_path': io.StringIO('BUILD_EMBED_LABEL app_3.1_RC41'),
+            'build_label_pattern': 'app_{version}_RC{candidate}',
+            'build_version_pattern': '{version}.{candidate}',
+            'capture_groups': {
+                'version': r'\d+\.\d+',
+                'candidate': r'\d+',
+            },
+            'short_version_string_pattern': '{version}',
+        }, {
+            'build_version': '3.1.41',
+            'short_version_string': '3.1',
+        })
 
   def test_build_label_substitution_multiline_input(self):
-    self._assert_versiontool_result({
-        'build_info_path': _str_io(
-            '\n'.join([
-              'FOO BAR',
-              'BUILD_EMBED_LABEL app_3.1_RC41',
-              '3 4',
-            ])
-        ),
-        'build_label_pattern': 'app_{version}_RC{candidate}',
-        'build_version_pattern': '{version}.{candidate}',
-        'capture_groups': {
-            'version': r'\d+\.\d+',
-            'candidate': r'\d+',
-        },
-        'short_version_string_pattern': '{version}',
-    }, {
-        'build_version': '3.1.41',
-        'short_version_string': '3.1',
-    })
+    self._assert_versiontool_result(
+        {
+            'build_info_path':
+                io.StringIO('\n'.join([
+                    'FOO BAR',
+                    'BUILD_EMBED_LABEL app_3.1_RC41',
+                    '3 4',
+                ])),
+            'build_label_pattern':
+                'app_{version}_RC{candidate}',
+            'build_version_pattern':
+                '{version}.{candidate}',
+            'capture_groups': {
+                'version': r'\d+\.\d+',
+                'candidate': r'\d+',
+            },
+            'short_version_string_pattern':
+                '{version}',
+        }, {
+            'build_version': '3.1.41',
+            'short_version_string': '3.1',
+        })
 
   def test_result_is_empty_if_label_is_missing_but_pattern_was_provided(self):
-    self._assert_versiontool_result({
-        'build_info_path': _str_io(),
-        'build_label_pattern': 'app_{version}_RC{candidate}',
-        'build_version_pattern': '{version}.{candidate}',
-        'capture_groups': {
-            'version': r'\d+\.\d+',
-            'candidate': r'\d+',
-        },
-        'short_version_string_pattern': '{version}',
-    }, {})
+    self._assert_versiontool_result(
+        {
+            'build_info_path': io.StringIO(),
+            'build_label_pattern': 'app_{version}_RC{candidate}',
+            'build_version_pattern': '{version}.{candidate}',
+            'capture_groups': {
+                'version': r'\d+\.\d+',
+                'candidate': r'\d+',
+            },
+            'short_version_string_pattern': '{version}',
+        }, {})
 
   def test_build_label_substitution_from_fallback_label(self):
     self._assert_versiontool_result(
         {
-            'build_info_path': _str_io('FOO 123'),
+            'build_info_path': io.StringIO('FOO 123'),
             'fallback_build_label': 'app_99.99_RC99',
             'build_label_pattern': 'app_{version}_RC{candidate}',
             'build_version_pattern': '{version}.{candidate}',
@@ -133,29 +128,26 @@ class VersionToolTest(unittest.TestCase):
         })
 
   def test_build_label_substitution_uses_file_over_fallback_label(self):
-    self._assert_versiontool_result({
-        'build_info_path': _str_io(
-            'BUILD_EMBED_LABEL app_3.1_RC41',
-        ),
-        'fallback_build_label': 'app_99.99_RC99',
-        'build_label_pattern': 'app_{version}_RC{candidate}',
-        'build_version_pattern': '{version}.{candidate}',
-        'capture_groups': {
-            'version': r'\d+\.\d+',
-            'candidate': r'\d+',
-        },
-        'short_version_string_pattern': '{version}',
-    }, {
-        'build_version': '3.1.41',
-        'short_version_string': '3.1',
-    })
+    self._assert_versiontool_result(
+        {
+            'build_info_path': io.StringIO('BUILD_EMBED_LABEL app_3.1_RC41',),
+            'fallback_build_label': 'app_99.99_RC99',
+            'build_label_pattern': 'app_{version}_RC{candidate}',
+            'build_version_pattern': '{version}.{candidate}',
+            'capture_groups': {
+                'version': r'\d+\.\d+',
+                'candidate': r'\d+',
+            },
+            'short_version_string_pattern': '{version}',
+        }, {
+            'build_version': '3.1.41',
+            'short_version_string': '3.1',
+        })
 
   def test_raises_if_label_is_present_but_does_not_match(self):
     with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
-          'build_info_path': _str_io(
-              'BUILD_EMBED_LABEL app_3.1_RC41',
-          ),
+          'build_info_path': io.StringIO('BUILD_EMBED_LABEL app_3.1_RC41',),
           'build_label_pattern': 'app_{version}_RC{candidate}',
           'build_version_pattern': '{version}.{candidate}',
           'capture_groups': {
@@ -168,7 +160,7 @@ class VersionToolTest(unittest.TestCase):
   def test_raises_if_fallback_label_is_present_but_does_not_match(self):
     with self.assertRaises(versiontool.VersionToolError) as context:
       versiontool.VersionTool({
-          'build_info_path': _str_io('FOO 123'),
+          'build_info_path': io.StringIO('FOO 123'),
           'fallback_build_label': 'app_3.1_RC41',
           'build_label_pattern': 'app_{version}_RC{candidate}',
           'build_version_pattern': '{version}.{candidate}',

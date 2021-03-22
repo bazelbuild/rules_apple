@@ -471,6 +471,19 @@ def _tvos_dynamic_framework_impl(ctx):
         rule_label = label,
     )
 
+    providers = processor_result.providers
+    additional_providers = []
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            # Make the ObjC provider using the framework_files depset found
+            # in the AppleDynamicFramework provider. This is to make the
+            # tvos_dynamic_framework usable as a dependency in swift_library
+            objc_provider = apple_common.new_objc_provider(
+                dynamic_framework_file = provider.framework_files
+            )
+            additional_providers.append(objc_provider)
+    providers.extend(additional_providers)
+
     return [
         DefaultInfo(files = processor_result.output_files),
         OutputGroupInfo(
@@ -480,7 +493,7 @@ def _tvos_dynamic_framework_impl(ctx):
             )
         ),
         TvosFrameworkBundleInfo(),
-    ] + processor_result.providers
+    ] + providers
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""

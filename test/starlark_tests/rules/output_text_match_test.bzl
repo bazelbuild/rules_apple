@@ -18,6 +18,10 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 
 def _output_text_match_test_impl(ctx):
     """Implementation of the `output_text_match_test` rule."""
@@ -49,10 +53,14 @@ def _output_text_match_test_impl(ctx):
 
     # Generate a script that uses the regex matching assertions from
     # unittest.bash to verify the matches (or not-matches) in the outputs.
+    unittest_bash_path = "test/unittest.bash"
+    workspace = target_under_test.label.workspace_name
+    if workspace != "":
+        unittest_bash_path = paths.join("..", workspace, unittest_bash_path)
     generated_script = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
-        "source test/unittest.bash",
+        "source {}".format(unittest_bash_path),
     ]
     for path_suffix, patterns in ctx.attr.files_match.items():
         for pattern in patterns:

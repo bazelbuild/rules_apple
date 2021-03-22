@@ -59,6 +59,17 @@ def _dsyms_test_impl(ctx):
             for x in ctx.attr.expected_dsyms
         ]
 
+    workspace = target_under_test.label.workspace_name
+    if workspace != "":
+        expected_infoplists = [
+            paths.join("..", workspace, x)
+            for x in expected_infoplists
+        ]
+        expected_binaries = [
+            paths.join("..", workspace, x)
+            for x in expected_binaries
+        ]
+
     for expected in expected_infoplists + expected_binaries:
         asserts.true(
             env,

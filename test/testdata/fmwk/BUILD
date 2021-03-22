@@ -19,6 +19,9 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+# Export the script in support of generate_import_framework.bzl.
+exports_files(["generate_framework.py"])
+
 apple_dynamic_framework_import(
     name = "iOSImportedDynamicFramework",
     framework_imports = [":iOSDynamicFramework"],
@@ -74,13 +77,6 @@ filegroup(
         "generate_framework.py",
         "generate_framework_dsym.bzl",
     ],
-)
-
-py_binary(
-    name = "generate_framework",
-    srcs = ["generate_framework.py"],
-    python_version = "PY3",
-    deps = ["//tools/wrapper_common:execute"],
 )
 
 generate_import_framework(
