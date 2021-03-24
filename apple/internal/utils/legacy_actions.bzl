@@ -14,11 +14,6 @@
 
 """Actions that cover historical needs as things migrate."""
 
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-
 def _add_dicts(*dictionaries):
     """Adds a list of dictionaries into a single dictionary."""
 
@@ -44,9 +39,6 @@ def _kwargs_for_apple_platform(
     # This is where things differ from apple_support.
     platform = platform_prerequisites.platform
     xcode_config = platform_prerequisites.xcode_version_config
-    action_execution_requirements = apple_support.action_required_execution_requirements(
-        xcode_config = xcode_config,
-    )
 
     env_dicts.append(apple_common.apple_host_system_env(xcode_config))
     env_dicts.append(apple_common.target_apple_env(xcode_config, platform))
@@ -57,7 +49,7 @@ def _kwargs_for_apple_platform(
         execution_requirement_dicts.append(original_execution_requirements)
 
     # Add the action execution requirements last to avoid clients overriding this value.
-    execution_requirement_dicts.append(action_execution_requirements)
+    execution_requirement_dicts.append(xcode_config.execution_info())
 
     processed_args["env"] = _add_dicts(*env_dicts)
     processed_args["execution_requirements"] = _add_dicts(*execution_requirement_dicts)

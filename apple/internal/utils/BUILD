@@ -34,7 +34,6 @@ bzl_library(
     ],
     deps = [
         "@bazel_skylib//lib:types",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
