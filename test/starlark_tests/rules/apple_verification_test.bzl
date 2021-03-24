@@ -23,10 +23,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
@@ -166,9 +162,14 @@ def _apple_verification_test_impl(ctx):
         for num, value in enumerate(ctx.attr.env[key]):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
 
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     return [
-        testing.ExecutionInfo(apple_support.action_required_execution_requirements(ctx)),
-        testing.TestEnvironment(dicts.add(apple_support.action_required_env(ctx), test_env)),
+        testing.ExecutionInfo(xcode_config.execution_info()),
+        testing.TestEnvironment(dicts.add(
+            apple_common.apple_host_system_env(xcode_config),
+            test_env,
+        )),
         DefaultInfo(
             executable = output_script,
             runfiles = ctx.runfiles(
@@ -180,7 +181,7 @@ def _apple_verification_test_impl(ctx):
 
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
+    attrs = {
         "apple_bitcode": attr.string(
             mandatory = False,
             default = "none",
@@ -251,7 +252,13 @@ into a bash array.
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
-    }),
+        "_xcode_config": attr.label(
+            default = configuration_field(
+                name = "xcode_config_label",
+                fragment = "apple",
+            ),
+        ),
+    },
     test = True,
     fragments = ["apple"],
 )
