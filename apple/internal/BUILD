@@ -117,6 +117,7 @@ bzl_library(
         "//apple/internal/utils:legacy_actions",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
