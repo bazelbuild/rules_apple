@@ -378,7 +378,6 @@ def _ios_app_clip_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-    embeddable_targets = ctx.attr.frameworks
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
