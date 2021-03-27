@@ -144,6 +144,14 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "ios_bundle_test",
+    size = "medium",
+    src = "ios_bundle_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+    shard_count = 3,
+)
+
+apple_multi_shell_test(
     name = "ios_application_resources_test",
     size = "large",
     src = "ios_application_resources_test.sh",
