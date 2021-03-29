@@ -371,19 +371,18 @@ def _ios_app_clip_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    executable_name = bundling_support.executable_name(ctx)
-    embeddable_targets = ctx.attr.frameworks
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
     entitlements = entitlements_support.entitlements(
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    executable_name = bundling_support.executable_name(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
