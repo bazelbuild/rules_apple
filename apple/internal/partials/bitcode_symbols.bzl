@@ -15,8 +15,8 @@
 """Partial implementation for bitcode symbol file processing."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -77,14 +77,15 @@ def _bitcode_symbols_partial_impl(
             bitcode_dir = intermediates.directory(actions, label_name, "bitcode_files")
             bitcode_dirs.append(bitcode_dir)
 
-            legacy_actions.run_shell(
+            apple_support.run_shell(
                 actions = actions,
+                apple_fragment = platform_prerequisites.apple_fragment,
                 inputs = [binary_artifact] + bitcode_files,
                 outputs = [bitcode_dir],
                 command = "mkdir -p ${OUTPUT_DIR} && " + " && ".join(copy_commands),
                 env = {"OUTPUT_DIR": bitcode_dir.path},
                 mnemonic = "BitcodeSymbolsCopy",
-                platform_prerequisites = platform_prerequisites,
+                xcode_config = platform_prerequisites.xcode_version_config,
             )
 
     transitive_bitcode_files = depset(

@@ -115,7 +115,6 @@ bzl_library(
         ":intermediates",
         ":rule_support",
         "//apple/internal/utils:defines",
-        "//apple/internal/utils:legacy_actions",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
         "@build_bazel_apple_support//lib:apple_support",
@@ -161,8 +160,8 @@ bzl_library(
     deps = [
         ":platform_support",
         ":rule_factory",
-        "//apple/internal/utils:legacy_actions",
         "@bazel_skylib//lib:dicts",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -454,7 +453,7 @@ bzl_library(
     ],
     deps = [
         ":intermediates",
-        "//apple/internal/utils:legacy_actions",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
