@@ -15,8 +15,8 @@
 """IBTool related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
@@ -88,16 +88,17 @@ def compile_storyboard(
         xctoolrunner.prefixed_path(input_file.path),
     ])
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
         arguments = args,
+        apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardCompile",
         outputs = [output_dir],
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 def link_storyboards(
@@ -136,16 +137,17 @@ def link_storyboards(
         for f in storyboardc_dirs
     ])
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
         arguments = args,
+        apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
         inputs = depset(storyboardc_dirs, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardLink",
         outputs = [output_dir],
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 def compile_xib(
@@ -185,14 +187,15 @@ def compile_xib(
         xctoolrunner.prefixed_path(input_file.path),
     ])
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
         arguments = args,
+        apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "XibCompile",
         outputs = [output_dir],
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )

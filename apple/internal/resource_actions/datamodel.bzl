@@ -15,8 +15,8 @@
 """Datamodel related actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
@@ -57,15 +57,16 @@ def compile_datamodels(
         xctoolrunner.prefixed_path(output_file.path),
     ]
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         executable = resolved_xctoolrunner.executable,
         inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MomCompile",
         outputs = [output_file],
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 def compile_mappingmodel(
@@ -92,13 +93,14 @@ def compile_mappingmodel(
         xctoolrunner.prefixed_path(output_file.path),
     ]
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
         arguments = args,
+        apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MappingModelCompile",
         outputs = [output_file],
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )

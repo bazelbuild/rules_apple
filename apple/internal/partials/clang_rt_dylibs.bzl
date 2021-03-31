@@ -23,8 +23,8 @@ load(
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -65,8 +65,9 @@ def _clang_rt_dylibs_partial_impl(
         )
 
         resolved_clangrttool = apple_toolchain_info.resolved_clangrttool
-        legacy_actions.run(
+        apple_support.run(
             actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [
                 binary_artifact.path,
                 clang_rt_zip.path,
@@ -78,7 +79,7 @@ def _clang_rt_dylibs_partial_impl(
             input_manifests = resolved_clangrttool.input_manifests,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
-            platform_prerequisites = platform_prerequisites,
+            xcode_config = platform_prerequisites.xcode_version_config,
         )
 
         bundle_zips.append(
