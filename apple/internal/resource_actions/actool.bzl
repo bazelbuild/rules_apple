@@ -23,8 +23,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
@@ -267,16 +267,17 @@ def compile_asset_catalog(
 
     args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
-    legacy_actions.run(
+    apple_support.run(
         actions = actions,
         arguments = args,
+        apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
         inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "AssetCatalogCompile",
         outputs = actool_outputs,
-        platform_prerequisites = platform_prerequisites,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     if alternate_icons:

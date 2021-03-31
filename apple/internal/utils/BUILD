@@ -27,17 +27,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "legacy_actions",
-    srcs = ["legacy_actions.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "@bazel_skylib//lib:types",
-    ],
-)
-
-bzl_library(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.bzl"],
     visibility = [
