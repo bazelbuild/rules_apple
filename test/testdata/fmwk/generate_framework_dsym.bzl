@@ -103,7 +103,7 @@ def _generate_import_framework_dsym_impl(ctx):
 
     # Write dSYM bundle's Info.plist
     dsym_info_plist = ctx.actions.declare_file(
-        paths.join(dsym_dir_name, "Contents", "Info.plist")
+        paths.join(dsym_dir_name, "Contents", "Info.plist"),
     )
     ctx.actions.write(
         content = _dsym_info_plist_content(framework_name),

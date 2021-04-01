@@ -393,20 +393,20 @@ swift_library(
 
 swift_library(
     name = "basic_framework_lib",
-    module_name = "BasicFramework",
     srcs = [
         "//test/starlark_tests/resources:BasicFramework.swift",
         "//test/starlark_tests/resources:main.swift",
     ],
-    visibility = ["//visibility:public"],
     features = ["swift.no_generated_module_map"],
+    module_name = "BasicFramework",
     tags = FIXTURE_TAGS,
+    visibility = ["//visibility:public"],
 )
 
 watchos_dynamic_framework(
     name = "basic_framework",
-    bundle_name = "BasicFramework",
     bundle_id = "com.google.example.framework",
+    bundle_name = "BasicFramework",
     infoplists = [
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
@@ -419,22 +419,22 @@ watchos_dynamic_framework(
 
 swift_library(
     name = "basic_framework_with_direct_dependency_lib",
-    module_name = "DirectDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:DirectDependencyTest.swift",
     ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "DirectDependencyTest",
+    tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
     ],
-    features = ["swift.no_generated_module_map"],
-    tags = FIXTURE_TAGS,
 )
 
 watchos_dynamic_framework(
     name = "basic_framework_with_direct_dependency",
-    bundle_name = "DirectDependencyTest",
     bundle_id = "com.google.example.framework",
+    bundle_name = "DirectDependencyTest",
     infoplists = [
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
@@ -447,23 +447,23 @@ watchos_dynamic_framework(
 
 swift_library(
     name = "basic_framework_with_transitive_dependency_lib",
-    module_name = "TransitiveDependencyTest",
     srcs = [
         "//test/starlark_tests/resources:TransitiveDependencyTest.swift",
     ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "TransitiveDependencyTest",
+    tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
         ":basic_framework_with_direct_dependency_lib",
     ],
-    features = ["swift.no_generated_module_map"],
-    tags = FIXTURE_TAGS,
 )
 
 watchos_dynamic_framework(
     name = "basic_framework_with_transitive_dependency",
-    bundle_name = "TransitiveDependencyTest",
     bundle_id = "com.google.example.framework",
+    bundle_name = "TransitiveDependencyTest",
     infoplists = [
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],

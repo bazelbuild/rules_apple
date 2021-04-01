@@ -31,7 +31,6 @@ filegroup(
     ],
 )
 
-
 # A convenience target that can be passed into the data attribute of an Apple
 # shell test to make the mlmodel file available to builds under test.
 filegroup(
