@@ -112,7 +112,7 @@ def _classify_framework_imports(config_vars, framework_imports):
             # by Bazel but they aren't processed in any way
             header_imports.append(file)
             continue
-        if file_short_path.endswith(".swiftdoc"):
+        if file_short_path.endswith((".swiftdoc", ".swiftsourceinfo")):
             # Ignore swiftdoc files, they don't matter in the build, only for IDEs
             continue
         bundling_imports.append(file)
