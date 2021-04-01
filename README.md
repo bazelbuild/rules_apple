@@ -1,4 +1,3 @@
-# Apple Rules for [Bazel](https://bazel.build)
 
 [![Build status](https://badge.buildkite.com/cecd8d6951d939c6814f043af2935158f0556cb6c5fef3cb75.svg?branch=master)](https://buildkite.com/bazel/rules-apple-darwin)
 
