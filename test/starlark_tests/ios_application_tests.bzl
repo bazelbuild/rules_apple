@@ -265,7 +265,7 @@ def ios_application_test_suite(name = "ios_application"):
         name = "{}_custom_executable_name_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
         expected_dsyms = ["custom_bundle_name.app"],
-        expected_binaries  = [
+        expected_binaries = [
             "custom_bundle_name.app.dSYM/Contents/Resources/DWARF/app.exe",
         ],
         tags = [name],

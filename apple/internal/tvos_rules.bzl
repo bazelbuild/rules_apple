@@ -479,7 +479,7 @@ def _tvos_dynamic_framework_impl(ctx):
             # in the AppleDynamicFramework provider. This is to make the
             # tvos_dynamic_framework usable as a dependency in swift_library
             objc_provider = apple_common.new_objc_provider(
-                dynamic_framework_file = provider.framework_files
+                dynamic_framework_file = provider.framework_files,
             )
             additional_providers.append(objc_provider)
     providers.extend(additional_providers)

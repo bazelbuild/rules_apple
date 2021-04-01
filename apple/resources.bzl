@@ -86,13 +86,13 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
     )
 
 def objc_intent_library(
-    name,
-    src,
-    class_prefix = None,
-    class_visibility = None,
-    testonly = False,
-    swift_version = None,
-    **kwargs):
+        name,
+        src,
+        class_prefix = None,
+        class_visibility = None,
+        testonly = False,
+        swift_version = None,
+        **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for intentdefiniton files."""
     intent_name = "{}.Intent".format(name)
@@ -135,13 +135,13 @@ def objc_intent_library(
 # that apple_intent_library could not be imported in rules_swift and thus this
 # macro must live here in rules_apple.
 def swift_intent_library(
-    name,
-    src,
-    class_prefix = None,
-    class_visibility = None,
-    swift_version = None,
-    testonly = False,
-    **kwargs):
+        name,
+        src,
+        class_prefix = None,
+        class_visibility = None,
+        swift_version = None,
+        testonly = False,
+        **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an swift_library with generated sources for intentdefiniton files."""
     intent_name = "{}.Intent".format(name)
@@ -160,5 +160,5 @@ def swift_intent_library(
         srcs = [intent_name],
         data = [src],
         testonly = testonly,
-        **kwargs,
+        **kwargs
     )

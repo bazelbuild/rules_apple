@@ -46,4 +46,3 @@ output_group_test = analysistest.make(
         ),
     },
 )
-

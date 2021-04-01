@@ -36,7 +36,6 @@ bzl_library(
     ],
 )
 
-
 bzl_library(
     name = "apple_core_ml_library",
     srcs = ["apple_core_ml_library.bzl"],
