@@ -95,6 +95,7 @@ function create_swift_static_framework() {
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "iOSSwiftStaticFrameworkLibrary",
+    generates_header = True,
     module_name = "iOSSwiftStaticFramework",
     srcs = ["@build_bazel_rules_apple//test/testdata/fmwk:swift_source"],
 )
