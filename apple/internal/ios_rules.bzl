@@ -287,8 +287,6 @@ def _ios_application_impl(ctx):
             ),
         )
 
-    print("ios_application ctx.files.codesign_inputs:", ctx.files.codesign_inputs)
-
     processor_result = processor.process(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
