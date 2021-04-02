@@ -282,7 +282,7 @@ def _entitlements_impl(ctx):
         explicit_minimum_os = None,
         features = ctx.features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        platform_type_string = ctx.attr.platform_type,
         uses_swift = uses_swift,
         xcode_path_wrapper = None,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
