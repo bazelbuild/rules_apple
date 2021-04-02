@@ -426,10 +426,9 @@ def _bundle_partial_outputs_files(
             apple_fragment = platform_prerequisites.apple_fragment,
             executable = resolved_bundletool.executable,
             execution_requirements = execution_requirements,
-            inputs = depset(
-                bundletool_inputs + codesign_inputs,
-                transitive = [resolved_bundletool.inputs, resolved_codesigningtool.inputs],
-            ),
+            inputs = depset(bundletool_inputs + codesign_inputs, transitive = [
+                resolved_bundletool.inputs, resolved_codesigningtool.inputs
+            ]),
             input_manifests = resolved_bundletool.input_manifests +
                               resolved_codesigningtool.input_manifests,
             mnemonic = "BundleTreeApp",
