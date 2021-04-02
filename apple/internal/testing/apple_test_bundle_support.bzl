@@ -396,6 +396,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,

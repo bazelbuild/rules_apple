@@ -979,6 +979,7 @@ substitution(
 ios_application(
     name = "app_with_codesignopts",
     bundle_id = "com.google.example",
+    codesign_inputs = [":resource_rules"],
     codesignopts = [
         "--digest-algorithm=sha1",
         "--digest-algorithm=sha384",

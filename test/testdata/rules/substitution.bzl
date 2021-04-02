@@ -2,6 +2,9 @@
 
 def _substitution_impl(ctx):
     return [
+        DefaultInfo(
+            files = depset([ctx.file.src]),
+        ),
         platform_common.TemplateVariableInfo({
             ctx.attr.var_name: ctx.file.src.path,
         }),

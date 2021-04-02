@@ -287,11 +287,14 @@ def _ios_application_impl(ctx):
             ),
         )
 
+    print("ios_application ctx.files.codesign_inputs:", ctx.files.codesign_inputs)
+
     processor_result = processor.process(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
@@ -508,6 +511,7 @@ def _ios_app_clip_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
@@ -720,6 +724,7 @@ def _ios_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
@@ -899,6 +904,7 @@ def _ios_extension_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
@@ -1215,6 +1221,7 @@ def _ios_static_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         executable_name = executable_name,
         entitlements = entitlements,
@@ -1523,6 +1530,7 @@ def _ios_imessage_extension_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,

@@ -519,6 +519,7 @@ def _post_process_and_sign_archive_action(
         *,
         actions,
         archive_codesigning_path,
+        codesign_inputs,
         codesignopts,
         entitlements = None,
         frameworks_path,
@@ -538,7 +539,8 @@ def _post_process_and_sign_archive_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
-      codesignopts: Extra options to pass to the `codesign` tool
+      codesign_inputs: Extra inputs needed for the `codesign` tool.
+      codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
@@ -658,7 +660,10 @@ def _post_process_and_sign_archive_action(
             arguments = arguments,
             executable = process_and_sign_expanded_template,
             execution_requirements = execution_requirements,
-            inputs = depset(input_files, transitive = [resolved_codesigningtool.inputs]),
+            inputs = depset(
+                input_files + codesign_inputs,
+                transitive = [resolved_codesigningtool.inputs],
+            ),
             input_manifests = resolved_codesigningtool.input_manifests,
             mnemonic = mnemonic,
             outputs = [output_archive],
@@ -679,6 +684,7 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
+        codesign_inputs,
         codesignopts,
         input_binary,
         output_binary,
@@ -690,7 +696,8 @@ def _sign_binary_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      codesignopts: Extra options to pass to the `codesign` tool
+      codesign_inputs: Extra inputs needed for the `codesign` tool.
+      codesignopts: Extra options to pass to the `codesign` tool.
       input_binary: The `File` representing the binary to be signed.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -735,7 +742,10 @@ def _sign_binary_action(
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
         execution_requirements = execution_requirements,
-        inputs = depset([input_binary], transitive = [resolved_codesigningtool.inputs]),
+        inputs = depset(
+            [input_binary] + codesign_inputs,
+            transitive = [resolved_codesigningtool.inputs],
+        ),
         input_manifests = resolved_codesigningtool.input_manifests,
         mnemonic = "SignBinary",
         outputs = [output_binary],
