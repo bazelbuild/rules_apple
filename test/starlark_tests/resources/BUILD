@@ -153,6 +153,7 @@ swift_library(
 swift_library(
     name = "swift_framework_lib",
     srcs = ["//test/testdata/sources:main.swift"],
+    generates_header = True,
     module_name = "swift_framework_lib",
     tags = FIXTURE_TAGS,
 )
