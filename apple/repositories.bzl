@@ -109,9 +109,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
     _maybe(
         http_archive,
         name = "build_bazel_apple_support",
-        sha256 = "a1926bbc5bbb86d596ee1e9c307e22c9a0305053e46057cf186d015b09b3c5f2",
+        sha256 = "741366f79d900c11e11d8efd6cc6c66a31bfb2451178b58e0b5edc6f1db17b35",
         urls = [
-            "https://github.com/bazelbuild/apple_support/releases/download/0.9.2/apple_support.0.9.2.tar.gz",
+            "https://github.com/bazelbuild/apple_support/releases/download/0.10.0/apple_support.0.10.0.tar.gz",
         ],
         ignore_version_differences = ignore_version_differences,
     )
@@ -120,9 +120,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "build_bazel_rules_swift",
         urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/0.19.0/rules_swift.0.19.0.tar.gz",
+            "https://github.com/bazelbuild/rules_swift/releases/download/0.20.0/rules_swift.0.20.0.tar.gz",
         ],
-        sha256 = "be80375680b2553a8b318ffd02ce916a7e1d9060ccad3e7c50f543caafb86fed",
+        sha256 = "a525d254b0323380b7abe7cbbe03534167f0fcb45f44f7d16cdd4d7d057b8f8d",
         ignore_version_differences = ignore_version_differences,
     )
 
