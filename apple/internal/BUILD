@@ -286,6 +286,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":transition_support",
         "//apple:providers",
     ],
 )
@@ -470,6 +471,9 @@ bzl_library(
     srcs = ["transition_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:dicts",
     ],
 )
 
