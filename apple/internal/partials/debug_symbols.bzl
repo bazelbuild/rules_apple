@@ -31,10 +31,6 @@ load(
     "defines",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:legacy_actions.bzl",
-    "legacy_actions",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -344,14 +340,15 @@ def _generate_symbols(
             ),
         )
 
-    legacy_actions.run_shell(
+    apple_support.run_shell(
         actions = actions,
         inputs = dsym_binaries,
         outputs = outputs,
         command = "\n".join(commands),
         env = {"OUTPUT_DIR": symbols_dir.path},
         mnemonic = "GenerateSymbolsFiles",
-        platform_prerequisites = platform_prerequisites,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     return outputs

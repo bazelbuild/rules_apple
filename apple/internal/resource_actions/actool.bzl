@@ -281,8 +281,9 @@ def compile_asset_catalog(
     )
 
     if alternate_icons:
-        legacy_actions.run(
+        apple_support.run(
             actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
             arguments = _alticonstool_args(
                 actions = actions,
                 input_plist = actool_output_plist,
@@ -294,5 +295,5 @@ def compile_asset_catalog(
             input_manifests = resolved_alticonstool.input_manifests,
             mnemonic = "AlternateIconsInsert",
             outputs = alticons_outputs,
-            platform_prerequisites = platform_prerequisites,
+            xcode_config = platform_prerequisites.xcode_version_config,
         )
