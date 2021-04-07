@@ -1111,7 +1111,12 @@ binaries/libraries will be created combining all architectures specified by
         outputs = implicit_outputs,
     )
 
-def _create_apple_bundling_rule(implementation, platform_type, product_type, doc):
+def _create_apple_bundling_rule(
+        implementation,
+        platform_type,
+        product_type,
+        doc,
+        cfg = transition_support.apple_rule_transition):
     """Creates an Apple bundling rule."""
     rule_attrs = [
         {
@@ -1171,7 +1176,7 @@ def _create_apple_bundling_rule(implementation, platform_type, product_type, doc
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = transition_support.apple_rule_transition,
+        cfg = cfg,
         doc = doc,
         executable = rule_descriptor.is_executable,
         fragments = ["apple", "cpp", "objc"],

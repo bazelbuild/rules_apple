@@ -67,6 +67,10 @@ load(
     "run_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleSupportToolchainInfo",
@@ -1390,6 +1394,7 @@ macos_kernel_extension = rule_factory.create_apple_bundling_rule(
     platform_type = "macos",
     product_type = apple_product_type.kernel_extension,
     doc = "Builds and bundles a macOS Kernel Extension.",
+    cfg = transition_support.apple_rule_arm64_as_arm64e_transition,
 )
 
 macos_spotlight_importer = rule_factory.create_apple_bundling_rule(
