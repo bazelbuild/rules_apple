@@ -63,15 +63,20 @@ def execute_and_filter_output(cmd_args,
       stdin=subprocess.PIPE,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
-      env=env,
-      # The invoked tools don't specify what encoding they use, so for lack of a
-      # better option, just use utf8 with error replacement. This will replace
-      # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
-      # from raising.
-      encoding="utf8",
-      errors="replace")
+      env=env)
   stdout, stderr = proc.communicate(input=inputstr)
   cmd_result = proc.returncode
+
+  # The invoked tools don't specify what encoding they use, so for lack of a
+  # better option, just use utf8 with error replacement. This will replace
+  # incorrect utf8 byte sequences with '?', which avoids UnicodeDecodeError
+  # from raising.
+  #
+  # NOTE: Not using `encoding` and `errors` on `subprocess.Popen` as that also
+  # impacts stdin. This way the callers can control sending `bytes` or `str`
+  # thru as input.
+  stdout = stdout.decode("utf8", "replace")
+  stderr = stderr.decode("utf8", "replace")
 
   if (stdout or stderr) and filtering:
     if not callable(filtering):
