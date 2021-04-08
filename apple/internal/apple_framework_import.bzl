@@ -174,7 +174,8 @@ def _transitive_framework_imports(deps):
     return [
         dep[AppleFrameworkImportInfo].framework_imports
         for dep in deps
-        if hasattr(dep[AppleFrameworkImportInfo], "framework_imports")
+        if (AppleFrameworkImportInfo in dep and
+            hasattr(dep[AppleFrameworkImportInfo], "framework_imports"))
     ]
 
 def _framework_import_info(transitive_sets, arch_found):
@@ -227,6 +228,24 @@ def _framework_objc_provider_fields(
 
     return objc_provider_fields
 
+def _swift_interop_info(framework_groups, module_map_imports):
+    """Return a Swift interop provider for the framework if it has a module map."""
+    if not module_map_imports:
+        return None
+
+    # We can just take the first key because the rule implementation guarantees
+    # that we only have files for a single framework.
+    framework_dir = framework_groups.keys()[0]
+    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
+
+    # Likewise, assume that there is only a single module map file (the
+    # legacy implementation that read from the Objc provider made the same
+    # assumption).
+    return swift_common.create_swift_interop_info(
+        module_map = module_map_imports[0],
+        module_name = framework_name,
+    )
+
 def _framework_search_paths(header_imports):
     """Return the list framework search paths for the headers_imports."""
     if header_imports:
@@ -271,6 +290,15 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),
     ))
+
+    # For now, Swift interop is restricted only to a Clang module map inside
+    # the framework.
+    swift_interop_info = _swift_interop_info(
+        framework_groups = framework_groups,
+        module_map_imports = module_map_imports,
+    )
+    if swift_interop_info:
+        providers.append(swift_interop_info)
 
     return providers
 
@@ -325,6 +353,15 @@ def _apple_static_framework_import_impl(ctx):
     providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
     providers.append(_cc_info_with_dependencies(ctx, header_imports))
 
+    # For now, Swift interop is restricted only to a Clang module map inside
+    # the framework.
+    swift_interop_info = _swift_interop_info(
+        framework_groups = framework_groups,
+        module_map_imports = module_map_imports,
+    )
+    if swift_interop_info:
+        providers.append(swift_interop_info)
+
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
         parent_dir_param = partial.make(
@@ -360,7 +397,8 @@ A list of targets that are dependencies of the target being built, which will be
 target.
 """,
             providers = [
-                [apple_common.Objc, AppleFrameworkImportInfo],
+                [apple_common.Objc, CcInfo],
+                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
             ],
         ),
     },
@@ -412,6 +450,7 @@ A list of targets that are dependencies of the target being built, which will pr
 linked into that target.
 """,
             providers = [
+                [apple_common.Objc, CcInfo],
                 [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
             ],
         ),
