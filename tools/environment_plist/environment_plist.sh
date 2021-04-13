@@ -64,7 +64,7 @@ PLIST="${TEMPDIR}/env.plist"
 trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
 os_build=$(/usr/bin/sw_vers -buildVersion)
-compiler=$(/usr/libexec/PlistBuddy -c "print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
+compiler=$(/usr/libexec/PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
 xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}")
 xcodebuild_version_output=$(/usr/bin/xcodebuild -version)
 # Parses 'PlatformVersion N.N' into N.N.
