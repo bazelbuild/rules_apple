@@ -97,8 +97,9 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
     if hasattr(ctx.attr, "_product_type"):
         rule_descriptor = rule_support.rule_descriptor(ctx)
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
-        linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+        linkopts.extend(rule_descriptor.extra_linkopts)
 
+    linkopts.extend(extra_linkopts)
     return apple_common.link_multi_arch_binary(
         ctx = ctx,
         extra_linkopts = linkopts,
