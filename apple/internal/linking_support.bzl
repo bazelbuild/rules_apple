@@ -105,8 +105,9 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
         if rpaths:
             linkopts.extend(collections.before_each("-rpath", rpaths))
 
-        linkopts.extend(rule_descriptor.extra_linkopts + extra_linkopts)
+        linkopts.extend(rule_descriptor.extra_linkopts)
 
+    linkopts.extend(extra_linkopts)
     return apple_common.link_multi_arch_binary(
         ctx = ctx,
         extra_linkopts = linkopts,
