@@ -52,6 +52,7 @@ load(
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
     "SwiftToolchainInfo",
     "SwiftUsageInfo",
     "swift_common",
@@ -238,7 +239,7 @@ def _framework_objc_provider_fields(
 
     return objc_provider_fields
 
-def _swift_interop_info(framework_groups, module_map_imports):
+def _swift_interop_info_with_dependencies(ctx, framework_groups, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
     if not module_map_imports:
         return None
@@ -254,6 +255,7 @@ def _swift_interop_info(framework_groups, module_map_imports):
     return swift_common.create_swift_interop_info(
         module_map = module_map_imports[0],
         module_name = framework_name,
+        swift_infos = [dep[SwiftInfo] for dep in ctx.attr.deps if SwiftInfo in dep],
     )
 
 def _framework_search_paths(header_imports):
@@ -309,7 +311,8 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
-    swift_interop_info = _swift_interop_info(
+    swift_interop_info = _swift_interop_info_with_dependencies(
+        ctx = ctx,
         framework_groups = framework_groups,
         module_map_imports = module_map_imports,
     )
@@ -370,7 +373,8 @@ def _apple_static_framework_import_impl(ctx):
 
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
-    swift_interop_info = _swift_interop_info(
+    swift_interop_info = _swift_interop_info_with_dependencies(
+        ctx = ctx,
         framework_groups = framework_groups,
         module_map_imports = module_map_imports,
     )
