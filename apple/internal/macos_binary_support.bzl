@@ -145,7 +145,7 @@ macos_binary_infoplist = rule(
             "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),
-    fragments = ["apple", "objc"],
+    fragments = ["apple", "cpp", "objc"],
 )
 
 def _macos_command_line_launchdplist_impl(ctx):
@@ -198,5 +198,5 @@ macos_command_line_launchdplist = rule(
             "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),
-    fragments = ["apple", "objc"],
+    fragments = ["apple", "cpp", "objc"],
 )

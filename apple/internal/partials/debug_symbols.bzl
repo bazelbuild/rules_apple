@@ -222,7 +222,7 @@ def _debug_symbols_partial_impl(
 
     if debug_outputs_provider:
         output_providers.append(debug_outputs_provider)
-        if platform_prerequisites.objc_fragment.generate_dsym:
+        if platform_prerequisites.cpp_fragment.apple_generate_dsym:
             dsym_files = _bundle_dsym_files(
                 actions = actions,
                 bundle_name = bundle_name,

@@ -69,6 +69,7 @@ def _platform_prerequisites(
         *,
         apple_fragment,
         config_vars,
+        cpp_fragment = None,
         device_families,
         disabled_features,
         explicit_minimum_os,
@@ -83,6 +84,7 @@ def _platform_prerequisites(
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       config_vars: A reference to configuration variables, typically from `ctx.var`.
+      cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
       device_families: The list of device families that apply to the target being built.
       disabled_features: The list of disabled features applied to the target.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
@@ -115,6 +117,7 @@ def _platform_prerequisites(
     return struct(
         apple_fragment = apple_fragment,
         config_vars = config_vars,
+        cpp_fragment = cpp_fragment,
         device_families = device_families,
         disabled_features = disabled_features,
         features = features,
@@ -148,6 +151,7 @@ def _platform_prerequisites_from_rule_ctx(ctx):
     return _platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
         device_families = device_families,
         disabled_features = ctx.disabled_features,
         explicit_minimum_os = ctx.attr.minimum_os_version,
