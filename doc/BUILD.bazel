@@ -1,0 +1,39 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+# Workaround https://github.com/bazelbuild/stardoc/issues/25
+write_file(
+    name = "gen_header",
+    out = "header.vm",
+    content = [
+        "<!-- Generated with Stardoc, Do Not Edit! -->",
+        "",
+        "${moduleDocstring}",
+    ],
+)
+
+_DOC_SRCS = [
+    "apple",
+    "versioning",
+]
+
+[
+    stardoc(
+        name = file + "_doc",
+        out = file + ".md_",
+        header_template = ":header.vm",
+        input = "//apple:%s.bzl" % file,
+        deps = ["//apple:" + file],
+    )
+    for file in _DOC_SRCS
+]
+
+[
+    diff_test(
+        name = "check_" + file,
+        file1 = file + ".md_",
+        file2 = file + ".md",
+    )
+    for file in _DOC_SRCS
+]

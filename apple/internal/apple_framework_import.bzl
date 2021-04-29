@@ -393,9 +393,25 @@ to manually dlopen the framework at runtime.
         ),
     },
     doc = """
-This rule encapsulates an already-built dynamic framework. It is defined by a list of files in
-exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
-targets through the `deps` attribute.
+This rule encapsulates an already-built dynamic framework. It is defined by a list of
+files in exactly one `.framework` directory. `apple_dynamic_framework_import` targets
+need to be added to library targets through the `deps` attribute.
+### Examples
+
+```python
+apple_dynamic_framework_import(
+    name = "my_dynamic_framework",
+    framework_imports = glob(["my_dynamic_framework.framework/**"]),
+)
+
+objc_library(
+    name = "foo_lib",
+    ...,
+    deps = [
+        ":my_dynamic_framework",
+    ],
+)
+```
 """,
 )
 
@@ -455,8 +471,24 @@ reference any other symbols in the object file that adds that conformance.
         ),
     }),
     doc = """
-This rule encapsulates an already-built static framework. It is defined by a list of files in a
-.framework directory. apple_static_framework_import targets need to be added to library targets
-through the `deps` attribute.
+This rule encapsulates an already-built static framework. It is defined by a list of
+files in exactly one `.framework` directory. `apple_static_framework_import` targets
+need to be added to library targets through the `deps` attribute.
+### Examples
+
+```python
+apple_static_framework_import(
+    name = "my_static_framework",
+    framework_imports = glob(["my_static_framework.framework/**"]),
+)
+
+objc_library(
+    name = "foo_lib",
+    ...,
+    deps = [
+        ":my_static_framework",
+    ],
+)
+```
 """,
 )
