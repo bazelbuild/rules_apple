@@ -51,14 +51,15 @@ apple_bundle_import = rule(
             allow_files = True,
             mandatory = True,
             doc = """
-The list of files under a .bundle directory to be propagated to the top-level bundling target.
+The list of files under a `.bundle` directory to be propagated to the top-level bundling target.
 """,
         ),
     },
     doc = """
-This rule encapsulates an already-built bundle. It is defined by a list of files in a .bundle
-directory. apple_bundle_import targets need to be added to library targets through the data
-attribute, or to other resource targets (i.e. apple_resource_bundle) through the resources
-attribute.
+This rule encapsulates an already-built bundle. It is defined by a list of files
+in exactly one `.bundle` directory. `apple_bundle_import` targets need to be
+added to library targets through the `data` attribute, or to other resource
+targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
+`resources` attribute.
 """,
 )

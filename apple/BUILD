@@ -104,6 +104,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_core_ml_library",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
+        "@rules_cc//cc:defs.bzl",
     ],
 )
 

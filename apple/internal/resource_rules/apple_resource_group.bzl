@@ -45,16 +45,17 @@ resource bundle structures will be propagated into the final bundle.
             doc = """
 Files to include in the final application bundle. They are not processed or compiled in any way
 besides the processing done by the rules that actually generate them. These files are placed in the
-bundle root in the same structure passed to this argument, so ["res/foo.png"] will end up in
-res/foo.png inside the bundle.
+bundle root in the same structure passed to this argument, so `["res/foo.png"]` will end up in
+`res/foo.png` inside the bundle.
 """,
         ),
     },
     doc = """
 This rule encapsulates a target which provides resources to dependents. An
-apple_resource_group's resources are put in the top-level Apple bundle dependent.
-apple_resource_group targets need to be added to library targets through the data attribute. If
-`apple_resource_bundle` or `apple_bundle_import` dependencies are added to `resources`, the resource
-bundle structures are maintained at the final top-level bundle.
+`apple_resource_group`'s `resources` and `structured_resources` are put in the
+top-level Apple bundle target. `apple_resource_group` targets need to be added
+to library targets through the `data` attribute, or to other
+`apple_resource_bundle` or `apple_resource_group` targets through the
+`resources` attribute.
 """,
 )

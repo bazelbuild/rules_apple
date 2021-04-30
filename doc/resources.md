@@ -1,449 +1,156 @@
-# Apple Rules - Resources
-
-## Background
-
-This document describes the philosophy around depending on resources for Apple
-targets using the Bazel Apple rules.
-
-Apple rule targets have two main mechanisms to depend on resources so that they
-are present in the output bundles:
-
-*   __Resources used by library targets__: These are resources that library
-    targets require to be present at runtime. For example, a `UIViewController`
-    presenting an icon inside of a button, or a data layer library that requires
-    CoreData model resources. These resources should be depended directly from
-    the library targets.
-*   __Top level resources__: These are resources that are not referenced by the
-    bundle's binary, but are instead used by the Apple platform's operating
-    system. For example, an iOS application icons are used to present the
-    application in user device, or the translation files used by the operating
-    system to inject into an application based on the users device settings.
-    These resources should be depended directly from the top level targets.
-
-These two mechanisms have different means of depending on the resources:
-
-*   For library targets, resources should be depended through the `data`
-    attribute.
-*   For top level targets, resources should be depended through rule specific
-    attributes. These attributes are used to declare specific use cases for
-    otherwise generic resources. For example, a `storyboard` file in
-    `launch_storyboard` is processed a bit differently from a regular storyboard
-    resource, or `infoplists` files are merged together to create the bundle's
-    `Info.plist` file.
-
-Some resources require to be preprocessed before being usable in an Apple
-bundle. For example, `.storyboard` files need to be compiled using `ibtoold`
-before being packaged. The decision on how to preprocess resources is based on
-the resource file extension. For a complete list of supported resources, please
-refer to the [appendix](#appendix).
-
-Resource files can either be grouped inside resource bundles or be placed
-standalone at the root of the bundle. Resource bundles are useful for libraries
-that are used across multiple application targets, as the bundle namespace
-prevents collision with standalone resources that the application might want to
-include. There are two ways to create a resource bundle:
-
-*   `apple_bundle_import`: Used to import an already checked in .bundle
-    directory inside the workspace.
-*   `apple_resource_bundle`: Used to construct a resource bundle from multiple
-    files imported from the workspace
-
-By default, the transitive closure of resources depended on by a top-level
-target will be packaged at the root of the bundle (or in the `Resources`
-directory for macOS bundles). In some rare cases, you may need to place the
-resources not at the root of the bundle, but inside a subdirectory structure. In
-order to depend on these structured resources, you'll need to use the
-`apple_resources_group`'s `structured_resources` attribute, and then depend on
-this target on your library target.
-
-## Described Use Cases
-
-### Simple Resources
-
-The most common use case for resources is to just add them as `data` to the
-library targets:
-
-```build
-ios_application(
-  name = "MyApplication",
-  ...
-  deps = [":MyLibrary"],
-)
-
-objc_library(
-  name = "MyLibrary",
-  srcs = [...],
-  data = [
-    "MyStoryboard.storyboard",
-    "MyText.txt",
-    "Subdirectory/MyPlist.plist",
-  ],
-)
-```
-
-This will generate an application bundle with the following resource structure:
-
-```
-MyApplication.app/MyStoryboard.storyboardc/...
-MyApplication.app/MyText.txt
-MyApplication.app/MyPlist.plist
-```
-
-Notice that even though the plist file was referenced from a subdirectory, it is
-still placed at the root of the application bundle. Also note that the
-storyboard file was compiled into a `.storyboardc` directory. This is the output
-of invoking `ibtoold` on the source storyboard.
-
-### Structured Resources
-
-If there's a requirement that some resources need to maintain a specific
-structure within the application bundle, you'll need to use
-`apple_resource_group` instead:
-
-```build
-ios_application(
-  name = "MyApplication",
-  ...
-  deps = [":MyLibrary"],
-)
-
-objc_library(
-  name = "MyLibrary",
-  srcs = [...],
-  data = [":MyResources"],
-)
-
-apple_resource_group(
-  name = "MyResources",
-  resources = [
-    "MyStoryboard.storyboard",
-    "Subdirectory/FlattenedResource.txt",
-    "MyText.txt",
-  ],
-  structured_resources = [
-    "Subdirectory/MyPlist.plist",
-  ],
-)
-```
-
-This generates an application bundle with the following resource structure:
-
-```
-MyApplication.app/MyStoryboard.storyboardc/...
-MyApplication.app/MyText.txt
-MyApplication.app/FlattenedResource.txt
-MyApplication.app/Subdirectory/MyPlist.plist
-```
-
-Notice that the plist file is now placed inside the `Subdirectory` directory.
-Also notice that the `FlattenedResource.txt` file, which is checked in
-underneath the `Subdirectory` tree, is not placed inside `Subdirectory` in the
-application bundle, since it was not referenced in `structured_resources`.
-
-### Bundled resources
-
-In some cases, it's recommended to collect resources inside a resource bundle.
-For example, shared libraries might find it easier to manage their resources if
-they are namespaced inside a bundle, so that they don't collide with resources
-that clients might want to bundle in their applications. To create a resource
-bundle, use the `apple_resource_bundle` rule:
-
-```build
-ios_application(
-  name = "MyApplication",
-  ...
-  deps = [":MyLibrary"],
-)
-
-objc_library(
-  name = "MyLibrary",
-  srcs = [...],
-  data = [":SharedLibrary"],
-)
-
-objc_library(
-  name = "SharedLibrary",
-  data = [":SharedResources"],
-)
-
-apple_resource_bundle(
-  name = "SharedResources",
-  resources = [
-    "SharedStoryboard.storyboard",
-    "SharedText.txt",
-  ],
-  structured_resources = [
-    "Subdirectory/SharedPlist.plist",
-  ],
-)
-```
-
-This generates an application bundle with the following resource structure:
-
-```
-MyApplication.app/SharedResources.bundle/SharedStoryboard.storyboardc/...
-MyApplication.app/SharedResources.bundle/SharedText.txt
-MyApplication.app/SharedResources.bundle/Subdirectory/SharedPlist.plist
-```
-
-## Recommendations
-
-There are multiple ways to reference resources for library and/or top-level
-targets.
-
-*   Add the resource files directly into the `data` attribute.
-*   Wrap the resources in an `apple_resource_group` target.
-*   Wrap the resources in an `apple_resource_bundle` target.
-
-Each approach has its benefits and drawbacks and depends on the use case which
-one is better. For example, as mentioned before, `apple_resource_bundle` is
-useful for shared libraries so that their resources do not collide with the
-application resources.
-
-Direct `data` usage of resources is useful if the resources are used in single
-libraries. If there is a collection of resources that is used by multiple
-libraries, it's best to encapsulate them into an `apple_resource_group` target
-so that it's easier to share.
-
-## Resources and Frameworks
-
-The Bazel Apple rules track which library targets reference which resources, and
-makes sure to package the resources in the same bundle that contains the binary
-that linked the library code. Take for example this setup:
-
-```build
-ios_application(
-  name = "MyApplication",
-  deps = [":MyApplicationLibrary"],
-)
-
-objc_library(
-  name = "MyApplicationLibrary",
-  srcs = [...],
-  deps = [":MySharedLibrary"],
-)
-
-objc_library(
-  name = "MySharedLibrary",
-  srcs = [...],
-  data = ["MySharedResource.txt"],
-)
-```
-
-In this case, the application binary would statically link the MySharedLibrary
-code, so the `MySharedResource.txt` file would be placed in the application
-bundle:
-
-```
-MyApplication.app/MyApplication
-MyApplication.app/MySharedResource.txt
-```
-
-If a Dynamic Framework is now introduced into the BUILD graph to contain
-`MySharedLibrary`,
-
-```build
-ios_application(
-  name = "MyApplication",
-  ...
-  frameworks = [":MyFramework"],
-  deps = [":MyApplicationLibrary"],
-)
-
-ios_framework(
-  name = "MyFramework",
-  ...
-  deps = [":MySharedLibrary"],
-)
-
-objc_library(
-  name = "MyApplicationLibrary",
-  srcs = [...],
-  deps = [":MySharedLibrary"],
-)
-
-objc_library(
-  name = "MySharedLibrary",
-  srcs = [...],
-  data = ["MySharedResource.txt"],
-)
-```
-
-... the bundle structure would change so that the resource would be instead
-packaged inside the framework bundle:
-
-```
-MyApplication.app/MyApplication
-MyApplication.app/Frameworks/MyFramework.framework/MyFramework
-MyApplication.app/Frameworks/MyFramework.framework/MySharedResource.txt
-```
-
-Because `MySharedLibrary` is now linked into the Dynamic Framework,
-`MySharedResource.txt` is also packaged inside the framework bundle.
-
-Now, consider the case where `MyApplicationLibrary` also has a dependency on
-`MySharedResource.txt`:
-
-```build
-
-ios_application(
-  name = "MyApplication",
-  ...
-  frameworks = [":MyFramework"],
-  deps = [":MyLibrary"],
-)
-
-ios_framework(
-  name = "MyFramework",
-  ...
-  deps = [":MySharedLibrary"],
-)
-
-objc_library(
-  name = "MyApplicationLibrary",
-  srcs = [...],
-  deps = [":MySharedLibrary"],
-  data = ["MySharedResource.txt"],
-)
-
-objc_library(
-  name = "MySharedLibrary",
-  srcs = [...],
-  data = ["MySharedResource.txt"],
-)
-```
-
-In this setup, `MySharedLibrary` would be linked into `MyFramework`, while
-`MyApplicationLibrary` would be linked into `MyApplication`. Because the
-`MySharedResource.txt` file is required by both libraries, it will be packaged
-in both bundles:
-
-```
-MyApplication.app/MyApplication
-MyApplication.app/MySharedResource.txt
-MyApplication.app/Frameworks/MyFramework.framework/MyFramework
-MyApplication.app/Frameworks/MyFramework.framework/MySharedResource.txt
-```
-
-The philosophy behind this feature is that library code declares ownership of
-the resources that it depends on, and that it should always be able to find its
-declared resources by using the `[NSBundle bundleForClass:[MyClass class]]` API.
-By using this approach, clients avoid having to implement resource locator
-functionalities that look for the resources across different frameworks/bundles.
-This approach also makes testing with resources easier, since if the library
-ends up being linked inside of a `.xctest` bundle, its resources will also be
-packaged in that bundle, and thus avoid requiring the `[NSBundle mainBundle]`
-API to retrieve resources. This is especially useful when using logic tests
-(i.e. test that do not require a test host).
-
-Note that with careful planning of which dependencies are linked into the
-framework, you can avoid having multiple copies of the resources across the
-application bundle. If you find that a resource is duplicated in an application
-and framework bundle, check which of your dependencies references the resources,
-and try to merge them into the framework. That way only 1 copy of the resources
-will exist in the application bundle.
-
-## Migration
-
-Historically, the `objc_library` and `swift_library` rules have had Apple
-specific resource attributes, like `resources`, `structured_resources`,
-`datamodels`, `asset_catalogs`, and so on. In order to unify these library APIs
-with the Bazel concept of runtime files that are added through the `data`
-attribute, the resource attributes in `objc_library` and `swift_library` are
-being removed.
-
-For `swift_library` targets, these means changing from:
-
-```build
-swift_library(
-  name = "MySwiftLibrary",
-  resources = ["MyResourceA", "MyResourceB"],
-  structured_resources = ["Subdirectory/MyStructuredResource"],
-)
-```
-
-to:
-
-```build
-swift_library(
-  name = "MySwiftLibrary",
-  data = [":MyResourceGroup"],
-)
-
-apple_resource_group(
-  name = "MyResourceGroup",
-  resources = ["MyResourceA", "MyResourceB"],
-  structured_resources = ["Subdirectory/MyStructuredResource"],
-)
-```
-
-For `objc_library` targets, this means changing from:
-
-```build
-objc_library(
-  name = "MyObjCLibrary",
-  asset_catalogs = glob(["MyAssets.xcassets/**"]),
-  bundles = [":MyResourceBundle"],
-  datamodels = glob(["MyDatamodels.xcdatamodel/**"]),
-  resources = [],
-  storyboards = ["MyStoryboard.storyboard"],
-)
-```
-
-to:
-
-```build
-objc_library(
-  name = "MyObjCLibrary",
-  data = [
-    ":MyResourceBundle",
-    "MyResource.txt",
-    "MyStoryboard.storyboard",
-  ] + glob(["MyDatamodels.xcdatamodel/**", "MyAssets.xcassets/**"]),
-)
-```
-
-Keep in mind the [recommendations](#recommendations) above when migrating your
-targets. You might not need to create `apple_resource_group` targets depending
-on your use case for the resources.
-
-## Appendix
-
-### Resource Processing by type
-
-#### Library Supported Resources
-
-*   `.storyboard` files: These files are processed with `ibtoold`.
-*   `.xcassets` files: Since these files require a specific directory structure,
-    they are usually added as `glob(["MyXCAssets.xcassets/**"]`). At the top
-    level, all .xcassets files are grouped and processed with `actool` to
-    generate the `Assets.car` file. In some cases, the `actool` command will
-    generate an `Info.plist` fragment file. This file is then also merged into
-    the root `Info.plist` file.
-*   `.strings` and `.plist` files. string and generic plist (i.e. non Info.plist
-    files) files are processed using plutil to convert them into binary format,
-    to reduce their size.
-*   `.png` files: PNG files are processed using copypng to optimize them for iOS
-    devices.
-*   `.xib` files: XIB files are processed using `ibtoold`.
-*   `.xcdatamodel` and `.xcmappingmodel` files: These files are processed with
-    `momc` and `mapc` respectively.
-*   `.atlas` files: These files are processed with `TextureAtlas`.
-*   Any other file type: These files are not processed and are copied as is into
-    the bundle.
-
-#### Bundling Rule Supported Resources
-
-*   `.plist` `Info.plist` files: Files added through the `infoplists` attribute
-    are all merged together into a single `Info.plist` file that will be placed
-    at the root of the bundle.
-*   `.xib` and `.storyboard` files: XIB files added through the
-    `launch_storyboard` attribute are processed using `ibtoold`.
-*   `.xcasset/*.appicon` files: App Icon files added through the `app_icons`
-    attribute are processed in a similar manner to the `.xcassets` file in the
-    above section.
-
-#### Structured Resources
-
-Resource files added through `structured_resources` are not processed and will
-be copied as is.
+<!-- Generated with Stardoc, Do Not Edit! -->
+
+Rules related to Apple resources and resource bundles.
+<a id="#apple_bundle_import"></a>
+
+## apple_bundle_import
+
+<pre>
+apple_bundle_import(<a href="#apple_bundle_import-name">name</a>, <a href="#apple_bundle_import-bundle_imports">bundle_imports</a>)
+</pre>
+
+
+This rule encapsulates an already-built bundle. It is defined by a list of files
+in exactly one `.bundle` directory. `apple_bundle_import` targets need to be
+added to library targets through the `data` attribute, or to other resource
+targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
+`resources` attribute.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_bundle_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_bundle_import-bundle_imports"></a>bundle_imports |  The list of files under a <code>.bundle</code> directory to be propagated to the top-level bundling target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+
+
+<a id="#apple_resource_bundle"></a>
+
+## apple_resource_bundle
+
+<pre>
+apple_resource_bundle(<a href="#apple_resource_bundle-name">name</a>, <a href="#apple_resource_bundle-bundle_name">bundle_name</a>, <a href="#apple_resource_bundle-infoplists">infoplists</a>, <a href="#apple_resource_bundle-resources">resources</a>, <a href="#apple_resource_bundle-structured_resources">structured_resources</a>)
+</pre>
+
+
+This rule encapsulates a target which is provided to dependers as a bundle. An
+`apple_resource_bundle`'s resources are put in a resource bundle in the top
+level Apple bundle dependent. apple_resource_bundle targets need to be added to
+library targets through the `data` attribute.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_resource_bundle-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_resource_bundle-bundle_name"></a>bundle_name |  The desired name of the bundle (without the <code>.bundle</code> extension). If this attribute is not set, then the <code>name</code> of the target will be used instead.   | String | optional | "" |
+| <a id="apple_resource_bundle-infoplists"></a>infoplists |  A list of <code>.plist</code> files that will be merged to form the <code>Info.plist</code> that represents the extension. At least one file must be specified. Please see [Info.plist Handling](/doc/common_info.md#infoplist-handling") for what is supported.<br><br>Duplicate keys between infoplist files will cause an error if and only if the values conflict. Bazel will perform variable substitution on the Info.plist file for the following values (if they are strings in the top-level dict of the plist):<br><br>${BUNDLE_NAME}: This target's name and bundle suffix (.bundle or .app) in the form name.suffix. ${PRODUCT_NAME}: This target's name. ${TARGET_NAME}: This target's name. The key in ${} may be suffixed with :rfc1034identifier (for example ${PRODUCT_NAME::rfc1034identifier}) in which case Bazel will replicate Xcode's behavior and replace non-RFC1034-compliant characters with -.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_resource_bundle-resources"></a>resources |  Files to include in the resource bundle. Files that are processable resources, like .xib, .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have those files as dependencies. Other file types that are not processed will be copied verbatim. These files are placed in the root of the resource bundle (e.g. <code>Payload/foo.app/bar.bundle/...</code>) in most cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj), they will be placed in a directory of the same name in the app bundle.<br><br>You can also add other <code>apple_resource_bundle</code> and <code>apple_bundle_import</code> targets into <code>resources</code>, and the resource bundle structures will be propagated into the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_resource_bundle-structured_resources"></a>structured_resources |  Files to include in the final resource bundle. They are not processed or compiled in any way besides the processing done by the rules that actually generate them. These files are placed in the bundle root in the same structure passed to this argument, so <code>["res/foo.png"]</code> will end up in <code>res/foo.png</code> inside the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+
+
+<a id="#apple_resource_group"></a>
+
+## apple_resource_group
+
+<pre>
+apple_resource_group(<a href="#apple_resource_group-name">name</a>, <a href="#apple_resource_group-resources">resources</a>, <a href="#apple_resource_group-structured_resources">structured_resources</a>)
+</pre>
+
+
+This rule encapsulates a target which provides resources to dependents. An
+`apple_resource_group`'s `resources` and `structured_resources` are put in the
+top-level Apple bundle target. `apple_resource_group` targets need to be added
+to library targets through the `data` attribute, or to other
+`apple_resource_bundle` or `apple_resource_group` targets through the
+`resources` attribute.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_resource_group-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_resource_group-resources"></a>resources |  Files to include in the final bundle that depends on this target. Files that are processable resources, like .xib, .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have those files as dependencies. Other file types that are not processed will be copied verbatim. These files are placed in the root of the final bundle (e.g. Payload/foo.app/...) in most cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj), they will be placed in a directory of the same name in the app bundle.<br><br>You can also add apple_resource_bundle and apple_bundle_import targets into <code>resources</code>, and the resource bundle structures will be propagated into the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_resource_group-structured_resources"></a>structured_resources |  Files to include in the final application bundle. They are not processed or compiled in any way besides the processing done by the rules that actually generate them. These files are placed in the bundle root in the same structure passed to this argument, so <code>["res/foo.png"]</code> will end up in <code>res/foo.png</code> inside the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+
+
+<a id="#apple_core_ml_library"></a>
+
+## apple_core_ml_library
+
+<pre>
+apple_core_ml_library(<a href="#apple_core_ml_library-name">name</a>, <a href="#apple_core_ml_library-mlmodel">mlmodel</a>, <a href="#apple_core_ml_library-kwargs">kwargs</a>)
+</pre>
+
+Macro to orchestrate an objc_library with generated sources for mlmodel files.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="apple_core_ml_library-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="apple_core_ml_library-mlmodel"></a>mlmodel |  <p align="center"> - </p>   |  none |
+| <a id="apple_core_ml_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
+<a id="#objc_intent_library"></a>
+
+## objc_intent_library
+
+<pre>
+objc_intent_library(<a href="#objc_intent_library-name">name</a>, <a href="#objc_intent_library-src">src</a>, <a href="#objc_intent_library-class_prefix">class_prefix</a>, <a href="#objc_intent_library-class_visibility">class_visibility</a>, <a href="#objc_intent_library-testonly">testonly</a>, <a href="#objc_intent_library-swift_version">swift_version</a>, <a href="#objc_intent_library-kwargs">kwargs</a>)
+</pre>
+
+Macro to orchestrate an objc_library with generated sources for intentdefiniton files.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="objc_intent_library-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="objc_intent_library-src"></a>src |  <p align="center"> - </p>   |  none |
+| <a id="objc_intent_library-class_prefix"></a>class_prefix |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="objc_intent_library-class_visibility"></a>class_visibility |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="objc_intent_library-testonly"></a>testonly |  <p align="center"> - </p>   |  <code>False</code> |
+| <a id="objc_intent_library-swift_version"></a>swift_version |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="objc_intent_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
+<a id="#swift_intent_library"></a>
+
+## swift_intent_library
+
+<pre>
+swift_intent_library(<a href="#swift_intent_library-name">name</a>, <a href="#swift_intent_library-src">src</a>, <a href="#swift_intent_library-class_prefix">class_prefix</a>, <a href="#swift_intent_library-class_visibility">class_visibility</a>, <a href="#swift_intent_library-swift_version">swift_version</a>, <a href="#swift_intent_library-testonly">testonly</a>, <a href="#swift_intent_library-kwargs">kwargs</a>)
+</pre>
+
+This macro supports the integration of Intents `.intentdefinition` files into Apple rules.
+
+It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
+`swift_library` targets.
+
+It accepts the regular `swift_library` attributes too.
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="swift_intent_library-name"></a>name |  A unique name for the target.   |  none |
+| <a id="swift_intent_library-src"></a>src |  Reference to the <code>.intentdefiniton</code> file to process.   |  none |
+| <a id="swift_intent_library-class_prefix"></a>class_prefix |  Class prefix to use for the generated classes.   |  <code>None</code> |
+| <a id="swift_intent_library-class_visibility"></a>class_visibility |  Visibility attribute for the generated classes (<code>public</code>, <code>private</code>, <code>project</code>).   |  <code>None</code> |
+| <a id="swift_intent_library-swift_version"></a>swift_version |  Version of Swift to use for the generated classes.   |  <code>None</code> |
+| <a id="swift_intent_library-testonly"></a>testonly |  Set to True to enforce that this library is only used from test code.   |  <code>False</code> |
+| <a id="swift_intent_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+

@@ -43,7 +43,11 @@ then the `name` of the target will be used instead.
             allow_empty = True,
             allow_files = True,
             doc = """
-Infoplist files to be merged into the bundle's Info.plist. Duplicate keys between infoplist files
+A list of `.plist` files that will be merged to form the `Info.plist` that represents the extension.
+At least one file must be specified.
+Please see [Info.plist Handling](/doc/common_info.md#infoplist-handling") for what is supported.
+
+Duplicate keys between infoplist files
 will cause an error if and only if the values conflict.
 Bazel will perform variable substitution on the Info.plist file for the following values (if they
 are strings in the top-level dict of the plist):
@@ -63,7 +67,7 @@ non-RFC1034-compliant characters with -.
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have
 those files as dependencies. Other file types that are not processed will be copied verbatim. These
-files are placed in the root of the resource bundle (e.g. Payload/foo.app/bar.bundle/...) in most
+files are placed in the root of the resource bundle (e.g. `Payload/foo.app/bar.bundle/...`) in most
 cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj),
 they will be placed in a directory of the same name in the app bundle.
 
@@ -77,15 +81,15 @@ and the resource bundle structures will be propagated into the final bundle.
             doc = """
 Files to include in the final resource bundle. They are not processed or compiled in any way
 besides the processing done by the rules that actually generate them. These files are placed in the
-bundle root in the same structure passed to this argument, so ["res/foo.png"] will end up in
-res/foo.png inside the bundle.
+bundle root in the same structure passed to this argument, so `["res/foo.png"]` will end up in
+`res/foo.png` inside the bundle.
 """,
         ),
     },
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
-apple_resource_bundle's resources are put in a resource bundle in the top level Apple bundle
-dependent. apple_resource_bundle targets need to be added to library targets through the
-data attribute.
+`apple_resource_bundle`'s resources are put in a resource bundle in the top
+level Apple bundle dependent. apple_resource_bundle targets need to be added to
+library targets through the `data` attribute.
 """,
 )
