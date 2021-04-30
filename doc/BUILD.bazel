@@ -15,6 +15,7 @@ write_file(
 
 _DOC_SRCS = [
     "apple",
+    "dtrace",
     "versioning",
 ]
 
