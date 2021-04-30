@@ -142,8 +142,22 @@ def swift_intent_library(
         swift_version = None,
         testonly = False,
         **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Macro to orchestrate an swift_library with generated sources for intentdefiniton files."""
+    """
+This macro supports the integration of Intents `.intentdefinition` files into Apple rules.
+
+It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
+`swift_library` targets.
+
+It accepts the regular `swift_library` attributes too.
+
+Args:
+    name: A unique name for the target.
+    src: Reference to the `.intentdefiniton` file to process.
+    class_prefix: Class prefix to use for the generated classes.
+    class_visibility: Visibility attribute for the generated classes (`public`, `private`, `project`).
+    swift_version: Version of Swift to use for the generated classes.
+    testonly: Set to True to enforce that this library is only used from test code.
+"""
     intent_name = "{}.Intent".format(name)
     _apple_intent_library(
         name = intent_name,

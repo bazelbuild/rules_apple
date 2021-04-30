@@ -113,7 +113,7 @@ apple_core_ml_library = rule(
             allow_single_file = ["mlmodel"],
             mandatory = True,
             doc = """
-Label to a single mlmodel file from which to generate sources and compile into mlmodelc files.
+Label to a single `.mlmodel` file from which to generate sources and compile into mlmodelc files.
 """,
         ),
         "header_name": attr.string(
@@ -136,6 +136,22 @@ objc_library or swift_library targets. For Swift, just import like any other obj
 For objc_library, this target generates a header named `<target_name>.h` that can be imported from
 within the package where this target resides. For example, if this target's label is
 `//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
+
+This rule supports the integration of CoreML `mlmodel` files into Apple rules.
+`apple_core_ml_library` targets are added directly into `deps` for both
+`objc_library` and `swift_library` targets.
+
+For Swift, import the `apple_core_ml_library` the same way you'd import an
+`objc_library` or `swift_library` target. For `objc_library` targets,
+`apple_core_ml_library` creates a header file named after the target.
+
+For example, if the `apple_core_ml_library` target's label is
+`//my/package:MyModel`, then to import this module in Swift you need to use
+`import my_package_MyModel`. From Objective-C sources, you'd import the header
+as `#import my/package/MyModel.h`.
+
+This rule will also compile the `mlmodel` into an `mlmodelc` and propagate it
+upstream so that it is packaged as a resource inside the top level bundle.
 
 This rule currently only returns an ObjC interface since the Swift generated files do not have the
 necessary public interfaces to export its symbols outside of the module.
