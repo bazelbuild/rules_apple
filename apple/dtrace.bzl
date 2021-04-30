@@ -60,7 +60,7 @@ dtrace_compile = rule(
         "srcs": attr.label_list(
             allow_files = [".d"],
             allow_empty = False,
-            doc = "dtrace(.d) sources.",
+            doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
     output_to_genfiles = True,
@@ -69,6 +69,16 @@ dtrace_compile = rule(
 Compiles
 [dtrace files with probes](https://www.ibm.com/developerworks/aix/library/au-dtraceprobes.html)
 to generate header files to use those probes in C languages. The header files
-generated will have the same name as the source files but with a .h extension.
+generated will have the same name as the source files but with a `.h`
+extension. Headers will be generated in a label scoped workspace relative file
+structure. For example with a directory structure of
+
+```
+  Workspace
+  foo/
+    bar.d
+```
+and a target named `dtrace_gen` the header path would be
+`<GENFILES>/dtrace_gen/foo/bar.h`.
 """,
 )
