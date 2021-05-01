@@ -478,7 +478,8 @@ bundle ID of the application and `$(AppIdentifierPrefix)` with the value of the
             "entitlements_validation": attr.string(
                 default = entitlements_validation_mode.loose,
                 doc = """
-An `entitlements_validation_mode` to control the validation of the requested entitlements against
+An [`entitlements_validation_mode`](/doc/types.md#entitlements-validation-mode)
+to control the validation of the requested entitlements against
 the provisioning profile to ensure they are supported.
 """,
                 values = [

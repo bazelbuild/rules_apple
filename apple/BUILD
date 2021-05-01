@@ -143,6 +143,12 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "watchos.doc",
+    srcs = ["watchos.doc.bzl"],
+    deps = ["watchos"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

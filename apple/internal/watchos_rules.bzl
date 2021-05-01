@@ -785,7 +785,11 @@ watchos_extension = rule_factory.create_apple_bundling_rule(
     implementation = _watchos_extension_impl,
     platform_type = "watchos",
     product_type = apple_product_type.watch2_extension,
-    doc = "Builds and bundles an watchOS Extension.",
+    doc = """Builds and bundles an watchOS Extension.
+
+**This rule only supports watchOS 2.0 and higher.**
+Apple no longer supports or accepts submissions of apps written for watchOS 1.x,
+so these bundling rules do not support that version of the platform.""",
 )
 
 watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
