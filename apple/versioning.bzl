@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Rules related to Apple bundle versioning."""
+"""# Rules related to Apple bundle versioning."""
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",

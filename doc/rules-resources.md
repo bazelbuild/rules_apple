@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Rules related to Apple resources and resource bundles.
+# Rules related to Apple resources and resource bundles.
 <a id="#apple_bundle_import"></a>
 
 ## apple_bundle_import

@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Bazel rules for creating watchOS applications and bundles.
+# Bazel rules for creating watchOS applications and bundles.
 <a id="#watchos_application"></a>
 
 ## watchos_application

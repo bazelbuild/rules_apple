@@ -1,4 +1,4 @@
-"""Bazel rules for creating watchOS applications and bundles."""
+"""# Bazel rules for creating watchOS applications and bundles."""
 
 # Re-export original rules rather than their wrapper macros
 # so that stardoc documents the rule attributes, not an opaque
