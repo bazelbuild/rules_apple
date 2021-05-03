@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Bazel rules for working with dtrace.
+# Bazel rules for working with dtrace.
 <a id="#dtrace_compile"></a>
 
 ## dtrace_compile

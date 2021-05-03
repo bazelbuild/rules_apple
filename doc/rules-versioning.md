@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Rules related to Apple bundle versioning.
+# Rules related to Apple bundle versioning.
 <a id="#apple_bundle_version"></a>
 
 ## apple_bundle_version

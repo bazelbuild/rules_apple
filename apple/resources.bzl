@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Rules related to Apple resources and resource bundles."""
+"""# Rules related to Apple resources and resource bundles."""
 
 load("@rules_cc//cc:defs.bzl", "objc_library")
 load(

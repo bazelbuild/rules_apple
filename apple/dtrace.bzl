@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for working with dtrace."""
+"""# Bazel rules for working with dtrace."""
 
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",

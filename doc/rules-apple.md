@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Rules that apply to all Apple platforms.
+# Rules that apply to all Apple platforms.
 <a id="#apple_dynamic_framework_import"></a>
 
 ## apple_dynamic_framework_import
