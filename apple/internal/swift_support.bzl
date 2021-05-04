@@ -100,5 +100,6 @@ swift_runtime_linkopts = rule(
 
 # Define the loadable module that lists the exported symbols in this file.
 swift_support = struct(
+    swift_usage_info = _swift_usage_info,
     uses_swift = _uses_swift,
 )

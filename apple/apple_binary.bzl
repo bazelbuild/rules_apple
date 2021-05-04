@@ -22,6 +22,14 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_common",
+)
 
 def _linker_flag_for_sdk_dylib(dylib):
     """Returns a linker flag suitable for linking the given `sdk_dylib` value.
@@ -51,6 +59,16 @@ def _apple_binary_impl(ctx):
         "-Wl,-weak_framework,{}".format(framework)
         for framework in ctx.attr.weak_sdk_frameworks
     ]
+
+    deps = getattr(ctx.attr, "deps", [])
+    swift_usage_info = swift_support.swift_usage_info(deps)
+    if swift_usage_info:
+        swift_linkopts = swift_common.swift_runtime_linkopts(
+            is_static = False,
+            is_test = False,
+            toolchain = swift_usage_info.toolchain,
+        )
+        extra_linkopts.extend(swift_linkopts)
 
     link_result = linking_support.register_linking_action(
         ctx,
