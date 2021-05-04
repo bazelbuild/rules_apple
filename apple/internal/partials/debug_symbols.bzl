@@ -214,9 +214,7 @@ def _debug_symbols_partial_impl(
 
     if debug_outputs_provider:
         output_providers.append(debug_outputs_provider)
-
-        # TODO: Remove old API and getattr once bazel is released with this change
-        if getattr(platform_prerequisites.objc_fragment, "generate_dsym", False) or getattr(platform_prerequisites.cpp_fragment, "apple_generate_dsym", False):
+        if platform_prerequisites.cpp_fragment.apple_generate_dsym:
             dsym_files = _bundle_dsym_files(
                 actions = actions,
                 bundle_name = bundle_name,
