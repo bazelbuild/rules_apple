@@ -241,6 +241,11 @@ def _framework_objc_provider_fields(
 
 def _swift_interop_info_with_dependencies(ctx, framework_groups, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
+
+    # TODO: Re-enable this once https://github.com/bazelbuild/rules_apple/issues/1147 is fixed
+    if True:
+        return None
+
     if not module_map_imports:
         return None
 
