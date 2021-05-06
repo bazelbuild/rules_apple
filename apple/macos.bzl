@@ -60,7 +60,6 @@ def macos_application(name, **kwargs):
     """Packages a macOS application."""
     binary_args = dict(kwargs)
     features = binary_args.pop("features", [])
-    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -80,7 +79,6 @@ def macos_bundle(name, **kwargs):
     """Packages a macOS loadable bundle."""
     binary_args = dict(kwargs)
     features = binary_args.pop("features", [])
-    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
@@ -290,7 +288,6 @@ def macos_extension(name, **kwargs):
     binary_args = dict(kwargs)
 
     features = binary_args.pop("features", [])
-    features.append("link_cocoa")
 
     bundling_args = binary_support.add_entitlements_and_swift_linkopts(
         name,
