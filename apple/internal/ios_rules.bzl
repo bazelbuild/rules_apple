@@ -255,6 +255,15 @@ def _ios_application_impl(ctx):
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = embeddable_targets,
+            label_name = label.name,
+            include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if ctx.attr.watch_application:
@@ -714,6 +723,15 @@ def _ios_framework_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     processor_result = processor.process(
@@ -883,6 +901,15 @@ def _ios_extension_impl(ctx):
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]

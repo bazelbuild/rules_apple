@@ -314,6 +314,7 @@ bzl_library(
     deps = [
         "//apple/internal/partials:app_assets_validation",
         "//apple/internal/partials:apple_bundle_info",
+        "//apple/internal/partials:apple_symbols_file",
         "//apple/internal/partials:binary",
         "//apple/internal/partials:bitcode_symbols",
         "//apple/internal/partials:clang_rt_dylibs",
