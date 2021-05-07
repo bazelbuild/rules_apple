@@ -601,6 +601,15 @@ the application bundle.
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
+            "include_symbols_in_bundle": attr.bool(
+                default = False,
+                doc = """
+    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
+    files from all `{binary: .dSYM, ...}` pairs for the application and its
+    dependencies, then packages them under the `Symbols/` directory in the
+    final application bundle.
+    """,
+            ),
         })
     elif rule_descriptor.product_type == apple_product_type.app_clip:
         attrs.append({
@@ -729,6 +738,15 @@ set, then the default extension is determined by the application's product_type.
                 cfg = "host",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
+            ),
+            "include_symbols_in_bundle": attr.bool(
+                default = False,
+                doc = """
+    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
+    files from all `{binary: .dSYM, ...}` pairs for the application and its
+    dependencies, then packages them under the `Symbols/` directory in the
+    final application bundle.
+    """,
             ),
         })
 

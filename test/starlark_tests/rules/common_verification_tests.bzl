@@ -279,6 +279,42 @@ def bitcode_symbol_map_test(
         ],
     )
 
+def apple_symbols_file_test(
+        name,
+        binary_paths,
+        build_type,
+        tags,
+        target_under_test,
+        **kwargs):
+    """Macro to call `apple_verification_test` with `apple-symbols_file_verifier.sh`.
+
+    This simplifies .symbols file verification tests by forcing
+    `apple_generate_dsym=true`.
+
+    Args:
+        name: Name of the generated test target.
+        binary_paths: The list of archive-relative paths of binaries whose
+            DWARF info should have UUIDs extracted and checked against
+            `$UUID.symbols` files in the archive's Symbols/ directory.
+        build_type: Type of build for the target. Possible values are
+            `simulator` and `device`.
+        tags: Tags to be applied to the test target.
+        target_under_test: The archive target whose contents are to be verified.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
+
+    """
+    apple_verification_test(
+        name = name,
+        build_type = build_type,
+        env = {
+            "BINARY_PATHS": binary_paths,
+        },
+        target_under_test = target_under_test,
+        apple_generate_dsym = True,
+        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
+        tags = tags,
+    )
+
 def entry_point_test(
         name,
         build_type,
