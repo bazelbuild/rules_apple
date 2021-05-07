@@ -43,6 +43,7 @@ def _apple_verification_transition_impl(settings, attr):
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_bitcode": attr.apple_bitcode,
+        "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -77,6 +78,7 @@ apple_verification_transition = transition(
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
         "//command_line_option:apple_bitcode",
+        "//command_line_option:apple_generate_dsym",
     ],
 )
 
@@ -205,6 +207,12 @@ Possible values are `fastbuild`, `dbg` or `opt`. Defaults to `fastbuild`.
 https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 """,
             default = "fastbuild",
+        ),
+        "apple_generate_dsym": attr.bool(
+            default = False,
+            doc = """
+If true, generates .dSYM debug symbol bundles for the target(s) under test.
+""",
         ),
         "sanitizer": attr.string(
             default = "none",

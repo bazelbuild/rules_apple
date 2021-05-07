@@ -20,6 +20,7 @@ load(
 )
 load(
     ":rules/common_verification_tests.bzl",
+    "apple_symbols_file_test",
     "archive_contents_test",
 )
 load(
@@ -218,6 +219,19 @@ def macos_application_test_suite():
             "CFBundleExecutable": "app_multiple_infoplists",
         },
         tags = [name],
+    )
+
+    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
+    # is enabled.
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_test".format(name),
+        binary_paths = [
+            "app_with_ext_and_symbols_in_bundle.app/Contents/MacOS/app_with_ext_and_symbols_in_bundle",
+            "app_with_ext_and_symbols_in_bundle.app/Contents/PlugIns/ext.appex/Contents/MacOS/ext",
+        ],
+        build_type = "device",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_in_bundle",
     )
 
     native.test_suite(

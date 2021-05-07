@@ -196,6 +196,15 @@ def _macos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = embedded_targets,
+            label_name = label.name,
+            include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if ctx.file.provisioning_profile:
@@ -517,6 +526,15 @@ def _macos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = [],
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if ctx.file.provisioning_profile:
@@ -670,6 +688,15 @@ def _macos_quick_look_plugin_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = [],
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if ctx.file.provisioning_profile:
@@ -809,6 +836,15 @@ def _macos_kernel_extension_impl(ctx):
             apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = [],
+            label_name = label.name,
+            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -953,6 +989,15 @@ def _macos_spotlight_importer_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = [],
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if ctx.file.provisioning_profile:
@@ -1093,6 +1138,15 @@ def _macos_xpc_service_impl(ctx):
             apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            debug_outputs_provider = debug_outputs_provider,
+            dependency_targets = [],
+            label_name = label.name,
+            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]

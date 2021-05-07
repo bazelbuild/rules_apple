@@ -165,6 +165,21 @@ macos_extension(
 )
 
 macos_application(
+    name = "app_with_ext_and_symbols_in_bundle",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    include_symbols_in_bundle = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
     name = "app_with_imported_fmwk",
     bundle_id = "com.google.example",
     infoplists = [

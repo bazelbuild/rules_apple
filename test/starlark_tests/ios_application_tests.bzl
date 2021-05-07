@@ -24,6 +24,7 @@ load(
 )
 load(
     ":rules/common_verification_tests.bzl",
+    "apple_symbols_file_test",
     "archive_contents_test",
     "bitcode_symbol_map_test",
 )
@@ -239,6 +240,20 @@ def ios_application_test_suite():
         binary_paths = ["Payload/app.app/app"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
+    )
+
+    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
+    # is enabled.
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_test".format(name),
+        binary_paths = [
+            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/app_with_ext_and_fmwk_and_symbols_in_bundle",
+            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/PlugIns/ext_with_fmwk_provisioned.appex/ext_with_fmwk_provisioned",
+            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+        ],
+        build_type = "simulator",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_and_symbols_in_bundle",
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
