@@ -65,7 +65,8 @@ trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
 os_build=$(/usr/bin/sw_vers -buildVersion)
 compiler=$(/usr/libexec/PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
-xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}")
+# Ignore duplicate class warnings in stderr on Apple Silicon FB9089778
+xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}" 2>/dev/null)
 xcodebuild_version_output=$(/usr/bin/xcodebuild -version)
 # Parses 'PlatformVersion N.N' into N.N.
 platform_version=$(echo "${xcodebuild_version_sdk_output}" | grep PlatformVersion | cut -d ' ' -f2)
