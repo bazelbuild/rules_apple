@@ -1416,6 +1416,17 @@ macos_command_line_application = rule_factory.create_apple_binary_rule(
     platform_type = "macos",
     product_type = apple_product_type.tool,
     doc = "Builds a macOS Command Line Application binary.",
+    additional_attrs = {
+        "override_archs": attr.string_list(
+            doc = """
+Override the default architecture(s) the tool would be built for. In general
+wherever possible you should prefer --macos_cpus, but that doesn't work when
+building for the host configuration, so you may instead want to set them here.
+By default they will default to your host machine's CPU but you might want to
+built fat binaries to share caches between different architectures.
+""",
+        ),
+    },
 )
 
 macos_dylib = rule_factory.create_apple_binary_rule(

@@ -51,12 +51,14 @@ def _min_os_version_or_none(attr, platform):
 
 def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules."""
+    override_archs = ",".join(getattr(attr, "override_archs", []))
     return {
         "//command_line_option:apple configuration distinguisher": "applebin_" + attr.platform_type,
         "//command_line_option:apple_platform_type": attr.platform_type,
         "//command_line_option:apple_split_cpu": "",
         "//command_line_option:compiler": settings["//command_line_option:apple_compiler"],
         "//command_line_option:cpu": _cpu_string(attr.platform_type, settings),
+        "//command_line_option:macos_cpus": override_archs or settings["//command_line_option:macos_cpus"],
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
         ),
@@ -93,6 +95,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
     "//command_line_option:macos_minimum_os",
+    "//command_line_option:macos_cpus",
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
 ]
@@ -117,7 +120,7 @@ def _apple_rule_arm64_as_arm64e_transition_impl(settings, attr):
 _apple_rule_arm64_as_arm64e_transition = transition(
     implementation = _apple_rule_arm64_as_arm64e_transition_impl,
     inputs = _apple_rule_base_transition_inputs,
-    outputs = _apple_rule_base_transition_outputs + ["//command_line_option:macos_cpus"],
+    outputs = _apple_rule_base_transition_outputs,
 )
 
 def _static_framework_transition_impl(settings, attr):
