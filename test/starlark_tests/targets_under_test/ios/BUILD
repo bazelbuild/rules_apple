@@ -424,6 +424,7 @@ ios_application(
         "iphone",
         "ipad",
     ],
+    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -928,6 +929,7 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo",
     ],
 )
 

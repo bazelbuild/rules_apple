@@ -30,6 +30,7 @@ def _framework_import_aspect_impl(target, ctx):
     if AppleFrameworkImportInfo in target:
         return []
 
+    transitive_debug_info_binaries = []
     transitive_dsyms = []
     transitive_sets = []
     build_archs = []
@@ -38,6 +39,8 @@ def _framework_import_aspect_impl(target, ctx):
             continue
         for dep_target in getattr(ctx.rule.attr, attribute):
             if AppleFrameworkImportInfo in dep_target:
+                if hasattr(dep_target[AppleFrameworkImportInfo], "debug_info_binaries"):
+                    transitive_debug_info_binaries.append(dep_target[AppleFrameworkImportInfo].debug_info_binaries)
                 if hasattr(dep_target[AppleFrameworkImportInfo], "dsym_imports"):
                     transitive_dsyms.append(dep_target[AppleFrameworkImportInfo].dsym_imports)
                 if hasattr(dep_target[AppleFrameworkImportInfo], "framework_imports"):
@@ -48,6 +51,7 @@ def _framework_import_aspect_impl(target, ctx):
         return []
 
     return [AppleFrameworkImportInfo(
+        debug_info_binaries = depset(transitive = transitive_debug_info_binaries),
         dsym_imports = depset(transitive = transitive_dsyms),
         framework_imports = depset(transitive = transitive_sets),
         build_archs = depset(transitive = build_archs),
