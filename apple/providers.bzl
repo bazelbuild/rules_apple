@@ -151,6 +151,10 @@ build with --define=apple.package_symbols=(yes|true|1).
         "build_archs": """
 Depset of strings that represent binary architectures reported from the current build.
 """,
+        "debug_info_binaries": """
+Depset of Files that represent framework binaries and dSYM binaries that
+provide debug info.
+""",
     },
 )
 

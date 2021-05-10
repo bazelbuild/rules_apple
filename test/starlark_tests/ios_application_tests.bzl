@@ -320,6 +320,20 @@ def ios_application_test_suite(name = "ios_application"):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_and_symbols_in_bundle",
     )
 
+    # Tests that the archive contains .symbols package files generated from
+    # imported frameworks when `include_symbols_in_bundle` is enabled.
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_from_external_fmwk_test".format(name),
+        binary_paths = [
+            "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/app_with_imported_dynamic_fmwk_with_dsym",
+            "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+            "Payload/app_with_imported_dynamic_fmwk_with_dsym.app/Frameworks/iOSDynamicFrameworkWithDebugInfo.framework/iOSDynamicFrameworkWithDebugInfo",
+        ],
+        build_type = "simulator",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_dsym",
+    )
+
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
     # is present.
     linkmap_test(
