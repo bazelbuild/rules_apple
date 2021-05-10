@@ -176,7 +176,6 @@ def _tvos_application_impl(ctx):
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
-            package_symbols = True,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
         ),
