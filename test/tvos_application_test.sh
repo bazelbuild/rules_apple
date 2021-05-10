@@ -151,16 +151,4 @@ EOF
   expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
-# Tests that symbols files are included in the ipa when builds with
-# --apple_generate_dsym and --define=apple.package_symbols=yes.
-function test_ipa_contains_symbols() {
-  create_common_files
-  create_minimal_tvos_application
-  do_build tvos //app:app \
-      --apple_generate_dsym \
-      --define=apple.package_symbols=yes || fail "Should build"
-
-  assert_ipa_contains_symbols "test-bin/app/app.ipa" "Payload/app.app/app"
-}
-
 run_suite "tvos_application bundling tests"

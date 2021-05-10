@@ -19,14 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -55,10 +47,6 @@ Depset of `File` references to dSYM files if requested in the build with --apple
 """,
         "linkmaps": """
 Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
-""",
-        "symbols": """
-Depset of `File` references to symbols files if requested in the build with
---define=apple.package_symbols=(yes|true|1).
 """,
     },
 )
@@ -197,7 +185,6 @@ def _debug_symbols_partial_impl(
         debug_outputs_provider = None,
         dsym_info_plist_template,
         executable_name,
-        package_symbols = False,
         platform_prerequisites,
         rule_label):
     """Implementation for the debug symbols processing partial."""
@@ -214,9 +201,6 @@ def _debug_symbols_partial_impl(
 
     direct_linkmaps = []
     transitive_linkmaps = [x.linkmaps for x in deps_providers]
-
-    direct_symbols = []
-    transitive_symbols = [x.symbols for x in deps_providers]
 
     output_providers = []
 
@@ -246,21 +230,6 @@ def _debug_symbols_partial_impl(
                 transitive = [dsym_bundles],
             )
 
-            include_symbols = defines.bool_value(
-                config_vars = platform_prerequisites.config_vars,
-                define_name = "apple.package_symbols",
-                default = False,
-            )
-
-            if include_symbols:
-                symbols = _generate_symbols(
-                    actions = actions,
-                    label_name = rule_label.name,
-                    debug_provider = debug_outputs_provider,
-                    platform_prerequisites = platform_prerequisites,
-                )
-                direct_symbols.extend(symbols)
-
         if platform_prerequisites.objc_fragment.generate_linkmap:
             linkmaps = _collect_linkmaps(
                 actions = actions,
@@ -279,33 +248,21 @@ def _debug_symbols_partial_impl(
 
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
-    symbols_group = depset(direct_symbols, transitive = transitive_symbols)
 
     if propagate_embedded_extra_outputs:
         output_files = depset(transitive = [dsyms_group, linkmaps_group])
     else:
         output_files = depset(direct_dsyms + direct_linkmaps)
 
-    if package_symbols and symbols_group:
-        bundle_files = [(
-            processor.location.archive,
-            "Symbols",
-            symbols_group,
-        )]
-    else:
-        bundle_files = []
-
     output_providers.append(
         _AppleDebugInfo(
             dsym_bundles = dsym_bundles,
             dsyms = dsyms_group,
             linkmaps = linkmaps_group,
-            symbols = symbols_group,
         ),
     )
 
     return struct(
-        bundle_files = bundle_files,
         output_files = output_files,
         providers = output_providers,
         output_groups = {
@@ -313,47 +270,6 @@ def _debug_symbols_partial_impl(
             "linkmaps": linkmaps_group,
         },
     )
-
-def _generate_symbols(
-        *,
-        actions,
-        label_name,
-        debug_provider,
-        platform_prerequisites):
-    dsym_binaries = []
-
-    symbols_dir = intermediates.directory(
-        actions,
-        label_name,
-        "symbols_files",
-    )
-    outputs = [symbols_dir]
-
-    commands = ["mkdir -p \"${OUTPUT_DIR}\""]
-
-    for (arch, arch_outputs) in debug_provider.outputs_map.items():
-        dsym_binary = arch_outputs["dsym_binary"]
-        dsym_binaries.append(dsym_binary)
-        commands.append(
-            ("/usr/bin/xcrun symbols -noTextInSOD -noDaemon -arch {arch} " +
-             "-symbolsPackageDir \"${{OUTPUT_DIR}}\" \"{dsym_binary}\"").format(
-                arch = arch,
-                dsym_binary = dsym_binary.path,
-            ),
-        )
-
-    apple_support.run_shell(
-        actions = actions,
-        inputs = dsym_binaries,
-        outputs = outputs,
-        command = "\n".join(commands),
-        env = {"OUTPUT_DIR": symbols_dir.path},
-        mnemonic = "GenerateSymbolsFiles",
-        apple_fragment = platform_prerequisites.apple_fragment,
-        xcode_config = platform_prerequisites.xcode_version_config,
-    )
-
-    return outputs
 
 def debug_symbols_partial(
         *,
@@ -365,7 +281,6 @@ def debug_symbols_partial(
         debug_outputs_provider = None,
         dsym_info_plist_template,
         executable_name,
-        package_symbols = False,
         platform_prerequisites,
         rule_label):
     """Constructor for the debug symbols processing partial.
@@ -389,7 +304,6 @@ def debug_symbols_partial(
         outputs of this target's binary.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       executable_name: The name of the output DWARF executable.
-      package_symbols: Whether the partial should package the symbols files for all binaries.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_label: The label of the target being analyzed.
 
@@ -406,7 +320,6 @@ def debug_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
         dsym_info_plist_template = dsym_info_plist_template,
         executable_name = executable_name,
-        package_symbols = package_symbols,
         platform_prerequisites = platform_prerequisites,
         rule_label = rule_label,
     )

@@ -173,14 +173,6 @@ can pass `--define=apple.propagate_embedded_extra_outputs=(yes|true|1)` to
 bazel build --define=apple.propagate_embedded_extra_outputs=yes //your/target
 ```
 
-### Include symbols in ipas
-
-Including symbols in the final ipa is necessary if you want to allow Apple to
-symbolicate crash logs from App Store Connect and provide to you directly in
-the Xcode's Organizer window. If you want to include symbols in your ipa for
-App Store builds, you can pass `--apple_generate_dsym` and
-`--define=apple.package_symbols=yes` to `bazel build`.
-
 ### Disable `SwiftSupport` in ipas
 
 The SwiftSupport directory in a final ipa is only necessary if you're shipping

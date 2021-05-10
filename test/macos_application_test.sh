@@ -156,17 +156,4 @@ function test_pkginfo_contents() {
       "app.app/Contents/PkgInfo")"
 }
 
-# Tests that symbols files are included in the ipa when builds with
-# --apple_generate_dsym and --define=apple.package_symbols=yes.
-function test_ipa_contains_symbols() {
-  create_common_files
-  create_minimal_macos_application
-  do_build macos //app:app \
-      --apple_generate_dsym \
-      --define=apple.package_symbols=yes || fail "Should build"
-
-  assert_ipa_contains_symbols "test-bin/app/app.zip" \
-      "app.app/Contents/MacOS/app"
-}
-
 run_suite "macos_application bundling tests"
