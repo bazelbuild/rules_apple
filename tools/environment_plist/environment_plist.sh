@@ -63,7 +63,7 @@ TEMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/bazel_environment.XXXXXX")
 PLIST="${TEMPDIR}/env.plist"
 trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
-os_build=$(/usr/bin/sw_vers -buildVersion)
+os_build=$(sw_vers -buildVersion)
 compiler=$(/usr/libexec/PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
 xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}")
 xcodebuild_version_output=$(/usr/bin/xcodebuild -version)
