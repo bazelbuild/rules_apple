@@ -87,7 +87,6 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "xctoolrunner",
                 rule_ctx = ctx,
             ),
-            std_redirect_dylib = ctx.file.std_redirect_dylib,
         ),
         DefaultInfo(),
     ]
@@ -159,13 +158,6 @@ conversion of plist files to binary format.
         "process_and_sign_template": attr.label(
             allow_single_file = True,
             doc = "A `File` referencing a template for a shell script to process and sign.",
-        ),
-        "std_redirect_dylib": attr.label(
-            cfg = "host",
-            allow_single_file = True,
-            doc = """
-A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
-""",
         ),
         "swift_stdlib_tool": attr.label(
             cfg = "host",
