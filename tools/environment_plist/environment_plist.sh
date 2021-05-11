@@ -65,8 +65,8 @@ trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
 os_build=$(/usr/bin/sw_vers -buildVersion)
 compiler=$(/usr/libexec/PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
-xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}")
-xcodebuild_version_output=$(/usr/bin/xcodebuild -version)
+xcodebuild_version_sdk_output=$(/usr/bin/xcrun xcodebuild -version -sdk "${PLATFORM}")
+xcodebuild_version_output=$(/usr/bin/xcrun xcodebuild -version)
 # Parses 'PlatformVersion N.N' into N.N.
 platform_version=$(echo "${xcodebuild_version_sdk_output}" | grep PlatformVersion | cut -d ' ' -f2)
 # Parses 'ProductBuildVersion NNNN' into NNNN.
