@@ -108,10 +108,10 @@ SHA-256 digest: `TBD`
 ```
 
 - Download the source archive GitHub produced with the release,
-  unarchive it, and create a release archive with this command: `tar
-  czvf REPO_NAME.RELEASE_VERSION.tar.gz *` (ideally this would be
-  scripted in the future and more artifacts would be excluded to reduce
-  download size, but this method avoids potentially gitignored artifacts
+  unarchive it, and create a release archive with this command:
+  `COPYFILE_DISABLE=1 tar czvf REPO_NAME.RELEASE_VERSION.tar.gz *` (ideally
+  this would be scripted in the future and more artifacts would be excluded to
+  reduce download size, but this method avoids potentially gitignored artifacts
   in the archives).
 - Update the release with the archive, and update the sha256 with the
   output of `shasum -a 256 ARCHIVE`.
