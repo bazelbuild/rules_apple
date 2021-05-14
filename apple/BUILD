@@ -121,6 +121,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "tvos.doc",
+    srcs = ["tvos.doc.bzl"],
+    deps = ["tvos"],
+)
+
+bzl_library(
     name = "utils",
     srcs = ["utils.bzl"],
 )

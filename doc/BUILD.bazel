@@ -17,6 +17,7 @@ _DOC_SRCS = [
     "apple",
     "dtrace",
     "resources",
+    "tvos.doc",
     "versioning",
     "watchos.doc",
 ]
