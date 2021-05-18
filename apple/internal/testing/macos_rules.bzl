@@ -72,7 +72,12 @@ macos_internal_ui_test_bundle = _macos_internal_ui_test_bundle
 
 macos_ui_test = rule_factory.create_apple_test_rule(
     implementation = _macos_ui_test_impl,
-    doc = "macOS UI Test rule.",
+    doc = """Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+Note: macOS UI tests are not currently supported in the default test runner.""",
     platform_type = str(apple_common.platform_type.macos),
 )
 
@@ -89,6 +94,17 @@ macos_internal_unit_test_bundle = _macos_internal_unit_test_bundle
 
 macos_unit_test = rule_factory.create_apple_test_rule(
     implementation = _macos_unit_test_impl,
-    doc = "macOS Unit Test rule.",
+    doc = """Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+`macos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `macos_application` target, the tests will
+run within that application's context. If no `test_host` is provided, the tests
+will run outside the context of an macOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).""",
     platform_type = str(apple_common.platform_type.macos),
 )

@@ -87,6 +87,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "macos.doc",
+    srcs = ["macos.doc.bzl"],
+    deps = ["macos"],
+)
+
+bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
 )

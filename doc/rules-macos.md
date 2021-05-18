@@ -1,429 +1,154 @@
-# Build rules for macOS
+<!-- Generated with Stardoc, Do Not Edit! -->
 
-<a name="macos_application"></a>
+Bazel rules for creating macOS applications and bundles.
+<a id="#macos_application"></a>
+
 ## macos_application
 
-```python
-macos_application(name, additional_contents, app_icons, bundle_id, bundle_name,
-entitlements, entitlements_validation, extensions, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, provisioning_profile, resources, strings,
-version, deps)
-```
+<pre>
+macos_application(<a href="#macos_application-name">name</a>, <a href="#macos_application-additional_contents">additional_contents</a>, <a href="#macos_application-app_icons">app_icons</a>, <a href="#macos_application-binary_type">binary_type</a>, <a href="#macos_application-bundle_extension">bundle_extension</a>, <a href="#macos_application-bundle_id">bundle_id</a>,
+                  <a href="#macos_application-bundle_loader">bundle_loader</a>, <a href="#macos_application-bundle_name">bundle_name</a>, <a href="#macos_application-codesign_inputs">codesign_inputs</a>, <a href="#macos_application-codesignopts">codesignopts</a>, <a href="#macos_application-deps">deps</a>, <a href="#macos_application-dylibs">dylibs</a>,
+                  <a href="#macos_application-entitlements">entitlements</a>, <a href="#macos_application-entitlements_validation">entitlements_validation</a>, <a href="#macos_application-executable_name">executable_name</a>, <a href="#macos_application-extensions">extensions</a>,
+                  <a href="#macos_application-include_symbols_in_bundle">include_symbols_in_bundle</a>, <a href="#macos_application-infoplists">infoplists</a>, <a href="#macos_application-ipa_post_processor">ipa_post_processor</a>, <a href="#macos_application-linkopts">linkopts</a>,
+                  <a href="#macos_application-minimum_os_version">minimum_os_version</a>, <a href="#macos_application-platform_type">platform_type</a>, <a href="#macos_application-provisioning_profile">provisioning_profile</a>, <a href="#macos_application-resources">resources</a>, <a href="#macos_application-stamp">stamp</a>, <a href="#macos_application-strings">strings</a>,
+                  <a href="#macos_application-version">version</a>, <a href="#macos_application-xpc_services">xpc_services</a>)
+</pre>
 
-Builds and bundles a macOS application.
+Builds and bundles a macOS Application.
 
 This rule creates an application that is a `.app` bundle. If you want to build a
 simple command line tool as a standalone binary, use
 [`macos_command_line_application`](#macos_command_line_application) instead.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the application. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the application. Each file
-        must have a containing directory named<code>*.xcassets/*.appiconset</code> and
-        there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        application.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.app</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the application.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>extensions</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of extensions (see <a href="#macos_extension"><code>macos_extension</code></a>)
-        to include in the final application bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the application. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.app</code> bundle for the
-        application will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the application.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>xpc_services</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of XPC Services (see <a href="#macos_xpc_service"><code>macos_xpc_service</code></a>)
-        to include in the final application bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final application.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_bundle"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_application-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_application-bundle_extension"></a>bundle_extension |  The extension, without a leading dot, that will be used to name the bundle. If this attribute is not set, then the default extension is determined by the application's product_type.   | String | optional | "" |
+| <a id="macos_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_application-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_application-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_application-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_application-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_application-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_application-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_application-extensions"></a>extensions |  A list of macOS extensions to include in the final application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-include_symbols_in_bundle"></a>include_symbols_in_bundle |  If true and --output_groups=+dsyms is specified, generates <code>$UUID.symbols</code>     files from all <code>{binary: .dSYM, ...}</code> pairs for the application and its     dependencies, then packages them under the <code>Symbols/</code> directory in the     final application bundle.   | Boolean | optional | False |
+| <a id="macos_application-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_application-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_application-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_application-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_application-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_application-xpc_services"></a>xpc_services |  A list of macOS XPC Services to include in the final application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+
+
+<a id="#macos_build_test"></a>
+
+## macos_build_test
+
+<pre>
+macos_build_test(<a href="#macos_build_test-name">name</a>, <a href="#macos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#macos_build_test-platform_type">platform_type</a>, <a href="#macos_build_test-targets">targets</a>)
+</pre>
+
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for macOS.
+
+Typical usage:
+
+```starlark
+macos_build_test(
+    name = "my_build_test",
+    minimum_os_version = "10.14",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
+```
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_build_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_build_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version that will be used as the deployment target when building the targets, represented as a dotted version number (for example, <code>"9.0"</code>).   | String | optional | "" |
+| <a id="macos_build_test-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+
+
+<a id="#macos_bundle"></a>
+
 ## macos_bundle
 
-```python
-macos_bundle(name, additional_contents, app_icons, bundle_id, bundle_name,
-entitlements, entitlements_validation, exported_symbols_lists, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
-resources, strings, version, deps)
-```
+<pre>
+macos_bundle(<a href="#macos_bundle-name">name</a>, <a href="#macos_bundle-additional_contents">additional_contents</a>, <a href="#macos_bundle-app_icons">app_icons</a>, <a href="#macos_bundle-binary_type">binary_type</a>, <a href="#macos_bundle-bundle_extension">bundle_extension</a>, <a href="#macos_bundle-bundle_id">bundle_id</a>,
+             <a href="#macos_bundle-bundle_loader">bundle_loader</a>, <a href="#macos_bundle-bundle_name">bundle_name</a>, <a href="#macos_bundle-codesign_inputs">codesign_inputs</a>, <a href="#macos_bundle-codesignopts">codesignopts</a>, <a href="#macos_bundle-deps">deps</a>, <a href="#macos_bundle-dylibs">dylibs</a>, <a href="#macos_bundle-entitlements">entitlements</a>,
+             <a href="#macos_bundle-entitlements_validation">entitlements_validation</a>, <a href="#macos_bundle-executable_name">executable_name</a>, <a href="#macos_bundle-infoplists">infoplists</a>, <a href="#macos_bundle-ipa_post_processor">ipa_post_processor</a>, <a href="#macos_bundle-linkopts">linkopts</a>,
+             <a href="#macos_bundle-minimum_os_version">minimum_os_version</a>, <a href="#macos_bundle-platform_type">platform_type</a>, <a href="#macos_bundle-provisioning_profile">provisioning_profile</a>, <a href="#macos_bundle-resources">resources</a>, <a href="#macos_bundle-stamp">stamp</a>, <a href="#macos_bundle-strings">strings</a>,
+             <a href="#macos_bundle-version">version</a>)
+</pre>
 
-Builds and bundles a macOS loadable bundle.
+Builds and bundles a macOS Loadable Bundle.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the bundle. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the bundle. Each file
-        must have a containing directory named<code>*.xcassets/*.appiconset</code> and
-        there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_loader</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A label to a <code>macos_application</code> or
-        <code>macos_command_line_application</code> target. The macOS bundle
-        binary generated by this rule will then assume that it will be loaded by
-        that application's binary at runtime. If this attribute is set, this
-        <code>macos_bundle</code> target _cannot_ be a dependency for that
-        <code>macos_application</code> target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the extension). If this
-        attribute is not set, then the <code>name</code> of the target will be
-        used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the bundle.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exported_symbols_lists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of targets containing exported symbols lists files for the
-        linker to control symbol resolution. Each file is expected to have a
-        list of global symbol names that will remain as global symbols in the
-        compiled binary owned by this framework.  All other global symbols will
-        be treated as if they were marked as __private_extern__ (aka
-        visibility=hidden) and will not be global in the output file. See the
-        man page documentation for ld(1) on macOS for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the bundle. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the bundle directory will be that directory's
-        only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final bundle.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_command_line_application"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_bundle-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_bundle-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_bundle-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "loadable_bundle" |
+| <a id="macos_bundle-bundle_extension"></a>bundle_extension |  The extension, without a leading dot, that will be used to name the bundle. If this attribute is not set, then the default extension is determined by the application's product_type.   | String | optional | "" |
+| <a id="macos_bundle-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_bundle-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_bundle-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_bundle-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_bundle-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_bundle-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_bundle-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_bundle-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_bundle-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_bundle-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_bundle-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_bundle-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_bundle-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_bundle-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_bundle-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_bundle-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_command_line_application"></a>
+
 ## macos_command_line_application
 
-```python
-macos_command_line_application(name, bundle_id, exported_symbols_lists,
-infoplists, linkopts, minimum_os_version, version, deps)
-```
+<pre>
+macos_command_line_application(<a href="#macos_command_line_application-name">name</a>, <a href="#macos_command_line_application-binary_type">binary_type</a>, <a href="#macos_command_line_application-bundle_id">bundle_id</a>, <a href="#macos_command_line_application-bundle_loader">bundle_loader</a>, <a href="#macos_command_line_application-codesign_inputs">codesign_inputs</a>,
+                               <a href="#macos_command_line_application-codesignopts">codesignopts</a>, <a href="#macos_command_line_application-deps">deps</a>, <a href="#macos_command_line_application-dylibs">dylibs</a>, <a href="#macos_command_line_application-infoplists">infoplists</a>, <a href="#macos_command_line_application-launchdplists">launchdplists</a>, <a href="#macos_command_line_application-linkopts">linkopts</a>,
+                               <a href="#macos_command_line_application-minimum_os_version">minimum_os_version</a>, <a href="#macos_command_line_application-platform_type">platform_type</a>, <a href="#macos_command_line_application-provisioning_profile">provisioning_profile</a>, <a href="#macos_command_line_application-stamp">stamp</a>,
+                               <a href="#macos_command_line_application-version">version</a>)
+</pre>
 
-Builds a macOS command line application.
+Builds a macOS Command Line Application binary.
+
 
 A command line application is a standalone binary file, rather than a `.app`
 bundle like those produced by [`macos_application`](#macos_application). Unlike
@@ -434,755 +159,241 @@ code-signed.
 Targets created with `macos_command_line_application` can be executed using
 `bazel run`.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        application.</p>
-        <p>If present, this value will be embedded in an <code>Info.plist</code>
-        in the application binary.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exported_symbols_lists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of targets containing exported symbols lists files for the
-        linker to control symbol resolution. Each file is expected to have a
-        list of global symbol names that will remain as global symbols in the
-        compiled binary owned by this framework.  All other global symbols will
-        be treated as if they were marked as __private_extern__ (aka
-        visibility=hidden) and will not be global in the output file. See the
-        man page documentation for ld(1) on macOS for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the application and is embedded
-        into the binary. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies, such as libraries, that are linked into the
-        final binary. Any resources found in those dependencies are ignored.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_dylib"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_command_line_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_command_line_application-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_command_line_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) of the command line application. If present, this value will be embedded in an Info.plist in the application binary.   | String | optional | "" |
+| <a id="macos_command_line_application-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_command_line_application-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_command_line_application-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_command_line_application-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_command_line_application-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_command_line_application-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist that represents the application and is embedded into the binary. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_command_line_application-launchdplists"></a>launchdplists |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_command_line_application-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_command_line_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "10.11").   | String | required |  |
+| <a id="macos_command_line_application-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_command_line_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_command_line_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_command_line_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_dylib"></a>
+
 ## macos_dylib
 
-```python
-macos_dylib(name, bundle_id, exported_symbols_lists, infoplists, linkopts,
-minimum_os_version, version, deps)
-```
+<pre>
+macos_dylib(<a href="#macos_dylib-name">name</a>, <a href="#macos_dylib-binary_type">binary_type</a>, <a href="#macos_dylib-bundle_id">bundle_id</a>, <a href="#macos_dylib-bundle_loader">bundle_loader</a>, <a href="#macos_dylib-codesign_inputs">codesign_inputs</a>, <a href="#macos_dylib-codesignopts">codesignopts</a>, <a href="#macos_dylib-deps">deps</a>,
+            <a href="#macos_dylib-dylibs">dylibs</a>, <a href="#macos_dylib-infoplists">infoplists</a>, <a href="#macos_dylib-linkopts">linkopts</a>, <a href="#macos_dylib-minimum_os_version">minimum_os_version</a>, <a href="#macos_dylib-platform_type">platform_type</a>, <a href="#macos_dylib-provisioning_profile">provisioning_profile</a>,
+            <a href="#macos_dylib-stamp">stamp</a>, <a href="#macos_dylib-version">version</a>)
+</pre>
 
-Builds a macOS dylib.
+Builds a macOS Dylib binary.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        target.</p>
-        <p>If present, this value will be embedded in an <code>Info.plist</code>
-        in the binary.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exported_symbols_lists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of targets containing exported symbols lists files for the
-        linker to control symbol resolution. Each file is expected to have a
-        list of global symbol names that will remain as global symbols in the
-        compiled binary owned by this framework.  All other global symbols will
-        be treated as if they were marked as __private_extern__ (aka
-        visibility=hidden) and will not be global in the output file. See the
-        man page documentation for ld(1) on macOS for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the target and is embedded
-        into the binary. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies, such as libraries, that are linked into the
-        final binary. Any resources found in those dependencies are ignored.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_extension"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_dylib-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_dylib-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "dylib" |
+| <a id="macos_dylib-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) of the command line application. If present, this value will be embedded in an Info.plist in the application binary.   | String | optional | "" |
+| <a id="macos_dylib-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_dylib-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_dylib-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_dylib-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_dylib-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_dylib-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist that represents the application and is embedded into the binary. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_dylib-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_dylib-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "10.11").   | String | required |  |
+| <a id="macos_dylib-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_dylib-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_dylib-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_dylib-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_extension"></a>
+
 ## macos_extension
 
-```python
-macos_extension(name, additional_contents, bundle_id, bundle_name,
-entitlements, entitlements_validation, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provides_main, provisioning_profile, resources,
-strings, version, deps)
-```
+<pre>
+macos_extension(<a href="#macos_extension-name">name</a>, <a href="#macos_extension-additional_contents">additional_contents</a>, <a href="#macos_extension-app_icons">app_icons</a>, <a href="#macos_extension-binary_type">binary_type</a>, <a href="#macos_extension-bundle_id">bundle_id</a>, <a href="#macos_extension-bundle_loader">bundle_loader</a>,
+                <a href="#macos_extension-bundle_name">bundle_name</a>, <a href="#macos_extension-codesign_inputs">codesign_inputs</a>, <a href="#macos_extension-codesignopts">codesignopts</a>, <a href="#macos_extension-deps">deps</a>, <a href="#macos_extension-dylibs">dylibs</a>, <a href="#macos_extension-entitlements">entitlements</a>,
+                <a href="#macos_extension-entitlements_validation">entitlements_validation</a>, <a href="#macos_extension-executable_name">executable_name</a>, <a href="#macos_extension-infoplists">infoplists</a>, <a href="#macos_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#macos_extension-linkopts">linkopts</a>,
+                <a href="#macos_extension-minimum_os_version">minimum_os_version</a>, <a href="#macos_extension-platform_type">platform_type</a>, <a href="#macos_extension-provisioning_profile">provisioning_profile</a>, <a href="#macos_extension-resources">resources</a>, <a href="#macos_extension-stamp">stamp</a>, <a href="#macos_extension-strings">strings</a>,
+                <a href="#macos_extension-version">version</a>)
+</pre>
 
-Builds and bundles a macOS extension.
+Builds and bundles a macOS Application Extension.
 
 Most macOS app extensions use a plug-in-based architecture where the
 executable's entry point is provided by a system framework. However, macOS 11
-introduced Widget Extensions that use a traditional <code>main</code> entry
-point (typically expressed through Swift's <code>@main</code> attribute). If you
-are building a Widget Extension, you <em>must</em> set
-<code>provides_main = True</code> to indicate that your code provides the entry
+introduced Widget Extensions that use a traditional `main` entry
+point (typically expressed through Swift's `@main` attribute). If you
+are building a Widget Extension, you **must** set
+`provides_main = True` to indicate that your code provides the entry
 point so that Bazel doesn't direct the linker to use the system framework's
 entry point instead.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the application. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        extension.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.appex</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the extension.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the extension
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the extension. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.appex</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provides_main</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>A value indicating whether one of this extension's dependencies
-        provides a <code>main</code> entry point.</p>
-        <p>This is false by default, because most app extensions provide their
-        implementation by specifying a principal class or main storyboard in
-        their <code>Info.plist</code> file, and the executable's entry point is
-        actually in a system framework that delegates to it.</p>
-        <p>However, some modern extensions (such as SwiftUI widget extensions
-        introduced in iOS 14 and macOS 11) use the <code>@main</code> attribute
-        to identify their primary type, which generates a traditional
-        <code>main</code> function that passes control to that type. For these
-        extensions, this attribute should be set to true.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the extension.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final extension.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_kernel_extension"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_extension-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_extension-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_extension-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_extension-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_extension-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_extension-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_extension-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_kernel_extension"></a>
+
 ## macos_kernel_extension
 
-```python
-macos_kernel_extension(name, additional_contents, bundle_id, bundle_name,
-entitlements, entitlements_validation, exported_symbols_lists, infoplists,
-ipa_post_processor, linkopts, minimum_os_version, provisioning_profile,
-resources, strings, version, deps)
-```
+<pre>
+macos_kernel_extension(<a href="#macos_kernel_extension-name">name</a>, <a href="#macos_kernel_extension-additional_contents">additional_contents</a>, <a href="#macos_kernel_extension-binary_type">binary_type</a>, <a href="#macos_kernel_extension-bundle_id">bundle_id</a>, <a href="#macos_kernel_extension-bundle_loader">bundle_loader</a>,
+                       <a href="#macos_kernel_extension-bundle_name">bundle_name</a>, <a href="#macos_kernel_extension-codesign_inputs">codesign_inputs</a>, <a href="#macos_kernel_extension-codesignopts">codesignopts</a>, <a href="#macos_kernel_extension-deps">deps</a>, <a href="#macos_kernel_extension-dylibs">dylibs</a>, <a href="#macos_kernel_extension-entitlements">entitlements</a>,
+                       <a href="#macos_kernel_extension-entitlements_validation">entitlements_validation</a>, <a href="#macos_kernel_extension-executable_name">executable_name</a>, <a href="#macos_kernel_extension-infoplists">infoplists</a>, <a href="#macos_kernel_extension-ipa_post_processor">ipa_post_processor</a>,
+                       <a href="#macos_kernel_extension-linkopts">linkopts</a>, <a href="#macos_kernel_extension-minimum_os_version">minimum_os_version</a>, <a href="#macos_kernel_extension-platform_type">platform_type</a>, <a href="#macos_kernel_extension-provisioning_profile">provisioning_profile</a>, <a href="#macos_kernel_extension-resources">resources</a>,
+                       <a href="#macos_kernel_extension-stamp">stamp</a>, <a href="#macos_kernel_extension-strings">strings</a>, <a href="#macos_kernel_extension-version">version</a>)
+</pre>
 
 Builds and bundles a macOS Kernel Extension.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the bundle. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the extension). If this
-        attribute is not set, then the <code>name</code> of the target will be
-        used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the target.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exported_symbols_lists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of targets containing exported symbols lists files for the
-        linker to control symbol resolution. Each file is expected to have a
-        list of global symbol names that will remain as global symbols in the
-        compiled binary owned by this framework.  All other global symbols will
-        be treated as if they were marked as __private_extern__ (aka
-        visibility=hidden) and will not be global in the output file. See the
-        man page documentation for ld(1) on macOS for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the target. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the bundle directory will be that directory's
-        only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra linker flags</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to be linked. Any resources, such as
-        asset catalogs, that are referenced by those targets will also be
-        transitively included in the final bundle.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_spotlight_importer"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_kernel_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_kernel_extension-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_kernel_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_kernel_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_kernel_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_kernel_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_kernel_extension-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_kernel_extension-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_kernel_extension-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_kernel_extension-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_kernel_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_kernel_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_kernel_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_kernel_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_kernel_extension-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_kernel_extension-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_kernel_extension-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_kernel_extension-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_kernel_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_kernel_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_kernel_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_kernel_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_kernel_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_spotlight_importer"></a>
+
 ## macos_spotlight_importer
 
-```python
-macos_spotlight_importer(name, additional_contents, bundle_id, bundle_name,
-entitlements, entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, strings, version, deps)
-```
+<pre>
+macos_spotlight_importer(<a href="#macos_spotlight_importer-name">name</a>, <a href="#macos_spotlight_importer-additional_contents">additional_contents</a>, <a href="#macos_spotlight_importer-binary_type">binary_type</a>, <a href="#macos_spotlight_importer-bundle_id">bundle_id</a>, <a href="#macos_spotlight_importer-bundle_loader">bundle_loader</a>,
+                         <a href="#macos_spotlight_importer-bundle_name">bundle_name</a>, <a href="#macos_spotlight_importer-codesign_inputs">codesign_inputs</a>, <a href="#macos_spotlight_importer-codesignopts">codesignopts</a>, <a href="#macos_spotlight_importer-deps">deps</a>, <a href="#macos_spotlight_importer-dylibs">dylibs</a>, <a href="#macos_spotlight_importer-entitlements">entitlements</a>,
+                         <a href="#macos_spotlight_importer-entitlements_validation">entitlements_validation</a>, <a href="#macos_spotlight_importer-executable_name">executable_name</a>, <a href="#macos_spotlight_importer-infoplists">infoplists</a>, <a href="#macos_spotlight_importer-ipa_post_processor">ipa_post_processor</a>,
+                         <a href="#macos_spotlight_importer-linkopts">linkopts</a>, <a href="#macos_spotlight_importer-minimum_os_version">minimum_os_version</a>, <a href="#macos_spotlight_importer-platform_type">platform_type</a>, <a href="#macos_spotlight_importer-provisioning_profile">provisioning_profile</a>, <a href="#macos_spotlight_importer-resources">resources</a>,
+                         <a href="#macos_spotlight_importer-stamp">stamp</a>, <a href="#macos_spotlight_importer-strings">strings</a>, <a href="#macos_spotlight_importer-version">version</a>)
+</pre>
 
 Builds and bundles a macOS Spotlight Importer.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the bundle. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the extension). If this
-        attribute is not set, then the <code>name</code> of the target will be
-        used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the target.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the target. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the bundle directory will be that directory's
-        only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra linker flags</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to be linked. Any resources, such as
-        asset catalogs, that are referenced by those targets will also be
-        transitively included in the final bundle.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_unit_test"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_spotlight_importer-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_spotlight_importer-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_spotlight_importer-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_spotlight_importer-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_spotlight_importer-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_spotlight_importer-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_spotlight_importer-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_spotlight_importer-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_spotlight_importer-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_spotlight_importer-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_spotlight_importer-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_spotlight_importer-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_spotlight_importer-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_spotlight_importer-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_spotlight_importer-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_spotlight_importer-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_spotlight_importer-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_spotlight_importer-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_spotlight_importer-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_spotlight_importer-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_spotlight_importer-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_spotlight_importer-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_spotlight_importer-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_ui_test"></a>
+
+## macos_ui_test
+
+<pre>
+macos_ui_test(<a href="#macos_ui_test-name">name</a>, <a href="#macos_ui_test-data">data</a>, <a href="#macos_ui_test-deps">deps</a>, <a href="#macos_ui_test-env">env</a>, <a href="#macos_ui_test-platform_type">platform_type</a>, <a href="#macos_ui_test-runner">runner</a>, <a href="#macos_ui_test-test_host">test_host</a>)
+</pre>
+
+Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+Note: macOS UI tests are not currently supported in the default test runner.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_ui_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="macos_ui_test-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="macos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#macos_unit_test"></a>
+
 ## macos_unit_test
 
-```python
-macos_unit_test(name, additional_contents, bundle_id, infoplists,
-minimum_os_version, resources, runner, test_host, data, deps)
-```
+<pre>
+macos_unit_test(<a href="#macos_unit_test-name">name</a>, <a href="#macos_unit_test-data">data</a>, <a href="#macos_unit_test-deps">deps</a>, <a href="#macos_unit_test-env">env</a>, <a href="#macos_unit_test-platform_type">platform_type</a>, <a href="#macos_unit_test-runner">runner</a>, <a href="#macos_unit_test-test_host">test_host</a>)
+</pre>
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
@@ -1197,515 +408,60 @@ functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
 find more information about testing for Apple platforms
 [here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
 
-The following is a list of the `macos_unit_test` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+**ATTRIBUTES**
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the xctest. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>env</code></td>
-      <td>
-        <p><code>Dictionary of strings; optional</code></p>
-        <p>Dictionary of environment variables that should be set during the
-        test execution.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling. Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>runner</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the <code>AppleTestRunnerInfo</code>
-        provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>macos_application</code> target that represents the app that
-        will host the tests. If not specified, the runner will assume it's a
-        library-based test.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>data</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The list of files needed by this rule at runtime.</p>
-        <p>Targets named in the data attribute will appear in the <code>*.runfiles</code>
-        area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.
-        <strong>NOTE</strong>: Files will be made available to the test runner,
-        but will not be bundled into the resulting <code>.xctest</code>
-        bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
-<a name="macos_ui_test"></a>
-## macos_ui_test
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="macos_unit_test-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="macos_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
-```python
-macos_ui_test(name, additional_contents, bundle_id, infoplists,
-minimum_os_version, resources, runner, test_host, data, deps,
-[test specific attributes])
-```
 
-Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+<a id="#macos_xpc_service"></a>
 
-Note: macOS UI tests are not currently supported in the default test runner.
-
-The following is a list of the `macos_ui_test` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
-
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the xctest. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>env</code></td>
-      <td>
-        <p><code>Dictionary of strings; optional</code></p>
-        <p>Dictionary of environment variables that should be set during the
-        test execution.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.  Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>runner</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the
-        <code>AppleTestRunnerInfo</code> provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
-        will be tested using XCUITests. This is required as passing a default
-        has no meaning in UI tests.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>data</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The list of files needed by this rule at runtime.</p>
-        <p>Targets named in the data attribute will appear in the `*.runfiles`
-        area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.
-        <strong>NOTE</strong>: Files will be made available to the test runner,
-        but will not be bundled into the resulting <code>.xctest</code>
-        bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<a name="macos_xpc_service"></a>
 ## macos_xpc_service
 
-```python
-macos_xpc_service(name, additional_contents, bundle_id, bundle_name,
-entitlements, entitlements_validation, infoplists, ipa_post_processor, linkopts,
-minimum_os_version, provisioning_profile, strings, version, deps)
-```
+<pre>
+macos_xpc_service(<a href="#macos_xpc_service-name">name</a>, <a href="#macos_xpc_service-additional_contents">additional_contents</a>, <a href="#macos_xpc_service-binary_type">binary_type</a>, <a href="#macos_xpc_service-bundle_id">bundle_id</a>, <a href="#macos_xpc_service-bundle_loader">bundle_loader</a>, <a href="#macos_xpc_service-bundle_name">bundle_name</a>,
+                  <a href="#macos_xpc_service-codesign_inputs">codesign_inputs</a>, <a href="#macos_xpc_service-codesignopts">codesignopts</a>, <a href="#macos_xpc_service-deps">deps</a>, <a href="#macos_xpc_service-dylibs">dylibs</a>, <a href="#macos_xpc_service-entitlements">entitlements</a>, <a href="#macos_xpc_service-entitlements_validation">entitlements_validation</a>,
+                  <a href="#macos_xpc_service-executable_name">executable_name</a>, <a href="#macos_xpc_service-infoplists">infoplists</a>, <a href="#macos_xpc_service-ipa_post_processor">ipa_post_processor</a>, <a href="#macos_xpc_service-linkopts">linkopts</a>, <a href="#macos_xpc_service-minimum_os_version">minimum_os_version</a>,
+                  <a href="#macos_xpc_service-platform_type">platform_type</a>, <a href="#macos_xpc_service-provisioning_profile">provisioning_profile</a>, <a href="#macos_xpc_service-resources">resources</a>, <a href="#macos_xpc_service-stamp">stamp</a>, <a href="#macos_xpc_service-strings">strings</a>, <a href="#macos_xpc_service-version">version</a>)
+</pre>
 
 Builds and bundles a macOS XPC Service.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>additional_contents</code></td>
-      <td>
-        <p><code>Dictionary of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a> to strings; optional</code></p>
-        <p>Files that should be copied into specific subdirectories of the
-        <code>Contents</code> folder in the application. The keys of this
-        dictionary are labels pointing to single files,
-        <code>filegroup</code>s, or targets; the corresponding value is the
-        name of the subdirectory of <code>Contents</code> where they should
-        be placed.</p>
-        <p>The relative directory structure of <code>filegroup</code>
-        contents is preserved when they are copied into the desired
-        <code>Contents</code> subdirectory.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.app</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the target.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the target. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.app</code> bundle for the
-        application will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra linker flags</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum macOS version supported by
-        the target, represented as a dotted version number (for example,
-        <code>"10.11"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.provisionprofile</code> file) to use
-        when bundling the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final target bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to be linked. Any resources, such as
-        asset catalogs, that are referenced by those targets will also be
-        transitively included in the final application.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="macos_build_test"></a>
-## macos_build_test
 
-```python
-macos_build_test(name, minimum_os_version, targets, [test specific attributes])
-```
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="macos_xpc_service-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="macos_xpc_service-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: Label -> String</a> | optional | {} |
+| <a id="macos_xpc_service-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="macos_xpc_service-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="macos_xpc_service-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_xpc_service-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_xpc_service-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_xpc_service-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="macos_xpc_service-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_xpc_service-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_xpc_service-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_xpc_service-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="macos_xpc_service-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="macos_xpc_service-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="macos_xpc_service-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_xpc_service-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="macos_xpc_service-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="macos_xpc_service-platform_type"></a>platform_type |  -   | String | optional | "macos" |
+| <a id="macos_xpc_service-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.provisionprofile</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="macos_xpc_service-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_xpc_service-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="macos_xpc_service-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="macos_xpc_service-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
-Test rule to check that the given library targets (Swift, Objective-C, C++)
-build for macOS.
 
-Typical usage:
-
-```starlark
-macos_build_test(
-    name = "my_build_test",
-    minimum_os_version = "12.0",
-    targets = [
-        "//some/package:my_library",
-    ],
-)
-```
-
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum OS version that will be used
-        as the deployment target when building the targets, represented as a
-        dotted version number (for example, <code>"9.0"</code>).</p>
-      </td>
-    </tr>
-      <td><code>targets</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The targets to check for successful build.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
