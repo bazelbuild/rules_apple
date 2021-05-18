@@ -465,6 +465,8 @@ def _generate_codesigning_dossier_action(
         codesign_identity = "-"
     if codesign_identity:
         dossier_arguments.extend(["--codesign_identity", codesign_identity])
+    else:
+        dossier_arguments.append("--infer_identity")
     if entitlements:
         input_files.append(entitlements)
         dossier_arguments.extend(["--entitlements_file", entitlements.path])
