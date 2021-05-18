@@ -1418,7 +1418,11 @@ macos_application = rule_factory.create_apple_bundling_rule(
     implementation = _macos_application_impl,
     platform_type = "macos",
     product_type = apple_product_type.application,
-    doc = "Builds and bundles a macOS Application.",
+    doc = """Builds and bundles a macOS Application.
+
+This rule creates an application that is a `.app` bundle. If you want to build a
+simple command line tool as a standalone binary, use
+[`macos_command_line_application`](#macos_command_line_application) instead.""",
 )
 
 macos_bundle = rule_factory.create_apple_bundling_rule(
@@ -1432,7 +1436,16 @@ macos_extension = rule_factory.create_apple_bundling_rule(
     implementation = _macos_extension_impl,
     platform_type = "macos",
     product_type = apple_product_type.app_extension,
-    doc = "Builds and bundles a macOS Application Extension.",
+    doc = """Builds and bundles a macOS Application Extension.
+
+Most macOS app extensions use a plug-in-based architecture where the
+executable's entry point is provided by a system framework. However, macOS 11
+introduced Widget Extensions that use a traditional `main` entry
+point (typically expressed through Swift's `@main` attribute). If you
+are building a Widget Extension, you **must** set
+`provides_main = True` to indicate that your code provides the entry
+point so that Bazel doesn't direct the linker to use the system framework's
+entry point instead.""",
 )
 
 macos_quick_look_plugin = rule_factory.create_apple_bundling_rule(
@@ -1468,7 +1481,17 @@ macos_command_line_application = rule_factory.create_apple_binary_rule(
     implementation = _macos_command_line_application_impl,
     platform_type = "macos",
     product_type = apple_product_type.tool,
-    doc = "Builds a macOS Command Line Application binary.",
+    doc = """Builds a macOS Command Line Application binary.
+
+
+A command line application is a standalone binary file, rather than a `.app`
+bundle like those produced by [`macos_application`](#macos_application). Unlike
+a plain `apple_binary` target, however, this rule supports versioning and
+embedding an `Info.plist` into the binary and allows the binary to be
+code-signed.
+
+Targets created with `macos_command_line_application` can be executed using
+`bazel run`.""",
 )
 
 macos_dylib = rule_factory.create_apple_binary_rule(
