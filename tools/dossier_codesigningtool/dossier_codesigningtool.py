@@ -750,12 +750,12 @@ def _create_dossier(args):
     os.makedirs(dossier_directory)
   unique_id = str(uuid.uuid4())
   entitlements_filename = None
-  if hasattr(args, 'entitlements_file'):
+  if hasattr(args, 'entitlements_file') and args.entitlements_file:
     entitlements_filename = _copy_entitlements_file(args.entitlements_file,
                                                     dossier_directory,
                                                     unique_id)
   provisioning_profile_filename = None
-  if hasattr(args, 'provisioning_profile'):
+  if hasattr(args, 'provisioning_profile') and args.provisioning_profile:
     provisioning_profile_filename = _copy_provisioning_profile(
         args.provisioning_profile, dossier_directory, unique_id)
   if args.infer_identity and provisioning_profile_filename is None:
@@ -774,7 +774,7 @@ def _create_dossier(args):
             _EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
         embedded_manifests.append(embedded_manifest)
   codesign_identity = None
-  if hasattr(args, 'codesign_identity'):
+  if hasattr(args, 'codesign_identity') and args.codesign_identity:
     codesign_identity = args.codesign_identity
   manifest = _generate_manifest(codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
