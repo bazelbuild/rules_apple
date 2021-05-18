@@ -90,6 +90,21 @@ bzl_library(
 )
 
 bzl_library(
+    name = "codesigning_dossier",
+    srcs = ["codesigning_dossier.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:codesigning_support",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//lib:sets",
+    ],
+)
+
+bzl_library(
     name = "debug_symbols",
     srcs = ["debug_symbols.bzl"],
     visibility = [
