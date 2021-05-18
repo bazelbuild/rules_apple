@@ -433,6 +433,25 @@ function test_ios_unit_simulator_id() {
   expect_log "Executed 3 tests, with 0 failures"
 }
 
+function test_ios_unit_test_dot_separated_command_line_args() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTest \
+    --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+}
+
+function test_ios_unit_test_multiple_command_line_args() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTest \
+    --test_arg="--command_line_args=arg1" \
+    --test_arg="--command_line_args=arg2" || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+}
+
 function test_ios_unit_other_arg() {
   create_sim_runners
   create_ios_unit_tests
