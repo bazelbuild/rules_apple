@@ -308,6 +308,61 @@ ios_unit_test(
 EOF
 }
 
+function create_ios_unit_argtest() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/arg_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+#include <assert.h>
+#include <stdlib.h>
+
+@interface ArgUnitTest : XCTestCase
+
+@end
+
+@implementation ArgUnitTest
+
+- (void)testArg {
+  XCTAssertTrue([[NSProcessInfo processInfo].arguments containsObject: @"--flag"], @"should pass");
+  XCTAssertTrue([[NSProcessInfo processInfo].arguments containsObject: @"First"], @"should pass");
+  XCTAssertTrue([[NSProcessInfo processInfo].arguments containsObject: @"Second"], @"should pass");
+$([ $# != 0 ] && printf "  XCTAssertTrue([[NSProcessInfo processInfo].arguments containsObject: @\"%s\"], @\"should pass\");\n" "$@")
+}
+
+@end
+EOF
+
+  cat >ios/ArgUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>ArgUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+objc_library(
+    name = "arg_unit_test_lib",
+    srcs = ["arg_unit_test.m"],
+)
+
+ios_unit_test(
+    name = 'ArgUnitTest',
+    infoplists = ["ArgUnitTest-Info.plist"],
+    deps = [":arg_unit_test_lib"],
+    minimum_os_version = "9.0",
+    runner = ":ios_x86_64_sim_runner",
+    args = [
+      "--command_line_args=--flag",
+      "--command_line_args=First,Second",
+    ],
+)
+EOF
+}
+
 function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
@@ -435,21 +490,21 @@ function test_ios_unit_simulator_id() {
 
 function test_ios_unit_test_dot_separated_command_line_args() {
   create_sim_runners
-  create_ios_unit_tests
-  do_ios_test //ios:PassingUnitTest \
+  create_ios_unit_argtest arg1 arg2 arg3
+  do_ios_test //ios:ArgUnitTest \
     --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
 
-  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'ArgUnitTest' passed"
 }
 
 function test_ios_unit_test_multiple_command_line_args() {
   create_sim_runners
-  create_ios_unit_tests
-  do_ios_test //ios:PassingUnitTest \
+  create_ios_unit_argtest arg1 arg2
+  do_ios_test //ios:ArgUnitTest \
     --test_arg="--command_line_args=arg1" \
     --test_arg="--command_line_args=arg2" || fail "should pass"
 
-  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'ArgUnitTest' passed"
 }
 
 function test_ios_unit_other_arg() {
