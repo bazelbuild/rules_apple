@@ -24,12 +24,16 @@ basename_without_extension() {
 }
 
 custom_xctestrunner_args=()
+command_line_args=()
 simulator_id=""
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
     --destination=platform=ios_simulator,id=*)
       simulator_id="${arg##*=}"
+      ;;
+    --command_line_args=*)
+      command_line_args+=("${arg##*=}")
       ;;
     *)
       custom_xctestrunner_args+=("$arg")
@@ -99,6 +103,15 @@ if [[ -n "${TEST_ENV}" ]]; then
   TEST_ENV=${TEST_ENV//$'\n'/\",\"}
   TEST_ENV="{\"${TEST_ENV}\"}"
   LAUNCH_OPTIONS_JSON_STR="\"env_vars\":${TEST_ENV}"
+fi
+
+if [[ -n "${command_line_args}" ]]; then
+  if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
+    LAUNCH_OPTIONS_JSON_STR+=","
+  fi
+  command_line_args="$(IFS=","; echo "${command_line_args[*]}")"
+  command_line_args="${command_line_args//,/\",\"}"
+  LAUNCH_OPTIONS_JSON_STR+="\"args\":[\"$command_line_args\"]"
 fi
 
 # Use the TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
