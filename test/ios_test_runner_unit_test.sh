@@ -119,10 +119,10 @@ function create_ios_unit_tests() {
 }
 
 - (void)testPassEnvVariable {
-  XCTAssertEqual([NSProcessInfo processInfo].environment[@"SomeVariable1"], @"Its My First Variable", @"should pass");
-  XCTAssertEqual([NSProcessInfo processInfo].environment[@"SomeVariable2"], @"Its My Second Variable", @"should pass");
-  XCTAssertEqual([NSProcessInfo processInfo].environment[@"REFERENCE_DIR"], @"/Project/My Tests/ReferenceImages", @"should pass");
-  XCTAssertEqual([NSProcessInfo processInfo].environment[@"IMAGE_DIR"], @"/Project/My Tests/Images", @"should pass");
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"SomeVariable1"], @"Its My First Variable", @"should pass");
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"SomeVariable2"], @"Its My Second Variable", @"should pass");
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"REFERENCE_DIR"], @"/Project/My Tests/ReferenceImages", @"should pass");
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"IMAGE_DIR"], @"/Project/My Tests/Images", @"should pass");
 }
 
 @end
@@ -184,6 +184,13 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
+test_env = {
+    "SomeVariable1": "Its My First Variable",
+    "SomeVariable2": "Its My Second Variable",
+    "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
+    "IMAGE_DIR": "/Project/My Tests/Images"
+}
+
 objc_library(
     name = "pass_unit_test_lib",
     srcs = ["pass_unit_test.m"],
@@ -194,12 +201,7 @@ ios_unit_test(
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
     minimum_os_version = "9.0",
-    env = {
-      "SomeVariable1": "Its My First Variable",
-      "SomeVariable2": "Its My Second Variable",
-      "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
-      "IMAGE_DIR": "/Project/My Tests/Images"
-    },
+    env = test_env,
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -209,6 +211,7 @@ ios_unit_test(
     deps = [":pass_unit_test_lib"],
     minimum_os_version = "9.0",
     test_host = ":app",
+    env = test_env,
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -374,7 +377,7 @@ function test_ios_unit_test_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-  expect_log "Executed 3 tests, with 0 failures"
+  expect_log "Executed 4 tests, with 0 failures"
 }
 
 function test_ios_unit_test_with_host_pass() {
@@ -385,7 +388,7 @@ function test_ios_unit_test_with_host_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-  expect_log "Executed 3 tests, with 0 failures"
+  expect_log "Executed 4 tests, with 0 failures"
 }
 
 function test_ios_unit_swift_test_pass() {
@@ -485,7 +488,7 @@ function test_ios_unit_simulator_id() {
   # Custom logs from xctestrunner
   expect_not_log "Creating a new simulator"
   expect_not_log "Created new simulator"
-  expect_log "Executed 3 tests, with 0 failures"
+  expect_log "Executed 4 tests, with 0 failures"
 }
 
 function test_ios_unit_test_dot_separated_command_line_args() {
@@ -513,7 +516,7 @@ function test_ios_unit_other_arg() {
   ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
 
   # Error comes from xctestrunner
-  expect_log "downloaded: error: unrecognized arguments: invalid_arg"
+  expect_log "error: unrecognized arguments: invalid_arg"
 }
 
 function test_ios_unit_test_with_multi_equal_env() {
