@@ -273,6 +273,29 @@ EOF
               "linkopts may have not propagated"
 }
 
+# Tests additional_linker_inputs and $(location) expansion in linker argument.
+function test_additional_linker_inputs_expansion() {
+  create_common_files
+
+  cat >> app/BUILD <<'EOF'
+genrule(name = "linker_input", cmd="touch $@", outs=["a.lds"])
+
+ios_application(
+    name = "app",
+    additional_linker_inputs = [":linker_input"],
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    linkopts = ["-order_file", "$(location :linker_input)"],
+    minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+}
+
 # Tests that the PkgInfo file exists in the bundle and has the expected
 # content.
 function test_pkginfo_contents() {
