@@ -259,6 +259,12 @@ A list of strings representing extra flags that should be passed to `codesign`.
 A list of strings representing extra flags that should be passed to the linker.
     """,
             ),
+            "additional_linker_inputs": attr.label_list(
+                allow_files = True,
+                doc = """
+A list of input files to be passed to the linker.
+    """,
+            ),
             "stamp": attr.int(
                 default = default_stamp,
                 doc = """

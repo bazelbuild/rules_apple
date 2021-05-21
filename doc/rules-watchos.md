@@ -80,11 +80,12 @@ watchos_build_test(
 ## watchos_dynamic_framework
 
 <pre>
-watchos_dynamic_framework(<a href="#watchos_dynamic_framework-name">name</a>, <a href="#watchos_dynamic_framework-binary_type">binary_type</a>, <a href="#watchos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#watchos_dynamic_framework-bundle_loader">bundle_loader</a>, <a href="#watchos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#watchos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
-                          <a href="#watchos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#watchos_dynamic_framework-deps">deps</a>, <a href="#watchos_dynamic_framework-dylibs">dylibs</a>, <a href="#watchos_dynamic_framework-executable_name">executable_name</a>, <a href="#watchos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>,
-                          <a href="#watchos_dynamic_framework-extension_safe">extension_safe</a>, <a href="#watchos_dynamic_framework-frameworks">frameworks</a>, <a href="#watchos_dynamic_framework-infoplists">infoplists</a>, <a href="#watchos_dynamic_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_dynamic_framework-linkopts">linkopts</a>,
-                          <a href="#watchos_dynamic_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_dynamic_framework-minimum_os_version">minimum_os_version</a>, <a href="#watchos_dynamic_framework-platform_type">platform_type</a>,
-                          <a href="#watchos_dynamic_framework-provisioning_profile">provisioning_profile</a>, <a href="#watchos_dynamic_framework-resources">resources</a>, <a href="#watchos_dynamic_framework-stamp">stamp</a>, <a href="#watchos_dynamic_framework-strings">strings</a>, <a href="#watchos_dynamic_framework-version">version</a>)
+watchos_dynamic_framework(<a href="#watchos_dynamic_framework-name">name</a>, <a href="#watchos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_dynamic_framework-binary_type">binary_type</a>, <a href="#watchos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#watchos_dynamic_framework-bundle_loader">bundle_loader</a>,
+                          <a href="#watchos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#watchos_dynamic_framework-codesign_inputs">codesign_inputs</a>, <a href="#watchos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#watchos_dynamic_framework-deps">deps</a>, <a href="#watchos_dynamic_framework-dylibs">dylibs</a>, <a href="#watchos_dynamic_framework-executable_name">executable_name</a>,
+                          <a href="#watchos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_dynamic_framework-extension_safe">extension_safe</a>, <a href="#watchos_dynamic_framework-frameworks">frameworks</a>, <a href="#watchos_dynamic_framework-infoplists">infoplists</a>,
+                          <a href="#watchos_dynamic_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_dynamic_framework-linkopts">linkopts</a>, <a href="#watchos_dynamic_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>,
+                          <a href="#watchos_dynamic_framework-minimum_os_version">minimum_os_version</a>, <a href="#watchos_dynamic_framework-platform_type">platform_type</a>, <a href="#watchos_dynamic_framework-provisioning_profile">provisioning_profile</a>, <a href="#watchos_dynamic_framework-resources">resources</a>, <a href="#watchos_dynamic_framework-stamp">stamp</a>,
+                          <a href="#watchos_dynamic_framework-strings">strings</a>, <a href="#watchos_dynamic_framework-version">version</a>)
 </pre>
 
 Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
@@ -95,6 +96,7 @@ Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="watchos_dynamic_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="watchos_dynamic_framework-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="watchos_dynamic_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "dylib" |
 | <a id="watchos_dynamic_framework-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="watchos_dynamic_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
@@ -125,11 +127,12 @@ Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
 ## watchos_extension
 
 <pre>
-watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_extension-binary_type">binary_type</a>, <a href="#watchos_extension-bundle_id">bundle_id</a>, <a href="#watchos_extension-bundle_loader">bundle_loader</a>, <a href="#watchos_extension-bundle_name">bundle_name</a>, <a href="#watchos_extension-codesign_inputs">codesign_inputs</a>,
-                  <a href="#watchos_extension-codesignopts">codesignopts</a>, <a href="#watchos_extension-deps">deps</a>, <a href="#watchos_extension-dylibs">dylibs</a>, <a href="#watchos_extension-entitlements">entitlements</a>, <a href="#watchos_extension-entitlements_validation">entitlements_validation</a>, <a href="#watchos_extension-executable_name">executable_name</a>,
-                  <a href="#watchos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_extension-extensions">extensions</a>, <a href="#watchos_extension-infoplists">infoplists</a>, <a href="#watchos_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_extension-linkopts">linkopts</a>,
-                  <a href="#watchos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_extension-minimum_os_version">minimum_os_version</a>, <a href="#watchos_extension-platform_type">platform_type</a>,
-                  <a href="#watchos_extension-provisioning_profile">provisioning_profile</a>, <a href="#watchos_extension-resources">resources</a>, <a href="#watchos_extension-stamp">stamp</a>, <a href="#watchos_extension-strings">strings</a>, <a href="#watchos_extension-version">version</a>)
+watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_extension-binary_type">binary_type</a>, <a href="#watchos_extension-bundle_id">bundle_id</a>, <a href="#watchos_extension-bundle_loader">bundle_loader</a>,
+                  <a href="#watchos_extension-bundle_name">bundle_name</a>, <a href="#watchos_extension-codesign_inputs">codesign_inputs</a>, <a href="#watchos_extension-codesignopts">codesignopts</a>, <a href="#watchos_extension-deps">deps</a>, <a href="#watchos_extension-dylibs">dylibs</a>, <a href="#watchos_extension-entitlements">entitlements</a>,
+                  <a href="#watchos_extension-entitlements_validation">entitlements_validation</a>, <a href="#watchos_extension-executable_name">executable_name</a>, <a href="#watchos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_extension-extensions">extensions</a>,
+                  <a href="#watchos_extension-infoplists">infoplists</a>, <a href="#watchos_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_extension-linkopts">linkopts</a>, <a href="#watchos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>,
+                  <a href="#watchos_extension-minimum_os_version">minimum_os_version</a>, <a href="#watchos_extension-platform_type">platform_type</a>, <a href="#watchos_extension-provisioning_profile">provisioning_profile</a>, <a href="#watchos_extension-resources">resources</a>, <a href="#watchos_extension-stamp">stamp</a>, <a href="#watchos_extension-strings">strings</a>,
+                  <a href="#watchos_extension-version">version</a>)
 </pre>
 
 Builds and bundles an watchOS Extension.
@@ -144,6 +147,7 @@ so these bundling rules do not support that version of the platform.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="watchos_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="watchos_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="watchos_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
 | <a id="watchos_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="watchos_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
@@ -175,9 +179,9 @@ so these bundling rules do not support that version of the platform.
 ## watchos_static_framework
 
 <pre>
-watchos_static_framework(<a href="#watchos_static_framework-name">name</a>, <a href="#watchos_static_framework-avoid_deps">avoid_deps</a>, <a href="#watchos_static_framework-binary_type">binary_type</a>, <a href="#watchos_static_framework-bundle_loader">bundle_loader</a>, <a href="#watchos_static_framework-bundle_name">bundle_name</a>, <a href="#watchos_static_framework-codesign_inputs">codesign_inputs</a>,
-                         <a href="#watchos_static_framework-codesignopts">codesignopts</a>, <a href="#watchos_static_framework-deps">deps</a>, <a href="#watchos_static_framework-dylibs">dylibs</a>, <a href="#watchos_static_framework-exclude_resources">exclude_resources</a>, <a href="#watchos_static_framework-executable_name">executable_name</a>,
-                         <a href="#watchos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_static_framework-hdrs">hdrs</a>, <a href="#watchos_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_static_framework-linkopts">linkopts</a>,
+watchos_static_framework(<a href="#watchos_static_framework-name">name</a>, <a href="#watchos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_static_framework-avoid_deps">avoid_deps</a>, <a href="#watchos_static_framework-binary_type">binary_type</a>, <a href="#watchos_static_framework-bundle_loader">bundle_loader</a>,
+                         <a href="#watchos_static_framework-bundle_name">bundle_name</a>, <a href="#watchos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#watchos_static_framework-codesignopts">codesignopts</a>, <a href="#watchos_static_framework-deps">deps</a>, <a href="#watchos_static_framework-dylibs">dylibs</a>, <a href="#watchos_static_framework-exclude_resources">exclude_resources</a>,
+                         <a href="#watchos_static_framework-executable_name">executable_name</a>, <a href="#watchos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_static_framework-hdrs">hdrs</a>, <a href="#watchos_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_static_framework-linkopts">linkopts</a>,
                          <a href="#watchos_static_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_static_framework-minimum_os_version">minimum_os_version</a>, <a href="#watchos_static_framework-platform_type">platform_type</a>, <a href="#watchos_static_framework-resources">resources</a>,
                          <a href="#watchos_static_framework-stamp">stamp</a>, <a href="#watchos_static_framework-strings">strings</a>, <a href="#watchos_static_framework-umbrella_header">umbrella_header</a>, <a href="#watchos_static_framework-version">version</a>)
 </pre>
@@ -190,6 +194,7 @@ Builds and bundles a watchOS Static Framework.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="watchos_static_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="watchos_static_framework-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="watchos_static_framework-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="watchos_static_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
 | <a id="watchos_static_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
