@@ -62,7 +62,7 @@ def _ios_unit_test_impl(ctx):
 # Declare it with an underscore so it shows up that way in queries.
 _ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _ios_ui_test_bundle_impl,
-    platform_type = str(apple_common.platform_type.ios),
+    platform_type = "ios",
     product_type = apple_product_type.ui_test_bundle,
     doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
 )
@@ -73,13 +73,13 @@ ios_internal_ui_test_bundle = _ios_internal_ui_test_bundle
 ios_ui_test = rule_factory.create_apple_test_rule(
     implementation = _ios_ui_test_impl,
     doc = "iOS UI Test rule.",
-    platform_type = str(apple_common.platform_type.ios),
+    platform_type = "ios",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
 _ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _ios_unit_test_bundle_impl,
-    platform_type = str(apple_common.platform_type.ios),
+    platform_type = "ios",
     product_type = apple_product_type.unit_test_bundle,
     doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
 )
@@ -90,5 +90,5 @@ ios_internal_unit_test_bundle = _ios_internal_unit_test_bundle
 ios_unit_test = rule_factory.create_apple_test_rule(
     implementation = _ios_unit_test_impl,
     doc = "iOS Unit Test rule.",
-    platform_type = str(apple_common.platform_type.ios),
+    platform_type = "ios",
 )

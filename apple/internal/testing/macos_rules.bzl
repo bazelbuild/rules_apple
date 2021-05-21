@@ -62,7 +62,7 @@ def _macos_unit_test_impl(ctx):
 # Declare it with an underscore so it shows up that way in queries.
 _macos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _macos_ui_test_bundle_impl,
-    platform_type = str(apple_common.platform_type.macos),
+    platform_type = "macos",
     product_type = apple_product_type.ui_test_bundle,
     doc = "Builds and bundles an macOS UI Test Bundle.  Internal target not to be depended upon.",
 )
@@ -73,13 +73,13 @@ macos_internal_ui_test_bundle = _macos_internal_ui_test_bundle
 macos_ui_test = rule_factory.create_apple_test_rule(
     implementation = _macos_ui_test_impl,
     doc = "macOS UI Test rule.",
-    platform_type = str(apple_common.platform_type.macos),
+    platform_type = "macos",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
 _macos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
     implementation = _macos_unit_test_bundle_impl,
-    platform_type = str(apple_common.platform_type.macos),
+    platform_type = "macos",
     product_type = apple_product_type.unit_test_bundle,
     doc = "Builds and bundles an macOS Unit Test Bundle.  Internal target not to be depended upon.",
 )
@@ -90,5 +90,5 @@ macos_internal_unit_test_bundle = _macos_internal_unit_test_bundle
 macos_unit_test = rule_factory.create_apple_test_rule(
     implementation = _macos_unit_test_impl,
     doc = "macOS Unit Test rule.",
-    platform_type = str(apple_common.platform_type.macos),
+    platform_type = "macos",
 )
