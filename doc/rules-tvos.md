@@ -6,12 +6,12 @@
 ## tvos_application
 
 <pre>
-tvos_application(<a href="#tvos_application-name">name</a>, <a href="#tvos_application-app_icons">app_icons</a>, <a href="#tvos_application-binary_type">binary_type</a>, <a href="#tvos_application-bundle_id">bundle_id</a>, <a href="#tvos_application-bundle_loader">bundle_loader</a>, <a href="#tvos_application-bundle_name">bundle_name</a>,
-                 <a href="#tvos_application-codesign_inputs">codesign_inputs</a>, <a href="#tvos_application-codesignopts">codesignopts</a>, <a href="#tvos_application-deps">deps</a>, <a href="#tvos_application-dylibs">dylibs</a>, <a href="#tvos_application-entitlements">entitlements</a>, <a href="#tvos_application-entitlements_validation">entitlements_validation</a>,
-                 <a href="#tvos_application-executable_name">executable_name</a>, <a href="#tvos_application-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_application-extensions">extensions</a>, <a href="#tvos_application-frameworks">frameworks</a>, <a href="#tvos_application-infoplists">infoplists</a>,
-                 <a href="#tvos_application-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_application-launch_images">launch_images</a>, <a href="#tvos_application-linkopts">linkopts</a>, <a href="#tvos_application-minimum_deployment_os_version">minimum_deployment_os_version</a>,
-                 <a href="#tvos_application-minimum_os_version">minimum_os_version</a>, <a href="#tvos_application-platform_type">platform_type</a>, <a href="#tvos_application-provisioning_profile">provisioning_profile</a>, <a href="#tvos_application-resources">resources</a>, <a href="#tvos_application-settings_bundle">settings_bundle</a>,
-                 <a href="#tvos_application-stamp">stamp</a>, <a href="#tvos_application-strings">strings</a>, <a href="#tvos_application-version">version</a>)
+tvos_application(<a href="#tvos_application-name">name</a>, <a href="#tvos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_application-app_icons">app_icons</a>, <a href="#tvos_application-binary_type">binary_type</a>, <a href="#tvos_application-bundle_id">bundle_id</a>, <a href="#tvos_application-bundle_loader">bundle_loader</a>,
+                 <a href="#tvos_application-bundle_name">bundle_name</a>, <a href="#tvos_application-codesign_inputs">codesign_inputs</a>, <a href="#tvos_application-codesignopts">codesignopts</a>, <a href="#tvos_application-deps">deps</a>, <a href="#tvos_application-dylibs">dylibs</a>, <a href="#tvos_application-entitlements">entitlements</a>,
+                 <a href="#tvos_application-entitlements_validation">entitlements_validation</a>, <a href="#tvos_application-executable_name">executable_name</a>, <a href="#tvos_application-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_application-extensions">extensions</a>,
+                 <a href="#tvos_application-frameworks">frameworks</a>, <a href="#tvos_application-infoplists">infoplists</a>, <a href="#tvos_application-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_application-launch_images">launch_images</a>, <a href="#tvos_application-linkopts">linkopts</a>,
+                 <a href="#tvos_application-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_application-minimum_os_version">minimum_os_version</a>, <a href="#tvos_application-platform_type">platform_type</a>,
+                 <a href="#tvos_application-provisioning_profile">provisioning_profile</a>, <a href="#tvos_application-resources">resources</a>, <a href="#tvos_application-settings_bundle">settings_bundle</a>, <a href="#tvos_application-stamp">stamp</a>, <a href="#tvos_application-strings">strings</a>, <a href="#tvos_application-version">version</a>)
 </pre>
 
 Builds and bundles a tvOS Application.
@@ -22,6 +22,7 @@ Builds and bundles a tvOS Application.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="tvos_application-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_application-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
 | <a id="tvos_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
@@ -92,11 +93,12 @@ tvos_build_test(
 ## tvos_dynamic_framework
 
 <pre>
-tvos_dynamic_framework(<a href="#tvos_dynamic_framework-name">name</a>, <a href="#tvos_dynamic_framework-binary_type">binary_type</a>, <a href="#tvos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#tvos_dynamic_framework-bundle_loader">bundle_loader</a>, <a href="#tvos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#tvos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
-                       <a href="#tvos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#tvos_dynamic_framework-deps">deps</a>, <a href="#tvos_dynamic_framework-dylibs">dylibs</a>, <a href="#tvos_dynamic_framework-executable_name">executable_name</a>, <a href="#tvos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>,
-                       <a href="#tvos_dynamic_framework-extension_safe">extension_safe</a>, <a href="#tvos_dynamic_framework-frameworks">frameworks</a>, <a href="#tvos_dynamic_framework-hdrs">hdrs</a>, <a href="#tvos_dynamic_framework-infoplists">infoplists</a>, <a href="#tvos_dynamic_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_dynamic_framework-linkopts">linkopts</a>,
-                       <a href="#tvos_dynamic_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_dynamic_framework-minimum_os_version">minimum_os_version</a>, <a href="#tvos_dynamic_framework-platform_type">platform_type</a>,
-                       <a href="#tvos_dynamic_framework-provisioning_profile">provisioning_profile</a>, <a href="#tvos_dynamic_framework-resources">resources</a>, <a href="#tvos_dynamic_framework-stamp">stamp</a>, <a href="#tvos_dynamic_framework-strings">strings</a>, <a href="#tvos_dynamic_framework-version">version</a>)
+tvos_dynamic_framework(<a href="#tvos_dynamic_framework-name">name</a>, <a href="#tvos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_dynamic_framework-binary_type">binary_type</a>, <a href="#tvos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#tvos_dynamic_framework-bundle_loader">bundle_loader</a>,
+                       <a href="#tvos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#tvos_dynamic_framework-codesign_inputs">codesign_inputs</a>, <a href="#tvos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#tvos_dynamic_framework-deps">deps</a>, <a href="#tvos_dynamic_framework-dylibs">dylibs</a>, <a href="#tvos_dynamic_framework-executable_name">executable_name</a>,
+                       <a href="#tvos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_dynamic_framework-extension_safe">extension_safe</a>, <a href="#tvos_dynamic_framework-frameworks">frameworks</a>, <a href="#tvos_dynamic_framework-hdrs">hdrs</a>, <a href="#tvos_dynamic_framework-infoplists">infoplists</a>,
+                       <a href="#tvos_dynamic_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_dynamic_framework-linkopts">linkopts</a>, <a href="#tvos_dynamic_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>,
+                       <a href="#tvos_dynamic_framework-minimum_os_version">minimum_os_version</a>, <a href="#tvos_dynamic_framework-platform_type">platform_type</a>, <a href="#tvos_dynamic_framework-provisioning_profile">provisioning_profile</a>, <a href="#tvos_dynamic_framework-resources">resources</a>, <a href="#tvos_dynamic_framework-stamp">stamp</a>,
+                       <a href="#tvos_dynamic_framework-strings">strings</a>, <a href="#tvos_dynamic_framework-version">version</a>)
 </pre>
 
 Builds and bundles a tvOS dynamic framework that is consumable by Xcode.
@@ -107,6 +109,7 @@ Builds and bundles a tvOS dynamic framework that is consumable by Xcode.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_dynamic_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="tvos_dynamic_framework-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_dynamic_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "dylib" |
 | <a id="tvos_dynamic_framework-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="tvos_dynamic_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
@@ -138,11 +141,11 @@ Builds and bundles a tvOS dynamic framework that is consumable by Xcode.
 ## tvos_extension
 
 <pre>
-tvos_extension(<a href="#tvos_extension-name">name</a>, <a href="#tvos_extension-binary_type">binary_type</a>, <a href="#tvos_extension-bundle_id">bundle_id</a>, <a href="#tvos_extension-bundle_loader">bundle_loader</a>, <a href="#tvos_extension-bundle_name">bundle_name</a>, <a href="#tvos_extension-codesign_inputs">codesign_inputs</a>,
-               <a href="#tvos_extension-codesignopts">codesignopts</a>, <a href="#tvos_extension-deps">deps</a>, <a href="#tvos_extension-dylibs">dylibs</a>, <a href="#tvos_extension-entitlements">entitlements</a>, <a href="#tvos_extension-entitlements_validation">entitlements_validation</a>, <a href="#tvos_extension-executable_name">executable_name</a>,
-               <a href="#tvos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_extension-frameworks">frameworks</a>, <a href="#tvos_extension-infoplists">infoplists</a>, <a href="#tvos_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_extension-linkopts">linkopts</a>,
-               <a href="#tvos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_extension-minimum_os_version">minimum_os_version</a>, <a href="#tvos_extension-platform_type">platform_type</a>, <a href="#tvos_extension-provisioning_profile">provisioning_profile</a>,
-               <a href="#tvos_extension-resources">resources</a>, <a href="#tvos_extension-stamp">stamp</a>, <a href="#tvos_extension-strings">strings</a>, <a href="#tvos_extension-version">version</a>)
+tvos_extension(<a href="#tvos_extension-name">name</a>, <a href="#tvos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_extension-binary_type">binary_type</a>, <a href="#tvos_extension-bundle_id">bundle_id</a>, <a href="#tvos_extension-bundle_loader">bundle_loader</a>, <a href="#tvos_extension-bundle_name">bundle_name</a>,
+               <a href="#tvos_extension-codesign_inputs">codesign_inputs</a>, <a href="#tvos_extension-codesignopts">codesignopts</a>, <a href="#tvos_extension-deps">deps</a>, <a href="#tvos_extension-dylibs">dylibs</a>, <a href="#tvos_extension-entitlements">entitlements</a>, <a href="#tvos_extension-entitlements_validation">entitlements_validation</a>,
+               <a href="#tvos_extension-executable_name">executable_name</a>, <a href="#tvos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_extension-frameworks">frameworks</a>, <a href="#tvos_extension-infoplists">infoplists</a>, <a href="#tvos_extension-ipa_post_processor">ipa_post_processor</a>,
+               <a href="#tvos_extension-linkopts">linkopts</a>, <a href="#tvos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_extension-minimum_os_version">minimum_os_version</a>, <a href="#tvos_extension-platform_type">platform_type</a>,
+               <a href="#tvos_extension-provisioning_profile">provisioning_profile</a>, <a href="#tvos_extension-resources">resources</a>, <a href="#tvos_extension-stamp">stamp</a>, <a href="#tvos_extension-strings">strings</a>, <a href="#tvos_extension-version">version</a>)
 </pre>
 
 Builds and bundles a tvOS Extension.
@@ -153,6 +156,7 @@ Builds and bundles a tvOS Extension.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="tvos_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
 | <a id="tvos_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="tvos_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
@@ -184,9 +188,9 @@ Builds and bundles a tvOS Extension.
 ## tvos_framework
 
 <pre>
-tvos_framework(<a href="#tvos_framework-name">name</a>, <a href="#tvos_framework-binary_type">binary_type</a>, <a href="#tvos_framework-bundle_id">bundle_id</a>, <a href="#tvos_framework-bundle_loader">bundle_loader</a>, <a href="#tvos_framework-bundle_name">bundle_name</a>, <a href="#tvos_framework-codesign_inputs">codesign_inputs</a>,
-               <a href="#tvos_framework-codesignopts">codesignopts</a>, <a href="#tvos_framework-deps">deps</a>, <a href="#tvos_framework-dylibs">dylibs</a>, <a href="#tvos_framework-executable_name">executable_name</a>, <a href="#tvos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_framework-extension_safe">extension_safe</a>,
-               <a href="#tvos_framework-frameworks">frameworks</a>, <a href="#tvos_framework-hdrs">hdrs</a>, <a href="#tvos_framework-infoplists">infoplists</a>, <a href="#tvos_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_framework-linkopts">linkopts</a>,
+tvos_framework(<a href="#tvos_framework-name">name</a>, <a href="#tvos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_framework-binary_type">binary_type</a>, <a href="#tvos_framework-bundle_id">bundle_id</a>, <a href="#tvos_framework-bundle_loader">bundle_loader</a>, <a href="#tvos_framework-bundle_name">bundle_name</a>,
+               <a href="#tvos_framework-codesign_inputs">codesign_inputs</a>, <a href="#tvos_framework-codesignopts">codesignopts</a>, <a href="#tvos_framework-deps">deps</a>, <a href="#tvos_framework-dylibs">dylibs</a>, <a href="#tvos_framework-executable_name">executable_name</a>, <a href="#tvos_framework-exported_symbols_lists">exported_symbols_lists</a>,
+               <a href="#tvos_framework-extension_safe">extension_safe</a>, <a href="#tvos_framework-frameworks">frameworks</a>, <a href="#tvos_framework-hdrs">hdrs</a>, <a href="#tvos_framework-infoplists">infoplists</a>, <a href="#tvos_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_framework-linkopts">linkopts</a>,
                <a href="#tvos_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_framework-minimum_os_version">minimum_os_version</a>, <a href="#tvos_framework-platform_type">platform_type</a>, <a href="#tvos_framework-provisioning_profile">provisioning_profile</a>,
                <a href="#tvos_framework-resources">resources</a>, <a href="#tvos_framework-stamp">stamp</a>, <a href="#tvos_framework-strings">strings</a>, <a href="#tvos_framework-version">version</a>)
 </pre>
@@ -203,6 +207,7 @@ To use this framework for your app and extensions, list it in the frameworks att
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="tvos_framework-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "dylib" |
 | <a id="tvos_framework-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="tvos_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
@@ -234,11 +239,11 @@ To use this framework for your app and extensions, list it in the frameworks att
 ## tvos_static_framework
 
 <pre>
-tvos_static_framework(<a href="#tvos_static_framework-name">name</a>, <a href="#tvos_static_framework-avoid_deps">avoid_deps</a>, <a href="#tvos_static_framework-binary_type">binary_type</a>, <a href="#tvos_static_framework-bundle_loader">bundle_loader</a>, <a href="#tvos_static_framework-bundle_name">bundle_name</a>, <a href="#tvos_static_framework-codesign_inputs">codesign_inputs</a>,
-                      <a href="#tvos_static_framework-codesignopts">codesignopts</a>, <a href="#tvos_static_framework-deps">deps</a>, <a href="#tvos_static_framework-dylibs">dylibs</a>, <a href="#tvos_static_framework-exclude_resources">exclude_resources</a>, <a href="#tvos_static_framework-executable_name">executable_name</a>,
-                      <a href="#tvos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_static_framework-frameworks">frameworks</a>, <a href="#tvos_static_framework-hdrs">hdrs</a>, <a href="#tvos_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_static_framework-linkopts">linkopts</a>,
-                      <a href="#tvos_static_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_static_framework-minimum_os_version">minimum_os_version</a>, <a href="#tvos_static_framework-platform_type">platform_type</a>, <a href="#tvos_static_framework-resources">resources</a>,
-                      <a href="#tvos_static_framework-stamp">stamp</a>, <a href="#tvos_static_framework-strings">strings</a>, <a href="#tvos_static_framework-umbrella_header">umbrella_header</a>, <a href="#tvos_static_framework-version">version</a>)
+tvos_static_framework(<a href="#tvos_static_framework-name">name</a>, <a href="#tvos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_static_framework-avoid_deps">avoid_deps</a>, <a href="#tvos_static_framework-binary_type">binary_type</a>, <a href="#tvos_static_framework-bundle_loader">bundle_loader</a>,
+                      <a href="#tvos_static_framework-bundle_name">bundle_name</a>, <a href="#tvos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#tvos_static_framework-codesignopts">codesignopts</a>, <a href="#tvos_static_framework-deps">deps</a>, <a href="#tvos_static_framework-dylibs">dylibs</a>, <a href="#tvos_static_framework-exclude_resources">exclude_resources</a>,
+                      <a href="#tvos_static_framework-executable_name">executable_name</a>, <a href="#tvos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_static_framework-frameworks">frameworks</a>, <a href="#tvos_static_framework-hdrs">hdrs</a>, <a href="#tvos_static_framework-ipa_post_processor">ipa_post_processor</a>,
+                      <a href="#tvos_static_framework-linkopts">linkopts</a>, <a href="#tvos_static_framework-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_static_framework-minimum_os_version">minimum_os_version</a>, <a href="#tvos_static_framework-platform_type">platform_type</a>,
+                      <a href="#tvos_static_framework-resources">resources</a>, <a href="#tvos_static_framework-stamp">stamp</a>, <a href="#tvos_static_framework-strings">strings</a>, <a href="#tvos_static_framework-umbrella_header">umbrella_header</a>, <a href="#tvos_static_framework-version">version</a>)
 </pre>
 
 
@@ -287,6 +292,7 @@ i.e. `--features=-swift.no_generated_header`).
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_static_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="tvos_static_framework-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_static_framework-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="tvos_static_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
 | <a id="tvos_static_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
