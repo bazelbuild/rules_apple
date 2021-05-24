@@ -95,6 +95,8 @@ macos_application(
         "-alias",
         "_main",
         "_linkopts_test_main",
+        "-exported_symbol",
+        "_linkopts_test_main",
     ],
     minimum_os_version = "10.10",
     tags = FIXTURE_TAGS,
