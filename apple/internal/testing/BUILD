@@ -110,6 +110,21 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "watchos_rules",
+    srcs = ["watchos_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_test_bundle_support",
+        ":apple_test_rule_support",
+        "//apple:providers",
+        "//apple/internal:apple_product_type",
+        "//apple/internal:rule_factory",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
