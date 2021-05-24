@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating macOS applications and bundles."""
+"""# Bazel rules for creating macOS applications and bundles."""
 
 # Re-export original rules rather than their wrapper macros
 # so that stardoc documents the rule attributes, not an opaque

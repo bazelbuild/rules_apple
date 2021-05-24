@@ -1,1131 +1,296 @@
-# Build rules for iOS
+<!-- Generated with Stardoc, Do Not Edit! -->
 
-<a name="ios_application"></a>
+# Build rules for iOS
+<a id="#ios_application"></a>
+
 ## ios_application
 
-```python
-ios_application(name, app_icons, bundle_id, bundle_name, entitlements,
-entitlements_validation, extensions, families, frameworks, infoplists,
-ipa_post_processor, launch_images, launch_storyboard, linkopts,
-minimum_os_version, provisioning_profile, resources, settings_bundle, strings, version,
-watch_application, deps)
+<pre>
+ios_application(<a href="#ios_application-name">name</a>, <a href="#ios_application-alternate_icons">alternate_icons</a>, <a href="#ios_application-app_clips">app_clips</a>, <a href="#ios_application-app_icons">app_icons</a>, <a href="#ios_application-binary_type">binary_type</a>, <a href="#ios_application-bundle_id">bundle_id</a>, <a href="#ios_application-bundle_loader">bundle_loader</a>,
+                <a href="#ios_application-bundle_name">bundle_name</a>, <a href="#ios_application-codesign_inputs">codesign_inputs</a>, <a href="#ios_application-codesignopts">codesignopts</a>, <a href="#ios_application-deps">deps</a>, <a href="#ios_application-dylibs">dylibs</a>, <a href="#ios_application-entitlements">entitlements</a>,
+                <a href="#ios_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_application-executable_name">executable_name</a>, <a href="#ios_application-extensions">extensions</a>, <a href="#ios_application-families">families</a>, <a href="#ios_application-frameworks">frameworks</a>,
+                <a href="#ios_application-include_symbols_in_bundle">include_symbols_in_bundle</a>, <a href="#ios_application-infoplists">infoplists</a>, <a href="#ios_application-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_application-launch_images">launch_images</a>,
+                <a href="#ios_application-launch_storyboard">launch_storyboard</a>, <a href="#ios_application-linkopts">linkopts</a>, <a href="#ios_application-minimum_os_version">minimum_os_version</a>, <a href="#ios_application-platform_type">platform_type</a>, <a href="#ios_application-provisioning_profile">provisioning_profile</a>,
+                <a href="#ios_application-resources">resources</a>, <a href="#ios_application-sdk_frameworks">sdk_frameworks</a>, <a href="#ios_application-settings_bundle">settings_bundle</a>, <a href="#ios_application-stamp">stamp</a>, <a href="#ios_application-strings">strings</a>, <a href="#ios_application-version">version</a>,
+                <a href="#ios_application-watch_application">watch_application</a>)
+</pre>
+
+Builds and bundles an iOS Application.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_application-alternate_icons"></a>alternate_icons |  Files that comprise the alternate app icons for the application. Each file must have a containing directory named after the alternate icon identifier.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-app_clips"></a>app_clips |  A list of iOS app clips to include in the final application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="ios_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_application-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_application-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="ios_application-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="ios_application-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_application-extensions"></a>extensions |  A list of iOS application extensions to include in the final application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_application-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-include_symbols_in_bundle"></a>include_symbols_in_bundle |  If true and --output_groups=+dsyms is specified, generates <code>$UUID.symbols</code>     files from all <code>{binary: .dSYM, ...}</code> pairs for the application and its     dependencies, then packages them under the <code>Symbols/</code> directory in the     final application bundle.   | Boolean | optional | False |
+| <a id="ios_application-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_application-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-launch_images"></a>launch_images |  Files that comprise the launch images for the application. Each file must have a containing directory named <code>*.xcassets/*.launchimage</code> and there may be only one such <code>.launchimage</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-launch_storyboard"></a>launch_storyboard |  The <code>.storyboard</code> or <code>.xib</code> file that should be used as the launch screen for the application. The provided file will be compiled into the appropriate format (<code>.storyboardc</code> or <code>.nib</code>) and placed in the root of the final bundle. The generated file will also be registered in the bundle's Info.plist under the key <code>UILaunchStoryboardName</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="ios_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_application-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | [] |
+| <a id="ios_application-settings_bundle"></a>settings_bundle |  A resource bundle (e.g. <code>apple_bundle_import</code>) target that contains the files that make up the application's settings bundle. These files will be copied into the root of the final application bundle in a directory named <code>Settings.bundle</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="ios_application-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_application-watch_application"></a>watch_application |  A <code>watchos_application</code> target that represents an Apple Watch application that should be embedded in the application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_build_test"></a>
+
+## ios_build_test
+
+<pre>
+ios_build_test(<a href="#ios_build_test-name">name</a>, <a href="#ios_build_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_build_test-platform_type">platform_type</a>, <a href="#ios_build_test-targets">targets</a>)
+</pre>
+
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for iOS.
+
+Typical usage:
+
+```starlark
+ios_build_test(
+    name = "my_build_test",
+    minimum_os_version = "12.0",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
 ```
 
-Builds and bundles an iOS application.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>alternate_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the alternate app icons for the application. Each icon
-        must have a containing directory named <code>*.alticon</code> where the name of
-        the directory is the alternate icon identifier.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the application. Each file
-        must have a containing directory named <code>*.xcassets/*.appiconset</code> and
-        there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        application.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.app</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the application.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the application
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>extensions</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of extensions (see <a href="#ios_extension"><code>ios_extension</code></a>)
-        to include in the final application bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this application. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this application depends on. <b>NOTE:</b> Adding a
-        <code>provisioning_profile</code> to any frameworks listed will make the
-        signing/caching more efficient.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the application. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's IPA output after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the IPA (that is, the <code>Payload</code> directory will
-        be present in this directory).</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>launch_images</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the launch images for the application. Each file
-        must have a containing directory named<code>*.xcassets/*.launchimage</code> and
-        there may be only one such <code>.launchimage</code> directory in the list.</p>
-        <p>It is recommended that you use a <code>launch_storyboard</code> instead if
-        you are targeting only iOS 8 and later.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>launch_storyboard</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The <code>.storyboard</code> or <code>.xib</code> file that should
-        be used as the launch screen for the application. The provided file will
-        be compiled into the appropriate format (<code>.storyboardc</code> or
-        <code>.nib</code>) and placed in the root of the final bundle. The
-        generated file will also be registered in the bundle's <code>Info.plist</code>
-        under the key <code>UILaunchStoryboardName</code>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the application. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>settings_bundle</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A resource bundle target that contains the files that make up
-        the application's settings bundle. These files will be copied into the
-        root of the final application bundle in a directory named
-        <code>Settings.bundle</code>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>watch_application</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A <code>watchos_application</code> target that represents an Apple
-        Watch application that should be embedded in the application.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final application.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="ios_imessage_application"></a>
-## ios_imessage_application
 
-```python
-ios_imessage_application(name, app_icons, bundle_id, bundle_name, extension,
-families, infoplists, ipa_post_processor, minimum_os_version,
-provisioning_profile, resources, strings, version)
-```
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_build_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_build_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version that will be used as the deployment target when building the targets, represented as a dotted version number (for example, <code>"9.0"</code>).   | String | optional | "" |
+| <a id="ios_build_test-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
-Builds and bundles an iOS iMessage application. iOS iMessage applications do not
-have any dependencies, as it works mostly as a wrapper for either an iOS
-iMessage extension or a Sticker Pack extension.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the application. Each file
-        must have a containing directory named <code>*.xcassets/*.appiconset</code> and
-        there may be only one such <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        application.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.app</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>extension</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>The <a href="#ios_imessage_extension"><code>ios_imessage_extension</code></a>
-        or <a href="#ios_sticker_pack_extension"><code>ios_sticker_pack_extension</code></a>
-        to include in the final application bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this application. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the application. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's IPA output after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the IPA (that is, the <code>Payload</code> directory will
-        be present in this directory).</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the application. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final application bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<a id="#ios_extension"></a>
 
-<a name="ios_extension"></a>
 ## ios_extension
 
-```python
-ios_extension(name, app_icons, bundle_id, bundle_name, entitlements,
-entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provides_main, provisioning_profile, resources,
-strings, version, deps)
-```
+<pre>
+ios_extension(<a href="#ios_extension-name">name</a>, <a href="#ios_extension-app_icons">app_icons</a>, <a href="#ios_extension-binary_type">binary_type</a>, <a href="#ios_extension-bundle_id">bundle_id</a>, <a href="#ios_extension-bundle_loader">bundle_loader</a>, <a href="#ios_extension-bundle_name">bundle_name</a>, <a href="#ios_extension-codesign_inputs">codesign_inputs</a>,
+              <a href="#ios_extension-codesignopts">codesignopts</a>, <a href="#ios_extension-deps">deps</a>, <a href="#ios_extension-dylibs">dylibs</a>, <a href="#ios_extension-entitlements">entitlements</a>, <a href="#ios_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_extension-executable_name">executable_name</a>,
+              <a href="#ios_extension-families">families</a>, <a href="#ios_extension-frameworks">frameworks</a>, <a href="#ios_extension-infoplists">infoplists</a>, <a href="#ios_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_extension-linkopts">linkopts</a>, <a href="#ios_extension-minimum_os_version">minimum_os_version</a>,
+              <a href="#ios_extension-platform_type">platform_type</a>, <a href="#ios_extension-provisioning_profile">provisioning_profile</a>, <a href="#ios_extension-resources">resources</a>, <a href="#ios_extension-sdk_frameworks">sdk_frameworks</a>, <a href="#ios_extension-stamp">stamp</a>, <a href="#ios_extension-strings">strings</a>, <a href="#ios_extension-version">version</a>)
+</pre>
 
-Builds and bundles an iOS application extension.
+Builds and bundles an iOS Application Extension.
 
-Most iOS app extensions use a plug-in-based architecture where the executable's
-entry point is provided by a system framework. However, iOS 14 introduced
-Widget Extensions that use a traditional <code>main</code> entry point
-(typically expressed through Swift's <code>@main</code> attribute). If you are
-building a Widget Extension, you <em>must</em> set
-<code>provides_main = True</code> to indicate that your code provides the entry
-point so that Bazel doesn't direct the linker to use the system framework's
-entry point instead.
+Most iOS app extensions use a plug-in-based architecture where the executable's entry point
+is provided by a system framework.
+However, iOS 14 introduced Widget Extensions that use a traditional `main` entry point
+(typically expressed through Swift's `@main` attribute).
+If you are building a Widget Extension, you must set `provides_main = True` to indicate
+that your code provides the entry point so that Bazel doesn't direct the linker to use
+the system framework's entry point instead.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the extension.</p>
-        <p>For most extensions, each file must have a containing directory named
-        <code>*.xcassets/*.appiconset</code> and there may be only one such
-        <code>.appiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        extension.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.appex</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the extension.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the extension
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this extension. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this extension depends on.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the extension. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.appex</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provides_main</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>A value indicating whether one of this extension's dependencies
-        provides a <code>main</code> entry point.</p>
-        <p>This is false by default, because most app extensions provide their
-        implementation by specifying a principal class or main storyboard in
-        their <code>Info.plist</code> file, and the executable's entry point is
-        actually in a system framework that delegates to it.</p>
-        <p>However, some modern extensions (such as SwiftUI widget extensions
-        introduced in iOS 14 and macOS 11) use the <code>@main</code> attribute
-        to identify their primary type, which generates a traditional
-        <code>main</code> function that passes control to that type. For these
-        extensions, this attribute should be set to true.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the extension. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final extension.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="ios_imessage_extension"></a>
-## ios_imessage_extension
 
-```python
-ios_imessage_extension(name, app_icons, bundle_id, bundle_name, entitlements,
-entitlements_validation, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, resources, strings, version, deps)
-```
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="ios_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_extension-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="ios_extension-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="ios_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_extension-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_extension-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_extension-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_extension-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="ios_extension-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_extension-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | [] |
+| <a id="ios_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="ios_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
-Builds and bundles an iOS iMessage extension.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>app_icons</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>Files that comprise the app icons for the extension.</p>
-        <p>Each file must have a containing directory named
-        <code>*.xcassets/*.stickersiconset</code> and there may be only one such
-        <code>.stickersiconset</code> directory in the list.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        extension.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.appex</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The entitlements file required for device builds of the extension.
-        If absent, the default entitlements from the provisioning profile will
-        be used.</p>
-        <p>The following variables are substituted in the entitlements file:
-        <code>$(CFBundleIdentifier)</code> with the bundle ID of the extension
-        and <code>$(AppIdentifierPrefix)</code> with the value of the
-        <code>ApplicationIdentifierPrefix</code> key from the target's
-        provisioning profile.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>entitlements_validation</code></td>
-      <td>
-        <p><code>String; optional; default is
-        entitlements_validation_mode.loose</code></p>
-        <p>An
-        <code><a href="types.md#entitlements-validation-mode">entitlements_validation_mode</a></code>
-        to control the validation of the requested entitlements against the
-        provisioning profile to ensure they are supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this extension. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this extension depends on.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the extension. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.appex</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the extension. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final extension.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<a id="#ios_framework"></a>
 
-<a name="ios_sticker_pack_extension"></a>
-## ios_sticker_pack_extension
-
-```python
-ios_sticker_pack_extension(name, sticker_assets, bundle_id, bundle_name,
-families, infoplists, ipa_post_processor, minimum_os_version,
-provisioning_profile, resources, strings, version)
-```
-
-Builds and bundles an iOS Sticker Pack extension.
-
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>sticker_assets</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The collection of sticker assets for this target. The files should be
-        under a folder named <code>*.*.xcstickers</code>. The main icons go in a
-        <code>*.stickersiconset</code>; and the files for the stickers should
-        all be in Sticker Pack directories, so <code>*.stickerpack/*.sticker</code>
-        or <code>*.stickerpack/*.stickersequence</code>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        extension.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.appex</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this extension. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the extension. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.appex</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the extension. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<a name="ios_framework"></a>
 ## ios_framework
 
-```python
-ios_framework(name, bundle_id, bundle_name, exported_symbols_lists,
-extension_safe, families, frameworks, infoplists, ipa_post_processor,
-linkopts, minimum_os_version, provisioning_profile, resources, strings,
-version, deps)
-```
+<pre>
+ios_framework(<a href="#ios_framework-name">name</a>, <a href="#ios_framework-binary_type">binary_type</a>, <a href="#ios_framework-bundle_id">bundle_id</a>, <a href="#ios_framework-bundle_loader">bundle_loader</a>, <a href="#ios_framework-bundle_name">bundle_name</a>, <a href="#ios_framework-bundle_only">bundle_only</a>,
+              <a href="#ios_framework-codesign_inputs">codesign_inputs</a>, <a href="#ios_framework-codesignopts">codesignopts</a>, <a href="#ios_framework-deps">deps</a>, <a href="#ios_framework-dylibs">dylibs</a>, <a href="#ios_framework-executable_name">executable_name</a>, <a href="#ios_framework-extension_safe">extension_safe</a>, <a href="#ios_framework-families">families</a>,
+              <a href="#ios_framework-frameworks">frameworks</a>, <a href="#ios_framework-hdrs">hdrs</a>, <a href="#ios_framework-infoplists">infoplists</a>, <a href="#ios_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_framework-linkopts">linkopts</a>, <a href="#ios_framework-minimum_os_version">minimum_os_version</a>,
+              <a href="#ios_framework-platform_type">platform_type</a>, <a href="#ios_framework-provisioning_profile">provisioning_profile</a>, <a href="#ios_framework-resources">resources</a>, <a href="#ios_framework-stamp">stamp</a>, <a href="#ios_framework-strings">strings</a>, <a href="#ios_framework-version">version</a>)
+</pre>
 
-Builds and bundles an iOS dynamic framework. To use this framework for your
-app and extensions, list it in the `frameworks` attributes of those
-`ios_application` and/or `ios_extension` rules.
+Builds and bundles an iOS Dynamic Framework.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>The bundle ID (reverse-DNS path followed by app name) of the
-        framework.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.framework</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exported_symbols_lists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of targets containing exported symbols lists files for the
-        linker to control symbol resolution. Each file is expected to have a
-        list of global symbol names that will remain as global symbols in the
-        compiled binary owned by this framework.  All other global symbols will
-        be treated as if they were marked as __private_extern__ (aka
-        visibility=hidden) and will not be global in the output file. See the
-        man page documentation for ld(1) on macOS for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>extension_safe</code></td>
-      <td>
-        <p><code>Boolean; optional</code></p>
-        <p>If true, compiles and links this framework with <code>-application-extension</code>,
-        restricting the binary to use only extension-safe APIs. False by default.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; required</code></p>
-        <p>A list of device families supported by this framework. Valid values
-        are <code>iphone</code> and <code>ipad</code>; at least one must be specified.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this framework depends on.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; required</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the framework. At least one
-        file must be specified. Please see <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.framework</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the framework bundle. This value is optional and is
-        expected to match the <code>provisioning_profile</code> of the
-        <code>ios_application</code>, but it will make signing/caching more
-        efficient. <strong>NOTE</strong>: This will codesign the framework when
-        it is built standalone.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final framework.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+To use this framework for your app and extensions, list it in the `frameworks` attributes
+of those `ios_application` and/or `ios_extension` rules.
 
-<a name="ios_static_framework"></a>
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "dylib" |
+| <a id="ios_framework-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_framework-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_framework-bundle_only"></a>bundle_only |  Avoid linking the dynamic framework, but still include it in the app. This is useful when you want to manually dlopen the framework at runtime.   | Boolean | optional | False |
+| <a id="ios_framework-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="ios_framework-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_framework-extension_safe"></a>extension_safe |  If true, compiles and links this framework with <code>-application-extension</code>, restricting the binary to use only extension-safe APIs.   | Boolean | optional | False |
+| <a id="ios_framework-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_framework-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-hdrs"></a>hdrs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_framework-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_framework-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="ios_framework-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_framework-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_framework-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_framework-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="ios_framework-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_imessage_application"></a>
+
+## ios_imessage_application
+
+<pre>
+ios_imessage_application(<a href="#ios_imessage_application-name">name</a>, <a href="#ios_imessage_application-app_icons">app_icons</a>, <a href="#ios_imessage_application-bundle_id">bundle_id</a>, <a href="#ios_imessage_application-bundle_name">bundle_name</a>, <a href="#ios_imessage_application-entitlements">entitlements</a>,
+                         <a href="#ios_imessage_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_application-executable_name">executable_name</a>, <a href="#ios_imessage_application-extension">extension</a>, <a href="#ios_imessage_application-families">families</a>, <a href="#ios_imessage_application-infoplists">infoplists</a>,
+                         <a href="#ios_imessage_application-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_imessage_application-minimum_os_version">minimum_os_version</a>, <a href="#ios_imessage_application-platform_type">platform_type</a>, <a href="#ios_imessage_application-provisioning_profile">provisioning_profile</a>,
+                         <a href="#ios_imessage_application-resources">resources</a>, <a href="#ios_imessage_application-strings">strings</a>, <a href="#ios_imessage_application-version">version</a>)
+</pre>
+
+Builds and bundles an iOS iMessage Application.
+
+iOS iMessage applications do not have any dependencies, as it works mostly as a wrapper
+for either an iOS iMessage extension or a Sticker Pack extension.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_imessage_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_imessage_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..appiconset</code> and there may be only one such <code>..appiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_imessage_application-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_imessage_application-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_application-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="ios_imessage_application-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_imessage_application-extension"></a>extension |  Single label referencing either an ios_imessage_extension or ios_sticker_pack_extension target. Required.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="ios_imessage_application-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_imessage_application-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_imessage_application-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_imessage_application-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_imessage_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_application-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_imessage_extension"></a>
+
+## ios_imessage_extension
+
+<pre>
+ios_imessage_extension(<a href="#ios_imessage_extension-name">name</a>, <a href="#ios_imessage_extension-app_icons">app_icons</a>, <a href="#ios_imessage_extension-binary_type">binary_type</a>, <a href="#ios_imessage_extension-bundle_id">bundle_id</a>, <a href="#ios_imessage_extension-bundle_loader">bundle_loader</a>, <a href="#ios_imessage_extension-bundle_name">bundle_name</a>,
+                       <a href="#ios_imessage_extension-codesign_inputs">codesign_inputs</a>, <a href="#ios_imessage_extension-codesignopts">codesignopts</a>, <a href="#ios_imessage_extension-deps">deps</a>, <a href="#ios_imessage_extension-dylibs">dylibs</a>, <a href="#ios_imessage_extension-entitlements">entitlements</a>,
+                       <a href="#ios_imessage_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_extension-executable_name">executable_name</a>, <a href="#ios_imessage_extension-families">families</a>, <a href="#ios_imessage_extension-frameworks">frameworks</a>, <a href="#ios_imessage_extension-infoplists">infoplists</a>,
+                       <a href="#ios_imessage_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_imessage_extension-linkopts">linkopts</a>, <a href="#ios_imessage_extension-minimum_os_version">minimum_os_version</a>, <a href="#ios_imessage_extension-platform_type">platform_type</a>,
+                       <a href="#ios_imessage_extension-provisioning_profile">provisioning_profile</a>, <a href="#ios_imessage_extension-resources">resources</a>, <a href="#ios_imessage_extension-stamp">stamp</a>, <a href="#ios_imessage_extension-strings">strings</a>, <a href="#ios_imessage_extension-version">version</a>)
+</pre>
+
+Builds and bundles an iOS iMessage Extension.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_imessage_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_imessage_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcassets/*..stickersiconset</code> and there may be only one such <code>..stickersiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="ios_imessage_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_imessage_extension-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_imessage_extension-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="ios_imessage_extension-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="ios_imessage_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_imessage_extension-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_imessage_extension-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_imessage_extension-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_extension-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="ios_imessage_extension-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_imessage_extension-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_imessage_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_imessage_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="ios_imessage_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_imessage_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_static_framework"></a>
+
 ## ios_static_framework
 
-```python
-ios_static_framework(name, avoid_deps, hdrs, bundle_name, exclude_resources,
-families, ipa_post_processor, linkopts, minimum_os_version, strings, version,
-deps)
-```
+<pre>
+ios_static_framework(<a href="#ios_static_framework-name">name</a>, <a href="#ios_static_framework-avoid_deps">avoid_deps</a>, <a href="#ios_static_framework-binary_type">binary_type</a>, <a href="#ios_static_framework-bundle_loader">bundle_loader</a>, <a href="#ios_static_framework-bundle_name">bundle_name</a>, <a href="#ios_static_framework-codesign_inputs">codesign_inputs</a>,
+                     <a href="#ios_static_framework-codesignopts">codesignopts</a>, <a href="#ios_static_framework-deps">deps</a>, <a href="#ios_static_framework-dylibs">dylibs</a>, <a href="#ios_static_framework-exclude_resources">exclude_resources</a>, <a href="#ios_static_framework-executable_name">executable_name</a>, <a href="#ios_static_framework-families">families</a>,
+                     <a href="#ios_static_framework-frameworks">frameworks</a>, <a href="#ios_static_framework-hdrs">hdrs</a>, <a href="#ios_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_static_framework-linkopts">linkopts</a>, <a href="#ios_static_framework-minimum_os_version">minimum_os_version</a>,
+                     <a href="#ios_static_framework-platform_type">platform_type</a>, <a href="#ios_static_framework-resources">resources</a>, <a href="#ios_static_framework-stamp">stamp</a>, <a href="#ios_static_framework-strings">strings</a>, <a href="#ios_static_framework-umbrella_header">umbrella_header</a>, <a href="#ios_static_framework-version">version</a>)
+</pre>
 
 Builds and bundles an iOS static framework for third-party distribution.
 
@@ -1165,164 +330,82 @@ umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>avoid_deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>objc_library</code> targets on which this framework
-        depends in order to compile, but the transitive closure of which will
-        <em>not</em> be compiled into the framework's binary.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>hdrs</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.h</code> files that will be publicly exposed by this
-        framework. These headers should have framework-relative imports, and if
-        non-empty, an umbrella header named <code>%{bundle_name}.h</code> will
-        also be generated that imports all of the headers listed here.</p>
-        <p>Note that none of these headers should have the name of the bundle,
-        otherwise conflicts will occur during the generation process. There is
-        one exception that, if this list contains only one header, and it has
-        the name of the bundle, then that header will be bundled into the
-        framework and no umbrella header will be generated.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>umbrella_header</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>An optional single <code>.h</code> file to use as the umbrella
-        header for this framework. Usually, this header will have the same name as this
-        target, so that clients can load the header using the <code>#import
-        &lt;MyFramework/MyFramework.h&gt;</code> format. If this attribute is not specified
-        (the common use case), an umbrella header will be generated under the same name
-        as this target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_name</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The desired name of the bundle (without the <code>.framework</code>
-        extension). If this attribute is not set, then the <code>name</code> of
-        the target will be used instead.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>exclude_resources</code></td>
-      <td>
-        <p><code>Boolean; optional; default is False</code></p>
-        <p>Indicates whether resources should be excluded from the bundle. This
-        can be used to avoid unnecessarily bundling resources if the static
-        framework is being distributed in a different fashion, such as a
-        Cocoapod.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>families</code></td>
-      <td>
-        <p><code>List of strings; optional; default is ["iphone", "ipad"]</code></p>
-        <p>A list of device families supported by this framework. Valid values
-        are <code>iphone</code> and <code>ipad</code>. If omitted, both values
-        listed previously will be used.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>ipa_post_processor</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A tool that edits this target's archive after it is assembled but
-        before it is signed. The tool is invoked with a single command-line
-        argument that denotes the path to a directory containing the unzipped
-        contents of the archive; the <code>*.framework</code> bundle for the
-        extension will be the directory's only contents.</p>
-        <p>Any changes made by the tool must be made in this directory, and
-        the tool's execution must be hermetic given these inputs to ensure that
-        the result can be safely cached.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>linkopts</code></td>
-      <td>
-        <p><code>List of strings; optional</code></p>
-        <p>A list of strings representing extra flags that should be passed to
-        the linker.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>strings</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.strings</code> files, often localizable. These files
-        are converted to binary plists (if they are not already) and placed in the
-        root of the final extension bundle, unless a file's immediate containing
-        directory is named <code>*.lproj</code>, in which case it will be placed
-        under a directory with the same name in the bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>version</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>apple_bundle_version</code> target that represents the version
-        for this target. See
-        <a href="rules-general.md?cl=head#apple_bundle_version"><code>apple_bundle_version</code></a>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The <code>objc_library</code> rules whose transitive closure should
-        be linked into this framework. The libraries compiled into this
-        framework will be all <code>objc_library</code> targets in the
-        transitive closure of <code>deps</code>, minus those that are in the
-        transitive closure of <code>avoid_deps</code>.</p>
-        <p>Any resources, such as asset catalogs, that are referenced by those
-        targets will also be transitively included in the final framework
-        (unless <code>exclude_resources</code> is True).</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="ios_ui_test"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_static_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_static_framework-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-binary_type"></a>binary_type |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | String | optional | "executable" |
+| <a id="ios_static_framework-bundle_loader"></a>bundle_loader |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_static_framework-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_static_framework-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | [] |
+| <a id="ios_static_framework-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-dylibs"></a>dylibs |  This attribute is public as an implementation detail while we migrate the architecture of the rules. Do not change its value.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-exclude_resources"></a>exclude_resources |  Indicates whether resources should be excluded from the bundle. This can be used to avoid unnecessarily bundling resources if the static framework is being distributed in a different fashion, such as a Cocoapod.   | Boolean | optional | False |
+| <a id="ios_static_framework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_static_framework-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | optional | ["iphone", "ipad"] |
+| <a id="ios_static_framework-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-hdrs"></a>hdrs |  A list of <code>.h</code> files that will be publicly exposed by this framework. These headers should have framework-relative imports, and if non-empty, an umbrella header named <code>%{bundle_name}.h</code> will also be generated that imports all of the headers listed here.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_static_framework-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="ios_static_framework-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_static_framework-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_static_framework-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | -1 |
+| <a id="ios_static_framework-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_static_framework-umbrella_header"></a>umbrella_header |  An optional single .h file to use as the umbrella header for this framework. Usually, this header will have the same name as this target, so that clients can load the header using the #import &lt;MyFramework/MyFramework.h&gt; format. If this attribute is not specified (the common use case), an umbrella header will be generated under the same name as this target.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_static_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_sticker_pack_extension"></a>
+
+## ios_sticker_pack_extension
+
+<pre>
+ios_sticker_pack_extension(<a href="#ios_sticker_pack_extension-name">name</a>, <a href="#ios_sticker_pack_extension-app_icons">app_icons</a>, <a href="#ios_sticker_pack_extension-bundle_id">bundle_id</a>, <a href="#ios_sticker_pack_extension-bundle_name">bundle_name</a>, <a href="#ios_sticker_pack_extension-entitlements">entitlements</a>,
+                           <a href="#ios_sticker_pack_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_sticker_pack_extension-executable_name">executable_name</a>, <a href="#ios_sticker_pack_extension-families">families</a>, <a href="#ios_sticker_pack_extension-infoplists">infoplists</a>,
+                           <a href="#ios_sticker_pack_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_sticker_pack_extension-minimum_os_version">minimum_os_version</a>, <a href="#ios_sticker_pack_extension-platform_type">platform_type</a>,
+                           <a href="#ios_sticker_pack_extension-provisioning_profile">provisioning_profile</a>, <a href="#ios_sticker_pack_extension-resources">resources</a>, <a href="#ios_sticker_pack_extension-sticker_assets">sticker_assets</a>, <a href="#ios_sticker_pack_extension-strings">strings</a>, <a href="#ios_sticker_pack_extension-version">version</a>)
+</pre>
+
+Builds and bundles an iOS Sticker Pack Extension.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_sticker_pack_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_sticker_pack_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named <code>*..xcstickers/*..stickersiconset</code> and there may be only one such <code>..stickersiconset</code> directory in the list.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_sticker_pack_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
+| <a id="ios_sticker_pack_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_sticker_pack_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_sticker_pack_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | "loose" |
+| <a id="ios_sticker_pack_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="ios_sticker_pack_extension-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
+| <a id="ios_sticker_pack_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_sticker_pack_extension-ipa_post_processor"></a>ipa_post_processor |  A tool that edits this target's archive after it is assembled but before it is signed. The tool is invoked with a single command-line argument that denotes the path to a directory containing the unzipped contents of the archive; this target's bundle will be the directory's only contents.<br><br>Any changes made by the tool must be made in this directory, and the tool's execution must be hermetic given these inputs to ensure that the result can be safely cached.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_sticker_pack_extension-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_sticker_pack_extension-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_sticker_pack_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="ios_sticker_pack_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_sticker_pack_extension-sticker_assets"></a>sticker_assets |  List of sticker files to bundle. The collection of assets should be under a folder named <code>*.*.xcstickers</code>. The icons go in a <code>*.stickersiconset</code> (instead of <code>*.appiconset</code>); and the files for the stickers should all be in Sticker Pack directories, so <code>*.stickerpack/*.sticker</code> or <code>*.stickerpack/*.stickersequence</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_sticker_pack_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_sticker_pack_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_ui_test"></a>
+
 ## ios_ui_test
 
-```python
-ios_ui_test(name, bundle_id, infoplists, frameworks, minimum_os_version,
-resources, runner, test_host, data, deps, provisioning_profile,
-[test specific attributes])
-```
+<pre>
+ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>, <a href="#ios_ui_test-test_host">test_host</a>)
+</pre>
+
+iOS UI Test rule.
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
@@ -1336,285 +419,28 @@ The following is a list of the `ios_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this test depends on. Frameworks can be used for consolidating code
-        and resources that might be shared across multiple tests, so that they
-        do not get processed once per test target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.  Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>runner</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the
-        <code>AppleTestRunnerInfo</code> provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
-        will be tested using XCUITests. This is required as passing a default
-        has no meaning in UI tests.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>data</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The list of files needed by this rule at runtime.</p>
-        <p>Targets named in the data attribute will appear in the `*.runfiles`
-        area of this rule, if it has one. This may include data files needed by
-          a binary or library, or other programs needed by it.
-        <strong>NOTE</strong>: Files will be made available to the test runner,
-        but will not be bundled into the resulting <code>.xctest</code>
-        bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the test bundle. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
-<a name="ios_ui_test_suite"></a>
-## ios_ui_test_suite
+**ATTRIBUTES**
 
-```python
-ios_ui_test_suite(name, bundle_id, env, frameworks, infoplists,
-minimum_os_version, runners, test_host, data, deps, provisioning_profile,
-[test specific attributes])
-```
 
-Generates a
-[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
-containing an [ios_ui_test](ios_ui_test) for each of the given `runners`.
-`ios_ui_test_suite` takes the same parameters as [ios_ui_test](ios_ui_test),
-except `runner` is replaced by `runners`.
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_ui_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="ios_ui_test-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="ios_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>env</code></td>
-      <td>
-        <p><code>Dictionary of strings; optional</code></p>
-        <p>Dictionary of environment variables that should be set during the
-        test execution.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this test depends on. Frameworks can be used for consolidating code
-        and resources that might be shared across multiple tests, so that they
-        do not get processed once per test target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling.  Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>runners</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
-        <p>The list of runner targets that contain the logic of how the tests
-        should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; required</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
-        will be tested using XCUITests. This is required as passing a default
-        has no meaning in UI tests.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>data</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The list of files needed by this rule at runtime.</p>
-        <p>Targets named in the data attribute will appear in the `*.runfiles`
-        area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>provisioning_profile</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>The provisioning profile (<code>.mobileprovision</code> file) to use
-        when bundling the test bundle. This value is optional for simulator
-        builds as the simulator doesn't fully enforce entitlements, but is
-        <strong>required for device builds.</strong></p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
-<a name="ios_unit_test"></a>
+<a id="#ios_unit_test"></a>
+
 ## ios_unit_test
 
-```python
-ios_unit_test(name, bundle_id, env, frameworks, infoplists, minimum_os_version,
-resources, runner, test_host, data, deps, [test specific attributes])
-```
+<pre>
+ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>, <a href="#ios_unit_test-test_host">test_host</a>)
+</pre>
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
@@ -1636,315 +462,69 @@ The following is a list of the `ios_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>env</code></td>
-      <td>
-        <p><code>Dictionary of strings; optional</code></p>
-        <p>Dictionary of environment variables that should be set during the
-        test execution.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this test depends on. Frameworks can be used for consolidating code
-        and resources that might be shared across multiple tests, so that they
-        do not get processed once per test target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling. Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>resources</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of associated resource bundles or files that will be bundled into the final bundle.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>runner</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>A target that will specify how the tests are to be run. This target
-        needs to be defined using a rule that provides the <code>AppleTestRunnerInfo</code>
-        provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
-        will host the tests. If not specified, the runner will assume it's a
-        library-based test.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>data</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The list of files needed by this rule at runtime.</p>
-        <p>Targets named in the data attribute will appear in the `*.runfiles`
-        area of this rule, if it has one. This may include data files needed by
-        a binary or library, or other programs needed by it.
-        <strong>NOTE</strong>: Files will be made available to the test runner,
-        but will not be bundled into the resulting <code>.xctest</code>
-        bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+**ATTRIBUTES**
 
-<a name="ios_unit_test_suite"></a>
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="ios_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="ios_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="ios_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="ios_unit_test-platform_type"></a>platform_type |  -   | String | optional | "ios" |
+| <a id="ios_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="ios_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#ios_ui_test_suite"></a>
+
+## ios_ui_test_suite
+
+<pre>
+ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">kwargs</a>)
+</pre>
+
+Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
+
+`ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by `runners`.
+
+[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+[ios_ui_test]: #ios_ui_test
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="ios_ui_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="ios_ui_test_suite-runners"></a>runners |  a list of runner targets   |  <code>None</code> |
+| <a id="ios_ui_test_suite-kwargs"></a>kwargs |  passed to the [ios_ui_test]   |  none |
+
+
+<a id="#ios_unit_test_suite"></a>
+
 ## ios_unit_test_suite
 
-```python
-ios_unit_test_suite(name, bundle_id, env, frameworks, infoplists,
-minimum_os_version, runners, test_host, deps, [test specific attributes])
-```
+<pre>
+ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">kwargs</a>)
+</pre>
 
-Generates a
-[test_suite](https://docs.bazel.build/versions/master/be/general.html#test_suite)
-containing an [ios_unit_test](#ios_unit_test) for each of the given `runners`.
-`ios_unit_test_suite` takes the same parameters as
-[ios_unit_test](#ios_unit_test), except `runner` is replaced by `runners`.
+Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>bundle_id</code></td>
-      <td>
-        <p><code>String; optional</code></p>
-        <p>The bundle ID (reverse-DNS path) of the test bundle. It cannot be the
-        same bundle ID as the <code>test_host</code> bundle ID. If not
-        specified, the <code>test_host</code>'s bundle ID will be used with a
-        "Tests" suffix.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>env</code></td>
-      <td>
-        <p><code>Dictionary of strings; optional</code></p>
-        <p>Dictionary of environment variables that should be set during the
-        test execution.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>frameworks</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of framework targets (see <a href="#ios_framework"><code>ios_framework</code></a>)
-        that this test depends on. Frameworks can be used for consolidating code
-        and resources that might be shared across multiple tests, so that they
-        do not get processed once per test target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>infoplists</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of <code>.plist</code> files that will be merged to form the
-        <code>Info.plist</code> that represents the test bundle. If not
-        specified, a default one will be provided that only contains the
-        <code>CFBundleName</code> and <code>CFBundleIdentifier</code> keys with
-        placeholders that will be replaced when bundling. Please see
-        <a href="common_info.md#infoplist-handling">Info.plist Handling</a>
-        for what is supported.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum iOS version supported by the
-        target, represented as a dotted version number (for example,
-        <code>"9.0"</code>).
-      </td>
-    </tr>
-    <tr>
-      <td><code>runners</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Labels</a>; required</code></p>
-        <p>The list of runner targets that contain the logic of how the tests
-        should be executed. This target needs to provide an
-        <code>AppleTestRunnerInfo</code> provider.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>test_host</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#labels">Label</a>; optional</code></p>
-        <p>An <code>ios_application</code> target that represents the app that
-        will host the tests. If not specified, an empty shell app will be
-        provided as the test host.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>deps</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>A list of dependencies targets to link into the binary. Any
-        resources, such as asset catalogs, that are referenced by those targets
-        will also be transitively included in the final test bundle.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+`ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is replaced by `runners`.
 
-<a name="ios_build_test"></a>
-## ios_build_test
+[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+[ios_unit_test]: #ios_unit_test
 
-```python
-ios_build_test(name, minimum_os_version, targets, [test specific attributes])
-```
 
-Test rule to check that the given library targets (Swift, Objective-C, C++)
-build for iOS.
+**PARAMETERS**
 
-Typical usage:
 
-```starlark
-ios_build_test(
-    name = "my_build_test",
-    minimum_os_version = "12.0",
-    targets = [
-        "//some/package:my_library",
-    ],
-)
-```
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="ios_unit_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="ios_unit_test_suite-runners"></a>runners |  a list of runner targets   |  <code>None</code> |
+| <a id="ios_unit_test_suite-kwargs"></a>kwargs |  passed to the [ios_unit_test]   |  none |
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
-      <td>
-        <p><code><a href="https://bazel.build/versions/master/docs/build-ref.html#name">Name</a>, required</code></p>
-        <p>A unique name for the target.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>minimum_os_version</code></td>
-      <td>
-        <p><code>String; required</code></p>
-        <p>A required string indicating the minimum OS version that will be used
-        as the deployment target when building the targets, represented as a
-        dotted version number (for example, <code>"9.0"</code>).</p>
-      </td>
-    </tr>
-      <td><code>targets</code></td>
-      <td>
-        <p><code>List of <a href="https://bazel.build/versions/master/docs/build-ref.html#labels">labels</a>; optional</code></p>
-        <p>The targets to check for successful build.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>[test specific attributes]</code></td>
-      <td>
-        <p>For a list of the attributes inherited by all test rules, please check the
-        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests">Bazel documentation</a>.
-        </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+

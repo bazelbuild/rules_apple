@@ -72,7 +72,20 @@ ios_internal_ui_test_bundle = _ios_internal_ui_test_bundle
 
 ios_ui_test = rule_factory.create_apple_test_rule(
     implementation = _ios_ui_test_impl,
-    doc = "iOS UI Test rule.",
+    doc = """iOS UI Test rule.
+
+Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+To run the same test on multiple simulators/devices see
+[ios_ui_test_suite](#ios_ui_test_suite).
+
+The following is a list of the `ios_ui_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+""",
     platform_type = str(apple_common.platform_type.ios),
 )
 
@@ -89,6 +102,24 @@ ios_internal_unit_test_bundle = _ios_internal_unit_test_bundle
 
 ios_unit_test = rule_factory.create_apple_test_rule(
     implementation = _ios_unit_test_impl,
-    doc = "iOS Unit Test rule.",
+    doc = """Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+`ios_unit_test` targets can work in two modes: as app or library
+tests. If the `test_host` attribute is set to an `ios_application` target, the
+tests will run within that application's context. If no `test_host` is provided,
+the tests will run outside the context of an iOS application. Because of this,
+certain functionalities might not be present (e.g. UI layout, NSUserDefaults).
+You can find more information about app and library testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+To run the same test on multiple simulators/devices see
+[ios_unit_test_suite](#ios_unit_test_suite).
+
+The following is a list of the `ios_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).""",
     platform_type = str(apple_common.platform_type.ios),
 )

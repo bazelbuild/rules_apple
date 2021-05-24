@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc, Do Not Edit! -->
 
-Bazel rules for creating macOS applications and bundles.
+# Bazel rules for creating macOS applications and bundles.
 <a id="#macos_application"></a>
 
 ## macos_application
