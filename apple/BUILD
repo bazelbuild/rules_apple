@@ -157,7 +157,9 @@ bzl_library(
     deps = [
         "//apple/internal:binary_support",
         "//apple/internal:watchos_rules",
+        "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
+        "//apple/internal/testing:watchos_rules",
     ],
 )
 
