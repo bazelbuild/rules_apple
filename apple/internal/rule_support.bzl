@@ -790,6 +790,54 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_bundle_id = False,
             requires_provisioning_profile = False,
         ),
+        # watchos_ui_test
+        apple_product_type.ui_test_bundle: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            binary_type = "loadable_bundle",
+            bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner",
+            deps_cfg = apple_common.multi_arch_split,
+            extra_linkopts = [
+                "-framework",
+                "XCTest",
+            ],
+            product_type = apple_product_type.ui_test_bundle,
+            requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
+            skip_simulator_signing_allowed = False,
+        ),
+        # watchos_unit_test
+        apple_product_type.unit_test_bundle: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            binary_type = "loadable_bundle",
+            bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
+            default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
+            default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner",
+            deps_cfg = apple_common.multi_arch_split,
+            extra_linkopts = [
+                "-framework",
+                "XCTest",
+            ],
+            product_type = apple_product_type.unit_test_bundle,
+            requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
+            skip_simulator_signing_allowed = False,
+        ),
     },
 }
 
