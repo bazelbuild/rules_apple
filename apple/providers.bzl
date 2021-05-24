@@ -591,3 +591,14 @@ require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """,
 )
+
+WatchosXcTestBundleInfo = provider(
+    doc = """
+Denotes a target that is a watchOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS .xctest bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is a watchOS .xctest bundle should use this provider to describe that requirement.
+""",
+)

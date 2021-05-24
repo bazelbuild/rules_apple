@@ -872,6 +872,15 @@ ignored.
 """,
             ),
         })
+    elif _is_test_product_type(rule_descriptor.product_type):
+        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
+        attrs.append({
+            "test_host": attr.label(
+                aspects = [framework_import_aspect],
+                mandatory = test_host_mandatory,
+                providers = [AppleBundleInfo, WatchosApplicationBundleInfo],
+            ),
+        })
 
     return attrs
 

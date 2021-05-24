@@ -15,12 +15,23 @@
 """Bazel rules for creating watchOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:watchos_rules.bzl",
+    _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
+    _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
+    _watchos_ui_test = "watchos_ui_test",
+    _watchos_unit_test = "watchos_unit_test",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
@@ -63,6 +74,30 @@ def watchos_extension(name, **kwargs):
     _watchos_extension(
         name = name,
         **bundling_args
+    )
+
+_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
+
+def watchos_unit_test(name, **kwargs):
+    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _watchos_internal_unit_test_bundle,
+        test_rule = _watchos_unit_test,
+        runner = runner,
+        bundle_loader = kwargs.get("test_host"),
+        dylibs = kwargs.get("frameworks"),
+        **kwargs
+    )
+
+def watchos_ui_test(name, **kwargs):
+    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _watchos_internal_ui_test_bundle,
+        test_rule = _watchos_ui_test,
+        runner = runner,
+        **kwargs
     )
 
 watchos_build_test = apple_build_test_rule(

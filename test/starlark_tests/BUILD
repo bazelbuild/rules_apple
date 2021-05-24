@@ -31,6 +31,8 @@ load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
 load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
+load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
+load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 
 licenses(["notice"])
 
@@ -97,6 +99,10 @@ watchos_application_swift_test_suite()
 watchos_application_test_suite()
 
 watchos_extension_test_suite()
+
+watchos_ui_test_test_suite()
+
+watchos_unit_test_test_suite()
 
 test_suite(
     name = "all_tests",

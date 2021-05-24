@@ -6,6 +6,8 @@ load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
+    "watchos_ui_test",
+    "watchos_unit_test",
 )
 load(
     "//apple:apple.bzl",
@@ -370,4 +372,29 @@ swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],
     tags = FIXTURE_TAGS,
+)
+
+watchos_ui_test(
+    name = "ui_test",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "7.4",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+watchos_unit_test(
+    name = "unit_test",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "7.4",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
