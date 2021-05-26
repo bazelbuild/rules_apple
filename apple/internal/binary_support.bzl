@@ -19,10 +19,6 @@ load(
     "entitlements",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:exported_symbols_lists_rules.bzl",
-    "exported_symbols_lists",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_runtime_linkopts",
 )
@@ -67,7 +63,6 @@ def _add_entitlements_and_swift_linkopts(
         is_stub = False,
         link_swift_statically = False,
         is_test = False,
-        exported_symbols_lists = None,
         **kwargs):
     """Adds entitlements and Swift linkopts targets for a bundle target.
 
@@ -90,8 +85,6 @@ def _add_entitlements_and_swift_linkopts(
       link_swift_statically: True/False, indicates whether the static versions of the Swift standard
           libraries should be used during linking. Only used if include_swift_linkopts is True.
       is_test: True/False, indicates if test specific linker flags should be propagated.
-      exported_symbols_lists: A list of text files representing exported symbols lists that should
-          be linked with thefinal binary.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
@@ -126,11 +119,6 @@ def _add_entitlements_and_swift_linkopts(
             # propagate linkopts.
             additional_deps.append(":{}".format(entitlements_name))
 
-    exported_symbols_list_deps = _add_exported_symbols_lists(
-        name,
-        exported_symbols_lists,
-    )
-
     deps = bundling_args.get("deps", [])
 
     if not is_stub:
@@ -147,39 +135,11 @@ def _add_entitlements_and_swift_linkopts(
             ),
         )
 
-    all_deps = deps + additional_deps + exported_symbols_list_deps
+    all_deps = deps + additional_deps
     if all_deps:
         bundling_args["deps"] = all_deps
 
     return bundling_args
-
-def _add_exported_symbols_lists(name, exported_symbols_lists_value):
-    """Adds one or more exported symbols lists to a bundle target.
-
-    These lists are references to files that provide a list of global symbol names that will remain
-    as global symbols in the output file. All other global symbols will be treated as if they were
-    marked as __private_extern__ (aka visibility=hidden) and will not be global in the output file.
-    See the man page documentation for ld(1) on macOS for more details.
-
-    Args:
-      name: The name of the bundle target, from which the binary target's name will be derived.
-      exported_symbols_lists_value: A list of text files representing exported symbols lists that
-          should be linked with thefinal binary.
-
-    Returns:
-      A modified copy of `**kwargs` that should be passed to the bundling rule.
-    """
-    if exported_symbols_lists_value:
-        exported_symbols_lists_name = "%s_exported_symbols_lists" % name
-        exported_symbols_lists(
-            name = exported_symbols_lists_name,
-            lists = exported_symbols_lists_value,
-        )
-        exported_symbols_list_deps = [":" + exported_symbols_lists_name]
-    else:
-        exported_symbols_list_deps = []
-
-    return exported_symbols_list_deps
 
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(

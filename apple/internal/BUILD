@@ -79,7 +79,6 @@ bzl_library(
     ],
     deps = [
         ":entitlement_rules",
-        ":exported_symbols_lists_rules",
         ":platform_support",
         ":swift_support",
     ],
@@ -172,17 +171,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/utils:defines",
-    ],
-)
-
-bzl_library(
-    name = "exported_symbols_lists_rules",
-    srcs = ["exported_symbols_lists_rules.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        ":linking_support",
     ],
 )
 
