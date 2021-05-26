@@ -92,7 +92,6 @@ def tvos_framework(name, **kwargs):
         name,
         platform_type = str(apple_common.platform_type.tvos),
         product_type = apple_product_type.framework,
-        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         **binary_args
     )
 

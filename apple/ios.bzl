@@ -112,7 +112,6 @@ def ios_framework(name, **kwargs):
         include_entitlements = False,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.framework,
-        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
         **binary_args
     )
 

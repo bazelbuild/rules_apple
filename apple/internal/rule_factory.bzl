@@ -234,6 +234,20 @@ This attribute is public as an implementation detail while we migrate the archit
 Do not change its value.
     """,
             ),
+            "exported_symbols_lists": attr.label_list(
+                allow_files = True,
+                doc = """
+A list of targets containing exported symbols lists files for the linker to control symbol
+resolution.
+
+Each file is expected to have a list of global symbol names that will remain as global symbols in
+the compiled binary owned by this framework. All other global symbols will be treated as if they
+were marked as `__private_extern__` (aka `visibility=hidden`) and will not be global in the output
+file.
+
+See the man page documentation for `ld(1)` on macOS for more details.
+""",
+            ),
             "linkopts": attr.string_list(
                 doc = """
 A list of strings representing extra flags that should be passed to the linker.
