@@ -259,21 +259,45 @@ def ios_ui_test(name, **kwargs):
         **kwargs
     )
 
-def ios_unit_test_suite(name, **kwargs):
+def ios_unit_test_suite(name, runners = None, **kwargs):
+    """Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.
+
+`ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is replaced by `runners`.
+
+[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+[ios_unit_test]: #ios_unit_test
+
+Args:
+    runners: a list of runner targets
+    **kwargs: passed to the [ios_unit_test]
+"""
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
+        runners = runners,
         bundle_loader = kwargs.get("test_host"),
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
-def ios_ui_test_suite(name, **kwargs):
+def ios_ui_test_suite(name, runners = None, **kwargs):
+    """Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
+
+`ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by `runners`.
+
+[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+[ios_ui_test]: #ios_ui_test
+
+Args:
+    runners: a list of runner targets
+    **kwargs: passed to the [ios_ui_test]
+"""
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
+        runners = runners,
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )

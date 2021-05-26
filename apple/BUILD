@@ -74,6 +74,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "ios.doc",
+    srcs = ["ios.doc.bzl"],
+    deps = ["ios"],
+)
+
+bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [
