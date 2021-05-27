@@ -46,12 +46,28 @@ _DOC_SRCS = [
     for file in _DOC_SRCS
 ]
 
+# Special case since providers.md in the source folder doesn't follow the naming convention
+stardoc(
+    name = "providers_doc",
+    out = "providers.gen.md",
+    header_template = ":header.vm",
+    input = "//apple:providers.bzl",
+    deps = ["//apple:providers"],
+)
+
+diff_test(
+    name = "check_providers",
+    file1 = ":providers_doc",
+    file2 = "providers.md",
+)
+
 write_file(
     name = "gen_update",
     out = "update.sh",
     content = [
         "#!/usr/bin/env bash",
         "cd $BUILD_WORKSPACE_DIRECTORY",
+        "cp -fv bazel-bin/doc/providers.gen.md doc/providers.md",
     ] + [
         "cp -fv bazel-bin/doc/{src}.md doc/rules-{dst}.md".format(
             src = file,
