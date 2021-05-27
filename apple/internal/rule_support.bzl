@@ -464,6 +464,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.extension_or_xpc,
             deps_cfg = apple_common.multi_arch_split,
             extra_linkopts = [
+                "-fapplication-extension",
                 "-e",
                 "_NSExtensionMain",
             ],
