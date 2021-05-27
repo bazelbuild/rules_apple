@@ -47,6 +47,7 @@ load(
     "SwiftInfo",
     "SwiftToolchainInfo",
     "SwiftUsageInfo",
+    "swift_clang_module_aspect",
     "swift_common",
 )
 
@@ -396,6 +397,7 @@ on this target.
 """,
         ),
         "deps": attr.label_list(
+            aspects = [swift_clang_module_aspect],
             doc = """
 A list of targets that are dependencies of the target being built, which will be linked into that
 target.
@@ -449,6 +451,7 @@ are not present at runtime.
 """,
         ),
         "deps": attr.label_list(
+            aspects = [swift_clang_module_aspect],
             doc = """
 A list of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
