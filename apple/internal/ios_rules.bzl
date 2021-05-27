@@ -334,7 +334,7 @@ def _ios_application_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive, apple_toolchain_info.std_redirect_dylib],
+                files = [archive],
             ),
         ),
         IosApplicationBundleInfo(),
@@ -556,7 +556,7 @@ def _ios_app_clip_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive, apple_toolchain_info.std_redirect_dylib],
+                files = [archive],
             ),
         ),
         IosAppClipBundleInfo(),

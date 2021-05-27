@@ -221,9 +221,6 @@ for the target to run.
         "resolved_xctoolrunner": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
 """,
-        "std_redirect_dylib": """\
-A `File` referencing a dynamic library used to redirect stdout and stderr when necessary.
-""",
     },
 )
 

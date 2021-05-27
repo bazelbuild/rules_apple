@@ -23,7 +23,6 @@ apple_support_toolchain(
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
     plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
-    std_redirect_dylib = "@bazel_tools//tools/objc:StdRedirect.dylib",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and

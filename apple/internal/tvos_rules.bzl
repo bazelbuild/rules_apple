@@ -265,7 +265,7 @@ def _tvos_application_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive, apple_toolchain_info.std_redirect_dylib],
+                files = [archive],
             ),
         ),
         OutputGroupInfo(
