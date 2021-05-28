@@ -204,3 +204,51 @@ Builds and bundles a watchOS Static Framework.
 | <a id="watchos_static_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
+<a id="#watchos_ui_test"></a>
+
+## watchos_ui_test
+
+<pre>
+watchos_ui_test(<a href="#watchos_ui_test-name">name</a>, <a href="#watchos_ui_test-data">data</a>, <a href="#watchos_ui_test-deps">deps</a>, <a href="#watchos_ui_test-env">env</a>, <a href="#watchos_ui_test-platform_type">platform_type</a>, <a href="#watchos_ui_test-runner">runner</a>, <a href="#watchos_ui_test-test_host">test_host</a>)
+</pre>
+
+watchOS UI Test rule.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="watchos_ui_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="watchos_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="watchos_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="watchos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="watchos_ui_test-platform_type"></a>platform_type |  -   | String | optional | "watchos" |
+| <a id="watchos_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="watchos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
+<a id="#watchos_unit_test"></a>
+
+## watchos_unit_test
+
+<pre>
+watchos_unit_test(<a href="#watchos_unit_test-name">name</a>, <a href="#watchos_unit_test-data">data</a>, <a href="#watchos_unit_test-deps">deps</a>, <a href="#watchos_unit_test-env">env</a>, <a href="#watchos_unit_test-platform_type">platform_type</a>, <a href="#watchos_unit_test-runner">runner</a>, <a href="#watchos_unit_test-test_host">test_host</a>)
+</pre>
+
+watchOS Unit Test rule.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="watchos_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="watchos_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="watchos_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="watchos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="watchos_unit_test-platform_type"></a>platform_type |  -   | String | optional | "watchos" |
+| <a id="watchos_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="watchos_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+
+
