@@ -39,14 +39,14 @@ def watchos_unit_test_test_suite(name = "watchos_unit_test"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name, "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
     )
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
         expected_dsyms = ["unit_test.xctest"],
-        tags = [name, "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
     )
 
     infoplist_contents_test(
@@ -70,7 +70,7 @@ def watchos_unit_test_test_suite(name = "watchos_unit_test"):
             "MinimumOSVersion": "7.4",
             "UIDeviceFamily:0": "4",
         },
-        tags = [name, "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
     )
 
     native.test_suite(
