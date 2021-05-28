@@ -27,9 +27,12 @@ load(
     "infoplist_contents_test",
 )
 
-def watchos_ui_test_test_suite():
-    """Test suite for watchos_ui_test."""
-    name = "watchos_ui_test"
+def watchos_ui_test_test_suite(name = "watchos_ui_test"):
+    """Test suite for watchos_ui_test.
+
+    Args:
+        name: The name prefix for all the nested tests
+    """
 
     apple_verification_test(
         name = "{}_codesign_test".format(name),
