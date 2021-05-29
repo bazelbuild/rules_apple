@@ -35,8 +35,4 @@ tasks:
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
 
-buildifier:
-  version: latest
-  # rules_python cannot be included in the nested shell based bazel tests since
-  # we need to repropagate all files. See //:for_bazel_tests
-  warnings: -native-py
+buildifier: latest
