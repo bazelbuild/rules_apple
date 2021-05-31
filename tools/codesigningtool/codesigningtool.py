@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import argparse
+import base64
+import datetime
 import os
 import plistlib
 import re
@@ -120,16 +122,122 @@ def _certificate_fingerprint(identity):
   fingerprint = fingerprint.replace(":", "")
   return fingerprint
 
+def _certificate_common_name(cert):
+  _, subject, _ = execute.execute_and_filter_output([
+    "openssl",
+    "x509",
+    "-noout",
+    "-inform",
+    "DER",
+    "-subject"
+  ], inputstr=cert, raise_on_failure=True)
+  subject = subject.strip().split('/')
+  cert_cn = [f for f in subject if "CN=" in f]
+
+  if len(cert_cn) == 0:
+    return None
+
+  cert_cn = cert_cn[0]
+  cert_cn = cert_cn.replace("CN=", "")
+
+  return cert_cn
 
 def _get_identities_from_provisioning_profile(mpf):
   """Iterates through all the identities in a provisioning profile, lazily."""
   for identity in mpf["DeveloperCertificates"]:
-    if not isinstance(identity, bytes):
+    cert = _certificate_data(identity)
+    yield _certificate_fingerprint(cert)
+
+def _certificate_data(cert):
+  if not isinstance(cert, bytes):
       # Old versions of plistlib return the deprecated plistlib.Data type
       # instead of bytes.
-      identity = identity.data
-    yield _certificate_fingerprint(identity)
+      cert = cert.data
 
+  return cert
+
+def _get_smartcard_tokens(xml):
+  """Get available tokens from the output of 'system_profiler SPSmartCardsDataType -xml'"""
+  tokens = [x for x in xml if x.get("_name", None) == "AVAIL_SMARTCARDS_TOKEN"]
+
+  if len(tokens) == 0:
+    return []
+
+  tokens = tokens[0].get("_items", None)
+  tokens = [x.get("_name", None) for x in tokens]
+
+  return tokens
+
+def _get_smartcard_keychain(xml):
+  """Get keychain items from the output of 'system_profiler SPSmartCardsDataType -xml'"""
+  keychain = [x for x in xml if x.get("_name", None) == "AVAIL_SMARTCARDS_KEYCHAIN"]
+
+  if len(keychain) == 0:
+    return []
+
+  keychain = keychain[0].get("_items", None)
+  return keychain
+
+def _find_smartcard_identities(identity=None):
+  """Finds smartcard identitites on the current system."""
+  ids = []
+  _, xml, _ = execute.execute_and_filter_output([
+      "/usr/sbin/system_profiler",
+      "SPSmartCardsDataType",
+      "-xml"
+  ], raise_on_failure=True)
+  xml = plistlib.loads(str.encode(xml))
+  if len(xml) == 0:
+    return []
+  xml = xml[0].get("_items", None)
+  if not xml:
+    return []
+
+  tokens = _get_smartcard_tokens(xml)
+  keychain = _get_smartcard_keychain(xml)
+
+  # For each 'token' finds non-expired certs and:
+  #
+  # 1. Check if 'identity' was provided and if it matches a 'CN', in that case stop the loop
+  #    and return the respective fingerprint (SHA1)
+  # 2. Otherwise append fingerprints found to 'ids' to be returned at the end
+  #
+  # ps: note that if 'identity' is provided and it does not match any existing item in the
+  # smartcard keychain 'ids' will be empty, making this function's behaviour consistent with
+  # '_find_codesign_identities' where it's being called
+  for token in tokens:
+    token_data = [x for x in keychain if x.get("_name", None) == token]
+    if len(token_data) == 0:
+      continue
+    token_data = token_data[0]
+
+    for (k, data) in token_data.items():
+      if k == "_name":
+        continue
+      # Extract expiry date and ignore expired certs. The row being processed looks like this:
+      #
+      # Valid from: 2021-02-12 21:35:04 +0000 to: 2022-02-12 21:35:05 +0000, SSL trust: NO, X509 trust: YES
+      #
+      expiry_date = re.search(r"(?<=to:)(.*?)(?=,)", data, re.DOTALL).group().strip()
+      expiry_date = datetime.datetime.strptime(expiry_date, "%Y-%m-%d %H:%M:%S %z")
+      now = datetime.datetime.now(expiry_date.tzinfo)
+      if now > expiry_date:
+        continue
+
+      # This is a valid identity, decode the certificate, extract
+      # Common Name and Fingerprint and handle their values accordingly
+      # as described above
+      cert = re.search(r"(?<=-----BEGIN CERTIFICATE-----)(.*?)(?=-----END CERTIFICATE-----)", data, re.DOTALL).group().strip()
+      cert = base64.b64decode(cert)
+      cert = _certificate_data(cert)
+      common_name = _certificate_common_name(cert)
+      fingerprint = _certificate_fingerprint(cert)
+      if identity == common_name:
+        return [fingerprint]
+      if not identity:
+        ids.append(fingerprint)
+
+  return ids
 
 def _find_codesign_identities(identity=None):
   """Finds code signing identities on the current system."""
@@ -156,6 +264,10 @@ def _find_codesign_identities(identity=None):
       groups = m.groupdict()
       id = groups["hash"]
       ids.append(id)
+
+  # Finds smartcard identities if present
+  ids += _find_smartcard_identities(identity)
+
   return ids
 
 
