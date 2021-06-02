@@ -35,5 +35,4 @@ tasks:
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
 
-buildifier:
-  version: 4.0.1
+buildifier: latest
