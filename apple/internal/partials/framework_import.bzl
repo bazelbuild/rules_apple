@@ -61,7 +61,8 @@ def _framework_import_partial_impl(
     transitive_sets = [
         x[AppleFrameworkImportInfo].framework_imports
         for x in targets
-        if AppleFrameworkImportInfo in x
+        if AppleFrameworkImportInfo in x and
+           hasattr(x[AppleFrameworkImportInfo], "framework_imports")
     ]
     files_to_bundle = depset(transitive = transitive_sets).to_list()
 
@@ -69,7 +70,8 @@ def _framework_import_partial_impl(
         avoid_transitive_sets = [
             x[AppleFrameworkImportInfo].framework_imports
             for x in targets_to_avoid
-            if AppleFrameworkImportInfo in x
+            if AppleFrameworkImportInfo in x and
+               hasattr(x[AppleFrameworkImportInfo], "framework_imports")
         ]
         if avoid_transitive_sets:
             avoid_files = depset(transitive = avoid_transitive_sets).to_list()
