@@ -59,6 +59,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -286,7 +290,16 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
 
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
@@ -366,12 +379,13 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             executable_name = executable_name,
             launch_storyboard = getattr(ctx.file, "launch_storyboard", None),
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = targets_to_avoid,
-            top_level_attrs = ["resources"],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
