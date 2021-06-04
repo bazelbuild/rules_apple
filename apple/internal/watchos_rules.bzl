@@ -55,6 +55,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -75,13 +79,6 @@ load(
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
-    top_level_attrs = [
-        "app_icons",
-        "storyboards",
-        "strings",
-        "resources",
-    ]
-
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
@@ -98,7 +95,21 @@ def _watchos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "storyboards",
+            "strings",
+            "resources",
+        ],
+    )
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -198,11 +209,12 @@ def _watchos_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -255,11 +267,6 @@ def _watchos_application_impl(ctx):
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
-    top_level_attrs = [
-        "app_icons",
-        "strings",
-        "resources",
-    ]
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
@@ -311,7 +318,20 @@ def _watchos_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -410,11 +430,12 @@ def _watchos_extension_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,

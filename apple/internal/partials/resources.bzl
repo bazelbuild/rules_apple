@@ -283,46 +283,36 @@ def _resources_partial_impl(
         environment_plist,
         launch_storyboard,
         platform_prerequisites,
-        plist_attrs,
-        rule_attrs,
+        resource_deps,
         rule_descriptor,
         rule_label,
+        top_level_infoplists,
+        top_level_resources,
         targets_to_avoid,
-        top_level_attrs,
+        version,
         version_keys_required):
     """Implementation for the resource processing partial."""
     providers = []
-    for attr in ["deps", "resources"]:
-        if hasattr(rule_attrs, attr):
-            providers.extend([
-                x[AppleResourceInfo]
-                for x in getattr(rule_attrs, attr)
-                if AppleResourceInfo in x
-            ])
 
-    # TODO(kaipi): Bucket top_level_attrs directly instead of collecting and
-    # splitting.
-    files = resources.collect(
-        attr = rule_attrs,
-        res_attrs = top_level_attrs,
-    )
-    if files:
+    if resource_deps:
+        providers.extend([
+            x[AppleResourceInfo]
+            for x in resource_deps
+            if AppleResourceInfo in x
+        ])
+
+    if top_level_resources:
         providers.append(resources.bucketize(
             owner = str(rule_label),
-            resources = files,
+            resources = top_level_resources,
         ))
 
-    if plist_attrs:
-        plists = resources.collect(
-            attr = rule_attrs,
-            res_attrs = plist_attrs,
-        )
-        plist_provider = resources.bucketize_typed(
-            plists,
+    if top_level_infoplists:
+        providers.append(resources.bucketize_typed(
+            top_level_infoplists,
             owner = str(rule_label),
             bucket_type = "infoplists",
-        )
-        providers.append(plist_provider)
+        ))
 
     if not providers:
         # If there are no resource providers, return early, since there is nothing to process.
@@ -483,7 +473,7 @@ def _resources_partial_impl(
                 resolved_plisttool = apple_toolchain_info.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
-                version = getattr(rule_attrs, "version", None),
+                version = version,
                 version_keys_required = version_keys_required,
             ),
         )
@@ -501,12 +491,13 @@ def resources_partial(
         environment_plist,
         launch_storyboard,
         platform_prerequisites,
-        plist_attrs = [],
-        rule_attrs,
+        resource_deps,
         rule_descriptor,
         rule_label,
         targets_to_avoid = [],
-        top_level_attrs = [],
+        top_level_infoplists = [],
+        top_level_resources = [],
+        version,
         version_keys_required = True):
     """Constructor for the resources processing partial.
 
@@ -530,15 +521,14 @@ def resources_partial(
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        plist_attrs: List of attributes that should be processed as Info plists that should be
-            merged and processed.
-        rule_attrs: List of attributes defined by the rule. Typically from `ctx.attr`.
+        resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
-        top_level_attrs: List of attributes containing resources that need to be processed from the
-            target being processed.
+        top_level_infoplists: A list of collected resources found from Info.plist attributes.
+        top_level_resources: A list of collected resources found from resource attributes.
+        version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.
 
@@ -556,11 +546,12 @@ def resources_partial(
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
         platform_prerequisites = platform_prerequisites,
-        plist_attrs = plist_attrs,
-        rule_attrs = rule_attrs,
+        resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
-        top_level_attrs = top_level_attrs,
+        top_level_infoplists = top_level_infoplists,
+        top_level_resources = top_level_resources,
+        version = version,
         version_keys_required = version_keys_required,
     )

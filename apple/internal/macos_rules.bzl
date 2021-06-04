@@ -55,6 +55,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -111,7 +115,20 @@ def _macos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -177,15 +194,12 @@ def _macos_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = [
-                "app_icons",
-                "strings",
-                "resources",
-            ],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -299,7 +313,20 @@ def _macos_bundle_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -362,15 +389,12 @@ def _macos_bundle_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = [
-                "app_icons",
-                "strings",
-                "resources",
-            ],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -446,7 +470,20 @@ def _macos_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -509,15 +546,12 @@ def _macos_extension_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = [
-                "app_icons",
-                "strings",
-                "resources",
-            ],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -607,7 +641,19 @@ def _macos_quick_look_plugin_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "strings",
+            "resources",
+        ],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -672,14 +718,12 @@ def _macos_quick_look_plugin_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = [
-                "strings",
-                "resources",
-            ],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -762,7 +806,16 @@ def _macos_kernel_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -825,11 +878,12 @@ def _macos_kernel_extension_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = ["resources"],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -914,7 +968,12 @@ def _macos_spotlight_importer_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -977,10 +1036,11 @@ def _macos_spotlight_importer_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            top_level_infoplists = top_level_infoplists,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1065,7 +1125,12 @@ def _macos_xpc_service_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -1128,10 +1193,11 @@ def _macos_xpc_service_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            top_level_infoplists = top_level_infoplists,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
