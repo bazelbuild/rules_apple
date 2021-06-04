@@ -55,6 +55,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -98,15 +102,6 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
-    top_level_attrs = [
-        "alternate_icons",
-        "app_icons",
-        "launch_images",
-        "launch_storyboard",
-        "strings",
-        "resources",
-    ]
-
     extra_linkopts = []
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
@@ -140,7 +135,23 @@ def _ios_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "alternate_icons",
+            "app_icons",
+            "launch_images",
+            "launch_storyboard",
+            "strings",
+            "resources",
+        ],
+    )
 
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
@@ -243,12 +254,13 @@ def _ios_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.settings_bundle_partial(
             actions = actions,
@@ -372,13 +384,6 @@ def _ios_application_impl(ctx):
 
 def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
-    top_level_attrs = [
-        "app_icons",
-        "launch_storyboard",
-        "strings",
-        "resources",
-    ]
-
     link_result = linking_support.register_linking_action(
         ctx,
         stamp = ctx.attr.stamp,
@@ -404,7 +409,21 @@ def _ios_app_clip_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "launch_storyboard",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -508,12 +527,13 @@ def _ios_app_clip_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -633,13 +653,21 @@ def _ios_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
-
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -745,12 +773,13 @@ def _ios_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = ["resources"],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
@@ -804,11 +833,6 @@ def _ios_framework_impl(ctx):
 
 def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
-    top_level_attrs = [
-        "app_icons",
-        "strings",
-    ]
-
     extra_linkopts = []
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
@@ -841,7 +865,19 @@ def _ios_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+        ],
+    )
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -940,12 +976,13 @@ def _ios_extension_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1052,7 +1089,22 @@ def _ios_dynamic_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "launch_images",
+            "launch_storyboard",
+            "strings",
+            "resources",
+        ],
+    )
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
@@ -1147,12 +1199,13 @@ def _ios_dynamic_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = ["resources"],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
@@ -1231,6 +1284,7 @@ def _ios_static_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
     processor_partials = [
@@ -1286,9 +1340,10 @@ def _ios_static_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            version = ctx.attr.version,
         ))
 
     processor_result = processor.process(
@@ -1318,12 +1373,6 @@ def _ios_static_framework_impl(ctx):
 
 def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
-    top_level_attrs = [
-        "app_icons",
-        "strings",
-        "resources",
-    ]
-
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
@@ -1338,7 +1387,20 @@ def _ios_imessage_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -1414,11 +1476,12 @@ def _ios_imessage_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1468,12 +1531,6 @@ def _ios_imessage_application_impl(ctx):
 
 def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
-    top_level_attrs = [
-        "app_icons",
-        "strings",
-        "resources",
-    ]
-
     link_result = linking_support.register_linking_action(
         ctx,
         stamp = ctx.attr.stamp,
@@ -1498,7 +1555,20 @@ def _ios_imessage_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1598,13 +1668,14 @@ def _ios_imessage_extension_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
             launch_storyboard = None,
-            plist_attrs = ["infoplists"],
             platform_prerequisites = platform_prerequisites,
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1660,12 +1731,6 @@ def _ios_imessage_extension_impl(ctx):
 
 def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
-    top_level_attrs = [
-        "sticker_assets",
-        "strings",
-        "resources",
-    ]
-
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
@@ -1678,7 +1743,20 @@ def _ios_sticker_pack_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "sticker_assets",
+            "strings",
+            "resources",
+        ],
+    )
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
@@ -1750,11 +1828,12 @@ def _ios_sticker_pack_extension_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.messages_stub_partial(
             actions = actions,

@@ -59,6 +59,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -89,13 +93,6 @@ load(
 
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
-    top_level_attrs = [
-        "app_icons",
-        "launch_images",
-        "strings",
-        "resources",
-    ]
-
     link_result = linking_support.register_linking_action(
         ctx,
         stamp = ctx.attr.stamp,
@@ -122,8 +119,22 @@ def _tvos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
     swift_dylib_dependencies = ctx.attr.extensions + ctx.attr.frameworks
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "launch_images",
+            "strings",
+            "resources",
+        ],
+    )
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -204,12 +215,13 @@ def _tvos_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.settings_bundle_partial(
             actions = actions,
@@ -336,7 +348,21 @@ def _tvos_dynamic_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "launch_images",
+            "strings",
+            "resources",
+        ],
+    )
 
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
@@ -428,12 +454,13 @@ def _tvos_dynamic_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = ["resources"],
+            top_level_resources = top_level_resources,
+            top_level_infoplists = top_level_infoplists,
+            version = ctx.attr.version,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
@@ -521,13 +548,21 @@ def _tvos_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
-
     signed_frameworks = []
     if getattr(ctx.file, "provisioning_profile", None):
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -616,12 +651,13 @@ def _tvos_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = ["resources"],
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
             version_keys_required = False,
         ),
         partials.swift_dylibs_partial(
@@ -666,12 +702,6 @@ def _tvos_framework_impl(ctx):
 
 def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
-    top_level_attrs = [
-        "app_icons",
-        "strings",
-        "resources",
-    ]
-
     link_result = linking_support.register_linking_action(
         ctx,
         stamp = ctx.attr.stamp,
@@ -696,7 +726,20 @@ def _tvos_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
 
     archive = outputs.archive(
         actions = actions,
@@ -773,12 +816,13 @@ def _tvos_extension_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            plist_attrs = ["infoplists"],
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = ctx.attr.frameworks,
-            top_level_attrs = top_level_attrs,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -851,6 +895,7 @@ def _tvos_static_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
     processor_partials = [
@@ -908,9 +953,10 @@ def _tvos_static_framework_impl(ctx):
             executable_name = executable_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            rule_attrs = ctx.attr,
+            resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            version = ctx.attr.version,
         ))
 
     processor_result = processor.process(
