@@ -18,60 +18,19 @@ load(
     "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
     "entitlements",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_runtime_linkopts",
-)
 
-def _create_swift_runtime_linkopts_target(
-        name,
-        deps,
-        is_static,
-        is_test,
-        tags,
-        testonly):
-    """Creates a build target to propagate Swift runtime linker flags.
-
-    Args:
-      name: The name of the base target.
-      deps: The list of dependencies of the base target.
-      is_static: True to use the static Swift runtime, or False to use the
-          dynamic Swift runtime.
-      is_test: True to make sure test specific linkopts are propagated.
-      tags: Tags to add to the created targets.
-      testonly: Whether the target should be testonly.
-
-    Returns:
-      A build label that can be added to the deps of the binary target.
-    """
-    swift_runtime_linkopts_name = name + ".swift_runtime_linkopts"
-    swift_runtime_linkopts(
-        name = swift_runtime_linkopts_name,
-        is_static = is_static,
-        is_test = is_test,
-        testonly = testonly,
-        tags = tags,
-        deps = deps,
-    )
-    return ":" + swift_runtime_linkopts_name
-
-def _add_entitlements_and_swift_linkopts(
+def _add_entitlements(
         name,
         platform_type,
         product_type,
         include_entitlements = True,
         is_stub = False,
-        link_swift_statically = False,
-        is_test = False,
         **kwargs):
-    """Adds entitlements and Swift linkopts targets for a bundle target.
+    """Adds entitlements targets for a bundle target.
 
     This function creates an entitlements target to ensure that a binary
     created using the `link_multi_arch_binary` API or by copying a stub
     executable gets signed appropriately.
-
-    Similarly, for bundles with user-provided binaries, this function also
-    adds any Swift linkopts that are necessary for it to link correctly.
 
     Args:
       name: The name of the bundle target, from which the targets' names
@@ -82,9 +41,6 @@ def _add_entitlements_and_swift_linkopts(
           Defaults to True.
       is_stub: True/False, indicates whether the function is being called for a bundle that uses a
           stub executable.
-      link_swift_statically: True/False, indicates whether the static versions of the Swift standard
-          libraries should be used during linking. Only used if include_swift_linkopts is True.
-      is_test: True/False, indicates if test specific linker flags should be propagated.
       **kwargs: The arguments that were passed into the top-level macro.
 
     Returns:
@@ -119,23 +75,7 @@ def _add_entitlements_and_swift_linkopts(
             # propagate linkopts.
             additional_deps.append(":{}".format(entitlements_name))
 
-    deps = bundling_args.get("deps", [])
-
-    if not is_stub:
-        # Propagate the linker flags that dynamically link the Swift runtime, if Swift was used. If
-        # it wasn't, this target propagates no linkopts.
-        additional_deps.append(
-            _create_swift_runtime_linkopts_target(
-                name,
-                deps,
-                link_swift_statically,
-                is_test,
-                tags = tags,
-                testonly = testonly,
-            ),
-        )
-
-    all_deps = deps + additional_deps
+    all_deps = bundling_args.get("deps", []) + additional_deps
     if all_deps:
         bundling_args["deps"] = all_deps
 
@@ -143,5 +83,5 @@ def _add_entitlements_and_swift_linkopts(
 
 # Define the loadable module that lists the exported symbols in this file.
 binary_support = struct(
-    add_entitlements_and_swift_linkopts = _add_entitlements_and_swift_linkopts,
+    add_entitlements = _add_entitlements,
 )

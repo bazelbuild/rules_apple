@@ -51,7 +51,7 @@ load(
 
 def ios_application(name, **kwargs):
     """Builds and bundles an iOS application."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.application,
@@ -66,7 +66,7 @@ def ios_application(name, **kwargs):
 
 def ios_app_clip(name, **kwargs):
     """Builds and bundles an iOS app clip."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.app_clip,
@@ -81,7 +81,7 @@ def ios_app_clip(name, **kwargs):
 
 def ios_extension(name, **kwargs):
     """Builds and bundles an iOS application extension."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.app_extension,
@@ -107,7 +107,7 @@ def ios_framework(name, **kwargs):
     linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
     binary_args["linkopts"] = linkopts
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         include_entitlements = False,
         platform_type = str(apple_common.platform_type.ios),
@@ -155,7 +155,7 @@ def ios_static_framework(name, **kwargs):
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_imessage_application(name, **kwargs):
     """Macro to preprocess entitlements for iMessage applications."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.messages_application,
@@ -171,7 +171,7 @@ def ios_imessage_application(name, **kwargs):
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_sticker_pack_extension(name, **kwargs):
     """Macro to preprocess entitlements for Sticker Pack extensions."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.messages_sticker_pack_extension,
@@ -187,7 +187,7 @@ def ios_sticker_pack_extension(name, **kwargs):
 # TODO(b/118104491): Remove this macro and move the rule definition back to this file.
 def ios_imessage_extension(name, **kwargs):
     """Macro to override the linkopts and preprocess entitlements for iMessage extensions."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.messages_extension,

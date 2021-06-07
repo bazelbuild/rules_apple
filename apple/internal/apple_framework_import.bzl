@@ -153,12 +153,15 @@ def _grouped_framework_files(framework_imports):
 
     return framework_groups
 
-def _objc_provider_with_dependencies(ctx, objc_provider_fields):
+def _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos = []):
     """Returns a new Objc provider which includes transitive Objc dependencies."""
-    objc_provider_fields["providers"] = [dep[apple_common.Objc] for dep in ctx.attr.deps]
+    objc_provider_fields["providers"] = [
+        dep[apple_common.Objc]
+        for dep in ctx.attr.deps
+    ] + additional_objc_infos
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _cc_info_with_dependencies(ctx, header_imports):
+def _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos = []):
     """Returns a new CcInfo which includes transitive Cc dependencies."""
     cc_info = CcInfo(
         compilation_context = cc_common.create_compilation_context(
@@ -168,7 +171,7 @@ def _cc_info_with_dependencies(ctx, header_imports):
     )
     dep_cc_infos = [dep[CcInfo] for dep in ctx.attr.deps]
     return cc_common.merge_cc_infos(
-        cc_infos = [cc_info] + dep_cc_infos,
+        cc_infos = [cc_info] + dep_cc_infos + additional_cc_infos,
     )
 
 def _transitive_framework_imports(deps):
@@ -343,9 +346,20 @@ def _apple_static_framework_import_impl(ctx):
         if _is_swiftmodule(header.basename)
     ]
 
+    additional_objc_infos = []
+    additional_cc_infos = []
+
     if swiftmodule_imports:
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo(toolchain = toolchain))
+
+        # The Swift toolchain propagates Swift-specific linker flags (e.g.,
+        # library/framework search paths) as an implicit dependency. In the
+        # rare case that a binary has a Swift framework import dependency but
+        # no other Swift dependencies, make sure we pick those up so that it
+        # links to the standard libraries correctly.
+        additional_objc_infos.extend(toolchain.implicit_deps_providers.objc_infos)
+        additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
 
         if _is_debugging(ctx):
             cpu = ctx.fragments.apple.single_arch_cpu
@@ -354,8 +368,12 @@ def _apple_static_framework_import_impl(ctx):
                 fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
             objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
-    providers.append(_objc_provider_with_dependencies(ctx, objc_provider_fields))
-    providers.append(_cc_info_with_dependencies(ctx, header_imports))
+    providers.append(
+        _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos),
+    )
+    providers.append(
+        _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos),
+    )
 
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.

@@ -17,8 +17,6 @@
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftUsageInfo",
-    "swift_common",
-    "swift_usage_aspect",
 )
 
 def _swift_usage_info(targets):
@@ -55,48 +53,6 @@ def _uses_swift(targets):
       True if any of the targets directly uses Swift; otherwise, False.
     """
     return (_swift_usage_info(targets) != None)
-
-def _swift_runtime_linkopts_impl(ctx):
-    """Implementation of the internal `swift_runtime_linkopts` rule.
-
-    This rule is an internal implementation detail and should not be used directly
-    by clients. It examines the dependencies of the target to determine if Swift
-    was used and, if so, propagates additional linker options to have the runtime
-    either dynamically or statically linked.
-
-    Args:
-      ctx: The rule context.
-
-    Returns:
-      A `struct` containing the `objc` provider that should be propagated to a
-      binary to dynamically or statically link the Swift runtime.
-    """
-    linkopts = []
-    swift_usage_info = _swift_usage_info(ctx.attr.deps)
-    if swift_usage_info:
-        linkopts.extend(swift_common.swift_runtime_linkopts(
-            is_static = ctx.attr.is_static,
-            is_test = ctx.attr.is_test,
-            toolchain = swift_usage_info.toolchain,
-        ))
-
-    if linkopts:
-        return [apple_common.new_objc_provider(linkopt = depset(linkopts, order = "topological"))]
-    else:
-        return [apple_common.new_objc_provider()]
-
-swift_runtime_linkopts = rule(
-    _swift_runtime_linkopts_impl,
-    attrs = {
-        "is_static": attr.bool(mandatory = True),
-        "is_test": attr.bool(mandatory = True),
-        "deps": attr.label_list(
-            aspects = [swift_usage_aspect],
-            mandatory = True,
-        ),
-    },
-    fragments = ["apple", "objc"],
-)
 
 # Define the loadable module that lists the exported symbols in this file.
 swift_support = struct(
