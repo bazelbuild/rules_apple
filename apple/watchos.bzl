@@ -51,7 +51,7 @@ load(
 def watchos_application(name, **kwargs):
     """Builds and bundles a watchOS application."""
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.watchos),
         product_type = apple_product_type.application,
@@ -66,7 +66,7 @@ def watchos_application(name, **kwargs):
 
 def watchos_extension(name, **kwargs):
     """Builds and bundles a watchOS extension."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.watchos),
         product_type = apple_product_type.app_extension,
@@ -92,7 +92,7 @@ def watchos_dynamic_framework(name, **kwargs):
         "-install_name",
         "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
     ]
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         include_entitlements = False,
         platform_type = str(apple_common.platform_type.watchos),
