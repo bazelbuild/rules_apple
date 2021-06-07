@@ -95,9 +95,9 @@ def _execute_and_filter_with_retry(xcrunargs, filtering):
   return return_code
 
 def _ensure_clean_path(path):
-  """Ensure a directory is exists and is empty."""
+  """Ensure a directory exists and is empty."""
   if os.path.exists(path):
-    os.removedirs(path)
+    shutil.rmtree(path)
   os.makedirs(path)
 
 def _listdir_full(path):
