@@ -98,12 +98,11 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     if "bundle_name" in kwargs:
         fail("bundle_name is not supported in test rules.")
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         test_bundle_name,
         bundle_name = name,
         platform_type = str(apple_common.platform_type.ios),
         product_type = apple_product_type.unit_test_bundle,
-        is_test = True,
         include_entitlements = False,
         testonly = True,
         **bundle_attrs

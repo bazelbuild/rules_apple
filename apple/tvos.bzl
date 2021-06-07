@@ -48,7 +48,7 @@ load(
 
 def tvos_application(name, **kwargs):
     """Builds and bundles a tvOS application."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.tvos),
         product_type = apple_product_type.application,
@@ -63,7 +63,7 @@ def tvos_application(name, **kwargs):
 
 def tvos_extension(name, **kwargs):
     """Builds and bundles a tvOS extension."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.tvos),
         product_type = apple_product_type.app_extension,
@@ -89,7 +89,7 @@ def tvos_framework(name, **kwargs):
         "-install_name,@rpath/%s.framework/%s" % (bundle_name, bundle_name),
     ]
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.tvos),
         product_type = apple_product_type.framework,
@@ -171,7 +171,7 @@ def tvos_dynamic_framework(name, **kwargs):
         "-install_name",
         "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
     ]
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         include_entitlements = False,
         platform_type = str(apple_common.platform_type.watchos),

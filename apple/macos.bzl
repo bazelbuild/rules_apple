@@ -62,7 +62,7 @@ def macos_application(name, **kwargs):
     features = binary_args.pop("features", [])
     features.append("link_cocoa")
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.application,
@@ -82,7 +82,7 @@ def macos_bundle(name, **kwargs):
     features = binary_args.pop("features", [])
     features.append("link_cocoa")
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.bundle,
@@ -100,7 +100,7 @@ def macos_quick_look_plugin(name, **kwargs):
     """Builds and bundles an macOS Quick Look plugin."""
     binary_args = dict(kwargs)
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.quicklook_plugin,
@@ -120,7 +120,7 @@ def macos_kernel_extension(name, **kwargs):
     features = binary_args.pop("features", [])
     features.append("kernel_extension")
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.kernel_extension,
@@ -135,7 +135,7 @@ def macos_kernel_extension(name, **kwargs):
 
 def macos_spotlight_importer(name, **kwargs):
     """Packages a macOS Spotlight Importer Bundle."""
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.spotlight_importer,
@@ -151,7 +151,7 @@ def macos_xpc_service(name, **kwargs):
     """Packages a macOS XPC Service Application."""
     binary_args = dict(kwargs)
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.xpc_service,
@@ -211,11 +211,10 @@ def macos_command_line_application(name, **kwargs):
         )
         binary_deps.extend([":" + merged_launchdplists_name])
 
-    cmd_line_app_args = binary_support.add_entitlements_and_swift_linkopts(
+    cmd_line_app_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.tool,
-        link_swift_statically = True,
         include_entitlements = False,
         deps = binary_deps,
         **binary_args
@@ -264,11 +263,10 @@ def macos_dylib(name, **kwargs):
         )
         binary_deps.extend([":" + merged_infoplist_name])
 
-    dylib_args = binary_support.add_entitlements_and_swift_linkopts(
+    dylib_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.dylib,
-        link_swift_statically = True,
         include_entitlements = False,
         deps = binary_deps,
         **binary_args
@@ -287,7 +285,7 @@ def macos_extension(name, **kwargs):
     features = binary_args.pop("features", [])
     features.append("link_cocoa")
 
-    bundling_args = binary_support.add_entitlements_and_swift_linkopts(
+    bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.macos),
         product_type = apple_product_type.app_extension,
