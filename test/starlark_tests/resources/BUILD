@@ -190,6 +190,21 @@ objc_library(
     tags = FIXTURE_TAGS,
 )
 
+apple_resource_group(
+    name = "processed_resources_in_structured_resources",
+    structured_resources = [
+        ":localization",
+    ],
+)
+
+objc_library(
+    name = "processed_resources_in_structured_resources_lib",
+    srcs = ["main.m"],
+    data = [
+        ":processed_resources_in_structured_resources",
+    ],
+)
+
 filegroup(
     name = "localized_plists",
     srcs = glob(["*.lproj/*.plist"]),
