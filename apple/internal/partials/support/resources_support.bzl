@@ -279,6 +279,7 @@ def _infoplists(
         *,
         actions,
         apple_toolchain_info,
+        bundle_id,
         files,
         parent_dir,
         platform_prerequisites,
@@ -295,6 +296,7 @@ def _infoplists(
         actions: The actions provider from `ctx.actions`.
         apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         files: The infoplist files to process.
+        bundle_id: The bundle ID to use when templating plist files.
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
@@ -315,6 +317,7 @@ def _infoplists(
         processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
+            bundle_id = bundle_id,
             bundle_name_with_extension = paths.basename(parent_dir),
             input_files = input_files,
             output_plist = out_plist,
