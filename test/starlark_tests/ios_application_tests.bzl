@@ -450,6 +450,20 @@ def ios_application_test_suite(name = "ios_application"):
         ],
     )
 
+    archive_contents_test(
+        name = "{}_with_minimum_deployment_os_version".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_with_deployment_version",
+        tags = [name],
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "MinimumOSVersion": "14.0",
+        },
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

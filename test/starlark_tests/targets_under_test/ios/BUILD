@@ -55,6 +55,22 @@ ios_application(
 )
 
 ios_application(
+    name = "app_minimal_with_deployment_version",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_deployment_os_version = "14.0",
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
     bundle_id = "com.google.example",

@@ -237,6 +237,15 @@ def macos_application_test_suite(name = "macos_application"):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_in_bundle",
     )
 
+    infoplist_contents_test(
+        name = "{}_minimum_os_deployment_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_minimum_deployment_os_version",
+        expected_values = {
+            "LSMinimumSystemVersion": "11.0",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
