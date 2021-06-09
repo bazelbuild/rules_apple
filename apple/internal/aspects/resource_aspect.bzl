@@ -186,8 +186,15 @@ def _apple_resource_aspect_impl(target, ctx):
         #
         # `structured_resources` also does not support propagating resource providers from
         # apple_resource_group or apple_bundle_import targets, unlike `resources`. If a target is
-        # referenced by `structured_resources` that already propagates a resource provider, it will
-        # be ignored.
+        # referenced by `structured_resources` that already propagates a resource provider, this
+        # will raise an error in the analysis phase.
+        for attr in collect_structured_args.get("res_attrs", []):
+            for found_attr in getattr(ctx.rule.attr, attr):
+                if AppleResourceInfo in found_attr:
+                    fail("Error: Found ignored resource providers for target %s. " % ctx.label +
+                         "Check that there are no processed resource targets being referenced " +
+                         "by structured_resources.")
+
         structured_files = resources.collect(
             attr = ctx.rule.attr,
             **collect_structured_args
@@ -256,7 +263,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "resources"],
+    attr_aspects = ["data", "deps", "resources", "structured_resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support_toolchain_utils.shared_attrs(),
