@@ -166,6 +166,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 
     resource_actions.merge_resource_infoplists(
         actions = actions,
+        bundle_id = None,
         bundle_name_with_extension = bundle_name + bundle_extension,
         input_files = launchdplists,
         output_plist = merged_launchdplist,

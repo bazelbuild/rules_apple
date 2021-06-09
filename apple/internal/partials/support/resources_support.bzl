@@ -279,6 +279,7 @@ def _infoplists(
         *,
         actions,
         apple_toolchain_info,
+        bundle_id,
         files,
         parent_dir,
         platform_prerequisites,
@@ -315,6 +316,7 @@ def _infoplists(
         processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
+            bundle_id = bundle_id,
             bundle_name_with_extension = paths.basename(parent_dir),
             input_files = input_files,
             output_plist = out_plist,

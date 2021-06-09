@@ -214,6 +214,17 @@ apple_resource_bundle(
 )
 
 apple_resource_bundle(
+    name = "resource_bundle_with_bundle_id",
+    bundle_id = "org.bazel.rules_apple.resource_bundle",
+    infoplists = ["Info-noversion.plist"],
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = FIXTURE_TAGS,
+)
+
+apple_resource_bundle(
     name = "localization",
     resources = [
         "en.lproj/files.stringsdict",

@@ -115,6 +115,7 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
 def merge_resource_infoplists(
         *,
         actions,
+        bundle_id,
         bundle_name_with_extension,
         input_files,
         output_plist,
@@ -138,6 +139,8 @@ def merge_resource_infoplists(
         "PRODUCT_NAME": product_name,
         "TARGET_NAME": product_name,
     }
+    if bundle_id:
+        substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id
 
     # The generated Info.plists from Xcode's project templates use
     # DEVELOPMENT_LANGUAGE as the default variable substitution for
