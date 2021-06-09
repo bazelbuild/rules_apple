@@ -367,7 +367,8 @@ hermetic given these inputs to ensure that the result can be safely cached.
             mandatory = False,
             doc = """
 A required string indicating the minimum deployment OS version supported by the target, represented
-as a dotted version number (for example, "9.0").
+as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which
+is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.
 """,
         ),
         "minimum_os_version": attr.string(
@@ -1063,7 +1064,8 @@ def _create_apple_binary_rule(
                 mandatory = False,
                 doc = """
 A required string indicating the minimum deployment OS version supported by the target, represented as a
-dotted version number (for example, "9.0").
+dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is
+effective at compile time. Ensure version specific APIs are guarded with `available` clauses.
 """,
             ),
             "minimum_os_version": attr.string(

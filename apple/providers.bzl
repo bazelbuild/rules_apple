@@ -74,7 +74,9 @@ extension-safe APIs only.
 """,
         "minimum_deployment_os_version": """
 `string`. The minimum deployment OS version (as a dotted version
-number like "9.0") that this bundle was built to support.
+number like "9.0") that this bundle was built to support. This is different from
+`minimum_os_version`, which is effective at compile time. Ensure version
+specific APIs are guarded with `available` clauses.
 """,
         "minimum_os_version": """
 `string`. The minimum OS version (as a dotted version
