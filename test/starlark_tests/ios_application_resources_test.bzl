@@ -556,7 +556,6 @@ def ios_application_resources_test_suite(name = "ios_application_resources"):
         tags = [name],
     )
 
-
     archive_contents_test(
         name = "{}_with_resource_group_with_resource_bundle".format(name),
         build_type = "device",

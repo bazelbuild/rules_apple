@@ -296,6 +296,7 @@ def _infoplists(
         actions: The actions provider from `ctx.actions`.
         apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         files: The infoplist files to process.
+        bundle_id: The bundle ID to use when templating plist files.
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.

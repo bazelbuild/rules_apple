@@ -126,6 +126,7 @@ def merge_resource_infoplists(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      bundle_id: The bundle ID to use when templating plist files.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
       output_plist: The file reference for the output plist.
