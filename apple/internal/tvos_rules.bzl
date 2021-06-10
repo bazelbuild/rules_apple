@@ -302,17 +302,16 @@ def _tvos_application_impl(ctx):
 def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
 
-    # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 2
-    # because of the swift_runtime_linkopts dep that comes with the swift_libray
+    # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
     swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
-    if len(swiftdeps) != 1 or len(ctx.attr.deps) > 2:
+    if len(swiftdeps) != 1 or len(ctx.attr.deps) > 1:
         fail(
             """\
     error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
         )
 
-    binary_target = [deps for deps in ctx.attr.deps if deps.label.name.endswith("swift_runtime_linkopts")][0]
+    binary_target = ctx.attr.deps[0]
     link_result = linking_support.register_linking_action(
         ctx,
         stamp = ctx.attr.stamp,
