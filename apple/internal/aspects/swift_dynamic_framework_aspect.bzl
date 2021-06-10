@@ -82,11 +82,8 @@ framework module {module_name} {{
 def _swift_dynamic_framework_aspect_impl(target, ctx):
     """Aspect implementation for Swift dynamic framework support."""
 
-    if not hasattr(ctx.rule.attr, "deps"):
-        return []
-
-    swiftdeps = [x for x in ctx.rule.attr.deps if SwiftInfo in x]
-    ccinfos = [x for x in ctx.rule.attr.deps if CcInfo in x]
+    swiftdeps = [x for x in [target] if SwiftInfo in x]
+    ccinfos = [x for x in [target] if CcInfo in x]
 
     # If there are no Swift dependencies, return nothing.
     if not swiftdeps:
