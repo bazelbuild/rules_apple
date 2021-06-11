@@ -4,7 +4,6 @@ load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_extension",
-    "ios_static_framework",
     "ios_ui_test",
     "ios_unit_test",
 )
@@ -107,13 +106,6 @@ ios_extension(
     infoplists = ["ButtonsExtension/Info.plist"],
     minimum_os_version = "9.0",
     deps = [":ButtonsExtensionLib"],
-)
-
-ios_static_framework(
-    name = "ButtonsStaticFramework",
-    bundle_name = "Buttons",
-    minimum_os_version = "8.0",
-    deps = [":ButtonsLib"],
 )
 
 ## Tests
