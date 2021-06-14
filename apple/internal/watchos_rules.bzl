@@ -108,16 +108,17 @@ def _watchos_dynamic_framework_impl(ctx):
         )
 
     binary_target = ctx.attr.deps[0]
-    extra_linkopts = []
+    extra_linkopts = ["-dynamiclib"]
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -232,9 +233,10 @@ def _watchos_dynamic_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
-            binary_provider = link_result.binary_provider,
+            binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             bundle_only = False,
+            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -545,7 +547,7 @@ def _watchos_extension_impl(ctx):
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions

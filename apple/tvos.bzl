@@ -57,7 +57,6 @@ def tvos_application(name, **kwargs):
 
     _tvos_application(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -72,7 +71,6 @@ def tvos_extension(name, **kwargs):
 
     _tvos_extension(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -101,7 +99,6 @@ def tvos_framework(name, **kwargs):
 
     _tvos_framework(
         name = name,
-        dylibs = binary_args.get("frameworks", []),
         **bundling_args
     )
 
@@ -143,8 +140,6 @@ def tvos_unit_test(name, **kwargs):
         bundle_rule = _tvos_internal_unit_test_bundle,
         test_rule = _tvos_unit_test,
         runner = runner,
-        bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
