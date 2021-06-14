@@ -299,7 +299,7 @@ def _watchos_extension_impl(ctx):
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions

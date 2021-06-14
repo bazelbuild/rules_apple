@@ -98,10 +98,11 @@ def _ios_application_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -356,18 +357,20 @@ def _ios_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # Propagate the binary provider so that this target can be used as bundle_loader in test
-        # rules.
-        link_result.binary_provider,
+        apple_common.new_executable_binary_provider(
+            binary = binary_artifact,
+            objc = link_result.objc,
+        ),
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -586,18 +589,21 @@ def _ios_app_clip_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # Propagate the binary provider so that this target can be used as bundle_loader in test
-        # rules.
-        link_result.binary_provider,
+        apple_common.new_executable_binary_provider(
+            binary = binary_artifact,
+            objc = link_result.objc,
+        ),
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
+        extra_linkopts = ["-dynamiclib"],
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -718,8 +724,9 @@ def _ios_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
-            binary_provider = link_result.binary_provider,
+            binary_artifact = binary_artifact,
             bundle_name = bundle_name,
+            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -796,10 +803,11 @@ def _ios_extension_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
     output_groups = link_result.output_groups
 
@@ -1247,9 +1255,10 @@ def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions

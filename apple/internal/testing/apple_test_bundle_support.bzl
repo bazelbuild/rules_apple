@@ -251,14 +251,8 @@ def _test_host_bundle_id(test_host):
 
 def _apple_test_bundle_impl(ctx, extra_providers = []):
     """Implementation for bundling XCTest bundles."""
-    link_result = linking_support.register_linking_action(
-        ctx,
-        stamp = ctx.attr.stamp,
-    )
-    binary_artifact = link_result.binary_provider.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
-
-    test_host_bundle_id = _test_host_bundle_id(ctx.attr.test_host)
+    test_host = ctx.attr.test_host
+    test_host_bundle_id = _test_host_bundle_id(test_host)
     if ctx.attr.bundle_id:
         bundle_id = ctx.attr.bundle_id
     else:
@@ -296,19 +290,42 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         res_attrs = ["resources"],
     )
 
+    # For unit tests, only pass the test host as the bundle's loader if it
+    # propagates `AppleExecutableBinary`, meaning that it's a binary that
+    # *we* built. Test hosts with stub binaries (like a watchOS app) won't
+    # have this. (For UI tests, the test host is never passed as the bundle
+    # loader, because the host application is loaded out-of-process.)
+    if (
+        rule_descriptor.product_type == apple_product_type.unit_test_bundle and
+        test_host and apple_common.AppleExecutableBinary in test_host
+    ):
+        bundle_loader = test_host
+    else:
+        bundle_loader = None
+
+    link_result = linking_support.register_linking_action(
+        ctx,
+        avoid_deps = getattr(ctx.attr, "frameworks", []),
+        bundle_loader = bundle_loader,
+        extra_linkopts = ["-bundle"],
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
     else:
         debug_dependencies = []
+    if test_host:
+        debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
         targets_to_avoid = list(ctx.attr.frameworks)
     else:
         targets_to_avoid = []
-    if ctx.attr.test_host:
-        debug_dependencies.append(ctx.attr.test_host)
-        if rule_descriptor.product_type == apple_product_type.unit_test_bundle:
-            targets_to_avoid.append(ctx.attr.test_host)
+    if bundle_loader:
+        targets_to_avoid.append(bundle_loader)
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -448,8 +465,8 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     # Append the AppleTestBundleInfo provider with pointers to the test and host bundles.
     test_host_archive = None
-    if ctx.attr.test_host:
-        test_host_archive = ctx.attr.test_host[AppleBundleInfo].archive
+    if test_host:
+        test_host_archive = test_host[AppleBundleInfo].archive
     providers.extend([
         _apple_test_info_provider(
             deps = ctx.attr.deps,

@@ -83,9 +83,10 @@ def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -287,18 +288,21 @@ def _tvos_application_impl(ctx):
             )
         ),
         TvosApplicationBundleInfo(),
-        # Propagate the binary provider so that this target can be used as bundle_loader in test
-        # rules.
-        link_result.binary_provider,
+        apple_common.new_executable_binary_provider(
+            binary = binary_artifact,
+            objc = link_result.objc,
+        ),
     ] + processor_result.providers
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
+        extra_linkopts = ["-dynamiclib"],
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
@@ -403,8 +407,9 @@ def _tvos_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             bin_root_path = bin_root_path,
-            binary_provider = link_result.binary_provider,
+            binary_artifact = binary_artifact,
             bundle_name = bundle_name,
+            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -466,9 +471,10 @@ def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary_provider.binary
+    binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions

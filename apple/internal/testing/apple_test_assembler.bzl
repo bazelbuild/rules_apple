@@ -29,10 +29,8 @@ _BUNDLE_ATTRS = {
     for x in [
         "additional_contents",
         "deps",
-        "dylibs",
         "bundle_id",
         "bundle_name",
-        "bundle_loader",
         "families",
         "frameworks",
         "infoplists",

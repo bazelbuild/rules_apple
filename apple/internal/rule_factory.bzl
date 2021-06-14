@@ -193,7 +193,7 @@ AppleTestRunnerInfo provider.
     ),
 }
 
-def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
+def _common_binary_linking_attrs(deps_cfg, product_type):
     deps_aspects = [
         swift_usage_aspect,
     ]
@@ -214,26 +214,6 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
         _COMMON_ATTRS,
         _COMMON_BINARY_RULE_ATTRS,
         {
-            "binary_type": attr.string(
-                default = default_binary_type,
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
-            "bundle_loader": attr.label(
-                providers = [[apple_common.AppleExecutableBinary]],
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
-            "dylibs": attr.label_list(
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -692,6 +672,18 @@ desired Contents subdirectory.
         ),
     })
 
+    if rule_descriptor.product_type == apple_product_type.bundle:
+        attrs.append({
+            "bundle_loader": attr.label(
+                doc = """
+The target representing the executable that will be loading this bundle. Undefined symbols from the
+bundle are checked against this execuable during linking as if it were one of the dynamic libraries
+the bundle was linked with.
+""",
+                providers = [apple_common.AppleExecutableBinary],
+            ),
+        })
+
     if rule_descriptor.product_type in [apple_product_type.application, apple_product_type.bundle]:
         attrs.append({
             # TODO(b/117886202): This should be part of the rule descriptor, once the new
@@ -1013,7 +1005,6 @@ binaries/libraries will be created combining all architectures specified by
 
         if rule_descriptor.requires_deps:
             rule_attrs.append(_common_binary_linking_attrs(
-                default_binary_type = rule_descriptor.binary_type,
                 deps_cfg = rule_descriptor.deps_cfg,
                 product_type = product_type,
             ))
@@ -1026,7 +1017,6 @@ binaries/libraries will be created combining all architectures specified by
     else:
         is_executable = False
         rule_attrs.append(_common_binary_linking_attrs(
-            default_binary_type = "executable",
             deps_cfg = apple_common.multi_arch_split,
             product_type = None,
         ))
@@ -1075,7 +1065,6 @@ def _create_apple_bundling_rule(
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(
-            default_binary_type = rule_descriptor.binary_type,
             deps_cfg = rule_descriptor.deps_cfg,
             product_type = product_type,
         ))

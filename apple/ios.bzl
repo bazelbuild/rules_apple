@@ -60,7 +60,6 @@ def ios_application(name, **kwargs):
 
     _ios_application(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -75,7 +74,6 @@ def ios_app_clip(name, **kwargs):
 
     _ios_app_clip(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -90,7 +88,6 @@ def ios_extension(name, **kwargs):
 
     _ios_extension(
         name = name,
-        dylibs = kwargs.get("frameworks", []),
         **bundling_args
     )
 
@@ -120,7 +117,6 @@ def ios_framework(name, **kwargs):
 
     _ios_framework(
         name = name,
-        dylibs = binary_args.get("frameworks", []),
         **bundling_args
     )
 
@@ -196,7 +192,6 @@ def ios_imessage_extension(name, **kwargs):
 
     return _ios_imessage_extension(
         name = name,
-        dylibs = bundling_args.get("frameworks", []),
         **bundling_args
     )
 
@@ -209,8 +204,6 @@ def ios_unit_test(name, **kwargs):
         bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
         runner = runner,
-        bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
@@ -221,7 +214,6 @@ def ios_ui_test(name, **kwargs):
         bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
         runner = runner,
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
@@ -230,8 +222,6 @@ def ios_unit_test_suite(name, **kwargs):
         name = name,
         bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
-        bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
@@ -240,7 +230,6 @@ def ios_ui_test_suite(name, **kwargs):
         name = name,
         bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
