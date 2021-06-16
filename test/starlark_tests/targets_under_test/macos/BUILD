@@ -134,6 +134,21 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_with_minimum_deployment_os_version",
+    bundle_extension = "xpc",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_deployment_os_version = "11.0",
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_application(

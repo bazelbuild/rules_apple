@@ -66,6 +66,7 @@ def _apple_core_ml_library_impl(ctx):
         config_vars = ctx.var,
         device_families = None,
         disabled_features = ctx.disabled_features,
+        explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
         features = ctx.features,
         objc_fragment = None,

@@ -279,6 +279,7 @@ def _entitlements_impl(ctx):
         config_vars = ctx.var,
         device_families = None,
         disabled_features = ctx.disabled_features,
+        explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
         features = ctx.features,
         objc_fragment = ctx.fragments.objc,
