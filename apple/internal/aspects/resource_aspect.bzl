@@ -84,6 +84,12 @@ def _apple_resource_aspect_impl(target, ctx):
 
     providers = []
     bucketize_args = {}
+
+    # TODO(b/174858377) Follow up to see if we need to define output_discriminator for process_args
+    # if an input from the aspect context indicates that the Apple resource aspect is being sent
+    # down a split transition that builds for multiple platforms. This should match an existing
+    # output_discriminator used for resource processing in the top level rule. It might not be
+    # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
         "apple_toolchain_info": ctx.attr._toolchain[AppleSupportToolchainInfo],

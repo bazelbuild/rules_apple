@@ -45,6 +45,7 @@ def _messages_stub_partial_impl(
         binary_artifact,
         extensions,
         label_name,
+        output_discriminator,
         package_messages_support):
     """Implementation for the messages support stub processing partial."""
 
@@ -69,9 +70,10 @@ def _messages_stub_partial_impl(
 
         if binary_artifact:
             intermediate_file = intermediates.file(
-                actions,
-                label_name,
-                "MessagesApplicationSupportStub",
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                file_name = "MessagesApplicationSupportStub",
             )
             actions.symlink(
                 target_file = binary_artifact,
@@ -88,9 +90,10 @@ def _messages_stub_partial_impl(
 
     elif binary_artifact:
         intermediate_file = intermediates.file(
-            actions,
-            label_name,
-            "MessagesApplicationExtensionSupportStub",
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "MessagesApplicationExtensionSupportStub",
         )
         actions.symlink(
             target_file = binary_artifact,
@@ -109,6 +112,7 @@ def messages_stub_partial(
         binary_artifact = None,
         extensions = None,
         label_name,
+        output_discriminator = None,
         package_messages_support = False):
     """Constructor for the messages support stub processing partial.
 
@@ -119,6 +123,8 @@ def messages_stub_partial(
         binary_artifact: The stub binary to copy.
         extensions: List of extension bundles associated with this rule.
         label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         package_messages_support: Whether to package the messages stub binary in the archive root.
 
     Returns:
@@ -130,5 +136,6 @@ def messages_stub_partial(
         binary_artifact = binary_artifact,
         extensions = extensions,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         package_messages_support = package_messages_support,
     )

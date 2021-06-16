@@ -45,6 +45,7 @@ def _bitcode_symbols_partial_impl(
         debug_outputs_provider,
         dependency_targets,
         label_name,
+        output_discriminator,
         package_bitcode,
         platform_prerequisites):
     """Implementation for the bitcode symbols processing partial."""
@@ -74,7 +75,12 @@ def _bitcode_symbols_partial_impl(
             )
 
         if bitcode_files:
-            bitcode_dir = intermediates.directory(actions, label_name, "bitcode_files")
+            bitcode_dir = intermediates.directory(
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                dir_name = "bitcode_files",
+            )
             bitcode_dirs.append(bitcode_dir)
 
             apple_support.run_shell(
@@ -114,6 +120,7 @@ def bitcode_symbols_partial(
         debug_outputs_provider = None,
         dependency_targets = [],
         label_name,
+        output_discriminator = None,
         package_bitcode = False,
         platform_prerequisites):
     """Constructor for the bitcode symbols processing partial.
@@ -126,6 +133,8 @@ def bitcode_symbols_partial(
       dependency_targets: List of targets that should be checked for bitcode files that need to be
         bundled..
       label_name: Name of the target being built
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       package_bitcode: Whether the partial should package the bitcode files for all dependency
         binaries.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -140,6 +149,7 @@ def bitcode_symbols_partial(
         debug_outputs_provider = debug_outputs_provider,
         dependency_targets = dependency_targets,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         package_bitcode = package_bitcode,
         platform_prerequisites = platform_prerequisites,
     )

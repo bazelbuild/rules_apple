@@ -90,9 +90,10 @@ def _macos_binary_infoplist_impl(ctx):
              "should have been provided")
 
     merged_infoplist = intermediates.file(
-        actions,
-        rule_label.name,
-        "Info.plist",
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = None,
+        file_name = "Info.plist",
     )
 
     resource_actions.merge_root_infoplists(
@@ -105,6 +106,7 @@ def _macos_binary_infoplist_impl(ctx):
         include_executable_name = False,
         input_plists = infoplists,
         launch_storyboard = None,
+        output_discriminator = None,
         output_pkginfo = None,
         output_plist = merged_infoplist,
         platform_prerequisites = platform_prerequisites,
@@ -160,9 +162,10 @@ def _macos_command_line_launchdplist_impl(ctx):
         fail("Internal error: launchdplists should have been provided")
 
     merged_launchdplist = intermediates.file(
-        actions,
-        rule_label.name,
-        "Launchd.plist",
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = None,
+        file_name = "Launchd.plist",
     )
 
     resource_actions.merge_resource_infoplists(
@@ -170,6 +173,7 @@ def _macos_command_line_launchdplist_impl(ctx):
         bundle_id = None,
         bundle_name_with_extension = bundle_name + bundle_extension,
         input_files = launchdplists,
+        output_discriminator = None,
         output_plist = merged_launchdplist,
         platform_prerequisites = platform_prerequisites,
         resolved_plisttool = ctx.attr._toolchain[AppleSupportToolchainInfo].resolved_plisttool,

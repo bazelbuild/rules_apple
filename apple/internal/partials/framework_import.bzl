@@ -56,6 +56,7 @@ def _framework_import_partial_impl(
         actions,
         apple_toolchain_info,
         label_name,
+        output_discriminator,
         platform_prerequisites,
         provisioning_profile,
         rule_descriptor,
@@ -128,9 +129,10 @@ def _framework_import_partial_impl(
         # Create a temporary path for intermediate files and the anticipated zip output.
         temp_path = paths.join("_imported_frameworks/", framework_basename)
         framework_zip = intermediates.file(
-            actions,
-            label_name,
-            temp_path + ".zip",
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = temp_path + ".zip",
         )
         temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
 
@@ -219,6 +221,7 @@ def framework_import_partial(
         actions,
         apple_toolchain_info,
         label_name,
+        output_discriminator = None,
         platform_prerequisites,
         provisioning_profile,
         rule_descriptor,
@@ -233,6 +236,8 @@ def framework_import_partial(
         actions: The actions provider from `ctx.actions`.
         apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
         label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
@@ -248,6 +253,7 @@ def framework_import_partial(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
