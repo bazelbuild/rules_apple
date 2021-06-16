@@ -32,6 +32,7 @@ def _provisioning_profile_partial_impl(
         actions,
         extension,
         location,
+        output_discriminator,
         profile_artifact,
         rule_label):
     """Implementation for the provisioning profile partial."""
@@ -46,9 +47,10 @@ def _provisioning_profile_partial_impl(
 
     # Create intermediate file with proper name for the binary.
     intermediate_file = intermediates.file(
-        actions,
-        rule_label.name,
-        "embedded.%s" % extension,
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = output_discriminator,
+        file_name = "embedded.%s" % extension,
     )
     actions.symlink(
         target_file = profile_artifact,
@@ -66,6 +68,7 @@ def provisioning_profile_partial(
         actions,
         extension = "mobileprovision",
         location = processor.location.resource,
+        output_discriminator = None,
         profile_artifact,
         rule_label):
     """Constructor for the provisioning profile partial.
@@ -77,6 +80,8 @@ def provisioning_profile_partial(
       actions: The actions provider from `ctx.actions`.
       extension: The embedded provisioning profile extension.
       location: The location within the bundle to place the profile.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       profile_artifact: The provisioning profile to embed for this target.
       rule_label: The label of the target being analyzed.
 
@@ -88,6 +93,7 @@ def provisioning_profile_partial(
         actions = actions,
         extension = extension,
         location = location,
+        output_discriminator = output_discriminator,
         profile_artifact = profile_artifact,
         rule_label = rule_label,
     )

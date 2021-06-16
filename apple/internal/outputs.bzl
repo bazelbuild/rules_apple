@@ -74,17 +74,27 @@ def _archive_for_embedding(
             predeclared_outputs = predeclared_outputs,
         )
 
-def _binary(*, actions, bundle_name, label_name):
+def _binary(*, actions, bundle_name, label_name, output_discriminator):
     """Returns a file reference for the binary that will be packaged into this target's archive. """
-    return intermediates.file(actions, label_name, bundle_name)
+    return intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = bundle_name,
+    )
 
 def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return actions.declare_file(label_name)
 
-def _infoplist(*, actions, label_name):
+def _infoplist(*, actions, label_name, output_discriminator):
     """Returns a file reference for this target's Info.plist file."""
-    return intermediates.file(actions, label_name, "Info.plist")
+    return intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "Info.plist",
+    )
 
 def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""

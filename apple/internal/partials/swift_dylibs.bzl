@@ -124,6 +124,7 @@ def _swift_dylibs_partial_impl(
         bundle_dylibs,
         dependency_targets,
         label_name,
+        output_discriminator,
         package_swift_support_if_needed,
         platform_prerequisites):
     """Implementation for the Swift dylibs processing partial."""
@@ -162,9 +163,10 @@ def _swift_dylibs_partial_impl(
         if binaries_to_check:
             platform_name = platform_prerequisites.platform.name_in_plist.lower()
             output_dir = intermediates.directory(
-                actions,
-                label_name,
-                "swiftlibs",
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                dir_name = "swiftlibs",
             )
             _swift_dylib_action(
                 actions = actions,
@@ -220,6 +222,7 @@ def swift_dylibs_partial(
         bundle_dylibs = False,
         dependency_targets = [],
         label_name,
+        output_discriminator = None,
         package_swift_support_if_needed = False,
         platform_prerequisites):
     """Constructor for the Swift dylibs processing partial.
@@ -235,6 +238,8 @@ def swift_dylibs_partial(
       dependency_targets: List of targets that should be checked for binaries that might contain
         Swift, so that the Swift dylibs can be collected.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for
         each dependency platform into the SwiftSupport directory at the root of the archive. It
         might still not be included depending on what it is being built for.
@@ -252,6 +257,7 @@ def swift_dylibs_partial(
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
     )

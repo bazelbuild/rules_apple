@@ -223,9 +223,10 @@ def _bundle_partial_outputs_files(
         extra_input_files = [],
         ipa_post_processor = None,
         label_name,
+        output_discriminator,
+        output_file,
         partial_outputs,
         platform_prerequisites,
-        output_file,
         rule_descriptor):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
@@ -240,10 +241,12 @@ def _bundle_partial_outputs_files(
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: The name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+      output_file: The file where the final zipped bundle should be created.
       partial_outputs: List of partial outputs from which to collect the files
         that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      output_file: The file where the final zipped bundle should be created.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
     """
 
@@ -370,9 +373,10 @@ def _bundle_partial_outputs_files(
         control_file_name = "bundletool_control.json"
 
     control_file = intermediates.file(
-        actions,
-        label_name,
-        control_file_name,
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = control_file_name,
     )
     actions.write(
         output = control_file,
@@ -445,6 +449,7 @@ def _bundle_post_process_and_sign(
         entitlements,
         ipa_post_processor,
         output_archive,
+        output_discriminator,
         partial_outputs,
         platform_prerequisites,
         predeclared_outputs,
@@ -462,6 +467,8 @@ def _bundle_post_process_and_sign(
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         output_archive: The file representing the final bundled, post-processed and signed archive.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         partial_outputs: The outputs of the partials used to process this target's bundle.
         platform_prerequisites: Struct containing information on the platform being targeted.
         predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
@@ -514,9 +521,10 @@ def _bundle_post_process_and_sign(
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            output_file = output_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
-            output_file = output_archive,
             rule_descriptor = rule_descriptor,
         )
 
@@ -528,9 +536,10 @@ def _bundle_post_process_and_sign(
         # This output, while an intermediate artifact not exposed through the AppleBundleInfo
         # provider, is used by Tulsi for custom processing logic. (b/120221708)
         unprocessed_archive = intermediates.file(
-            actions,
-            rule_label.name,
-            "unprocessed_archive.zip",
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            file_name = "unprocessed_archive.zip",
         )
         _bundle_partial_outputs_files(
             actions = actions,
@@ -539,9 +548,10 @@ def _bundle_post_process_and_sign(
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            output_file = unprocessed_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
-            output_file = unprocessed_archive,
             rule_descriptor = rule_descriptor,
         )
 
@@ -561,6 +571,7 @@ def _bundle_post_process_and_sign(
             label_name = rule_label.name,
             output_archive = output_archive,
             output_archive_root_path = output_archive_root_path,
+            output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
@@ -596,9 +607,10 @@ def _bundle_post_process_and_sign(
                 archive = embedding_archive,
             )
             unprocessed_embedded_archive = intermediates.file(
-                actions,
-                rule_label.name,
-                "unprocessed_embedded_archive.zip",
+                actions = actions,
+                target_name = rule_label.name,
+                output_discriminator = output_discriminator,
+                file_name = "unprocessed_embedded_archive.zip",
             )
             _bundle_partial_outputs_files(
                 actions = actions,
@@ -608,9 +620,10 @@ def _bundle_post_process_and_sign(
                 embedding = True,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
+                output_discriminator = output_discriminator,
+                output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
                 platform_prerequisites = platform_prerequisites,
-                output_file = unprocessed_embedded_archive,
                 rule_descriptor = rule_descriptor,
             )
 
@@ -624,6 +637,7 @@ def _bundle_post_process_and_sign(
                 label_name = rule_label.name,
                 output_archive = embedding_archive,
                 output_archive_root_path = embedding_archive_root_path,
+                output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
@@ -641,6 +655,7 @@ def _process(
         bundle_post_process_and_sign = True,
         entitlements,
         ipa_post_processor,
+        output_discriminator = None,
         partials,
         platform_prerequisites,
         predeclared_outputs,
@@ -659,6 +674,8 @@ def _process(
           calling the implementation of every partial. Defaults to True.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       partials: The list of partials to process to construct the complete bundle.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
@@ -692,6 +709,7 @@ def _process(
             entitlements = entitlements,
             ipa_post_processor = ipa_post_processor,
             output_archive = output_archive,
+            output_discriminator = output_discriminator,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,

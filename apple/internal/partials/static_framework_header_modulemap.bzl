@@ -118,6 +118,7 @@ def _static_framework_header_modulemap_partial_impl(
         bundle_name,
         hdrs,
         label_name,
+        output_discriminator,
         umbrella_header):
     """Implementation for the static framework headers and modulemaps partial."""
     bundle_files = []
@@ -130,7 +131,12 @@ def _static_framework_header_modulemap_partial_impl(
         )
     elif hdrs:
         umbrella_header_name = "{}.h".format(bundle_name)
-        umbrella_header_file = intermediates.file(actions, label_name, umbrella_header_name)
+        umbrella_header_file = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = umbrella_header_name,
+        )
         _create_umbrella_header(
             actions,
             umbrella_header_file,
@@ -156,7 +162,12 @@ def _static_framework_header_modulemap_partial_impl(
     # Create a module map if there is a need for one (that is, if there are
     # headers or if there are dylibs/frameworks that the target depends on).
     if any([sdk_dylibs, sdk_dylibs, umbrella_header_name]):
-        modulemap_file = intermediates.file(actions, label_name, "module.modulemap")
+        modulemap_file = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "module.modulemap",
+        )
         _create_modulemap(
             actions,
             modulemap_file,
@@ -178,6 +189,7 @@ def static_framework_header_modulemap_partial(
         bundle_name,
         hdrs,
         label_name,
+        output_discriminator = None,
         umbrella_header):
     """Constructor for the static framework headers and modulemaps partial.
 
@@ -189,6 +201,8 @@ def static_framework_header_modulemap_partial(
       bundle_name: The name of the output bundle.
       hdrs: The list of headers to bundle.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       umbrella_header: An umbrella header to use instead of generating one
 
     Returns:
@@ -202,5 +216,6 @@ def static_framework_header_modulemap_partial(
         bundle_name = bundle_name,
         hdrs = hdrs,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         umbrella_header = umbrella_header,
     )

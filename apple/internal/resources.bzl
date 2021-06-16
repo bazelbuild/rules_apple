@@ -349,6 +349,7 @@ def _process_bucketized_data(
         bucketized_owners = [],
         buckets,
         bundle_id,
+        output_discriminator = None,
         platform_prerequisites,
         processing_owner = None,
         product_type,
@@ -367,6 +368,8 @@ def _process_bucketized_data(
         bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
         buckets: A dictionary with bucketized resources organized by resource type.
         bundle_id: The bundle ID to configure for this target.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
         processing_owner: An optional string that has a unique identifier to the target that should
             own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
@@ -393,6 +396,7 @@ def _process_bucketized_data(
                 "apple_toolchain_info": apple_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
+                "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
                 "product_type": product_type,

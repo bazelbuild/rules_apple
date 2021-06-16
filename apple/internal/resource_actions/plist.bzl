@@ -113,6 +113,7 @@ def merge_resource_infoplists(
         actions,
         bundle_name_with_extension,
         input_files,
+        output_discriminator,
         output_plist,
         platform_prerequisites,
         resolved_plisttool,
@@ -123,6 +124,8 @@ def merge_resource_infoplists(
       actions: The actions provider from `ctx.actions`.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       output_plist: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_plisttool: A struct referencing the resolved plist tool.
@@ -146,9 +149,10 @@ def merge_resource_infoplists(
     )
 
     control_file = intermediates.file(
-        actions,
-        rule_label.name,
-        paths.join(bundle_name_with_extension, "%s-control" % output_plist.basename),
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = output_discriminator,
+        file_name = paths.join(bundle_name_with_extension, "%s-control" % output_plist.basename),
     )
     actions.write(
         output = control_file,
@@ -177,6 +181,7 @@ def merge_root_infoplists(
         include_executable_name = True,
         input_plists,
         launch_storyboard,
+        output_discriminator,
         output_plist,
         output_pkginfo,
         platform_prerequisites,
@@ -208,6 +213,8 @@ def merge_root_infoplists(
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
       launch_storyboard: A file to be used as a launch screen for the application.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
         required.
       output_plist: The file reference for the merged output plist.
@@ -343,9 +350,10 @@ def merge_root_infoplists(
     )
 
     control_file = intermediates.file(
-        actions,
-        rule_label.name,
-        "%s-root-control" % output_plist.basename,
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = output_discriminator,
+        file_name = "%s-root-control" % output_plist.basename,
     )
     actions.write(
         output = control_file,

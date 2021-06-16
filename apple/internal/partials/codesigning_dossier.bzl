@@ -145,6 +145,7 @@ def _codesigning_dossier_partial_impl(
         embedded_targets = [],
         entitlements = None,
         label_name,
+        output_discriminator,
         platform_prerequisites,
         provisioning_profile = None,
         rule_descriptor):
@@ -178,6 +179,7 @@ def _codesigning_dossier_partial_impl(
         actions = actions,
         label_name = label_name,
         resolved_codesigning_dossier_tool = apple_toolchain_info.resolved_dossier_codesigningtool,
+        output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         platform_prerequisites = platform_prerequisites,
         embedded_dossiers = embedded_codesign_dossiers,
@@ -221,6 +223,7 @@ def codesigning_dossier_partial(
         embedded_targets = [],
         entitlements = None,
         label_name,
+        output_discriminator = None,
         platform_prerequisites,
         provisioning_profile = None,
         rule_descriptor):
@@ -240,6 +243,8 @@ def codesigning_dossier_partial(
             propagate.
       entitlements: Optional entitlements for this bundle.
       label_name: Name of the target being built
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: Optional File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
@@ -259,6 +264,7 @@ def codesigning_dossier_partial(
         embedded_targets = embedded_targets,
         entitlements = entitlements,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,

@@ -69,6 +69,7 @@ def _merge_root_infoplists(
         *,
         actions,
         out_infoplist,
+        output_discriminator,
         rule_descriptor,
         rule_label,
         **kwargs):
@@ -77,6 +78,8 @@ def _merge_root_infoplists(
     Args:
       actions: The actions provider from `ctx.actions`.
       out_infoplist: Reference to the output Info plist.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
@@ -90,14 +93,16 @@ def _merge_root_infoplists(
     out_pkginfo = None
     if rule_descriptor.requires_pkginfo:
         out_pkginfo = intermediates.file(
-            actions,
-            rule_label.name,
-            "PkgInfo",
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            file_name = "PkgInfo",
         )
         files.append(out_pkginfo)
 
     resource_actions.merge_root_infoplists(
         actions = actions,
+        output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
         rule_descriptor = rule_descriptor,
@@ -282,6 +287,7 @@ def _resources_partial_impl(
         bundle_verification_targets,
         environment_plist,
         launch_storyboard,
+        output_discriminator,
         platform_prerequisites,
         resource_deps,
         rule_descriptor,
@@ -412,6 +418,7 @@ def _resources_partial_impl(
                 "apple_toolchain_info": apple_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
+                "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
                 "product_type": rule_descriptor.product_type,
@@ -456,6 +463,7 @@ def _resources_partial_impl(
         out_infoplist = outputs.infoplist(
             actions = actions,
             label_name = rule_label.name,
+            output_discriminator = output_discriminator,
         )
         bundle_files.extend(
             _merge_root_infoplists(
@@ -469,6 +477,7 @@ def _resources_partial_impl(
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
+                output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 resolved_plisttool = apple_toolchain_info.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
@@ -490,6 +499,7 @@ def resources_partial(
         bundle_verification_targets = [],
         environment_plist,
         launch_storyboard,
+        output_discriminator = None,
         platform_prerequisites,
         resource_deps,
         rule_descriptor,
@@ -520,6 +530,8 @@ def resources_partial(
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
@@ -545,6 +557,7 @@ def resources_partial(
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,

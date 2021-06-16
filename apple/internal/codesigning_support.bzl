@@ -397,6 +397,7 @@ def _generate_codesigning_dossier_action(
         actions,
         label_name,
         resolved_codesigning_dossier_tool,
+        output_discriminator,
         output_dossier,
         platform_prerequisites,
         embedded_dossiers = [],
@@ -411,6 +412,8 @@ def _generate_codesigning_dossier_action(
           dossier.
       entitlements: Optional file representing the entitlements to sign with.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
@@ -444,9 +447,10 @@ def _generate_codesigning_dossier_action(
         dossier_arguments.extend(["--embedded_dossier", embedded_dossier.relative_bundle_path, embedded_dossier.dossier_file.path])
 
     args_file = intermediates.file(
-        actions,
-        label_name,
-        "dossier_arguments",
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "dossier_arguments",
     )
     actions.write(
         output = args_file,
@@ -491,6 +495,7 @@ def _post_process_and_sign_archive_action(
         label_name,
         output_archive,
         output_archive_root_path,
+        output_discriminator,
         platform_prerequisites,
         process_and_sign_template,
         provisioning_profile,
@@ -511,6 +516,8 @@ def _post_process_and_sign_archive_action(
       output_archive: The `File` representing the processed and signed archive.
       output_archive_root_path: The `string` path to where the processed, uncompressed archive
           should be located.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       process_and_sign_template: A template for a shell script to process and sign as a file.
       provisioning_profile: The provisioning profile file. May be `None`.
@@ -574,9 +581,10 @@ def _post_process_and_sign_archive_action(
         return
 
     process_and_sign_expanded_template = intermediates.file(
-        actions,
-        label_name,
-        "process-and-sign-%s.sh" % hash(output_archive.path),
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "process-and-sign-%s.sh" % hash(output_archive.path),
     )
     actions.expand_template(
         template = process_and_sign_template,

@@ -45,6 +45,7 @@ def _swift_static_framework_partial_impl(
         actions,
         bundle_name,
         label_name,
+        output_discriminator,
         swift_static_framework_info):
     """Implementation for the Swift static framework processing partial."""
 
@@ -68,9 +69,10 @@ frameworks expect a single swift_library dependency with `module_name` set to th
 
     for arch, swiftinterface in swiftinterfaces.items():
         bundle_interface = intermediates.file(
-            actions,
-            label_name,
-            "{}.swiftinterface".format(arch),
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "{}.swiftinterface".format(arch),
         )
         actions.symlink(
             target_file = swiftinterface,
@@ -79,7 +81,12 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
 
     for arch, swiftdoc in swiftdocs.items():
-        bundle_doc = intermediates.file(actions, label_name, "{}.swiftdoc".format(arch))
+        bundle_doc = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "{}.swiftdoc".format(arch),
+        )
         actions.symlink(
             target_file = swiftdoc,
             output = bundle_doc,
@@ -88,9 +95,10 @@ frameworks expect a single swift_library dependency with `module_name` set to th
 
     if generated_header:
         bundle_header = intermediates.file(
-            actions,
-            label_name,
-            "{}.h".format(expected_module_name),
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "{}.h".format(expected_module_name),
         )
         actions.symlink(
             target_file = generated_header,
@@ -98,7 +106,12 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         )
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
-        modulemap = intermediates.file(actions, label_name, "module.modulemap")
+        modulemap = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "module.modulemap",
+        )
         actions.write(modulemap, _modulemap_contents(expected_module_name))
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
@@ -109,6 +122,7 @@ def swift_static_framework_partial(
         actions,
         bundle_name,
         label_name,
+        output_discriminator = None,
         swift_static_framework_info):
     """Constructor for the Swift static framework processing partial.
 
@@ -119,6 +133,8 @@ def swift_static_framework_partial(
         actions: The actions provider from `ctx.actions`.
         bundle_name: The name of the output bundle.
         label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         swift_static_framework_info: The SwiftStaticFrameworkInfo provider containing the required
             artifacts.
 
@@ -131,5 +147,6 @@ def swift_static_framework_partial(
         actions = actions,
         bundle_name = bundle_name,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         swift_static_framework_info = swift_static_framework_info,
     )
