@@ -44,6 +44,7 @@ def _watchos_stub_partial_impl(
         actions,
         binary_artifact,
         label_name,
+        output_discriminator,
         watch_application):
     """Implementation for the watchOS stub processing partial."""
 
@@ -52,9 +53,10 @@ def _watchos_stub_partial_impl(
     if binary_artifact:
         # Create intermediate file with proper name for the binary.
         intermediate_file = intermediates.file(
-            actions,
-            label_name,
-            "WK",
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "WK",
         )
         actions.symlink(
             target_file = binary_artifact,
@@ -81,6 +83,7 @@ def watchos_stub_partial(
         actions,
         binary_artifact = None,
         label_name,
+        output_discriminator = None,
         watch_application = None):
     """Constructor for the watchOS stub processing partial.
 
@@ -92,6 +95,8 @@ def watchos_stub_partial(
         actions: The actions provider from `ctx.actions`.
         binary_artifact: The stub binary to copy.
         label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         watch_application: Optional. A reference to the watch application associated with the rule.
             If defined, this partial will package the watchOS stub binary in the archive root.
 
@@ -103,5 +108,6 @@ def watchos_stub_partial(
         actions = actions,
         binary_artifact = binary_artifact,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         watch_application = watch_application,
     )

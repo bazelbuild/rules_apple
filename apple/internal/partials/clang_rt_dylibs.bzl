@@ -54,14 +54,16 @@ def _clang_rt_dylibs_partial_impl(
         binary_artifact,
         features,
         label_name,
+        output_discriminator,
         platform_prerequisites):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
     if _should_package_clang_runtime(features = features):
         clang_rt_zip = intermediates.file(
-            actions,
-            label_name,
-            "clang_rt.zip",
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "clang_rt.zip",
         )
 
         resolved_clangrttool = apple_toolchain_info.resolved_clangrttool
@@ -97,6 +99,7 @@ def clang_rt_dylibs_partial(
         binary_artifact,
         features,
         label_name,
+        output_discriminator = None,
         platform_prerequisites):
     """Constructor for the Clang runtime dylibs processing partial.
 
@@ -106,6 +109,8 @@ def clang_rt_dylibs_partial(
       binary_artifact: The main binary artifact for this target.
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
@@ -119,5 +124,6 @@ def clang_rt_dylibs_partial(
         binary_artifact = binary_artifact,
         features = features,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
     )

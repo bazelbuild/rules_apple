@@ -27,7 +27,14 @@ load(
     "partial",
 )
 
-def _binary_partial_impl(*, actions, binary_artifact, executable_name, label_name):
+def _binary_partial_impl(
+        *,
+        actions,
+        binary_artifact,
+        bundle_name,
+        executable_name,
+        label_name,
+        output_discriminator):
     """Implementation for the binary processing partial."""
 
     # Create intermediate file with proper name for the binary.
@@ -35,6 +42,7 @@ def _binary_partial_impl(*, actions, binary_artifact, executable_name, label_nam
         actions = actions,
         executable_name = executable_name,
         label_name = label_name,
+        output_discriminator = output_discriminator,
     )
     actions.symlink(target_file = binary_artifact, output = output_binary)
 
@@ -44,7 +52,14 @@ def _binary_partial_impl(*, actions, binary_artifact, executable_name, label_nam
         ],
     )
 
-def binary_partial(actions, binary_artifact, executable_name, label_name):
+def binary_partial(
+        *,
+        actions,
+        binary_artifact,
+        bundle_name,
+        executable_name,
+        label_name,
+        output_discriminator = None):
     """Constructor for the binary processing partial.
 
     This partial propagates the bundle location for the main binary artifact for the target.
@@ -54,6 +69,8 @@ def binary_partial(actions, binary_artifact, executable_name, label_name):
       binary_artifact: The main binary artifact for this target.
       executable_name: The name of the output executable.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
 
     Returns:
       A partial that returns the bundle location of the binary artifact.
@@ -64,4 +81,5 @@ def binary_partial(actions, binary_artifact, executable_name, label_name):
         binary_artifact = binary_artifact,
         executable_name = executable_name,
         label_name = label_name,
+        output_discriminator = output_discriminator,
     )

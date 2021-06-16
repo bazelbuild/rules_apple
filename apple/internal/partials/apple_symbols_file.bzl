@@ -50,6 +50,7 @@ def _apple_symbols_file_partial_impl(
         debug_outputs_provider,
         dependency_targets,
         label_name,
+        output_discriminator,
         include_symbols_in_bundle,
         platform_prerequisites):
     """Implementation for the Apple .symbols file processing partial."""
@@ -62,7 +63,12 @@ def _apple_symbols_file_partial_impl(
         for target in dependency_targets:
             if AppleFrameworkImportInfo in target:
                 inputs.extend(target[AppleFrameworkImportInfo].debug_info_binaries.to_list())
-        output = intermediates.directory(actions, label_name, "symbols_output")
+        output = intermediates.directory(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            dir_name = "symbols_output",
+        )
         outputs.append(output)
         apple_support.run_shell(
             actions = actions,
@@ -106,6 +112,7 @@ def apple_symbols_file_partial(
         debug_outputs_provider,
         dependency_targets = [],
         label_name,
+        output_discriminator = None,
         include_symbols_in_bundle,
         platform_prerequisites):
     """Constructor for the Apple .symbols package processing partial.
@@ -118,6 +125,8 @@ def apple_symbols_file_partial(
       dependency_targets: List of targets that should be checked for files that need to be
         bundled.
       label_name: Name of the target being built.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       include_symbols_in_bundle: Whether the partial should package in its bundle
         the .symbols files for this binary plus all binaries in `dependency_targets`.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -131,7 +140,8 @@ def apple_symbols_file_partial(
         binary_artifact = binary_artifact,
         debug_outputs_provider = debug_outputs_provider,
         dependency_targets = dependency_targets,
-        label_name = label_name,
         include_symbols_in_bundle = include_symbols_in_bundle,
+        label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
     )

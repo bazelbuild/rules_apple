@@ -23,11 +23,19 @@ load(
     "intermediates",
 )
 
-def _create_stub_binary(*, actions, platform_prerequisites, rule_label, xcode_stub_path):
+def _create_stub_binary(
+        *,
+        actions,
+        output_discriminator = None,
+        platform_prerequisites,
+        rule_label,
+        xcode_stub_path):
     """Returns a symlinked stub binary from the Xcode distribution.
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
         xcode_stub_path: The Xcode SDK root relative path to where the stub binary is to be copied
@@ -37,9 +45,10 @@ def _create_stub_binary(*, actions, platform_prerequisites, rule_label, xcode_st
         A File reference to the stub binary artifact.
     """
     binary_artifact = intermediates.file(
-        actions,
-        rule_label.name,
-        "StubBinary",
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = output_discriminator,
+        file_name = "StubBinary",
     )
 
     # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
