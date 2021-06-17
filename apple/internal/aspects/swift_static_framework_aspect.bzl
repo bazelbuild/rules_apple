@@ -144,7 +144,7 @@ swift_library dependency with no transitive swift_library dependencies.\
                 # If this is both a Swift and a Clang module, then the header in its compilation
                 # context is its Swift generated header.
                 if module.swift and module.clang:
-                    headers = module.clang.compilation_context.headers.to_list()
+                    headers = module.clang.compilation_context.direct_headers
                     if headers:
                         generated_header = headers[0]
 
