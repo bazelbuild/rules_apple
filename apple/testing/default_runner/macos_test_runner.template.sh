@@ -127,5 +127,5 @@ fi
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
 xcodebuild test-without-building \
-    -destination "platform=macOS,arch=x86_64" \
+    -destination "platform=macOS" \
     -xctestrun "$XCTESTRUN"
