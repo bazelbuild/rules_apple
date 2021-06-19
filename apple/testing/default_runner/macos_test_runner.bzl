@@ -25,13 +25,20 @@ load(
 
 def _get_xctestrun_template_substitutions(ctx):
     """Returns the template substitutions for the xctestrun template."""
-    xcode_version = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    # Xcode version is only set when Xcode is installed. Xcode tool
+    # chain can be available both on macOS and Linux.
+    if not xcode_config.xcode_version():
+        return {
+            "%(xctestrun_insert_libraries)s": "",
+        }
 
     # Xcode 10 introduced new dylibs that are required when running unit tests, so we need to
     # provide different values in the xctestrun file that describes the test.
     # TODO(kaipi): Revisit this when Nitro has support for macOS. Nitro should be the one detecting
     #              Xcode version and configuring it appropriately.
-    if xcode_support.is_xcode_at_least_version(xcode_version, "10.0"):
+    if xcode_support.is_xcode_at_least_version(xcode_config, "10.0"):
         xctestrun_insert_libraries = [
             "__PLATFORMS__/MacOSX.platform/Developer/usr/lib/libXCTestBundleInject.dylib",
             "__DEVELOPERUSRLIB__/libMainThreadChecker.dylib",
