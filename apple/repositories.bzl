@@ -99,6 +99,8 @@ def apple_rules_dependencies(ignore_version_differences = False):
     _maybe(
         http_archive,
         name = "bazel_skylib",
+        patches = ["@build_bazel_rules_apple//doc:bazel-skylib.pr307.patch"],
+        patch_args = ["-p1"],
         urls = [
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
         ],
