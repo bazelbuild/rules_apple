@@ -15,6 +15,7 @@
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -146,5 +147,40 @@ def apple_rules_dependencies(ignore_version_differences = False):
         ],
         strip_prefix = "xctestrunner-5a1b0c158f2debace60722ddbcb5035e3387810e",
         sha256 = "cae8b4dc21f793161b45d48f00db56d04174de7dfcfb990da64a69c2d06a6450",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
+        name = "com_github_yonaskolb_xcodegen",
+        build_file_content = """\
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+exports_files(glob(["**"]), visibility = ["//visibility:public"])
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+native_binary(
+    name = "xcodegen",
+    src = "bin/xcodegen",
+    out = "xcodegen",
+    data = glob(["share/**/*"]),
+    visibility = ["//visibility:public"],
+)
+""",
+        canonical_id = "xcodegen-2.23.1-39ee9c2",
+        sha256 = "7d9d67fac98346a43413b86f69331cdcfdeb0dd00673cd944a5c2200f6b4fd31",
+        strip_prefix = "xcodegen",
+        urls = ["https://github.com/yonaskolb/XcodeGen/releases/download/2.23.1/xcodegen.zip"],
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        git_repository,
+        name = "com_github_bazelbuild_tulsi",
+        commit = "937326ef4d0655e41321caf68456acac9acfaf50",
+        remote = "https://github.com/bazelbuild/tulsi.git",
+        shallow_since = "1620420171 -0700",
         ignore_version_differences = ignore_version_differences,
     )
