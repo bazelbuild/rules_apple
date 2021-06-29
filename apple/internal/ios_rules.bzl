@@ -632,21 +632,6 @@ def _ios_app_clip_impl(ctx):
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
-
-    # TODO(kaipi): Add support for packaging headers.
-    extra_linkopts = ["-dynamiclib"]
-    if ctx.attr.extension_safe:
-        extra_linkopts.append("-fapplication-extension")
-
-    link_result = linking_support.register_linking_action(
-        ctx,
-        avoid_deps = ctx.attr.frameworks,
-        extra_linkopts = extra_linkopts,
-        stamp = ctx.attr.stamp,
-    )
-    binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
-
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
@@ -679,6 +664,25 @@ def _ios_framework_impl(ctx):
         attr = ctx.attr,
         res_attrs = ["resources"],
     )
+
+    extra_linkopts = [
+        "-dynamiclib",
+        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+            extension = bundle_extension,
+            name = bundle_name,
+        ),
+    ]
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    link_result = linking_support.register_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1078,18 +1082,6 @@ def _ios_dynamic_framework_impl(ctx):
         )
 
     binary_target = ctx.attr.deps[0]
-    extra_linkopts = ["-dynamiclib"]
-    if ctx.attr.extension_safe:
-        extra_linkopts.append("-fapplication-extension")
-
-    link_result = linking_support.register_linking_action(
-        ctx,
-        avoid_deps = ctx.attr.frameworks,
-        extra_linkopts = extra_linkopts,
-        stamp = ctx.attr.stamp,
-    )
-    binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
 
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
@@ -1130,6 +1122,25 @@ def _ios_dynamic_framework_impl(ctx):
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]
+
+    extra_linkopts = [
+        "-dynamiclib",
+        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+            extension = bundle_extension,
+            name = bundle_name,
+        ),
+    ]
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    link_result = linking_support.register_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        extra_linkopts = extra_linkopts,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
