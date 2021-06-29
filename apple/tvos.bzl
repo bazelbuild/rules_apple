@@ -76,21 +76,11 @@ def tvos_extension(name, **kwargs):
 def tvos_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Builds and bundles a tvOS dynamic framework."""
-    binary_args = dict(kwargs)
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    linkopts = binary_args.pop("linkopts", [])
-    bundle_name = binary_args.get("bundle_name", name)
-    linkopts += ["-install_name", "@rpath/%s.framework/%s" % (bundle_name, bundle_name)]
-    binary_args["linkopts"] = linkopts
-
     bundling_args = binary_support.add_entitlements(
         name,
         platform_type = str(apple_common.platform_type.tvos),
         product_type = apple_product_type.framework,
-        **binary_args
+        **kwargs
     )
 
     # Remove any kwargs that shouldn't be passed to the underlying rule.

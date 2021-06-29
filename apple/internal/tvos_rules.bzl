@@ -296,15 +296,6 @@ def _tvos_application_impl(ctx):
 
 def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
-    link_result = linking_support.register_linking_action(
-        ctx,
-        avoid_deps = ctx.attr.frameworks,
-        extra_linkopts = ["-dynamiclib"],
-        stamp = ctx.attr.stamp,
-    )
-    binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
-
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
@@ -336,6 +327,22 @@ def _tvos_framework_impl(ctx):
         attr = ctx.attr,
         res_attrs = ["resources"],
     )
+
+    link_result = linking_support.register_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        extra_linkopts = [
+            "-dynamiclib",
+            "-install_name",
+            "@rpath/{name}{extension}/{name}".format(
+                extension = bundle_extension,
+                name = bundle_name,
+            ),
+        ],
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
 
     archive = outputs.archive(
         actions = actions,
