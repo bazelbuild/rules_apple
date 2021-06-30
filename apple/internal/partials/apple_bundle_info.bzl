@@ -96,7 +96,7 @@ def apple_bundle_info_partial(
         bundle_extension,
         bundle_name,
         executable_name,
-        entitlements,
+        entitlements = None,
         label_name,
         output_discriminator = None,
         platform_prerequisites,

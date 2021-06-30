@@ -617,8 +617,8 @@ def _bundle_post_process_and_sign(
         if has_different_embedding_archive:
             embedding_archive = outputs.archive_for_embedding(
                 actions = actions,
-                bundle_name = bundle_name,
                 bundle_extension = bundle_extension,
+                bundle_name = bundle_name,
                 executable_name = executable_name,
                 label_name = rule_label.name,
                 rule_descriptor = rule_descriptor,
@@ -688,7 +688,7 @@ def _process(
         bundle_post_process_and_sign = True,
         codesign_inputs = [],
         codesignopts = [],
-        entitlements,
+        entitlements = None,
         executable_name,
         features,
         ipa_post_processor,
@@ -697,7 +697,7 @@ def _process(
         platform_prerequisites,
         predeclared_outputs,
         process_and_sign_template,
-        provisioning_profile,
+        provisioning_profile = None,
         rule_descriptor,
         rule_label):
     """Processes a list of partials that provide the files to be bundled.

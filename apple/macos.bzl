@@ -30,14 +30,6 @@ load(
     _macos_unit_test = "macos_unit_test",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
     "macos_binary_infoplist",
     "macos_command_line_launchdplist",
@@ -55,111 +47,47 @@ load(
     _macos_xpc_service = "macos_xpc_service",
 )
 
+# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
+macos_quick_look_plugin = _macos_quick_look_plugin
+macos_spotlight_importer = _macos_spotlight_importer
+macos_xpc_service = _macos_xpc_service
+
 def macos_application(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Packages a macOS application."""
-    binary_args = dict(kwargs)
-    features = binary_args.pop("features", [])
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
     features.append("link_cocoa")
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.application,
-        features = features,
-        **binary_args
-    )
 
     _macos_application(
         name = name,
+        features = features,
         **bundling_args
     )
 
 def macos_bundle(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Packages a macOS loadable bundle."""
-    binary_args = dict(kwargs)
-    features = binary_args.pop("features", [])
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
     features.append("link_cocoa")
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.bundle,
-        features = features,
-        **binary_args
-    )
 
     _macos_bundle(
         name = name,
-        **bundling_args
-    )
-
-def macos_quick_look_plugin(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles an macOS Quick Look plugin."""
-    binary_args = dict(kwargs)
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.quicklook_plugin,
-        include_entitlements = False,
-        **binary_args
-    )
-
-    _macos_quick_look_plugin(
-        name = name,
+        features = features,
         **bundling_args
     )
 
 def macos_kernel_extension(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Packages a macOS Kernel Extension."""
-    binary_args = dict(kwargs)
-    features = binary_args.pop("features", [])
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
     features.append("kernel_extension")
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.kernel_extension,
-        features = features,
-        **binary_args
-    )
 
     _macos_kernel_extension(
         name = name,
-        **bundling_args
-    )
-
-def macos_spotlight_importer(name, **kwargs):
-    """Packages a macOS Spotlight Importer Bundle."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.spotlight_importer,
-        **kwargs
-    )
-
-    _macos_spotlight_importer(
-        name = name,
-        **bundling_args
-    )
-
-def macos_xpc_service(name, **kwargs):
-    """Packages a macOS XPC Service Application."""
-    binary_args = dict(kwargs)
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.xpc_service,
-        **binary_args
-    )
-
-    _macos_xpc_service(
-        name = name,
+        features = features,
         **bundling_args
     )
 
@@ -202,18 +130,10 @@ def macos_command_line_application(name, **kwargs):
         )
         binary_deps.extend([":" + merged_launchdplists_name])
 
-    cmd_line_app_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.tool,
-        include_entitlements = False,
-        deps = binary_deps,
-        **binary_args
-    )
-
     _macos_command_line_application(
         name = name,
-        **cmd_line_app_args
+        deps = binary_deps,
+        **binary_args
     )
 
 def macos_dylib(name, **kwargs):
@@ -254,38 +174,23 @@ def macos_dylib(name, **kwargs):
         )
         binary_deps.extend([":" + merged_infoplist_name])
 
-    dylib_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.dylib,
-        include_entitlements = False,
-        deps = binary_deps,
-        **binary_args
-    )
-
     _macos_dylib(
         name = name,
-        **dylib_args
+        deps = binary_deps,
+        **binary_args
     )
 
 def macos_extension(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Packages a macOS Extension Bundle."""
-    binary_args = dict(kwargs)
+    bundling_args = dict(kwargs)
 
-    features = binary_args.pop("features", [])
+    features = bundling_args.pop("features", [])
     features.append("link_cocoa")
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.macos),
-        product_type = apple_product_type.app_extension,
-        features = features,
-        **binary_args
-    )
 
     _macos_extension(
         name = name,
+        features = features,
         **bundling_args
     )
 
