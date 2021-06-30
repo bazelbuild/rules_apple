@@ -291,6 +291,10 @@ and zipped as a cacheable artifact.
 A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
+        "resolved_provisioning_profile_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that extracts entitlements from a
+provisioning profile.
+""",
         "resolved_swift_stdlib_tool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
 for the target to run.

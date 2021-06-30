@@ -213,7 +213,8 @@ AppleSupportToolchainInfo(<a href="#AppleSupportToolchainInfo-dsym_info_plist_te
                           <a href="#AppleSupportToolchainInfo-resolved_bundletool_experimental">resolved_bundletool_experimental</a>, <a href="#AppleSupportToolchainInfo-resolved_clangrttool">resolved_clangrttool</a>,
                           <a href="#AppleSupportToolchainInfo-resolved_codesigningtool">resolved_codesigningtool</a>, <a href="#AppleSupportToolchainInfo-resolved_dossier_codesigningtool">resolved_dossier_codesigningtool</a>,
                           <a href="#AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor">resolved_imported_dynamic_framework_processor</a>, <a href="#AppleSupportToolchainInfo-resolved_plisttool">resolved_plisttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
+                          <a href="#AppleSupportToolchainInfo-resolved_provisioning_profile_tool">resolved_provisioning_profile_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>,
+                          <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
 </pre>
 
 
@@ -239,6 +240,7 @@ files used as script templates for the purposes of executing Apple actions. Defi
 | <a id="AppleSupportToolchainInfo-resolved_dossier_codesigningtool"></a>resolved_dossier_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to generate codesigning dossiers.    |
 | <a id="AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor"></a>resolved_imported_dynamic_framework_processor |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to process an imported dynamic framework such that the given framework only contains the same slices as the app binary, every file belonging to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable artifact.    |
 | <a id="AppleSupportToolchainInfo-resolved_plisttool"></a>resolved_plisttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to perform plist operations such as variable substitution, merging, and conversion of plist files to binary format.    |
+| <a id="AppleSupportToolchainInfo-resolved_provisioning_profile_tool"></a>resolved_provisioning_profile_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that extracts entitlements from a provisioning profile.    |
 | <a id="AppleSupportToolchainInfo-resolved_swift_stdlib_tool"></a>resolved_swift_stdlib_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that copies and lipos Swift stdlibs required for the target to run.    |
 | <a id="AppleSupportToolchainInfo-resolved_xctoolrunner"></a>resolved_xctoolrunner |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that acts as a wrapper for xcrun actions.    |
 

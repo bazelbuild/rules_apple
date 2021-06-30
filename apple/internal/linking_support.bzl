@@ -73,8 +73,10 @@ def _register_linking_action(
         *,
         avoid_deps = [],
         bundle_loader = None,
+        entitlements = None,
         extra_linkopts = [],
         extra_link_inputs = [],
+        platform_prerequisites,
         stamp):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
 
@@ -93,8 +95,14 @@ def _register_linking_action(
             provider of its dependencies (obtained from the `AppleExecutableBinary` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
+        entitlements: An optional `File` that provides the processed entitlements for the
+            binary or bundle being built. If the build is targeting a simulator environment,
+            the entitlements will be embedded in a special section of the binary; when
+            targeting non-simulator environments, this file is ignored (it is assumed that
+            the entitlements will be provided during code signing).
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra input files to the linking action.
+        platform_prerequisites: The platform prerequisites.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
@@ -125,6 +133,16 @@ def _register_linking_action(
             "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
         )
         link_inputs.append(exported_symbols_list)
+
+    if entitlements and platform_prerequisites and not platform_prerequisites.platform.is_device:
+        linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__entitlements",
+                file = entitlements.path,
+            ),
+        )
+        link_inputs.append(entitlements)
 
     # Compatibility path for `apple_binary`, which does not have a product type.
     if hasattr(ctx.attr, "_product_type"):

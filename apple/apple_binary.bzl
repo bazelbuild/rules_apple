@@ -73,6 +73,7 @@ def _apple_binary_impl(ctx):
         bundle_loader = bundle_loader,
         extra_linkopts = extra_linkopts,
         extra_link_inputs = extra_link_inputs,
+        platform_prerequisites = None,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
