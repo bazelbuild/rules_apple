@@ -653,14 +653,14 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
-        entitlements,
+        entitlements = None,
         ipa_post_processor,
         output_discriminator = None,
         partials,
         platform_prerequisites,
         predeclared_outputs,
         process_and_sign_template,
-        provisioning_profile,
+        provisioning_profile = None,
         rule_descriptor,
         rule_label):
     """Processes a list of partials that provide the files to be bundled.

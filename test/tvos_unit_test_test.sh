@@ -665,7 +665,7 @@ EOF
 # Tests that select is usable in linkopts
 function test_select_on_linkopts() {
   create_common_files
-  create_minimal_tvos_application_with_tests "my.test_bundle.id" 'select({"//conditions:default":[]})'
+  create_minimal_tvos_application_with_tests "my.test-bundle.id" 'select({"//conditions:default":[]})'
   do_build tvos //app:unit_tests || fail "Should build"
 }
 

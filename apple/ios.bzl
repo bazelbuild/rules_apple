@@ -30,14 +30,6 @@ load(
     _ios_unit_test = "ios_unit_test",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
@@ -49,66 +41,14 @@ load(
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
-def ios_application(name, **kwargs):
-    """Builds and bundles an iOS application."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.application,
-        **kwargs
-    )
-
-    _ios_application(
-        name = name,
-        **bundling_args
-    )
-
-def ios_app_clip(name, **kwargs):
-    """Builds and bundles an iOS app clip."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.app_clip,
-        **kwargs
-    )
-
-    _ios_app_clip(
-        name = name,
-        **bundling_args
-    )
-
-def ios_extension(name, **kwargs):
-    """Builds and bundles an iOS application extension."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.app_extension,
-        **kwargs
-    )
-
-    _ios_extension(
-        name = name,
-        **bundling_args
-    )
-
-def ios_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles an iOS dynamic framework."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        include_entitlements = False,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.framework,
-        **kwargs
-    )
-
-    # Remove any kwargs that shouldn't be passed to the underlying rule.
-    bundling_args.pop("entitlements", None)
-
-    _ios_framework(
-        name = name,
-        **bundling_args
-    )
+# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
+ios_application = _ios_application
+ios_app_clip = _ios_app_clip
+ios_extension = _ios_extension
+ios_framework = _ios_framework
+ios_imessage_application = _ios_imessage_application
+ios_sticker_pack_extension = _ios_sticker_pack_extension
+ios_imessage_extension = _ios_imessage_extension
 
 def ios_static_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
@@ -136,53 +76,6 @@ def ios_static_framework(name, **kwargs):
         deps = [apple_static_library_name],
         avoid_deps = [apple_static_library_name],
         **passthrough_args
-    )
-
-# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
-def ios_imessage_application(name, **kwargs):
-    """Macro to preprocess entitlements for iMessage applications."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.messages_application,
-        is_stub = True,
-        **kwargs
-    )
-
-    _ios_imessage_application(
-        name = name,
-        **bundling_args
-    )
-
-# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
-def ios_sticker_pack_extension(name, **kwargs):
-    """Macro to preprocess entitlements for Sticker Pack extensions."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.messages_sticker_pack_extension,
-        is_stub = True,
-        **kwargs
-    )
-
-    _ios_sticker_pack_extension(
-        name = name,
-        **bundling_args
-    )
-
-# TODO(b/118104491): Remove this macro and move the rule definition back to this file.
-def ios_imessage_extension(name, **kwargs):
-    """Macro to override the linkopts and preprocess entitlements for iMessage extensions."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.messages_extension,
-        **kwargs
-    )
-
-    return _ios_imessage_extension(
-        name = name,
-        **bundling_args
     )
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner"

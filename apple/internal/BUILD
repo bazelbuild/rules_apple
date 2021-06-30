@@ -23,6 +23,7 @@ apple_support_toolchain(
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
     plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
+    provisioning_profile_tool = "//tools/provisioning_profile_tool",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
@@ -71,19 +72,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "binary_support",
-    srcs = ["binary_support.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        ":entitlement_rules",
-        ":platform_support",
-        ":swift_support",
-    ],
-)
-
-bzl_library(
     name = "bundle_package_type",
     srcs = ["bundle_package_type.bzl"],
     visibility = [
@@ -119,32 +107,17 @@ bzl_library(
 )
 
 bzl_library(
-    name = "entitlement_rules",
-    srcs = ["entitlement_rules.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        ":apple_support_toolchain",
-        ":bundling_support",
-        ":linking_support",
-        ":platform_support",
-        ":resource_actions",
-        ":swift_support",
-        "//apple:common",
-        "//apple/internal/utils:defines",
-        "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
     name = "entitlements_support",
     srcs = ["entitlements_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
     deps = [
-        ":entitlement_rules",
+        ":apple_product_type",
+        ":resource_actions",
+        "//apple:common",
+        "//apple/internal/utils:defines",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -396,7 +369,6 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":apple_support_toolchain",
-        ":entitlement_rules",
         ":rule_support",
         "//apple:common",
         "//apple:providers",

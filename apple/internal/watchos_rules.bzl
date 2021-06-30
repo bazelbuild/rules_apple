@@ -84,10 +84,6 @@ def _watchos_application_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = entitlements_support.entitlements(
-        entitlements_attr = getattr(ctx.attr, "entitlements", None),
-        entitlements_file = getattr(ctx.file, "entitlements", None),
-    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -95,6 +91,7 @@ def _watchos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
@@ -109,6 +106,18 @@ def _watchos_application_impl(ctx):
             "strings",
             "resources",
         ],
+    )
+
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = rule_descriptor.product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
     )
 
     binary_artifact = stub_support.create_stub_binary(
@@ -180,7 +189,7 @@ def _watchos_application_impl(ctx):
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
         partials.debug_symbols_partial(
@@ -236,7 +245,7 @@ def _watchos_application_impl(ctx):
         processor_partials.append(
             partials.provisioning_profile_partial(
                 actions = actions,
-                profile_artifact = ctx.file.provisioning_profile,
+                profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
@@ -252,7 +261,7 @@ def _watchos_application_impl(ctx):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_toolchain_info.process_and_sign_template,
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
     )
@@ -267,6 +276,45 @@ def _watchos_application_impl(ctx):
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
+    actions = ctx.actions
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    bin_root_path = ctx.bin_dir.path
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
+
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_toolchain_info = apple_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = rule_descriptor.product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
+    )
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
@@ -296,42 +344,13 @@ def _watchos_extension_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        entitlements = entitlements,
         extra_linkopts = extra_linkopts,
+        platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
-
-    actions = ctx.actions
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
-    bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    entitlements = entitlements_support.entitlements(
-        entitlements_attr = getattr(ctx.attr, "entitlements", None),
-        entitlements_file = getattr(ctx.file, "entitlements", None),
-    )
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-    label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-    predeclared_outputs = ctx.outputs
-    resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
-    top_level_infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists"],
-    )
-    top_level_resources = resources.collect(
-        attr = ctx.attr,
-        res_attrs = [
-            "app_icons",
-            "strings",
-            "resources",
-        ],
-    )
 
     archive = outputs.archive(
         actions = actions,
@@ -388,7 +407,7 @@ def _watchos_extension_impl(ctx):
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
         partials.debug_symbols_partial(
@@ -416,7 +435,7 @@ def _watchos_extension_impl(ctx):
             apple_toolchain_info = apple_toolchain_info,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             targets = ctx.attr.deps,
         ),
@@ -451,7 +470,7 @@ def _watchos_extension_impl(ctx):
         processor_partials.append(
             partials.provisioning_profile_partial(
                 actions = actions,
-                profile_artifact = ctx.file.provisioning_profile,
+                profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
@@ -467,7 +486,7 @@ def _watchos_extension_impl(ctx):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_toolchain_info.process_and_sign_template,
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
     )

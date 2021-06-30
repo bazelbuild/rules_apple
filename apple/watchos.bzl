@@ -23,10 +23,6 @@ load(
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:watchos_rules.bzl",
     _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
     _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
@@ -34,47 +30,14 @@ load(
     _watchos_unit_test = "watchos_unit_test",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-
-# Alias the internal rules when we load them. This lets the rules keep their
-# original name in queries and logs since they collide with the wrapper macros.
-load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_extension = "watchos_extension",
 )
 
-def watchos_application(name, **kwargs):
-    """Builds and bundles a watchOS application."""
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.application,
-        is_stub = True,
-        **kwargs
-    )
-
-    _watchos_application(
-        name = name,
-        **bundling_args
-    )
-
-def watchos_extension(name, **kwargs):
-    """Builds and bundles a watchOS extension."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.app_extension,
-        **kwargs
-    )
-
-    _watchos_extension(
-        name = name,
-        **bundling_args
-    )
+# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
+watchos_application = _watchos_application
+watchos_extension = _watchos_extension
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
 

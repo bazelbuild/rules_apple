@@ -459,7 +459,7 @@ EOF
   ! do_build ios //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Tests that applications can transitively depend on apple_resource_bundle, and
@@ -587,6 +587,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -627,6 +628,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     minimum_os_version = "9.0",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 EOF

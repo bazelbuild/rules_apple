@@ -27,10 +27,6 @@ load(
     "apple_support_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
-    "AppleEntitlementsInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
     "framework_import_aspect",
 )
@@ -426,7 +422,7 @@ bundle in a directory named `Settings.bundle`.
     if rule_descriptor.codesigning_exceptions == rule_support.codesigning_exceptions.none:
         attrs.append({
             "entitlements": attr.label(
-                providers = [[], [AppleEntitlementsInfo]],
+                allow_single_file = True,
                 doc = """
 The entitlements file required for device builds of this target. If absent, the default entitlements
 from the provisioning profile will be used.

@@ -75,6 +75,10 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "plisttool",
                 rule_ctx = ctx,
             ),
+            resolved_provisioning_profile_tool = _resolve_tools_for_executable(
+                attr_name = "provisioning_profile_tool",
+                rule_ctx = ctx,
+            ),
             resolved_swift_stdlib_tool = _resolve_tools_for_executable(
                 attr_name = "swift_stdlib_tool",
                 rule_ctx = ctx,
@@ -147,6 +151,13 @@ conversion of plist files to binary format.
         "process_and_sign_template": attr.label(
             allow_single_file = True,
             doc = "A `File` referencing a template for a shell script to process and sign.",
+        ),
+        "provisioning_profile_tool": attr.label(
+            cfg = "host",
+            executable = True,
+            doc = """
+A `File` referencing a tool that extracts entitlements from a provisioning profile.
+""",
         ),
         "swift_stdlib_tool": attr.label(
             cfg = "host",
