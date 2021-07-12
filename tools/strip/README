@@ -1,0 +1,4 @@
+strip removes the debugging table entries and Swift symbols from a Mach-O
+file.
+
+strip only runs on Darwin.

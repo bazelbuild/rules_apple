@@ -31,6 +31,10 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:feature_names.bzl",
+    "APPLE_FEATURE_STRIP_SWIFT_SYMBOLS",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -55,6 +59,7 @@ def _framework_import_partial_impl(
         *,
         actions,
         apple_toolchain_info,
+        features,
         label_name,
         platform_prerequisites,
         provisioning_profile,
@@ -146,6 +151,9 @@ def _framework_import_partial_impl(
         if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
             args.add("--strip_bitcode")
 
+        if APPLE_FEATURE_STRIP_SWIFT_SYMBOLS in features:
+            args.add("--strip_swift_symbols")
+
         args.add("--output_zip", framework_zip.path)
 
         args.add("--temp_path", temp_framework_bundle_path)
@@ -218,6 +226,7 @@ def framework_import_partial(
         *,
         actions,
         apple_toolchain_info,
+        features = [],
         label_name,
         platform_prerequisites,
         provisioning_profile,
@@ -232,6 +241,7 @@ def framework_import_partial(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
@@ -247,6 +257,7 @@ def framework_import_partial(
         _framework_import_partial_impl,
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
+        features = features,
         label_name = label_name,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,

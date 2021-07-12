@@ -20,6 +20,7 @@ import time
 
 from build_bazel_rules_apple.tools.bitcode_strip import bitcode_strip
 from build_bazel_rules_apple.tools.codesigningtool import codesigningtool
+from build_bazel_rules_apple.tools.strip import strip
 from build_bazel_rules_apple.tools.wrapper_common import lipo
 
 
@@ -107,6 +108,10 @@ def main():
       "bitcode from the imported frameworks."
   )
   parser.add_argument(
+      "--strip_swift_symbols", action="store_true", default=False, help="strip "
+      "Swift symbols from the imported frameworks."
+  )
+  parser.add_argument(
       "--framework_file", type=str, action="append", help="path to a file "
       "scoped to one of the imported frameworks, distinct from the binary files"
   )
@@ -154,11 +159,14 @@ def main():
     if status_code:
       return 1
 
+    output_binary = os.path.join(args.temp_path,
+                                 os.path.basename(framework_binary))
     # Strip bitcode from the output framework binary
     if args.strip_bitcode:
-      output_binary = os.path.join(args.temp_path,
-                                   os.path.basename(framework_binary))
       bitcode_strip.invoke(output_binary, output_binary)
+
+    if args.strip_swift_symbols:
+      strip.invoke(output_binary, output_binary)
 
   if args.framework_file:
     for framework_file in args.framework_file:

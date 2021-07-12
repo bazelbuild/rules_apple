@@ -15,6 +15,10 @@
 """Support macros to assist in detecting build features."""
 
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load(
+    ":feature_names.bzl",
+    "APPLE_FEATURE_STRIP_SWIFT_SYMBOLS",
+)
 
 def _compute_enabled_features(*, requested_features, unsupported_features):
     """Returns a list of features for the given build.
@@ -33,6 +37,21 @@ def _compute_enabled_features(*, requested_features, unsupported_features):
     )
     return sets.to_list(enabled_features_set)
 
+def _features_for_compilation_mode(*, compilation_mode):
+    """Returns a list of default Apple features for current compilation mode.
+
+    Args:
+      compilation_mode: The current compilation mode.
+
+    Returns:
+      A list of Apple features to enable.
+    """
+    features = []
+    if compilation_mode == "opt":
+        features.append(APPLE_FEATURE_STRIP_SWIFT_SYMBOLS)
+    return features
+
 features_support = struct(
     compute_enabled_features = _compute_enabled_features,
+    features_for_compilation_mode = _features_for_compilation_mode,
 )

@@ -11,6 +11,7 @@ py_binary(
     deps = [
         "//tools/bitcode_strip",
         "//tools/codesigningtool:codesigningtool_lib",
+        "//tools/strip",
         "//tools/wrapper_common:lipo",
     ],
 )

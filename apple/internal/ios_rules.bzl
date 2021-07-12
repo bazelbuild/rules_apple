@@ -128,8 +128,11 @@ def _ios_application_impl(ctx):
         entitlements_attr = getattr(ctx.attr, "entitlements", None),
         entitlements_file = getattr(ctx.file, "entitlements", None),
     )
+    extra_features = features_support.features_for_compilation_mode(
+        compilation_mode = ctx.var["COMPILATION_MODE"],
+    )
     features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
+        requested_features = ctx.features + extra_features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
@@ -237,6 +240,7 @@ def _ios_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
@@ -274,6 +278,7 @@ def _ios_application_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
+            features = features,
             label_name = label.name,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
