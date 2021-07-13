@@ -363,6 +363,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
@@ -415,6 +416,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements,
         executable_name = executable_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
