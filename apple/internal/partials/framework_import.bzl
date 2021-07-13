@@ -51,6 +51,7 @@ def _framework_import_partial_impl(
         *,
         actions,
         apple_toolchain_info,
+        features,
         label_name,
         output_discriminator,
         platform_prerequisites,
@@ -151,6 +152,7 @@ def _framework_import_partial_impl(
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
+            features = features,
             full_archive_path = temp_framework_bundle_path,
             is_framework = True,
             platform_prerequisites = platform_prerequisites,
@@ -199,6 +201,7 @@ def framework_import_partial(
         *,
         actions,
         apple_toolchain_info,
+        features,
         label_name,
         output_discriminator = None,
         platform_prerequisites,
@@ -214,6 +217,7 @@ def framework_import_partial(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -231,6 +235,7 @@ def framework_import_partial(
         _framework_import_partial_impl,
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
+        features = features,
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

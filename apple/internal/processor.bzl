@@ -447,6 +447,7 @@ def _bundle_post_process_and_sign(
         bundle_extension,
         bundle_name,
         entitlements,
+        features,
         ipa_post_processor,
         output_archive,
         output_discriminator,
@@ -465,6 +466,7 @@ def _bundle_post_process_and_sign(
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -505,6 +507,7 @@ def _bundle_post_process_and_sign(
         codesigning_command = codesigning_support.codesigning_command(
             codesigningtool = apple_toolchain_info.resolved_codesigningtool.executable,
             entitlements = entitlements,
+            features = features,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -565,6 +568,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
             entitlements = entitlements,
+            features = features,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
             ipa_post_processor = ipa_post_processor,
@@ -631,6 +635,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
                 entitlements = entitlements,
+                features = features,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
                 ipa_post_processor = ipa_post_processor,
@@ -654,6 +659,7 @@ def _process(
         bundle_name,
         bundle_post_process_and_sign = True,
         entitlements = None,
+        features,
         ipa_post_processor,
         output_discriminator = None,
         partials,
@@ -673,6 +679,7 @@ def _process(
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -707,6 +714,7 @@ def _process(
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             entitlements = entitlements,
+            features = features,
             ipa_post_processor = ipa_post_processor,
             output_archive = output_archive,
             output_discriminator = output_discriminator,

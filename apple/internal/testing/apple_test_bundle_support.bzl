@@ -367,6 +367,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -414,6 +415,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,

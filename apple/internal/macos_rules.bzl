@@ -186,6 +186,7 @@ def _macos_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -249,6 +250,7 @@ def _macos_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -449,6 +451,7 @@ def _macos_bundle_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -626,6 +629,7 @@ def _macos_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -810,6 +814,7 @@ def _macos_quick_look_plugin_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -981,6 +986,7 @@ def _macos_kernel_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1149,6 +1155,7 @@ def _macos_spotlight_importer_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1317,6 +1324,7 @@ def _macos_xpc_service_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1347,6 +1355,10 @@ def _macos_command_line_application_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -1380,6 +1392,7 @@ def _macos_command_line_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
+        features = features,
         ipa_post_processor = None,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
@@ -1431,6 +1444,10 @@ def _macos_dylib_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -1465,6 +1482,7 @@ def _macos_dylib_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
+        features = features,
         ipa_post_processor = None,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,

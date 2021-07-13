@@ -252,12 +252,14 @@ def _should_sign_simulator_bundles(
         default = True,
     )
 
-def _should_sign_bundles(*, provisioning_profile, rule_descriptor):
+def _should_sign_bundles(*, provisioning_profile, rule_descriptor, features):
     should_sign_bundles = True
 
     codesigning_exceptions = rule_descriptor.codesigning_exceptions
-    if (codesigning_exceptions ==
-        rule_support.codesigning_exceptions.sign_with_provisioning_profile):
+    if "disable_legacy_signing" in features:
+        should_sign_bundles = False
+    elif (codesigning_exceptions ==
+          rule_support.codesigning_exceptions.sign_with_provisioning_profile):
         # If the rule doesn't have a provisioning profile, do not sign the binary or its
         # frameworks.
         if not provisioning_profile:
@@ -272,6 +274,7 @@ def _should_sign_bundles(*, provisioning_profile, rule_descriptor):
 def _codesigning_args(
         *,
         entitlements,
+        features,
         full_archive_path,
         is_framework = False,
         platform_prerequisites,
@@ -281,6 +284,7 @@ def _codesigning_args(
 
     Args:
         entitlements: The entitlements file to sign with. Can be None.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         full_archive_path: The full path to the codesigning target.
         is_framework: If the target is a framework. False by default.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -293,6 +297,7 @@ def _codesigning_args(
     should_sign_bundles = _should_sign_bundles(
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
+        features = features,
     )
     if not should_sign_bundles:
         return []
@@ -324,6 +329,7 @@ def _codesigning_command(
         bundle_path = "",
         codesigningtool,
         entitlements,
+        features,
         frameworks_path,
         platform_prerequisites,
         provisioning_profile,
@@ -335,6 +341,7 @@ def _codesigning_command(
         bundle_path: The location of the bundle, relative to the archive.
         codesigningtool: The executable `File` representing the code signing tool.
         entitlements: The entitlements file to sign with. Can be None.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         frameworks_path: The location of the Frameworks directory, relative to the archive.
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
@@ -347,6 +354,7 @@ def _codesigning_command(
     should_sign_bundles = _should_sign_bundles(
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
+        features = features,
     )
     if not should_sign_bundles:
         return ""
@@ -489,6 +497,7 @@ def _post_process_and_sign_archive_action(
         actions,
         archive_codesigning_path,
         entitlements = None,
+        features,
         frameworks_path,
         input_archive,
         ipa_post_processor,
@@ -508,6 +517,7 @@ def _post_process_and_sign_archive_action(
       actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
       entitlements: Optional file representing the entitlements to sign with.
+      features: List of features enabled by the user. Typically from `ctx.features`.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
           that has not yet been processed or signed.
@@ -532,6 +542,7 @@ def _post_process_and_sign_archive_action(
         bundle_path = archive_codesigning_path,
         codesigningtool = resolved_codesigningtool.executable,
         entitlements = entitlements,
+        features = features,
         frameworks_path = frameworks_path,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,

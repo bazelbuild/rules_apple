@@ -233,6 +233,7 @@ def _ios_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -319,6 +320,7 @@ def _ios_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -512,6 +514,7 @@ def _ios_app_clip_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
@@ -562,6 +565,7 @@ def _ios_app_clip_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -798,6 +802,7 @@ def _ios_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1013,6 +1018,7 @@ def _ios_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1044,6 +1050,10 @@ def _ios_static_framework_impl(ctx):
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -1111,6 +1121,7 @@ def _ios_static_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1132,6 +1143,10 @@ def _ios_imessage_application_impl(ctx):
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
     embeddable_targets = [ctx.attr.extension]
     label = ctx.label
@@ -1214,6 +1229,7 @@ def _ios_imessage_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1271,6 +1287,7 @@ def _ios_imessage_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1469,6 +1486,7 @@ def _ios_imessage_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1499,6 +1517,10 @@ def _ios_sticker_pack_extension_impl(ctx):
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -1626,6 +1648,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,

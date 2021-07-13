@@ -86,6 +86,10 @@ def _tvos_application_impl(ctx):
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
     features = features_support.compute_enabled_features(
@@ -195,6 +199,7 @@ def _tvos_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
+            features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -252,6 +257,7 @@ def _tvos_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -462,6 +468,7 @@ def _tvos_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -640,6 +647,7 @@ def _tvos_extension_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -672,6 +680,10 @@ def _tvos_static_framework_impl(ctx):
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
@@ -741,6 +753,7 @@ def _tvos_static_framework_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
