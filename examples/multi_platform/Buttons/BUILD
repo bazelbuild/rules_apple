@@ -349,6 +349,7 @@ build_test(
     name = "ExamplesBuildTest",
     targets = [
         ":Buttons",
+        ":ButtonsExtension",
         ":ButtonsMac",
         ":ButtonsTV",
         ":ButtonsTVExtension",
