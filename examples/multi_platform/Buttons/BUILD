@@ -359,6 +359,7 @@ build_test(
     targets = [
         ":Buttons",
         ":ButtonsStaticFramework",
+        ":ButtonsExtension",
         ":ButtonsMac",
         ":ButtonsTV",
         ":ButtonsTVExtension",
