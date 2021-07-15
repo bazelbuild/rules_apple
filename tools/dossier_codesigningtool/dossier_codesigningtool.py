@@ -167,7 +167,7 @@ def generate_arg_parser():
 
 
 def _parse_provisioning_profile(provisioning_profile_path):
-  """Reads and parses a mobileprovision file."""
+  """Reads and parses a provisioning profile."""
   plist_xml = subprocess.check_output([
       'security',
       'cms',
@@ -179,7 +179,7 @@ def _parse_provisioning_profile(provisioning_profile_path):
 
 
 def _certificate_fingerprint(identity):
-  """Extracts a fingerprint given identity in a mobileprovision file."""
+  """Extracts a fingerprint given identity in a provisioning profile."""
   openssl_command = [
       'openssl',
       'x509',
@@ -227,7 +227,7 @@ def _find_codesign_identities(identity=None):
 
 
 def _find_codesign_identity(provisioning_profile_path):
-  """Finds a valid identity on the system given a mobileprovision file."""
+  """Finds a valid identity on the system given a provisioning profile."""
   mpf = _parse_provisioning_profile(provisioning_profile_path)
   ids_codesign = set(_find_codesign_identities())
   for id_mpf in _get_identities_from_provisioning_profile(mpf):
@@ -321,54 +321,56 @@ def _copy_entitlements_file(original_entitlements_file_path, output_directory,
     return None
 
 
-def _copy_provisioning_profile(original_provisiong_profile_path,
+def _copy_provisioning_profile(original_provisioning_profile_path,
                                output_directory, unique_id):
   """Copies a provisioning profile file from an original path to an output directory.
 
   Args:
-    original_provisiong_profile_path: The absolute path to the original
-      provisioning profile file.
+    original_provisioning_profile_path: The absolute path to the original
+      provisioning profile file. File must exist.
     output_directory: The absolute path to the output directory the profile
       should be placed in, it must already exist.
     unique_id: Unique identifier to use for filename of extracted entitlements.
 
   Returns:
-    The filename relative to output_directory the profile was copied to, or if
-    the original path does not exist it does nothing and will return `None`.
+    The filename relative to output_directory the profile was copied to.
   """
-  if os.path.exists(original_provisiong_profile_path):
-    dest_provisiong_profile_filename = unique_id + '.mobileprovision'
-    dest_provision_profile_path = os.path.join(
-        output_directory, dest_provisiong_profile_filename)
-    shutil.copy(original_provisiong_profile_path, dest_provision_profile_path)
-    return dest_provisiong_profile_filename
-  else:
-    return None
+  profile_extension = os.path.splitext(original_provisioning_profile_path)[1]
+  dest_provisioning_profile_filename = unique_id + profile_extension
+  dest_provision_profile_path = os.path.join(output_directory,
+                                             dest_provisioning_profile_filename)
+  shutil.copy(original_provisioning_profile_path, dest_provision_profile_path)
+  return dest_provisioning_profile_filename
 
 
 def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
-  """Extracts the provisioning profile for provided bundle to destination file name.
+  """Extracts the profile for provided bundle to destination file name.
 
-  Given a bundle_path will extract the entitlements file to the provided
+  Given a bundle_path will extract the profile file to the provided
   output_directory, and return the filename relative to the output_directory
-  that the entitlements have been placed in, or None if no entitlements exist.
+  that the profile has been placed in, or None if no profile exists.
 
   Args:
-    bundle_path: The absolute path to the bundle to extract entitlements from.
-    output_directory: The absolute path to the output directory the entitlements
+    bundle_path: The absolute path to the bundle to extract profile from.
+    output_directory: The absolute path to the output directory the profile
       should be placed in, it must already exist.
-    unique_id: Unique identifier to use for filename of extracted entitlements.
+    unique_id: Unique identifier to use for filename of extracted profile.
 
   Returns:
-    The filename relative to output_directory the entitlements were placed in,
-    or None if there were no entitlements found.
-
-  Raises:
-    Error if unable to extract entitlements.
+    The filename relative to output_directory the profile was placed in,
+    or None if there was no profile found.
   """
-  original_provisiong_profile_path = os.path.join(bundle_path,
-                                                  'embedded.mobileprovision')
-  return _copy_provisioning_profile(original_provisiong_profile_path,
+  embedded_mobileprovision_path = os.path.join(bundle_path,
+                                               'embedded.mobileprovision')
+  embedded_provisioning_profile_path = os.path.join(
+      bundle_path, 'Contents', 'embedded.provisionprofile')
+  if os.path.exists(embedded_mobileprovision_path):
+    original_provisioning_profile_path = embedded_mobileprovision_path
+  elif os.path.exists(embedded_provisioning_profile_path):
+    original_provisioning_profile_path = embedded_provisioning_profile_path
+  else:
+    return None
+  return _copy_provisioning_profile(original_provisioning_profile_path,
                                     output_directory, unique_id)
 
 
@@ -617,8 +619,15 @@ def _sign_bundle_with_manifest(root_bundle_path,
                                dossier_directory, codesign_path,
                                codesign_identity)
   if provisioning_profile_file_path:
-    dest_provisioning_profile_path = os.path.join(root_bundle_path,
-                                                  'embedded.mobileprovision')
+    profile_extension = os.path.splitext(provisioning_profile_file_path)[1]
+    profile_filename = 'embedded' + profile_extension
+    if profile_extension == '.mobileprovision':
+      dest_provisioning_profile_path = os.path.join(root_bundle_path,
+                                                    profile_filename)
+    else:
+      dest_provisioning_profile_path = os.path.join(root_bundle_path,
+                                                    'Contents',
+                                                    profile_filename)
     shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
   _invoke_codesign(
       codesign_path=codesign_path,
