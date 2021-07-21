@@ -15,7 +15,7 @@
 """Exposes rules to generate a xcodeproj"""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@com_github_bazelbuild_tulsi//src/TulsiGenerator/Bazel:tulsi/tulsi_aspects.bzl", "TulsiOutputAspectInfo", "TulsiSourcesAspectInfo", "tulsi_outputs_aspect", "tulsi_sources_aspect")
+load("@com_github_bazelbuild_tulsi//src/TulsiGenerator/Bazel:tulsi/tulsi_aspects.bzl", "TulsiSourcesAspectInfo", "tulsi_outputs_aspect", "tulsi_sources_aspect")
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleBundleInfo")
 
 COPY_FILE_COMMAND = """\
