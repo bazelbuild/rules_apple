@@ -79,24 +79,26 @@ def _xcodeproj_impl(ctx):
         arguments = [f.path for f in ctx.files._bep],
     )
 
+    args = ctx.actions.args()
+    args.add(ctx.attr.project_name or ctx.attr.name)
+    args.add(json_xcodegen)
+    inputs = []
     for dep in ctx.attr.deps:
         if TulsiSourcesAspectInfo in dep:
             tif = dep[TulsiSourcesAspectInfo].transitive_info_files
-            args = ctx.actions.args()
-            args.add(ctx.attr.project_name or ctx.attr.name)
-            args.add(json_xcodegen)
             if AppleBundleInfo in dep:
                 bundle_info = dep[AppleBundleInfo]
                 args.add(bundle_info.infoplist.path)
             else:
                 args.add("")
             args.add_all(tif)
-            ctx.actions.run(
-                inputs = tif,
-                outputs = [json_xcodegen],
-                arguments = [args],
-                executable = ctx.executable._xcodeprojgen,
-            )
+            inputs += tif.to_list()
+    ctx.actions.run(
+        inputs = inputs,
+        outputs = [json_xcodegen],
+        arguments = [args],
+        executable = ctx.executable._xcodeprojgen,
+    )
 
     # Call xcodegen with our JSON file
     args = ctx.actions.args()
