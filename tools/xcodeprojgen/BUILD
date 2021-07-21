@@ -1,6 +1,12 @@
 licenses(["notice"])
 
-exports_files(glob(["*.sh", "*.py"]), visibility = ["//visibility:public"])
+exports_files(
+    glob([
+        "*.sh",
+        "*.py",
+    ]),
+    visibility = ["//visibility:public"],
+)
 
 py_binary(
     name = "xcodeprojgen",
