@@ -98,6 +98,7 @@ bzl_library(
     srcs = ["resources.bzl"],
     deps = [
         "//apple/internal/resource_rules:apple_bundle_import",
+        "//apple/internal/resource_rules:apple_core_data_model",
         "//apple/internal/resource_rules:apple_core_ml_library",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",

@@ -460,6 +460,21 @@ filegroup(
 )
 
 filegroup(
+    name = "swift_datamodel",
+    srcs = glob(["core_data_models/swift_datamodel.xcdatamodeld/**"]),
+)
+
+filegroup(
+    name = "objc_datamodel",
+    srcs = glob(["core_data_models/objc_datamodel.xcdatamodeld/**"]),
+)
+
+filegroup(
+    name = "no_code_generation_datamodel",
+    srcs = glob(["core_data_models/no_code_generation_datamodel.xcdatamodeld/**"]),
+)
+
+filegroup(
     name = "unversioned_datamodel",
     srcs = glob(["unversioned_datamodel.xcdatamodel/**"]),
 )

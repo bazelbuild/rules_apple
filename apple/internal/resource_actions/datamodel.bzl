@@ -104,3 +104,52 @@ def compile_mappingmodel(
         outputs = [output_file],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
+
+def generate_datamodels(
+        *,
+        actions,
+        datamodel_path,
+        input_files,
+        output_dir,
+        platform_prerequisites,
+        resolved_xctoolrunner,
+        swift_version = None):
+    """Creates an action that generates CoreData model class files.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        datamodel_path: The path to the directory containing the datamodels.
+        input_files: The list of files to process for the given datamodel.
+        output_dir: The output directory reference where generated datamodel classes will be.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+        swift_version: (optional) Target Swift version for generated datamodel classes.
+    """
+    platform = platform_prerequisites.platform
+    platform_name = platform.name_in_plist.lower()
+    deployment_target_option = "--%s-deployment-target" % platform_name
+
+    args = actions.args()
+    args.add("momc")
+    args.add("--action", "generate")
+    args.add(deployment_target_option, platform_prerequisites.minimum_os)
+
+    if swift_version:
+        args.add("--swift-version", swift_version)
+
+    args.add(xctoolrunner.prefixed_path(datamodel_path))
+    args.add(xctoolrunner.prefixed_path(output_dir.path))
+
+    args.add("--xctoolrunner_assert_nonempty_dir", output_dir.path)
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = [args],
+        executable = resolved_xctoolrunner.executable,
+        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
+        input_manifests = resolved_xctoolrunner.input_manifests,
+        mnemonic = "MomGenerate",
+        outputs = [output_dir],
+        xcode_config = platform_prerequisites.xcode_version_config,
+    )
