@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
+load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
@@ -41,6 +42,8 @@ load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 licenses(["notice"])
 
 apple_bundle_version_test_suite()
+
+apple_core_data_model_test_suite()
 
 dtrace_compile_test_suite()
 
