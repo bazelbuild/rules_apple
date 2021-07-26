@@ -6,6 +6,10 @@ load(
     "//apple:macos.bzl",
     "macos_bundle",
 )
+load(
+    "//apple:resources.bzl",
+    "apple_core_data_model",
+)
 
 licenses(["notice"])
 
@@ -185,4 +189,33 @@ sh_binary(
         "ipa_post_processor_verify_codesigning.sh",
     ],
     tags = ["requires-darwin"],
+)
+
+apple_core_data_model(
+    name = "swift_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:swift_datamodel",
+    ],
+)
+
+apple_core_data_model(
+    name = "objc_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:objc_datamodel",
+    ],
+)
+
+apple_core_data_model(
+    name = "combined_swift_objc_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:objc_datamodel",
+        "//test/starlark_tests/resources:swift_datamodel",
+    ],
+)
+
+apple_core_data_model(
+    name = "no_code_generation_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:no_code_generation_datamodel",
+    ],
 )

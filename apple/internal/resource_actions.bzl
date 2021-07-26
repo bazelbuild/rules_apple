@@ -22,6 +22,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:datamodel.bzl",
     _compile_datamodels = "compile_datamodels",
     _compile_mappingmodel = "compile_mappingmodel",
+    _generate_datamodels = "generate_datamodels",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:ibtool.bzl",
@@ -69,6 +70,7 @@ resource_actions = struct(
     compile_texture_atlas = _compile_texture_atlas,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
+    generate_datamodels = _generate_datamodels,
     generate_intent_classes_sources = _generate_intent_classes_sources,
     generate_objc_mlmodel_sources = _generate_objc_mlmodel_sources,
     link_storyboards = _link_storyboards,
