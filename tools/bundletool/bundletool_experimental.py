@@ -50,6 +50,7 @@ import filecmp
 import json
 import os
 import shutil
+import subprocess
 import sys
 import zipfile
 
@@ -199,7 +200,10 @@ class Bundler(object):
       raise BundleConflictError(dest)
 
     self._makedirs_safely(os.path.dirname(full_dest))
-    shutil.copy(src, full_dest)
+    if sys.platform == "darwin":
+      subprocess.check_output(["cp", "-c", src, full_dest])
+    else:
+      shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
 
   def _write_entry(self, dest, data, executable, bundle_root):
