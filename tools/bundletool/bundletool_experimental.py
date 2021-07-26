@@ -201,7 +201,7 @@ class Bundler(object):
 
     self._makedirs_safely(os.path.dirname(full_dest))
     if sys.platform == "darwin":
-      subprocess.check_output(["cp", "-c", src, full_dest])
+      subprocess.check_output(["/bin/cp", "-c", src, full_dest])
     else:
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
