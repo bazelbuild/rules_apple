@@ -110,6 +110,7 @@ def _ios_application_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
@@ -389,6 +390,7 @@ def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary
@@ -636,6 +638,7 @@ def _ios_framework_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
@@ -849,6 +852,7 @@ def _ios_extension_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
@@ -1558,6 +1562,7 @@ def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary

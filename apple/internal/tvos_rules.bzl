@@ -95,6 +95,7 @@ def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary
@@ -535,6 +536,7 @@ def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary
@@ -715,6 +717,7 @@ def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     link_result = linking_support.register_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary_provider.binary

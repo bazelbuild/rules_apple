@@ -299,6 +299,7 @@ def macos_unit_test(name, **kwargs):
         test_rule = _macos_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
+        # TODO: Replace with register_linking_action(avoid_deps = ...)
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )
@@ -310,6 +311,7 @@ def macos_ui_test(name, **kwargs):
         bundle_rule = _macos_internal_ui_test_bundle,
         test_rule = _macos_ui_test,
         runner = runner,
+        # TODO: Replace with register_linking_action(avoid_deps = ...)
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )

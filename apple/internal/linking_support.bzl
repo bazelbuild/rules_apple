@@ -45,7 +45,7 @@ def _sectcreate_objc_provider(segname, sectname, file):
         link_inputs = depset([file]),
     )
 
-def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
+def _register_linking_action(ctx, *, stamp, avoid_deps = [], extra_linkopts = []):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -93,6 +93,7 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
 
     return apple_common.link_multi_arch_binary(
         ctx = ctx,
+        avoid_deps = avoid_deps,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         stamp = stamp,
