@@ -13,7 +13,12 @@
 # limitations under the License.
 """Tests for xctoolrunner."""
 
+import tempfile
 import unittest
+
+from unittest import mock
+
+from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.xctoolrunner import xctoolrunner
 
 
@@ -41,6 +46,56 @@ class TestIBTOOL(unittest.TestCase):
 
     self.assertEqual(out, _CHANGE_PROPERTY_MSG)
 
+
+class TestMomcTool(unittest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.momc_input = tempfile.mkdtemp()
+    self.momc_output = tempfile.mkdtemp()
+
+    execute_patch = mock.patch.object(
+        execute, "execute_and_filter_output", autospec=True)
+    self.execute_patch = execute_patch.start()
+    self.addCleanup(execute_patch.stop)
+
+  def testRaisesFileNotFoundError(self):
+    args = [
+        "momc",
+        "--action",
+        "generate",
+        self.momc_input,
+        self.momc_output,
+        "--xctoolrunner_assert_nonempty_dir",
+        self.momc_output,
+    ]
+    self.execute_patch.return_value = (0, None, None)
+
+    with self.assertRaisesRegex(
+        FileNotFoundError, "xcrun momc did not generate artifacts.*"):
+      xctoolrunner.main(args)
+
+  def testRaisesSystemExit(self):
+    args = ["momc", "--action", "generate", self.momc_input, self.momc_output]
+    self.execute_patch.return_value = (0, None, None)
+
+    # empty directory
+    with self.assertRaises(SystemExit):
+      xctoolrunner.main(args)
+
+    # non-empty directory
+    args = [
+        "momc",
+        "--action",
+        "generate",
+        self.momc_input,
+        self.momc_output,
+        "--xctoolrunner_assert_nonempty_dir",
+        self.momc_output,
+    ]
+    tempfile.mkstemp(dir=self.momc_output)
+    with self.assertRaises(SystemExit):
+      xctoolrunner.main(args)
 
 if __name__ == "__main__":
   unittest.main()
