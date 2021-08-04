@@ -85,3 +85,11 @@ sh_binary(
     srcs = ["update.sh"],
     data = [file + ".md" for file in _DOC_SRCS],
 )
+
+# Consumed by bazel tests.
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
