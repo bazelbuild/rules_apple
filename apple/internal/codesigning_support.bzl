@@ -450,7 +450,9 @@ def _codesigning_command(
         features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
-    if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
+    if not should_sign_sim_bundles:
+        return ""
+    if platform_prerequisites.platform.is_device:
         path_to_sign = paths.join("$WORK_DIR", bundle_path)
         paths_to_sign.append(
             _path_to_sign(path = path_to_sign),
