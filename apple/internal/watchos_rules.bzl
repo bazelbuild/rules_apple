@@ -186,6 +186,7 @@ def _watchos_dynamic_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -391,6 +392,7 @@ def _watchos_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -602,6 +604,7 @@ def _watchos_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = ctx.label.name,
         ),
@@ -768,6 +771,7 @@ def _watchos_static_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),

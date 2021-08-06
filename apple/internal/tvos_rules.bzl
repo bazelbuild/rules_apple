@@ -158,6 +158,7 @@ def _tvos_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -394,6 +395,7 @@ def _tvos_dynamic_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -588,6 +590,7 @@ def _tvos_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -765,6 +768,7 @@ def _tvos_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -913,6 +917,7 @@ def _tvos_static_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),

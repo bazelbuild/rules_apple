@@ -183,9 +183,10 @@ def _asset_catalogs(
             # Process icon PNGs like any other PNG
             alticon_id = paths.basename(f.dirname)
             png_file = intermediates.file(
-                actions,
-                rule_label.name,
-                paths.join("alticons", alticon_id, f.basename),
+                actions = actions,
+                file_name = paths.join("alticons", alticon_id, f.basename),
+                output_discriminator = None,
+                target_name = rule_label.name,
             )
             resource_actions.copy_png(
                 actions = actions,
@@ -377,9 +378,10 @@ def _metals(
     """
     metallib_path = paths.join(parent_dir or "", output_filename)
     metallib_file = intermediates.file(
-        actions,
-        rule_label.name,
-        metallib_path,
+        actions = actions,
+        file_name = metallib_path,
+        output_discriminator = None,
+        target_name = rule_label.name,
     )
     resource_actions.compile_metals(
         actions = actions,

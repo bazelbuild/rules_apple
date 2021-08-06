@@ -53,6 +53,7 @@ def _apple_bundle_info_partial_impl(
 
     binary = outputs.binary(
         actions = actions,
+        bundle_name = bundle_name,
         executable_name = executable_name,
         label_name = label_name,
         output_discriminator = output_discriminator,

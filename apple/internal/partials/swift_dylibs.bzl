@@ -203,9 +203,10 @@ def _swift_dylibs_partial_impl(
                     # Swift Support, so we register another action for copying
                     # them without stripping bitcode.
                     swift_support_output_dir = intermediates.directory(
-                        actions,
-                        label_name,
-                        "swiftlibs_for_swiftsupport",
+                        actions = actions,
+                        target_name = label_name,
+                        output_discriminator = output_discriminator,
+                        dir_name = "swiftlibs_for_swiftsupport",
                     )
                     _swift_dylib_action(
                         actions = actions,

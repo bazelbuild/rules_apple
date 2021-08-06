@@ -147,6 +147,7 @@ def _macos_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -360,6 +361,7 @@ def _macos_bundle_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -524,6 +526,7 @@ def _macos_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -702,6 +705,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -870,6 +874,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1199,6 +1204,7 @@ def _macos_xpc_service_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),

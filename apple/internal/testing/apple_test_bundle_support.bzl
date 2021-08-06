@@ -331,6 +331,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),

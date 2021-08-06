@@ -40,6 +40,7 @@ def _binary_partial_impl(
     # Create intermediate file with proper name for the binary.
     output_binary = outputs.binary(
         actions = actions,
+        bundle_name = bundle_name,
         executable_name = executable_name,
         label_name = label_name,
         output_discriminator = output_discriminator,
@@ -67,6 +68,7 @@ def binary_partial(
     Args:
       actions: The actions provider from ctx.actions.
       binary_artifact: The main binary artifact for this target.
+      bundle_name: The name of the output bundle.
       executable_name: The name of the output executable.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -79,6 +81,7 @@ def binary_partial(
         _binary_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
+        bundle_name = bundle_name,
         executable_name = executable_name,
         label_name = label_name,
         output_discriminator = output_discriminator,

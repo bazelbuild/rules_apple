@@ -246,9 +246,10 @@ def compile_asset_catalog(
         if alternate_icons:
             alticons_outputs = [output_plist]
             actool_output_plist = intermediates.file(
-                actions,
-                rule_label.name,
-                "{}.noalticon.plist".format(output_plist.basename),
+                actions = actions,
+                target_name = rule_label.name,
+                output_discriminator = None,
+                file_name = "{}.noalticon.plist".format(output_plist.basename),
             )
         else:
             actool_output_plist = output_plist
