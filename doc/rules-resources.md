@@ -26,6 +26,30 @@ targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
 | <a id="apple_bundle_import-bundle_imports"></a>bundle_imports |  The list of files under a <code>.bundle</code> directory to be propagated to the top-level bundling target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 
 
+<a id="#apple_core_data_model"></a>
+
+## apple_core_data_model
+
+<pre>
+apple_core_data_model(<a href="#apple_core_data_model-name">name</a>, <a href="#apple_core_data_model-srcs">srcs</a>, <a href="#apple_core_data_model-swift_version">swift_version</a>)
+</pre>
+
+
+This rule takes a Core Data model definition from a .xcdatamodeld bundle
+and generates Swift or Objective-C source files that can be added as a
+dependency to a swift_library target.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_core_data_model-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_core_data_model-srcs"></a>srcs |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="apple_core_data_model-swift_version"></a>swift_version |  Target Swift version for generated classes.   | String | optional | "" |
+
+
 <a id="#apple_resource_bundle"></a>
 
 ## apple_resource_bundle
