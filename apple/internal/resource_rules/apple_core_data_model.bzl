@@ -57,6 +57,10 @@ def _apple_core_data_model_impl(ctx):
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
         device_families = None,
+        disabled_features = ctx.disabled_features,
+        explicit_minimum_deployment_os = None,
+        explicit_minimum_os = None,
+        features = ctx.features,
         objc_fragment = None,
         platform_type_string = str(
             ctx.fragments.apple.single_arch_platform.platform_type,
