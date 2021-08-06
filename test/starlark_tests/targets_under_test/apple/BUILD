@@ -218,4 +218,5 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:no_code_generation_datamodel",
     ],
+    tags = ["manual"],
 )
