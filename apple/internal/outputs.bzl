@@ -78,12 +78,12 @@ def _archive_for_embedding(
 
 def _binary(*, actions, bundle_name, executable_name, label_name, output_discriminator):
     """Returns a file reference for the binary that will be packaged into this target's archive. """
+    file_name = executable_name if executable_name else bundle_name
     return intermediates.file(
         actions = actions,
-        executable_name = executable_name,
         target_name = label_name,
         output_discriminator = output_discriminator,
-        file_name = bundle_name,
+        file_name = file_name,
     )
 
 def _executable(*, actions, label_name):

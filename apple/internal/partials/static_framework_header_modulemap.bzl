@@ -26,10 +26,6 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 
 def _get_link_declarations(dylibs = [], frameworks = []):
     """Returns the module map lines that link to the given dylibs and frameworks.
@@ -170,9 +166,9 @@ def _static_framework_header_modulemap_partial_impl(
     if any([sdk_dylibs, sdk_frameworks, umbrella_header_name]):
         modulemap_file = intermediates.file(
             actions = actions,
-            target_name = label_name,
+            target_name = label_name + ".modulemaps",
             output_discriminator = output_discriminator,
-            file_name = paths.join(label_name, label_name + ".modulemaps"),
+            file_name = "module.modulemap",
         )
         _create_modulemap(
             actions,

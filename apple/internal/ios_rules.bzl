@@ -185,6 +185,7 @@ def _ios_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -457,6 +458,7 @@ def _ios_app_clip_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -696,6 +698,7 @@ def _ios_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -911,6 +914,7 @@ def _ios_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1139,6 +1143,7 @@ def _ios_dynamic_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1302,6 +1307,7 @@ def _ios_static_framework_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1430,6 +1436,7 @@ def _ios_imessage_application_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1604,6 +1611,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
@@ -1799,6 +1807,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
         ),
