@@ -171,6 +171,37 @@ provide debug info.
     },
 )
 
+def merge_apple_framework_import_info(apple_framework_import_infos):
+    """
+    Merges multiple `AppleFrameworkImportInfo` into one.
+
+    Args:
+        apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
+
+    Returns:
+        Result of merging all the received framework infos.
+    """
+    transitive_debug_info_binaries = []
+    transitive_dsyms = []
+    transitive_sets = []
+    build_archs = []
+
+    for framework_info in apple_framework_import_infos:
+        if hasattr(framework_info, "debug_info_binaries"):
+            transitive_debug_info_binaries.append(framework_info.debug_info_binaries)
+        if hasattr(framework_info, "dsym_imports"):
+            transitive_dsyms.append(framework_info.dsym_imports)
+        if hasattr(framework_info, "framework_imports"):
+            transitive_sets.append(framework_info.framework_imports)
+        build_archs.append(framework_info.build_archs)
+
+    return AppleFrameworkImportInfo(
+        debug_info_binaries = depset(transitive = transitive_debug_info_binaries),
+        dsym_imports = depset(transitive = transitive_dsyms),
+        framework_imports = depset(transitive = transitive_sets),
+        build_archs = depset(transitive = build_archs),
+    )
+
 AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items

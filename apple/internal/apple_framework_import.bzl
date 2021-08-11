@@ -35,6 +35,10 @@ load(
     "sets",
 )
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleFrameworkImportInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -49,10 +53,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkImportInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",

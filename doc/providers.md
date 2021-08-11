@@ -872,3 +872,21 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 
 
 
+<a id="#merge_apple_framework_import_info"></a>
+
+## merge_apple_framework_import_info
+
+<pre>
+merge_apple_framework_import_info(<a href="#merge_apple_framework_import_info-apple_framework_import_infos">apple_framework_import_infos</a>)
+</pre>
+
+    Merges multiple `AppleFrameworkImportInfo` into one.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
+
+

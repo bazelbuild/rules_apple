@@ -47,6 +47,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "aspects",
+    srcs = ["aspects.bzl"],
+    deps = [
+        "//apple/internal/aspects:framework_import_aspect",
+    ],
+)
+
+bzl_library(
     name = "common",
     srcs = ["common.bzl"],
 )
