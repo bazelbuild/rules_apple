@@ -133,6 +133,41 @@ to ensure that they are explicitly produced as outputs of the build.
     },
 )
 
+AppleFrameworkImportInfo = provider(
+    doc = "Provider that propagates information about framework import targets.",
+    fields = {
+        "framework_imports": """
+Depset of Files that represent framework imports that need to be bundled in the top level
+application bundle under the Frameworks directory.
+""",
+        "build_archs": """
+Depset of strings that represent binary architectures reported from the current build.
+""",
+    },
+)
+
+def merge_apple_framework_import_info(apple_framework_import_infos):
+    """
+    Merges multiple `AppleFrameworkImportInfo` into one.
+
+    Args:
+        apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
+    Returns:
+        Result of merging all the received framework infos.
+    """
+    transitive_sets = []
+    build_archs = []
+
+    for framework_info in apple_framework_import_infos:
+        if hasattr(framework_info, "framework_imports"):
+            transitive_sets.append(framework_info.framework_imports)
+        build_archs.append(framework_info.build_archs)
+
+    return AppleFrameworkImportInfo(
+        framework_imports = depset(transitive = transitive_sets),
+        build_archs = depset(transitive = build_archs),
+    )
+
 AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items

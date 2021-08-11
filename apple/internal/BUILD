@@ -40,6 +40,7 @@ bzl_library(
     ],
     deps = [
         ":resources",
+        "//apple:providers",
         "//apple:utils",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:dicts",
