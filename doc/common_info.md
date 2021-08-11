@@ -180,7 +180,7 @@ the build to Apple. If you want to disable bundling SwiftSupport in your ipa for
 other device or enterprise builds, you can pass
 `--define=apple.package_swift_support=no` to `bazel build`
 
-### Codesign Bundles for the Simulator {#apple.codesign_simulator_bundles}
+### Codesign Bundles for the Simulator {#apple.skip_codesign_simulator_bundles}
 
 The simulators are far more lax about a lot of things compared to working on
 real devices. One of these areas is the codesigning of bundles (applications,
@@ -196,7 +196,7 @@ to work.
 
 By default, the rules will do what Xcode would otherwise do and *will* sign the
 main bundle (with an adhoc signature) when targeting the Simulator. However,
-this `--define` can be used to opt out of this if you are more concerned with
+this feature can be used to opt out of this if you are more concerned with
 build speed vs. potential correctness.
 
 Remember, at any time, Apple could do a macOS point release and/or an Xcode
@@ -204,17 +204,22 @@ release that changes this and opting out of could mean your binary doesn't run
 under the simulator.
 
 The rules support direct control over this signing via
-`--define=apple.codesign_simulator_bundles=(yes|true|1|no|false|0)`.
+`--features=apple.skip_codesign_simulator_bundles`.
 
 Disable the signing of simulator bundles:
 
 ```shell
-bazel build --define=apple.codesign_simulator_bundles=no //your/target
+bazel build --features=apple.skip_codesign_simulator_bundles //your/target
 ```
 
-One exception is XCTest bundles, those do need to be signed for the simulators
-to load them. The above `--define` does not change the behavior around signing
-of these bundles as a result.
+More likely you'll want to do this on a per-target basis such as with:
+
+```bzl
+ios_unit_test(
+    ...
+    features = ["apple.skip_codesign_simulator_bundles"],
+)
+```
 
 ### Localization Handling
 

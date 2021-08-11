@@ -709,7 +709,7 @@ function test_tree_artifacts_and_disable_simulator_codesigning() {
   create_minimal_ios_application
   do_build ios //app:app \
       --define=apple.experimental.tree_artifact_outputs=yes \
-      --define=apple.codesign_simulator_bundles=no || fail "Should build"
+      --features=apple.skip_codesign_simulator_bundles || fail "Should build"
 }
 
 run_suite "ios_application bundling tests"
