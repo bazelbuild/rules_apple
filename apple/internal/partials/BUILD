@@ -160,7 +160,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:apple_framework_import",
+        "//apple:providers",
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",

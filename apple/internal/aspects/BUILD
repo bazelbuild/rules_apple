@@ -11,10 +11,10 @@ bzl_library(
     name = "framework_import_aspect",
     srcs = ["framework_import_aspect.bzl"],
     visibility = [
-        "//apple/internal:__pkg__",
+        "//apple:__subpackages__",
     ],
     deps = [
-        "//apple/internal:apple_framework_import",
+        "//apple:providers",
     ],
 )
 
