@@ -343,6 +343,18 @@ Required template file that contains the specific mechanism with which the tests
     },
 )
 
+AppleXcframeworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+""",
+)
+
 IosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is an iOS application.

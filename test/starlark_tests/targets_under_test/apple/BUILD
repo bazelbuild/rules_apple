@@ -11,6 +11,12 @@ load(
     "apple_core_data_model",
 )
 
+# TODO(b/135122463): Replace internal domain load(...) with a public import when the rule is ready.
+load(
+    "//apple/internal:xcframework_rules.bzl",
+    "apple_xcframework",
+)
+
 licenses(["notice"])
 
 package(
@@ -218,4 +224,34 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:no_code_generation_datamodel",
     ],
+)
+
+objc_library(
+    name = "fmwk_lib",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
 )

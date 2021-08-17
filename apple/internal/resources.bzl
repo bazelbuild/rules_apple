@@ -95,14 +95,72 @@ CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "strings": (resources_support.plists_and_strings, False),
 }
 
-def _get_attr_as_list(*, attr, attribute):
-    """Helper method to always get an attribute as a list."""
-    value = getattr(attr, attribute)
+def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
+    """Helper method to always get an attribute as a list within an existing list.
+
+     Args:
+        attr: The attributes object on the current context. Can be either a `ctx.attr/ctx.rule.attr`
+            -like struct that has targets/lists as its values, or a `ctx.split_attr`-like struct
+            with the dictionary fan-out corresponding to split key.
+        nested_attr: List of nested attributes to collect values from.
+        split_attr_keys: If defined, a 1:2+ transition key to merge values from.
+
+    Returns:
+        The found attribute's value within a list, if it is not already a list. Otherwise returns
+            the attribute's value if it is a list, or an empty list if the attribute had no value.
+    """
+    value = getattr(attr, nested_attr)
+
+    value_is_dict = types.is_dict(value)
+    if not split_attr_key and value_is_dict:
+        fail("Internal Error: Value returned for this attribute is a dictionary, but no split " +
+             "attribute key was provided. Attribute was %s." % nested_attr)
+
+    if split_attr_key and value:
+        if not value_is_dict:
+            fail("Internal Error: Found a split attribute key but the value returned is not a " +
+                 "dictionary. Attribute was %s, split key was %s." % (nested_attr, split_attr_key))
+        value = value.get(split_attr_key)
     if not value:
         return []
-    if types.is_list(value):
+    elif types.is_list(value):
         return value
-    return [value]
+    else:
+        return [value]
+
+def _get_attr_as_list(*, attr, nested_attr, split_attr_keys):
+    """Helper method to always get an attribute as a list, supporting 1:2+ transitions.
+
+     Args:
+        attr: The attributes object on the current context. Can be either a `ctx.attr/ctx.rule.attr`
+            -like struct that has targets/lists as its values, or a `ctx.split_attr`-like struct
+            with the dictionary fan-out corresponding to split key.
+        nested_attr: List of nested attributes to collect values from.
+        split_attr_keys: If `attr` is a 1:2+ transition, a list of 1:2+ transition keys to merge
+            values from. Otherwise this must be an empty list.
+
+    Returns:
+        The found attribute's value as a list, if a value was found. Otherwise returns an empty
+            list if no value was found.
+    """
+    attr_as_list = []
+
+    if len(split_attr_keys) == 0:
+        # If no split keys were defined, search the attribute directly. This is expected to
+        # aggregate values across all keys if a 1:2+ transition has been applied to the attribute.
+        attr_as_list.extend(_get_attr_using_list(
+            attr = attr,
+            nested_attr = nested_attr,
+        ))
+    else:
+        # Search the attribute within each split key if any split keys were defined.
+        for split_attr_key in split_attr_keys:
+            attr_as_list.extend(_get_attr_using_list(
+                attr = attr,
+                nested_attr = nested_attr,
+                split_attr_key = split_attr_key,
+            ))
+    return attr_as_list
 
 def _bucketize_data(
         *,
@@ -472,16 +530,18 @@ def _bundle_relative_parent_dir(resource, extension):
         parent_dir = paths.join(parent_dir, bundle_relative_dir)
     return parent_dir
 
-def _collect(*, attr, res_attrs = []):
+def _collect(*, attr, res_attrs = [], split_attr_keys = []):
     """Collects all resource attributes present in the given attributes.
 
     Iterates over the given res_attrs attributes collecting files to be processed as resources.
     These are all placed into a list, and then returned.
 
     Args:
-        attr: The attributes object as returned by ctx.attr (or ctx.rule.attr) in the case of
-            aspects.
+        attr: The attributes object on the current context. Can be either a `ctx.attr/ctx.rule.attr`
+            -like struct that has targets/lists as its values, or a `ctx.split_attr`-like struct
+            with the dictionary fan-out corresponding to split key.
         res_attrs: List of attributes to iterate over collecting resources.
+        split_attr_keys: If defined, a list of 1:2+ transition keys to merge values from.
 
     Returns:
         A list with all the collected resources for the target represented by attr.
@@ -496,7 +556,8 @@ def _collect(*, attr, res_attrs = []):
                 x.files.to_list()
                 for x in _get_attr_as_list(
                     attr = attr,
-                    attribute = res_attr,
+                    nested_attr = res_attr,
+                    split_attr_keys = split_attr_keys,
                 )
                 if x.files
             ]
