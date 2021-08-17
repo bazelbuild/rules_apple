@@ -16,7 +16,7 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
-def _cpu_string(*, cpu, platform_type, settings):
+def _cpu_string(*, cpu, platform_type, settings = {}):
     """Generates a <platform>_<arch> string for the current target based on the given parameters.
 
     Args:
@@ -26,7 +26,8 @@ def _cpu_string(*, cpu, platform_type, settings):
             `"macos"`, `"tvos"`, or `"watchos"`).
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
-            transition.
+            transition. If not defined, defaults to an empty dictionary. Used as a fallback if the
+            `cpu` argument is None.
 
     Returns:
         A <platform>_<arch> string defined for the current target.
@@ -125,6 +126,27 @@ def _command_line_options(*, cpu = None, minimum_os_version, platform_type, sett
         ),
     }
 
+def _xcframework_split_attr_key(*, cpu, environment, platform_type):
+    """Return the split attribute key for this target within the XCFramework given linker options.
+
+     Args:
+        cpu: The architecture of the target that was built. For example, `x86_64` or `arm64`.
+        environment: The environment of the target that was built, which corresponds to the
+            toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`.
+            for environment. Typically `device` or `simulator`.
+        platform_type: The platform of the target that was built, which corresponds to the
+            toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
+            for platform. For example, `ios`, `macos`, `tvos` or `watchos`.
+
+    Returns:
+        A string representing the key for this target build found within the XCFramework with a
+            format of <platform>_<arch>_<target_environment>, for example `darwin_arm64_device`.
+    """
+    return _cpu_string(
+        cpu = cpu,
+        platform_type = platform_type,
+    ) + "_" + environment
+
 def _command_line_options_for_platform(
         *,
         minimum_os_version,
@@ -157,11 +179,11 @@ def _command_line_options_for_platform(
             cpus = platform_attr[target_environment]
             for cpu in cpus:
                 found_cpu = {
-                    _cpu_string(
+                    _xcframework_split_attr_key(
                         cpu = cpu,
+                        environment = target_environment,
                         platform_type = platform_type,
-                        settings = settings,
-                    ) + "_" + target_environment: _command_line_options(
+                    ): _command_line_options(
                         cpu = cpu,
                         minimum_os_version = minimum_os_version,
                         platform_type = platform_type,
@@ -286,5 +308,6 @@ transition_support = struct(
     apple_rule_transition = _apple_rule_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     static_framework_transition = _static_framework_transition,
+    xcframework_split_attr_key = _xcframework_split_attr_key,
     xcframework_transition = _xcframework_transition,
 )
