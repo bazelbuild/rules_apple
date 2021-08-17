@@ -306,6 +306,28 @@ test rules runfiles.
 | <a id="AppleTestRunnerInfo-test_runner_template"></a>test_runner_template |  Required template file that contains the specific mechanism with which the tests will be run. The *_ui_test and *_unit_test rules will substitute the following values:     * %(test_host_path)s:   Path to the app being tested.     * %(test_bundle_path)s: Path to the test bundle that contains the tests.     * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).     * %(test_type)s:        The test type, whether it is unit or UI.    |
 
 
+<a id="#AppleXcframeworkBundleInfo"></a>
+
+## AppleXcframeworkBundleInfo
+
+<pre>
+AppleXcframeworkBundleInfo()
+</pre>
+
+
+Denotes that a target is an XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
+
+
 <a id="#IosAppClipBundleInfo"></a>
 
 ## IosAppClipBundleInfo
