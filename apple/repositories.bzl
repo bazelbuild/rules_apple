@@ -102,6 +102,7 @@ def apple_rules_dependencies(ignore_version_differences = False):
         urls = [
             "https://github.com/bazelbuild/bazel-skylib/archive/df3c9e2735f02a7fe8cd80db4db00fec8e13d25f.tar.gz",
         ],
+        strip_prefix = "bazel-skylib-df3c9e2735f02a7fe8cd80db4db00fec8e13d25f",
         sha256 = "58f558d04a936cade1d4744d12661317e51f6a21e3dd7c50b96dc14f3fa3b87d",
         ignore_version_differences = ignore_version_differences,
     )
