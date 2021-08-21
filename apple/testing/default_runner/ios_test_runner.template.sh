@@ -102,7 +102,7 @@ TEST_ENV="%(test_env)s"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"
   if [[ -n "$TEST_ENV" ]]; then
-    TEST_ENV="$TEST_ENV:$profile_env"
+    TEST_ENV="$TEST_ENV,$profile_env"
   else
     TEST_ENV="$profile_env"
   fi
