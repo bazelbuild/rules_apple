@@ -46,8 +46,7 @@ done
 runner_flags=("-v")
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
-profraw=$(mktemp)
-trap 'rm -rf "${TMP_DIR}" "$profraw"' ERR EXIT
+trap 'rm -rf "${TMP_DIR}"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
@@ -100,7 +99,7 @@ LAUNCH_OPTIONS_JSON_STR=""
 
 TEST_ENV="%(test_env)s"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
-  readonly profile_env="LLVM_PROFILE_FILE=$profraw"
+  readonly profile_env="LLVM_PROFILE_FILE=$LLVM_PROFILE_FILE"
   if [[ -n "$TEST_ENV" ]]; then
     TEST_ENV="$TEST_ENV,$profile_env"
   else
@@ -175,35 +174,15 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
 fi
 
 readonly profdata="$TMP_DIR/coverage.profdata"
-xcrun llvm-profdata merge "$profraw" --output "$profdata"
+xcrun llvm-profdata merge "$LLVM_PROFILE_FILE" --output "$profdata"
 
-# llvm-cov export doesn't print any warnings/errors when files that it's trying
-# to reference don't exist. Unfortunately these are absolute paths that won't
-# be valid across machines. When using llvm-cov show it prints a warning for
-# this so we can validate we don't hit this case.
-error_file=$(mktemp)
+readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
-xcrun llvm-cov \
-  show \
-  -instr-profile "$profdata" \
-  -path-equivalence="$ROOT","$PWD" \
-  "$test_binary" \
-  @"$COVERAGE_MANIFEST" \
-  2> "$error_file" \
-  > /dev/null \
-  || llvm_cov_status=$?
-
-if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
-  echo "error: while showing coverage report" >&2
-  cat "$error_file" >&2
-  exit 1
-fi
-
 xcrun llvm-cov \
   export \
   -format lcov \
   -instr-profile "$profdata" \
-  -path-equivalence="$ROOT","$PWD" \
+  -path-equivalence="$ROOT",. \
   "$test_binary" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
