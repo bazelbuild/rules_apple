@@ -15,12 +15,16 @@
 """Implementation of the xcframework rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@build_bazel_apple_support//lib:lipo.bzl",
+    "lipo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -74,63 +78,150 @@ load(
     "swift_usage_aspect",
 )
 
-# TODO(b/174858377): Allow for multiple 1:2+ transition keys when we support lipoed xcframework
-# contents.
-def _unioned_attrs(*, attr_names, split_attr, split_attr_key):
-    """Return a list of attribute values unioned for the given attributes, by split attribute key.
+def _lipoed_link_outputs_by_framework(
+        *,
+        actions,
+        apple_fragment,
+        label_name,
+        link_result_outputs,
+        xcode_config):
+    """Lipos binaries when necessary and returns a list of lipoed outputs with platform information.
 
-     Args:
-        attr_names: The rule attributes to union. Assumed to contain lists of values.
-        split_attr: The Starlark interface for 1:2+ transitions, typically from `ctx.split_attr`.
-        split_attr_key: A string representing the 1:2+ transition key.
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        label_name: Name of the target being built.
+        link_result_outputs: The list of outputs from the struct returned by
+            `linking_support.register_linking_action`.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
     Returns:
-        A new list of attributes based on the union of all rule attributes given, by split
-            attribute key.
+        A list of structs with the following fields; `architectures` containing a list of the
+        architectures that the binary was built with, `binary` referencing the output binary linked
+        with the `lipo` tool if necessary, or referencing a symlink to the original binary if not,
+        `environment` to reference the target environment the binary was built for, and `platform`
+        to reference the target platform the binary was built for.
     """
-    unioned_attrs = []
-    for attr_name in attr_names:
-        attr = getattr(split_attr, attr_name)
-        if not attr:
-            continue
-        found_attr = attr.get(split_attr_key)
-        if found_attr:
-            unioned_attrs += found_attr
-    return unioned_attrs
 
-def _available_library_dictionary(
-        *,
-        architecture,
-        bundle_extension,
-        bundle_name,
-        environment,
-        platform,
-        split_attr_key):
-    """Generates a dictionary containing keys referencing a framework in the XCFramework bundle.
+    # Organize each output as a platform_environment, where each can accept one or more archs.
+    link_outputs_by_framework = {}
 
-     Args:
-        architecture: The architecture of the target that was built. For example, `x86_64` or
+    # Iterate through the outputs of the registered linking action, match archs to platform and
+    # environment combinations.
+    for link_output in link_result_outputs:
+        framework_key = link_output.platform + "_" + link_output.environment
+        if link_outputs_by_framework.get(framework_key):
+            link_outputs_by_framework[framework_key].append(link_output)
+        else:
+            link_outputs_by_framework[framework_key] = [link_output]
+
+    lipoed_link_outputs_by_framework = []
+
+    # Iterate through the structure again, this time creating a structure equivalent to link_result
+    # .outputs but with .architecture replaced with .architectures.
+    for framework_key, link_outputs in link_outputs_by_framework.items():
+        fat_binary = actions.declare_file("{}_{}".format(label_name, framework_key))
+
+        if len(link_outputs) > 1:
+            lipo.create(
+                actions = actions,
+                inputs = [output.binary for output in link_outputs],
+                output = fat_binary,
+                apple_fragment = apple_fragment,
+                xcode_config = xcode_config,
+            )
+        else:
+            # Symlink if there was only a single architecture created; it's faster.
+            output = link_outputs[0]
+            actions.symlink(target_file = output.binary, output = fat_binary)
+
+        lipoed_link_outputs_by_framework.append(struct(
+            architectures = [link_output.architecture for link_output in link_outputs],
+            binary = fat_binary,
+            environment = link_outputs[0].environment,
+            platform = link_outputs[0].platform,
+        ))
+
+    return lipoed_link_outputs_by_framework
+
+def _library_identifier(*, architectures, environment, platform):
+    """Return a unique identifier for an embedded framework to disambiguate it from others.
+
+    Args:
+        architectures: The architectures of the target that was built. For example, `x86_64` or
             `arm64`.
-        bundle_extension: The extension for the library inside the archive.
-        bundle_name: The name of the library inside the archive.
         environment: The environment of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`.
             for environment. Typically `device` or `simulator`.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_support.link_multi_arch_binary` for platform.
             For example, `ios`, `macos`, `tvos` or `watchos`.
-        split_attr_key: A string representing the 1:2+ transition key.
+
+    Returns:
+        A string that can be used to determine the subfolder this embedded framework will be found
+        in the final XCFramework bundle. This mirrors the formatting for subfolders as given by the
+        xcodebuild -create-xcframework tool.
+    """
+    library_identifier = "{}-{}".format(platform, "_".join(architectures))
+    if environment != "device":
+        library_identifier += "-{}".format(environment)
+    return library_identifier
+
+def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
+    """Return a list of attribute values unioned for the given attributes, by split attribute key.
+
+     Args:
+        attr_names: The rule attributes to union. Assumed to contain lists of values.
+        split_attr: The Starlark interface for 1:2+ transitions, typically from `ctx.split_attr`.
+        split_attr_keys: A list of strings representing each 1:2+ transition key to check.
+
+    Returns:
+        A new list of attributes based on the union of all rule attributes given, by split
+        attribute key.
+    """
+    unioned_attrs = []
+    for attr_name in attr_names:
+        attr = getattr(split_attr, attr_name)
+        if not attr:
+            continue
+        for split_attr_key in split_attr_keys:
+            found_attr = attr.get(split_attr_key)
+            if found_attr:
+                unioned_attrs += found_attr
+    return unioned_attrs
+
+def _available_library_dictionary(
+        *,
+        architectures,
+        bundle_extension,
+        bundle_name,
+        environment,
+        library_identifier,
+        platform):
+    """Generates a dictionary containing keys referencing a framework in the XCFramework bundle.
+
+     Args:
+        architectures: The architectures of the target that was built. For example, `x86_64` or
+            `arm64`.
+        bundle_extension: The extension for the library inside the archive.
+        bundle_name: The name of the library inside the archive.
+        environment: The environment of the target that was built, which corresponds to the
+            toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`.
+            for environment. Typically `device` or `simulator`.
+        library_identifier: A string representing the path to the framework to reference in the
+            xcframework bundle.
+        platform: The platform of the target that was built, which corresponds to the toolchain's
+            target triple values as reported by `apple_support.link_multi_arch_binary` for platform.
+            For example, `ios`, `macos`, `tvos` or `watchos`.
 
     Returns:
         A dictionary containing keys representing how a given framework should be referenced in the
-            root Info.plist of a given XCFramework bundle.
+        root Info.plist of a given XCFramework bundle.
     """
     available_library = {
-        "LibraryIdentifier": split_attr_key,
+        "LibraryIdentifier": library_identifier,
         "LibraryPath": bundle_name + bundle_extension,
-        "SupportedArchitectures": [
-            architecture,
-        ],
+        "SupportedArchitectures": architectures,
         "SupportedPlatform": platform,
     }
 
@@ -156,7 +247,7 @@ def _create_xcframework_root_infoplist(
             be referenced in the root Info.plist of a given XCFramework bundle.
         resolved_plisttool: A struct referencing the resolved plist tool.
         rule_label: The label of the target being analyzed.
-        xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
         xcode_path_wrapper: The Xcode path wrapper script.
 
     Returns:
@@ -300,24 +391,45 @@ def _apple_xcframework_impl(ctx):
         stamp = ctx.attr.stamp,
     )
 
+    lipoed_link_outputs_by_framework = _lipoed_link_outputs_by_framework(
+        actions = actions,
+        apple_fragment = ctx.fragments.apple,
+        label_name = label.name,
+        link_result_outputs = link_result.outputs,
+        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    available_libraries = []
     framework_archive_files = []
     framework_archive_merge_zips = []
-    available_libraries = []
 
-    # TODO(b/174858377): Match outputs in a means that allows for lipo.
-    for link_output in link_result.outputs:
-        split_attr_key = transition_support.xcframework_split_attr_key(
-            cpu = link_output.architecture,
-            environment = link_output.environment,
-            platform_type = link_output.platform,
-        )
+    for link_output in lipoed_link_outputs_by_framework:
+        split_attr_keys = []
+        for architecture in link_output.architectures:
+            split_attr_keys.append(
+                transition_support.xcframework_split_attr_key(
+                    cpu = architecture,
+                    environment = link_output.environment,
+                    platform_type = link_output.platform,
+                ),
+            )
 
         binary_artifact = link_output.binary
-        uses_swift = swift_support.uses_swift(ctx.split_attr.deps[split_attr_key])
+
+        library_identifier = _library_identifier(
+            architectures = link_output.architectures,
+            environment = link_output.environment,
+            platform = link_output.platform,
+        )
+
         rule_descriptor = rule_support.rule_descriptor_no_ctx(
             link_output.platform,
             apple_product_type.framework,
         )
+        uses_swift = False
+        for split_attr_key in split_attr_keys:
+            if swift_support.uses_swift(ctx.split_attr.deps[split_attr_key]):
+                uses_swift = True
 
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
@@ -350,7 +462,7 @@ def _apple_xcframework_impl(ctx):
             archive = intermediates.file(
                 actions = actions,
                 target_name = label.name,
-                output_discriminator = split_attr_key,
+                output_discriminator = library_identifier,
                 file_name = label.name + ".zip",
             ),
         )
@@ -358,18 +470,18 @@ def _apple_xcframework_impl(ctx):
         resource_deps = _unioned_attrs(
             attr_names = ["data", "deps"],
             split_attr = ctx.split_attr,
-            split_attr_key = split_attr_key,
+            split_attr_keys = split_attr_keys,
         )
 
         top_level_infoplists = resources.collect(
             attr = ctx.split_attr,
             res_attrs = ["infoplists"],
-            split_attr_keys = [split_attr_key],
+            split_attr_keys = split_attr_keys,
         )
         top_level_resources = resources.collect(
             attr = ctx.split_attr,
             res_attrs = ["data"],
-            split_attr_keys = [split_attr_key],
+            split_attr_keys = split_attr_keys,
         )
 
         # TODO(b/174858377): Add support for debug outputs such as dSYM bundles.
@@ -382,7 +494,7 @@ def _apple_xcframework_impl(ctx):
                 entitlements = None,
                 executable_name = executable_name,
                 label_name = label.name,
-                output_discriminator = split_attr_key,
+                output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 predeclared_outputs = overridden_predeclared_outputs,
                 product_type = rule_descriptor.product_type,
@@ -393,7 +505,7 @@ def _apple_xcframework_impl(ctx):
                 bundle_name = bundle_name,
                 executable_name = executable_name,
                 label_name = label.name,
-                output_discriminator = split_attr_key,
+                output_discriminator = library_identifier,
             ),
             partials.framework_headers_partial(hdrs = ctx.files.public_hdrs),
             partials.resources_partial(
@@ -406,7 +518,7 @@ def _apple_xcframework_impl(ctx):
                 environment_plist = ctx.file._environment_plist_ios,
                 executable_name = executable_name,
                 launch_storyboard = None,
-                output_discriminator = split_attr_key,
+                output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 resource_deps = resource_deps,
                 rule_descriptor = rule_descriptor,
@@ -434,7 +546,7 @@ def _apple_xcframework_impl(ctx):
             executable_name = executable_name,
             features = features,
             ipa_post_processor = None,
-            output_discriminator = split_attr_key,
+            output_discriminator = library_identifier,
             partials = processor_partials,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = overridden_predeclared_outputs,
@@ -448,7 +560,7 @@ def _apple_xcframework_impl(ctx):
             if getattr(provider, "archive", None):
                 # Repackage every archive found for bundle_merge_zips in the final bundler action.
                 framework_archive_merge_zips.append(
-                    struct(src = provider.archive.path, dest = split_attr_key),
+                    struct(src = provider.archive.path, dest = library_identifier),
                 )
 
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
@@ -456,12 +568,12 @@ def _apple_xcframework_impl(ctx):
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
-            architecture = link_output.architecture,
+            architectures = link_output.architectures,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             environment = link_output.environment,
+            library_identifier = library_identifier,
             platform = link_output.platform,
-            split_attr_key = split_attr_key,
         ))
 
     root_info_plist = _create_xcframework_root_infoplist(
