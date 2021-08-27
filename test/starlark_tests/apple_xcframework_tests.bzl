@@ -43,12 +43,12 @@ def apple_xcframework_test_suite():
         name = "{}_ios_arm64_archive_contents_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/ios_arm64_device/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
         contains = [
-            "$BUNDLE_ROOT/ios_arm64_device/ios_dynamic_xcframework.framework/Headers/shared.h",
-            "$BUNDLE_ROOT/ios_arm64_device/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-            "$BUNDLE_ROOT/ios_arm64_device/ios_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],
@@ -58,12 +58,42 @@ def apple_xcframework_test_suite():
         name = "{}_ios_intel_sim_archive_contents_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/ios_x86_64_simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
         contains = [
-            "$BUNDLE_ROOT/ios_x86_64_simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
-            "$BUNDLE_ROOT/ios_x86_64_simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-            "$BUNDLE_ROOT/ios_x86_64_simulator/ios_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_arm_fat_sim_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_armv7/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64_armv7/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64_armv7/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+            "$BUNDLE_ROOT/ios-arm64_armv7/ios_dynamic_lipoed_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_intel_fat_sim_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-i386_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        contains = [
+            "$BUNDLE_ROOT/ios-i386_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-i386_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+            "$BUNDLE_ROOT/ios-i386_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],

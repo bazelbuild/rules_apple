@@ -256,3 +256,30 @@ apple_xcframework(
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
 )
+
+apple_xcframework(
+    name = "ios_dynamic_lipoed_xcframework",
+    bundle_id = "com.google.example",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "i386",
+            "x86_64",
+        ],
+        "device": [
+            "armv7",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
