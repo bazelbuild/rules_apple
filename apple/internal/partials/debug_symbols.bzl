@@ -129,6 +129,7 @@ def _bundle_dsym_files(
         actions.run_shell(
             inputs = [dsym_binary],
             outputs = outputs,
+            mnemonic = "DsymDwarf",
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
             command = "cp -p '%s' '%s'" % (dsym_binary.path, output_binary.path),
         )
