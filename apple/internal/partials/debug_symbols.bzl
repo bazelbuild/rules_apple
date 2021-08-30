@@ -155,7 +155,14 @@ def _copy_dsym_into_declared_bundle(
             inputs = [dsym_binary],
             outputs = [output_binary],
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
-            command = "cp -p '%s' '%s'" % (dsym_binary.path, output_binary.path),
+            command = """
+if [[ $OSTYPE == darwin* ]]; then
+    readonly flags='-cp'
+else
+    readonly flags='-p'
+fi
+cp $flags '%s' '%s'
+""" % (dsym_binary.path, output_binary.path),
         )
     else:
         lipo.create(
