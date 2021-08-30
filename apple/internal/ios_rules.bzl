@@ -84,6 +84,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleMergableFrameworkInfo",
     "AppleSupportToolchainInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
@@ -636,9 +637,21 @@ def _ios_framework_impl(ctx):
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
+    filtered_frameworks = []
+    transitive_frameworks = []
+    for framework in ctx.attr.frameworks:
+        if AppleMergableFrameworkInfo in framework:
+            transitive_frameworks.append(framework[AppleMergableFrameworkInfo].frameworks)
+        else:
+            filtered_frameworks.append(framework)
+    frameworks = depset(
+        filtered_frameworks,
+        transitive = transitive_frameworks
+    ).to_list()
+
     link_result = linking_support.register_linking_action(
         ctx,
-        avoid_deps = ctx.attr.frameworks,
+        avoid_deps = frameworks,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )
@@ -713,7 +726,7 @@ def _ios_framework_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
-            dependency_targets = ctx.attr.frameworks,
+            dependency_targets = frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -724,7 +737,7 @@ def _ios_framework_impl(ctx):
             bundle_location = processor.location.framework,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            embedded_targets = ctx.attr.frameworks,
+            embedded_targets = frameworks,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -746,7 +759,7 @@ def _ios_framework_impl(ctx):
             bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.frameworks,
+            debug_dependencies = frameworks,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
@@ -755,14 +768,14 @@ def _ios_framework_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
-            embeddable_targets = ctx.attr.frameworks,
+            embeddable_targets = frameworks,
             platform_prerequisites = platform_prerequisites,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = ctx.attr.extension_safe,
             rule_label = label,
-            targets_to_validate = ctx.attr.frameworks,
+            targets_to_validate = frameworks,
         ),
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
@@ -786,7 +799,7 @@ def _ios_framework_impl(ctx):
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            targets_to_avoid = ctx.attr.frameworks,
+            targets_to_avoid = frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -796,7 +809,7 @@ def _ios_framework_impl(ctx):
             actions = actions,
             apple_toolchain_info = apple_toolchain_info,
             binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
+            dependency_targets = frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -804,7 +817,7 @@ def _ios_framework_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             debug_outputs_provider = debug_outputs_provider,
-            dependency_targets = ctx.attr.frameworks,
+            dependency_targets = frameworks,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -831,7 +844,7 @@ def _ios_framework_impl(ctx):
         rule_label = label,
     )
 
-    return [
+    providers = [
         DefaultInfo(files = processor_result.output_files),
         IosFrameworkBundleInfo(),
         OutputGroupInfo(
@@ -841,6 +854,15 @@ def _ios_framework_impl(ctx):
             )
         ),
     ] + processor_result.providers
+
+    if ctx.attr.merge_with_parent_framework:
+        providers.append(
+            AppleMergableFrameworkInfo(
+                frameworks = depset(frameworks),
+            )
+        )
+
+    return providers
 
 def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
