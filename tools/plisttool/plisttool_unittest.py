@@ -1852,8 +1852,8 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(
-            plisttool.ENTITLEMENTS_BOOLEAN_MISSING % _testing_target)):
+        plisttool.ENTITLEMENTS_BOOLEAN_MISSING % (
+          _testing_target, 'com.apple.developer.networking.wifi-info')):
       plist = {'com.apple.developer.networking.wifi-info': True}
       self._assert_plisttool_result({
           'plists': [plist],
