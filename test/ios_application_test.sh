@@ -321,14 +321,20 @@ function test_pkginfo_contents() {
 }
 
 # Helper to test different values if a build adds the debugger entitlement.
-# First arg is "y|n" for if it was expected for device builds
-# Second arg is "y|n" for if it was expected for simulator builds.
+# First arg is "y|n" if provisioning profile should contain debugger entitlement
+# Second arg is "y|n" if debugger entitlement should be contained on signed app
 # Any other args are passed to `do_build`.
 function verify_debugger_entitlements_with_params() {
-  readonly FOR_DEVICE=$1; shift
-  readonly FOR_SIM=$1; shift
+  readonly INCLUDE_DEBUGGER=$1; shift
+  readonly SHOULD_CONTAIN=$1; shift
 
   create_common_files
+
+  cp $(rlocation build_bazel_rules_apple/test/testdata/provisioning/integration_testing_ios.mobileprovision) \
+    app/profile.mobileprovision
+  if [[ "${INCLUDE_DEBUGGER}" == "n" ]]; then
+    sed -i'.original' -e '/get-task-allow/,+1 d' app/profile.mobileprovision
+  fi
 
   cat >> app/BUILD <<'EOF'
 ios_application(
@@ -338,7 +344,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    provisioning_profile = "profile.mobileprovision",
     deps = [":lib"],
 )
 EOF
@@ -366,7 +372,6 @@ EOF
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
     readonly FILE_TO_CHECK="${CODESIGN_OUTPUT}"
-    readonly SHOULD_CONTAIN="${FOR_DEVICE}"
   else
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
@@ -375,7 +380,6 @@ EOF
         print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
-    readonly SHOULD_CONTAIN="${FOR_SIM}"
 
     # Simulator builds also have entitlements in the codesign output,
     # but only `com.apple.security.get-task-allow` and nothing else
@@ -399,11 +403,18 @@ EOF
   fi
 }
 
-# Tests that debugger entitlements are auto-added to the application correctly.
+# Tests that debugger entitlement is not auto-added to the application correctly
+# if it's not included on provisioning profile.
 function test_debugger_entitlements_default() {
   # For default builds, configuration.bzl also forces -c opt, so there will be
   #   no debug entitlements.
   verify_debugger_entitlements_with_params n n
+}
+
+# Tests that debugger entitlement is auto-added to the application correctly
+# if it's included on provisioning profile.
+function test_debugger_entitlements_from_provisioning_profile() {
+  verify_debugger_entitlements_with_params y y
 }
 
 # Test the different values for apple.add_debugger_entitlement.
@@ -416,11 +427,11 @@ function test_debugger_entitlements_forced_no() {
       --define=apple.add_debugger_entitlement=no
 }
 function test_debugger_entitlements_forced_yes() {
-  verify_debugger_entitlements_with_params y y \
+  verify_debugger_entitlements_with_params n y \
       --define=apple.add_debugger_entitlement=YES
 }
 function test_debugger_entitlements_forced_true() {
-  verify_debugger_entitlements_with_params y y \
+  verify_debugger_entitlements_with_params n y \
       --define=apple.add_debugger_entitlement=True
 }
 

@@ -1101,6 +1101,29 @@ class EntitlementsTask(PlistToolTask):
   def unknown_variable_message_additions(self):
     return self._unknown_var_msg_addtions
 
+  def update_plist(self, out_plist, subs_engine):
+    # Retrieves forced entitlement keys from provisioning profile metadata to
+    # add them to the final entitlements used by codesign and clang.
+    profile_entitlements = self._profile_metadata.get('Entitlements')
+
+    if not profile_entitlements:
+      return
+
+    forced_profile_entitlements = [
+        'application-identifier',
+        'com.apple.security.get-task-allow',
+        'get-task-allow',
+    ]
+
+    for forced_entitlement in forced_profile_entitlements:
+
+      if forced_entitlement in out_plist:
+        # Validation is skipped since validate_plist takes care of this.
+        continue
+
+      if forced_entitlement in profile_entitlements:
+        out_plist[forced_entitlement] = profile_entitlements[forced_entitlement]
+
   def validate_plist(self, plist):
     bundle_id = self.options.get('bundle_id')
     if bundle_id:
