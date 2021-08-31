@@ -1757,7 +1757,8 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(
-            plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISSING % _testing_target)):
+            plisttool.ENTITLEMENTS_MISSING % (
+            _testing_target, 'aps-environment'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1774,8 +1775,8 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_aps_environment_mismatch(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
-            _testing_target, 'production', 'development'))):
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'aps-environment', 'production', 'development'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1854,8 +1855,9 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_wifi_info_active_mismatch(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_WIFI_INFO_MISMATCH % (
-            _testing_target, 'False', 'True'))):
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'com.apple.developer.networking.wifi-info',
+            'False', 'True'))):
       plist = {'com.apple.developer.networking.wifi-info': False}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1872,8 +1874,8 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(
-            plisttool.ENTITLEMENTS_WIFI_INFO_MISSING % _testing_target)):
+        re.escape(plisttool.ENTITLEMENTS_MISSING % (
+          _testing_target, 'com.apple.developer.networking.wifi-info'))):
       plist = {'com.apple.developer.networking.wifi-info': True}
       self._assert_plisttool_result({
           'plists': [plist],
