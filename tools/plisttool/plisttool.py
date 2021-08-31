@@ -1234,6 +1234,11 @@ class EntitlementsTask(PlistToolTask):
         report_extras=report_extras,
         supports_wildcards=True)
 
+    self._check_entitlements_array(
+        entitlements, profile_entitlements,
+        'com.apple.developer.nfc.readersession.formats', self.target,
+        report_extras=report_extras)
+
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
     if self._profile_metadata.get('Platform', []) != ['OSX']:
