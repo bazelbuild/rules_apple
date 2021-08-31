@@ -19,8 +19,6 @@ import datetime
 import io
 import json
 import os
-import plistlib
-import random
 import re
 import tempfile
 import unittest
@@ -1898,6 +1896,148 @@ class PlistToolTest(unittest.TestCase):
               },
           },
       })
+
+
+class PlistEntitlementsMerge(PlistToolTest):
+
+  def test_entitlements_merge_from_profile_metadata(self):
+    control = {
+        'plists': [{
+            'com.apple.developer.healthkit': True
+        }],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.my.bundle.id',
+                    'get-task-allow': True
+                },
+                'Version': 1,
+            },
+        },
+    }
+    expected = {
+        'application-identifier': 'QWERTY.my.bundle.id',
+        'com.apple.developer.healthkit': True,
+        'get-task-allow': True,
+    }
+    self._assert_plisttool_result(control, expected)
+
+  def test_entitlement_task_update_plist(self):
+    testcases = [
+        {
+            'testcase_name': 'adds get-task-allow from profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'get-task-allow': True,
+            }
+        },
+        {
+            'testcase_name':
+                'adds application-identifier from profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+        {
+            'testcase_name':
+                'adds both get-task-allow and application-identifier',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'get-task-allow': True,
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+        {
+            'testcase_name':
+                'updates plist with get-task-allow and application-identifier',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'com.apple.developer.healthkit': True
+            },
+            'expected': {
+                'application-identifier': 'QWERTY.my.bundle.id',
+                'com.apple.developer.healthkit': True,
+                'get-task-allow': True,
+            }
+        },
+        {
+            'testcase_name':
+                'does not update since no Entitlements on profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'com.apple.developer.healthkit': True
+            },
+            'expected': {
+                'com.apple.developer.healthkit': True
+            }
+        },
+        {
+            'testcase_name':
+                'does not update key already defined in entitlements',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'get-task-allow': False
+            },
+            'expected': {
+                'get-task-allow': False,
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+    ]
+
+    for testcase in testcases:
+      with self.subTest(testcase.get('testcase_name')):
+        task = plisttool.EntitlementsTask(
+            _testing_target, testcase.get('options'))
+        task.update_plist(testcase.get('out_plist'), None)
+        self.assertEqual(testcase.get('out_plist'), testcase.get('expected'))
 
 
 if __name__ == '__main__':
