@@ -46,7 +46,8 @@ done
 runner_flags=("-v")
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
-trap 'rm -rf "${TMP_DIR}"' ERR EXIT
+profraw=$(mktemp)
+trap 'rm -rf "${TMP_DIR}" "$profraw"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
@@ -99,7 +100,7 @@ LAUNCH_OPTIONS_JSON_STR=""
 
 TEST_ENV="%(test_env)s"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
-  readonly profile_env="LLVM_PROFILE_FILE=$LLVM_PROFILE_FILE"
+  readonly profile_env="LLVM_PROFILE_FILE=$profraw"
   if [[ -n "$TEST_ENV" ]]; then
     TEST_ENV="$TEST_ENV,$profile_env"
   else
@@ -174,7 +175,7 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
 fi
 
 readonly profdata="$TMP_DIR/coverage.profdata"
-xcrun llvm-profdata merge "$LLVM_PROFILE_FILE" --output "$profdata"
+xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0

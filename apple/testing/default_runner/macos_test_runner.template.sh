@@ -42,7 +42,8 @@ BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
 # Create a temporary folder that will contain the test bundle and potentially
 # the test host bundle as well.
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
-trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
+profraw=$(mktemp)
+trap 'rm -rf "${TEST_TMP_DIR}" "$profraw"' ERR EXIT
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
@@ -55,6 +56,7 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
 else
   unzip -qq -d "${TEST_TMP_DIR}" "${TEST_BUNDLE_PATH}"
 fi
+readonly test_binary="$TEST_TMP_DIR/${TEST_BUNDLE_NAME}.xctest/Contents/MacOS/$TEST_BUNDLE_NAME"
 
 # In case there is no test host, TEST_HOST_PATH will be empty. TEST_BUNDLE_PATH
 # will always be populated.
@@ -104,6 +106,15 @@ function escape() {
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
 TEST_ENV="%(test_env)s"
+if [[ "${COVERAGE:-}" -eq 1 ]]; then
+  readonly profile_env="LLVM_PROFILE_FILE=$profraw"
+  if [[ -n "$TEST_ENV" ]]; then
+    TEST_ENV="$TEST_ENV,$profile_env"
+  else
+    TEST_ENV="$profile_env"
+  fi
+fi
+
 XCTESTRUN_ENV=""
 for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
@@ -129,3 +140,32 @@ fi
 xcodebuild test-without-building \
     -destination "platform=macOS" \
     -xctestrun "$XCTESTRUN"
+
+if [[ "${COVERAGE:-}" -ne 1 ]]; then
+  # Normal tests run without coverage
+  exit 0
+fi
+
+readonly profdata="$TEST_TMP_DIR/coverage.profdata"
+xcrun llvm-profdata merge "$profraw" --output "$profdata"
+
+readonly error_file="$TEST_TMP_DIR/llvm-cov-error.txt"
+llvm_cov_status=0
+xcrun llvm-cov \
+  export \
+  -format lcov \
+  -instr-profile "$profdata" \
+  -path-equivalence="$ROOT",. \
+  "$test_binary" \
+  @"$COVERAGE_MANIFEST" \
+  > "$COVERAGE_OUTPUT_FILE" \
+  2> "$error_file" \
+  || llvm_cov_status=$?
+
+# Error ourselves if lcov outputs warnings, such as if we misconfigure
+# something and the file path of one of the covered files doesn't exist
+if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
+  echo "error: while exporting coverage report" >&2
+  cat "$error_file" >&2
+  exit 1
+fi
