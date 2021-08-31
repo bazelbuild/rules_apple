@@ -1834,7 +1834,7 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(plisttool.ENTITLEMENTS_BOOLEAN_MISMATCH % (
-            _testing_target,'com.apple.developer.networking.wifi-info',
+            _testing_target, 'com.apple.developer.networking.wifi-info',
             'False', 'True'))):
       plist = {'com.apple.developer.networking.wifi-info': False}
       self._assert_plisttool_result({
