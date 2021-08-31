@@ -1833,7 +1833,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_wifi_info_active_mismatch(self):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_WIFI_INFO_MISMATCH % (
+        re.escape(plisttool.ENTITLEMENTS_BOOLEAN_MISMATCH % (
             _testing_target, 'False', 'True'))):
       plist = {'com.apple.developer.networking.wifi-info': False}
       self._assert_plisttool_result({
@@ -1852,7 +1852,7 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegexp(
         plisttool.PlistToolError,
         re.escape(
-            plisttool.ENTITLEMENTS_WIFI_INFO_MISSING % _testing_target)):
+            plisttool.ENTITLEMENTS_BOOLEAN_MISSING % _testing_target)):
       plist = {'com.apple.developer.networking.wifi-info': True}
       self._assert_plisttool_result({
           'plists': [plist],
