@@ -264,7 +264,7 @@ class BundlerTest(unittest.TestCase):
   def test_duplicate_files_with_different_content_raise_error(self):
     foo_txt = self._scratch_file('foo.txt', 'foo')
     bar_txt = self._scratch_file('bar.txt', 'bar')
-    with self.assertRaisesRegexp(
+    with self.assertRaisesRegex(
         bundletool.BundleToolError,
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
             'Payload/foo.app/renamed')):
@@ -292,7 +292,7 @@ class BundlerTest(unittest.TestCase):
   def test_zips_with_duplicate_files_and_different_content_raise_error(self):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:bar')
-    with self.assertRaisesRegexp(
+    with self.assertRaisesRegex(
         bundletool.BundleToolError,
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
             'Payload/foo.app/some.dylib')):
