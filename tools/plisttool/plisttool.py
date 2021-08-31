@@ -277,22 +277,12 @@ ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
     'support use of this key.'
 )
 
-ENTITLEMENTS_APS_ENVIRONMENT_MISSING = (
-    'Target "%s" uses entitlements with the aps-environment key, but the '
-    'profile does not have this key'
-)
-
-ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH = (
-    'In target "%s"; the entitlements "aps-environment" ("%s") did not '
-    'match the value in the provisioning profile ("%s").'
-)
-
-ENTITLEMENTS_BOOLEAN_MISSING = (
+ENTITLEMENTS_MISSING = (
     'Target "%s" uses entitlements with the '
     '"%s" key, but the profile does not have this key'
 )
 
-ENTITLEMENTS_BOOLEAN_MISMATCH = (
+ENTITLEMENTS_VALUE_MISMATCH = (
     'In target "%s"; the entitlement value for "%s" ("%s") '
     'did not match the value in the provisioning profile ("%s").'
 )
@@ -337,6 +327,7 @@ _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
 
 # Keys which should match in the profile and entitlements if they're expected
 _BOOLEAN_KEYS = frozenset([
+  'aps-environment',
   'com.apple.developer.networking.wifi-info',
   'com.apple.developer.passkit.pass-presentation-suppression',
   'com.apple.developer.payment-pass-provisioning',
@@ -1199,28 +1190,16 @@ class EntitlementsTask(PlistToolTask):
               self.target, src_app_id, profile_app_id),
             **report_extras)
 
-    aps_environment = entitlements.get('aps-environment')
-    if aps_environment and profile_entitlements:
-      profile_aps_environment = profile_entitlements.get('aps-environment')
-      if not profile_aps_environment:
-        self._report(ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target,
-                     **report_extras)
-      elif aps_environment != profile_aps_environment:
-        self._report(
-            ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH %
-            (self.target, aps_environment, profile_aps_environment),
-            **report_extras)
-
     for key in _BOOLEAN_KEYS:
       entitlements_value = entitlements.get(key)
       if entitlements_value is not None and profile_entitlements:
         profile_value = profile_entitlements.get(key)
         if not profile_value:
-          self._report(ENTITLEMENTS_BOOLEAN_MISSING % (self.target, key),
-                      **report_extras)
+          self._report(ENTITLEMENTS_MISSING % (self.target, key),
+                       **report_extras)
         if entitlements_value != profile_value:
           self._report(
-            ENTITLEMENTS_BOOLEAN_MISMATCH % (
+            ENTITLEMENTS_VALUE_MISMATCH % (
               self.target, key, entitlements_value, profile_value),
             **report_extras)
 
