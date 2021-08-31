@@ -1718,6 +1718,27 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_nfc_matching(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.developer.nfc.readersession.formats': ['NDEF'],
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.nfc.readersession.formats': [
+                        'NDEF',
+                        'TAG',
+                    ],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
   def test_entitlements_aps_environment_matches(self):
     plist = {'aps-environment': 'production'}
     self._assert_plisttool_result({
