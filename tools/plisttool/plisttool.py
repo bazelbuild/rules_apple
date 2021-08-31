@@ -326,7 +326,7 @@ _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
 ])
 
 # Keys which should match in the profile and entitlements if they're expected
-_BOOLEAN_KEYS = frozenset([
+_MATCHING_KEYS = frozenset([
   'aps-environment',
   'com.apple.developer.networking.wifi-info',
   'com.apple.developer.passkit.pass-presentation-suppression',
@@ -1190,7 +1190,7 @@ class EntitlementsTask(PlistToolTask):
               self.target, src_app_id, profile_app_id),
             **report_extras)
 
-    for key in _BOOLEAN_KEYS:
+    for key in _MATCHING_KEYS:
       entitlements_value = entitlements.get(key)
       if entitlements_value is not None and profile_entitlements:
         profile_value = profile_entitlements.get(key)
