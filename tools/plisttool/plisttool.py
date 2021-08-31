@@ -287,6 +287,11 @@ ENTITLEMENTS_VALUE_MISMATCH = (
     'did not match the value in the provisioning profile ("%s").'
 )
 
+ENTITLEMENTS_VALUE_NOT_IN_LIST = (
+    'In target "%s"; the entitlement value for "%s" ("%s") '
+    'is not in the provisioning profiles potential values ("%s").'
+)
+
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
@@ -333,6 +338,12 @@ _MATCHING_KEYS = frozenset([
   'com.apple.developer.payment-pass-provisioning',
   'com.apple.developer.siri',
   'com.apple.developer.usernotifications.time-sensitive',
+])
+
+# Keys which have a list of potential values in the profile, but only one in
+# the entitlements that must be in the profile's list of values
+_POTENTIAL_LIST_KEYS = frozenset([
+  'com.apple.developer.devicecheck.appattest-environment',
 ])
 
 # Two regexes for variable matching/validation.
@@ -1200,6 +1211,19 @@ class EntitlementsTask(PlistToolTask):
         if entitlements_value != profile_value:
           self._report(
             ENTITLEMENTS_VALUE_MISMATCH % (
+              self.target, key, entitlements_value, profile_value),
+            **report_extras)
+
+    for key in _POTENTIAL_LIST_KEYS:
+      entitlements_value = entitlements.get(key)
+      if entitlements_value is not None and profile_entitlements:
+        profile_value = profile_entitlements.get(key)
+        if not profile_value:
+          self._report(ENTITLEMENTS_MISSING % (self.target, key),
+                      **report_extras)
+        elif entitlements_value not in profile_value:
+          self._report(
+            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
               self.target, key, entitlements_value, profile_value),
             **report_extras)
 
