@@ -183,6 +183,7 @@ xcrun llvm-cov \
   export \
   -format lcov \
   -instr-profile "$profdata" \
+  -ignore-filename-regex='.*external/.+' \
   -path-equivalence="$ROOT",. \
   "$test_binary" \
   @"$COVERAGE_MANIFEST" \
