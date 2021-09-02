@@ -42,8 +42,7 @@ BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
 # Create a temporary folder that will contain the test bundle and potentially
 # the test host bundle as well.
 TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
-profraw=$(mktemp)
-trap 'rm -rf "${TEST_TMP_DIR}" "$profraw"' ERR EXIT
+trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 TEST_BUNDLE_NAME=$(basename_without_extension "$TEST_BUNDLE_PATH")
@@ -106,6 +105,7 @@ function escape() {
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
 TEST_ENV="%(test_env)s"
+readonly profraw="$TEST_TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"
   if [[ -n "$TEST_ENV" ]]; then

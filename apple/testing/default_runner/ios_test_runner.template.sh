@@ -46,8 +46,7 @@ done
 runner_flags=("-v")
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
-profraw=$(mktemp)
-trap 'rm -rf "${TMP_DIR}" "$profraw"' ERR EXIT
+trap 'rm -rf "${TMP_DIR}"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
@@ -99,6 +98,7 @@ fi
 LAUNCH_OPTIONS_JSON_STR=""
 
 TEST_ENV="%(test_env)s"
+readonly profraw="$TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"
   if [[ -n "$TEST_ENV" ]]; then
@@ -158,16 +158,11 @@ else
   )
 fi
 
-exit_status=0
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   "${target_flags[@]}"
   "${custom_xctestrunner_args[@]}")
-"${cmd[@]}" 2>&1 || exit_status=$?
-
-if [[ "$exit_status" -ne 0 ]]; then
-  exit "$exit_status"
-fi
+"${cmd[@]}" 2>&1
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
