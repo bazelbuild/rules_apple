@@ -33,19 +33,21 @@ def _dsyms_test_impl(ctx):
     """Implementation of the dsyms_test rule."""
     env = analysistest.begin(ctx)
     target_under_test = ctx.attr.target_under_test[0]
+    architectures = ctx.attr.architectures
 
-    if AppleBundleInfo in target_under_test:
-        platform_type = target_under_test[AppleBundleInfo].platform_type
-        if platform_type == "watchos":
-            architecture = "i386"
+    if not architectures:
+        if AppleBundleInfo in target_under_test:
+            platform_type = target_under_test[AppleBundleInfo].platform_type
+            if platform_type == "watchos":
+                architectures = ["i386"]
+            else:
+                architectures = ["x86_64"]
+        elif AppleBinaryInfo in target_under_test:
+            # AppleBinaryInfo does not supply a platform_type. In this case, assume x86_64.
+            architectures = ["x86_64"]
         else:
-            architecture = "x86_64"
-    elif AppleBinaryInfo in target_under_test:
-        # AppleBinaryInfo does not supply a platform_type. In this case, assume x86_64.
-        architecture = "x86_64"
-    else:
-        fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
-             target_under_test.label)
+            fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
+                 target_under_test.label)
 
     outputs = {
         x.short_path: None
@@ -59,15 +61,17 @@ def _dsyms_test_impl(ctx):
         for x in ctx.attr.expected_dsyms
     ]
 
-    expected_binaries = [
-        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}_{3}".format(
-            package,
-            x,
-            paths.split_extension(x)[0],
-            architecture,
-        )
-        for x in ctx.attr.expected_dsyms
-    ]
+    expected_binaries = []
+    for architecture in architectures:
+        expected_binaries.extend([
+            "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}_{3}".format(
+                package,
+                x,
+                paths.split_extension(x)[0],
+                architecture,
+            )
+            for x in ctx.attr.expected_dsyms
+        ])
 
     for expected in expected_infoplists + expected_binaries:
         asserts.true(
@@ -84,6 +88,14 @@ def _dsyms_test_impl(ctx):
 dsyms_test = analysistest.make(
     _dsyms_test_impl,
     attrs = {
+        "architectures": attr.string_list(
+            mandatory = False,
+            default = [],
+            doc = """
+List of architectures to verify for the given dSYM bundles as provided. Defaults to x86_64 for all
+platforms except for watchOS, which has a default of i386.
+""",
+        ),
         "expected_dsyms": attr.string_list(
             mandatory = True,
             doc = """

@@ -32,12 +32,14 @@ def _linkmap_test_impl(ctx):
     """Implementation of the linkmap_test rule."""
     env = analysistest.begin(ctx)
     target_under_test = ctx.attr.target_under_test[0]
+    architectures = ctx.attr.architectures
 
-    platform_type = target_under_test[AppleBundleInfo].platform_type
-    if platform_type == "watchos":
-        architecture = "i386"
-    else:
-        architecture = "x86_64"
+    if not architectures:
+        platform_type = target_under_test[AppleBundleInfo].platform_type
+        if platform_type == "watchos":
+            architectures = ["i386"]
+        else:
+            architectures = ["x86_64"]
 
     outputs = {
         x.short_path: None
@@ -45,10 +47,18 @@ def _linkmap_test_impl(ctx):
     }
 
     package = target_under_test.label.package
-    target_name = target_under_test.label.name
-    linkmap_name = "{}_{}.linkmap".format(target_name, architecture)
+    expected_linkmap_names = ctx.attr.expected_linkmap_names
+    if not expected_linkmap_names:
+        expected_linkmap_names = [target_under_test.label.name]
 
-    expected_linkmaps = [paths.join(package, linkmap_name)]
+    expected_linkmaps = []
+    for expected_linkmap_name in expected_linkmap_names:
+        for architecture in architectures:
+            linkmap_filename = paths.join(
+                package,
+                "{}_{}.linkmap".format(expected_linkmap_name, architecture),
+            )
+            expected_linkmaps.append(linkmap_filename)
 
     for expected in expected_linkmaps:
         asserts.true(
@@ -64,6 +74,24 @@ def _linkmap_test_impl(ctx):
 
 linkmap_test = analysistest.make(
     _linkmap_test_impl,
+    attrs = {
+        "architectures": attr.string_list(
+            mandatory = False,
+            default = [],
+            doc = """
+List of architectures to verify for the given dSYM bundles as provided. Defaults to x86_64 for all
+platforms except for watchOS, which has a default of i386.
+""",
+        ),
+        "expected_linkmap_names": attr.string_list(
+            mandatory = False,
+            default = [],
+            doc = """
+List of linkmap names to verify that linkmaps are created. Defaults to the target name if none is
+provided.
+""",
+        ),
+    },
     config_settings = {
         "//command_line_option:objc_generate_linkmap": "true",
     },
