@@ -39,6 +39,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -103,8 +107,10 @@ def _lipoed_link_outputs_by_framework(
         A list of structs with the following fields; `architectures` containing a list of the
         architectures that the binary was built with, `binary` referencing the output binary linked
         with the `lipo` tool if necessary, or referencing a symlink to the original binary if not,
-        `environment` to reference the target environment the binary was built for, and `platform`
-        to reference the target platform the binary was built for.
+        `dsym_binaries` which is a mapping of architectures to dsym binaries if any were created,
+        `environment` to reference the target environment the binary was built for, `linkmaps` which
+        is a mapping of architectures to linkmaps if any were created,  and `platform` to reference
+        the target platform the binary was built for.
     """
 
     # Organize each output as a platform_environment, where each can accept one or more archs.
@@ -122,7 +128,8 @@ def _lipoed_link_outputs_by_framework(
     lipoed_link_outputs_by_framework = []
 
     # Iterate through the structure again, this time creating a structure equivalent to link_result
-    # .outputs but with .architecture replaced with .architectures.
+    # .outputs but with .architecture replaced with .architectures, .dsym_binary replaced with
+    # .dsym_binaries, and .linkmap replaced with .linkmaps
     for framework_key, link_outputs in link_outputs_by_framework.items():
         fat_binary = actions.declare_file("{}_{}".format(label_name, framework_key))
 
@@ -139,10 +146,21 @@ def _lipoed_link_outputs_by_framework(
             output = link_outputs[0]
             actions.symlink(target_file = output.binary, output = fat_binary)
 
+        architectures = []
+        dsym_binaries = {}
+        linkmaps = {}
+
+        for link_output in link_outputs:
+            architectures.append(link_output.architecture)
+            dsym_binaries[link_output.architecture] = link_output.dsym_binary
+            linkmaps[link_output.architecture] = link_output.linkmap
+
         lipoed_link_outputs_by_framework.append(struct(
-            architectures = [link_output.architecture for link_output in link_outputs],
+            architectures = architectures,
             binary = fat_binary,
+            dsym_binaries = dsym_binaries,
             environment = link_outputs[0].environment,
+            linkmaps = linkmaps,
             platform = link_outputs[0].platform,
         ))
 
@@ -364,14 +382,7 @@ def _apple_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-
-    # Bundle extension needs to be ".xcframework" for root bundle, but macos/ios/tvos will always
-    # be ".framework"
-    nested_bundle_extension = ".framework"
-
-    # Similarly, bundle_id is expected to be in terms of the bundle ID for each embedded framework,
-    # as this value is not used in the XCFramework's root Info.plist.
-    nested_bundle_id = ctx.attr.bundle_id
+    bin_root_path = ctx.bin_dir.path
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
 
@@ -380,6 +391,14 @@ def _apple_xcframework_impl(ctx):
     features = ctx.features
     features.append("disable_legacy_signing")
     label = ctx.label
+
+    # Bundle extension needs to be ".xcframework" for root bundle, but macos/ios/tvos will always
+    # be ".framework"
+    nested_bundle_extension = ".framework"
+
+    # Similarly, bundle_id is expected to be in terms of the bundle ID for each embedded framework,
+    # as this value is not used in the XCFramework's root Info.plist.
+    nested_bundle_id = ctx.attr.bundle_id
 
     for framework_type in ctx.attr.framework_type:
         if framework_type != "dynamic":
@@ -411,6 +430,8 @@ def _apple_xcframework_impl(ctx):
     available_libraries = []
     framework_archive_files = []
     framework_archive_merge_zips = []
+    framework_output_files = []
+    framework_output_groups = []
 
     for link_output in lipoed_link_outputs_by_framework:
         split_attr_keys = []
@@ -443,6 +464,7 @@ def _apple_xcframework_impl(ctx):
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
             config_vars = ctx.var,
+            cpp_fragment = ctx.fragments.cpp,
             device_families = getattr(
                 ctx.attr.families_required,
                 link_output.platform,
@@ -516,6 +538,19 @@ def _apple_xcframework_impl(ctx):
                 label_name = label.name,
                 output_discriminator = library_identifier,
             ),
+            partials.debug_symbols_partial(
+                actions = actions,
+                bin_root_path = bin_root_path,
+                bundle_extension = nested_bundle_extension,
+                bundle_name = bundle_name,
+                debug_discriminator = link_output.platform + "_" + link_output.environment,
+                dsym_binaries = link_output.dsym_binaries,
+                dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+                executable_name = executable_name,
+                linkmaps = link_output.linkmaps,
+                platform_prerequisites = platform_prerequisites,
+                rule_label = label,
+            ),
             partials.framework_headers_partial(hdrs = ctx.files.public_hdrs),
             partials.resources_partial(
                 actions = actions,
@@ -566,6 +601,7 @@ def _apple_xcframework_impl(ctx):
         )
 
         for provider in processor_result.providers:
+            # Save the framework archive.
             if getattr(provider, "archive", None):
                 # Repackage every archive found for bundle_merge_zips in the final bundler action.
                 framework_archive_merge_zips.append(
@@ -574,6 +610,16 @@ def _apple_xcframework_impl(ctx):
 
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
+
+            # Save the dSYMs.
+            if getattr(provider, "dsyms", None):
+                framework_output_files.append(depset(transitive = [provider.dsyms]))
+                framework_output_groups.append({"dsyms": provider.dsyms})
+
+            # Save the linkmaps.
+            if getattr(provider, "linkmaps", None):
+                framework_output_files.append(depset(transitive = [provider.linkmaps]))
+                framework_output_groups.append({"linkmaps": provider.linkmaps})
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
@@ -619,7 +665,12 @@ def _apple_xcframework_impl(ctx):
         ),
         AppleXcframeworkBundleInfo(),
         DefaultInfo(
-            files = depset([ctx.outputs.archive]),
+            files = depset([ctx.outputs.archive], transitive = framework_output_files),
+        ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                *framework_output_groups
+            )
         ),
     ]
     return processor_output

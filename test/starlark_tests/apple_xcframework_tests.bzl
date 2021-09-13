@@ -19,8 +19,16 @@ load(
     "archive_contents_test",
 )
 load(
+    ":rules/dsyms_test.bzl",
+    "dsyms_test",
+)
+load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":rules/linkmap_test.bzl",
+    "linkmap_test",
 )
 
 # buildifier: disable=unnamed-macro
@@ -96,6 +104,70 @@ def apple_xcframework_test_suite():
             "$BUNDLE_ROOT/ios-i386_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_device_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
+        architectures = ["arm64"],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_simulator_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
+        architectures = ["x86_64"],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_fat_device_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
+        architectures = ["arm64", "armv7"],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_fat_simulator_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
+        architectures = ["x86_64", "i386"],
+        tags = [name],
+    )
+
+    linkmap_test(
+        name = "{}_device_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_linkmap_names = ["ios_dynamic_xcframework_ios_device"],
+        architectures = ["arm64"],
+        tags = [name],
+    )
+
+    linkmap_test(
+        name = "{}_simulator_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_linkmap_names = ["ios_dynamic_xcframework_ios_simulator"],
+        architectures = ["x86_64"],
+        tags = [name],
+    )
+
+    linkmap_test(
+        name = "{}_fat_device_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_linkmap_names = ["ios_dynamic_lipoed_xcframework_ios_device"],
+        architectures = ["arm64", "armv7"],
+        tags = [name],
+    )
+
+    linkmap_test(
+        name = "{}_fat_simulator_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_linkmap_names = ["ios_dynamic_lipoed_xcframework_ios_simulator"],
+        architectures = ["x86_64", "i386"],
         tags = [name],
     )
 
