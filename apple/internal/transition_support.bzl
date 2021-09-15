@@ -178,13 +178,19 @@ def _command_line_options_for_platform(
         if platform_attr.get(target_environment):
             cpus = platform_attr[target_environment]
             for cpu in cpus:
+                resolved_cpu = cpu
+
+                # TODO(b/180572694): Remove cpu redirection after supporting platforms based
+                # toolchain resolution.
+                if cpu == "arm64" and target_environment == "simulator":
+                    resolved_cpu = "sim_arm64"
                 found_cpu = {
                     _xcframework_split_attr_key(
                         cpu = cpu,
                         environment = target_environment,
                         platform_type = platform_type,
                     ): _command_line_options(
-                        cpu = cpu,
+                        cpu = resolved_cpu,
                         minimum_os_version = minimum_os_version,
                         platform_type = platform_type,
                         settings = settings,
