@@ -27,6 +27,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -370,6 +374,11 @@ def _create_xcframework_bundle(
 
 def _apple_xcframework_impl(ctx):
     """Experimental WIP implementation of apple_xcframework."""
+
+    if is_experimental_tree_artifact_enabled(config_vars = ctx.var):
+        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
+             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
+             "set to 1 on the command line or in your active build configuration.")
 
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
