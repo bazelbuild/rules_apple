@@ -638,6 +638,8 @@ function assert_objdump_not_contains() {
 function assert_ipa_contains_bitcode_maps() {
   local platform="$1" ; shift
   local archive_zip_or_dir="$1" ; shift
+  local bc_symbol_maps_root="$1" ; shift
+  local bc_symbol_maps_dir="${bc_symbol_maps_root}/BCSymbolMaps"
 
   for binary in "$@" ; do
     if [[ -d "$archive_zip_or_dir" ]] ; then
@@ -655,10 +657,10 @@ function assert_ipa_contains_bitcode_maps() {
       local uuid=${uuid_and_arch[0]}
 
       if [[ -d "$archive_zip_or_dir" ]] ; then
-        assert_exists "$archive_zip_or_dir/BCSymbolMaps/${uuid}.bcsymbolmap"
+        assert_exists "${archive_zip_or_dir}/${bc_symbol_maps_dir}/${uuid}.bcsymbolmap"
       else
         assert_zip_contains "$archive_zip_or_dir" \
-          "BCSymbolMaps/${uuid}.bcsymbolmap"
+          "${bc_symbol_maps_dir}/${uuid}.bcsymbolmap"
       fi
     done
 
