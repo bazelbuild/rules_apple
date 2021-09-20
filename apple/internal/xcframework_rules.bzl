@@ -216,6 +216,7 @@ def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
 def _available_library_dictionary(
         *,
         architectures,
+        bitcode_symbol_maps,
         bundle_extension,
         bundle_name,
         environment,
@@ -226,6 +227,8 @@ def _available_library_dictionary(
      Args:
         architectures: The architectures of the target that was built. For example, `x86_64` or
             `arm64`.
+        bitcode_symbol_maps: A mapping of architectures to Files representing bitcode symbol maps
+            for each architecture.
         bundle_extension: The extension for the library inside the archive.
         bundle_name: The name of the library inside the archive.
         environment: The environment of the target that was built, which corresponds to the
@@ -247,6 +250,17 @@ def _available_library_dictionary(
         "SupportedArchitectures": architectures,
         "SupportedPlatform": platform,
     }
+
+    # If there are any bitcode symbol maps for this library, indicate that they are in the
+    # BCSymbolMaps subdir.
+    #
+    # The `BitcodeSymbolMapsPath` is relative to the `LibraryIdentifier`. If `LibraryIdentifier` is
+    # `ios-arm64_armv7`, then the path in the xcframework bundle to the bitcode symbol maps will be
+    # `ios-arm64_armv7/BCSymbolMaps`
+    for bitcode_symbol_map in bitcode_symbol_maps.values():
+        if bitcode_symbol_map:
+            available_library["BitcodeSymbolMapsPath"] = "BCSymbolMaps"
+            break
 
     if environment != "device":
         available_library["SupportedPlatformVariant"] = environment
@@ -647,6 +661,7 @@ def _apple_xcframework_impl(ctx):
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
             architectures = link_output.architectures,
+            bitcode_symbol_maps = link_output.bitcode_symbol_maps,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             environment = link_output.environment,
