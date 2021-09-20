@@ -103,10 +103,11 @@ def _lipoed_link_outputs_by_framework(
         A list of structs with the following fields; `architectures` containing a list of the
         architectures that the binary was built with, `binary` referencing the output binary linked
         with the `lipo` tool if necessary, or referencing a symlink to the original binary if not,
-        `dsym_binaries` which is a mapping of architectures to dsym binaries if any were created,
-        `environment` to reference the target environment the binary was built for, `linkmaps` which
-        is a mapping of architectures to linkmaps if any were created,  and `platform` to reference
-        the target platform the binary was built for.
+        `bitcode_symbol_maps` which is a mapping of architectures to bitcode symbol maps if any were
+        created, `dsym_binaries` which is a mapping of architectures to dsym binaries if any were
+        created, `environment` to reference the target environment the binary was built for,
+        `linkmaps` which is a mapping of architectures to linkmaps if any were created,  and
+        `platform` to reference the target platform the binary was built for.
     """
 
     # Organize each output as a platform_environment, where each can accept one or more archs.
@@ -124,8 +125,9 @@ def _lipoed_link_outputs_by_framework(
     lipoed_link_outputs_by_framework = []
 
     # Iterate through the structure again, this time creating a structure equivalent to link_result
-    # .outputs but with .architecture replaced with .architectures, .dsym_binary replaced with
-    # .dsym_binaries, and .linkmap replaced with .linkmaps
+    # .outputs but with .architecture replaced with .architectures, .bitcode_symbols replaced with
+    # .bitcode_symbol_maps, .dsym_binary replaced with .dsym_binaries, and .linkmap replaced with
+    # .linkmaps
     for framework_key, link_outputs in link_outputs_by_framework.items():
         fat_binary = actions.declare_file("{}_{}".format(label_name, framework_key))
 
@@ -143,17 +145,20 @@ def _lipoed_link_outputs_by_framework(
             actions.symlink(target_file = output.binary, output = fat_binary)
 
         architectures = []
+        bitcode_symbol_maps = {}
         dsym_binaries = {}
         linkmaps = {}
 
         for link_output in link_outputs:
             architectures.append(link_output.architecture)
+            bitcode_symbol_maps[link_output.architecture] = link_output.bitcode_symbols
             dsym_binaries[link_output.architecture] = link_output.dsym_binary
             linkmaps[link_output.architecture] = link_output.linkmap
 
         lipoed_link_outputs_by_framework.append(struct(
             architectures = architectures,
             binary = fat_binary,
+            bitcode_symbol_maps = bitcode_symbol_maps,
             dsym_binaries = dsym_binaries,
             environment = link_outputs[0].environment,
             linkmaps = linkmaps,
@@ -318,6 +323,7 @@ def _create_xcframework_bundle(
         actions,
         bundle_name,
         framework_archive_files,
+        framework_archive_merge_files,
         framework_archive_merge_zips,
         label_name,
         output_archive,
@@ -331,6 +337,10 @@ def _create_xcframework_bundle(
         framework_archive_files: A list of depsets referencing files to be used as inputs to the
             bundling action. This should include every archive referenced as a "src" of
             framework_archive_merge_zips.
+        framework_archive_merge_files: A list of structs representing files that should be merged
+            into the bundle. Each struct contains two fields: "src", the path of the file that
+            should be merged into the bundle; and "dest", the path inside the bundle where the file
+            should be placed. The destination path is relative to `bundle_path`.
         framework_archive_merge_zips: A list of structs representing ZIP archives whose contents
             should be merged into the bundle. Each struct contains two fields: "src", the path of
             the archive whose contents should be merged into the bundle; and "dest", the path inside
@@ -347,8 +357,9 @@ def _create_xcframework_bundle(
         output_discriminator = None,
         file_name = "xcframework_bundletool_control.json",
     )
+    root_info_plist_merge_file = struct(src = root_info_plist.path, dest = "Info.plist")
     bundletool_control = struct(
-        bundle_merge_files = [struct(src = root_info_plist.path, dest = "Info.plist")],
+        bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files,
         bundle_merge_zips = framework_archive_merge_zips,
         bundle_path = bundle_name + ".xcframework",
         output = output_archive.path,
@@ -420,6 +431,7 @@ def _apple_xcframework_impl(ctx):
 
     available_libraries = []
     framework_archive_files = []
+    framework_archive_merge_files = []
     framework_archive_merge_zips = []
     framework_output_files = []
     framework_output_groups = []
@@ -529,6 +541,14 @@ def _apple_xcframework_impl(ctx):
                 label_name = label.name,
                 output_discriminator = library_identifier,
             ),
+            partials.bitcode_symbols_partial(
+                actions = actions,
+                binary_artifact = binary_artifact,
+                bitcode_symbol_maps = link_output.bitcode_symbol_maps,
+                label_name = label.name,
+                output_discriminator = library_identifier,
+                platform_prerequisites = platform_prerequisites,
+            ),
             partials.debug_symbols_partial(
                 actions = actions,
                 bin_root_path = bin_root_path,
@@ -602,6 +622,18 @@ def _apple_xcframework_impl(ctx):
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
 
+            # Save the bitcode maps.
+            if getattr(provider, "bitcode", None):
+                bitcode_files = provider.bitcode.to_list()
+                for bitcode_file in bitcode_files:
+                    framework_archive_merge_files.append(
+                        struct(
+                            src = bitcode_file.path,
+                            dest = library_identifier + "/BCSymbolMaps",
+                        ),
+                    )
+                framework_archive_files.append(provider.bitcode)
+
             # Save the dSYMs.
             if getattr(provider, "dsyms", None):
                 framework_output_files.append(depset(transitive = [provider.dsyms]))
@@ -636,6 +668,7 @@ def _apple_xcframework_impl(ctx):
         actions = actions,
         bundle_name = bundle_name,
         framework_archive_files = framework_archive_files,
+        framework_archive_merge_files = framework_archive_merge_files,
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = ctx.outputs.archive,
