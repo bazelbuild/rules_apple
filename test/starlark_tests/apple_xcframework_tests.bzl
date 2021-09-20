@@ -17,6 +17,7 @@
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
+    "bitcode_symbol_map_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -198,6 +199,26 @@ def apple_xcframework_test_suite():
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         expected_linkmap_names = ["ios_dynamic_lipoed_xcframework_ios_simulator"],
         architectures = ["x86_64", "arm64", "i386"],
+        tags = [name],
+    )
+
+    bitcode_symbol_map_test(
+        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
+        bc_symbol_maps_root = "ios_dynamic_xcframework.xcframework/ios-arm64",
+        binary_paths = [
+            "ios_dynamic_xcframework.xcframework/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        tags = [name],
+    )
+
+    bitcode_symbol_map_test(
+        name = "{}_fat_archive_contains_bitcode_symbol_maps_test".format(name),
+        bc_symbol_maps_root = "ios_dynamic_lipoed_xcframework.xcframework/ios-arm64_armv7",
+        binary_paths = [
+            "ios_dynamic_lipoed_xcframework.xcframework/ios-arm64_armv7/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         tags = [name],
     )
 

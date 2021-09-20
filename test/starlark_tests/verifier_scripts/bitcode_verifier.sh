@@ -21,4 +21,4 @@ set -euo pipefail
 # TODO(b/131684084): Once no other integration tests are using that function,
 # move its body into here and remove the legacy .ipa/.zip handling logic.
 assert_ipa_contains_bitcode_maps \
-    "$PLATFORM" "$ARCHIVE_ROOT" "${BITCODE_BINARIES[@]}"
+    "$PLATFORM" "$ARCHIVE_ROOT" "$BC_SYMBOL_MAPS_ROOT" "${BITCODE_BINARIES[@]}"
