@@ -53,6 +53,10 @@ def apple_xcframework_test_suite():
             "CFBundlePackageType": "XFWK",
             "XCFrameworkFormatVersion": "1.0",
         },
+        not_expected_keys = [
+            "AvailableLibraries:0:BitcodeSymbolMapsPath",
+            "AvailableLibraries:1:BitcodeSymbolMapsPath",
+        ],
         tags = [name],
     )
 
@@ -75,6 +79,40 @@ def apple_xcframework_test_suite():
             "CFBundlePackageType": "XFWK",
             "XCFrameworkFormatVersion": "1.0",
         },
+        not_expected_keys = [
+            "AvailableLibraries:0:BitcodeSymbolMapsPath",
+            "AvailableLibraries:1:BitcodeSymbolMapsPath",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_ios_plist_bitcode_test".format(name),
+        apple_bitcode = "embedded",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:BitcodeSymbolMapsPath": "BCSymbolMaps",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-x86_64-simulator",
+        },
+        not_expected_keys = [
+            "AvailableLibraries:1:BitcodeSymbolMapsPath",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_ios_fat_plist_bitcode_test".format(name),
+        apple_bitcode = "embedded",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64_armv7",
+            "AvailableLibraries:0:BitcodeSymbolMapsPath": "BCSymbolMaps",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-i386_arm64_x86_64-simulator",
+        },
+        not_expected_keys = [
+            "AvailableLibraries:1:BitcodeSymbolMapsPath",
+        ],
         tags = [name],
     )
 
