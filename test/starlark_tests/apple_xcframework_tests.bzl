@@ -260,6 +260,140 @@ def apple_xcframework_test_suite():
         tags = [name],
     )
 
+    # Tests that minimum os versions values are respected by the embedded frameworks.
+    archive_contents_test(
+        name = "{}_ios_minimum_os_versions_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_ver_10",
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_ver_10.framework/Info.plist",
+        plist_test_values = {
+            "MinimumOSVersion": "10.0",
+        },
+        tags = [name],
+    )
+
+    # Tests that options to override the device family (in this case, exclusively "ipad" for the iOS
+    # platform) are respected by the embedded frameworks.
+    archive_contents_test(
+        name = "{}_ios_exclusively_ipad_device_family_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_exclusively_ipad_device_family",
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_exclusively_ipad_device_family.framework/Info.plist",
+        plist_test_values = {
+            "UIDeviceFamily:0": "2",
+        },
+        tags = [name],
+    )
+
+    # Tests that info plist merging is respected by XCFrameworks.
+    archive_contents_test(
+        name = "{}_multiple_infoplist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_multiple_infoplists",
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_multiple_infoplists.framework/Info.plist",
+        plist_test_values = {
+            "AnotherKey": "AnotherValue",
+            "CFBundleExecutable": "ios_dynamic_xcframework_multiple_infoplists",
+        },
+        tags = [name],
+    )
+
+    # Tests that resource bundles and files assigned through "data" are respected.
+    archive_contents_test(
+        name = "{}_dbg_resources_data_test".format(name),
+        build_type = "device",
+        compilation_mode = "dbg",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        is_not_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_data_resource_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_data_resource_bundle.framework/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_data_resource_bundle",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_opt_resources_data_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_data_resource_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_data_resource_bundle.framework/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_data_resource_bundle",
+        tags = [name],
+    )
+
+    # Tests that resource bundles assigned through "deps" are respected.
+    archive_contents_test(
+        name = "{}_dbg_resources_deps_test".format(name),
+        build_type = "device",
+        compilation_mode = "dbg",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_deps_resource_bundle",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_opt_resources_deps_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_deps_resource_bundle",
+        tags = [name],
+    )
+
+    # Tests that the exported symbols list works for XCFrameworks.
+    archive_contents_test(
+        name = "{}_exported_symbols_lists_stripped_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_stripped",
+        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_stripped.framework/ios_dynamic_xcframework_stripped",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        binary_not_contains_symbols = ["_dontCallMeShared", "_anticipatedDeadCode"],
+        tags = [name],
+    )
+
+    # Tests that multiple exported symbols lists works for XCFrameworks.
+    archive_contents_test(
+        name = "{}_two_exported_symbols_lists_stripped_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_stripped_two_exported_symbols_lists",
+        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_stripped_two_exported_symbols_lists.framework/ios_dynamic_xcframework_stripped_two_exported_symbols_lists",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared", "_dontCallMeShared"],
+        binary_not_contains_symbols = ["_anticipatedDeadCode"],
+        tags = [name],
+    )
+
+    # Tests that dead stripping + exported symbols lists works for XCFrameworks just as it does for
+    # dynamic frameworks.
+    archive_contents_test(
+        name = "{}_exported_symbols_list_dead_stripped_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_dead_stripped",
+        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_dead_stripped.framework/ios_dynamic_xcframework_dead_stripped",
+        compilation_mode = "opt",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        binary_not_contains_symbols = ["_dontCallMeShared", "_anticipatedDeadCode"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
