@@ -22,13 +22,21 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
+    ":rules/apple_verification_test.bzl",
+    "apple_verification_transition",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
 )
 
 def _infoplist_contents_test_impl(ctx):
     """Implementation of the plist_contents_test rule."""
-    plist_file = ctx.attr.target_under_test[AppleBundleInfo].infoplist
+    target_under_test = ctx.attr.target_under_test[0]
+    if not AppleBundleInfo in target_under_test:
+        fail(("Target %s does not provide AppleBundleInfo") % target_under_test.label)
+
+    plist_file = target_under_test[AppleBundleInfo].infoplist
     plist_path = plist_file.short_path
 
     test_lines = [
@@ -90,13 +98,43 @@ def _infoplist_contents_test_impl(ctx):
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
     attrs = {
+        "apple_bitcode": attr.string(
+            default = "none",
+            doc = """
+The Bitcode mode to use for compilation steps. Possible values are `none`,
+`embedded_markers`, or `embedded`. Defaults to `none`.
+""",
+            values = ["none", "embedded_markers", "embedded"],
+        ),
+        "build_type": attr.string(
+            default = "simulator",
+            doc = """
+Type of build for the target under test. Possible values are `simulator` or `device`.
+Defaults to `simulator`.
+""",
+            values = ["simulator", "device"],
+        ),
+        "compilation_mode": attr.string(
+            default = "fastbuild",
+            doc = """
+Possible values are `fastbuild`, `dbg` or `opt`. Defaults to `fastbuild`.
+https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
+""",
+            values = ["fastbuild", "opt", "dbg"],
+        ),
+        "apple_generate_dsym": attr.bool(
+            default = False,
+            doc = """
+If true, generates .dSYM debug symbol bundles for the target(s) under test.
+""",
+        ),
         "target_under_test": attr.label(
-            mandatory = True,
-            providers = [AppleBundleInfo],
+            cfg = apple_verification_transition,
             doc = "Target containing an Info.plist file to verify.",
+            providers = [AppleBundleInfo],
+            mandatory = True,
         ),
         "expected_values": attr.string_dict(
-            mandatory = False,
             default = {},
             doc = """
 Dictionary of plist keys and expected values for that key. This test will fail if the key does not
@@ -105,9 +143,11 @@ shell scripts.
 """,
         ),
         "not_expected_keys": attr.string_list(
-            mandatory = False,
             default = [],
             doc = "Array of plist keys that should not exist. The test will fail if the key exists.",
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
         "_xcode_config": attr.label(
             default = configuration_field(

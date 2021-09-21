@@ -58,7 +58,7 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:watchos_cpus": "armv7k",
         })
     existing_features = settings.get("//command_line_option:features") or []
-    if attr.sanitizer != "none":
+    if hasattr(attr, "sanitizer") and attr.sanitizer != "none":
         output_dictionary["//command_line_option:features"] = existing_features + [attr.sanitizer]
     else:
         output_dictionary["//command_line_option:features"] = existing_features
