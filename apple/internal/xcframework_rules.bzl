@@ -491,16 +491,11 @@ def _apple_xcframework_impl(ctx):
             apple_fragment = ctx.fragments.apple,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
-            device_families = getattr(
-                ctx.attr.families_required,
+            device_families = ctx.attr.families_required.get(
                 link_output.platform,
-                rule_descriptor.allowed_device_families,
+                default = rule_descriptor.allowed_device_families,
             ),
-            explicit_minimum_os = getattr(
-                ctx.attr.minimum_os_versions,
-                link_output.platform,
-                None,
-            ),
+            explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = uses_swift,
