@@ -1267,8 +1267,9 @@ class EntitlementsTask(PlistToolTask):
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
 
-  @staticmethod
-  def _does_id_match(id, allowed,
+  def _does_id_match(self,
+                     id,
+                     allowed,
                      allowed_supports_wildcards=False,
                      id_supports_wildcards=False):
     """Check is an id matches the given allowed id (include wildcards).
@@ -1305,8 +1306,10 @@ class EntitlementsTask(PlistToolTask):
 
     return False
 
-  @staticmethod
-  def _does_id_match_list(id, allowed_list, allowed_supports_wildcards=False):
+  def _does_id_match_list(self,
+                          id,
+                          allowed_list,
+                          allowed_supports_wildcards=False):
     """Check is an id matches the given allowed id list (include wildcards).
 
     Args:
@@ -1318,17 +1321,20 @@ class EntitlementsTask(PlistToolTask):
       True/False if the identifier is covered.
     """
     for allowed in allowed_list:
-      if EntitlementsTask._does_id_match(id, allowed,
-          allowed_supports_wildcards=allowed_supports_wildcards):
+      if self._does_id_match(
+          id, allowed, allowed_supports_wildcards=allowed_supports_wildcards):
         return True
 
     return False
 
-  @classmethod
-  def _check_entitlements_array(
-      self, entitlements, profile_entitlements, key_name, target,
-      supports_wildcards=False, report_extras=None,
-      allow_wildcards_in_entitlements=False):
+  def _check_entitlements_array(self,
+                                entitlements,
+                                profile_entitlements,
+                                key_name,
+                                target,
+                                supports_wildcards=False,
+                                report_extras=None,
+                                allow_wildcards_in_entitlements=False):
     """Checks if the requested entitlements against the profile for a key
 
     Args:
@@ -1374,8 +1380,7 @@ class EntitlementsTask(PlistToolTask):
               target, key_name, src_grp, '", "'.join(profile_grps)),
             **report_extras)
 
-  @staticmethod
-  def _report(msg, msg_suffix=None, warn_only=False):
+  def _report(self, msg, msg_suffix=None, warn_only=False):
     """Helper for reporting things.
 
     Args:
