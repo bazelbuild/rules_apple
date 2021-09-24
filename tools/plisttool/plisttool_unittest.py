@@ -1744,7 +1744,7 @@ class PlistToolTest(unittest.TestCase):
         plisttool.PlistToolError,
         re.escape(
             plisttool.ENTITLEMENTS_MISSING % (
-            _testing_target, 'aps-environment'))):
+                _testing_target, 'aps-environment'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1881,16 +1881,17 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_MISSING % (
-          _testing_target, 'com.apple.developer.networking.wifi-info'))):
+        re.escape(
+            plisttool.ENTITLEMENTS_MISSING %
+            (_testing_target, 'com.apple.developer.networking.wifi-info'))):
       plist = {'com.apple.developer.networking.wifi-info': True}
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
               'profile_metadata_file': {
                   'Entitlements': {
-                    'application-identifier': 'QWERTY.*',
-                    # No wifi-info
+                      'application-identifier': 'QWERTY.*',
+                      # No wifi-info
                   },
                   'Version': 1,
               },

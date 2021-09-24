@@ -292,6 +292,18 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
     'is not in the provisioning profiles potential values ("%s").'
 )
 
+_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
+    'aps-environment',
+    'com.apple.developer.networking.wifi-info',
+    'com.apple.developer.passkit.pass-presentation-suppression',
+    'com.apple.developer.payment-pass-provisioning',
+    'com.apple.developer.siri',
+    'com.apple.developer.usernotifications.time-sensitive',
+    # Keys which have a list of potential values in the profile, but only one
+    # can be defined in the entitlements file, and must be part of that list.
+    'com.apple.developer.devicecheck.appattest-environment',
+)
+
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
@@ -328,22 +340,6 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
     'bundle_id', 'profile_metadata_file', 'validation_mode',
-])
-
-# Keys which should match in the profile and entitlements if they're expected
-_MATCHING_KEYS = frozenset([
-  'aps-environment',
-  'com.apple.developer.networking.wifi-info',
-  'com.apple.developer.passkit.pass-presentation-suppression',
-  'com.apple.developer.payment-pass-provisioning',
-  'com.apple.developer.siri',
-  'com.apple.developer.usernotifications.time-sensitive',
-])
-
-# Keys which have a list of potential values in the profile, but only one in
-# the entitlements that must be in the profile's list of values
-_POTENTIAL_LIST_KEYS = frozenset([
-  'com.apple.developer.devicecheck.appattest-environment',
 ])
 
 # Two regexes for variable matching/validation.
@@ -1195,37 +1191,11 @@ class EntitlementsTask(PlistToolTask):
             ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
               self.target, src_app_id, profile_app_id))
 
-    for key in _MATCHING_KEYS:
-      entitlements_value = entitlements.get(key)
-      if entitlements_value is not None and profile_entitlements:
-        profile_value = profile_entitlements.get(key)
-        if not profile_value:
-          self._report(ENTITLEMENTS_MISSING % (self.target, key))
-        if entitlements_value != profile_value:
-          self._report(
-            ENTITLEMENTS_VALUE_MISMATCH % (
-              self.target, key, entitlements_value, profile_value))
-
-    for key in _POTENTIAL_LIST_KEYS:
-      entitlements_value = entitlements.get(key)
-      if entitlements_value is not None and profile_entitlements:
-        profile_value = profile_entitlements.get(key)
-        if not profile_value:
-          self._report(ENTITLEMENTS_MISSING % (self.target, key))
-        elif entitlements_value not in profile_value:
-          self._report(
-            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
-              self.target, key, entitlements_value, profile_value))
-
-    aps_environment = entitlements.get('aps-environment')
-    if aps_environment and profile_entitlements:
-      profile_aps_environment = profile_entitlements.get('aps-environment')
-      if not profile_aps_environment:
-        self._report(ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target)
-      elif aps_environment != profile_aps_environment:
-        self._report(
-            ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH %
-            (self.target, aps_environment, profile_aps_environment))
+    for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
+      self._check_entitlement_matches_profile_value(
+          entitlement=entitlement,
+          entitlements=entitlements,
+          profile_entitlements=profile_entitlements)
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
@@ -1262,6 +1232,48 @@ class EntitlementsTask(PlistToolTask):
         'com.apple.developer.associated-domains', self.target,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
+
+    # com.apple.developer.nfc.readersession.formats
+    self._check_entitlements_array(
+        entitlements,
+        profile_entitlements,
+        'com.apple.developer.nfc.readersession.formats',
+        self.target)
+
+  def _check_entitlement_matches_profile_value(
+      self,
+      entitlement,
+      entitlements,
+      profile_entitlements):
+    """Checks if an entitlement value matches against profile entitlement.
+
+    If provisioning profile entitlement is defined as a list, this will
+    check if entitlement is part of that list.
+
+    Args:
+      entitlement: Entitlement key identifier.
+      entitlements: Entitlements dictionary.
+      profile_entitlements: Provisioning Profile entitlements dictionary.
+    """
+    entitlements_value = entitlements.get(entitlement)
+    if entitlements_value is None:
+      return
+
+    profile_value = (profile_entitlements or {}).get(entitlement)
+    if profile_value is None:
+      # provisioning profile does not have entitlement.
+      self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
+    elif (isinstance(profile_value, list)
+          and entitlements_value not in profile_value):
+      # provisioning profile does not have entitlement in list.
+      self._report(
+          ENTITLEMENTS_VALUE_NOT_IN_LIST % (
+              self.target, entitlement, entitlements_value, profile_value))
+    elif entitlements_value != profile_value:
+      # provisioning profile entitlement does not match value.
+      self._report(
+          ENTITLEMENTS_VALUE_MISMATCH % (
+              self.target, entitlement, entitlements_value, profile_value))
 
   def _does_id_match(self,
                      id,
