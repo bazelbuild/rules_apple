@@ -277,14 +277,31 @@ ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
     'support use of this key.'
 )
 
-ENTITLEMENTS_APS_ENVIRONMENT_MISSING = (
-    'Target "%s" uses entitlements with the aps-environment key, but the '
-    'profile does not have this key'
+ENTITLEMENTS_MISSING = (
+    'Target "%s" uses entitlements with the '
+    '"%s" key, but the profile does not have this key'
 )
 
-ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH = (
-    'In target "%s"; the entitlements "aps-environment" ("%s") did not '
-    'match the value in the provisioning profile ("%s").'
+ENTITLEMENTS_VALUE_MISMATCH = (
+    'In target "%s"; the entitlement value for "%s" ("%s") '
+    'did not match the value in the provisioning profile ("%s").'
+)
+
+ENTITLEMENTS_VALUE_NOT_IN_LIST = (
+    'In target "%s"; the entitlement value for "%s" ("%s") '
+    'is not in the provisioning profiles potential values ("%s").'
+)
+
+_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
+    'aps-environment',
+    'com.apple.developer.networking.wifi-info',
+    'com.apple.developer.passkit.pass-presentation-suppression',
+    'com.apple.developer.payment-pass-provisioning',
+    'com.apple.developer.siri',
+    'com.apple.developer.usernotifications.time-sensitive',
+    # Keys which have a list of potential values in the profile, but only one
+    # can be defined in the entitlements file, and must be part of that list.
+    'com.apple.developer.devicecheck.appattest-environment',
 )
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
@@ -1195,15 +1212,11 @@ class EntitlementsTask(PlistToolTask):
             ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
               self.target, src_app_id, profile_app_id))
 
-    aps_environment = entitlements.get('aps-environment')
-    if aps_environment and profile_entitlements:
-      profile_aps_environment = profile_entitlements.get('aps-environment')
-      if not profile_aps_environment:
-        self._report(ENTITLEMENTS_APS_ENVIRONMENT_MISSING % self.target)
-      elif aps_environment != profile_aps_environment:
-        self._report(
-            ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH %
-            (self.target, aps_environment, profile_aps_environment))
+    for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
+      self._check_entitlement_matches_profile_value(
+          entitlement=entitlement,
+          entitlements=entitlements,
+          profile_entitlements=profile_entitlements)
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
@@ -1236,6 +1249,48 @@ class EntitlementsTask(PlistToolTask):
         'com.apple.developer.associated-domains', self.target,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
+
+    # com.apple.developer.nfc.readersession.formats
+    self._check_entitlements_array(
+        entitlements,
+        profile_entitlements,
+        'com.apple.developer.nfc.readersession.formats',
+        self.target)
+
+  def _check_entitlement_matches_profile_value(
+      self,
+      entitlement,
+      entitlements,
+      profile_entitlements):
+    """Checks if an entitlement value matches against profile entitlement.
+
+    If provisioning profile entitlement is defined as a list, this will
+    check if entitlement is part of that list.
+
+    Args:
+      entitlement: Entitlement key identifier.
+      entitlements: Entitlements dictionary.
+      profile_entitlements: Provisioning Profile entitlements dictionary.
+    """
+    entitlements_value = entitlements.get(entitlement)
+    if entitlements_value is None:
+      return
+
+    profile_value = (profile_entitlements or {}).get(entitlement)
+    if profile_value is None:
+      # provisioning profile does not have entitlement.
+      self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
+    elif (isinstance(profile_value, list)
+          and entitlements_value not in profile_value):
+      # provisioning profile does not have entitlement in list.
+      self._report(
+          ENTITLEMENTS_VALUE_NOT_IN_LIST % (
+              self.target, entitlement, entitlements_value, profile_value))
+    elif entitlements_value != profile_value:
+      # provisioning profile entitlement does not match value.
+      self._report(
+          ENTITLEMENTS_VALUE_MISMATCH % (
+              self.target, entitlement, entitlements_value, profile_value))
 
   def _does_id_match(self,
                      id,

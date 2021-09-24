@@ -1718,6 +1718,28 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_nfc_matching(self):
+    # This is really looking for the lack of an error being raised.
+    plist1 = {
+        'com.apple.developer.nfc.readersession.formats': ['NDEF'],
+    }
+    self._assert_plisttool_result(
+        {
+            'plists': [plist1],
+            'entitlements_options': {
+                'bundle_id': 'my.bundle.id',
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'com.apple.developer.nfc.readersession.formats': [
+                            'NDEF',
+                            'TAG',
+                        ],
+                    },
+                    'Version': 1,
+                },
+            },
+        }, plist1)
+
   def test_entitlements_aps_environment_matches(self):
     plist = {'aps-environment': 'production'}
     self._assert_plisttool_result({
@@ -1736,7 +1758,8 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(
-            plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISSING % _testing_target)):
+            plisttool.ENTITLEMENTS_MISSING % (
+                _testing_target, 'aps-environment'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1753,8 +1776,8 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_aps_environment_mismatch(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_APS_ENVIRONMENT_MISMATCH % (
-            _testing_target, 'production', 'development'))):
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'aps-environment', 'production', 'development'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1811,6 +1834,59 @@ class PlistToolTest(unittest.TestCase):
           'plists': [plist],
           'entitlements_options': {
               'profile_metadata_file': {
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_missing_wifi_info_active(self):
+    plist = {}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.networking.wifi-info': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
+  def test_entitlements_wifi_info_active_mismatch(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'com.apple.developer.networking.wifi-info',
+            'False', 'True'))):
+      plist = {'com.apple.developer.networking.wifi-info': False}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.developer.networking.wifi-info': True,
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_profile_missing_wifi_info_active(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(
+            plisttool.ENTITLEMENTS_MISSING %
+            (_testing_target, 'com.apple.developer.networking.wifi-info'))):
+      plist = {'com.apple.developer.networking.wifi-info': True}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                      # No wifi-info
+                  },
                   'Version': 1,
               },
           },
