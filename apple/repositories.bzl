@@ -175,12 +175,3 @@ native_binary(
         urls = ["https://github.com/yonaskolb/XcodeGen/releases/download/2.23.1/xcodegen.zip"],
         ignore_version_differences = ignore_version_differences,
     )
-
-    _maybe(
-        git_repository,
-        name = "com_github_bazelbuild_tulsi",
-        commit = "937326ef4d0655e41321caf68456acac9acfaf50",
-        remote = "https://github.com/bazelbuild/tulsi.git",
-        shallow_since = "1620420171 -0700",
-        ignore_version_differences = ignore_version_differences,
-    )
