@@ -1,4 +1,8 @@
 load(
+    "//apple:apple.bzl",
+    "apple_xcframework",
+)
+load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
@@ -10,12 +14,6 @@ load(
     "//apple:resources.bzl",
     "apple_core_data_model",
 )
-
-# TODO(b/135122463): Replace internal domain load(...) with a public import when the rule is ready.
-load(
-    "//apple/internal:xcframework_rules.bzl",
-    "apple_xcframework",
-)  # buildifier: disable=bzl-visibility
 
 licenses(["notice"])
 
