@@ -490,6 +490,33 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcframework_rules",
+    srcs = ["xcframework_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_product_type",
+        ":experimental",
+        ":intermediates",
+        ":linking_support",
+        ":outputs",
+        ":partials",
+        ":platform_support",
+        ":processor",
+        ":resources",
+        ":rule_support",
+        ":swift_support",
+        ":transition_support",
+        "//apple:providers",
+        "//apple/internal/aspects:resource_aspect",
+        "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//lib:lipo",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
