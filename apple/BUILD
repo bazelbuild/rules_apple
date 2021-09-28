@@ -33,6 +33,7 @@ bzl_library(
     srcs = ["apple.bzl"],
     deps = [
         "//apple/internal:apple_framework_import",
+        "//apple/internal:xcframework_rules",
     ],
 )
 

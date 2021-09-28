@@ -19,6 +19,11 @@ load(
     _apple_dynamic_framework_import = "apple_dynamic_framework_import",
     _apple_static_framework_import = "apple_static_framework_import",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:xcframework_rules.bzl",
+    _apple_xcframework = "apple_xcframework",
+)
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_static_framework_import = _apple_static_framework_import
+apple_xcframework = _apple_xcframework
