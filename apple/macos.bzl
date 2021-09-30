@@ -167,15 +167,6 @@ def macos_command_line_application(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Builds a macOS command line application."""
 
-    # Xcode will happily apply entitlements during code signing for a command line
-    # tool even though it doesn't have a Capabilities tab in the project settings.
-    # Until there's official support for it, we'll fail if we see those attributes
-    # (which are added to the rule because of the code_signing_attributes usage in
-    # the rule definition).
-    if "entitlements" in kwargs or "provisioning_profile" in kwargs:
-        fail("macos_command_line_application does not support entitlements or " +
-             "provisioning profiles at this time")
-
     binary_args = dict(kwargs)
 
     original_deps = binary_args.pop("deps")
