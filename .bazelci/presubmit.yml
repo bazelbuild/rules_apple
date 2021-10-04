@@ -35,4 +35,13 @@ tasks:
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
 
+  macos_last_green_head_deps:
+    name: "Last Green Bazel with Head Deps"
+    bazel: last_green
+    shell_commands:
+    # Update the WORKSPACE to use head versions of some deps to ensure nothing
+    # has landed on them breaking this project.
+    - .bazelci/update_workspace_to_deps_heads.sh
+    <<: *common
+
 buildifier: latest
