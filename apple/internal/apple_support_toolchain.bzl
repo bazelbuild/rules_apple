@@ -189,6 +189,5 @@ A `File` referencing a tool that copies and lipos Swift stdlibs required for the
 
 # Define the loadable module that lists the exported symbols in this file.
 apple_support_toolchain_utils = struct(
-    resolve_tools_for_executable = _resolve_tools_for_executable,
     shared_attrs = _shared_attrs,
 )
