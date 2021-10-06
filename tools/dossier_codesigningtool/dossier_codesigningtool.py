@@ -17,6 +17,7 @@ bundles using codesigning dossiers.
 """
 
 import argparse
+import concurrent.futures
 import json
 import os
 import os.path
@@ -577,11 +578,13 @@ def _fetch_preferred_signing_identity(manifest,
   return codesign_identity
 
 
-def _sign_bundle_with_manifest(root_bundle_path,
-                               manifest,
-                               dossier_directory,
-                               codesign_path,
-                               override_codesign_identity=None):
+def _sign_bundle_with_manifest(
+    root_bundle_path,
+    manifest,
+    dossier_directory,
+    codesign_path,
+    override_codesign_identity=None,
+    executor=concurrent.futures.ThreadPoolExecutor()):
   """Signing a bundle with a dossier.
 
   Provided a bundle, dossier path, and the path to the codesign tool, will sign
@@ -596,6 +599,11 @@ def _sign_bundle_with_manifest(root_bundle_path,
       specified in the manifest. This is primarily useful when signing an
       embedded bundle, as all bundles must use the same codesigning identity,
       and so lookup logic can be short circuited.
+    executor: concurrent.futures.Executor instance to use for concurrent
+      codesign invocations.
+
+  Raises:
+    SystemExit: if unable to infer codesign identity when not provided.
   """
   codesign_identity = override_codesign_identity
   provisioning_profile_filename = manifest.get(_PROVISIONING_PROFILE_KEY)
@@ -606,29 +614,23 @@ def _sign_bundle_with_manifest(root_bundle_path,
         manifest, provisioning_profile_file_path)
   if not codesign_identity:
     raise SystemExit(
-        'Signing failed - codesigning identity not specified in manifest and unable to infer identity.'
-    )
+        'Signing failed - codesigning identity not specified in manifest '
+        'and unable to infer identity.')
+
   entitlements_filename = manifest.get(_ENTITLEMENTS_KEY)
   entitlements_file_path = os.path.join(dossier_directory,
                                         entitlements_filename)
-  for embedded_manifest in manifest.get(_EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
-    embedded_relative_path = embedded_manifest[_EMBEDDED_RELATIVE_PATH_KEY]
-    embedded_bundle_path = os.path.join(root_bundle_path,
-                                        embedded_relative_path)
-    _sign_bundle_with_manifest(embedded_bundle_path, embedded_manifest,
-                               dossier_directory, codesign_path,
-                               codesign_identity)
+
+  # submit each embedded manifest to sign concurrently
+  codesign_futures = _sign_embedded_bundles_with_manifest(
+      manifest, root_bundle_path, dossier_directory, codesign_path,
+      codesign_identity, executor)
+  _wait_embedded_manifest_futures(codesign_futures)
+
   if provisioning_profile_file_path:
-    profile_extension = os.path.splitext(provisioning_profile_file_path)[1]
-    profile_filename = 'embedded' + profile_extension
-    if profile_extension == '.mobileprovision':
-      dest_provisioning_profile_path = os.path.join(root_bundle_path,
-                                                    profile_filename)
-    else:
-      dest_provisioning_profile_path = os.path.join(root_bundle_path,
-                                                    'Contents',
-                                                    profile_filename)
-    shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
+    _copy_embedded_provisioning_profile(
+        provisioning_profile_file_path, root_bundle_path)
+
   _invoke_codesign(
       codesign_path=codesign_path,
       identity=codesign_identity,
@@ -636,6 +638,86 @@ def _sign_bundle_with_manifest(root_bundle_path,
       force_signing=True,
       disable_timestamp=False,
       full_path_to_sign=root_bundle_path)
+
+
+def _sign_embedded_bundles_with_manifest(
+    manifest,
+    root_bundle_path,
+    dossier_directory,
+    codesign_path,
+    codesign_identity,
+    executor):
+  """Signs embedded bundles concurrently and returns futures list.
+
+  Args:
+    manifest: The contents of the manifest in this dossier.
+    root_bundle_path: The absolute path to the bundle that will be signed.
+    dossier_directory: Directory of dossier to be used for signing.
+    codesign_path: Path to the codesign tool as a string.
+    codesign_identity: The codesign identity to use for codesigning.
+    executor: Asynchronous jobs Executor from concurrent.futures.
+
+  Returns:
+    List of asynchronous Future tasks submited to executor.
+  """
+  codesign_futures = []
+  for embedded_manifest in manifest.get(_EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
+    embedded_relative_path = embedded_manifest[_EMBEDDED_RELATIVE_PATH_KEY]
+    embedded_bundle_path = os.path.join(root_bundle_path,
+                                        embedded_relative_path)
+    codesign_future = executor.submit(_sign_bundle_with_manifest,
+                                      embedded_bundle_path, embedded_manifest,
+                                      dossier_directory, codesign_path,
+                                      codesign_identity, executor)
+    codesign_futures.append(codesign_future)
+
+  return codesign_futures
+
+
+def _copy_embedded_provisioning_profile(
+    provisioning_profile_file_path, root_bundle_path):
+  """Copy top-level provisioning profile for an embedded bundle.
+
+  Args:
+    provisioning_profile_file_path: The absolute path to the provisioning
+                                    profile file.
+    root_bundle_path: The absolute path to the bundle that will be signed.
+  """
+  profile_extension = os.path.splitext(provisioning_profile_file_path)[1]
+  profile_filename = 'embedded' + profile_extension
+  if profile_extension == '.mobileprovision':
+    dest_provisioning_profile_path = os.path.join(root_bundle_path,
+                                                  profile_filename)
+  else:
+    dest_provisioning_profile_path = os.path.join(root_bundle_path,
+                                                  'Contents',
+                                                  profile_filename)
+  if not os.path.exists(dest_provisioning_profile_path):
+    shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
+
+
+def _wait_embedded_manifest_futures(
+    future_list):
+  """Waits for embedded manifets futures to complete or any to fail.
+
+  Args:
+    future_list: List of Future instances to watch for completition or failure.
+
+  Raises:
+    SystemExit: if any of the Futures raised an exception.
+  """
+  done_futures, not_done_futures = concurrent.futures.wait(
+      future_list, return_when=concurrent.futures.FIRST_EXCEPTION)
+  exceptions = [f.exception() for f in done_futures]
+
+  for not_done_future in not_done_futures:
+    not_done_future.cancel()
+
+  if any(exceptions):
+    errors = '\n\n'.join(
+        f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1))
+    raise SystemExit(
+        f'Signing failed - one or more codesign tasks failed:\n{errors}')
 
 
 def _extract_zipped_dossier(zipped_dossier_path):
