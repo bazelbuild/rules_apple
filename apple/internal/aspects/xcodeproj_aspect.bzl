@@ -389,7 +389,7 @@ def _collect_module_infos(target):
             swift_defines = depset(swift_defines),
             module_maps = depset(module_maps),
             framework_includes = depset(transitive = framework_includes),
-            includes = depset(transitive = includes)
+            includes = depset(transitive = includes),
         )
 
     module_maps = depset([])
@@ -411,7 +411,7 @@ def _collect_module_infos(target):
     return struct(
         module_maps = module_maps,
         framework_includes = framework_includes,
-        includes = depset(transitive = includes)
+        includes = depset(transitive = includes),
     )
 
 def _copts(rule):
@@ -431,7 +431,7 @@ def _swift_library_to_target(target, ctx):
     return [
         XcodeGenTargetInfo(
             label = target.label,
-            name = str(target.label),
+            name = name,
             kind = ctx.rule.kind,
             srcs = sources,
             swift = struct(
@@ -444,7 +444,7 @@ def _swift_library_to_target(target, ctx):
                 sources = _depset_paths(sources, map_each = _xcodegen_file_optional),
                 settings = dict(
                     base = {
-                        "PRODUCT_NAME": str(target.label),
+                        "PRODUCT_NAME": name,
                         "MACH_O_TYPE": "staticlib",
                         "ONLY_ACTIVE_ARCH": "YES",
                         "CLANG_ENABLE_MODULES": "YES",
@@ -487,7 +487,7 @@ def _objc_library_to_target(target, ctx):
                         "FRAMEWORK_SEARCH_PATHS": _expand_search_paths(modules.framework_includes),
                         "OTHER_CFLAGS": " ".join(
                             _copts(ctx.rule) +
-                            _module_map_flags(modules.module_maps)
+                            _module_map_flags(modules.module_maps),
                         ),
                     },
                 ),
@@ -625,7 +625,7 @@ def _bundle_to_target(target, ctx):
 def _apple_framework_import_to_target(target, ctx):
     return [
         XcodeGenTargetInfo(
-            name = str(target.label),
+            name = _normalize_targetname(str(target.label)),
             kind = ctx.rule.kind,
             srcs = depset([]),
             target = _make_target(target, ctx),
@@ -639,7 +639,6 @@ def _sources_aspect(target, ctx):
     # if ctx.rule.kind == "swift_module_alias":
     #     print(target)
     #     # return _swift_library_to_target(target, ctx)
-
 
     if SwiftInfo in target:
         return _swift_library_to_target(target, ctx)
