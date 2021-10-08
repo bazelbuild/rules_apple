@@ -27,7 +27,7 @@ def execute_and_filter_output(cmd_args,
                               inputstr=None,
                               print_output=False,
                               raise_on_failure=False,
-                              timeout=None):
+                              timeout=900):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
