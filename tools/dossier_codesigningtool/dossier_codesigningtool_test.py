@@ -70,7 +70,7 @@ class DossierCodesigningtoolTest(unittest.TestCase):
         override_codesign_identity='-')
 
     self.assertEqual(mock_codesign.call_count, 5)
-    mock_codesign_paths = [
+    actual_paths = [
         mock_codesign.call_args_list[0][1]['full_path_to_sign'],
         mock_codesign.call_args_list[1][1]['full_path_to_sign'],
         mock_codesign.call_args_list[2][1]['full_path_to_sign'],
@@ -84,8 +84,27 @@ class DossierCodesigningtoolTest(unittest.TestCase):
         '/tmp/fake.app/Watch/WatchApp.app',
         '/tmp/fake.app/'
     ]
+    self.assertSetEqual(set(actual_paths), set(expected_paths))
+
     # assert codesign threads block correctly (executed bottom-up)
-    self.assertListEqual(mock_codesign_paths, expected_paths)
+    self.assertLess(
+        actual_paths.index(
+            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'),
+        actual_paths.index('/tmp/fake.app/Watch/WatchApp.app'))
+    self.assertLess(
+        actual_paths.index(
+            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'),
+        actual_paths.index('/tmp/fake.app/'))
+
+    self.assertLess(
+        actual_paths.index('/tmp/fake.app/Watch/WatchApp.app'),
+        actual_paths.index('/tmp/fake.app/'))
+    self.assertLess(
+        actual_paths.index('/tmp/fake.app/PlugIns/IntentsExtension.appex'),
+        actual_paths.index('/tmp/fake.app/'))
+    self.assertLess(
+        actual_paths.index('/tmp/fake.app/PlugIns/IntentsUIExtension.appex'),
+        actual_paths.index('/tmp/fake.app/'))
 
   @mock.patch.object(
       dossier_codesigningtool, '_fetch_preferred_signing_identity')
