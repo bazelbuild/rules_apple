@@ -26,7 +26,8 @@ def execute_and_filter_output(cmd_args,
                               custom_env=None,
                               inputstr=None,
                               print_output=False,
-                              raise_on_failure=False):
+                              raise_on_failure=False,
+                              timeout=None):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
@@ -46,6 +47,7 @@ def execute_and_filter_output(cmd_args,
       this subprocess.
     raise_on_failure: Raises an exception if the subprocess does not return a
       successful result.
+    timeout: Timeout in seconds.
 
   Returns:
     A tuple consisting of the result of running the command, stdout output from
@@ -64,7 +66,12 @@ def execute_and_filter_output(cmd_args,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       env=env)
-  stdout, stderr = proc.communicate(input=inputstr)
+  try:
+      stdout, stderr = proc.communicate(timeout=timeout)
+  except subprocess.TimeoutExpired:
+      proc.kill()
+      stdout, stderr = proc.communicate()
+
   cmd_result = proc.returncode
 
   # The invoked tools don't specify what encoding they use, so for lack of a

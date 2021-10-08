@@ -15,6 +15,7 @@
 
 import contextlib
 import io
+import signal
 import sys
 import unittest
 
@@ -47,6 +48,12 @@ class ExecuteTest(unittest.TestCase):
     expected += ' filtered'
     self.assertEqual(expected, stdout)
     self.assertIn('filtered', stderr)
+
+  def test_execute_timeout(self):
+    args = ['sleep', '30']
+    result, stdout, stderr = execute.execute_and_filter_output(
+        args, timeout=1, print_output=True, raise_on_failure=False)
+    self.assertEqual(-signal.SIGKILL, result)
 
   @contextlib.contextmanager
   def _mock_streams(self):
