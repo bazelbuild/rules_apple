@@ -14,7 +14,7 @@
 
 """Implementation of the xcodeproj generation aspect."""
 
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleBundleInfo")
+load("@build_bazel_rules_apple//apple:providers.bzl", "AppleBundleInfo", "AppleResourceInfo")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
@@ -28,7 +28,6 @@ _COMPILE_DEPS = [
     "private_deps",
     "extension",
     "extensions",
-    # "frameworks",
     "settings_bundle",
     "srcs",  # To propagate down onto rules which generate source files.
     "tests",  # for test_suite when the --noexpand_test_suites flag is used.
@@ -177,11 +176,37 @@ def _normalize_targetname(name):
 def _collect_sources(rule):
     return depset(
         transitive = [
-            src.files
+            depset([f])
             for attr in _SOURCE_ATTRS
             for src in getattr(rule.attr, attr, [])
+            for f in src.files.to_list()
+            if f.is_source and not _is_file_external(f)
         ],
     )
+
+def _collect_resources(target):
+    if AppleResourceInfo not in target:
+        return depset([])
+    ari = target[AppleResourceInfo]
+    files = []
+    print(dir(ari))
+    for _, _, assets in ari.asset_catalogs:
+        files.append(assets)
+    if hasattr(ari, "strings"):
+        for _, _, strings in ari.strings:
+            files.append(strings)
+    if hasattr(ari, "storyboards"):
+        for _, _, storyboards in ari.storyboards:
+            files.append(storyboards)
+    if hasattr(ari, "pngs"):
+        for _, _, pngs in ari.pngs:
+            files.append(pngs)
+    return depset(transitive = [
+        depset([src])
+        for dp in files
+        for src in dp.to_list()
+        if src.is_source and not _is_file_external(src)
+    ])
 
 def _collect_swift_modules(target):
     return depset([
@@ -513,6 +538,8 @@ def _bundle_to_target(target, ctx):
     abi = target[AppleBundleInfo]
     typ = _rule_to_target_type(ctx.rule)
 
+    resources = _collect_resources(target)
+
     scheme = None
     custom_lldb_init = "$CONFIGURATION_TEMP_DIR/{}.lldbinit".format(abi.bundle_name)
     if ctx.rule.kind in ["ios_application"]:
@@ -566,6 +593,7 @@ def _bundle_to_target(target, ctx):
             target = _make_target(
                 target,
                 ctx,
+                sources = _depset_paths(resources, map_each = _xcodegen_file_optional),
                 settings = dict(
                     base = {
                         "PRODUCT_NAME": abi.bundle_name,
