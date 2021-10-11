@@ -20,6 +20,29 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 
 XcodeGenTargetInfo = provider()
 
+_RESOURCES_FIELDS = [
+    "alternate_icons",
+    "asset_catalogs",
+    "datamodels",
+    "infoplists",
+    "metals",
+    "mlmodels",
+    "plists",
+    "pngs",
+    "processed",
+    "storyboards",
+    "strings",
+    "texture_atlases",
+    "unprocessed",
+    "xibs",
+]
+
+_RESOURCES_SPECIAL_SLUGS = [
+    ".lproj/",
+    ".xcassets/",
+    ".atlas/",
+]
+
 # List of all the attributes that can be used to generate the xcodeproj.
 _COMPILE_DEPS = [
     # "app_clips",  # For ios_application which can include app clips.
@@ -173,39 +196,24 @@ def _normalize_targetname(name):
         name = name[1:]
     return name.replace("/", "_").replace(":", "_")
 
+def _should_include_file(f):
+    return f.is_source and not _is_file_external(f)
+
 def _collect_sources(rule):
-    return depset(
-        transitive = [
-            depset([f])
-            for attr in _SOURCE_ATTRS
-            for src in getattr(rule.attr, attr, [])
-            for f in src.files.to_list()
-            if f.is_source and not _is_file_external(f)
-        ],
-    )
+    return depset(transitive = [
+        src.files
+        for attr in _SOURCE_ATTRS
+        for src in getattr(rule.attr, attr, [])
+    ])
 
 def _collect_resources(target):
     if AppleResourceInfo not in target:
         return depset([])
     ari = target[AppleResourceInfo]
-    files = []
-    print(dir(ari))
-    for _, _, assets in ari.asset_catalogs:
-        files.append(assets)
-    if hasattr(ari, "strings"):
-        for _, _, strings in ari.strings:
-            files.append(strings)
-    if hasattr(ari, "storyboards"):
-        for _, _, storyboards in ari.storyboards:
-            files.append(storyboards)
-    if hasattr(ari, "pngs"):
-        for _, _, pngs in ari.pngs:
-            files.append(pngs)
     return depset(transitive = [
-        depset([src])
-        for dp in files
-        for src in dp.to_list()
-        if src.is_source and not _is_file_external(src)
+        files
+        for field in _RESOURCES_FIELDS
+        for _, _, files in getattr(ari, field, [])
     ])
 
 def _collect_swift_modules(target):
@@ -219,6 +227,7 @@ def _depset_paths(ds, map_each = None):
     return [
         map_each(f) if map_each else f.path
         for f in ds.to_list()
+        if _should_include_file(f)
     ]
 
 def _collect_transitive_deps(target, ctx):
@@ -327,10 +336,19 @@ def _collect_objc_strict_includes(target, rule_attr):
     return depset(transitive = depsets)
 
 def _xcodegen_file_optional(f):
-    return dict(
-        path = f.path,
-        optional = True,
-    )
+    return f.path
+
+def _string_upto(s, upto):
+    idx = s.find(upto)
+    if idx > 0:
+        return s[:idx + len(upto)]
+    return s
+
+def _resource_path(f):
+    for slug in _RESOURCES_SPECIAL_SLUGS:
+        if slug in f.path:
+            return _string_upto(f.path, slug)
+    return f.path
 
 def _module_map_search_path(path):
     for p in [".modulemaps/", ".framework/Modules/"]:
@@ -447,7 +465,6 @@ def _copts(rule):
 def _swift_library_to_target(target, ctx):
     name = _normalize_targetname(str(target.label))
     sources = _collect_sources(ctx.rule)
-    #sources.append({"path": ctx.build_file_path, "optional": True})
 
     apple_frag = _get_obj_attr(ctx.fragments, "apple")
     current_platform = str(apple_frag.single_arch_platform.platform_type)
@@ -466,7 +483,9 @@ def _swift_library_to_target(target, ctx):
             target = _make_target(
                 target,
                 ctx,
-                sources = _depset_paths(sources, map_each = _xcodegen_file_optional),
+                sources = _depset_paths(sources, map_each = _xcodegen_file_optional) + [
+                    {"path": ctx.build_file_path, "optional": True},
+                ],
                 settings = dict(
                     base = {
                         "PRODUCT_NAME": name,
@@ -502,7 +521,9 @@ def _objc_library_to_target(target, ctx):
             target = _make_target(
                 target,
                 ctx,
-                sources = _depset_paths(sources, map_each = _xcodegen_file_optional),
+                sources = _depset_paths(sources, map_each = _xcodegen_file_optional) + [
+                    {"path": ctx.build_file_path, "optional": True},
+                ],
                 settings = dict(
                     base = {
                         "PRODUCT_NAME": name,
@@ -585,21 +606,21 @@ def _bundle_to_target(target, ctx):
                     swift_modules.append(module.swift.swiftdoc)
                     copy_modules_command.append(_copy_swift_module(module))
 
+    resources_paths = depset(_depset_paths(resources, map_each = _resource_path))
     return [
         XcodeGenTargetInfo(
             name = abi.bundle_name,
             kind = ctx.rule.kind,
-            srcs = depset([abi.infoplist]),
+            srcs = resources,
             target = _make_target(
                 target,
                 ctx,
-                sources = _depset_paths(resources, map_each = _xcodegen_file_optional),
+                sources = resources_paths.to_list(),
                 settings = dict(
                     base = {
                         "PRODUCT_NAME": abi.bundle_name,
                         "BAZEL_TARGET_LABEL": str(target.label),
                         "BAZEL_LLDB_INIT_FILE": custom_lldb_init,
-                        "INFOPLIST_FILE": _file_bazel_path(abi.infoplist, prefix = "$"),
                         "PRODUCT_BUNDLE_IDENTIFIER": abi.bundle_id,
                     },
                 ),

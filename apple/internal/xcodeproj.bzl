@@ -50,6 +50,13 @@ cp -cf bazel-bin/WorkspaceSettings.xcsettings $BASE_PROJECT_PATH/project.xcworks
 open $BASE_PROJECT_PATH
 """
 
+def _filter_depset(ds):
+    return depset([
+        f
+        for f in ds.to_list()
+        if f.is_source and not _is_file_external(f)
+    ])
+
 def _is_file_external(f):
     """Returns True if the given file is an external file."""
     return f.owner.workspace_root != ""
@@ -100,6 +107,8 @@ def _xcodeproj_impl(ctx):
             if hasattr(xti, "scheme") and xti.scheme != None:
                 schemes[xti.name] = xti.scheme
 
+    inputs = _filter_depset(depset(transitive = inputs))
+
     projname = (ctx.attr.project_name or ctx.attr.name)
     project_name = projname + ".xcodeproj"
     project_json_name = projname + ".json"
@@ -144,6 +153,7 @@ def _xcodeproj_impl(ctx):
                 "ONLY_ACTIVE_ARCH": "YES",
                 "CLANG_ENABLE_MODULES": "YES",
                 "CLANG_ENABLE_OBJ_ARC": "YES",
+                "XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED": "NO",
             },
             "configs": {
                 "Debug": {
@@ -169,13 +179,15 @@ def _xcodeproj_impl(ctx):
         "--no-env",
         "--spec",
         json_xcodegen,
+        "--project-root",
+        ".",
         "--project",
-        paths.dirname(project.path),
+        project.dirname,
     ])
     ctx.actions.run(
         executable = ctx.executable._xcodegen,
         arguments = [args],
-        inputs = depset([json_xcodegen], transitive = inputs),
+        inputs = depset([json_xcodegen], transitive = [inputs]),
         outputs = [project],
     )
 
