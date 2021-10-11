@@ -16,7 +16,6 @@
 import contextlib
 import io
 import signal
-import sys
 import unittest
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
@@ -35,13 +34,15 @@ class ExecuteTest(unittest.TestCase):
     bytes_out = u'\u201d '.encode('utf8') + _INVALID_UTF8
     args = ['echo', '-n', bytes_out]
 
-    with self._mock_streams() as (mock_stdout, mock_stderr):
-      execute.execute_and_filter_output(args,
-                                        filtering=_cmd_filter,
-                                        print_output=True,
-                                        raise_on_failure=False)
-      stdout = mock_stdout.getvalue()
-      stderr = mock_stderr.getvalue()
+    with contextlib.redirect_stdout(io.StringIO()) as mock_stdout, \
+      contextlib.redirect_stderr(io.StringIO()) as mock_stderr:
+      execute.execute_and_filter_output(
+          args,
+          filtering=_cmd_filter,
+          print_output=True,
+          raise_on_failure=False)
+    stdout = mock_stdout.getvalue()
+    stderr = mock_stderr.getvalue()
 
     expected = bytes_out.decode('utf8', 'replace')
 
