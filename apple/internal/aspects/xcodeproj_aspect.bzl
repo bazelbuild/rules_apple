@@ -38,9 +38,13 @@ _RESOURCES_FIELDS = [
 ]
 
 _RESOURCES_SPECIAL_SLUGS = [
+    ".atlas/",
     ".lproj/",
     ".xcassets/",
-    ".atlas/",
+    ".xcdatamodel/",
+    ".xcdatamodeld/",
+    ".xcmappingmodel/",
+    ".xcstickers/",
 ]
 
 # List of all the attributes that can be used to generate the xcodeproj.
