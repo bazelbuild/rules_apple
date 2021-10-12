@@ -95,7 +95,13 @@ _PLATFORM_TYPES = dict(
 def _platform_type_for_type(typ):
     return _PLATFORM_TYPES[typ]
 
-_GLOBAL_INDEX_IMPORT_SCRIPT = """\
+_BAZEL_UPTODATE_PREAMBLE_SCRIPT = """
+if [ -f $BAZEL_UPTODATE_FILE ]; then
+    exit 0
+fi
+"""
+
+_GLOBAL_INDEX_IMPORT_SCRIPT = _BAZEL_UPTODATE_PREAMBLE_SCRIPT + """\
 set -euxo pipefail
 
 readonly bazel_root="^/private/var/tmp/_bazel_.+?/.+?/execroot/[^/]+"
@@ -121,10 +127,9 @@ $INDEX_IMPORT \
 """
 
 _COPY_SWIFT_MODULE_SCRIPT = """\
-rm -rf $BUILT_PRODUCTS_DIR/{module_name}.swiftmodule
 mkdir -p $BUILT_PRODUCTS_DIR/{module_name}.swiftmodule
-cp -c "{swiftmodule}" "$BUILT_PRODUCTS_DIR/{module_name}.swiftmodule/$ARCHS.swiftmodule"
-cp -c "{swiftdoc}" "$BUILT_PRODUCTS_DIR/{module_name}.swiftmodule/$ARCHS.swiftdoc"
+$CP -c "{swiftmodule}" "$BUILT_PRODUCTS_DIR/{module_name}.swiftmodule/$ARCHS.swiftmodule"
+$CP -c "{swiftdoc}" "$BUILT_PRODUCTS_DIR/{module_name}.swiftmodule/$ARCHS.swiftdoc"
 """
 
 def _copy_swift_module(module):
@@ -140,7 +145,6 @@ cd $BAZEL_WORKSPACE
 
 OPTIONS=(
     "--define=apple.experimental.tree_artifact_outputs=1"
-    "--define=apple.add_debugger_entitlement=1"
     "--features=swift.index_while_building"
     "--features=swift.disable_system_index"
     "--features=swift.use_global_index_store"
@@ -148,8 +152,23 @@ OPTIONS=(
     "--output_groups=archive,swift_modules,index_import,module_maps"
 )
 
-if [[ "$PLATFORM_NAME" == "iphoneos" ]]; then
-    OPTIONS+=("--ios_multi_cpus=arm64")
+if [[ "$CODE_SIGN_INJECT_BASE_ENTITLEMENTS" == "YES" ]]; then
+    OPTIONS+=("--define=apple.add_debugger_entitlement=1")
+fi
+
+case "$PLATFORM_NAME" in
+    iphoneos)
+        OPTIONS+=("--ios_multi_cpus=arm64")
+        ;;
+    iphonesimulator)
+        OPTIONS+=("--ios_multi_cpus=x86_64")
+        ;;
+esac
+
+rm -f $BAZEL_UPTODATE_FILE
+if bazel build --check_up_to_date "${OPTIONS[@]}" $BAZEL_TARGET_LABEL; then
+    touch $BAZEL_UPTODATE_FILE
+    exit 0
 fi
 
 bazel build "${OPTIONS[@]}" $BAZEL_TARGET_LABEL
@@ -158,29 +177,29 @@ bazel build "${OPTIONS[@]}" $BAZEL_TARGET_LABEL
 _COPY_APP_SCRIPT = """\
 set -euxo pipefail
 rm -rf "$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME"
-cp -rc "{app}" "$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME"
+$CP -rc "{app}" "$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME"
 chmod -R u+w "$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME"
 """
 
 _CREATE_LLDB_INIT = """\
-cat > $BAZEL_LLDB_INIT_FILE <<-END
+cat <<EOF > $BAZEL_LLDB_INIT_FILE
 platform settings -w "$BAZEL_WORKSPACE/"
 settings set target.sdk-path $SDKROOT
 settings set target.swift-framework-search-paths $FRAMEWORK_SEARCH_PATHS
 settings set target.source-map ./bazel-out/ "$BAZEL_EXECROOT/bazel-out/"
 settings append target.source-map ./external/ "$BAZEL_OUTPUT_BASE/external/"
 settings append target.source-map ./ "$BAZEL_WORKSPACE/"
-END
+EOF
 
 LLDB_SWIFT_EXTRA_CLANG_FLAGS=()
 if [[ "$CONFIGURATION" = "Debug" ]]; then
-  LLDB_SWIFT_EXTRA_CLANG_FLAGS+=(" -D DEBUG")
+    LLDB_SWIFT_EXTRA_CLANG_FLAGS+=(" -D DEBUG")
 fi
 
 if [[ ${#LLDB_SWIFT_EXTRA_CLANG_FLAGS[@]} -ne 0 ]]; then
-  cat >> $BAZEL_LLDB_INIT_FILE <<-END
+    cat <<EOF >> $BAZEL_LLDB_INIT_FILE
 settings set -- target.swift-extra-clang-flags ${LLDB_SWIFT_EXTRA_CLANG_FLAGS[@]}
-END
+EOF
 fi
 """
 
@@ -581,9 +600,9 @@ def _bundle_to_target(target, ctx):
 
     swift_modules = []
     copy_modules_command = [
+        _BAZEL_UPTODATE_PREAMBLE_SCRIPT,
         "set -euxo pipefail",
     ]
-
     module_maps = []
     deps = _collect_transitive_deps(target, ctx)
     for dep in deps.to_list():
@@ -611,6 +630,7 @@ def _bundle_to_target(target, ctx):
                         "PRODUCT_NAME": abi.bundle_name,
                         "BAZEL_TARGET_LABEL": str(target.label),
                         "BAZEL_LLDB_INIT_FILE": custom_lldb_init,
+                        "BAZEL_UPTODATE_FILE": "$CONFIGURATION_TEMP_DIR/bazel.uptodate",
                         "PRODUCT_BUNDLE_IDENTIFIER": abi.bundle_id,
                     },
                 ),
@@ -619,16 +639,21 @@ def _bundle_to_target(target, ctx):
                         name = "bazel build {}".format(str(target.label)),
                         shell = "/bin/bash",
                         script = _BAZEL_BUILD_SCRIPT,
+                        basedOnDependencyAnalysis = False,
                     ),
+                ],
+                postCompileScripts = [
                     dict(
                         name = "Copy modules",
                         shell = "/bin/bash",
                         script = "\n".join(copy_modules_command),
+                        basedOnDependencyAnalysis = False,
                     ),
                     dict(
                         name = "Global Index Import",
                         shell = "/bin/bash",
                         script = _GLOBAL_INDEX_IMPORT_SCRIPT,
+                        basedOnDependencyAnalysis = False,
                     ),
                     dict(
                         name = "Copy Bundle to Destination",
@@ -636,11 +661,15 @@ def _bundle_to_target(target, ctx):
                         script = _COPY_APP_SCRIPT.format(
                             app = _file_bazel_path(abi.archive, prefix = "$"),
                         ),
+                        basedOnDependencyAnalysis = False,
                     ),
+                ],
+                postBuildScripts = [
                     dict(
                         name = "Create LLDB Init",
                         shell = "/bin/bash",
                         script = _CREATE_LLDB_INIT,
+                        basedOnDependencyAnalysis = False,
                     ),
                 ],
                 linking = dict(
