@@ -78,6 +78,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleStaticXcframeworkBundleInfo",
     "AppleSupportToolchainInfo",
     "AppleXcframeworkBundleInfo",
 )
@@ -85,6 +86,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_usage_aspect",
 )
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 def _lipoed_link_outputs_by_framework(
         *,
@@ -886,3 +888,181 @@ will also be transitively included in the framework bundles.
     implementation = _apple_xcframework_impl,
     outputs = {"archive": "%{name}.xcframework.zip"},
 )
+
+def _apple_static_xcframework_transition_rule_impl(ctx):
+    """Underlying rule for apple_static_xcframework to apply a transition and generate files."""
+
+    bundle_name = ctx.label.name
+    bundle_name_with_extension = bundle_name + ".xcframework"
+    executable_name = getattr(ctx.attr, "executable_name", bundle_name)
+    resolved_headers = depset(transitive = [dep.files for dep in ctx.attr.headers])
+    resolved_libraries = depset(transitive = [dep.files for dep in ctx.attr.libraries])
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    # Create an intermediate folder to contain all of the header files, as they cannot be passed
+    # individually to the xcodebuild -create-xcframework tool.
+    headers_directory = intermediates.directory(
+        actions = ctx.actions,
+        target_name = ctx.label.name,
+        output_discriminator = None,
+        dir_name = "headers",
+    )
+    ctx.actions.run_shell(
+        command = "mkdir -p " + headers_directory.path + " ; " + " ; ".join(
+            ["cp %s %s" % (x.path, headers_directory.path) for x in resolved_headers.to_list()],
+        ),
+        inputs = resolved_headers,
+        mnemonic = "XCFrameworkStaticLibraryCopyHeaders",
+        outputs = [headers_directory],
+        progress_message = "Copying headers %s" % ctx.label,
+    )
+
+    # Assemble the final xcodebuild -create-framework command using paths to libraries referenced
+    # and headers.
+    headers_cmd = " -headers " + headers_directory.path
+    library_list_cmd = " ".join(
+        [" -library " + x.path + headers_cmd for x in resolved_libraries.to_list()],
+    )
+
+    cmd = ("xcodebuild -create-xcframework " + library_list_cmd + " -output " +
+           bundle_name_with_extension + " ; zip -rXq " + ctx.outputs.archive.path + " " +
+           bundle_name_with_extension)
+
+    apple_support.run_shell(
+        actions = ctx.actions,
+        apple_fragment = ctx.fragments.apple,
+        command = cmd,
+        env = ctx.configuration.default_shell_env,
+        inputs = depset([headers_directory], transitive = [resolved_libraries]),
+        mnemonic = "XCFrameworkStaticLibraryGenerate",
+        outputs = [ctx.outputs.archive],
+        progress_message = "Generating static library XCFramework %s" % ctx.label,
+        xcode_config = xcode_config,
+    )
+
+    return [
+        # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
+        AppleBundleInfo(
+            archive = ctx.outputs.archive,
+            bundle_extension = ".xcframework",
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            platform_type = None,
+        ),
+        AppleStaticXcframeworkBundleInfo(),
+        DefaultInfo(
+            files = depset([ctx.outputs.archive]),
+        ),
+    ]
+
+_apple_static_xcframework_transition_rule = rule(
+    attrs = dicts.add(apple_support.action_required_attrs(), {
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+        "executable_name": attr.string(
+            mandatory = False,
+            doc = """
+The desired name of the executable, if the bundle has an executable. If this attribute is not set,
+then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
+the target will be used instead.
+""",
+        ),
+        "headers": attr.label_list(
+            allow_files = True,
+            cfg = transition_support.xcframework_native_lipo_transition,
+            doc = """
+A list of files directly referencing header files to be used as the publicly visible interface for
+each of these embedded libraries. These header files will be embedded within each platform split,
+typically in a subdirectory such as `Headers`.
+""",
+        ),
+        "libraries": attr.label_list(
+            allow_files = True,
+            cfg = transition_support.xcframework_native_lipo_transition,
+            mandatory = True,
+            doc = """
+A list of files directly referencing libraries to be represented for each given platform split in
+the XCFramework. These libraries will be embedded within each platform split.
+""",
+        ),
+        "ios": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the `ios` platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+        ),
+        "minimum_deployment_os_versions": attr.string_dict(
+            doc = """
+A dictionary of strings indicating the minimum deployment OS version supported by the target,
+represented as a dotted version number (for example, "9.0") as values, with their respective
+platforms such as `ios` as keys. This is different from `minimum_os_versions`, which is effective
+at compile time. Ensure version specific APIs are guarded with `available` clauses.
+""",
+            mandatory = False,
+        ),
+        "minimum_os_versions": attr.string_dict(
+            mandatory = True,
+            doc = """
+A dictionary of strings indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
+as keys.
+""",
+        ),
+    }),
+    fragments = ["apple"],
+    implementation = _apple_static_xcframework_transition_rule_impl,
+    outputs = {"archive": "%{name}.xcframework.zip"},
+)
+
+def apple_static_xcframework(
+        *,
+        name,
+        avoid_deps = None,
+        deps,
+        ios = None,
+        minimum_os_versions,
+        public_hdrs = None,
+        **kwargs):
+    """Generates an XCFramework with static libraries for third-party distribution.
+
+     Args:
+        name: The name of the XCFramework bundle.
+        avoid_deps: A list of library targets on which this framework depends in order to compile,
+            but the transitive closure of which will not be linked into the framework's binary.
+        deps: A list of dependencies targets that will be linked into this target's binary. Any
+            resources, such as asset catalogs, that are referenced by those targets will also be
+            transitively included in the final bundle.
+        ios: A dictionary of strings indicating which platform variants should be built for the
+            `ios` platform (`device` or `simulator`) as keys, and arrays of strings listing which
+            architectures should be built for those platform variants (for example, `x86_64`,
+            `arm64`) as their values.
+        minimum_os_versions: A dictionary of strings indicating the minimum OS version supported by
+            the target, represented as a dotted version number (for example, "8.0") as values, with
+            their respective platforms such as `ios` as keys.
+        public_hdrs: A list of files directly referencing header files to be used as the publicly
+            visible interface for each of these embedded libraries. These header files will be
+            embedded within each platform split, typically in a subdirectory such as `Headers`.
+    """
+
+    apple_static_library_name = "%s.apple_static_library" % name
+
+    native.apple_static_library(
+        name = apple_static_library_name,
+        deps = deps,
+        avoid_deps = avoid_deps,
+        minimum_os_version = minimum_os_versions.get("ios"),
+        platform_type = "ios",
+        testonly = kwargs.get("testonly"),
+        visibility = kwargs.get("visibility"),
+    )
+
+    _apple_static_xcframework_transition_rule(
+        name = name,
+        headers = public_hdrs,
+        libraries = [":" + apple_static_library_name],
+        ios = ios,
+        minimum_os_versions = minimum_os_versions,
+        **kwargs
+    )

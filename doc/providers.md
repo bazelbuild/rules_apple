@@ -203,6 +203,28 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  Depset of unowned resources.    |
 
 
+<a id="#AppleStaticXcframeworkBundleInfo"></a>
+
+## AppleStaticXcframeworkBundleInfo
+
+<pre>
+AppleStaticXcframeworkBundleInfo()
+</pre>
+
+
+Denotes that a target is a static library XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
+
+
 <a id="#AppleSupportToolchainInfo"></a>
 
 ## AppleSupportToolchainInfo
