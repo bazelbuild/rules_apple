@@ -1,4 +1,8 @@
 load(
+    "//apple/internal:xcframework_rules.bzl",
+    "apple_static_xcframework",
+)
+load(
     "//apple:apple.bzl",
     "apple_xcframework",
 )
@@ -465,6 +469,25 @@ apple_xcframework(
         "device": ["arm64"],
     },
     linkopts = ["-dead_strip"],
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
     minimum_os_versions = {
         "ios": "8.0",
     },
