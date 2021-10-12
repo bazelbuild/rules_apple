@@ -62,6 +62,27 @@ def apple_static_xcframework_test_suite():
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_ios_avoid_deps_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_avoid_deps",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/Headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/DummyFmwk.h",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_doStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

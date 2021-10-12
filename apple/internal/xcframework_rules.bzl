@@ -874,31 +874,37 @@ def _apple_static_xcframework_transition_rule_impl(ctx):
 
     bundle_name = ctx.label.name
     bundle_name_with_extension = bundle_name + ".xcframework"
-    resolved_headers = depset(transitive = [dep.files for dep in ctx.attr.headers])
     resolved_libraries = depset(transitive = [dep.files for dep in ctx.attr.libraries])
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    # Create an intermediate folder to contain all of the header files, as they cannot be passed
-    # individually to the xcodebuild -create-xcframework tool.
-    headers_directory = intermediates.directory(
-        actions = ctx.actions,
-        target_name = ctx.label.name,
-        output_discriminator = None,
-        dir_name = "headers",
-    )
-    ctx.actions.run_shell(
-        command = "mkdir -p " + headers_directory.path + " ; " + " ; ".join(
-            ["cp %s %s" % (x.path, headers_directory.path) for x in resolved_headers.to_list()],
-        ),
-        inputs = resolved_headers,
-        mnemonic = "XCFrameworkStaticLibraryCopyHeaders",
-        outputs = [headers_directory],
-        progress_message = "Copying headers %s" % ctx.label,
-    )
+    if ctx.attr.headers:
+        resolved_headers = depset(transitive = [dep.files for dep in ctx.attr.headers])
+
+        # Create an intermediate folder to contain all of the header files, as they cannot be passed
+        # individually to the xcodebuild -create-xcframework tool.
+        headers_directory = intermediates.directory(
+            actions = ctx.actions,
+            target_name = ctx.label.name,
+            output_discriminator = None,
+            dir_name = "headers",
+        )
+        ctx.actions.run_shell(
+            command = "mkdir -p " + headers_directory.path + " ; " + " ; ".join(
+                ["cp %s %s" % (x.path, headers_directory.path) for x in resolved_headers.to_list()],
+            ),
+            inputs = resolved_headers,
+            mnemonic = "XCFrameworkStaticLibraryCopyHeaders",
+            outputs = [headers_directory],
+            progress_message = "Copying headers %s" % ctx.label,
+        )
+        headers_cmd = " -headers " + headers_directory.path
+        generator_inputs = depset([headers_directory], transitive = [resolved_libraries])
+    else:
+        headers_cmd = ""
+        generator_inputs = resolved_libraries
 
     # Assemble the final xcodebuild -create-framework command using paths to libraries referenced
     # and headers.
-    headers_cmd = " -headers " + headers_directory.path
     library_list_cmd = " ".join(
         [" -library " + x.path + headers_cmd for x in resolved_libraries.to_list()],
     )
@@ -912,7 +918,7 @@ def _apple_static_xcframework_transition_rule_impl(ctx):
         apple_fragment = ctx.fragments.apple,
         command = cmd,
         env = ctx.configuration.default_shell_env,
-        inputs = depset([headers_directory], transitive = [resolved_libraries]),
+        inputs = generator_inputs,
         mnemonic = "XCFrameworkStaticLibraryGenerate",
         outputs = [ctx.outputs.archive],
         progress_message = "Generating static library XCFramework %s" % ctx.label,
