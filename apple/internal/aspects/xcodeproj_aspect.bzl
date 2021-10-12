@@ -103,24 +103,6 @@ readonly bazel_external="$bazel_root/external"
 readonly xcode_external="$BAZEL_WORKSPACE/bazel-$(basename "$BAZEL_WORKSPACE")/external"
 """
 
-_INDEX_IMPORT_SCRIPT = """\
-$INDEX_IMPORT \
-    -incremental \
-    -remap "$bazel_module=$xcode_module" \
-    -remap "$bazel_swift_object=$xcode_object" \
-    -remap "$bazel_objc_object=$xcode_object" \
-    -remap "$bazel_external=$xcode_external" \
-    -remap "$bazel_root=$BAZEL_WORKSPACE" \
-    -remap "^([^//])=$BAZEL_WORKSPACE/\\$1" \
-    "{indexstore}" \
-    "$BUILD_DIR/../../Index/DataStore" || true
-"""
-
-def _index_import(indexstore):
-    return _INDEX_IMPORT_SCRIPT.format(
-        indexstore = _file_bazel_path(indexstore, prefix = "$"),
-    )
-
 _COPY_SWIFT_MODULE_SCRIPT = """\
 rm -rf $BUILT_PRODUCTS_DIR/{module_name}.swiftmodule
 mkdir -p $BUILT_PRODUCTS_DIR/{module_name}.swiftmodule
@@ -142,10 +124,10 @@ cd $BAZEL_WORKSPACE
 OPTIONS=(
     "--define=apple.experimental.tree_artifact_outputs=1"
     "--define=apple.add_debugger_entitlement=1"
-    "--features=swift.index_while_building"
     "--features=swift.disable_system_index"
+    "--features=swift.use_global_index_store"
     "--aspects=@build_bazel_rules_apple//apple/internal/aspects:xcodeproj_aspect.bzl%sources_aspect"
-    "--output_groups=archive,swift_modules,swift_index_store,index_import,module_maps"
+    "--output_groups=archive,swift_modules,index_import,module_maps"
 )
 
 if [ -n "${TARGET_DEVICE_IDENTIFIER:-}" ] && [ "$PLATFORM_NAME" = "iphoneos" ]; then
@@ -154,6 +136,19 @@ if [ -n "${TARGET_DEVICE_IDENTIFIER:-}" ] && [ "$PLATFORM_NAME" = "iphoneos" ]; 
 fi
 
 bazel build "${OPTIONS[@]}" $BAZEL_TARGET_LABEL
+"""
+
+_GLOBAL_INDEX_IMPORT_COMMAND = """\
+$INDEX_IMPORT \
+    -incremental \
+    -remap "$bazel_module=$xcode_module" \
+    -remap "$bazel_swift_object=$xcode_object" \
+    -remap "$bazel_objc_object=$xcode_object" \
+    -remap "$bazel_external=$xcode_external" \
+    -remap "$bazel_root=$BAZEL_WORKSPACE" \
+    -remap "^([^//])=$BAZEL_WORKSPACE/\\$1" \
+    "$BAZEL_WORKSPACE/bazel-out/_global_index_store" \
+    "$BUILD_DIR/../../Index/DataStore" || true
 """
 
 _COPY_APP_SCRIPT = """\
@@ -226,6 +221,13 @@ def _collect_swift_modules(target):
 def _depset_paths(ds, map_each = None):
     return [
         map_each(f) if map_each else f.path
+        for f in ds.to_list()
+        if _should_include_file(f)
+    ]
+
+def _depset_resource_paths(ds, map_each = None):
+    return [
+        struct(path = map_each(f), buildPhase = "none") if map_each else struct(path = f.path, buildPhase = "none")
         for f in ds.to_list()
         if _should_include_file(f)
     ]
@@ -463,7 +465,6 @@ def _swift_library_to_target(target, ctx):
             kind = ctx.rule.kind,
             srcs = sources,
             swift = struct(
-                indexstore = getattr(target[OutputGroupInfo], "swift_index_store", None),
                 modules = target[SwiftInfo].direct_modules,
             ),
             target = _make_target(
@@ -566,14 +567,15 @@ def _bundle_to_target(target, ctx):
             ),
         )
 
-    swift_indexstores = []
-    import_index_command = [
-        "set -euxo pipefail",
-        _INDEX_IMPORT_SCRIPT_PREAMBLE,
-    ]
     swift_modules = []
     copy_modules_command = [
         "set -euxo pipefail",
+    ]
+
+    global_index_import_command = [
+        "set -euxo pipefail",
+        _INDEX_IMPORT_SCRIPT_PREAMBLE,
+        _GLOBAL_INDEX_IMPORT_COMMAND,
     ]
 
     module_maps = []
@@ -582,17 +584,13 @@ def _bundle_to_target(target, ctx):
         if hasattr(dep, "module_maps"):
             module_maps.append(dep.module_maps)
         if hasattr(dep, "swift"):
-            if dep.swift.indexstore:
-                swift_indexstores.append(dep.swift.indexstore)
-                for indexstore in dep.swift.indexstore.to_list():
-                    import_index_command.append(_index_import(indexstore))
             for module in dep.swift.modules:
                 if module.swift:
                     swift_modules.append(module.swift.swiftmodule)
                     swift_modules.append(module.swift.swiftdoc)
                     copy_modules_command.append(_copy_swift_module(module))
 
-    resources_paths = depset(_depset_paths(resources, map_each = _resource_path))
+    resources_paths = depset(_depset_resource_paths(resources, map_each = _resource_path))
     return [
         XcodeGenTargetInfo(
             name = abi.bundle_name,
@@ -622,9 +620,9 @@ def _bundle_to_target(target, ctx):
                         script = "\n".join(copy_modules_command),
                     ),
                     dict(
-                        name = "Import index",
+                        name = "Global index import",
                         shell = "/bin/bash",
-                        script = "\n".join(import_index_command),
+                        script = "\n".join(global_index_import_command),
                     ),
                     dict(
                         name = "Copy Bundle to Destination",
@@ -650,7 +648,6 @@ def _bundle_to_target(target, ctx):
         ),
         OutputGroupInfo(
             archive = depset([abi.archive]),
-            swift_index_store = depset(transitive = swift_indexstores),
             index_import = depset(ctx.files._index_import),
             swift_modules = depset(swift_modules),
             module_maps = depset(transitive = module_maps),
