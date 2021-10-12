@@ -95,7 +95,9 @@ _PLATFORM_TYPES = dict(
 def _platform_type_for_type(typ):
     return _PLATFORM_TYPES[typ]
 
-_INDEX_IMPORT_SCRIPT_PREAMBLE = """\
+_GLOBAL_INDEX_IMPORT_SCRIPT = """\
+set -euxo pipefail
+
 readonly bazel_root="^/private/var/tmp/_bazel_.+?/.+?/execroot/[^/]+"
 readonly bazel_bin="^(?:$bazel_root/)?bazel-out/.+?/bin"
 readonly bazel_swift_object="$bazel_bin/.*/(.+?)(?:_swift)?_objs/.*/(.+?)[.]swift[.]o$"
@@ -104,7 +106,18 @@ readonly xcode_object="$CONFIGURATION_TEMP_DIR/\\$1.build/Objects-normal/$ARCHS/
 readonly bazel_module="$bazel_bin/.*/(.+?)[.]swiftmodule$"
 readonly xcode_module="$BUILT_PRODUCTS_DIR/\\$1.swiftmodule/$ARCHS.swiftmodule"
 readonly bazel_external="$bazel_root/external"
-readonly xcode_external="$BAZEL_WORKSPACE/bazel-$(basename "$BAZEL_WORKSPACE")/external"
+readonly xcode_external="$BAZEL_OUTPUT_BASE/external"
+
+$INDEX_IMPORT \
+    -incremental \
+    -remap "$bazel_module=$xcode_module" \
+    -remap "$bazel_swift_object=$xcode_object" \
+    -remap "$bazel_objc_object=$xcode_object" \
+    -remap "$bazel_external=$xcode_external" \
+    -remap "$bazel_root=$BAZEL_WORKSPACE" \
+    -remap "^([^//])=$BAZEL_WORKSPACE/\\$1" \
+    "$BAZEL_EXECROOT/bazel-out/_global_index_store" \
+    "$BUILD_DIR/../../Index/DataStore"
 """
 
 _COPY_SWIFT_MODULE_SCRIPT = """\
@@ -128,31 +141,18 @@ cd $BAZEL_WORKSPACE
 OPTIONS=(
     "--define=apple.experimental.tree_artifact_outputs=1"
     "--define=apple.add_debugger_entitlement=1"
+    "--features=swift.index_while_building"
     "--features=swift.disable_system_index"
     "--features=swift.use_global_index_store"
     "--aspects=@build_bazel_rules_apple//apple/internal/aspects:xcodeproj_aspect.bzl%sources_aspect"
     "--output_groups=archive,swift_modules,index_import,module_maps"
 )
 
-if [ -n "${TARGET_DEVICE_IDENTIFIER:-}" ] && [ "$PLATFORM_NAME" = "iphoneos" ]; then
-    echo "Builds with --ios_multi_cpus=arm64 since the target is an iOS device."
+if [[ "$PLATFORM_NAME" == "iphoneos" ]]; then
     OPTIONS+=("--ios_multi_cpus=arm64")
 fi
 
 bazel build "${OPTIONS[@]}" $BAZEL_TARGET_LABEL
-"""
-
-_GLOBAL_INDEX_IMPORT_COMMAND = """\
-$INDEX_IMPORT \
-    -incremental \
-    -remap "$bazel_module=$xcode_module" \
-    -remap "$bazel_swift_object=$xcode_object" \
-    -remap "$bazel_objc_object=$xcode_object" \
-    -remap "$bazel_external=$xcode_external" \
-    -remap "$bazel_root=$BAZEL_WORKSPACE" \
-    -remap "^([^//])=$BAZEL_WORKSPACE/\\$1" \
-    "$BAZEL_WORKSPACE/bazel-out/_global_index_store" \
-    "$BUILD_DIR/../../Index/DataStore" || true
 """
 
 _COPY_APP_SCRIPT = """\
@@ -475,7 +475,11 @@ def _swift_library_to_target(target, ctx):
                 target,
                 ctx,
                 sources = _depset_paths(sources, map_each = _xcodegen_file_optional) + [
-                    {"path": ctx.build_file_path, "optional": True},
+                    dict(
+                        path = ctx.build_file_path,
+                        optional = True,
+                        buildPhase = "none",
+                    ),
                 ],
                 settings = dict(
                     base = {
@@ -513,7 +517,11 @@ def _objc_library_to_target(target, ctx):
                 target,
                 ctx,
                 sources = _depset_paths(sources, map_each = _xcodegen_file_optional) + [
-                    {"path": ctx.build_file_path, "optional": True},
+                    dict(
+                        path = ctx.build_file_path,
+                        optional = True,
+                        buildPhase = "none",
+                    ),
                 ],
                 settings = dict(
                     base = {
@@ -576,12 +584,6 @@ def _bundle_to_target(target, ctx):
         "set -euxo pipefail",
     ]
 
-    global_index_import_command = [
-        "set -euxo pipefail",
-        _INDEX_IMPORT_SCRIPT_PREAMBLE,
-        _GLOBAL_INDEX_IMPORT_COMMAND,
-    ]
-
     module_maps = []
     deps = _collect_transitive_deps(target, ctx)
     for dep in deps.to_list():
@@ -624,9 +626,9 @@ def _bundle_to_target(target, ctx):
                         script = "\n".join(copy_modules_command),
                     ),
                     dict(
-                        name = "Global index import",
+                        name = "Global Index Import",
                         shell = "/bin/bash",
-                        script = "\n".join(global_index_import_command),
+                        script = _GLOBAL_INDEX_IMPORT_SCRIPT,
                     ),
                     dict(
                         name = "Copy Bundle to Destination",
