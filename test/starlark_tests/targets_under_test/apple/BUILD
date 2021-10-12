@@ -498,3 +498,54 @@ apple_static_xcframework(
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
 )
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_avoid_deps",
+    avoid_deps = [":StaticFmwkLowerLib"],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":StaticFmwkUpperLib"],
+)
+
+genrule(
+    name = "dummy_fmwk_objc_hdr",
+    outs = ["DummyFmwk.h"],
+    cmd = "echo '#ifndef SDK_FRAMEWORK_H_\n#define SDK_FRAMEWORK_H_\n void doStuff(); \n#endif\n// SDK_FRAMEWORK_H_' > $@",
+)
+
+genrule(
+    name = "dummy_fmwk_objc_src",
+    outs = ["DummyFmwk.m"],
+    cmd = "echo '#import <Foundation/Foundation.h>\nvoid doStuff() { NSLog(@\"Framework method called\"); }' > $@",
+)
+
+genrule(
+    name = "dummy_fmwk_dependent_objc_src",
+    outs = ["DummyFmwkDependent.m"],
+    cmd = "echo '#import <Foundation/Foundation.h>\nvoid frameworkDependent() { NSLog(@\"frameworkDependent() called\"); }' > $@",
+)
+
+objc_library(
+    name = "StaticFmwkUpperLib",
+    srcs = [
+        "DummyFmwk.h",
+        "DummyFmwk.m",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":StaticFmwkLowerLib"],
+)
+
+objc_library(
+    name = "StaticFmwkLowerLib",
+    srcs = ["DummyFmwkDependent.m"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
