@@ -303,20 +303,6 @@ def _minimum_os_for_platform(ctx, platform_type_str):
     # Convert the DottedVersion to a string suitable for inclusion in a struct.
     return str(min_os)
 
-def _dict_omitting_none(**kwargs):
-    """Creates a dict from the args, dropping keys with None or [] values."""
-    return {
-        name: kwargs[name]
-        for name in kwargs
-        # Starlark doesn't support "is"; comparison is explicit for correctness.
-        # pylint: disable=g-equals-none,g-explicit-bool-comparison
-        if kwargs[name] != None and kwargs[name] != []
-    }
-
-def _struct_omitting_none(**kwargs):
-    """Creates a struct from the args, dropping keys with None or [] values."""
-    return struct(**_dict_omitting_none(**kwargs))
-
 def _get_obj_attr(obj, attr_path):
     attr_path = attr_path.split(".")
     for a in attr_path:
@@ -684,10 +670,6 @@ def _apple_framework_import_to_target(target, ctx):
 
 def _sources_aspect(target, ctx):
     """Extract informations from a target and return the appropriate informations through a provider"""
-
-    # if ctx.rule.kind == "swift_module_alias":
-    #     print(target)
-    #     # return _swift_library_to_target(target, ctx)
 
     if SwiftInfo in target:
         return _swift_library_to_target(target, ctx)

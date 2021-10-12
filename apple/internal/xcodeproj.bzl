@@ -62,22 +62,12 @@ def _is_file_external(f):
     return f.owner.workspace_root != ""
 
 def _file_path(f):
-    #prefix = "$BAZEL_WORKSPACE"
     prefix = ""
     if not f.is_source:
         prefix = "$BAZEL_EXECROOT"
     elif _is_file_external(f):
         prefix = "$BAZEL_OUTPUT_BASE"
     return paths.join(prefix, f.path)
-
-def _collect_indexstores(info):
-    return depset(
-        transitive = [
-            dep.swift.indexstore
-            for dep in info.transitive_deps.to_list()
-            if hasattr(dep, "swift")
-        ],
-    )
 
 def _file_bazel_path(f, prefix = "", suffix = ""):
     bazel_dir = "BAZEL_WORKSPACE"
@@ -95,7 +85,6 @@ def _xcodeproj_impl(ctx):
         if XcodeGenTargetInfo in dep:
             xti = dep[XcodeGenTargetInfo]
 
-            # _index_imports(xti)
             inputs.append(xti.srcs)
             targets[xti.name] = xti.target
             for d in xti.transitive_deps.to_list():
