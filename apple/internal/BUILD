@@ -283,6 +283,7 @@ bzl_library(
         "//apple/internal/partials:debug_symbols",
         "//apple/internal/partials:embedded_bundles",
         "//apple/internal/partials:extension_safe_validation",
+        "//apple/internal/partials:framework_header_modulemap",
         "//apple/internal/partials:framework_headers",
         "//apple/internal/partials:framework_import",
         "//apple/internal/partials:framework_provider",
@@ -291,8 +292,8 @@ bzl_library(
         "//apple/internal/partials:provisioning_profile",
         "//apple/internal/partials:resources",
         "//apple/internal/partials:settings_bundle",
-        "//apple/internal/partials:static_framework_header_modulemap",
         "//apple/internal/partials:swift_dylibs",
+        "//apple/internal/partials:swift_framework",
         "//apple/internal/partials:swift_static_framework",
         "//apple/internal/partials:watchos_stub",
     ],
@@ -417,6 +418,18 @@ bzl_library(
     deps = [
         ":intermediates",
         "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "swift_info_support",
+    srcs = ["swift_info_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "@bazel_skylib//lib:sets",
     ],
 )
 

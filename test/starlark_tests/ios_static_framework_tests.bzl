@@ -48,6 +48,22 @@ def ios_static_framework_test_suite():
         tags = [name],
     )
 
+    # Test that the Swift generated header is propagated to the Headers visible
+    # within this iOS framework along with the swift interfaces and modulemap.
+    archive_contents_test(
+        name = "{}_swift_generates_header_test".format(name),
+        build_type = "simulator",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
+        contains = [
+            "$BUNDLE_ROOT/Headers/StaticFmwkWithGenHeader.h",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/Modules/StaticFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/StaticFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2021 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for bundling header and modulemaps for static frameworks."""
+"""Partial implementation for bundling header and modulemaps for external-facing frameworks."""
 
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -111,16 +111,17 @@ def _create_umbrella_header(actions, output, headers):
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
-def _static_framework_header_modulemap_partial_impl(
+def _framework_header_modulemap_partial_impl(
         *,
         actions,
-        binary_objc_provider,
         bundle_name,
         hdrs,
         label_name,
         output_discriminator,
+        sdk_dylibs,
+        sdk_frameworks,
         umbrella_header):
-    """Implementation for the static framework headers and modulemaps partial."""
+    """Implementation for the sdk framework headers and modulemaps partial."""
     bundle_files = []
 
     umbrella_header_name = None
@@ -156,12 +157,9 @@ def _static_framework_header_modulemap_partial_impl(
     else:
         umbrella_header_name = None
 
-    sdk_dylibs = getattr(binary_objc_provider, "sdk_dylib", None)
-    sdk_frameworks = getattr(binary_objc_provider, "sdk_framework", None)
-
     # Create a module map if there is a need for one (that is, if there are
     # headers or if there are dylibs/frameworks that the target depends on).
-    if any([sdk_dylibs, sdk_dylibs, umbrella_header_name]):
+    if any([sdk_dylibs, sdk_frameworks, umbrella_header_name]):
         modulemap_file = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -173,7 +171,7 @@ def _static_framework_header_modulemap_partial_impl(
             modulemap_file,
             bundle_name,
             umbrella_header_name,
-            sorted(sdk_dylibs.to_list()) if sdk_dylibs else [],
+            sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
             sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
         )
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
@@ -182,40 +180,43 @@ def _static_framework_header_modulemap_partial_impl(
         bundle_files = bundle_files,
     )
 
-def static_framework_header_modulemap_partial(
+def framework_header_modulemap_partial(
         *,
         actions,
-        binary_objc_provider,
         bundle_name,
         hdrs,
         label_name,
         output_discriminator = None,
+        sdk_dylibs = [],
+        sdk_frameworks = [],
         umbrella_header):
-    """Constructor for the static framework headers and modulemaps partial.
+    """Constructor for the framework headers and modulemaps partial.
 
-    This partial bundles the headers and modulemaps for static frameworks.
+    This partial bundles the headers and modulemaps for sdk frameworks.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      binary_objc_provider: The ObjC provider for the binary target.
       bundle_name: The name of the output bundle.
       hdrs: The list of headers to bundle.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
+      sdk_dylibs: A list of dynamic libraries referenced by this framework.
+      sdk_frameworks: A list of frameworks referenced by this framework.
       umbrella_header: An umbrella header to use instead of generating one
 
     Returns:
-      A partial that returns the bundle location of the static framework header and modulemap
+      A partial that returns the bundle location of the sdk framework header and modulemap
       artifacts.
     """
     return partial.make(
-        _static_framework_header_modulemap_partial_impl,
+        _framework_header_modulemap_partial_impl,
         actions = actions,
-        binary_objc_provider = binary_objc_provider,
         bundle_name = bundle_name,
         hdrs = hdrs,
         label_name = label_name,
         output_discriminator = output_discriminator,
+        sdk_dylibs = sdk_dylibs,
+        sdk_frameworks = sdk_frameworks,
         umbrella_header = umbrella_header,
     )

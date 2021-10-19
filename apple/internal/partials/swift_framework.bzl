@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2021 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for Swift static frameworks."""
+"""Partial implementation for Swift frameworks with third party interfaces."""
 
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
@@ -31,52 +31,68 @@ load(
     "paths",
 )
 
-def _swift_static_framework_partial_impl(
+def _swift_framework_partial_impl(
         *,
         actions,
         bundle_name,
         label_name,
         output_discriminator,
-        swift_static_framework_info):
-    """Implementation for the Swift static framework processing partial."""
+        swift_infos):
+    """Implementation for the Swift framework processing partial."""
 
-    swift_info_support.verify_found_module_name(
-        bundle_name = bundle_name,
-        found_module_name = swift_static_framework_info.module_name,
-    )
-
-    generated_header = swift_static_framework_info.generated_header
-    swiftdocs = swift_static_framework_info.swiftdocs
-    swiftinterfaces = swift_static_framework_info.swiftinterfaces
+    if len(swift_infos) == 0:
+        fail("""
+Internal error: Expected to find a SwiftInfo before entering this partial. Please file an \
+issue with a reproducible error case.
+""")
 
     bundle_files = []
     expected_module_name = bundle_name
+    found_module_name = None
+    found_generated_header = None
     modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
 
-    for arch, swiftinterface in swiftinterfaces.items():
+    for arch, swiftinfo in swift_infos.items():
+        swift_module = swift_info_support.swift_include_info(
+            found_module_name = found_module_name,
+            transitive_modules = swiftinfo.transitive_modules,
+        )
+
+        # If headers are generated, they should be generated equally for all archs, so just take the
+        # first one found.
+        if (not found_generated_header) and swift_module.clang:
+            if swift_module.clang.compilation_context.direct_headers:
+                found_generated_header = swift_module.clang.compilation_context.direct_headers[0]
+
+        found_module_name = swift_module.name
+
         bundle_interface = swift_info_support.declare_swiftinterface(
             actions = actions,
             arch = arch,
             label_name = label_name,
             output_discriminator = output_discriminator,
-            swiftinterface = swiftinterface,
+            swiftinterface = swift_module.swift.swiftinterface,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
 
-    for arch, swiftdoc in swiftdocs.items():
         bundle_doc = swift_info_support.declare_swiftdoc(
             actions = actions,
             arch = arch,
             label_name = label_name,
             output_discriminator = output_discriminator,
-            swiftdoc = swiftdoc,
+            swiftdoc = swift_module.swift.swiftdoc,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
 
-    if generated_header:
+    swift_info_support.verify_found_module_name(
+        bundle_name = expected_module_name,
+        found_module_name = found_module_name,
+    )
+
+    if found_generated_header:
         bundle_header = swift_info_support.declare_generated_header(
             actions = actions,
-            generated_header = generated_header,
+            generated_header = found_generated_header,
             label_name = label_name,
             output_discriminator = output_discriminator,
             module_name = expected_module_name,
@@ -93,14 +109,14 @@ def _swift_static_framework_partial_impl(
 
     return struct(bundle_files = bundle_files)
 
-def swift_static_framework_partial(
+def swift_framework_partial(
         *,
         actions,
         bundle_name,
         label_name,
         output_discriminator = None,
-        swift_static_framework_info):
-    """Constructor for the Swift static framework processing partial.
+        swift_infos):
+    """Constructor for the Swift framework processing partial.
 
     This partial collects and bundles the necessary files to construct a Swift based static
     framework.
@@ -111,18 +127,18 @@ def swift_static_framework_partial(
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
-        swift_static_framework_info: The SwiftStaticFrameworkInfo provider containing the required
-            artifacts.
+        swift_infos: A dictionary with architectures as keys and the SwiftInfo provider containing
+            the required artifacts for that architecture as values.
 
     Returns:
         A partial that returns the bundle location of the supporting Swift artifacts needed in a
-        Swift based static framework.
+        Swift based sdk framework.
     """
     return partial.make(
-        _swift_static_framework_partial_impl,
+        _swift_framework_partial_impl,
         actions = actions,
         bundle_name = bundle_name,
         label_name = label_name,
         output_discriminator = output_discriminator,
-        swift_static_framework_info = swift_static_framework_info,
+        swift_infos = swift_infos,
     )

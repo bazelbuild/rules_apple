@@ -1605,6 +1605,14 @@ ios_static_framework(
     deps = [":StaticFmwkUpperLib"],
 )
 
+ios_static_framework(
+    name = "static_framework_with_generated_header",
+    bundle_name = "StaticFmwkWithGenHeader",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":StaticFmwkWithGenHeader"],
+)
+
 genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
@@ -1631,5 +1639,13 @@ swift_library(
     name = "StaticFmwkLowestLib",
     srcs = ["Dummy.swift"],
     module_name = "StaticFmwkLowestLib",
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "StaticFmwkWithGenHeader",
+    srcs = ["Dummy.swift"],
+    generates_header = True,
+    module_name = "StaticFmwkWithGenHeader",
     tags = FIXTURE_TAGS,
 )

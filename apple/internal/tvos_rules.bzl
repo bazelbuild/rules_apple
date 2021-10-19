@@ -760,12 +760,13 @@ def _tvos_static_framework_impl(ctx):
         )
     else:
         processor_partials.append(
-            partials.static_framework_header_modulemap_partial(
+            partials.framework_header_modulemap_partial(
                 actions = actions,
-                binary_objc_provider = binary_target[apple_common.Objc],
                 bundle_name = bundle_name,
                 hdrs = ctx.files.hdrs,
                 label_name = label.name,
+                sdk_dylibs = getattr(binary_target[apple_common.Objc], "sdk_dylib", []),
+                sdk_frameworks = getattr(binary_target[apple_common.Objc], "sdk_framework", []),
                 umbrella_header = ctx.file.umbrella_header,
             ),
         )
