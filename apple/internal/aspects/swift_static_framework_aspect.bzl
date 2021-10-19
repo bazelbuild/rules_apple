@@ -15,6 +15,10 @@
 """Aspect implementation for Swift static framework support."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:swift_info_support.bzl",
+    "swift_info_support",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
@@ -104,67 +108,31 @@ def _swift_static_framework_aspect_impl(target, ctx):
     for dep in swiftdeps:
         swiftinfo = dep[SwiftInfo]
 
-        swiftinterface = None
-        swiftdoc = None
-        for module in swiftinfo.transitive_modules.to_list():
-            if not module.swift or sets.contains(avoid_modules, module.name):
-                continue
-            if swiftinterface:
-                fail(
-                    """\
-error: Found transitive swift_library dependencies. Swift static frameworks expect a single \
-swift_library dependency with no transitive swift_library dependencies.\
-""",
-                )
-            swiftinterface = module.swift.swiftinterface
-            swiftdoc = module.swift.swiftdoc
-
-            if not module_name:
-                module_name = module.name
-            elif module.name and module.name != module_name:
-                fail(
-                    """\
-error: Found multiple direct swift_library dependencies. Swift static frameworks expect a single \
-swift_library dependency with no transitive swift_library dependencies.\
-""",
-                )
+        swift_module = swift_info_support.swift_include_info(
+            avoid_modules = avoid_modules,
+            found_module_name = module_name,
+            transitive_modules = swiftinfo.transitive_modules,
+        )
 
         arch = _swift_arch_for_dep(dep)
-        swiftdocs[arch] = swiftdoc
-        swiftinterfaces[arch] = swiftinterface
+        swiftdocs[arch] = swift_module.swift.swiftdoc
+        swiftinterfaces[arch] = swift_module.swift.swiftinterface
+        module_name = swift_module.name
 
-        # Collect the interface artifacts. Only get the first element from each depset since
-        # they should only contain 1. If there are transitive swift_library dependencies, this
-        # aspect would have errored out before.
-        #
-        # If headers are generated, they should be generated equally for all archs, so
-        # just take any of them.
-        if not generated_header:
-            for module in swiftinfo.direct_modules:
-                # If this is both a Swift and a Clang module, then the header in its compilation
-                # context is its Swift generated header.
-                if module.swift and module.clang:
-                    headers = module.clang.compilation_context.direct_headers
-                    if headers:
-                        generated_header = headers[0]
+        # If headers are generated, they should be generated equally for all archs, so just take the
+        # first one found.
+        if (not generated_header) and swift_module.clang:
+            if swift_module.clang.compilation_context.direct_headers:
+                generated_header = swift_module.clang.compilation_context.direct_headers[0]
 
-    # Make sure that all dictionaries contain at least one module before returning the provider.
-    if all([module_name, swiftdocs, swiftinterfaces]):
-        return [
-            SwiftStaticFrameworkInfo(
-                module_name = module_name,
-                generated_header = generated_header,
-                swiftdocs = swiftdocs,
-                swiftinterfaces = swiftinterfaces,
-            ),
-        ]
-
-    fail(
-        """\
-error: Could not find all required artifacts and information to build a Swift static framework. \
-Please file an issue with a reproducible error case.\
-""",
-    )
+    return [
+        SwiftStaticFrameworkInfo(
+            module_name = module_name,
+            generated_header = generated_header,
+            swiftdocs = swiftdocs,
+            swiftinterfaces = swiftinterfaces,
+        ),
+    ]
 
 swift_static_framework_aspect = aspect(
     implementation = _swift_static_framework_aspect_impl,
