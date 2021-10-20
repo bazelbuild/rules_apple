@@ -18,6 +18,10 @@ load(
     "//apple:resources.bzl",
     "apple_core_data_model",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
 
 licenses(["notice"])
 
@@ -238,6 +242,15 @@ objc_library(
     tags = TARGETS_UNDER_TEST_TAGS,
 )
 
+swift_library(
+    name = "swift_fmwk_lib",
+    srcs = [
+        "DummyFmwk.swift",
+    ],
+    module_name = "ios_dynamic_lipoed_swift_xcframework",
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
 apple_xcframework(
     name = "ios_dynamic_xcframework",
     bundle_id = "com.google.example",
@@ -285,6 +298,29 @@ apple_xcframework(
     ],
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_lipoed_swift_xcframework",
+    bundle_id = "com.google.example",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "10.0",
+    },
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":swift_fmwk_lib"],
 )
 
 apple_xcframework(
@@ -480,6 +516,33 @@ apple_xcframework(
     deps = [":fmwk_lib"],
 )
 
+apple_xcframework(
+    name = "ios_swift_xcframework_with_generated_header",
+    bundle_id = "com.google.example",
+    bundle_name = "SwiftFmwkWithGenHeader",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":SwiftFmwkWithGenHeader"],
+)
+
 apple_static_xcframework(
     name = "ios_static_xcframework",
     ios = {
@@ -529,6 +592,12 @@ genrule(
 )
 
 genrule(
+    name = "dummy_fmwk_swift_src",
+    outs = ["DummyFmwk.swift"],
+    cmd = "echo 'import Foundation\n@objc public class SharedClass: NSObject {\n@objc public func doSomethingShared() {\nNSLog(\"Doing something shared!\")\n}\n}\n' > $@",
+)
+
+genrule(
     name = "dummy_fmwk_dependent_objc_src",
     outs = ["DummyFmwkDependent.m"],
     cmd = "echo '#import <Foundation/Foundation.h>\nvoid frameworkDependent() { NSLog(@\"frameworkDependent() called\"); }' > $@",
@@ -547,5 +616,13 @@ objc_library(
 objc_library(
     name = "StaticFmwkLowerLib",
     srcs = ["DummyFmwkDependent.m"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+swift_library(
+    name = "SwiftFmwkWithGenHeader",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    module_name = "SwiftFmwkWithGenHeader",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
