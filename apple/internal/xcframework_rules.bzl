@@ -84,6 +84,7 @@ load(
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
     "swift_usage_aspect",
 )
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
@@ -531,7 +532,6 @@ def _apple_xcframework_impl(ctx):
             split_attr_keys = split_attr_keys,
         )
 
-        # TODO(b/174858377): Add support for debug outputs such as dSYM bundles.
         processor_partials = [
             partials.apple_bundle_info_partial(
                 actions = actions,
@@ -572,7 +572,6 @@ def _apple_xcframework_impl(ctx):
                 platform_prerequisites = platform_prerequisites,
                 rule_label = label,
             ),
-            partials.framework_headers_partial(hdrs = ctx.files.public_hdrs),
             partials.resources_partial(
                 actions = actions,
                 apple_toolchain_info = apple_toolchain_info,
@@ -600,6 +599,45 @@ def _apple_xcframework_impl(ctx):
                 platform_prerequisites = platform_prerequisites,
             ),
         ]
+
+        swift_infos = {}
+
+        # If there's any Swift dependencies on this framework rule, look for providers to see if we
+        # need to generate Swift interfaces.
+        if uses_swift:
+            # Architecture does matter to the swiftinterfaces. Here, take advantage of the archs to
+            # create a new dictionary of arch-specific deps with SwiftInfo instances.
+            for architecture in link_output.architectures:
+                arch_split_attr_key = transition_support.xcframework_split_attr_key(
+                    cpu = architecture,
+                    environment = link_output.environment,
+                    platform_type = link_output.platform,
+                )
+                for dep in ctx.split_attr.deps[arch_split_attr_key]:
+                    if SwiftInfo in dep:
+                        swift_infos[architecture] = dep[SwiftInfo]
+
+        if swift_infos:
+            processor_partials.append(
+                partials.swift_framework_partial(
+                    actions = actions,
+                    bundle_name = bundle_name,
+                    label_name = label.name,
+                    output_discriminator = library_identifier,
+                    swift_infos = swift_infos,
+                ),
+            )
+        else:
+            processor_partials.append(
+                partials.framework_header_modulemap_partial(
+                    actions = actions,
+                    bundle_name = bundle_name,
+                    hdrs = ctx.files.public_hdrs,
+                    label_name = label.name,
+                    output_discriminator = library_identifier,
+                    umbrella_header = None,
+                ),
+            )
 
         processor_result = processor.process(
             actions = actions,

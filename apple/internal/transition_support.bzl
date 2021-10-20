@@ -71,12 +71,20 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
         return minimum_os_version
     return None
 
-def _command_line_options(*, cpu = None, minimum_os_version, platform_type, settings):
+def _command_line_options(
+        *,
+        cpu = None,
+        emit_swiftinterface = False,
+        minimum_os_version,
+        platform_type,
+        settings):
     """Generates a dictionary of command line options suitable for the current target.
 
     Args:
         cpu: A valid Apple cpu command line option as a string, or None to infer a value from
             command line options passed through settings.
+        emit_swiftinterface: Wheither to emit swift interfaces for the given target. Defaults to
+            `False`.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
@@ -89,7 +97,7 @@ def _command_line_options(*, cpu = None, minimum_os_version, platform_type, sett
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
 
-    return {
+    output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
         "//command_line_option:apple_split_cpu": cpu if cpu else "",
@@ -126,12 +134,25 @@ def _command_line_options(*, cpu = None, minimum_os_version, platform_type, sett
         ),
     }
 
-def _command_line_options_multi_cpu(*, cpus = None, minimum_os_version, platform_type, settings):
+    if emit_swiftinterface:
+        output_dictionary["@build_bazel_rules_swift//swift:emit_swiftinterface"] = True
+
+    return output_dictionary
+
+def _command_line_options_multi_cpu(
+        *,
+        cpus = None,
+        emit_swiftinterface = False,
+        minimum_os_version,
+        platform_type,
+        settings):
     """Generates a dictionary of command line options suitable for a natively linked target.
 
     Args:
         cpus: A valid series of Apple cpu command line options as a list of strings, or None to
             infer a value from `*_multi_cpus` command line options passed through settings.
+        emit_swiftinterface: Wheither to emit swift interfaces for the given target. Defaults to
+            `False`.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
@@ -144,7 +165,7 @@ def _command_line_options_multi_cpu(*, cpus = None, minimum_os_version, platform
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
 
-    return {
+    output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
         # Set apple_split_cpu to the empty string, treating it as though it is not manually set to
@@ -192,6 +213,11 @@ def _command_line_options_multi_cpu(*, cpus = None, minimum_os_version, platform
         "//command_line_option:watchos_cpus": cpus if platform_type == "watchos" else [],
     }
 
+    if emit_swiftinterface:
+        output_dictionary["@build_bazel_rules_swift//swift:emit_swiftinterface"] = True
+
+    return output_dictionary
+
 def _xcframework_split_attr_key(*, cpu, environment, platform_type):
     """Return the split attribute key for this target within the XCFramework given linker options.
 
@@ -222,6 +248,7 @@ def _resolved_cpu_for_cpu(*, cpu, environment):
 
 def _command_line_options_for_platform(
         *,
+        emit_swiftinterface = False,
         minimum_os_version,
         platform_attr,
         platform_type,
@@ -231,6 +258,8 @@ def _command_line_options_for_platform(
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
 
     Args:
+        emit_swiftinterface: Wheither to emit swift interfaces for the given target. Defaults to
+            `False`.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_attr: The attribute for the apple platform specifying in dictionary form which
@@ -267,6 +296,7 @@ def _command_line_options_for_platform(
                             platform_type = platform_type,
                         ): _command_line_options(
                             cpu = resolved_cpu,
+                            emit_swiftinterface = emit_swiftinterface,
                             minimum_os_version = minimum_os_version,
                             platform_type = platform_type,
                             settings = settings,
@@ -289,6 +319,7 @@ def _command_line_options_for_platform(
                         platform_type = platform_type,
                     ): _command_line_options_multi_cpu(
                         cpus = resolved_cpus,
+                        emit_swiftinterface = emit_swiftinterface,
                         minimum_os_version = minimum_os_version,
                         platform_type = platform_type,
                         settings = settings,
@@ -379,11 +410,17 @@ _static_framework_transition = transition(
     ],
 )
 
-def _output_dictionary_for_xcframework_transition(*, attr, settings, split_on_cpus):
+def _output_dictionary_for_xcframework_transition(
+        *,
+        attr,
+        emit_swiftinterface,
+        settings,
+        split_on_cpus):
     """Creates the appropriate output dictionary for each split of an XCFramework transition"""
     output_dictionary = {}
     if hasattr(attr, "macos"):
         command_line_options_for_platform = _command_line_options_for_platform(
+            emit_swiftinterface = emit_swiftinterface,
             minimum_os_version = attr.minimum_os_versions.get("macos"),
             platform_attr = attr.macos,
             platform_type = "macos",
@@ -395,6 +432,7 @@ def _output_dictionary_for_xcframework_transition(*, attr, settings, split_on_cp
     for platform_type in ["ios", "tvos", "watchos"]:
         if hasattr(attr, platform_type):
             command_line_options_for_platform = _command_line_options_for_platform(
+                emit_swiftinterface = emit_swiftinterface,
                 minimum_os_version = attr.minimum_os_versions.get(platform_type),
                 platform_attr = getattr(attr, platform_type),
                 platform_type = platform_type,
@@ -409,6 +447,7 @@ def _xcframework_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     return _output_dictionary_for_xcframework_transition(
         attr = attr,
+        emit_swiftinterface = True,
         settings = settings,
         split_on_cpus = True,
     )
@@ -416,13 +455,16 @@ def _xcframework_transition_impl(settings, attr):
 _xcframework_transition = transition(
     implementation = _xcframework_transition_impl,
     inputs = _apple_rule_common_transition_inputs,
-    outputs = _apple_rule_base_transition_outputs,
+    outputs = _apple_rule_base_transition_outputs + [
+        "@build_bazel_rules_swift//swift:emit_swiftinterface",
+    ],
 )
 
 def _xcframework_native_lipo_transition_impl(settings, attr):
     """Starlark 1:2+ transition for native linking and lipoing of libraries for a given target."""
     return _output_dictionary_for_xcframework_transition(
         attr = attr,
+        emit_swiftinterface = False,
         settings = settings,
         split_on_cpus = False,
     )
