@@ -409,14 +409,18 @@ A list of resources or files bundled with the bundle. The resources will be stor
 appropriate resources location within the bundle.
 """,
         ),
-        "version": attr.label(
-            providers = [[AppleBundleVersionInfo]],
-            doc = """
+    })
+
+    if rule_descriptor.product_type != apple_product_type.static_framework:
+        attrs.append({
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
-        ),
-    })
+            ),
+        })
 
     if len(rule_descriptor.allowed_device_families) > 1:
         extra_args = {}
