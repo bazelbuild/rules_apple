@@ -30,6 +30,7 @@ load(
     _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
     _macos_kernel_extension = "macos_kernel_extension",
+    _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
     _macos_xpc_service = "macos_xpc_service",
 )
@@ -41,6 +42,7 @@ macos_command_line_application = _macos_command_line_application
 macos_dylib = _macos_dylib
 macos_extension = _macos_extension
 macos_kernel_extension = _macos_kernel_extension
+macos_quick_look_plugin = _macos_quick_look_plugin
 macos_spotlight_importer = _macos_spotlight_importer
 macos_unit_test = _macos_unit_test
 macos_ui_test = _macos_ui_test

@@ -25,12 +25,14 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top"><code>@build_bazel_rules_apple//apple:ios.bzl</code></td>
       <td valign="top">
         <code><a href="rules-ios.md#ios_application">ios_application</a></code><br/>
-        <code><a href="rules-ios.md#ios_imessage_application">ios_imessage_application</a></code><br/>
+        <code><a href="rules-ios.md#ios_app_clip">ios_app_clip</a></code><br/>
         <code><a href="rules-ios.md#ios_extension">ios_extension</a></code><br/>
+        <code><a href="rules-ios.md#ios_imessage_application">ios_imessage_application</a></code><br/>
         <code><a href="rules-ios.md#ios_imessage_extension">ios_imessage_extension</a></code><br/>
         <code><a href="rules-ios.md#ios_sticker_pack_extension">ios_sticker_pack_extension</a></code><br/>
         <code><a href="rules-ios.md#ios_framework">ios_framework</a></code><br/>
         <code><a href="rules-ios.md#ios_static_framework">ios_static_framework</a></code><br/>
+        <code><a href="rules-ios.md#ios_dynamic_framework">ios_dynamic_framework</a></code><br/>
       </td>
       <td valign="top">
         <code><a href="rules-ios.md#ios_ui_test">ios_ui_test</a></code><br/>
@@ -59,6 +61,8 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top">
         <code><a href="rules-tvos.md#tvos_application">tvos_application</a></code><br/>
         <code><a href="rules-tvos.md#tvos_extension">tvos_extension</a></code><br/>
+        <code><a href="rules-tvos.md#tvos_static_framework">tvos_static_framework</a></code><br/>
+        <code><a href="rules-tvos.md#tvos_dynamic_framework">tvos_dynamic_framework</a></code><br/>
       </td>
       <td valign="top">
         <code><a href="rules-tvos.md#tvos_ui_test">tvos_ui_test</a></code><br/>
@@ -72,8 +76,12 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top">
         <code><a href="rules-watchos.md#watchos_application">watchos_application</a></code><br/>
         <code><a href="rules-watchos.md#watchos_extension">watchos_extension</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_static_framework">watchos_static_framework</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_dynamic_framework">watchos_dynamic_framework</a></code><br/>
       </td>
       <td valign="top">
+        <code><a href="rules-watchos.md#watchos_ui_test">watchos_ui_test</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_unit_test">watchos_unit_test</a></code><br/>
         <code><a href="rules-watchos.md#watchos_build_test">watchos_build_test</a></code><br/>
       </td>
     </tr>
