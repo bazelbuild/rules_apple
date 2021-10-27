@@ -129,6 +129,17 @@ def apple_rules_dependencies(ignore_version_differences = False):
 
     _maybe(
         http_archive,
+        name = "rules_license",
+        urls = [
+            "https://github.com/bazelbuild/rules_license/archive/ebc0ccbe7397df0b5b279671f83c707a865e2d16.tar.gz",
+        ],
+        strip_prefix = "rules_license-ebc0ccbe7397df0b5b279671f83c707a865e2d16",
+        sha256 = "c843422f8c058b43d7a7a16564124fd1b7a6d21c939886a3936cb3f0d96ae826",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
         name = "subpar",
         urls = [
             "https://github.com/google/subpar/archive/2.0.0.tar.gz",

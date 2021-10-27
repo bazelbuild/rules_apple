@@ -20,6 +20,10 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
 )
+load(
+    "//apple:licenses.bzl",
+    "license_text",
+)
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
@@ -2297,4 +2301,31 @@ generate_import_framework(
     minimum_os_version = "8.0",
     sdk = "iphonesimulator",
     tags = FIXTURE_TAGS,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for license text generation tests.
+
+ios_application(
+    name = "app_minimal_with_licenses",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [":licenses"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_license",
+    ],
+)
+
+license_text(
+    name = "licenses",
+    tags = ["manual"],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_license",
+    ],
 )

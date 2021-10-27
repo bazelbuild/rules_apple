@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "objc_library")
+load("@rules_license//rules:license.bzl", "license")
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
@@ -29,10 +30,24 @@ exports_files(
     visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
+license(
+    name = "license",
+    package_name = "objc_common_lib",
+    license_kinds = ["@rules_license//licenses/spdx:MIT"],
+)
+
 objc_library(
     name = "objc_common_lib",
     srcs = ["common.m"],
     hdrs = ["common.h"],
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
+    name = "objc_common_lib_with_license",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    applicable_licenses = [":license"],
     tags = FIXTURE_TAGS,
 )
 
@@ -52,6 +67,15 @@ objc_library(
     tags = FIXTURE_TAGS,
     deps = [
         ":objc_common_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_main_lib_with_license",
+    srcs = ["main.m"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":objc_common_lib_with_license",
     ],
 )
 
