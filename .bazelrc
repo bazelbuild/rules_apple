@@ -1,6 +1,9 @@
 # NOTE: These are mainly just for the BazelCI setup so they don't have
 # to be repeated multiple times in .bazelci/presubmit.yml.
 
+# https://github.com/bazelbuild/stardoc/issues/112
+common --incompatible_allow_tags_propagation
+
 # Force the tests to not run in sandboxed mode, since it can introduce
 # errors and flakes.
 test --spawn_strategy=local
