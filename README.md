@@ -25,6 +25,8 @@ Add the following to your `WORKSPACE` file to add the external repositories,
 replacing the version number in the `tag` attribute with the version of the
 rules you wish to depend on:
 
+
+
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
