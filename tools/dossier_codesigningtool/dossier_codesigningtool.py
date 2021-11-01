@@ -545,6 +545,7 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
     cmd.extend([
         '--entitlements',
         entitlements,
+        '--generate-entitlement-der',
     ])
   if force_signing:
     cmd.append('--force')
