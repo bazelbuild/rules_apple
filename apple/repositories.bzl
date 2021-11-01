@@ -142,9 +142,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "xctestrunner",
         urls = [
-            "https://github.com/google/xctestrunner/archive/7f8fc81b10c8d93f09f6fe38b2a3f37ba25336a6.tar.gz",
+            "https://github.com/google/xctestrunner/archive/a13ec9de45d225620dd4b5e30b23bdc663631f31.tar.gz",
         ],
-        strip_prefix = "xctestrunner-7f8fc81b10c8d93f09f6fe38b2a3f37ba25336a6",
-        sha256 = "df9b6d5a8431c0f79f0062abde7f85cd2a02661599c340cf511f25befa6252be",
+        strip_prefix = "xctestrunner-a13ec9de45d225620dd4b5e30b23bdc663631f31",
+        sha256 = "22fcb8658d08486d55c67c9b72ee7c736ccbd083a5231995e0fd2aee6b07b030",
         ignore_version_differences = ignore_version_differences,
     )
