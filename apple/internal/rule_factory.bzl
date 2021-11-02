@@ -244,9 +244,10 @@ See the man page documentation for `ld(1)` on macOS for more details.
 """,
             ),
             "codesign_inputs": attr.label_list(
+                allow_files = True,
                 doc = """
 A list of dependencies targets that provide inputs that will be used by
-`codesign` (referenced with `codesignopts`).
+`codesign` (referenced with `$(location)` in `codesignopts`).
     """,
             ),
             "codesignopts": attr.string_list(

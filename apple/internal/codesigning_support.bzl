@@ -64,7 +64,7 @@ def _codesignopts_from_rule_ctx(ctx):
       The list of codesignopts
     """
     return [
-        ctx.expand_make_variables("codesignopts", opt, {})
+        ctx.expand_location(opt, ctx.attr.codesign_inputs)
         for opt in ctx.attr.codesignopts
     ]
 
