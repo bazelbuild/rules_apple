@@ -23,27 +23,13 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
 
 
-def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_path, sdk_platform,
-                        destination_path):
+def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   """Copies the Swift stdlibs required by the binaries to the destination."""
-  # Use the currently selected Xcode developer directory and SDK to determine
-  # exactly which Swift stdlibs we should be copying.
-  developer_dir_cmd = ["xcode-select", "--print-path"]
-  _, stdout, stderr = execute.execute_and_filter_output(developer_dir_cmd,
-                                                        raise_on_failure=True)
-  if stderr:
-    print(stderr)
-  developer_dir = stdout.strip()
-  library_source_dir = os.path.join(
-      developer_dir, swift_dylibs_path, sdk_platform
-  )
-
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
   cmd = [
-      "xcrun", "swift-stdlib-tool", "--copy", "--source-libraries",
-      library_source_dir, "--platform", sdk_platform, "--destination",
-      destination_path
+      "xcrun", "swift-stdlib-tool", "--copy", "--platform", sdk_platform,
+      "--destination", destination_path
   ]
   for binary_to_scan in binaries_to_scan:
     cmd.extend(["--scan-executable", binary_to_scan])
@@ -89,11 +75,6 @@ def main():
       "'iphoneos'"
   )
   parser.add_argument(
-      "--swift_dylibs_path", type=str, required=True, help="path relative from "
-      "the developer directory to find the Swift standard libraries, "
-      "independent of platform"
-  )
-  parser.add_argument(
       "--output_path", type=str, required=True, help="path to save the Swift "
       "support libraries to"
   )
@@ -103,9 +84,7 @@ def main():
   temp_path = tempfile.mkdtemp(prefix="swift_stdlib_tool.XXXXXX")
 
   # Use the binaries to copy only the Swift stdlibs we need for this app.
-  _copy_swift_stdlibs(
-      args.binary, args.swift_dylibs_path, args.platform, temp_path
-  )
+  _copy_swift_stdlibs(args.binary, args.platform, temp_path)
 
   # Determine the binary slices we need to strip with lipo.
   target_archs = lipo.find_archs_for_binaries(args.binary)
