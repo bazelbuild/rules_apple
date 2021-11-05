@@ -507,3 +507,9 @@ filegroup(
     name = "WatchAppIcon.xcassets",
     srcs = glob(["WatchAppIcon.xcassets/**"]),
 )
+
+cc_binary(
+    name = "cc_test_binary",
+    srcs = ["main.cc"],
+    tags = FIXTURE_TAGS,
+)

@@ -178,18 +178,13 @@ def _register_linking_action(
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
 
-    if len(linking_outputs.outputs) > 1:
-        lipo.create(
-            actions = ctx.actions,
-            inputs = [output.binary for output in linking_outputs.outputs],
-            output = fat_binary,
-            apple_fragment = ctx.fragments.apple,
-            xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-        )
-    else:
-        # Symlink if there was only a single architecture created; it's faster.
-        output = linking_outputs.outputs[0]
-        ctx.actions.symlink(target_file = output.binary, output = fat_binary)
+    _lipo_or_symlink_inputs(
+        actions = ctx.actions,
+        inputs = [output.binary for output in linking_outputs.outputs],
+        output = fat_binary,
+        apple_fragment = ctx.fragments.apple,
+        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     return struct(
         binary = fat_binary,
@@ -199,7 +194,32 @@ def _register_linking_action(
         output_groups = linking_outputs.output_groups,
     )
 
+def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
+    """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
+
+    Args:
+      actions: The rule context actions.
+      inputs: Binary inputs to use for lipo action.
+      output: Binary output for universal binary or symlink.
+      apple_fragment: The `apple` configuration fragment used to configure
+                      the action environment.
+      xcode_config: The `apple_common.XcodeVersionConfig` provider used to
+                    configure the action environment.
+    """
+    if len(inputs) > 1:
+        lipo.create(
+            actions = actions,
+            inputs = inputs,
+            output = output,
+            apple_fragment = apple_fragment,
+            xcode_config = xcode_config,
+        )
+    else:
+        # Symlink if there was only a single architecture created; it's faster.
+        actions.symlink(target_file = inputs[0], output = output)
+
 linking_support = struct(
+    lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     parse_platform_key = _parse_platform_key,
     register_linking_action = _register_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,

@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
+load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
@@ -44,6 +45,8 @@ apple_bundle_version_test_suite()
 apple_core_data_model_test_suite()
 
 apple_static_xcframework_test_suite()
+
+apple_universal_binary_test_suite()
 
 apple_xcframework_test_suite()
 

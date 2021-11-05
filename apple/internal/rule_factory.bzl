@@ -943,7 +943,8 @@ def _create_apple_binary_rule(
         additional_attrs = {},
         implicit_outputs = None,
         platform_type = None,
-        product_type = None):
+        product_type = None,
+        require_linking_attrs = True):
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
@@ -1012,10 +1013,13 @@ binaries/libraries will be created combining all architectures specified by
         )
     else:
         is_executable = False
-        rule_attrs.append(_common_binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
-            product_type = None,
-        ))
+        if require_linking_attrs:
+            rule_attrs.append(_common_binary_linking_attrs(
+                deps_cfg = apple_common.multi_arch_split,
+                product_type = None,
+            ))
+        else:
+            rule_attrs.append(_COMMON_ATTRS)
 
     rule_attrs.append(additional_attrs)
 
