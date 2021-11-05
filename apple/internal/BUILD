@@ -53,6 +53,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_universal_binary",
+    srcs = ["apple_universal_binary.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":linking_support",
+        ":rule_factory",
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
     name = "apple_product_type",
     srcs = ["apple_product_type.bzl"],
     visibility = [

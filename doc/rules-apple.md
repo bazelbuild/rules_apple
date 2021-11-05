@@ -88,6 +88,32 @@ objc_library(
 | <a id="apple_static_framework_import-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with. For instance, <code>MediaAccessibility</code>. In difference to regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they are not present at runtime.   | List of strings | optional | [] |
 
 
+<a id="#apple_universal_binary"></a>
+
+## apple_universal_binary
+
+<pre>
+apple_universal_binary(<a href="#apple_universal_binary-name">name</a>, <a href="#apple_universal_binary-binary">binary</a>, <a href="#apple_universal_binary-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#apple_universal_binary-minimum_os_version">minimum_os_version</a>,
+                       <a href="#apple_universal_binary-platform_type">platform_type</a>)
+</pre>
+
+
+This rule produces a multi-architecture ("fat") binary targeting Apple platforms.
+The `lipo` tool is used to combine built binaries of multiple architectures.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_universal_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_universal_binary-binary"></a>binary |  Target to generate a 'fat' binary from.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="apple_universal_binary-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from <code>minimum_os_version</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.   | String | optional | "" |
+| <a id="apple_universal_binary-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "10.11").   | String | required |  |
+| <a id="apple_universal_binary-platform_type"></a>platform_type |  The target Apple platform for which to create a binary. This dictates which SDK is used for compilation/linking and which flag is used to determine the architectures to target. For example, if <code>ios</code> is specified, then the output binaries/libraries will be created combining all architectures specified by <code>--ios_multi_cpus</code>. Options are:<br><br>*   <code>ios</code>: architectures gathered from <code>--ios_multi_cpus</code>. *   <code>macos</code>: architectures gathered from <code>--macos_cpus</code>. *   <code>tvos</code>: architectures gathered from <code>--tvos_cpus</code>. *   <code>watchos</code>: architectures gathered from <code>--watchos_cpus</code>.   | String | required |  |
+
+
 <a id="#apple_xcframework"></a>
 
 ## apple_xcframework

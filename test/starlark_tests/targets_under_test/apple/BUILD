@@ -4,6 +4,7 @@ load(
 )  # buildifier: disable=bzl-visibility
 load(
     "//apple:apple.bzl",
+    "apple_universal_binary",
     "apple_xcframework",
 )
 load(
@@ -624,5 +625,13 @@ swift_library(
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
     module_name = "SwiftFmwkWithGenHeader",
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+apple_universal_binary(
+    name = "multi_arch_cc_binary",
+    binary = "//test/starlark_tests/resources:cc_test_binary",
+    minimum_os_version = "11.0",
+    platform_type = "macos",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
