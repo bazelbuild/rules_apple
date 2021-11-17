@@ -54,7 +54,7 @@ load(
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
-    deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
+    deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target] + getattr(aspect_ctx.rule.attr, "private_deps", [])
     uses_swift = swift_support.uses_swift(deps_and_target)
 
     # TODO(b/176548199): Support device_families when rule_descriptor can be accessed from an
@@ -225,7 +225,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
     inherited_providers = []
-    provider_deps = ["deps"] + collect_args.get("res_attrs", [])
+    provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             inherited_providers.extend([
@@ -256,7 +256,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "resources"],
+    attr_aspects = ["data", "deps", "private_deps", "resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support_toolchain_utils.shared_attrs(),
