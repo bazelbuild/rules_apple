@@ -54,7 +54,6 @@ def _apple_binary_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        # TODO: Pass `dylibs` as `avoid_deps`,
         extra_linkopts = extra_linkopts,
         stamp = ctx.attr.stamp,
     )

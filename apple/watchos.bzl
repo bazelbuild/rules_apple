@@ -120,7 +120,6 @@ def watchos_unit_test(name, **kwargs):
         test_rule = _watchos_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
-        # TODO: Replace with register_linking_action(avoid_deps = ...)
         dylibs = kwargs.get("frameworks"),
         **kwargs
     )

@@ -171,20 +171,6 @@ provide debug info.
     },
 )
 
-AppleMergableFrameworkInfo = provider(
-    doc = """\
-Provider that propagates frameworks that should be used instead of the framework
-this provider is attached to.
-""",
-    fields = {
-        "frameworks": """
-Depset of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
-that this target depends on.
-""",
-    },
-)
-
 AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items
