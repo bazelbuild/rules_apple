@@ -13,6 +13,8 @@ in Bazel, and by the
 [`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#swift_library)
 available from [rules_swift](https://github.com/bazelbuild/rules_swift).
 
+If you are looking for an easy way to build mixed language frameworks, check out [rules_ios](https://github.com/bazel-ios/rules_ios).
+
 ## Reference documentation
 
 [Click here](https://github.com/bazelbuild/rules_apple/tree/master/doc)
