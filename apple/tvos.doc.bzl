@@ -6,6 +6,7 @@
 load(
     "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
+    _tvos_dynamic_framework = "tvos_dynamic_framework",
     _tvos_extension = "tvos_extension",
     _tvos_framework = "tvos_framework",
     _tvos_static_framework = "tvos_static_framework",
@@ -18,6 +19,7 @@ load(
 load(":tvos.bzl", _tvos_build_test = "tvos_build_test")
 
 tvos_application = _tvos_application
+tvos_dynamic_framework = _tvos_dynamic_framework
 tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework
 tvos_static_framework = _tvos_static_framework

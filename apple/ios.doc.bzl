@@ -24,7 +24,9 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
     _ios_imessage_application = "ios_imessage_application",
@@ -40,6 +42,8 @@ load(
 )
 
 ios_application = _ios_application
+ios_app_clip = _ios_app_clip
+ios_dynamic_framework = _ios_dynamic_framework
 ios_imessage_application = _ios_imessage_application
 ios_extension = _ios_extension
 ios_imessage_extension = _ios_imessage_extension

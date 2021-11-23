@@ -30,6 +30,7 @@ _DOC_SRCS = [
         out = file + ".md",
         header_template = ":header.vm",
         input = "//apple:%s.bzl" % file,
+        tags = ["no-sandbox"],  # https://github.com/bazelbuild/stardoc/issues/112
         deps = ["//apple:" + file],
     )
     for file in _DOC_SRCS
@@ -84,12 +85,4 @@ sh_binary(
     name = "update",
     srcs = ["update.sh"],
     data = [file + ".md" for file in _DOC_SRCS],
-)
-
-# Consumed by bazel tests.
-filegroup(
-    name = "for_bazel_tests",
-    testonly = 1,
-    srcs = glob(["**"]),
-    visibility = ["//:__pkg__"],
 )
