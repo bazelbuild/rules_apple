@@ -20,7 +20,6 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
 )
-load("//test/testdata/rules:substitution.bzl", "substitution")
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
@@ -1047,21 +1046,14 @@ ios_extension(
 
 # ---------------------------------------------------------------------------------------
 
-substitution(
-    name = "resource_rules",
-    src = "//test/starlark_tests/resources:ResourceRules.plist",
-    tags = FIXTURE_TAGS,
-    var_name = "RULES",
-)
-
 ios_application(
     name = "app_with_codesignopts",
     bundle_id = "com.google.example",
-    codesign_inputs = [":resource_rules"],
+    codesign_inputs = ["//test/starlark_tests/resources:ResourceRules.plist"],
     codesignopts = [
         "--digest-algorithm=sha1",
         "--digest-algorithm=sha384",
-        "--resource-rules=$(RULES)",
+        "--resource-rules=$(location //test/starlark_tests/resources:ResourceRules.plist)",
     ],
     families = ["iphone"],
     infoplists = [
@@ -1069,7 +1061,6 @@ ios_application(
     ],
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
-    toolchains = [":resource_rules"],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
