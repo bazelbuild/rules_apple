@@ -18,7 +18,8 @@ x_defaults:
 tasks:
   macos_latest:
     name: "Latest Bazel"
-    bazel: latest
+    # TODO(#1263): Change back to `latest` after 5.0 is released
+    bazel: last_rc
     <<: *common
 
   macos_last_green:
@@ -28,7 +29,8 @@ tasks:
 
   macos_latest_head_deps:
     name: "Latest Bazel with Head Deps"
-    bazel: latest
+    # TODO(#1263): Change back to `latest` after 5.0 is released
+    bazel: last_rc
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
