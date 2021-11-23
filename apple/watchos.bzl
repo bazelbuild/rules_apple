@@ -81,24 +81,13 @@ def watchos_extension(name, **kwargs):
 def watchos_dynamic_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
     """Builds and bundles a watchOS dynamic framework that is consumable by Xcode."""
-
-    binary_args = dict(kwargs)
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    bundle_name = binary_args.get("bundle_name", name)
-    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
-        "-install_name",
-        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
-    ]
     bundling_args = binary_support.add_entitlements(
         name,
         include_entitlements = False,
         platform_type = str(apple_common.platform_type.watchos),
         product_type = apple_product_type.framework,
-        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
-        **binary_args
+        exported_symbols_lists = kwargs.pop("exported_symbols_lists", None),
+        **kwargs
     )
 
     # Remove any kwargs that shouldn't be passed to the underlying rule.
