@@ -318,7 +318,6 @@ macos_unit_test(
     name = "ButtonsMacLogicTests",
     bundle_id = "com.google.logic",
     minimum_os_version = "10.10",
-    tags = ["manual"],  # https://github.com/bazelbuild/continuous-integration/issues/1273
     deps = [":ButtonsMacTestsLib"],
 )
 
@@ -341,7 +340,7 @@ macos_unit_test(
 test_suite(
     name = "macOSButtonsTestSuite",
     tests = [
-        # ":ButtonsMacLogicTests",
+        ":ButtonsMacLogicTests",
         # ":ButtonsMacTests",
         # ":ButtonsMacUITests",
     ],
