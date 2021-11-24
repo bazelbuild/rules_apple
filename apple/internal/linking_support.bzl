@@ -96,10 +96,8 @@ def _register_linking_action(
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
         entitlements: An optional `File` that provides the processed entitlements for the
-            binary or bundle being built. If the build is targeting a simulator environment,
-            the entitlements will be embedded in a special section of the binary; when
-            targeting non-simulator environments, this file is ignored (it is assumed that
-            the entitlements will be provided during code signing).
+            binary or bundle being built. The entitlements will be embedded in a special section
+            of the binary.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra input files to the linking action.
         platform_prerequisites: The platform prerequisites.
@@ -134,7 +132,9 @@ def _register_linking_action(
         )
         link_inputs.append(exported_symbols_list)
 
-    if entitlements and platform_prerequisites and not platform_prerequisites.platform.is_device:
+    if entitlements:
+        if platform_prerequisites and platform_prerequisites.platform.is_device:
+            fail("entitlements should be None when targeting a device")
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(
                 segment = "__TEXT",

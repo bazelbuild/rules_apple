@@ -260,8 +260,11 @@ def _process_entitlements(
             how the entitlements should be validated.
 
     Returns:
-        A `File` containing the processed entitlements, or `None` if there are
-        no entitlements being used in the build.
+        A tuple containing an entitlement that should be used for code signing
+        and another that should be used for linking. Each are a `File`
+        containing the processed entitlements, or `None` if there are no
+        entitlements being used in the build or no entitlements should be be
+        embedded via linking.
     """
 
     # TODO(b/192450981): Move bundle ID validation out of entitlements
@@ -294,7 +297,7 @@ def _process_entitlements(
 
     # Return early if there is no entitlements to use.
     if not inputs:
-        return None
+        return None, None
 
     final_entitlements = actions.declare_file(
         "%s_entitlements.entitlements" % rule_label.name,
@@ -339,7 +342,42 @@ def _process_entitlements(
         resolved_plisttool = apple_toolchain_info.resolved_plisttool,
     )
 
-    return final_entitlements
+    if platform_prerequisites.platform.is_device:
+        return final_entitlements, None
+
+    simulator_entitlements = None
+    if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
+        simulator_entitlements = actions.declare_file(
+            "%s_entitlements.simulator.entitlements" % rule_label.name,
+        )
+
+        simulator_control = struct(
+            plists = [],
+            forced_plists = [struct(**{"com.apple.security.get-task-allow": True})],
+            output = simulator_entitlements.path,
+            target = str(rule_label),
+        )
+        simulator_control_file = _new_entitlements_artifact(
+            actions = actions,
+            extension = "simulator-plisttool-control",
+            label_name = rule_label.name,
+        )
+        actions.write(
+            output = simulator_control_file,
+            content = simulator_control.to_json(),
+        )
+
+        resource_actions.plisttool_action(
+            actions = actions,
+            control_file = simulator_control_file,
+            inputs = inputs,
+            mnemonic = "ProcessSimulatorEntitlementsFile",
+            outputs = [simulator_entitlements],
+            platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        )
+
+    return simulator_entitlements, final_entitlements
 
 entitlements_support = struct(
     process_entitlements = _process_entitlements,

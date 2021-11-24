@@ -121,7 +121,7 @@ def _macos_application_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -135,7 +135,7 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -343,7 +343,7 @@ def _macos_bundle_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -358,7 +358,7 @@ def _macos_bundle_impl(ctx):
     link_result = linking_support.register_linking_action(
         ctx,
         bundle_loader = ctx.attr.bundle_loader,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         extra_linkopts = ["-bundle"],
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -522,7 +522,7 @@ def _macos_extension_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -536,7 +536,7 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -711,7 +711,7 @@ def _macos_quick_look_plugin_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -730,7 +730,7 @@ def _macos_quick_look_plugin_impl(ctx):
     ]
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -898,7 +898,7 @@ def _macos_kernel_extension_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -912,7 +912,7 @@ def _macos_kernel_extension_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -1076,7 +1076,7 @@ def _macos_spotlight_importer_impl(ctx):
         res_attrs = ["infoplists"],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1090,7 +1090,7 @@ def _macos_spotlight_importer_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -1252,7 +1252,7 @@ def _macos_xpc_service_impl(ctx):
         res_attrs = ["infoplists"],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1266,7 +1266,7 @@ def _macos_xpc_service_impl(ctx):
 
     link_result = linking_support.register_linking_action(
         ctx,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )

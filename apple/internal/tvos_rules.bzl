@@ -130,7 +130,7 @@ def _tvos_application_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -145,7 +145,7 @@ def _tvos_application_impl(ctx):
     link_result = linking_support.register_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -770,7 +770,7 @@ def _tvos_extension_impl(ctx):
         ],
     )
 
-    entitlements = entitlements_support.process_entitlements(
+    entitlements, linking_entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -785,7 +785,7 @@ def _tvos_extension_impl(ctx):
     link_result = linking_support.register_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = entitlements,
+        entitlements = linking_entitlements,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
