@@ -67,7 +67,10 @@ def execute_and_filter_output(cmd_args,
       stderr=subprocess.PIPE,
       env=env)
   try:
-      stdout, stderr = proc.communicate(timeout=timeout)
+      stdout, stderr = proc.communicate(
+        input=inputstr,
+        timeout=timeout,
+      )
   except subprocess.TimeoutExpired:
       proc.kill()
       stdout, stderr = proc.communicate()
