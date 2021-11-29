@@ -285,6 +285,7 @@ def _xcframework_transition_impl(settings, attr):
     output_dictionary = {}
     if hasattr(attr, "macos"):
         command_line_options_for_platform = _command_line_options_for_platform(
+            minimum_deployment_os_version = attr.minimum_deployment_os_versions.get("macos"),
             minimum_os_version = attr.minimum_os_versions.get("macos"),
             platform_attr = attr.macos,
             platform_type = "macos",
@@ -295,6 +296,7 @@ def _xcframework_transition_impl(settings, attr):
     for platform_type in ["ios", "tvos", "watchos"]:
         if hasattr(attr, platform_type):
             command_line_options_for_platform = _command_line_options_for_platform(
+                minimum_deployment_os_version = attr.minimum_deployment_os_versions.get(platform_type),
                 minimum_os_version = attr.minimum_os_versions.get(platform_type),
                 platform_attr = getattr(attr, platform_type),
                 platform_type = platform_type,
