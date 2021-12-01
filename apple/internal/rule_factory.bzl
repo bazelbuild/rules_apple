@@ -670,6 +670,13 @@ that this target depends on.
             ),
         })
 
+        if rule_descriptor.product_type == apple_product_type.framework:
+            attrs.append({
+                "merge_with_parent_framework": attr.bool(
+                    default = False,
+                ),
+            })
+
     # TODO(b/XXXXXXXX): `sdk_frameworks` was never documented on `ios_application` but it leaked
     # through due to the old macro passing it to the underlying `apple_binary`. Support this
     # temporarily for a limited set of product types until we can migrate teams off the attribute,

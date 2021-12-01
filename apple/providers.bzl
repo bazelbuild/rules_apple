@@ -171,6 +171,20 @@ provide debug info.
     },
 )
 
+AppleMergableFrameworkInfo = provider(
+    doc = """\
+Provider that propagates frameworks that should be used instead of the framework
+this provider is attached to.
+""",
+    fields = {
+        "frameworks": """
+Depset of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+    },
+)
+
 def merge_apple_framework_import_info(apple_framework_import_infos):
     """
     Merges multiple `AppleFrameworkImportInfo` into one.
