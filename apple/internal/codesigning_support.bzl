@@ -415,6 +415,14 @@ def _codesigning_command(
     if not should_sign_bundles:
         return ""
 
+    should_sign_sim_bundles = _should_sign_simulator_bundles(
+        config_vars = platform_prerequisites.config_vars,
+        features = platform_prerequisites.features,
+        rule_descriptor = rule_descriptor,
+    )
+    if not should_sign_sim_bundles:
+        return ""
+
     _validate_provisioning_profile(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
@@ -445,12 +453,7 @@ def _codesigning_command(
                 use_entitlements = False,
             ),
         )
-    should_sign_sim_bundles = _should_sign_simulator_bundles(
-        config_vars = platform_prerequisites.config_vars,
-        features = platform_prerequisites.features,
-        rule_descriptor = rule_descriptor,
-    )
-    if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
+    if platform_prerequisites.platform.is_device:
         path_to_sign = paths.join("$WORK_DIR", bundle_path)
         paths_to_sign.append(
             _path_to_sign(path = path_to_sign),
