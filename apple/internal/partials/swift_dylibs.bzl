@@ -65,7 +65,7 @@ File object that represents a directory containing the Swift dylibs to package f
 # OS version for the current target and platform is equal or above to the versions defined here,
 # then we can skip copying the Swift dylibs into Frameworks and SwiftSupport.
 _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": apple_common.dotted_version("12.2"),
+    "ios": apple_common.dotted_version("15.2"),
     "macos": apple_common.dotted_version("10.14.4"),
     "tvos": apple_common.dotted_version("12.2"),
     "watchos": apple_common.dotted_version("5.2"),

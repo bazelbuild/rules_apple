@@ -28,13 +28,29 @@ def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
+  developer_dir_cmd = ["xcode-select", "--print-path"]
+  _, stdout, stderr = execute.execute_and_filter_output(developer_dir_cmd,
+                                                        raise_on_failure=True)
+  if stderr:
+    print(stderr)
+    sys.exit(1)
+  developer_dir = stdout.strip()
+  swift_dylibs_root = "Toolchains/XcodeDefault.xctoolchain/usr/lib"
+
+  primary_libraries_dir = os.path.join(developer_dir, swift_dylibs_root, "swift-5.0", sdk_platform)
+  concurrency_libraries_dir = os.path.join(developer_dir, swift_dylibs_root, "swift-5.5", sdk_platform)
+
+  print("here running")
+
   cmd = [
-      "xcrun", "swift-stdlib-tool", "--copy", "--platform", sdk_platform,
-      "--destination", destination_path
+    "/tmp/swift-stdlib-tool", "--verbose", "--verbose",  "--copy", "--platform", sdk_platform,
+      "--destination", destination_path, "--source-libraries", primary_libraries_dir,
+    "--source-libraries", concurrency_libraries_dir,
   ]
   for binary_to_scan in binaries_to_scan:
     cmd.extend(["--scan-executable", binary_to_scan])
 
+  print("runing ", cmd)
   _, stdout, stderr = execute.execute_and_filter_output(cmd,
                                                         raise_on_failure=True)
   if stderr:
@@ -112,7 +128,7 @@ def main():
   _lipo_exec_files(stdlib_files, target_archs, args.strip_bitcode, temp_path,
                    args.output_path)
 
-  shutil.rmtree(temp_path)
+  # shutil.rmtree(temp_path)
 
 
 if __name__ == "__main__":
