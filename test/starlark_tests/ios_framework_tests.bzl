@@ -375,7 +375,7 @@ def ios_framework_test_suite(name = "ios_framework"):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_min_version",
         binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_9_0_min_version.appex/ext_with_9_0_min_version",
         binary_test_architecture = "x86_64",
-        binary_not_contains_symbols = ["_anotherFunctisonShared"],
+        binary_not_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
     )
 
