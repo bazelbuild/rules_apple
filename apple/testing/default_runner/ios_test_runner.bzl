@@ -102,7 +102,7 @@ into the XCTest invocation.
                 "@xctestrunner//:ios_test_runner",
             ),
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.
