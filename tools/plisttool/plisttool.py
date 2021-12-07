@@ -1170,6 +1170,9 @@ class EntitlementsTask(PlistToolTask):
       PlistToolError: For any issues found.
     """
     # com.apple.developer.team-identifier vs profile's TeamIdentifier
+    # Not verifying against profile's ApplicationIdentifierPrefix here, because
+    # it isn't always equal to the Team ID.
+    # https://developer.apple.com/library/archive/technotes/tn2415/_index.html#//apple_ref/doc/uid/DTS40016427-CH1-ENTITLEMENTSLIST
     src_team_id = entitlements.get('com.apple.developer.team-identifier')
     if src_team_id:
       key = 'TeamIdentifier'
