@@ -71,7 +71,7 @@ environment_plist = rule(
         rule_factory.common_tool_attributes,
         {
             "_environment_plist_tool": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 executable = True,
                 default = Label("@build_bazel_rules_apple//tools/environment_plist"),
             ),

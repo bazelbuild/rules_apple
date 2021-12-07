@@ -185,7 +185,7 @@ be used for this key as well.
 """,
         ),
         "_versiontool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label(
                 "@build_bazel_rules_apple//tools/versiontool",
             ),
