@@ -1177,7 +1177,7 @@ class EntitlementsTask(PlistToolTask):
       if src_team_id not in from_profile:
         self._report(
             ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-              self.target, src_team_id, key, from_profile)),
+              self.target, src_team_id, key, from_profile))
 
     profile_entitlements = self._profile_metadata.get('Entitlements')
 
