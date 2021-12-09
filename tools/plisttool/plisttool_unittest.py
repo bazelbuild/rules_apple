@@ -1776,6 +1776,21 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_attest_valid(self):
+    plist = {
+      'com.apple.developer.devicecheck.appattest-environment': 'development'}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.devicecheck.appattest-environment': ['development', 'production'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
   def test_attest_mismatch(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,

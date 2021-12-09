@@ -299,10 +299,13 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.payment-pass-provisioning',
     'com.apple.developer.siri',
     'com.apple.developer.usernotifications.time-sensitive',
-    # Keys which have a list of potential values in the profile, but only one
-    # can be defined in the entitlements file, and must be part of that list.
-    'com.apple.developer.devicecheck.appattest-environment',
 )
+
+# Keys which have a list of potential values in the profile, but only one in
+# the entitlements that must be in the profile's list of values
+_POTENTIAL_LIST_KEYS = frozenset([
+  'com.apple.developer.devicecheck.appattest-environment',
+])
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
@@ -1197,6 +1200,13 @@ class EntitlementsTask(PlistToolTask):
           entitlements=entitlements,
           profile_entitlements=profile_entitlements)
 
+    for entitlement in _POTENTIAL_LIST_KEYS:
+      self._check_entitlement_matches_profile_value(
+          entitlement=entitlement,
+          entitlements=entitlements,
+          profile_entitlements=profile_entitlements,
+          validate_value_in_list=True)
+
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
     beta_reports_active = entitlements.get('beta-reports-active')
@@ -1214,10 +1224,6 @@ class EntitlementsTask(PlistToolTask):
         entitlements, profile_entitlements,
         'keychain-access-groups', self.target,
         supports_wildcards=True)
-
-    self._check_entitlements_array(
-        entitlements, profile_entitlements,
-        'com.apple.developer.nfc.readersession.formats', self.target)
 
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
@@ -1244,7 +1250,8 @@ class EntitlementsTask(PlistToolTask):
       self,
       entitlement,
       entitlements,
-      profile_entitlements):
+      profile_entitlements,
+      validate_value_in_list=False):
     """Checks if an entitlement value matches against profile entitlement.
 
     If provisioning profile entitlement is defined as a list, this will
@@ -1263,12 +1270,12 @@ class EntitlementsTask(PlistToolTask):
     if profile_value is None:
       # provisioning profile does not have entitlement.
       self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
-    elif (isinstance(profile_value, list)
-          and entitlements_value not in profile_value):
+    elif validate_value_in_list:
       # provisioning profile does not have entitlement in list.
-      self._report(
-          ENTITLEMENTS_VALUE_NOT_IN_LIST % (
-              self.target, entitlement, entitlements_value, profile_value))
+      if entitlements_value not in profile_value:
+        self._report(
+            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
+                self.target, entitlement, entitlements_value, profile_value))
     elif entitlements_value != profile_value:
       # provisioning profile entitlement does not match value.
       self._report(
