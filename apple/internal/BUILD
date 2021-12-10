@@ -387,7 +387,7 @@ bzl_library(
         ":rule_support",
         "//apple:common",
         "//apple:providers",
-        "//apple/internal/aspects:framework_import_aspect",
+        "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_static_framework_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
@@ -548,6 +548,7 @@ filegroup(
     srcs = glob(["**"]) + [
         "//apple/internal/aspects:for_bazel_tests",
         "//apple/internal/partials:for_bazel_tests",
+        "//apple/internal/providers:for_bazel_tests",
         "//apple/internal/resource_actions:for_bazel_tests",
         "//apple/internal/resource_rules:for_bazel_tests",
         "//apple/internal/templates:for_bazel_tests",

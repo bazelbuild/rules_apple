@@ -51,7 +51,7 @@ bzl_library(
     name = "aspects",
     srcs = ["aspects.bzl"],
     deps = [
-        "//apple/internal/aspects:framework_import_aspect",
+        "//apple/internal/aspects:framework_provider_aspect",
     ],
 )
 

@@ -96,7 +96,12 @@ def _ios_application_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
+    embeddable_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions +
+        ctx.attr.app_clips +
+        ctx.attr.deps
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,

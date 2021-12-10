@@ -212,7 +212,7 @@ def framework_import_partial(
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
-    the framework_import_aspect aspect.
+    the framework_provider_aspect aspect.
 
     Args:
         actions: The actions provider from `ctx.actions`.
