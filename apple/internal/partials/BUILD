@@ -126,6 +126,7 @@ bzl_library(
     deps = [
         "//apple/internal:experimental",
         "//apple/internal:processor",
+        "//apple/internal/providers:embeddable_info",
         "@bazel_skylib//lib:partial",
     ],
 )

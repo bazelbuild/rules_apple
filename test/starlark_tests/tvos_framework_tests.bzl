@@ -75,6 +75,67 @@ def tvos_framework_test_suite(name = "tvos_framework"):
         tags = [name],
     )
 
+    # Verify tvos_framework listed as a runtime_dep of an objc_library gets
+    # propagated to tvos_application bundle.
+    archive_contents_test(
+        name = "{}_includes_objc_library_tvos_framework_runtime_dep".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_library_dep_with_tvos_framework_runtime_dep",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+        ],
+        tags = [name],
+    )
+
+    # Verify nested frameworks from objc_library targets get propagated to
+    # tvos_application bundle.
+    archive_contents_test(
+        name = "{}_includes_multiple_objc_library_tvos_framework_deps".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        ],
+        tags = [name],
+    )
+
+    # Verify tvos_framework listed as a runtime_dep of an objc_library does not
+    # get linked to top-level application (Mach-O LC_LOAD_DYLIB commands).
+    archive_contents_test(
+        name = "{}_does_not_load_bundled_tvos_framework_runtime_dep".format(name),
+        build_type = "simulator",
+        binary_test_file = "$BUNDLE_ROOT/app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+            "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
+            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        tags = [name],
+    )
+
+    # Verify that both tvos_framework listed as a load time and runtime_dep
+    # get bundled to top-level application, and runtime does not get linked.
+    archive_contents_test(
+        name = "{}_bundles_both_load_and_runtime_framework_dep".format(name),
+        build_type = "simulator",
+        binary_test_file = "$BUNDLE_ROOT/app_with_load_and_runtime_framework_dep",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+        ],
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+        ],
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_load_and_runtime_framework_dep",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
