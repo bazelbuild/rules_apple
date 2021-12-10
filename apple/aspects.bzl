@@ -15,8 +15,8 @@
 """Aspects that apply to all Apple platforms."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
-    _framework_import_aspect = "framework_import_aspect",
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    _framework_provider_aspect = "framework_provider_aspect",
 )
 
-framework_import_aspect = _framework_import_aspect
+framework_provider_aspect = _framework_provider_aspect

@@ -26,30 +26,9 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-
-_AppleEmbeddableInfo = provider(
-    doc = """
-Private provider used to propagate the different embeddable bundles that a
-top-level bundling rule will need to package.""",
-    fields = {
-        "app_clips": """
-A depset with the zipped archives of bundles that need to be expanded into the
-AppClips section of the packaging bundle.""",
-        "frameworks": """
-A depset with the zipped archives of bundles that need to be expanded into the
-Frameworks section of the packaging bundle.""",
-        "plugins": """
-A depset with the zipped archives of bundles that need to be expanded into the
-PlugIns section of the packaging bundle.""",
-        "signed_frameworks": """
-A depset of strings referencing frameworks that have already been codesigned.""",
-        "watch_bundles": """
-A depset with the zipped archives of bundles that need to be expanded into the Watch section of
-the packaging bundle. Only applicable for iOS applications.""",
-        "xpc_services": """
-A depset with the zipped archives of bundles that need to be expanded into the XPCServices section
-of the packaging bundle. Only applicable for macOS applications.""",
-    },
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
+    "AppleEmbeddableInfo",
 )
 
 def _embedded_bundles_partial_impl(
@@ -63,9 +42,9 @@ def _embedded_bundles_partial_impl(
 
     # Collect all _AppleEmbeddableInfo providers from the embeddable targets.
     embeddable_providers = [
-        x[_AppleEmbeddableInfo]
+        x[AppleEmbeddableInfo]
         for x in embeddable_targets
-        if _AppleEmbeddableInfo in x
+        if AppleEmbeddableInfo in x
     ]
 
     # Map of embedded bundle type to their final location in the top-level bundle.
@@ -111,7 +90,7 @@ def _embedded_bundles_partial_impl(
             # in the bundle processing this partial and do not need to be propagated.
             transitive_bundles[bundle_type] = []
 
-        # Construct the _AppleEmbeddableInfo provider field for the bundle type being processed.
+        # Construct the AppleEmbeddableInfo provider field for the bundle type being processed.
         # At this step, we inject the bundles that are inputs to this partial, since that propagates
         # the info for a higher level bundle to embed this bundle.
         if input_bundles_by_type.get(bundle_type) or transitive_bundles.get(bundle_type):
@@ -157,7 +136,7 @@ def _embedded_bundles_partial_impl(
         embeddedable_info_fields["signed_frameworks"] = signed_frameworks
 
     return struct(
-        providers = [_AppleEmbeddableInfo(**embeddedable_info_fields)],
+        providers = [AppleEmbeddableInfo(**embeddedable_info_fields)],
         **partial_output_fields
     )
 

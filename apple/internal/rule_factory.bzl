@@ -27,8 +27,8 @@ load(
     "apple_support_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
-    "framework_import_aspect",
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
@@ -191,7 +191,7 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
     if product_type:
         deps_aspects.extend([
             apple_resource_aspect,
-            framework_import_aspect,
+            framework_provider_aspect,
         ])
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
@@ -644,7 +644,7 @@ Info.plist under the key `UILaunchStoryboardName`.
 
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = required_providers,
             ),
@@ -656,7 +656,7 @@ Info.plist under the key `UILaunchStoryboardName`.
         extra_args = {}
         if (rule_descriptor.product_type == apple_product_type.application or
             rule_descriptor.product_type == apple_product_type.app_clip):
-            extra_args["aspects"] = [framework_import_aspect]
+            extra_args["aspects"] = [framework_provider_aspect]
 
         attrs.append({
             "frameworks": attr.label_list(
@@ -770,7 +770,7 @@ set, then the default extension is determined by the application's product_type.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, MacosApplicationBundleInfo],
@@ -855,7 +855,7 @@ fashion, such as a Cocoapod.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, TvosApplicationBundleInfo],
@@ -869,7 +869,7 @@ fashion, such as a Cocoapod.
     if rule_descriptor.requires_deps:
         extra_args = {}
         if rule_descriptor.product_type == apple_product_type.application:
-            extra_args["aspects"] = [framework_import_aspect]
+            extra_args["aspects"] = [framework_provider_aspect]
 
         attrs.append({
             "frameworks": attr.label_list(
@@ -985,7 +985,7 @@ fashion, such as a Cocoapod.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, WatchosApplicationBundleInfo],
             ),
