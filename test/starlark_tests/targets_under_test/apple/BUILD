@@ -4,6 +4,8 @@ load(
 )  # buildifier: disable=bzl-visibility
 load(
     "//apple:apple.bzl",
+    "apple_dynamic_xcframework_import",
+    "apple_static_xcframework_import",
     "apple_universal_binary",
     "apple_xcframework",
 )
@@ -271,6 +273,72 @@ apple_xcframework(
     ],
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
+)
+
+# Generate importable dynamic xcframework files
+genrule(
+    name = "generated_ios_dynamic_xcframework",
+    testonly = 1,
+    srcs = [":ios_dynamic_xcframework.xcframework.zip"],
+    outs = ["ios_dynamic_xcframework.xcframework/Info.plist"] + [
+        "{0}/{1}/{2}/{3}".format(
+            "ios_dynamic_xcframework.xcframework",
+            platform_id,
+            "ios_dynamic_xcframework.framework",
+            file,
+        )
+        for file in [
+            "Headers/ios_dynamic_xcframework.h",
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_dynamic_xcframework",
+            "Info.plist",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-x86_64-simulator",
+        ]
+    ],
+    cmd = """
+unzip -qq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
+""",
+)
+
+# Generate importable static xcframework files with static archives
+genrule(
+    name = "generated_ios_static_xcframework",
+    testonly = 1,
+    srcs = [":ios_static_xcframework.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}".format(
+            "ios_static_xcframework.xcframework",
+            platform_id,
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "ios_static_xcframework.apple_static_library_lipo.a",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    cmd = """
+unzip -qq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
+""",
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_dynamic_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_static_xcframework"],
 )
 
 apple_xcframework(

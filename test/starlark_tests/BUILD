@@ -3,6 +3,7 @@ load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
 load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
+load(":apple_xcframework_import_tests.bzl", "apple_xcframework_import_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
@@ -53,6 +54,8 @@ apple_static_xcframework_test_suite(name = "apple_static_xcframework")
 apple_universal_binary_test_suite(name = "apple_universal_binary")
 
 apple_xcframework_test_suite(name = "apple_xcframework")
+
+apple_xcframework_import_test_suite(name = "apple_xcframework_import")
 
 dtrace_compile_test_suite(name = "dtrace_compile")
 

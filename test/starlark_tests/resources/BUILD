@@ -622,3 +622,37 @@ cc_binary(
     srcs = ["main.cc"],
     tags = FIXTURE_TAGS,
 )
+
+genrule(
+    name = "swift_importing_imported_dynamic_xcfw",
+    outs = ["swift_importing_imported_dynamic_xcfw.swift"],
+    cmd = "echo 'import ios_dynamic_xcframework' > $@",
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_importing_imported_dynamic_xcfw",
+    testonly = True,
+    srcs = [":swift_importing_imported_dynamic_xcfw"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
+)
+
+genrule(
+    name = "objc_importing_imported_static_xcfw",
+    outs = ["objc_importing_imported_static_xcfw.m"],
+    # Bazel doesn't do any xcframework processing like Xcode so this import has
+    # to be a full path.
+    cmd = """
+echo '#import "test/starlark_tests/targets_under_test/apple/ios_static_xcframework.xcframework/ios-arm64_x86_64-simulator/Headers/shared.h"' > $@
+""",
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
+    name = "objc_lib_importing_imported_static_xcfw",
+    testonly = True,
+    srcs = [":objc_importing_imported_static_xcfw"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework"],
+)
