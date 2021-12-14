@@ -503,7 +503,9 @@ _common_attrs = {
 A key-value map of platforms to the corresponding platform IDs (containing all supported architectures), 
 relative to the framework_import. The platform keys should be case-insensitive variants of
 values that might be found in the CFBundleSupportedPlatforms entry of an Info.plist file and in Xcode's
-platforms directory, without the extension (for example, iphoneos or iPhoneSimulator).
+platforms directory, without the extension (for example, iphoneos or iPhoneSimulator). The platform IDs 
+should be case-sensitive variants of values that might be found in the LibraryIdentifier of an Info.plist 
+file in xcframework's root(for example, ios-arm64_i386_x86_64-simulator or ios-arm64_armv7).
 """,
         ),
 }

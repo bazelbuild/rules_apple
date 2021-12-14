@@ -6,7 +6,8 @@
 ## apple_dynamic_framework_import
 
 <pre>
-apple_dynamic_framework_import(<a href="#apple_dynamic_framework_import-name">name</a>, <a href="#apple_dynamic_framework_import-bundle_only">bundle_only</a>, <a href="#apple_dynamic_framework_import-deps">deps</a>, <a href="#apple_dynamic_framework_import-dsym_imports">dsym_imports</a>, <a href="#apple_dynamic_framework_import-framework_imports">framework_imports</a>)
+apple_dynamic_framework_import(<a href="#apple_dynamic_framework_import-name">name</a>, <a href="#apple_dynamic_framework_import-bundle_only">bundle_only</a>, <a href="#apple_dynamic_framework_import-deps">deps</a>, <a href="#apple_dynamic_framework_import-dsym_imports">dsym_imports</a>, <a href="#apple_dynamic_framework_import-framework_imports">framework_imports</a>,
+                               <a href="#apple_dynamic_framework_import-xcframework_platform_ids">xcframework_platform_ids</a>)
 </pre>
 
 
@@ -41,6 +42,7 @@ objc_library(
 | <a id="apple_dynamic_framework_import-deps"></a>deps |  A list of targets that are dependencies of the target being built, which will be linked into that target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="apple_dynamic_framework_import-dsym_imports"></a>dsym_imports |  The list of files under a .dSYM directory, that is the imported framework's dSYM bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="apple_dynamic_framework_import-framework_imports"></a>framework_imports |  The list of files under a .framework directory which are provided to Apple based targets that depend on this target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="apple_dynamic_framework_import-xcframework_platform_ids"></a>xcframework_platform_ids |  A key-value map of platforms to the corresponding platform IDs (containing all supported architectures),  relative to the framework_import. The platform keys should be case-insensitive variants of values that might be found in the CFBundleSupportedPlatforms entry of an Info.plist file and in Xcode's platforms directory, without the extension (for example, iphoneos or iPhoneSimulator). The platform IDs  should be case-sensitive variants of values that might be found in the LibraryIdentifier of an Info.plist  file in xcframework's root(for example, ios-arm64_i386_x86_64-simulator or ios-arm64_armv7).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 
 
 <a id="#apple_static_framework_import"></a>
@@ -49,7 +51,7 @@ objc_library(
 
 <pre>
 apple_static_framework_import(<a href="#apple_static_framework_import-name">name</a>, <a href="#apple_static_framework_import-alwayslink">alwayslink</a>, <a href="#apple_static_framework_import-deps">deps</a>, <a href="#apple_static_framework_import-framework_imports">framework_imports</a>, <a href="#apple_static_framework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_framework_import-sdk_frameworks">sdk_frameworks</a>,
-                              <a href="#apple_static_framework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>)
+                              <a href="#apple_static_framework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>, <a href="#apple_static_framework_import-xcframework_platform_ids">xcframework_platform_ids</a>)
 </pre>
 
 
@@ -86,6 +88,7 @@ objc_library(
 | <a id="apple_static_framework_import-sdk_dylibs"></a>sdk_dylibs |  Names of SDK .dylib libraries to link with. For instance, <code>libz</code> or <code>libarchive</code>. <code>libc++</code> is included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree. When linking a binary, all libraries named in that binary's transitive dependency graph are used.   | List of strings | optional | [] |
 | <a id="apple_static_framework_import-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g. <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included when building for the iOS, tvOS and watchOS platforms. For macOS, only <code>Foundation</code> is always included. When linking a top level binary, all SDK frameworks listed in that binary's transitive dependency graph are linked.   | List of strings | optional | [] |
 | <a id="apple_static_framework_import-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with. For instance, <code>MediaAccessibility</code>. In difference to regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they are not present at runtime.   | List of strings | optional | [] |
+| <a id="apple_static_framework_import-xcframework_platform_ids"></a>xcframework_platform_ids |  A key-value map of platforms to the corresponding platform IDs (containing all supported architectures),  relative to the framework_import. The platform keys should be case-insensitive variants of values that might be found in the CFBundleSupportedPlatforms entry of an Info.plist file and in Xcode's platforms directory, without the extension (for example, iphoneos or iPhoneSimulator). The platform IDs  should be case-sensitive variants of values that might be found in the LibraryIdentifier of an Info.plist  file in xcframework's root(for example, ios-arm64_i386_x86_64-simulator or ios-arm64_armv7).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 
 
 <a id="#apple_universal_binary"></a>
