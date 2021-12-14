@@ -507,7 +507,7 @@ platforms directory, without the extension (for example, iphoneos or iPhoneSimul
 should be case-sensitive variants of values that might be found in the LibraryIdentifier of an Info.plist 
 file in xcframework's root(for example, ios-arm64_i386_x86_64-simulator or ios-arm64_armv7).
 """,
-        ),
+    ),
 }
 
 apple_dynamic_framework_import = rule(
