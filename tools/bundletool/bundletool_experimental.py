@@ -52,7 +52,6 @@ import os
 import shutil
 import sys
 import zipfile
-from ctypes.util import find_library
 from ctypes import cdll, c_char_p, c_int
 
 _CLONEFILE = None
@@ -61,10 +60,7 @@ def _load_clonefile():
   if _CLONEFILE:
     return _CLONEFILE
 
-  library = find_library('libSystem')
-  if not library:
-    raise Exception('libSystem not found')
-  system = cdll.LoadLibrary(library)
+  system = cdll.LoadLibrary('/usr/lib/libSystem.dylib')
   _CLONEFILE = system.clonefile
   _CLONEFILE.argtypes = [c_char_p, c_char_p, c_int] # src, dest, flags
   _CLONEFILE.restype = c_int  # 0 on success
