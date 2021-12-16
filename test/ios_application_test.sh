@@ -323,10 +323,12 @@ function test_pkginfo_contents() {
 # Helper to test different values if a build adds the debugger entitlement.
 # First arg is "y|n" if provisioning profile should contain debugger entitlement
 # Second arg is "y|n" if debugger entitlement should be contained on signed app
+# Third arg is "y|n" if `_include_debug_entitlements` is `True` (mainly `--define=apple.add_debugger_entitlement=yes`)
 # Any other args are passed to `do_build`.
 function verify_debugger_entitlements_with_params() {
   readonly INCLUDE_DEBUGGER=$1; shift
   readonly SHOULD_CONTAIN=$1; shift
+  readonly FORCED_DEBUGGER=$1; shift
 
   create_common_files
 
@@ -385,7 +387,7 @@ EOF
     # but only `com.apple.security.get-task-allow` and nothing else
     do_build ios "$@" //app:dump_codesign || fail "Should build"
 
-    if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
+    if [[ "${FORCED_DEBUGGER}" == "y" ]] ; then
       assert_contains "<key>com.apple.security.get-task-allow</key>" "${CODESIGN_OUTPUT}"
       assert_not_contains "<key>keychain-access-groups</key>" "${CODESIGN_OUTPUT}"
     else
@@ -408,30 +410,30 @@ EOF
 function test_debugger_entitlements_default() {
   # For default builds, configuration.bzl also forces -c opt, so there will be
   #   no debug entitlements.
-  verify_debugger_entitlements_with_params n n
+  verify_debugger_entitlements_with_params n n n
 }
 
 # Tests that debugger entitlement is auto-added to the application correctly
 # if it's included on provisioning profile.
 function test_debugger_entitlements_from_provisioning_profile() {
-  verify_debugger_entitlements_with_params y y
+  verify_debugger_entitlements_with_params y y n
 }
 
 # Test the different values for apple.add_debugger_entitlement.
 function test_debugger_entitlements_forced_false() {
-  verify_debugger_entitlements_with_params n n \
+  verify_debugger_entitlements_with_params n n n \
       --define=apple.add_debugger_entitlement=false
 }
 function test_debugger_entitlements_forced_no() {
-  verify_debugger_entitlements_with_params n n \
+  verify_debugger_entitlements_with_params n n n \
       --define=apple.add_debugger_entitlement=no
 }
 function test_debugger_entitlements_forced_yes() {
-  verify_debugger_entitlements_with_params n y \
+  verify_debugger_entitlements_with_params n y y \
       --define=apple.add_debugger_entitlement=YES
 }
 function test_debugger_entitlements_forced_true() {
-  verify_debugger_entitlements_with_params n y \
+  verify_debugger_entitlements_with_params n y y \
       --define=apple.add_debugger_entitlement=True
 }
 
