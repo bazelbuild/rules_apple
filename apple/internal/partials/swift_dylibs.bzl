@@ -61,14 +61,21 @@ File object that represents a directory containing the Swift dylibs to package f
     },
 )
 
-# Minimum OS versions after which the Swift StdLib dylibs are packaged with the OS. If the minimum
-# OS version for the current target and platform is equal or above to the versions defined here,
-# then we can skip copying the Swift dylibs into Frameworks and SwiftSupport.
+# Minimum OS versions for which we no longer need to potentially bundle any
+# Swift dylibs with the application. The first cutoff point was when the
+# platforms bundled the standard libraries, the second was when they started
+# bundling the Concurrency library. There may be future libraries that require
+# us to continue bumping these values. The tool is smart enough only to bundle
+# those libraries required by the minimum OS version of the scanned binaries.
+#
+# Values are the first version where bundling is no longer required and should
+# correspond with the Swift compilers values for these which is the source of
+# truth https://github.com/apple/swift/blob/998d3518938bd7229e7c5e7b66088d0501c02051/lib/Basic/Platform.cpp#L82-L105
 _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": apple_common.dotted_version("12.2"),
-    "macos": apple_common.dotted_version("10.14.4"),
-    "tvos": apple_common.dotted_version("12.2"),
-    "watchos": apple_common.dotted_version("5.2"),
+    "ios": apple_common.dotted_version("15.0"),
+    "macos": apple_common.dotted_version("12.0"),
+    "tvos": apple_common.dotted_version("15.0"),
+    "watchos": apple_common.dotted_version("8.0"),
 }
 
 def _swift_dylib_action(
