@@ -80,6 +80,12 @@ new_local_repository(
     path = '$PWD/../external/subpar',
 )
 
+new_local_repository(
+    name = 'swift_stdlib_tool',
+    build_file_content = '',
+    path = '$PWD/../external/swift_stdlib_tool',
+)
+
 local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',
@@ -118,6 +124,16 @@ load(
 )
 
 swift_rules_dependencies()
+EOF
+
+  # FIXME: Is there any way to copy this file to the test workspace?
+  cat > ../external/swift_stdlib_tool/file/BUILD <<EOF
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "file",
+    srcs = ["swift-stdlib-tool.cpp"],
+)
 EOF
 }
 

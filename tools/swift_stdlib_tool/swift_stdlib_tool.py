@@ -22,15 +22,23 @@ import tempfile
 from build_bazel_rules_apple.tools.bitcode_strip import bitcode_strip
 from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
+from bazel_tools.tools.python.runfiles import runfiles
 
 
 def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   """Copies the Swift stdlibs required by the binaries to the destination."""
+  developer_dir = os.environ["DEVELOPER_DIR"]
+  swift_dylibs_root = "Toolchains/XcodeDefault.xctoolchain/usr/lib"
+  primary_libraries_dir = os.path.join(developer_dir, swift_dylibs_root, "swift-5.0", sdk_platform)
+
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
+  swift_stdlib_tool_path = runfiles.Create().Rlocation(
+      "build_bazel_rules_apple/tools/swift_stdlib_tool/swift_stdlib_tool_bin")
   cmd = [
-      "xcrun", "swift-stdlib-tool", "--copy", "--platform", sdk_platform,
-      "--destination", destination_path
+      swift_stdlib_tool_path, "--copy", "--platform", sdk_platform,
+      "--destination", destination_path,
+      "--source-libraries", primary_libraries_dir,
   ]
   for binary_to_scan in binaries_to_scan:
     cmd.extend(["--scan-executable", binary_to_scan])

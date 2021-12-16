@@ -14,7 +14,11 @@
 
 """Definitions for handling Bazel repositories used by the Apple rules."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    "http_archive",
+    "http_file",
+)
 
 def _colorize(text, color):
     """Applies ANSI color codes around the given text."""
@@ -135,6 +139,18 @@ def apple_rules_dependencies(ignore_version_differences = False):
         ],
         strip_prefix = "subpar-2.0.0",
         sha256 = "b80297a1b8d38027a86836dbadc22f55dc3ecad56728175381aa6330705ac10f",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    # latest as of 2021-12-16
+    _maybe(
+        http_file,
+        name = "swift_stdlib_tool",
+        urls = [
+            "https://github.com/apple/swift/raw/0a427a3a4033fb2bd4d63323847945c22affb97f/tools/swift-stdlib-tool/swift-stdlib-tool.cpp",
+        ],
+        downloaded_file_path = "swift-stdlib-tool.cpp",
+        sha256 = "088cc03876ae18566e11e2d14f98d1955c70b47e983fa6de0179fc85cc408018",
         ignore_version_differences = ignore_version_differences,
     )
 
