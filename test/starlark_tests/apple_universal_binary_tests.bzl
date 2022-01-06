@@ -23,10 +23,12 @@ load(
     "binary_contents_test",
 )
 
-# buildifier: disable=unnamed-macro
-def apple_universal_binary_test_suite():
-    """Test suite for apple_universal_binary."""
-    name = "apple_universal_binary"
+def apple_universal_binary_test_suite(name):
+    """Test suite for apple_universal_binary.
+
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     test_target = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary"
 
     analysis_target_outputs_test(

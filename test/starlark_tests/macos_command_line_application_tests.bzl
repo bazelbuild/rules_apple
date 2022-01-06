@@ -27,11 +27,12 @@ load(
     "dsyms_test",
 )
 
-# buildifier: disable=unnamed-macro
-def macos_command_line_application_test_suite():
-    """Test suite for macos_command_line_application."""
-    name = "macos_command_line_application"
+def macos_command_line_application_test_suite(name):
+    """Test suite for macos_command_line_application.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",

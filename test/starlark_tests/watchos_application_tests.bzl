@@ -31,13 +31,12 @@ load(
     "analysis_xcasset_argv_test",
 )
 
-def watchos_application_test_suite(name = "watchos_application"):
+def watchos_application_test_suite(name):
     """Test suite for watchos_application.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",

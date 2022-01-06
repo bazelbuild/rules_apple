@@ -47,10 +47,12 @@ _analysis_registered_actions_and_mnemonic_test = analysistest.make(
     _analysis_registered_actions_and_mnemonic_impl,
 )
 
-# buildifier: disable=unnamed-macro
-def apple_core_data_model_test_suite():
-    """Test suite for apple_bundle_version."""
-    name = "apple_core_data_model"
+def apple_core_data_model_test_suite(name):
+    """Test suite for apple_bundle_version.
+
+    Args:
+      name: the base name to be used in things created by this macro
+    """
 
     # Test outputs a directory (non-empty assertion is verified by xctoolrunner).
     analysis_target_outputs_test(

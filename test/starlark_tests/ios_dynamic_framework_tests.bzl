@@ -27,11 +27,11 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_dynamic_framework_test_suite(name = "ios_dynamic_framework"):
+def ios_dynamic_framework_test_suite(name):
     """Test suite for ios_dynamic_framework.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     archive_contents_test(
