@@ -41,10 +41,12 @@ load(
     "linkmap_test",
 )
 
-def ios_application_test_suite():
-    """Test suite for ios_application."""
-    name = "ios_application"
+def ios_application_test_suite(name):
+    """Test suite for ios_application.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",

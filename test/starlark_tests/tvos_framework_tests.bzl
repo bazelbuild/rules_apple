@@ -23,10 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_framework_test_suite():
-    """Test suite for tvos_framework."""
-    name = "tvos_framework"
+def tvos_framework_test_suite(name):
+    """Test suite for tvos_framework.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk",

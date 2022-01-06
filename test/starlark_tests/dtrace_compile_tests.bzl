@@ -19,10 +19,12 @@ load(
     "output_text_match_test",
 )
 
-def dtrace_compile_test_suite():
-    """Test suite for `dtrace_compile`."""
-    name = "dtrace_compile"
+def dtrace_compile_test_suite(name):
+    """Test suite for `dtrace_compile`.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     output_text_match_test(
         name = "{}_generates_expected_header_contents".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/dtrace:dtrace",

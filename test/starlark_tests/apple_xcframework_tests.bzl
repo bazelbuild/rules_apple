@@ -32,10 +32,12 @@ load(
     "linkmap_test",
 )
 
-def apple_xcframework_test_suite():
-    """Test suite for apple_xcframework."""
-    name = "apple_xcframework"
+def apple_xcframework_test_suite(name):
+    """Test suite for apple_xcframework.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     infoplist_contents_test(
         name = "{}_ios_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",

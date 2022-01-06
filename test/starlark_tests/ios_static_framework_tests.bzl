@@ -19,9 +19,12 @@ load(
     "archive_contents_test",
 )
 
-def ios_static_framework_test_suite():
-    """Test suite for ios_static_framework."""
-    name = "ios_static_framework"
+def ios_static_framework_test_suite(name):
+    """Test suite for ios_static_framework.
+
+    Args:
+      name: the base name to be used in things created by this macro
+    """
 
     # Test that it's permitted for a static framework to have multiple
     # `swift_library` dependencies if only one module remains after excluding

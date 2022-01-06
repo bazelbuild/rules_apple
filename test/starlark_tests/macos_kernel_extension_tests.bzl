@@ -74,11 +74,12 @@ _analysis_default_macos_cpu_test = analysistest.make(
     fragments = ["apple"],
 )
 
-# buildifier: disable=unnamed-macro
-def macos_kernel_extension_test_suite():
-    """Test suite for macos_kernel_extension."""
-    name = "macos_kernel_extension"
+def macos_kernel_extension_test_suite(name):
+    """Test suite for macos_kernel_extension.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     analysis_target_outputs_test(
         name = "{}_zip_file_output_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:kext",

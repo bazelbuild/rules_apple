@@ -40,81 +40,81 @@ load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 
 licenses(["notice"])
 
-apple_bundle_version_test_suite()
+apple_bundle_version_test_suite(name = "apple_bundle_version")
 
-apple_core_data_model_test_suite()
+apple_core_data_model_test_suite(name = "apple_core_data_model")
 
-apple_static_xcframework_test_suite()
+apple_static_xcframework_test_suite(name = "apple_static_xcframework")
 
-apple_universal_binary_test_suite()
+apple_universal_binary_test_suite(name = "apple_universal_binary")
 
-apple_xcframework_test_suite()
+apple_xcframework_test_suite(name = "apple_xcframework")
 
-dtrace_compile_test_suite()
+dtrace_compile_test_suite(name = "dtrace_compile")
 
-ios_application_resources_test_suite()
+ios_application_resources_test_suite(name = "ios_application_resources")
 
-ios_application_test_suite()
+ios_application_test_suite(name = "ios_application")
 
-ios_app_clip_test_suite()
+ios_app_clip_test_suite(name = "ios_app_clip")
 
-ios_extension_test_suite()
+ios_extension_test_suite(name = "ios_extension")
 
-ios_framework_test_suite()
+ios_framework_test_suite(name = "ios_framework")
 
-ios_imessage_application_test_suite()
+ios_imessage_application_test_suite(name = "ios_imessage_application")
 
-ios_static_framework_test_suite()
+ios_static_framework_test_suite(name = "ios_static_framework")
 
-ios_sticker_pack_extension_test_suite()
+ios_sticker_pack_extension_test_suite(name = "ios_sticker_pack_extension")
 
-ios_ui_test_test_suite()
+ios_ui_test_test_suite(name = "ios_ui_test")
 
-ios_unit_test_test_suite()
+ios_unit_test_test_suite(name = "ios_unit_test")
 
-macos_application_resources_test_suite()
+macos_application_resources_test_suite(name = "macos_application_resources")
 
-macos_application_test_suite()
+macos_application_test_suite(name = "macos_application")
 
-macos_bundle_test_suite()
+macos_bundle_test_suite(name = "macos_bundle")
 
-macos_command_line_application_test_suite()
+macos_command_line_application_test_suite(name = "macos_command_line_application")
 
-macos_dylib_test_suite()
+macos_dylib_test_suite(name = "macos_dylib")
 
-macos_extension_test_suite()
+macos_extension_test_suite(name = "macos_extension")
 
-macos_kernel_extension_test_suite()
+macos_kernel_extension_test_suite(name = "macos_kernel_extension")
 
-macos_quick_look_plugin_test_suite()
+macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin")
 
-macos_ui_test_test_suite()
+macos_ui_test_test_suite(name = "macos_ui_test")
 
-macos_unit_test_test_suite()
+macos_unit_test_test_suite(name = "macos_unit_test")
 
-tvos_application_swift_test_suite()
+tvos_application_swift_test_suite(name = "tvos_application_swift")
 
-tvos_application_test_suite()
+tvos_application_test_suite(name = "tvos_application")
 
-tvos_extension_test_suite()
+tvos_extension_test_suite(name = "tvos_extension")
 
-tvos_framework_test_suite()
+tvos_framework_test_suite(name = "tvos_framework")
 
-tvos_static_framework_test_suite()
+tvos_static_framework_test_suite(name = "tvos_static_framework")
 
-tvos_ui_test_test_suite()
+tvos_ui_test_test_suite(name = "tvos_ui_test")
 
-tvos_unit_test_test_suite()
+tvos_unit_test_test_suite(name = "tvos_unit_test")
 
-watchos_application_swift_test_suite()
+watchos_application_swift_test_suite(name = "watchos_application_swift")
 
-watchos_application_test_suite()
+watchos_application_test_suite(name = "watchos_application")
 
-watchos_extension_test_suite()
+watchos_extension_test_suite(name = "watchos_extension")
 
-watchos_ui_test_test_suite()
+watchos_ui_test_test_suite(name = "watchos_ui_test")
 
-watchos_unit_test_test_suite()
+watchos_unit_test_test_suite(name = "watchos_unit_test")
 
 test_suite(
     name = "all_tests",

@@ -19,10 +19,12 @@ load(
     "entry_point_test",
 )
 
-def macos_extension_test_suite():
-    """Test suite for macos_extension."""
-    name = "macos_extension"
+def macos_extension_test_suite(name):
+    """Test suite for macos_extension.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     entry_point_test(
         name = "{}_entry_point_nsextensionmain_test".format(name),
         build_type = "simulator",

@@ -27,10 +27,12 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_unit_test_test_suite():
-    """Test suite for tvos_unit_test."""
-    name = "tvos_unit_test"
+def tvos_unit_test_test_suite(name):
+    """Test suite for tvos_unit_test.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",

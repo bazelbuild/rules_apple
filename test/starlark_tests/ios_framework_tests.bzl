@@ -23,10 +23,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_framework_test_suite():
-    """Test suite for ios_framework."""
-    name = "ios_framework"
+def ios_framework_test_suite(name):
+    """Test suite for ios_framework.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",

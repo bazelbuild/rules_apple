@@ -19,10 +19,12 @@ load(
     "archive_contents_test",
 )
 
-def tvos_static_framework_test_suite():
-    """Test suite for tvos_static_framework."""
-    name = "tvos_static_framework"
+def tvos_static_framework_test_suite(name):
+    """Test suite for tvos_static_framework.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     archive_contents_test(
         name = "{}_contents_test".format(name),
         build_type = "simulator",
