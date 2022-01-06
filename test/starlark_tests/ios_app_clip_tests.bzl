@@ -32,11 +32,11 @@ load(
     "linkmap_test",
 )
 
-def ios_app_clip_test_suite(name = "ios_app_clip"):
+def ios_app_clip_test_suite(name):
     """Test suite for ios_app_clip.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     # Tests that app clip is codesigned when built as a standalone app

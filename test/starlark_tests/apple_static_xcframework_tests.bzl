@@ -19,11 +19,12 @@ load(
     "archive_contents_test",
 )
 
-# buildifier: disable=unnamed-macro
-def apple_static_xcframework_test_suite():
-    """Test suite for apple_static_xcframework."""
-    name = "apple_static_xcframework"
+def apple_static_xcframework_test_suite(name):
+    """Test suite for apple_static_xcframework.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     archive_contents_test(
         name = "{}_ios_root_plist_test".format(name),
         build_type = "device",

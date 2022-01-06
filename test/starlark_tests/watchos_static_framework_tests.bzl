@@ -19,11 +19,11 @@ load(
     "archive_contents_test",
 )
 
-def watchos_static_framework_test_suite(name = "watchos_static_framework"):
+def watchos_static_framework_test_suite(name):
     """Test suite for watchos_static_framework.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     archive_contents_test(
