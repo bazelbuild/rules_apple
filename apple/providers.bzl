@@ -202,6 +202,7 @@ a "marker" to indicate that a target is specifically an Apple resource bundle
 dependency is an Apple resource bundle should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 AppleSupportToolchainInfo = provider(
@@ -353,6 +354,7 @@ a "marker" to indicate that a target is specifically an XCFramework bundle
 dependency is an XCFramework should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 AppleXcframeworkBundleInfo = provider(
@@ -365,6 +367,7 @@ a "marker" to indicate that a target is specifically an XCFramework bundle
 dependency is an XCFramework should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 IosApplicationBundleInfo = provider(
@@ -377,6 +380,7 @@ a "marker" to indicate that a target is specifically an iOS application bundle
 dependency is an iOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 IosAppClipBundleInfo = provider(
@@ -388,6 +392,7 @@ a "marker" to indicate that a target is specifically an iOS app clip bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS app clip should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 IosExtensionBundleInfo = provider(
@@ -400,6 +405,7 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is an iOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 IosFrameworkBundleInfo = provider(
@@ -412,6 +418,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS dynamic framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosStaticFrameworkBundleInfo = provider(
@@ -424,6 +431,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS static framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosImessageApplicationBundleInfo = provider(
@@ -436,6 +444,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage application should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosImessageExtensionBundleInfo = provider(
@@ -448,6 +457,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage extension should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosStickerPackExtensionBundleInfo = provider(
@@ -460,6 +470,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS Sticker Pack extension should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosXcTestBundleInfo = provider(
@@ -471,6 +482,7 @@ a "marker" to indicate that a target is specifically an iOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 MacosApplicationBundleInfo = provider(
@@ -483,6 +495,7 @@ a "marker" to indicate that a target is specifically a macOS application bundle
 dependency is a macOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosBundleBundleInfo = provider(
@@ -495,6 +508,7 @@ a "marker" to indicate that a target is specifically a macOS loadable bundle
 dependency is a macOS loadable bundle should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosExtensionBundleInfo = provider(
@@ -507,6 +521,7 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 MacosKernelExtensionBundleInfo = provider(
@@ -519,6 +534,7 @@ a "marker" to indicate that a target is specifically a macOS kernel extension
 dependency is a macOS kernel extension should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosQuickLookPluginBundleInfo = provider(
@@ -531,6 +547,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a macOS Quick Look generator should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 MacosSpotlightImporterBundleInfo = provider(
@@ -543,6 +560,7 @@ a "marker" to indicate that a target is specifically a macOS Spotlight importer
 dependency is a macOS Spotlight importer should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosXPCServiceBundleInfo = provider(
@@ -555,6 +573,7 @@ a "marker" to indicate that a target is specifically a macOS XPC service
 dependency is a macOS XPC service should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosXcTestBundleInfo = provider(
@@ -567,6 +586,7 @@ a "marker" to indicate that a target is specifically a macOS .xctest bundle
 dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 TvosApplicationBundleInfo = provider(
@@ -579,6 +599,7 @@ a "marker" to indicate that a target is specifically a tvOS application bundle
 dependency is a tvOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 TvosExtensionBundleInfo = provider(
@@ -591,6 +612,7 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a tvOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 TvosFrameworkBundleInfo = provider(
@@ -603,6 +625,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS dynamic framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 TvosStaticFrameworkBundleInfo = provider(
@@ -615,6 +638,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS static framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 TvosXcTestBundleInfo = provider(
@@ -626,6 +650,7 @@ a "marker" to indicate that a target is specifically a tvOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a tvOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 WatchosApplicationBundleInfo = provider(
@@ -638,6 +663,7 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 WatchosExtensionBundleInfo = provider(
@@ -650,6 +676,7 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 WatchosXcTestBundleInfo = provider(
@@ -661,4 +688,5 @@ a "marker" to indicate that a target is specifically a watchOS .xctest bundle (a
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a watchOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )
