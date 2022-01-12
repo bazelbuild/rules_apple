@@ -207,15 +207,11 @@ def _ensure_swiftmodule_is_embedded(swiftmodule):
 
 def _framework_objc_provider_fields(
         framework_binary_field,
-        header_imports,
         module_map_imports,
         framework_binaries):
     """Return an objc_provider initializer dictionary with information for a given framework."""
 
     objc_provider_fields = {}
-    if header_imports:
-        objc_provider_fields["header"] = depset(header_imports)
-
     if module_map_imports:
         objc_provider_fields["module_map"] = depset(module_map_imports)
 
@@ -273,7 +269,6 @@ def _apple_dynamic_framework_import_impl(ctx):
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider_fields = _framework_objc_provider_fields(
         "dynamic_framework_file",
-        header_imports,
         module_map_imports,
         _all_framework_binaries(framework_groups),
     )
@@ -315,7 +310,6 @@ def _apple_static_framework_import_impl(ctx):
 
     objc_provider_fields = _framework_objc_provider_fields(
         "static_framework_file",
-        header_imports,
         module_map_imports,
         framework_binaries,
     )
