@@ -59,6 +59,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -757,80 +761,67 @@ def _apple_xcframework_impl(ctx):
     return processor_output
 
 apple_xcframework = rule(
-    attrs = {
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
-        "_child_configuration_dummy": attr.label(
-            cfg = transition_support.xcframework_transition,
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-        ),
-        "_cc_toolchain": attr.label(
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-        ),
-        "_environment_plist_ios": attr.label(
-            allow_single_file = True,
-            default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
-        ),
-        "_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                fragment = "apple",
-                name = "xcode_config_label",
+    attrs = dicts.add(
+        rule_factory.common_tool_attributes,
+        {
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
-        ),
-        "_xcode_path_wrapper": attr.label(
-            cfg = "exec",
-            executable = True,
-            default = Label("@build_bazel_apple_support//tools:xcode_path_wrapper"),
-        ),
-        "_xcrunwrapper": attr.label(
-            cfg = "exec",
-            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-            executable = True,
-        ),
-        "bundle_id": attr.string(
-            doc = """
+            "_child_configuration_dummy": attr.label(
+                cfg = transition_support.xcframework_transition,
+                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+            ),
+            "_cc_toolchain": attr.label(
+                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+            ),
+            "_environment_plist_ios": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            ),
+            "_xcrunwrapper": attr.label(
+                cfg = "exec",
+                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+                executable = True,
+            ),
+            "bundle_id": attr.string(
+                doc = """
 The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. If
 present, this value will be embedded in an Info.plist within each framework bundle.
 """,
-        ),
-        "bundle_name": attr.string(
-            mandatory = False,
-            doc = """
+            ),
+            "bundle_name": attr.string(
+                mandatory = False,
+                doc = """
 The desired name of the xcframework bundle (without the extension) and the bundles for all embedded
 frameworks. If this attribute is not set, then the name of the target will be used instead.
 """,
-        ),
-        "data": attr.label_list(
-            allow_files = True,
-            aspects = [apple_resource_aspect],
-            cfg = transition_support.xcframework_transition,
-            doc = """
+            ),
+            "data": attr.label_list(
+                allow_files = True,
+                aspects = [apple_resource_aspect],
+                cfg = transition_support.xcframework_transition,
+                doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within each of the embedded framework bundles.
 """,
-        ),
-        "families_required": attr.string_list_dict(
-            doc = """
+            ),
+            "families_required": attr.string_list_dict(
+                doc = """
 A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
 values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
 Currently, this only affects processing of `ios` resources.
 """,
-        ),
-        "framework_type": attr.string_list(
-            doc = """
+            ),
+            "framework_type": attr.string_list(
+                doc = """
 Indicates what type of framework the output should be, if defined. Currently only `dynamic` is
 supported. If this is not given, the default is to have all contained frameworks built as dynamic
 frameworks.
 """,
-        ),
-        "exported_symbols_lists": attr.label_list(
-            allow_files = True,
-            doc = """
+            ),
+            "exported_symbols_lists": attr.label_list(
+                allow_files = True,
+                doc = """
 A list of targets containing exported symbols lists files for the linker to control symbol
 resolution.
 
@@ -841,59 +832,59 @@ file.
 
 See the man page documentation for `ld(1)` on macOS for more details.
 """,
-        ),
-        "linkopts": attr.string_list(
-            doc = """
+            ),
+            "linkopts": attr.string_list(
+                doc = """
 A list of strings representing extra flags that should be passed to the linker.
 """,
-        ),
-        "infoplists": attr.label_list(
-            allow_empty = False,
-            allow_files = [".plist"],
-            cfg = transition_support.xcframework_transition,
-            doc = """
+            ),
+            "infoplists": attr.label_list(
+                allow_empty = False,
+                allow_files = [".plist"],
+                cfg = transition_support.xcframework_transition,
+                doc = """
 A list of .plist files that will be merged to form the Info.plist for each of the embedded
 frameworks. At least one file must be specified. Please see
 [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
-            mandatory = True,
-        ),
-        "ios": attr.string_list_dict(
-            doc = """
+                mandatory = True,
+            ),
+            "ios": attr.string_list_dict(
+                doc = """
 A dictionary of strings indicating which platform variants should be built for the `ios` platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
-        ),
-        "minimum_deployment_os_versions": attr.string_dict(
-            doc = """
+            ),
+            "minimum_deployment_os_versions": attr.string_dict(
+                doc = """
 A dictionary of strings indicating the minimum deployment OS version supported by the target,
 represented as a dotted version number (for example, "9.0") as values, with their respective
 platforms such as `ios` as keys. This is different from `minimum_os_versions`, which is effective
 at compile time. Ensure version specific APIs are guarded with `available` clauses.
 """,
-            mandatory = False,
-        ),
-        "minimum_os_versions": attr.string_dict(
-            doc = """
+                mandatory = False,
+            ),
+            "minimum_os_versions": attr.string_dict(
+                doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
 dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
 as keys.
 """,
-            mandatory = True,
-        ),
-        "public_hdrs": attr.label_list(
-            allow_files = [".h"],
-            doc = """
+                mandatory = True,
+            ),
+            "public_hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded frameworks. These header files will be embedded within each bundle,
 typically in a subdirectory such as `Headers`.
 """,
-        ),
-        "stamp": attr.int(
-            default = -1,
-            doc = """
+            ),
+            "stamp": attr.int(
+                default = -1,
+                doc = """
 Enable link stamping. Whether to encode build information into the binaries. Possible values:
 
 *   `stamp = 1`: Stamp the build information into the binaries. Stamped binaries are only rebuilt
@@ -903,25 +894,26 @@ Enable link stamping. Whether to encode build information into the binaries. Pos
     result caching.
 *   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.
 """,
-            values = [-1, 0, 1],
-        ),
-        "version": attr.label(
-            providers = [[AppleBundleVersionInfo]],
-            doc = """
+                values = [-1, 0, 1],
+            ),
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
-        ),
-        "deps": attr.label_list(
-            aspects = [apple_resource_aspect, swift_usage_aspect],
-            cfg = transition_support.xcframework_transition,
-            doc = """
+            ),
+            "deps": attr.label_list(
+                aspects = [apple_resource_aspect, swift_usage_aspect],
+                cfg = transition_support.xcframework_transition,
+                doc = """
 A list of dependencies targets that will be linked into this each of the framework target's
 individual binaries. Any resources, such as asset catalogs, that are referenced by those targets
 will also be transitively included in the framework bundles.
 """,
-        ),
-    },
+            ),
+        },
+    ),
     fragments = ["apple", "objc", "cpp"],
     implementation = _apple_xcframework_impl,
     outputs = {"archive": "%{name}.xcframework.zip"},

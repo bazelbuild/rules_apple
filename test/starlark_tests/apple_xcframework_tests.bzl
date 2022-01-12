@@ -446,6 +446,18 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Verifies that the include scanning feature builds for the given XCFramework rule.
+    archive_contents_test(
+        name = "{}_ios_arm64_cc_include_scanning_test".format(name),
+        build_type = "device",
+        target_features = ["cc_include_scanning"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
