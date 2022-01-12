@@ -532,6 +532,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":resources",
+        ":rule_factory",
         ":rule_support",
         ":swift_support",
         ":transition_support",
