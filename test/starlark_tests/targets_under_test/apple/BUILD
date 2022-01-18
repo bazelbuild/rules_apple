@@ -543,6 +543,29 @@ apple_xcframework(
     deps = [":SwiftFmwkWithGenHeader"],
 )
 
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_umbrella_header_conflict",
+    bundle_id = "com.google.example",
+    bundle_name = "UmbrellaHeaderConflict",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
+
 apple_static_xcframework(
     name = "ios_static_xcframework",
     ios = {
