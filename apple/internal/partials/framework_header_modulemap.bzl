@@ -122,6 +122,28 @@ def _create_umbrella_header(actions, output, bundle_name, headers, framework_imp
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
+def _verify_headers(
+        *,
+        public_hdrs,
+        umbrella_header_name):
+    """Raises an error if a public header conflicts with the umbrella header.
+
+    Args:
+      public_hdrs: The list of headers to bundle.
+      umbrella_header_name: The basename of the umbrella header file, or None if
+          there is no umbrella header.
+    """
+    conflicting_headers = []
+    for public_hdr in public_hdrs:
+        if public_hdr.basename == umbrella_header_name:
+            conflicting_headers.append(public_hdr.path)
+    if conflicting_headers:
+        fail(("Found imported header file(s) which conflict(s) with the name \"%s\" of the " +
+              "generated umbrella header for this target. Check input files:\n%s\n\nPlease " +
+              "remove the references to these files from your rule's list of headers to import " +
+              "or rename the headers if necessary.\n") %
+             (umbrella_header_name, ", ".join(conflicting_headers)))
+
 def _framework_header_modulemap_partial_impl(
         *,
         actions,
@@ -165,6 +187,11 @@ def _framework_header_modulemap_partial_impl(
                 (processor.location.bundle, "Headers", depset(hdrs)),
             )
         else:
+            _verify_headers(
+                public_hdrs = hdrs,
+                umbrella_header_name = umbrella_header_name,
+            )
+
             bundle_files.append(
                 (processor.location.bundle, "Headers", depset(hdrs + [umbrella_header_file])),
             )
