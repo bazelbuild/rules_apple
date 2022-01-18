@@ -15,6 +15,10 @@
 """ios_static_framework Starlark tests."""
 
 load(
+    ":rules/analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -137,6 +141,15 @@ def ios_static_framework_test_suite(name):
             "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
+        tags = [name],
+    )
+
+    # Test that an actionable error is produced for the user when a header to
+    # bundle conflicts with the generated umbrella header.
+    analysis_failure_message_test(
+        name = "{}_umbrella_header_conflict_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_umbrella_header_conflict",
+        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
         tags = [name],
     )
 

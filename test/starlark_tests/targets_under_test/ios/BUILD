@@ -2290,6 +2290,18 @@ ios_static_framework(
     deps = [":SwiftFmwkWithGenHeader"],
 )
 
+ios_static_framework(
+    name = "static_framework_with_umbrella_header_conflict",
+    hdrs = [
+        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    bundle_name = "UmbrellaHeaderConflict",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":shared_lib"],
+)
+
 genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
