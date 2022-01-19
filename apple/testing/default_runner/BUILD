@@ -55,6 +55,7 @@ exports_files([
     "ios_test_runner.template.sh",
     "macos_test_runner.template.sh",
     "macos_test_runner.template.xctestrun",
+    "simulator_creator.py",
     "tvos_test_runner.template.sh",
     "watchos_test_runner.template.sh",
 ])
