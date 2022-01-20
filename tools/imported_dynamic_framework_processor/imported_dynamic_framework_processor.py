@@ -116,7 +116,7 @@ def main():
   args = parser.parse_args()
 
   all_binary_archs = args.slice
-  framework_archs = lipo.find_archs_for_binaries(args.framework_binary)
+  framework_archs, _ = lipo.find_archs_for_binaries(args.framework_binary)
 
   if not framework_archs:
     return 1
