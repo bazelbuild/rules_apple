@@ -36,8 +36,25 @@ def invoke_lipo(binary_path, binary_slices, output_path):
 
 
 def find_archs_for_binaries(binary_list):
-  """Queries lipo to identify binary archs from each of the binaries."""
+  """Queries lipo to identify binary archs from each of the binaries.
+
+  Args:
+    binary_list: A list of strings, each of which is the path to a binary whose
+      architectures should be retrieved.
+
+  Returns:
+    A tuple containing two values:
+
+    1.  A set containing the union of all architectures found in every binary.
+    2.  A dictionary where each key is one of the elements in `binary_list` and
+        the corresponding value is the set of architectures found in that
+        binary.
+
+    If there was an error invoking `lipo` or the output was something
+    unexpected, `None` will be returned for both tuple elements.
+  """
   found_architectures = set()
+  archs_by_binary = dict()
 
   for binary in binary_list:
     cmd = ["xcrun", "lipo", "-info", binary]
@@ -48,19 +65,21 @@ def find_archs_for_binaries(binary_list):
     if not stdout:
       print("Internal Error: Did not receive output from lipo for inputs: " +
             " ".join(cmd))
-      return None
+      return (None, None)
 
     cut_output = stdout.split(":")
     if len(cut_output) < 3:
       print("Internal Error: Unexpected output from lipo, received: " + stdout)
-      return None
+      return (None, None)
 
     archs_found = cut_output[2].strip().split(" ")
     if not archs_found:
       print("Internal Error: Could not find architecture for binary: " + binary)
-      return None
+      return (None, None)
+
+    archs_by_binary[binary] = set(archs_found)
 
     for arch_found in archs_found:
       found_architectures.add(arch_found)
 
-  return found_architectures
+  return (found_architectures, archs_by_binary)

@@ -47,7 +47,7 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
                      destination_path):
   """Strips executable files if needed and copies them to the destination."""
   # Find all architectures from the set of files we might have to lipo.
-  exec_archs = lipo.find_archs_for_binaries(
+  _, exec_archs = lipo.find_archs_for_binaries(
       [os.path.join(source_path, f) for f in exec_files]
   )
 
@@ -59,13 +59,17 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
   for exec_file in exec_files:
     exec_file_source_path = os.path.join(source_path, exec_file)
     exec_file_destination_path = os.path.join(destination_path, exec_file)
-    if len(exec_archs) == 1 or target_archs == exec_archs:
+    file_archs = exec_archs[exec_file_source_path]
+
+    archs_to_keep = target_archs & file_archs
+
+    if len(file_archs) == 1 or archs_to_keep == file_archs:
       # If there is no need to lipo, copy and mark as executable.
       shutil.copy(exec_file_source_path, exec_file_destination_path)
       os.chmod(exec_file_destination_path, 0o755)
     else:
       lipo.invoke_lipo(
-          exec_file_source_path, target_archs, exec_file_destination_path
+          exec_file_source_path, archs_to_keep, exec_file_destination_path
       )
     if strip_bitcode:
       bitcode_strip.invoke(exec_file_destination_path, exec_file_destination_path)
@@ -99,7 +103,7 @@ def main():
   _copy_swift_stdlibs(args.binary, args.platform, temp_path)
 
   # Determine the binary slices we need to strip with lipo.
-  target_archs = lipo.find_archs_for_binaries(args.binary)
+  target_archs, _ = lipo.find_archs_for_binaries(args.binary)
 
   # Select all of the files in this temp directory, which are our Swift stdlibs.
   stdlib_files = [
