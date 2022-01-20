@@ -1709,11 +1709,7 @@ macos_extension = rule_factory.create_apple_bundling_rule(
 Most macOS app extensions use a plug-in-based architecture where the
 executable's entry point is provided by a system framework. However, macOS 11
 introduced Widget Extensions that use a traditional `main` entry
-point (typically expressed through Swift's `@main` attribute). If you
-are building a Widget Extension, you **must** set
-`provides_main = True` to indicate that your code provides the entry
-point so that Bazel doesn't direct the linker to use the system framework's
-entry point instead.""",
+point (typically expressed through Swift's `@main` attribute).""",
 )
 
 macos_quick_look_plugin = rule_factory.create_apple_bundling_rule(
