@@ -204,9 +204,6 @@ Most iOS app extensions use a plug-in-based architecture where the executable's 
 is provided by a system framework.
 However, iOS 14 introduced Widget Extensions that use a traditional `main` entry point
 (typically expressed through Swift's `@main` attribute).
-If you are building a Widget Extension, you must set `provides_main = True` to indicate
-that your code provides the entry point so that Bazel doesn't direct the linker to use
-the system framework's entry point instead.
 
 **ATTRIBUTES**
 
