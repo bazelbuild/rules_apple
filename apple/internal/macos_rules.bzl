@@ -75,6 +75,10 @@ load(
     "transition_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleSupportToolchainInfo",
@@ -166,6 +170,7 @@ def _macos_application_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -402,6 +407,7 @@ def _macos_bundle_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -583,6 +589,7 @@ def _macos_extension_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -781,6 +788,7 @@ def _macos_quick_look_plugin_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -966,6 +974,7 @@ def _macos_kernel_extension_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -1149,6 +1158,7 @@ def _macos_spotlight_importer_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -1331,6 +1341,7 @@ def _macos_xpc_service_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -1502,6 +1513,10 @@ def _macos_command_line_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    runfiles = []
+    if clang_rt_dylibs.should_package_clang_runtime(features = features):
+        runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
+
     return [
         AppleBinaryInfo(
             binary = output_file,
@@ -1513,6 +1528,7 @@ def _macos_command_line_application_impl(ctx):
                 depset([output_file]),
                 processor_result.output_files,
             ]),
+            runfiles = ctx.runfiles(runfiles),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
@@ -1664,6 +1680,9 @@ macos_command_line_application = rule_factory.create_apple_binary_rule(
     platform_type = "macos",
     product_type = apple_product_type.tool,
     doc = "Builds a macOS Command Line Application binary.",
+    additional_attrs = {
+        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+    },
 )
 
 macos_dylib = rule_factory.create_apple_binary_rule(

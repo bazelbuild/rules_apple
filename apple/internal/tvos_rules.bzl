@@ -71,6 +71,10 @@ load(
     "SwiftStaticFrameworkInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleSupportToolchainInfo",
     "TvosApplicationBundleInfo",
@@ -179,6 +183,7 @@ def _tvos_application_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -415,6 +420,7 @@ def _tvos_framework_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -608,6 +614,7 @@ def _tvos_extension_impl(ctx):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.codesigning_dossier_partial(
             actions = actions,

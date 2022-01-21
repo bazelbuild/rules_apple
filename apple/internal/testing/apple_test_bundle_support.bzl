@@ -59,6 +59,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
@@ -347,6 +351,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,

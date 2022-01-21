@@ -23,6 +23,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -30,22 +34,6 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-
-def _should_package_clang_runtime(*, features):
-    """Returns whether the Clang runtime should be bundled."""
-
-    # List of crosstool sanitizer features that require packaging some clang
-    # runtime libraries.
-    features_requiring_clang_runtime = {
-        "asan": True,
-        "tsan": True,
-        "ubsan": True,
-    }
-
-    for feature in features:
-        if feature in features_requiring_clang_runtime:
-            return True
-    return False
 
 def _clang_rt_dylibs_partial_impl(
         *,
@@ -55,10 +43,11 @@ def _clang_rt_dylibs_partial_impl(
         features,
         label_name,
         output_discriminator,
-        platform_prerequisites):
+        platform_prerequisites,
+        dylibs):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
-    if _should_package_clang_runtime(features = features):
+    if clang_rt_dylibs.should_package_clang_runtime(features = features):
         clang_rt_zip = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -77,7 +66,7 @@ def _clang_rt_dylibs_partial_impl(
             executable = resolved_clangrttool.executable,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
-            inputs = depset([binary_artifact], transitive = [resolved_clangrttool.inputs]),
+            inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
             input_manifests = resolved_clangrttool.input_manifests,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
@@ -100,7 +89,8 @@ def clang_rt_dylibs_partial(
         features,
         label_name,
         output_discriminator = None,
-        platform_prerequisites):
+        platform_prerequisites,
+        dylibs):
     """Constructor for the Clang runtime dylibs processing partial.
 
     Args:
@@ -126,4 +116,5 @@ def clang_rt_dylibs_partial(
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        dylibs = dylibs,
     )
