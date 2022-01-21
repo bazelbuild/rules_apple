@@ -84,6 +84,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
     ],
