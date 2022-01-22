@@ -55,9 +55,8 @@ def _ios_test_runner_impl(ctx):
             test_environment = ctx.attr.test_environment,
         ),
         DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [ctx.file._simulator_creator],
-            ).merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
+            runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
         ),
     ]
 
@@ -113,9 +112,8 @@ dependency is the test runner binary.
         ),
         "_simulator_creator": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator.py",
+                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
             ),
-            allow_single_file = True,
             executable = True,
             cfg = "exec",
         ),

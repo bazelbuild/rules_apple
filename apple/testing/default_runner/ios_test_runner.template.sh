@@ -138,7 +138,16 @@ if [[ -n "${REUSE_GLOBAL_SIMULATOR:-}" ]]; then
     exit 1
   fi
 
-  # FIXME: right now these arguments have to be set for this to work
+  if [[ -z "%(os_version)s" ]]; then
+    echo "error: to create a re-useable simulator the OS version must always be set on the test runner or with '--ios_simulator_version'" >&2
+    exit 1
+  fi
+
+  if [[ -z "%(device_type)s" ]]; then
+    echo "error: to create a re-useable simulator the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
+    exit 1
+  fi
+
   id="$("./%(simulator_creator)s" "%(os_version)s" "%(device_type)s")"
   target_flags=(
     "test"
