@@ -165,8 +165,11 @@ def _framework_import_partial_impl(
         resolved_imported_dynamic_framework_processor = apple_toolchain_info.resolved_imported_dynamic_framework_processor
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
-        # current build's preferred architecture.
+        # current build's preferred architecture, and the provisioning profile if specified.
         input_files = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
+        if provisioning_profile:
+            input_files.append(provisioning_profile)
+
         transitive_inputs = [
             resolved_imported_dynamic_framework_processor.inputs,
             resolved_codesigningtool.inputs,
