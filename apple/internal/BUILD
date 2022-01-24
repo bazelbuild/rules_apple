@@ -216,7 +216,6 @@ bzl_library(
     ],
     deps = [
         ":rule_support",
-        "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:lipo",
     ],
 )
