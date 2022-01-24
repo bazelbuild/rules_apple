@@ -65,15 +65,17 @@ trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
 os_build=$(/usr/bin/sw_vers -buildVersion)
 compiler=$(/usr/libexec/PlistBuddy -c "print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
+xcodebuild_version_sdk_output=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}")
+xcodebuild_version_output=$(/usr/bin/xcodebuild -version)
 # Parses 'PlatformVersion N.N' into N.N.
-platform_version=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}" PlatformVersion)
+platform_version=$(echo "${xcodebuild_version_sdk_output}" | grep PlatformVersion | cut -d ' ' -f2)
 # Parses 'ProductBuildVersion NNNN' into NNNN.
-sdk_build=$(/usr/bin/xcodebuild -version -sdk "${PLATFORM}" ProductBuildVersion)
+sdk_build=$(echo "${xcodebuild_version_sdk_output}" | grep ProductBuildVersion | cut -d ' ' -f2)
 platform_build=$"${sdk_build}"
 # Parses 'Build version NNNN' into NNNN.
-xcode_build=$(/usr/bin/xcodebuild -version | grep Build | cut -d ' ' -f3)
+xcode_build=$(echo "${xcodebuild_version_output}" | grep Build | cut -d ' ' -f3)
 # Parses 'Xcode N.N' into N.N.
-xcode_version_string=$(/usr/bin/xcodebuild -version | grep Xcode | cut -d ' ' -f2)
+xcode_version_string=$(echo "${xcodebuild_version_output}" | grep Xcode | cut -d ' ' -f2)
 # Converts '7.1' -> 0710, and '7.1.1' -> 0711.
 xcode_version=$(/usr/bin/printf '%02d%d%d\n' $(echo "${xcode_version_string//./ }"))
 
