@@ -74,6 +74,12 @@ def _infoplist_contents_test_impl(ctx):
             "fi",
         ])
 
+    test_lines.extend([
+        "if [[ \"$EXIT_CODE\" -eq 1 ]]; then",
+        "  echo \"Actual contents were:\"",
+        "  /usr/libexec/PlistBuddy -c \"Print\" {0} 2>/dev/null".format(plist_path),
+        "fi",
+    ])
     test_lines.append("exit $EXIT_CODE")
 
     test_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
