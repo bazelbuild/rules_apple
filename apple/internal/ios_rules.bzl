@@ -398,9 +398,8 @@ def _ios_app_clip_impl(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-    embeddable_targets = ctx.attr.frameworks
     label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
