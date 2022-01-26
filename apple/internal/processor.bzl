@@ -126,7 +126,7 @@ def _invalid_top_level_directories_for_platform(*, platform_type):
     # codesigning for some reason. With this, we validate that there are no
     # Resources folder going to be created in the bundle, with a message that
     # better explains which files are incorrectly placed.
-    return ["Resources"]
+    return ["resources"]
 
 def _is_parent_dir_valid(*, invalid_top_level_dirs, parent_dir):
     """Validates that the files to bundle are not placed in invalid locations.
@@ -146,7 +146,8 @@ def _is_parent_dir_valid(*, invalid_top_level_dirs, parent_dir):
     if not parent_dir:
         return True
     for invalid_dir in invalid_top_level_dirs:
-        if parent_dir == invalid_dir or parent_dir.startswith(invalid_dir + "/"):
+        lowercased_parent_dir = parent_dir.lower()
+        if lowercased_parent_dir == invalid_dir or lowercased_parent_dir.startswith(invalid_dir + "/"):
             return False
     return True
 
@@ -313,7 +314,7 @@ def _bundle_partial_outputs_files(
             if (invalid_top_level_dirs and not parent_dir_is_valid):
                 file_paths = "\n".join([f.path for f in files.to_list()])
                 fail(("Error: For %s bundles, the following top level " +
-                      "directories are invalid: %s, check input files:\n%s") %
+                      "directories are invalid (case-insensitive): %s, check input files:\n%s") %
                      (platform_type, ", ".join(invalid_top_level_dirs), file_paths))
 
             sources = files.to_list()
@@ -343,7 +344,7 @@ def _bundle_partial_outputs_files(
             )
             if invalid_top_level_dirs and not parent_dir_is_valid:
                 fail(("Error: For %s bundles, the following top level " +
-                      "directories are invalid: %s") %
+                      "directories are invalid (case-insensitive): %s, check input files:\n%s") %
                      (platform_type, ", ".join(invalid_top_level_dirs)))
 
             sources = zip_files.to_list()
