@@ -108,9 +108,13 @@ def main():
       )
   ]
 
+  destination_path = args.output_path
+  # Ensure directory exists for remote execution.
+  os.makedirs(destination_path, exist_ok=True)
+
   # Copy or use lipo to strip the executable Swift stdlibs to their destination.
   _lipo_exec_files(stdlib_files, target_archs, args.strip_bitcode, temp_path,
-                   args.output_path)
+                   destination_path)
 
   shutil.rmtree(temp_path)
 
