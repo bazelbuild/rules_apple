@@ -63,6 +63,7 @@ def ios_static_framework(name, **kwargs):
         avoid_deps = avoid_deps,
         minimum_os_version = kwargs.get("minimum_os_version"),
         platform_type = str(apple_common.platform_type.ios),
+        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
         visibility = kwargs.get("visibility"),
     )

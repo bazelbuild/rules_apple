@@ -1051,6 +1051,7 @@ def apple_static_xcframework(
         avoid_deps = avoid_deps,
         minimum_os_version = minimum_os_versions.get("ios"),
         platform_type = "ios",
+        tags = kwargs.get("tags"),
         testonly = kwargs.get("testonly"),
         visibility = kwargs.get("visibility"),
     )
