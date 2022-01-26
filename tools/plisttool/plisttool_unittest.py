@@ -1340,26 +1340,6 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
-  def test_entitlements_profile_app_id_prefix_mismatch(self):
-    with self.assertRaisesRegex(
-        plisttool.PlistToolError,
-        re.escape(
-            plisttool.ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-                _testing_target,
-                'QWERTY',
-                'ApplicationIdentifierPrefix',
-                "['ASDFGH']"))):
-      _plisttool_result({
-          'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
-          'entitlements_options': {
-              'profile_metadata_file': {
-                  'TeamIdentifier': ['QWERTY'],
-                  'ApplicationIdentifierPrefix': ['ASDFGH'],
-                  'Version': 1,
-              },
-          },
-      })
-
   def test_entitlements_profile_teams_match(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {'com.apple.developer.team-identifier': 'QWERTY'}
