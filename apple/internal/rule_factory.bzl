@@ -1147,6 +1147,7 @@ binaries/libraries will be created combining all architectures specified by
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
         outputs = implicit_outputs,
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 def _create_apple_bundling_rule(
@@ -1219,6 +1220,7 @@ def _create_apple_bundling_rule(
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 def _create_apple_test_rule(implementation, doc, platform_type):
@@ -1239,6 +1241,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         ),
         doc = doc,
         test = True,
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 rule_factory = struct(
