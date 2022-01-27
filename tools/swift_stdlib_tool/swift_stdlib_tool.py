@@ -51,10 +51,6 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
       [os.path.join(source_path, f) for f in exec_files]
   )
 
-  # Ensure directory for remote execution
-  if not os.path.exists(destination_path):
-    os.makedirs(destination_path)
-
   # Copy or lipo each file as needed, from source to destination.
   for exec_file in exec_files:
     exec_file_source_path = os.path.join(source_path, exec_file)
@@ -112,9 +108,13 @@ def main():
       )
   ]
 
+  destination_path = args.output_path
+  # Ensure directory exists for remote execution.
+  os.makedirs(destination_path, exist_ok=True)
+
   # Copy or use lipo to strip the executable Swift stdlibs to their destination.
   _lipo_exec_files(stdlib_files, target_archs, args.strip_bitcode, temp_path,
-                   args.output_path)
+                   destination_path)
 
   shutil.rmtree(temp_path)
 
