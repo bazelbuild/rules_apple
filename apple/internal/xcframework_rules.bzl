@@ -1061,7 +1061,8 @@ def apple_static_xcframework(
         minimum_os_versions,
         public_hdrs = None,
         **kwargs):
-    """Generates an XCFramework with static libraries for third-party distribution.
+    """
+    Generates an XCFramework with static libraries for third-party distribution.
 
      Args:
         name: The name of the XCFramework bundle.

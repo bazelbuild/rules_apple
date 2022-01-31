@@ -149,3 +149,45 @@ apple_xcframework(<a href="#apple_xcframework-name">name</a>, <a href="#apple_xc
 | <a id="apple_xcframework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
+<a id="#apple_static_xcframework"></a>
+
+## apple_static_xcframework
+
+<pre>
+apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a href="#apple_static_xcframework-avoid_deps">avoid_deps</a>, <a href="#apple_static_xcframework-deps">deps</a>, <a href="#apple_static_xcframework-ios">ios</a>, <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>, <a href="#apple_static_xcframework-kwargs">kwargs</a>)
+</pre>
+
+    Generates an XCFramework with static libraries for third-party distribution.
+
+ Args:
+    name: The name of the XCFramework bundle.
+    avoid_deps: A list of library targets on which this framework depends in order to compile,
+        but the transitive closure of which will not be linked into the framework's binary.
+    deps: A list of dependencies targets that will be linked into this target's binary. Any
+        resources, such as asset catalogs, that are referenced by those targets will also be
+        transitively included in the final bundle.
+    ios: A dictionary of strings indicating which platform variants should be built for the
+        `ios` platform (`device` or `simulator`) as keys, and arrays of strings listing which
+        architectures should be built for those platform variants (for example, `x86_64`,
+        `arm64`) as their values.
+    minimum_os_versions: A dictionary of strings indicating the minimum OS version supported by
+        the target, represented as a dotted version number (for example, "8.0") as values, with
+        their respective platforms such as `ios` as keys.
+    public_hdrs: A list of files directly referencing header files to be used as the publicly
+        visible interface for each of these embedded libraries. These header files will be
+        embedded within each platform split, typically in a subdirectory such as `Headers`.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="apple_static_xcframework-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="apple_static_xcframework-avoid_deps"></a>avoid_deps |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="apple_static_xcframework-deps"></a>deps |  <p align="center"> - </p>   |  none |
+| <a id="apple_static_xcframework-ios"></a>ios |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="apple_static_xcframework-minimum_os_versions"></a>minimum_os_versions |  <p align="center"> - </p>   |  none |
+| <a id="apple_static_xcframework-public_hdrs"></a>public_hdrs |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="apple_static_xcframework-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
