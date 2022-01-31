@@ -27,7 +27,8 @@ if [[ -n "$ARCHIVE_PATH" ]]; then
   # Unzip the archive into a temporary location.
   ARCHIVE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bundle_tmp_dir.XXXXXX")"
 
-  trap 'rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
+  trap 'chmod -R u+w "${ARCHIVE_ROOT}"
+    rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 
   unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
 
