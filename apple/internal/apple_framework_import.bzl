@@ -424,7 +424,7 @@ def _get_xcframework_imports(ctx):
     return framework_imports_for_platform
 
 def _common_dynamic_framework_import_impl(ctx, is_xcframework):
-    """Implementation for the apple_dynamic_framework_import rule."""
+    """Common implementation for the apple_dynamic_framework_import and apple_dynamic_xcframework_import rules."""
     providers = []
 
     if is_xcframework:
@@ -493,7 +493,7 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     return providers
 
 def _common_static_framework_import_impl(ctx, is_xcframework):
-    """Implementation for the apple_static_framework_import rule."""
+    """Common implementation for the apple_static_framework_import and apple_static_xcframework_import rules."""
     providers = []
 
     if is_xcframework:
@@ -609,15 +609,19 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     return providers
 
 def _apple_dynamic_framework_import_impl(ctx):
+    """Implementation for the apple_dynamic_framework_import rule."""
     return _common_dynamic_framework_import_impl(ctx, is_xcframework = False)
 
 def _apple_dynamic_xcframework_import_impl(ctx):
+    """Implementation for the apple_dynamic_xcframework_import rule."""
     return _common_dynamic_framework_import_impl(ctx, is_xcframework = True)
 
 def _apple_static_framework_import_impl(ctx):
+    """Implementation for the apple_static_framework_import rule."""
     return _common_static_framework_import_impl(ctx, is_xcframework = False)
 
 def _apple_static_xcframework_import_impl(ctx):
+    """Implementation for the apple_static_xcframework_import rule."""
     return _common_static_framework_import_impl(ctx, is_xcframework = True)
 
 apple_dynamic_framework_import = rule(

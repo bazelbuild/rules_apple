@@ -45,7 +45,6 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # TODO: Support importing xcframeworks with static archives
     analysis_target_outputs_test(
         name = "{}_static_xcfw_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk",
