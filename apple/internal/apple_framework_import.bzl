@@ -383,21 +383,29 @@ def _get_xcframework_imports(ctx):
         fail("couldn't find xcframework at framework_imports")
     framework_name = paths.split_extension(paths.basename(xcframework_path))[0]
 
-    library_identifier = _get_current_library_identifier(
-        current_platform = ctx.fragments.apple.single_arch_platform,
-        xcframework_path = xcframework_path,
-        xcframework_imports = ctx.files.xcframework_imports,
-    )
-    if not library_identifier:
-        # Fallback to using the provided library identifiers in case of they
-        # are non-standard ones
-        library_identifier = ctx.attr.library_identifiers[str(ctx.fragments.apple.single_arch_platform).lower()]
-
-        if library_identifier not in [p.lower() for p in ctx.attr.library_identifiers]:
+    library_identifier = None
+    if ctx.attr.library_identifiers:
+        key = str(ctx.fragments.apple.single_arch_platform).lower()
+        if key in ctx.attr.library_identifiers:
+            library_identifier = ctx.attr.library_identifiers[key]
+        else:
             fail(
                 "Missing framework path mapping for platform `{}`; is this platform supported?"
-                    .format(str(library_identifier)),
+                    .format(key),
             )
+
+    # Try to figure out the library identifier from the platform being built
+    # and `xcframework_imports` if it's not provided
+    if not library_identifier:
+        library_identifier = _get_current_library_identifier(
+            current_platform = ctx.fragments.apple.single_arch_platform,
+            xcframework_path = xcframework_path,
+            xcframework_imports = ctx.files.xcframework_imports,
+        )
+
+    if not library_identifier:
+        fail("Failed to figure out library identifiers. Please provide a " +
+             "dictionary of library identifiers to `library_identifiers`.")
 
     # XCFramework with static frameworks
     platform_path = "{}/{}/{}.framework".format(xcframework_path, library_identifier, framework_name)
