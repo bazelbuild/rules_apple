@@ -507,7 +507,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     ))
 
     if static_archive_imports:
-        framework_groups = []
+        framework_groups = {}
         framework_binaries = static_archive_imports
 
         objc_provider_fields = _framework_objc_provider_fields(
