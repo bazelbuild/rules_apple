@@ -275,7 +275,7 @@ apple_xcframework(
     deps = [":fmwk_lib"],
 )
 
-# Generate importable dynamic xcframework files
+# Generate importable dynamic XCFramework files
 genrule(
     name = "generated_ios_dynamic_xcframework",
     testonly = 1,
@@ -304,7 +304,7 @@ unzip -qq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
 """,
 )
 
-# Generate importable static xcframework files with static archives
+# Generate importable static XCFramework files with static archives
 genrule(
     name = "generated_ios_static_xcframework",
     testonly = 1,

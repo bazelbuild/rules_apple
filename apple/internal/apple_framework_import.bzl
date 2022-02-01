@@ -144,7 +144,7 @@ def _all_framework_binaries(frameworks_groups, is_xcframework = False):
 
         return binaries
 
-    # In non-xcframework cases, the binary file should have the name of the
+    # In non-XCFramework cases, the binary file should have the name of the
     # framework
     binaries = []
     for framework_dir, framework_imports in frameworks_groups.items():
@@ -399,11 +399,11 @@ def _get_xcframework_imports(ctx):
                     .format(str(library_identifier)),
             )
 
-    # Xcframework with static frameworks
+    # XCFramework with static frameworks
     platform_path = "{}/{}/{}.framework".format(xcframework_path, library_identifier, framework_name)
     framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
 
-    # If this is still empty, we are probably processing an xcframework with
+    # If this is still empty, we are probably processing an XCFramework with
     # static libraries, so do a second check with the platform path not
     # including the `.framework` directory.
     if not framework_imports_for_platform:
@@ -756,16 +756,16 @@ objc_library(
 _xcframework_import_common_attrs = {
     "library_identifiers": attr.string_dict(
         doc = """
-A optional key-value map of platforms to the corresponding platform IDs
-(containing all supported architectures), relative to the xcframework. The
+An optional key-value map of platforms to the corresponding platform IDs
+(containing all supported architectures), relative to the XCFramework. The
 identifier keys should be case-insensitive variants of the values in
 `apple_common.platform`](https://docs.bazel.build/versions/5.0.0/skylark/lib/apple_common.html#platform);
 for example, `ios_device` or `ios_simulator`. The identifier values should be
 case-sensitive variants of values that might be found in the
-`LibraryIdentifier` of an `Info.plist` file in xcframework's root; for example,
+`LibraryIdentifier` of an `Info.plist` file in the XCFramework's root; for example,
 `ios-arm64_i386_x86_64-simulator` or `ios-arm64_armv7`.
 
-Passing this attribute should not be neccessary if the xcframework follows the
+Passing this attribute should not be neccessary if the XCFramework follows the
 standard naming convention (that is, it was created by Xcode or Bazel).
 """,
     ),
@@ -782,7 +782,7 @@ based targets that depend on this target.
         aspects = [swift_clang_module_aspect],
         doc = """
 A list of targets that are dependencies of the target being built, which will
-provide headers (if the importing xcframework is a dynamic framework) and be
+provide headers (if the importing XCFramework is a dynamic framework) and can be
 linked into that target.
 """,
         providers = [
@@ -799,13 +799,13 @@ apple_dynamic_xcframework_import = rule(
         "bundle_only": attr.bool(
             default = False,
             doc = """
-Avoid linking the dynamic framework, but still include it in the app. This is
-useful when you want to manually dlopen the framework at runtime.
+Avoid linking the dynamic XCFramework, but still include it in the app. This is
+useful when you want to manually dlopen the XCFramework at runtime.
 """,
         ),
     }),
     doc = """
-This rule encapsulates an already-built dynamic xcframework. It is defined by a
+This rule encapsulates an already-built dynamic XCFramework. It is defined by a
 list of files in exactly one `.xcframework` directory.
 `apple_dynamic_xcframework_import` targets need to be added to library targets
 through the `deps` attribute.
@@ -877,7 +877,7 @@ conformance.
         },
     ),
     doc = """
-This rule encapsulates an already-built static xcframework. It is defined by a
+This rule encapsulates an already-built static XCFramework. It is defined by a
 list of files in exactly one `.xcframework` directory.
 `apple_static_xcframework_import` targets need to be added to library targets
 through the `deps` attribute.
