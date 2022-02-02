@@ -37,6 +37,13 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    analysis_target_outputs_test(
+        name = "{}_dynamic_xcfw_import_with_lib_ids_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_xcfmwk_with_lib_ids",
+        expected_outputs = ["app_with_imported_dynamic_xcfmwk_with_lib_ids.ipa"],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_imported_dynamic_xcfmwk_codesign_test".format(name),
         build_type = "simulator",
@@ -49,6 +56,13 @@ def apple_xcframework_import_test_suite(name):
         name = "{}_static_xcfw_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk",
         expected_outputs = ["app_with_imported_static_xcfmwk.ipa"],
+        tags = [name],
+    )
+
+    analysis_target_outputs_test(
+        name = "{}_static_xcfw_import_with_lib_ids_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_lib_ids",
+        expected_outputs = ["app_with_imported_static_xcfmwk_with_lib_ids.ipa"],
         tags = [name],
     )
 
