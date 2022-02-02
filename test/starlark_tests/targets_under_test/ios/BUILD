@@ -2398,6 +2398,7 @@ objc_library(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for importing XCFramework tests.
 
 ios_application(
     name = "app_with_imported_dynamic_xcfmwk",
