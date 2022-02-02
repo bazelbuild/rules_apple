@@ -639,6 +639,21 @@ swift_library(
 )
 
 genrule(
+    name = "swift_importing_imported_static_xcfw",
+    outs = ["swift_importing_imported_static_xcfw.swift"],
+    cmd = "echo 'import ios_static_xcframework_with_module_map' > $@",
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_importing_imported_static_xcfw",
+    testonly = True,
+    srcs = [":swift_importing_imported_static_xcfw"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_with_module_map"],
+)
+
+genrule(
     name = "objc_importing_imported_static_xcfw",
     outs = ["objc_importing_imported_static_xcfw.m"],
     # Bazel doesn't do any xcframework processing like Xcode so this import has

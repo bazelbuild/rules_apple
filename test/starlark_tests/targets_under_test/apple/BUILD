@@ -329,6 +329,49 @@ unzip -qq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
 """,
 )
 
+# Generate importable static XCFramework files with static archives and module
+# map
+genrule(
+    name = "generated_ios_static_xcframework_with_module_map",
+    testonly = 1,
+    srcs = [":ios_static_xcframework_with_module_map.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}".format(
+            "ios_static_xcframework_with_module_map.xcframework",
+            platform_id,
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_static_xcframework_with_module_map.apple_static_library_lipo.a",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    # rules_apple can't generate static XCFrameworks that are importable from
+    # Swift now, but those exist. This manually generates one for testing.
+    cmd = """
+unzip -qq $(execpath :ios_static_xcframework_with_module_map.xcframework.zip) -d $(RULEDIR)
+
+xcframework_path="$(RULEDIR)/ios_static_xcframework_with_module_map.xcframework"
+declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
+
+for platform_id in "$${platform_ids[@]}"
+do
+  modules_dir="$$xcframework_path/$$platform_id/Modules"
+  mkdir -p "$$modules_dir"
+  cat > "$$modules_dir/module.modulemap" << EOF
+module ios_static_xcframework_with_module_map {
+  header "../Headers/shared.h"
+}
+EOF
+done
+""",
+)
+
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     tags = ["manual"],
@@ -339,6 +382,12 @@ apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     tags = ["manual"],
     xcframework_imports = [":generated_ios_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_module_map",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_static_xcframework_with_module_map"],
 )
 
 apple_xcframework(
@@ -614,6 +663,28 @@ apple_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcframework",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
+
+# This doesn't actually generate an XCFramework with module maps (we manually
+# add them later), but this needs to be a different name from the above target
+# to avoid conflicts.
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_module_map",
     ios = {
         "simulator": [
             "x86_64",

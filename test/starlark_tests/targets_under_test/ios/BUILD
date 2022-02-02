@@ -2436,3 +2436,22 @@ ios_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+ios_application(
+    name = "app_with_imported_static_xcfmwk_with_module_map",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_static_xcfw",
+    ],
+)

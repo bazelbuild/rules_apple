@@ -60,6 +60,21 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    analysis_target_outputs_test(
+        name = "{}_static_xcfw_with_module_map_import_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_module_map",
+        expected_outputs = ["app_with_imported_static_xcfmwk_with_module_map.ipa"],
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_imported_static_xcfmwk_with_module_map_codesign_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_module_map",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

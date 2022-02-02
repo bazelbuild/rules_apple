@@ -203,6 +203,27 @@ def _grouped_framework_files(framework_imports):
 
     return framework_groups
 
+def _grouped_xcframework_files(xcframework_imports):
+    """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
+    framework_groups = group_files_by_directory(
+        xcframework_imports,
+        ["xcframework"],
+        attr = "xcframework_imports",
+    )
+
+    # Only check for unique basenames of these keys, since it's possible to
+    # have targets that glob files from different locations but with the same
+    # `.xcframework` name, causing them to be merged into the same framework
+    # during bundling.
+    unique_frameworks = collections.uniq(
+        [paths.basename(path) for path in framework_groups.keys()],
+    )
+    if len(unique_frameworks) > 1:
+        fail("A framework import target may only include files for a " +
+             "single '.xcframework' bundle.", attr = "xcframework_imports")
+
+    return framework_groups
+
 def _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos = []):
     """Returns a new Objc provider which includes transitive Objc dependencies."""
     objc_provider_fields["providers"] = [
@@ -515,7 +536,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     ))
 
     if static_archive_imports:
-        framework_groups = {}
+        framework_groups = _grouped_xcframework_files(framework_imports)
         framework_binaries = static_archive_imports
 
         objc_provider_fields = _framework_objc_provider_fields(
