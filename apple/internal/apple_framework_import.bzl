@@ -432,7 +432,7 @@ def _get_xcframework_imports(ctx):
     # static libraries, so do a second check with the platform path not
     # including the `.framework` directory.
     if not framework_imports_for_platform:
-        platform_path = "{}/{}".format(xcframework_path, library_identifier)
+        platform_path = "{}/{}/".format(xcframework_path, library_identifier)
         framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
 
     if not framework_imports_for_platform:
