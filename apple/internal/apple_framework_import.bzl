@@ -175,7 +175,7 @@ def _grouped_framework_files(framework_imports):
     return framework_groups
 
 def _grouped_xcframework_files(framework_imports):
-    """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
+    """Returns a dictionary of each framework's imports, grouped by path to the .xcframework root."""
     framework_groups = group_files_by_directory(
         framework_imports,
         ["xcframework"],
