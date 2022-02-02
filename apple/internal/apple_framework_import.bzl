@@ -82,18 +82,13 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     return module
 
 def _classify_framework_imports(config_vars, framework_imports):
-    """Classify a list of framework files into bundling, header, module_map, or static archive."""
+    """Classify a list of framework files into bundling, header, module_map."""
 
     bundling_imports = []
     header_imports = []
     module_map_imports = []
-    static_archive_imports = []
     for file in framework_imports:
         file_short_path = file.short_path
-        if file_short_path.endswith(".a"):
-            # TODO: Handle cases where static archive filenames don't end with .a
-            static_archive_imports.append(file)
-            continue
         if file_short_path.endswith(".h"):
             header_imports.append(file)
             continue
@@ -128,24 +123,10 @@ def _classify_framework_imports(config_vars, framework_imports):
             continue
         bundling_imports.append(file)
 
-    return bundling_imports, header_imports, module_map_imports, static_archive_imports
+    return bundling_imports, header_imports, module_map_imports
 
-def _all_framework_binaries(frameworks_groups, is_xcframework = False):
+def _all_framework_binaries(frameworks_groups):
     """Returns a list of Files of all imported binaries."""
-    if is_xcframework:
-        binaries = []
-        for framework_dir, framework_imports in frameworks_groups.items():
-            binary = _get_static_xcframework_binary_file(
-                framework_dir,
-                framework_imports.to_list(),
-            )
-            if binary != None:
-                binaries.append(binary)
-
-        return binaries
-
-    # In non-XCFramework cases, the binary file should have the name of the
-    # framework
     binaries = []
     for framework_dir, framework_imports in frameworks_groups.items():
         binary = _get_framework_binary_file(framework_dir, framework_imports.to_list())
@@ -203,10 +184,10 @@ def _grouped_framework_files(framework_imports):
 
     return framework_groups
 
-def _grouped_xcframework_files(xcframework_imports):
+def _grouped_xcframework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
-        xcframework_imports,
+        framework_imports,
         ["xcframework"],
         attr = "xcframework_imports",
     )
@@ -394,6 +375,24 @@ def _get_current_library_identifier(
     # TODO: Handle maccatalyst variant
     return None
 
+def _get_framework_name(framework_imports):
+    """Returns the framework name (the directory name without .framework)."""
+
+    # We can just take the first key because the rule implementation guarantees
+    # that we only have files for a single framework.
+    framework_groups = _grouped_framework_files(framework_imports)
+    framework_dir = framework_groups.keys()[0]
+    return paths.split_extension(paths.basename(framework_dir))[0]
+
+def _get_xcframework_name(xcframework_imports):
+    """Returns the XCFramework name (the directory name without .xcframework)."""
+
+    # We can just take the first key because the rule implementation guarantees
+    # that we only have files for a single framework.
+    xcframework_groups = _grouped_xcframework_files(xcframework_imports)
+    xcframework_dir = xcframework_groups.keys()[0]
+    return paths.split_extension(paths.basename(xcframework_dir))[0]
+
 def _get_xcframework_imports(ctx):
     xcframework_path = ""
     for f in ctx.files.xcframework_imports:
@@ -453,7 +452,7 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     else:
         framework_imports = ctx.files.framework_imports
 
-    bundling_imports, header_imports, module_map_imports, _ = (
+    bundling_imports, header_imports, module_map_imports = (
         _classify_framework_imports(ctx.var, framework_imports)
     )
 
@@ -519,10 +518,12 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
 
     if is_xcframework:
         framework_imports = _get_xcframework_imports(ctx)
+        framework_name = _get_xcframework_name(framework_imports)
     else:
         framework_imports = ctx.files.framework_imports
+        framework_name = _get_framework_name(framework_imports)
 
-    _, header_imports, module_map_imports, static_archive_imports = _classify_framework_imports(
+    other_imports, header_imports, module_map_imports = _classify_framework_imports(
         ctx.var,
         framework_imports,
     )
@@ -535,24 +536,39 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         transitive_sets = transitive_sets,
     ))
 
-    if static_archive_imports:
-        framework_groups = _grouped_xcframework_files(framework_imports)
-        framework_binaries = static_archive_imports
+    is_framework = False
+    for f in framework_imports:
+        if f.dirname.endswith(".framework"):
+            is_framework = True
+            break
 
-        objc_provider_fields = _framework_objc_provider_fields(
-            "library",
-            module_map_imports,
-            framework_binaries,
-        )
-    else:
+    if is_framework:
         framework_groups = _grouped_framework_files(framework_imports)
         framework_binaries = _all_framework_binaries(
             frameworks_groups = framework_groups,
-            is_xcframework = is_xcframework,
         )
 
         objc_provider_fields = _framework_objc_provider_fields(
             "static_framework_file",
+            module_map_imports,
+            framework_binaries,
+        )
+    else:
+        framework_groups = _grouped_xcframework_files(framework_imports)
+        framework_binaries = []
+
+        # For non-framework type (XCFrameworks not embedding any .framework
+        # bundle but only contain static libraries, headers, and module maps),
+        # assume the library filename is the same with XCFramework name or has
+        # the .a extension. If the library file has a different naming, the
+        # XCFramework can't be processed now.
+        for f in other_imports:
+            file_basename = f.basename
+            if file_basename == framework_name or file_basename.endswith(".a"):
+                framework_binaries.append(f)
+
+        objc_provider_fields = _framework_objc_provider_fields(
+            "library",
             module_map_imports,
             framework_binaries,
         )
@@ -598,7 +614,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     providers.append(
         _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos),
     )
-    is_framework = not static_archive_imports
     providers.append(
         _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos, is_framework),
     )
