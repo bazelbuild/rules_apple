@@ -82,7 +82,7 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     return module
 
 def _classify_framework_imports(config_vars, framework_imports):
-    """Classify a list of framework files into bundling, header, module_map."""
+    """Classify a list of framework files into bundling, header, or module_map."""
 
     bundling_imports = []
     header_imports = []
