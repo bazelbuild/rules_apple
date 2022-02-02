@@ -341,7 +341,7 @@ def _get_current_library_identifier(
         current_platform,
         xcframework_path,
         xcframework_imports):
-    """Returns a string representing the path to the framework to reference in the xcframework bundle."""
+    """Returns a string representing the path to the framework to reference in the XCFramework bundle."""
     library_identifiers = sets.make()
 
     for f in xcframework_imports:
@@ -438,7 +438,7 @@ def _get_xcframework_imports(ctx):
         framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
 
     if not framework_imports_for_platform:
-        fail("couldn't find framework or library at path `{}`".format(platform_path))
+        fail("Couldn't find framework or library at path `{}`".format(platform_path))
 
     return framework_imports_for_platform
 
@@ -556,7 +556,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         framework_groups = _grouped_xcframework_files(framework_imports)
         framework_binaries = []
 
-        # For non-framework type (XCFrameworks not embedding any .framework
+        # For non-framework types (XCFrameworks not embedding any .framework
         # bundle but only contain static libraries, headers, and module maps),
         # assume the library filename is the same with XCFramework name or has
         # the .a extension. If the library file has a different naming, the
@@ -876,7 +876,7 @@ objc_library(
 """,
 )
 
-# TODO: Support for adding `includes` for xcframeworks with static archives
+# TODO: Support for adding `includes` for XCFrameworks with static archives
 apple_static_xcframework_import = rule(
     implementation = _apple_static_xcframework_import_impl,
     fragments = ["apple"],
