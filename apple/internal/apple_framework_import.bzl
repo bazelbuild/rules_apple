@@ -402,18 +402,13 @@ def _get_xcframework_name(xcframework_imports):
     # We can just take the first key because the rule implementation guarantees
     # that we only have files for a single framework.
     xcframework_groups = _grouped_xcframework_files(xcframework_imports)
-    xcframework_dir = xcframework_groups.keys()[0]
-    return paths.split_extension(paths.basename(xcframework_dir))[0]
+    xcframework_path = xcframework_groups.keys()[0]
+    return paths.split_extension(paths.basename(xcframework_path))[0]
 
 def _get_xcframework_imports(ctx):
-    xcframework_path = ""
-    for f in ctx.files.xcframework_imports:
-        if ".xcframework" in f.path:
-            xcframework_path = f.path.split(".xcframework")[0] + ".xcframework"
-            break
-    if not xcframework_path.endswith(".xcframework"):
-        fail("couldn't find xcframework at framework_imports")
-    framework_name = paths.split_extension(paths.basename(xcframework_path))[0]
+    xcframework_groups = _grouped_xcframework_files(ctx.files.xcframework_imports)
+    xcframework_name = _get_xcframework_name(ctx.files.xcframework_imports)
+    xcframework_path = xcframework_groups.keys()[0]
 
     library_identifier = None
     if ctx.attr.library_identifiers:
@@ -440,7 +435,7 @@ def _get_xcframework_imports(ctx):
              "dictionary of library identifiers to `library_identifiers`.")
 
     # XCFramework with static frameworks
-    platform_path = "{}/{}/{}.framework".format(xcframework_path, library_identifier, framework_name)
+    platform_path = "{}/{}/{}.framework".format(xcframework_path, library_identifier, xcframework_name)
     framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
 
     # If this is still empty, we are probably processing an XCFramework with
