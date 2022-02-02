@@ -372,8 +372,10 @@ def _get_current_library_identifier(
         if not is_device and id.endswith("-simulator"):
             return id
 
-        # The remaining one is the device identifier
-        return id
+        # If the current platform is device, and the identifier doesn't end
+        # with "-simulator", we found the identifier.
+        if is_device and not id.endswith("-simulator"):
+            return id
 
     return None
 
