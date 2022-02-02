@@ -153,16 +153,6 @@ def _get_framework_binary_file(framework_dir, framework_imports):
 
     return None
 
-def _get_static_xcframework_binary_file(framework_dir, framework_imports):
-    """Returns the File that is the framework's binary."""
-    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
-    framework_path = paths.join(framework_dir, framework_name)
-    for framework_import in framework_imports:
-        if framework_import.dirname == framework_dir:
-            return framework_import
-
-    return None
-
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
