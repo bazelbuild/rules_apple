@@ -351,11 +351,11 @@ def _get_current_library_identifier(
         current_platform,
         xcframework_path,
         xcframework_imports):
+    """Returns a string representing the path to the framework to reference in the xcframework bundle."""
     library_identifiers = sets.make()
 
-    xcframework_path_length = len(xcframework_path)
     for f in xcframework_imports:
-        inner_path = f.path[xcframework_path_length + 1:]
+        inner_path = f.path[len(xcframework_path) + 1:]
         for i in range(len(inner_path)):
             if inner_path[i] == "/":
                 identifier = inner_path[:i]
@@ -364,15 +364,27 @@ def _get_current_library_identifier(
 
     platform_type = str(current_platform.platform_type).lower()
     is_device = current_platform.is_device
+
     for id in sets.to_list(library_identifiers):
+        # Bazel can't build for the catalyst platform (with the public
+        # crosstool), so just ignore it for now.
+        if id.endswith("-maccatalyst"):
+            continue
+
+        # Filter out any ids not starting with the current platform type. This
+        # will leave us a list of at most two identifiers that match either
+        # "<platform_type>-<archs>" or "<platform_type>-<archs>-simulator"
         if not id.startswith(platform_type):
             continue
-        if is_device and (id.endswith("-simulator") or id.endswith("-maccatalyst")):
-            continue
-        elif id.endswith("-simulator"):
+
+        # If the current platform is simulator, and the identifier also ends
+        # with "-simulator", we found the identifier.
+        if not is_device and id.endswith("-simulator"):
             return id
 
-    # TODO: Handle maccatalyst variant
+        # The remaining one is the device identifier
+        return id
+
     return None
 
 def _get_framework_name(framework_imports):
