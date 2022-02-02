@@ -27,7 +27,7 @@ def apple_xcframework_import_test_suite(name):
     """Test suite for apple_dynamic_xcframework_import and apple_static_xcframework_import.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     analysis_target_outputs_test(
