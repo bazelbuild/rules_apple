@@ -299,13 +299,10 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.payment-pass-provisioning',
     'com.apple.developer.siri',
     'com.apple.developer.usernotifications.time-sensitive',
+    # Keys which have a list of potential values in the profile, but only one in
+    # the entitlements that must be in the profile's list of values
+    'com.apple.developer.devicecheck.appattest-environment',
 )
-
-# Keys which have a list of potential values in the profile, but only one in
-# the entitlements that must be in the profile's list of values
-_POTENTIAL_LIST_KEYS = frozenset([
-  'com.apple.developer.devicecheck.appattest-environment',
-])
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
@@ -537,7 +534,7 @@ def _load_json(string_or_file):
 
 
 class PlistToolError(ValueError):
-# pylint: disable=g-bad-exception-name
+  # pylint: disable=g-bad-exception-name
   """Raised for all errors.
 
   Custom ValueError used to allow catching (and logging) just the plisttool
@@ -1240,13 +1237,6 @@ class EntitlementsTask(PlistToolTask):
           entitlements=entitlements,
           profile_entitlements=profile_entitlements)
 
-    for entitlement in _POTENTIAL_LIST_KEYS:
-      self._check_entitlement_matches_profile_value(
-          entitlement=entitlement,
-          entitlements=entitlements,
-          profile_entitlements=profile_entitlements,
-          validate_value_in_list=True)
-
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
     beta_reports_active = entitlements.get('beta-reports-active')
@@ -1290,8 +1280,7 @@ class EntitlementsTask(PlistToolTask):
       self,
       entitlement,
       entitlements,
-      profile_entitlements,
-      validate_value_in_list=False):
+      profile_entitlements):
     """Checks if an entitlement value matches against profile entitlement.
 
     If provisioning profile entitlement is defined as a list, this will
@@ -1310,17 +1299,28 @@ class EntitlementsTask(PlistToolTask):
     if profile_value is None:
       # provisioning profile does not have entitlement.
       self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
-    elif validate_value_in_list:
-      # provisioning profile does not have entitlement in list.
-      if entitlements_value not in profile_value:
+
+    elif isinstance(profile_value, list):
+      if (isinstance(entitlements_value, str) and
+          entitlements_value not in profile_value):
+        # provisioning profile does not have entitlement in list.
         self._report(
-            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
+            ENTITLEMENTS_VALUE_NOT_IN_LIST %
+            (self.target, entitlement, entitlements_value, profile_value))
+
+      if isinstance(entitlements_value, list):
+        self._check_entitlements_array(
+            entitlements,
+            profile_entitlements,
+            entitlement,
+            self.target)
+
+    elif isinstance(profile_value, (str, bool)):
+      if entitlements_value != profile_value:
+        # provisioning profile entitlement does not match value.
+        self._report(
+            ENTITLEMENTS_VALUE_MISMATCH % (
                 self.target, entitlement, entitlements_value, profile_value))
-    elif entitlements_value != profile_value:
-      # provisioning profile entitlement does not match value.
-      self._report(
-          ENTITLEMENTS_VALUE_MISMATCH % (
-              self.target, entitlement, entitlements_value, profile_value))
 
   def _does_id_match(self,
                      entitlement_id,
