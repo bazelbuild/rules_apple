@@ -654,6 +654,21 @@ swift_library(
 )
 
 genrule(
+    name = "swift_importing_imported_xcfw_bundling_static_fmwks",
+    outs = ["swift_importing_imported_xcfw_bundling_static_fmwks.swift"],
+    cmd = "echo 'import ios_xcframework_bundling_static_fmwks' > $@",
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_importing_imported_xcfw_bundling_static_fmwks",
+    testonly = True,
+    srcs = [":swift_importing_imported_xcfw_bundling_static_fmwks"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_bundling_static_xcfmwks"],
+)
+
+genrule(
     name = "objc_importing_imported_static_xcfw",
     outs = ["objc_importing_imported_static_xcfw.m"],
     # Bazel doesn't do any xcframework processing like Xcode so this import has

@@ -30,6 +30,7 @@ def apple_xcframework_import_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    # Test that apple_dynamic_xcframework_import can import XCFrameworks bundling dynamic frameworks
     analysis_target_outputs_test(
         name = "{}_dynamic_xcfw_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_xcfmwk",
@@ -52,6 +53,24 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Test that apple_static_xcframework_import can import XCFrameworks bundling static frameworks
+    analysis_target_outputs_test(
+        name = "{}_xcfmwk_bundling_static_fmwks_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks",
+        expected_outputs = ["app_with_imported_xcfmwk_bundling_static_fmwks.ipa"],
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_xcfmwk_bundling_static_xcfmwks_codesign_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Test that apple_static_xcframework_import can import XCFrameworks
+    # bundling static libraries and make them usable from objc_library
     analysis_target_outputs_test(
         name = "{}_static_xcfw_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk",
@@ -74,6 +93,9 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Test that apple_static_xcframework_import can import XCFrameworks
+    # bundling static libraries with module maps make them usable from
+    # swift_library
     analysis_target_outputs_test(
         name = "{}_static_xcfw_with_module_map_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_module_map",

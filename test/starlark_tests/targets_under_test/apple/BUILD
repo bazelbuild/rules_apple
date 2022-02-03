@@ -372,6 +372,71 @@ done
 """,
 )
 
+# rules_apple can't generate static XCFrameworks bundling static frameworks
+# now. We manually generate one for testing.
+genrule(
+    name = "generated_ios_xcframework_bundling_static_fmwks",
+    testonly = 1,
+    srcs = [":ios_static_xcframework.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}/{3}".format(
+            "ios_xcframework_bundling_static_fmwks.xcframework",
+            platform_id,
+            "ios_xcframework_bundling_static_fmwks.framework",
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_xcframework_bundling_static_fmwks",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    cmd = """
+# Generating into a temporary directory, then rename and move it to RULEDIR to
+# avoid having to create another source `apple_static_xcframework` testing
+# target.
+TEMP_DIR="$$(mktemp -d "$${TMPDIR:-/tmp}/generated_ios_xcframework_bundling_static_fmwks.XXXXXX")"
+trap 'rm -rf "$${TEMP_DIR}"' ERR EXIT
+
+xcframework_name="ios_xcframework_bundling_static_fmwks"
+xcframework_dirname="$$xcframework_name.xcframework"
+xcframework_path="$(RULEDIR)/$$xcframework_dirname"
+
+# Bazel creates skeleton output directories before running actions, remote that
+# in order to replace later.
+rm -rf "$(RULEDIR)/$$xcframework_dirname"
+
+unzip -qq "$(execpath :ios_static_xcframework.xcframework.zip)" -d "$$TEMP_DIR"
+mv "$$TEMP_DIR/ios_static_xcframework.xcframework" "$$TEMP_DIR/$$xcframework_dirname"
+mv "$$TEMP_DIR/$$xcframework_dirname" "$(RULEDIR)/"
+# Some inner directories like Headers don't have the "w" permission
+chmod -R u+w "$(RULEDIR)/$$xcframework_dirname"
+
+declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
+
+for platform_id in "$${platform_ids[@]}"
+do
+  platform_dir="$$xcframework_path/$$platform_id"
+  framework_dir="$$platform_dir/$$xcframework_name.framework"
+  mkdir -p "$$framework_dir"
+  mv "$$platform_dir/ios_static_xcframework.apple_static_library_lipo.a" "$$framework_dir/$$xcframework_name"
+  mv "$$platform_dir/Headers" "$$framework_dir/"
+
+  modules_dir="$$framework_dir/Modules"
+  mkdir -p "$$modules_dir"
+  cat > "$$modules_dir/module.modulemap" << EOF
+module ios_xcframework_bundling_static_fmwks {
+  umbrella "Headers"
+}
+EOF
+done
+""",
+)
+
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     tags = ["manual"],
@@ -402,6 +467,12 @@ apple_static_xcframework_import(
     },
     tags = ["manual"],
     xcframework_imports = [":generated_ios_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_xcframework_bundling_static_xcfmwks",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_xcframework_bundling_static_fmwks"],
 )
 
 apple_static_xcframework_import(
