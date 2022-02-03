@@ -14,6 +14,7 @@
 #
 
 import argparse
+import glob
 import os
 import shutil
 import sys
@@ -28,10 +29,21 @@ def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
+  _, stdout, _ = execute.execute_and_filter_output(
+      ["xcode-select", "--print-path"], raise_on_failure=True)
+
+  developer_dir = stdout.strip()
+  swift_dylibs_root = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-*"
+  swift_library_dir_pattern = os.path.join(developer_dir, swift_dylibs_root,
+                                           sdk_platform)
+  swift_library_dirs = glob.glob(swift_library_dir_pattern)
+
   cmd = [
       "xcrun", "swift-stdlib-tool", "--copy", "--platform", sdk_platform,
       "--destination", destination_path
   ]
+  for swift_library_dir in swift_library_dirs:
+    cmd.extend(["--source-libraries", swift_library_dir])
   for binary_to_scan in binaries_to_scan:
     cmd.extend(["--scan-executable", binary_to_scan])
 
