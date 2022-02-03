@@ -809,7 +809,7 @@ _xcframework_import_common_attrs = {
 An optional key-value map of platforms to the corresponding platform IDs
 (containing all supported architectures), relative to the XCFramework. The
 identifier keys should be case-insensitive variants of the values in
-`apple_common.platform`](https://docs.bazel.build/versions/5.0.0/skylark/lib/apple_common.html#platform);
+[`apple_common.platform`](https://docs.bazel.build/versions/5.0.0/skylark/lib/apple_common.html#platform);
 for example, `ios_device` or `ios_simulator`. The identifier values should be
 case-sensitive variants of values that might be found in the
 `LibraryIdentifier` of an `Info.plist` file in the XCFramework's root; for example,
