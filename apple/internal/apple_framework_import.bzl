@@ -572,6 +572,9 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             framework_binaries,
         )
 
+    if is_xcframework and not framework_binaries:
+        fail("Static XCFrameworks without binaries are not supported.")
+
     if ctx.attr.alwayslink:
         if not framework_binaries:
             fail("ERROR: There has to be a binary file in the imported framework.")
