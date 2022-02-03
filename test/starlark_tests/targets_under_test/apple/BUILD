@@ -4,6 +4,8 @@ load(
 )  # buildifier: disable=bzl-visibility
 load(
     "//apple:apple.bzl",
+    "apple_dynamic_xcframework_import",
+    "apple_static_xcframework_import",
     "apple_universal_binary",
     "apple_xcframework",
 )
@@ -271,6 +273,212 @@ apple_xcframework(
     ],
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
+)
+
+# Generate importable dynamic XCFramework files
+genrule(
+    name = "generated_ios_dynamic_xcframework",
+    testonly = 1,
+    srcs = [":ios_dynamic_xcframework.xcframework.zip"],
+    outs = ["ios_dynamic_xcframework.xcframework/Info.plist"] + [
+        "{0}/{1}/{2}/{3}".format(
+            "ios_dynamic_xcframework.xcframework",
+            platform_id,
+            "ios_dynamic_xcframework.framework",
+            file,
+        )
+        for file in [
+            "Headers/ios_dynamic_xcframework.h",
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_dynamic_xcframework",
+            "Info.plist",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-x86_64-simulator",
+        ]
+    ],
+    cmd = """
+unzip -qq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
+""",
+)
+
+# Generate importable static XCFramework files with static archives
+genrule(
+    name = "generated_ios_static_xcframework",
+    testonly = 1,
+    srcs = [":ios_static_xcframework.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}".format(
+            "ios_static_xcframework.xcframework",
+            platform_id,
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "ios_static_xcframework.apple_static_library_lipo.a",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    cmd = """
+unzip -qq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
+""",
+)
+
+# Generate importable static XCFramework files with static archives and module
+# map
+genrule(
+    name = "generated_ios_static_xcframework_with_module_map",
+    testonly = 1,
+    srcs = [":ios_static_xcframework_with_module_map.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}".format(
+            "ios_static_xcframework_with_module_map.xcframework",
+            platform_id,
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_static_xcframework_with_module_map.apple_static_library_lipo.a",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    # rules_apple can't generate static XCFrameworks that are importable from
+    # Swift now, but those exist. This manually generates one for testing.
+    cmd = """
+unzip -qq $(execpath :ios_static_xcframework_with_module_map.xcframework.zip) -d $(RULEDIR)
+
+xcframework_path="$(RULEDIR)/ios_static_xcframework_with_module_map.xcframework"
+declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
+
+for platform_id in "$${platform_ids[@]}"
+do
+  modules_dir="$$xcframework_path/$$platform_id/Modules"
+  mkdir -p "$$modules_dir"
+  cat > "$$modules_dir/module.modulemap" << EOF
+module ios_static_xcframework_with_module_map {
+  header "../Headers/shared.h"
+}
+EOF
+done
+""",
+)
+
+# rules_apple can't generate static XCFrameworks bundling static frameworks
+# now. We manually generate one for testing.
+genrule(
+    name = "generated_ios_xcframework_bundling_static_fmwks",
+    testonly = 1,
+    srcs = [":ios_static_xcframework.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}/{3}".format(
+            "ios_xcframework_bundling_static_fmwks.xcframework",
+            platform_id,
+            "ios_xcframework_bundling_static_fmwks.framework",
+            file,
+        )
+        for file in [
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_xcframework_bundling_static_fmwks",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    cmd = """
+# Generating into a temporary directory, then rename and move it to RULEDIR to
+# avoid having to create another source `apple_static_xcframework` testing
+# target.
+TEMP_DIR="$$(mktemp -d "$${TMPDIR:-/tmp}/generated_ios_xcframework_bundling_static_fmwks.XXXXXX")"
+trap 'rm -rf "$${TEMP_DIR}"' ERR EXIT
+
+xcframework_name="ios_xcframework_bundling_static_fmwks"
+xcframework_dirname="$$xcframework_name.xcframework"
+xcframework_path="$(RULEDIR)/$$xcframework_dirname"
+
+# Bazel creates skeleton output directories before running actions, remote that
+# in order to replace later.
+rm -rf "$(RULEDIR)/$$xcframework_dirname"
+
+unzip -qq "$(execpath :ios_static_xcframework.xcframework.zip)" -d "$$TEMP_DIR"
+mv "$$TEMP_DIR/ios_static_xcframework.xcframework" "$$TEMP_DIR/$$xcframework_dirname"
+mv "$$TEMP_DIR/$$xcframework_dirname" "$(RULEDIR)/"
+# Some inner directories like Headers don't have the "w" permission
+chmod -R u+w "$(RULEDIR)/$$xcframework_dirname"
+
+declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
+
+for platform_id in "$${platform_ids[@]}"
+do
+  platform_dir="$$xcframework_path/$$platform_id"
+  framework_dir="$$platform_dir/$$xcframework_name.framework"
+  mkdir -p "$$framework_dir"
+  mv "$$platform_dir/ios_static_xcframework.apple_static_library_lipo.a" "$$framework_dir/$$xcframework_name"
+  mv "$$platform_dir/Headers" "$$framework_dir/"
+
+  modules_dir="$$framework_dir/Modules"
+  mkdir -p "$$modules_dir"
+  cat > "$$modules_dir/module.modulemap" << EOF
+module ios_xcframework_bundling_static_fmwks {
+  umbrella "Headers"
+}
+EOF
+done
+""",
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_dynamic_xcframework"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_lib_ids",
+    library_identifiers = {
+        "ios_device": "ios-arm64",
+        "ios_simulator": "ios-x86_64-simulator",
+    },
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_dynamic_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_lib_ids",
+    library_identifiers = {
+        "ios_device": "ios-arm64",
+        "ios_simulator": "ios-arm64_x86_64-simulator",
+    },
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_xcframework_bundling_static_xcfmwks",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_xcframework_bundling_static_fmwks"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_module_map",
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_static_xcframework_with_module_map"],
 )
 
 apple_xcframework(
@@ -546,6 +754,28 @@ apple_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcframework",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
+
+# This doesn't actually generate an XCFramework with module maps (we manually
+# add them later), but this needs to be a different name from the above target
+# to avoid conflicts.
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_module_map",
     ios = {
         "simulator": [
             "x86_64",
