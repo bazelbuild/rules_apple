@@ -299,8 +299,8 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.payment-pass-provisioning',
     'com.apple.developer.siri',
     'com.apple.developer.usernotifications.time-sensitive',
-    # Keys which have a list of potential values in the profile, but only one
-    # can be defined in the entitlements file, and must be part of that list.
+    # Keys which have a list of potential values in the profile, but only one in
+    # the entitlements that must be in the profile's list of values
     'com.apple.developer.devicecheck.appattest-environment',
 )
 
@@ -534,7 +534,7 @@ def _load_json(string_or_file):
 
 
 class PlistToolError(ValueError):
-# pylint: disable=g-bad-exception-name
+  # pylint: disable=g-bad-exception-name
   """Raised for all errors.
 
   Custom ValueError used to allow catching (and logging) just the plisttool
@@ -1299,17 +1299,28 @@ class EntitlementsTask(PlistToolTask):
     if profile_value is None:
       # provisioning profile does not have entitlement.
       self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
-    elif (isinstance(profile_value, list)
-          and entitlements_value not in profile_value):
-      # provisioning profile does not have entitlement in list.
-      self._report(
-          ENTITLEMENTS_VALUE_NOT_IN_LIST % (
-              self.target, entitlement, entitlements_value, profile_value))
-    elif entitlements_value != profile_value:
-      # provisioning profile entitlement does not match value.
-      self._report(
-          ENTITLEMENTS_VALUE_MISMATCH % (
-              self.target, entitlement, entitlements_value, profile_value))
+
+    elif isinstance(profile_value, list):
+      if (isinstance(entitlements_value, str) and
+          entitlements_value not in profile_value):
+        # provisioning profile does not have entitlement in list.
+        self._report(
+            ENTITLEMENTS_VALUE_NOT_IN_LIST %
+            (self.target, entitlement, entitlements_value, profile_value))
+
+      if isinstance(entitlements_value, list):
+        self._check_entitlements_array(
+            entitlements,
+            profile_entitlements,
+            entitlement,
+            self.target)
+
+    elif isinstance(profile_value, (str, bool)):
+      if entitlements_value != profile_value:
+        # provisioning profile entitlement does not match value.
+        self._report(
+            ENTITLEMENTS_VALUE_MISMATCH % (
+                self.target, entitlement, entitlements_value, profile_value))
 
   def _does_id_match(self,
                      entitlement_id,

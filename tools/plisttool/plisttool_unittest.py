@@ -1779,6 +1779,45 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_attest_valid(self):
+    plist = {
+        'com.apple.developer.devicecheck.appattest-environment': 'development'}
+    self._assert_plisttool_result(
+        {
+            'plists': [plist],
+            'entitlements_options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'com.apple.developer.devicecheck.appattest-environment':
+                            ['development', 'production'],
+                    },
+                    'Version': 1,
+                },
+            },
+        }, plist)
+
+  def test_attest_mismatch(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_NOT_IN_LIST %
+                  (_testing_target,
+                   'com.apple.developer.devicecheck.appattest-environment',
+                   'foo', ['development']))):
+      plist = {'com.apple.developer.devicecheck.appattest-environment': 'foo'}
+      self._assert_plisttool_result(
+          {
+              'plists': [plist],
+              'entitlements_options': {
+                  'profile_metadata_file': {
+                      'Entitlements': {
+                          'com.apple.developer.devicecheck.appattest-environment':
+                              ['development'],
+                      },
+                      'Version': 1,
+                  },
+              },
+          }, plist)
+
   def test_entitlements_missing_beta_reports_active(self):
     plist = {}
     self._assert_plisttool_result({
