@@ -132,7 +132,29 @@ if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
 fi
 
 target_flags=()
-if [[ -n "$simulator_id" ]]; then
+if [[ -n "${REUSE_GLOBAL_SIMULATOR:-}" ]]; then
+  if [[ -n "$simulator_id" ]]; then
+    echo "error: both '\$REUSE_GLOBAL_SIMULATOR' and a custom simulator id cannot be set" >&2
+    exit 1
+  fi
+
+  if [[ -z "%(os_version)s" ]]; then
+    echo "error: to create a re-useable simulator the OS version must always be set on the test runner or with '--ios_simulator_version'" >&2
+    exit 1
+  fi
+
+  if [[ -z "%(device_type)s" ]]; then
+    echo "error: to create a re-useable simulator the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
+    exit 1
+  fi
+
+  id="$("./%(simulator_creator)s" "%(os_version)s" "%(device_type)s")"
+  target_flags=(
+    "test"
+    "--platform=ios_simulator"
+    "--id=$id"
+  )
+elif [[ -n "$simulator_id" ]]; then
   target_flags=(
     "test"
     "--platform=ios_simulator"

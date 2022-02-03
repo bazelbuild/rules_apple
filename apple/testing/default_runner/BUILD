@@ -59,6 +59,17 @@ exports_files([
     "watchos_test_runner.template.sh",
 ])
 
+py_binary(
+    name = "simulator_creator",
+    srcs = ["simulator_creator.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
 ios_test_runner(
     name = "ios_default_runner",
     # Used by the rule implementations, so it needs to be public; but
