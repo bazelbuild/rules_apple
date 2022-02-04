@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:apple_binary.bzl",
     "apple_binary",

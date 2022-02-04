@@ -14,7 +14,6 @@
 
 """# Rules related to Apple resources and resource bundles."""
 
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_bundle_import.bzl",
     _apple_bundle_import = "apple_bundle_import",
@@ -81,7 +80,7 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         visibility = ["//visibility:private"],
         **core_ml_args
     )
-    objc_library(
+    native.objc_library(
         name = name,
         srcs = [":{}.m".format(core_ml_name)],
         hdrs = [":{}".format(core_ml_name)],
@@ -126,7 +125,7 @@ def objc_intent_library(
         tags = ["manual"],
         testonly = testonly,
     )
-    objc_library(
+    native.objc_library(
         name = name,
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],
