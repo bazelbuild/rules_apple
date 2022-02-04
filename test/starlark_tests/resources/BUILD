@@ -671,11 +671,7 @@ swift_library(
 genrule(
     name = "objc_importing_imported_static_xcfw",
     outs = ["objc_importing_imported_static_xcfw.m"],
-    # Bazel doesn't do any xcframework processing like Xcode so this import has
-    # to be a full path.
-    cmd = """
-echo '#import "test/starlark_tests/targets_under_test/apple/ios_static_xcframework.xcframework/ios-arm64_x86_64-simulator/Headers/shared.h"' > $@
-""",
+    cmd = """echo '#import "shared.h"' > $@""",
     tags = FIXTURE_TAGS,
 )
 
