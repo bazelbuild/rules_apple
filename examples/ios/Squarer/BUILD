@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load("//apple:ios.bzl", "ios_unit_test")
 
 licenses(["notice"])
