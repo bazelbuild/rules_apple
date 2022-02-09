@@ -113,6 +113,7 @@ def _certificate_fingerprint(identity):
   _, fingerprint, _ = execute.execute_and_filter_output([
       "openssl",
       "x509",
+      "-sha1",
       "-inform",
       "DER",
       "-noout",
