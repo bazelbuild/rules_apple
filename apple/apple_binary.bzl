@@ -77,7 +77,6 @@ def _apple_binary_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
 
     providers = [
         DefaultInfo(

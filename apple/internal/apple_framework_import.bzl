@@ -442,14 +442,14 @@ def _process_xcframework_imports(ctx):
     if not framework_imports_for_platform:
         fail("Couldn't find framework or library at path `{}`".format(platform_path))
 
-    return xcframework_name, xcframework_path, single_platform_dir, framework_imports_for_platform
+    return xcframework_name, single_platform_dir, framework_imports_for_platform
 
 def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     """Common implementation for the apple_dynamic_framework_import and apple_dynamic_xcframework_import rules."""
     providers = []
 
     if is_xcframework:
-        _, _, _, framework_imports = _process_xcframework_imports(ctx)
+        _, _, framework_imports = _process_xcframework_imports(ctx)
     else:
         framework_imports = ctx.files.framework_imports
 
@@ -518,10 +518,11 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     providers = []
 
     if is_xcframework:
-        framework_name, xcframework_path, single_platform_dir, framework_imports = _process_xcframework_imports(ctx)
+        framework_name, single_platform_dir, framework_imports = _process_xcframework_imports(ctx)
     else:
         framework_imports = ctx.files.framework_imports
         framework_name = _get_framework_name(framework_imports)
+        single_platform_dir = None
 
     other_imports, header_imports, module_map_imports = _classify_framework_imports(
         ctx.var,

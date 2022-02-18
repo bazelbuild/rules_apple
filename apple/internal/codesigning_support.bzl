@@ -254,9 +254,7 @@ def _signing_command_lines(
 
 def _should_sign_simulator_frameworks(
         *,
-        config_vars,
-        features,
-        rule_descriptor):
+        features):
     """Check if simulator bound framework bundles should be codesigned.
 
     Args:
@@ -426,9 +424,7 @@ def _codesigning_command(
     # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
     # script that contains the path to the directory where the bundle is being built.
     should_sign_sim_frameworks = _should_sign_simulator_frameworks(
-        config_vars = platform_prerequisites.config_vars,
         features = platform_prerequisites.features,
-        rule_descriptor = rule_descriptor,
     )
     if frameworks_path and should_sign_sim_frameworks:
         framework_root = paths.join("$WORK_DIR", frameworks_path) + "/"

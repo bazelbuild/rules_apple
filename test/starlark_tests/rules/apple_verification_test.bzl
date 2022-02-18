@@ -99,7 +99,6 @@ def _apple_verification_test_impl(ctx):
     if AppleBundleInfo in target_under_test:
         bundle_info = target_under_test[AppleBundleInfo]
         archive = bundle_info.archive
-        verifier_script = ctx.file.verifier_script
 
         bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
 

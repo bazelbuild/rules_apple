@@ -396,7 +396,7 @@ _apple_rule_arm64_as_arm64e_transition = transition(
     outputs = _apple_rule_base_transition_outputs + ["//command_line_option:macos_cpus"],
 )
 
-def _static_framework_transition_impl(settings, attr):
+def _static_framework_transition_impl(_settings, _attr):
     """Attribute transition for static frameworks to enable swiftinterface generation."""
     return {
         "@build_bazel_rules_swift//swift:emit_swiftinterface": True,

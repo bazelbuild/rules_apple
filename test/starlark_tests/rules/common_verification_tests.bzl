@@ -283,6 +283,7 @@ def bitcode_symbol_map_test(
             # OSS Blocked by b/73546952
             "manual",  # disabled in oss
         ],
+        **kwargs
     )
 
 def apple_symbols_file_test(
@@ -319,6 +320,7 @@ def apple_symbols_file_test(
         apple_generate_dsym = True,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
         tags = tags,
+        **kwargs
     )
 
 def entry_point_test(
@@ -349,4 +351,5 @@ def entry_point_test(
         target_under_test = target_under_test,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
         tags = tags,
+        **kwargs
     )

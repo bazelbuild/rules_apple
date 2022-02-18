@@ -48,7 +48,6 @@ def _dsyms_test_impl(ctx):
         else:
             fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
                  target_under_test.label)
-    _unused = [architectures]
 
     outputs = {
         x.short_path: None
