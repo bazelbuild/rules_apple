@@ -67,7 +67,7 @@ def _swift_arch_for_dep(dep):
     target = _swift_target_for_dep(dep)
     return target.split("-", 1)[0]
 
-def _swift_static_framework_aspect_impl(target, ctx):
+def _swift_static_framework_aspect_impl(_target, ctx):
     """Aspect implementation for Swift static framework support."""
 
     # Only process the apple_static_library dependency, as that's the place where we can process the

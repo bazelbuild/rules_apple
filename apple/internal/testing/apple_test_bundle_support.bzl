@@ -249,7 +249,7 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(ctx, extra_providers = []):
+def _apple_test_bundle_impl(ctx, _extra_providers = []):
     """Implementation for bundling XCTest bundles."""
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)

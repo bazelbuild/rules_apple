@@ -118,7 +118,7 @@ def _copy_dsym_into_declared_bundle(
         debug_output_filename,
         dsym_binaries,
         dsym_bundle_name,
-        executable_name,
+        _executable_name,
         platform_prerequisites):
     """Declares the dSYM binary file and copies it into the preferred .dSYM bundle location.
 
@@ -130,7 +130,7 @@ def _copy_dsym_into_declared_bundle(
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
       dsym_bundle_name: The full name of the dSYM bundle, including its extension.
-      executable_name: The name of the output DWARF executable.
+      _executable_name: The name of the output DWARF executable.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
@@ -226,7 +226,7 @@ def _bundle_dsym_files(
             debug_output_filename = debug_output_filename,
             dsym_binaries = dsym_binaries,
             dsym_bundle_name = dsym_bundle_name,
-            executable_name = executable_name,
+            _executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
         ))
 
@@ -236,7 +236,7 @@ def _bundle_dsym_files(
             debug_output_filename = debug_output_filename,
             dsym_binaries = dsym_binaries,
             dsym_bundle_name = dsym_bundle_name,
-            executable_name = executable_name,
+            _executable_name = executable_name,
             platform_prerequisites = platform_prerequisites,
         ))
 

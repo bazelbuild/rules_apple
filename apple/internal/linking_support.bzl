@@ -124,6 +124,7 @@ def _register_linking_action(
     """
     linkopts = []
     link_inputs = []
+    link_inputs.extend(extra_link_inputs)
 
     # Add linkopts/linker inputs that are common to all the rules.
     for exported_symbols_list in ctx.files.exported_symbols_lists:

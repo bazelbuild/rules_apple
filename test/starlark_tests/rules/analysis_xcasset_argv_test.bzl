@@ -41,7 +41,7 @@ def _analysis_xcasset_argv_test_impl(ctx):
     ]
     no_xcasset = True
     for action in analysistest.target_actions(env):
-        for output in action.outputs.to_list():
+        for _ in action.outputs.to_list():
             if hasattr(action, "argv") and action.argv:
                 concat_action_argv = " ".join(action.argv)
                 if not "xctoolrunner actool " in concat_action_argv:

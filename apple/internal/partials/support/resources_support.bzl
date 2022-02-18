@@ -147,7 +147,7 @@ def _asset_catalogs(
         platform_prerequisites,
         product_type,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes asset catalog files."""
 
     # Only merge the resulting plist for the top level bundle. For resource
@@ -227,7 +227,7 @@ def _datamodels(
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     "Processes datamodel related files."
     datamodel_files = files.to_list()
 
@@ -297,7 +297,7 @@ def _infoplists(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes infoplists.
 
     If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
@@ -315,7 +315,7 @@ def _infoplists(
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl, and an
@@ -359,7 +359,7 @@ def _metals(
         platform_prerequisites,
         files,
         output_filename = "default.metallib",
-        **kwargs):
+        **_kwargs):
     """Processes metal files.
 
     The metal files will be compiled into a Metal library named `default.metallib`.
@@ -371,7 +371,7 @@ def _metals(
         platform_prerequisites: Struct containing information on the platform being targeted.
         files: The metal files to process.
         output_filename: The output .metallib filename.
-        **kwargs: Ignored
+        **_kwargs: Ignored
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -407,7 +407,7 @@ def _mlmodels(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes mlmodel files."""
 
     mlmodel_bundles = []
@@ -460,7 +460,7 @@ def _plists_and_strings(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes plists and string files.
 
     If compilation mode is `opt`, or if force_binary is True, the plist files will be compiled into
@@ -477,7 +477,7 @@ def _plists_and_strings(
         parent_dir: The path under which the files should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -523,7 +523,7 @@ def _pngs(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Register PNG processing actions.
 
     The PNG files will be copied using `pngcopy` to make them smaller.
@@ -536,7 +536,7 @@ def _pngs(
         parent_dir: The path under which the images should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -577,7 +577,7 @@ def _storyboards(
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     """Processes storyboard files."""
     swift_module = swift_module or rule_label.name
 
@@ -638,7 +638,7 @@ def _texture_atlases(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes texture atlas files."""
     atlases_groups = group_files_by_directory(
         files.to_list(),
@@ -683,7 +683,7 @@ def _xibs(
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     """Processes Xib files."""
     swift_module = swift_module or rule_label.name
     nib_files = []
@@ -712,7 +712,7 @@ def _noop(
         *,
         parent_dir,
         files,
-        **kwargs):
+        **_kwargs):
     """Registers files to be bundled as is."""
     processed_origins = {}
     for file in files.to_list():

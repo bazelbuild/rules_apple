@@ -93,9 +93,7 @@ def objc_intent_library(
         name,
         src,
         class_prefix = None,
-        class_visibility = None,
         testonly = False,
-        swift_version = None,
         **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for intentdefiniton files."""
