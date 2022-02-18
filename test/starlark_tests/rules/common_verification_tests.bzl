@@ -248,7 +248,7 @@ def bitcode_symbol_map_test(
         binary_paths,
         tags,
         target_under_test,
-        **_kwargs):
+        **kwargs):
     """Macro to call `apple_verification_test` with `bitcode_verifier.sh`.
 
     This simplifies Bitcode verification tests by forcing
@@ -266,7 +266,7 @@ def bitcode_symbol_map_test(
             Bitcode symbol maps in the archive root.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **_kwargs: Other arguments passed directly to `apple_verification_test`.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
     """
     apple_verification_test(
         name = name,
@@ -283,6 +283,7 @@ def bitcode_symbol_map_test(
             # OSS Blocked by b/73546952
             "manual",  # disabled in oss
         ],
+        **kwargs
     )
 
 def apple_symbols_file_test(
@@ -291,7 +292,7 @@ def apple_symbols_file_test(
         build_type,
         tags,
         target_under_test,
-        **_kwargs):
+        **kwargs):
     """Macro to call `apple_verification_test` with `apple-symbols_file_verifier.sh`.
 
     This simplifies .symbols file verification tests by forcing
@@ -306,7 +307,7 @@ def apple_symbols_file_test(
             `simulator` and `device`.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **_kwargs: Other arguments passed directly to `apple_verification_test`.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
 
     """
     apple_verification_test(
@@ -319,6 +320,7 @@ def apple_symbols_file_test(
         apple_generate_dsym = True,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
         tags = tags,
+        **kwargs
     )
 
 def entry_point_test(
@@ -327,7 +329,7 @@ def entry_point_test(
         entry_point,
         tags,
         target_under_test,
-        **_kwargs):
+        **kwargs):
     """Macro to call `apple_verification_test` with `entry_point_verifier.sh`.
 
     Args:
@@ -338,7 +340,7 @@ def entry_point_test(
             point of the binary.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **_kwargs: Other arguments passed directly to `apple_verification_test`.
+        **kwargs: Other arguments passed directly to `apple_verification_test`.
     """
     apple_verification_test(
         name = name,
@@ -349,4 +351,5 @@ def entry_point_test(
         target_under_test = target_under_test,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
         tags = tags,
+        **kwargs
     )
