@@ -105,6 +105,12 @@ if [[ -n "${TEST_ENV}" ]]; then
   LAUNCH_OPTIONS_JSON_STR="\"env_vars\":${TEST_ENV}"
 fi
 
+TEST_TYPE="%(test_type)s"
+if [[ -n "${TEST_TYPE}" ]]; then
+  TEST_TYPE=$(tr '[:upper:]' '[:lower:]' <<< ${TEST_TYPE})
+  runner_flags+=("--test_type=${TEST_TYPE}")
+fi
+
 if [[ -n "${command_line_args}" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
     LAUNCH_OPTIONS_JSON_STR+=","
