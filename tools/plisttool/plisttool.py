@@ -292,6 +292,21 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
     'is not in the provisioning profiles potential values ("%s").'
 )
 
+_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
+    'aps-environment',
+    'com.apple.developer.networking.wifi-info',
+    'com.apple.developer.passkit.pass-presentation-suppression',
+    'com.apple.developer.payment-pass-provisioning',
+    'com.apple.developer.siri',
+    'com.apple.developer.usernotifications.time-sensitive',
+)
+
+# Keys which have a list of potential values in the profile, but only one in
+# the entitlements that must be in the profile's list of values
+_POTENTIAL_LIST_KEYS = frozenset([
+  'com.apple.developer.devicecheck.appattest-environment',
+])
+
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
@@ -328,22 +343,6 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
     'bundle_id', 'profile_metadata_file', 'validation_mode',
-])
-
-# Keys which should match in the profile and entitlements if they're expected
-_MATCHING_KEYS = frozenset([
-  'aps-environment',
-  'com.apple.developer.networking.wifi-info',
-  'com.apple.developer.passkit.pass-presentation-suppression',
-  'com.apple.developer.payment-pass-provisioning',
-  'com.apple.developer.siri',
-  'com.apple.developer.usernotifications.time-sensitive',
-])
-
-# Keys which have a list of potential values in the profile, but only one in
-# the entitlements that must be in the profile's list of values
-_POTENTIAL_LIST_KEYS = frozenset([
-  'com.apple.developer.devicecheck.appattest-environment',
 ])
 
 # Two regexes for variable matching/validation.
@@ -1040,6 +1039,9 @@ class EntitlementsTask(PlistToolTask):
     self._extra_var_subs = {}
     self._unknown_var_msg_addtions = {}
     self._profile_metadata = {}
+    self._validation_mode = self.options.get('validation_mode', 'error')
+
+    assert self._validation_mode in ('error', 'warn', 'skip')
 
     # Load the metadata so the content can be used for substitutions and
     # validations.
@@ -1098,6 +1100,29 @@ class EntitlementsTask(PlistToolTask):
   def unknown_variable_message_additions(self):
     return self._unknown_var_msg_addtions
 
+  def update_plist(self, out_plist, subs_engine):
+    # Retrieves forced entitlement keys from provisioning profile metadata to
+    # add them to the final entitlements used by codesign and clang.
+    profile_entitlements = self._profile_metadata.get('Entitlements')
+
+    if not profile_entitlements:
+      return
+
+    forced_profile_entitlements = [
+        'application-identifier',
+        'com.apple.security.get-task-allow',
+        'get-task-allow',
+    ]
+
+    for forced_entitlement in forced_profile_entitlements:
+
+      if forced_entitlement in out_plist:
+        # Validation is skipped since validate_plist takes care of this.
+        continue
+
+      if forced_entitlement in profile_entitlements:
+        out_plist[forced_entitlement] = profile_entitlements[forced_entitlement]
+
   def validate_plist(self, plist):
     bundle_id = self.options.get('bundle_id')
     if bundle_id:
@@ -1106,11 +1131,8 @@ class EntitlementsTask(PlistToolTask):
     if self._profile_metadata:
       self._sanity_check_profile()
 
-      validation_mode = self.options.get('validation_mode', 'error')
-      assert validation_mode in ('error', 'warn', 'skip')
-      if validation_mode != 'skip':
-        self._validate_entitlements_against_profile(
-            plist, warn_only=(validation_mode == 'warn'))
+      if self._validation_mode != 'skip':
+        self._validate_entitlements_against_profile(plist)
 
   def _validate_bundle_id_covered(self, bundle_id, entitlements):
     """Checks that the bundle id is covered by the entitlements.
@@ -1161,31 +1183,26 @@ class EntitlementsTask(PlistToolTask):
     # for setting up substitutions. At the moment no validation between them
     # is being done.
 
-  def _validate_entitlements_against_profile(
-      self, entitlements, warn_only):
+  def _validate_entitlements_against_profile(self, entitlements):
     """Checks that the given entitlements are valid for the current profile.
 
     Args:
       entitlements: The entitlements.
-      warn_only: Only issue warnings for issues.
     Raises:
       PlistToolError: For any issues found.
     """
-    report_extras = {}
-    if warn_only:
-      report_extras['warn_only'] = True
-
-    # com.apple.developer.team-identifier vs profile's TeamIdentifier and
-    # ApplicationIdentifierPrefix
+    # com.apple.developer.team-identifier vs profile's TeamIdentifier
+    # Not verifying against profile's ApplicationIdentifierPrefix here, because
+    # it isn't always equal to the Team ID.
+    # https://developer.apple.com/library/archive/technotes/tn2415/_index.html#//apple_ref/doc/uid/DTS40016427-CH1-ENTITLEMENTSLIST
     src_team_id = entitlements.get('com.apple.developer.team-identifier')
     if src_team_id:
-      for key in ('TeamIdentifier', 'ApplicationIdentifierPrefix'):
-        from_profile = self._profile_metadata.get(key, [])
-        if src_team_id not in from_profile:
-          self._report(
-              ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-                self.target, src_team_id, key, from_profile),
-              **report_extras)
+      key = 'TeamIdentifier'
+      from_profile = self._profile_metadata.get(key, [])
+      if src_team_id not in from_profile:
+        self._report(
+            ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
+              self.target, src_team_id, key, from_profile))
 
     profile_entitlements = self._profile_metadata.get('Entitlements')
 
@@ -1198,34 +1215,20 @@ class EntitlementsTask(PlistToolTask):
           id_supports_wildcards=True):
         self._report(
             ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
-              self.target, src_app_id, profile_app_id),
-            **report_extras)
+              self.target, src_app_id, profile_app_id))
 
-    for key in _MATCHING_KEYS:
-      entitlements_value = entitlements.get(key)
-      if entitlements_value is not None and profile_entitlements:
-        profile_value = profile_entitlements.get(key)
-        if not profile_value:
-          self._report(ENTITLEMENTS_MISSING % (self.target, key),
-                       **report_extras)
-        if entitlements_value != profile_value:
-          self._report(
-            ENTITLEMENTS_VALUE_MISMATCH % (
-              self.target, key, entitlements_value, profile_value),
-            **report_extras)
+    for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
+      self._check_entitlement_matches_profile_value(
+          entitlement=entitlement,
+          entitlements=entitlements,
+          profile_entitlements=profile_entitlements)
 
-    for key in _POTENTIAL_LIST_KEYS:
-      entitlements_value = entitlements.get(key)
-      if entitlements_value is not None and profile_entitlements:
-        profile_value = profile_entitlements.get(key)
-        if not profile_value:
-          self._report(ENTITLEMENTS_MISSING % (self.target, key),
-                      **report_extras)
-        elif entitlements_value not in profile_value:
-          self._report(
-            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
-              self.target, key, entitlements_value, profile_value),
-            **report_extras)
+    for entitlement in _POTENTIAL_LIST_KEYS:
+      self._check_entitlement_matches_profile_value(
+          entitlement=entitlement,
+          entitlements=entitlements,
+          profile_entitlements=profile_entitlements,
+          validate_value_in_list=True)
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
@@ -1237,38 +1240,74 @@ class EntitlementsTask(PlistToolTask):
       if profile_key is None:
         error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE % (
           self.target, beta_reports_active)
-      self._report(error_msg, **report_extras)
+      self._report(error_msg)
 
     # keychain-access-groups
     self._check_entitlements_array(
         entitlements, profile_entitlements,
         'keychain-access-groups', self.target,
-        report_extras=report_extras,
         supports_wildcards=True)
-
-    self._check_entitlements_array(
-        entitlements, profile_entitlements,
-        'com.apple.developer.nfc.readersession.formats', self.target,
-        report_extras=report_extras)
 
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
     if self._profile_metadata.get('Platform', []) != ['OSX']:
       self._check_entitlements_array(
         entitlements, profile_entitlements,
-        'com.apple.security.application-groups', self.target,
-        report_extras=report_extras)
+        'com.apple.security.application-groups', self.target)
 
     # com.apple.developer.associated-domains
     self._check_entitlements_array(
         entitlements, profile_entitlements,
         'com.apple.developer.associated-domains', self.target,
-        report_extras=report_extras,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
 
-  @staticmethod
-  def _does_id_match(id, allowed,
+    # com.apple.developer.nfc.readersession.formats
+    self._check_entitlements_array(
+        entitlements,
+        profile_entitlements,
+        'com.apple.developer.nfc.readersession.formats',
+        self.target)
+
+  def _check_entitlement_matches_profile_value(
+      self,
+      entitlement,
+      entitlements,
+      profile_entitlements,
+      validate_value_in_list=False):
+    """Checks if an entitlement value matches against profile entitlement.
+
+    If provisioning profile entitlement is defined as a list, this will
+    check if entitlement is part of that list.
+
+    Args:
+      entitlement: Entitlement key identifier.
+      entitlements: Entitlements dictionary.
+      profile_entitlements: Provisioning Profile entitlements dictionary.
+    """
+    entitlements_value = entitlements.get(entitlement)
+    if entitlements_value is None:
+      return
+
+    profile_value = (profile_entitlements or {}).get(entitlement)
+    if profile_value is None:
+      # provisioning profile does not have entitlement.
+      self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
+    elif validate_value_in_list:
+      # provisioning profile does not have entitlement in list.
+      if entitlements_value not in profile_value:
+        self._report(
+            ENTITLEMENTS_VALUE_NOT_IN_LIST % (
+                self.target, entitlement, entitlements_value, profile_value))
+    elif entitlements_value != profile_value:
+      # provisioning profile entitlement does not match value.
+      self._report(
+          ENTITLEMENTS_VALUE_MISMATCH % (
+              self.target, entitlement, entitlements_value, profile_value))
+
+  def _does_id_match(self,
+                     id,
+                     allowed,
                      allowed_supports_wildcards=False,
                      id_supports_wildcards=False):
     """Check is an id matches the given allowed id (include wildcards).
@@ -1305,8 +1344,10 @@ class EntitlementsTask(PlistToolTask):
 
     return False
 
-  @staticmethod
-  def _does_id_match_list(id, allowed_list, allowed_supports_wildcards=False):
+  def _does_id_match_list(self,
+                          id,
+                          allowed_list,
+                          allowed_supports_wildcards=False):
     """Check is an id matches the given allowed id list (include wildcards).
 
     Args:
@@ -1318,17 +1359,19 @@ class EntitlementsTask(PlistToolTask):
       True/False if the identifier is covered.
     """
     for allowed in allowed_list:
-      if EntitlementsTask._does_id_match(id, allowed,
-          allowed_supports_wildcards=allowed_supports_wildcards):
+      if self._does_id_match(
+          id, allowed, allowed_supports_wildcards=allowed_supports_wildcards):
         return True
 
     return False
 
-  @classmethod
-  def _check_entitlements_array(
-      self, entitlements, profile_entitlements, key_name, target,
-      supports_wildcards=False, report_extras=None,
-      allow_wildcards_in_entitlements=False):
+  def _check_entitlements_array(self,
+                                entitlements,
+                                profile_entitlements,
+                                key_name,
+                                target,
+                                supports_wildcards=False,
+                                allow_wildcards_in_entitlements=False):
     """Checks if the requested entitlements against the profile for a key
 
     Args:
@@ -1340,7 +1383,6 @@ class EntitlementsTask(PlistToolTask):
       supports_wildcards: True/False for if wildcards should be supported
           value from the profile_entitlements. This also means the entries
           are reverse DNS style.
-      report_extras: A dictionary of extra args for the _report helper.
     Raises:
       PlistToolError: For any issues found.
     """
@@ -1351,48 +1393,35 @@ class EntitlementsTask(PlistToolTask):
     if not profile_entitlements:
       return  # Allow no profile_entitlements just for the plisttool_unittests.
 
-    if report_extras is None:
-      report_extras = dict()
-
     profile_grps = profile_entitlements.get(key_name)
     if not profile_grps:
       self._report(
-          ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name),
-          **report_extras)
+          ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name))
       return
 
     for src_grp in src_grps:
       if '*' in src_grp and not allow_wildcards_in_entitlements:
         self._report(
-            ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp),
-            **report_extras)
+            ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp))
 
       if not self._does_id_match_list(src_grp, profile_grps,
           allowed_supports_wildcards=supports_wildcards):
         self._report(
             ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
-              target, key_name, src_grp, '", "'.join(profile_grps)),
-            **report_extras)
+              target, key_name, src_grp, '", "'.join(profile_grps)))
 
-  @staticmethod
-  def _report(msg, msg_suffix=None, warn_only=False):
+  def _report(self, msg):
     """Helper for reporting things.
 
     Args:
       msg: Message to report.
-      msg_suffix: String to append to the message.
-      warn_only: True/False for if a warning should be issued instead of failing
-          the build.
+    Raises:
+      PlistToolError: if 'validation_mode' flag was set to 'error'.
     """
-    if msg_suffix:
-      full_msg = msg + " " + msg_suffix
+    if self._validation_mode != 'error':
+      print('WARNING: ' + msg)
     else:
-      full_msg = msg
-
-    if warn_only:
-      print('WARNING: ' + full_msg)
-    else:
-      raise PlistToolError(full_msg)
+      raise PlistToolError(msg)
 
 
 class PlistTool(object):

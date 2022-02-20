@@ -55,7 +55,7 @@ def _apple_symbols_file_partial_impl(
         platform_prerequisites):
     """Implementation for the Apple .symbols file processing partial."""
     outputs = []
-    if ((getattr(platform_prerequisites.objc_fragment, "generate_dsym", False) or getattr(platform_prerequisites.cpp_fragment, "apple_generate_dsym", False)) and
+    if (platform_prerequisites.cpp_fragment.apple_generate_dsym and
         binary_artifact and debug_outputs_provider):
         inputs = [binary_artifact]
         for debug_output in debug_outputs_provider.outputs_map.values():

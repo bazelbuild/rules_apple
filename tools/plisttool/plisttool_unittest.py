@@ -19,8 +19,6 @@ import datetime
 import io
 import json
 import os
-import plistlib
-import random
 import re
 import tempfile
 import unittest
@@ -80,6 +78,7 @@ def _plisttool_result(control):
 
 
 class PlistToolMainTest(unittest.TestCase):
+
   def test_main_invocation(self):
     plist_fp = tempfile.NamedTemporaryFile(delete=False)
     self.addCleanup(lambda: os.unlink(plist_fp.name))
@@ -345,7 +344,7 @@ class PlistToolShortVersionStringTest(unittest.TestCase):
 class PlistToolGetWithKeyPath(unittest.TestCase):
 
   def test_one_level(self):
-    d = { 'a': 'A', 'b': 2, 3: 'c', 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
+    d = {'a': 'A', 'b': 2, 3: 'c', 'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
     self.assertEqual(plisttool.GetWithKeyPath(d, ['a']), 'A')
     self.assertEqual(plisttool.GetWithKeyPath(d, ['b']), 2)
     self.assertEqual(plisttool.GetWithKeyPath(d, [3]), 'c')
@@ -353,29 +352,29 @@ class PlistToolGetWithKeyPath(unittest.TestCase):
     self.assertEqual(plisttool.GetWithKeyPath(d, ['dict']), {1: 2, 3: 4})
 
   def test_two_level(self):
-    d = { 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
+    d = {'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
     self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 1]), 'y')
     self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 3]), 4)
 
   def test_deep(self):
-    d = { 1: { 'a': ['c', [4, 'e']]}}
+    d = {1: {'a': ['c', [4, 'e']]}}
     self.assertEqual(plisttool.GetWithKeyPath(d, [1, 'a', 1, 1]), 'e')
 
   def test_misses(self):
-    d = { 'list': [ 'x', 'y' ], 'dict': { 1: 2, 3: 4} }
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['not_found']), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, [99]), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 99]), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 'not_found']), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 99]), None)
+    d = {'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['not_found']))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, [99]))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['list', 99]))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['dict', 'not_found']))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['dict', 99]))
 
   def test_invalids(self):
-    d = { 'list': [ 'x', 'y' ], 'str': 'foo', 'int': 42 }
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 'not_int']), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['str', 'nope']), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['str', 99]), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['int', 'nope']), None)
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['int', 99]), None)
+    d = {'list': ['x', 'y'], 'str': 'foo', 'int': 42}
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['list', 'not_int']))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['str', 'nope']))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['str', 99]))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['int', 'nope']))
+    self.assertIsNone(plisttool.GetWithKeyPath(d, ['int', 99]))
 
 
 class PlistToolTest(unittest.TestCase):
@@ -529,8 +528,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo bar'))):
       _plisttool_result({
-         'plists': [{}],
-         'variable_substitutions': {
+          'plists': [{}],
+          'variable_substitutions': {
               'foo bar': 'bad name',
           },
       })
@@ -541,8 +540,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo-bar'))):
       _plisttool_result({
-         'plists': [{}],
-         'variable_substitutions': {
+          'plists': [{}],
+          'variable_substitutions': {
               'foo-bar': 'bad name',
           },
       })
@@ -553,8 +552,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.INVALID_SUBSTITUTION_VARIABLE_NAME % (
             _testing_target, 'foo:bar'))):
       _plisttool_result({
-         'plists': [{}],
-         'variable_substitutions': {
+          'plists': [{}],
+          'variable_substitutions': {
               'foo:bar': 'bad name',
           },
       })
@@ -565,8 +564,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
             _testing_target, 'foo:rfc1034identifier'))):
       _plisttool_result({
-         'plists': [{}],
-         'variable_substitutions': {
+          'plists': [{}],
+          'variable_substitutions': {
               'foo:rfc1034identifier': 'bad name',
           },
       })
@@ -631,8 +630,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.OVERLAP_IN_SUBSTITUTION_KEYS % (
             _testing_target, 'mum', 'mumble'))):
       _plisttool_result({
-         'plists': [{}],
-         'raw_substitutions': {
+          'plists': [{}],
+          'raw_substitutions': {
               'mumble': 'value1',
               'mum': 'value2',
           },
@@ -644,11 +643,11 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.OVERLAP_IN_SUBSTITUTION_KEYS % (
             _testing_target, '$(mumble)', 'mum'))):
       _plisttool_result({
-         'plists': [{}],
-         'variable_substitutions': {
+          'plists': [{}],
+          'variable_substitutions': {
               'mumble': 'value1',
           },
-         'raw_substitutions': {
+          'raw_substitutions': {
               'mum': 'value2',
           },
       })
@@ -659,8 +658,8 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.RAW_SUBSTITUTION_KEY_IN_VALUE % (
             _testing_target, 'value', '1value2', 'mumble'))):
       _plisttool_result({
-         'plists': [{}],
-         'raw_substitutions': {
+          'plists': [{}],
+          'raw_substitutions': {
               'mumble': '1value2',
               'value': 'spam',
           },
@@ -972,7 +971,7 @@ class PlistToolTest(unittest.TestCase):
           'info_plist_options': {
               'child_plists': children,
               'child_plist_required_values': {
-                '//unknown:label': [['foo', 'bar']],
+                  '//unknown:label': [['foo', 'bar']],
               }
           },
       })
@@ -992,7 +991,7 @@ class PlistToolTest(unittest.TestCase):
           'info_plist_options': {
               'child_plists': children,
               'child_plist_required_values': {
-                '//fake:label': ['not_right'],
+                  '//fake:label': ['not_right'],
               }
           },
       })
@@ -1012,7 +1011,7 @@ class PlistToolTest(unittest.TestCase):
           'info_plist_options': {
               'child_plists': children,
               'child_plist_required_values': {
-                '//fake:label': [['not_right']],
+                  '//fake:label': [['not_right']],
               }
           },
       })
@@ -1032,12 +1031,12 @@ class PlistToolTest(unittest.TestCase):
           'info_plist_options': {
               'child_plists': children,
               'child_plist_required_values': {
-                '//fake:label': [
-                  # This will be found and pass.
-                  [['CFBundleIdentifier'], 'foo.bar.baz' ],
-                  # This will raise.
-                  [['not-there'], 'blah' ],
-                ],
+                  '//fake:label': [
+                      # This will be found and pass.
+                      [['CFBundleIdentifier'], 'foo.bar.baz'],
+                      # This will raise.
+                      [['not-there'], 'blah'],
+                  ],
               }
           },
       })
@@ -1058,9 +1057,7 @@ class PlistToolTest(unittest.TestCase):
           'info_plist_options': {
               'child_plists': children,
               'child_plist_required_values': {
-                '//fake:label': [
-                  [['CFBundleIdentifier'], 'foo.bar.baz.not' ],
-                ],
+                  '//fake:label': [[['CFBundleIdentifier'], 'foo.bar.baz.not']],
               }
           },
       })
@@ -1159,7 +1156,7 @@ class PlistToolTest(unittest.TestCase):
       }
       _plisttool_result({
           'plists': [plist],
-          'info_plist_options': { }  # presence triggers checking
+          'info_plist_options': {}  # presence triggers checking
       })
 
   def test_invalid_short_version(self):
@@ -1172,7 +1169,7 @@ class PlistToolTest(unittest.TestCase):
       }
       _plisttool_result({
           'plists': [plist],
-          'info_plist_options': { }  # presence triggers checking
+          'info_plist_options': {}  # presence triggers checking
       })
 
   def test_versions_not_checked_without_options(self):
@@ -1183,7 +1180,7 @@ class PlistToolTest(unittest.TestCase):
     # Even though they numbers are invalid, the plist comes back fine because
     # there was no info_plist_options to trigger validation.
     self._assert_plisttool_result(
-        { 'plists': [plist] },
+        {'plists': [plist]},
         plist
     )
 
@@ -1222,7 +1219,7 @@ class PlistToolTest(unittest.TestCase):
               _testing_target, '${AppIdentifierPrefix}', 'Foo',
               '${AppIdentifierPrefix}.my.bundle.id'),
             plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
-          ]))):
+        ]))):
       _plisttool_result({
           'plists': [{'Foo': '${AppIdentifierPrefix}.my.bundle.id'}],
           'entitlements_options': {
@@ -1239,14 +1236,15 @@ class PlistToolTest(unittest.TestCase):
               _testing_target, '$(AppIdentifierPrefix:rfc1034identifier)', 'Foo',
               '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'),
             plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
-          ]))):
+        ]))):
       _plisttool_result({
-          'plists': [{'Foo': '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'}],
+          'plists': [{
+              'Foo': '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'
+          }],
           'entitlements_options': {
               'bundle_id': 'my.bundle.id',
           },
       })
-
 
   def test_entitlements_bundle_id_match(self):
     # This is really looking for the lack of an error being raised.
@@ -1311,12 +1309,14 @@ class PlistToolTest(unittest.TestCase):
         re.escape(plisttool.ENTITLEMENTS_PROFILE_HAS_EXPIRED % (
             _testing_target, '0001-01-01T00:00:00'))):
       _plisttool_result({
-          'plists': [{'foo': 'bar'}],
+          'plists': [{
+              'foo': 'bar'
+          }],
           'entitlements_options': {
-            'profile_metadata_file': {
-                'ExpirationDate': datetime.datetime.min,
-                'Version': 1,
-            },
+              'profile_metadata_file': {
+                  'ExpirationDate': datetime.datetime.min,
+                  'Version': 1,
+              },
           },
       })
 
@@ -1329,24 +1329,8 @@ class PlistToolTest(unittest.TestCase):
           'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
           'entitlements_options': {
               'profile_metadata_file': {
-                  'ApplicationIdentifierPrefix': [ 'QWERTY' ],
-                  'TeamIdentifier': [ 'ASDFGH' ],
-                  'Version': 1,
-              },
-          },
-      })
-
-  def test_entitlements_profile_app_id_prefix_mismatch(self):
-    with self.assertRaisesRegex(
-        plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-            _testing_target, 'QWERTY', 'ApplicationIdentifierPrefix', "['ASDFGH']"))):
-      _plisttool_result({
-          'plists': [{'com.apple.developer.team-identifier': 'QWERTY'}],
-          'entitlements_options': {
-              'profile_metadata_file': {
-                  'TeamIdentifier': [ 'QWERTY' ],
-                  'ApplicationIdentifierPrefix': [ 'ASDFGH' ],
+                  'ApplicationIdentifierPrefix': ['QWERTY'],
+                  'TeamIdentifier': ['ASDFGH'],
                   'Version': 1,
               },
           },
@@ -1360,8 +1344,8 @@ class PlistToolTest(unittest.TestCase):
         'entitlements_options': {
             'bundle_id': 'my.bundle.id',
             'profile_metadata_file': {
-                'ApplicationIdentifierPrefix': [ 'ASDFGH', 'QWERTY' ],
-                'TeamIdentifier': [ 'ASDFGH', 'QWERTY' ],
+                'ApplicationIdentifierPrefix': ['ASDFGH', 'QWERTY'],
+                'TeamIdentifier': ['ASDFGH', 'QWERTY'],
                 'Version': 1,
             },
         },
@@ -1383,7 +1367,7 @@ class PlistToolTest(unittest.TestCase):
         },
     }, plist1)
 
-  def test_entitlements_app_id_wildcard_match(self):
+  def test_entitlements_app_id_wildcard_match_from_profile_metadata(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {'application-identifier': 'QWERTY.my.bundle.id'}
     self._assert_plisttool_result({
@@ -1436,7 +1420,7 @@ class PlistToolTest(unittest.TestCase):
       })
 
   # The edge case in EntitlementsTask._does_id_match()
-  def test_entitlements_app_id_wildcard_match(self):
+  def test_entitlements_app_id_wildcard_match_from_plist(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {'application-identifier': 'QWERTY.*'}
     self._assert_plisttool_result({
@@ -1758,7 +1742,7 @@ class PlistToolTest(unittest.TestCase):
         plisttool.PlistToolError,
         re.escape(
             plisttool.ENTITLEMENTS_MISSING % (
-            _testing_target, 'aps-environment'))):
+                _testing_target, 'aps-environment'))):
       plist = {'aps-environment': 'production'}
       self._assert_plisttool_result({
           'plists': [plist],
@@ -1789,6 +1773,21 @@ class PlistToolTest(unittest.TestCase):
               },
           },
       }, plist)
+
+  def test_attest_valid(self):
+    plist = {
+      'com.apple.developer.devicecheck.appattest-environment': 'development'}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.devicecheck.appattest-environment': ['development', 'production'],
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
 
   def test_attest_mismatch(self):
     with self.assertRaisesRegex(
@@ -1895,16 +1894,17 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_MISSING % (
-          _testing_target, 'com.apple.developer.networking.wifi-info'))):
+        re.escape(
+            plisttool.ENTITLEMENTS_MISSING %
+            (_testing_target, 'com.apple.developer.networking.wifi-info'))):
       plist = {'com.apple.developer.networking.wifi-info': True}
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
               'profile_metadata_file': {
                   'Entitlements': {
-                    'application-identifier': 'QWERTY.*',
-                    # No wifi-info
+                      'application-identifier': 'QWERTY.*',
+                      # No wifi-info
                   },
                   'Version': 1,
               },
@@ -1951,6 +1951,7 @@ class PlistToolTest(unittest.TestCase):
         },
     }, plist1)
 
+  # pylint: disable=line-too-long
   def test_entitlements_associated_domains_match_wildcard_requesting_wildcard(self):
     # This is really looking for the lack of an error being raised.
     plist1 = {
@@ -1993,6 +1994,148 @@ class PlistToolTest(unittest.TestCase):
               },
           },
       })
+
+
+class PlistEntitlementsMerge(PlistToolTest):
+
+  def test_entitlements_merge_from_profile_metadata(self):
+    control = {
+        'plists': [{
+            'com.apple.developer.healthkit': True
+        }],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'application-identifier': 'QWERTY.my.bundle.id',
+                    'get-task-allow': True
+                },
+                'Version': 1,
+            },
+        },
+    }
+    expected = {
+        'application-identifier': 'QWERTY.my.bundle.id',
+        'com.apple.developer.healthkit': True,
+        'get-task-allow': True,
+    }
+    self._assert_plisttool_result(control, expected)
+
+  def test_entitlement_task_update_plist(self):
+    testcases = [
+        {
+            'testcase_name': 'adds get-task-allow from profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'get-task-allow': True,
+            }
+        },
+        {
+            'testcase_name':
+                'adds application-identifier from profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+        {
+            'testcase_name':
+                'adds both get-task-allow and application-identifier',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {},
+            'expected': {
+                'get-task-allow': True,
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+        {
+            'testcase_name':
+                'updates plist with get-task-allow and application-identifier',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'com.apple.developer.healthkit': True
+            },
+            'expected': {
+                'application-identifier': 'QWERTY.my.bundle.id',
+                'com.apple.developer.healthkit': True,
+                'get-task-allow': True,
+            }
+        },
+        {
+            'testcase_name':
+                'does not update since no Entitlements on profile metadata',
+            'options': {
+                'profile_metadata_file': {
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'com.apple.developer.healthkit': True
+            },
+            'expected': {
+                'com.apple.developer.healthkit': True
+            }
+        },
+        {
+            'testcase_name':
+                'does not update key already defined in entitlements',
+            'options': {
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'get-task-allow': True,
+                        'application-identifier': 'QWERTY.my.bundle.id',
+                    },
+                    'Version': 1,
+                },
+            },
+            'out_plist': {
+                'get-task-allow': False
+            },
+            'expected': {
+                'get-task-allow': False,
+                'application-identifier': 'QWERTY.my.bundle.id',
+            }
+        },
+    ]
+
+    for testcase in testcases:
+      with self.subTest(testcase.get('testcase_name')):
+        task = plisttool.EntitlementsTask(
+            _testing_target, testcase.get('options'))
+        task.update_plist(testcase.get('out_plist'), None)
+        self.assertEqual(testcase.get('out_plist'), testcase.get('expected'))
 
 
 if __name__ == '__main__':

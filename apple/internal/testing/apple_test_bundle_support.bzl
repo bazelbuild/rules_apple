@@ -27,10 +27,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
-    "entitlements_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -253,16 +249,10 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(ctx, extra_providers = []):
+def _apple_test_bundle_impl(ctx, _extra_providers = []):
     """Implementation for bundling XCTest bundles."""
-    link_result = linking_support.register_linking_action(
-        ctx,
-        stamp = ctx.attr.stamp,
-    )
-    binary_artifact = link_result.binary_provider.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
-
-    test_host_bundle_id = _test_host_bundle_id(ctx.attr.test_host)
+    test_host = ctx.attr.test_host
+    test_host_bundle_id = _test_host_bundle_id(test_host)
     if ctx.attr.bundle_id:
         bundle_id = ctx.attr.bundle_id
     else:
@@ -279,10 +269,6 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
     config_vars = ctx.var
-    entitlements = entitlements_support.entitlements(
-        entitlements_attr = getattr(ctx.attr, "entitlements", None),
-        entitlements_file = getattr(ctx.file, "entitlements", None),
-    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -290,6 +276,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
@@ -301,19 +288,45 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         res_attrs = ["resources"],
     )
 
+    # For unit tests, only pass the test host as the bundle's loader if it
+    # propagates `AppleExecutableBinary`, meaning that it's a binary that
+    # *we* built. Test hosts with stub binaries (like a watchOS app) won't
+    # have this. (For UI tests, the test host is never passed as the bundle
+    # loader, because the host application is loaded out-of-process.)
+    if (
+        rule_descriptor.product_type == apple_product_type.unit_test_bundle and
+        test_host and apple_common.AppleExecutableBinary in test_host
+    ):
+        bundle_loader = test_host
+    else:
+        bundle_loader = None
+
+    link_result = linking_support.register_linking_action(
+        ctx,
+        avoid_deps = getattr(ctx.attr, "frameworks", []),
+        bundle_loader = bundle_loader,
+        # Unit/UI tests do not use entitlements.
+        entitlements = None,
+        extra_linkopts = ["-bundle"],
+        platform_prerequisites = platform_prerequisites,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs_provider = link_result.debug_outputs_provider
+
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
     else:
         debug_dependencies = []
+    if test_host:
+        debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
         targets_to_avoid = list(ctx.attr.frameworks)
     else:
         targets_to_avoid = []
-    if ctx.attr.test_host:
-        debug_dependencies.append(ctx.attr.test_host)
-        if rule_descriptor.product_type == apple_product_type.unit_test_bundle:
-            targets_to_avoid.append(ctx.attr.test_host)
+    if bundle_loader:
+        targets_to_avoid.append(bundle_loader)
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -322,7 +335,6 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -366,7 +378,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+            provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             targets = ctx.attr.deps,
             targets_to_avoid = targets_to_avoid,
@@ -414,7 +426,6 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -422,7 +433,7 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_toolchain_info.process_and_sign_template,
-        provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
+        provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
     )
@@ -462,8 +473,8 @@ def _apple_test_bundle_impl(ctx, extra_providers = []):
 
     # Append the AppleTestBundleInfo provider with pointers to the test and host bundles.
     test_host_archive = None
-    if ctx.attr.test_host:
-        test_host_archive = ctx.attr.test_host[AppleBundleInfo].archive
+    if test_host:
+        test_host_archive = test_host[AppleBundleInfo].archive
     providers.extend([
         _apple_test_info_provider(
             deps = ctx.attr.deps,

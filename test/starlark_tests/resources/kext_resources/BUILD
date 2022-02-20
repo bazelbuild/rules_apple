@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 
 licenses(["notice"])

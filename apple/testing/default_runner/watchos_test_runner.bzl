@@ -93,7 +93,7 @@ By default, it is the latest supported version of the device type.'
                 "@xctestrunner//:ios_test_runner",
             ),
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.

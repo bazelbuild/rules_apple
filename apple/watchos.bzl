@@ -23,23 +23,12 @@ load(
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:watchos_rules.bzl",
     _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
     _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
     _watchos_ui_test = "watchos_ui_test",
     _watchos_unit_test = "watchos_unit_test",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-
-# Alias the internal rules when we load them. This lets the rules keep their
-# original name in queries and logs since they collide with the wrapper macros.
 load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
@@ -48,67 +37,10 @@ load(
     _watchos_static_framework = "watchos_static_framework",
 )
 
-def watchos_application(name, **kwargs):
-    """Builds and bundles a watchOS application."""
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.application,
-        is_stub = True,
-        **kwargs
-    )
-
-    _watchos_application(
-        name = name,
-        **bundling_args
-    )
-
-def watchos_extension(name, **kwargs):
-    """Builds and bundles a watchOS extension."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.app_extension,
-        **kwargs
-    )
-
-    _watchos_extension(
-        name = name,
-        **bundling_args
-    )
-
-def watchos_dynamic_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles a watchOS dynamic framework that is consumable by Xcode."""
-
-    binary_args = dict(kwargs)
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    bundle_name = binary_args.get("bundle_name", name)
-    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
-        "-install_name",
-        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
-    ]
-    bundling_args = binary_support.add_entitlements(
-        name,
-        include_entitlements = False,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.framework,
-        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
-        **binary_args
-    )
-
-    # Remove any kwargs that shouldn't be passed to the underlying rule.
-    bundling_args.pop("entitlements", None)
-
-    _watchos_dynamic_framework(
-        name = name,
-        extension_safe = kwargs.get("extension_safe"),
-        **bundling_args
-    )
+# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
+watchos_application = _watchos_application
+watchos_dynamic_framework = _watchos_dynamic_framework
+watchos_extension = _watchos_extension
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
 
@@ -120,7 +52,6 @@ def watchos_unit_test(name, **kwargs):
         test_rule = _watchos_unit_test,
         runner = runner,
         bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 

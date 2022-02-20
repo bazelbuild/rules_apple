@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:tvos.bzl",
     "tvos_application",
@@ -506,4 +505,53 @@ tvos_dynamic_framework(
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+tvos_application(
+    name = "app_with_objc_library_dep_with_tvos_framework_runtime_dep",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+tvos_application(
+    name = "app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [":objc_lib_with_inner_lib_with_runtime_dep_fmwk"],
+)
+
+tvos_application(
+    name = "app_with_load_and_runtime_framework_dep",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+objc_library(
+    name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_with_fmwk"],
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+objc_library(
+    name = "objc_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_with_provisioning"],
 )

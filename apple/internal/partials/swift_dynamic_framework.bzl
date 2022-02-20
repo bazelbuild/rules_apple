@@ -31,11 +31,6 @@ load(
     "paths",
 )
 
-def _get_header_imports(framework_imports):
-    """Get the header files from the list of framework imports"""
-
-    return [file for file in framework_imports if file.short_path.endswith(".h")]
-
 # TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.
 def _swift_dynamic_framework_partial_impl(
         *,

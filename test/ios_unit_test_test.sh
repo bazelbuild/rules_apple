@@ -310,7 +310,7 @@ EOF
 # Tests that select is usable in linkopts
 function test_select_on_linkopts() {
   create_common_files
-  create_minimal_ios_application_with_tests "my.test_bundle.id" 'select({"//conditions:default":[]})'
+  create_minimal_ios_application_with_tests "my.test-bundle.id" 'select({"//conditions:default":[]})'
   do_build ios //app:unit_tests || fail "Should build"
 }
 

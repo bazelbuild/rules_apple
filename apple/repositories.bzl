@@ -100,19 +100,19 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "bazel_skylib",
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/archive/df3c9e2735f02a7fe8cd80db4db00fec8e13d25f.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.1.1/bazel-skylib-1.1.1.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.1.1/bazel-skylib-1.1.1.tar.gz",
         ],
-        strip_prefix = "bazel-skylib-df3c9e2735f02a7fe8cd80db4db00fec8e13d25f",
-        sha256 = "58f558d04a936cade1d4744d12661317e51f6a21e3dd7c50b96dc14f3fa3b87d",
+        sha256 = "c6966ec828da198c5d9adbaa94c05e3a1c7f21bd012a0b29ba8ddbccb2c93b0d",
         ignore_version_differences = ignore_version_differences,
     )
 
     _maybe(
         http_archive,
         name = "build_bazel_apple_support",
-        sha256 = "76df040ade90836ff5543888d64616e7ba6c3a7b33b916aa3a4b68f342d1b447",
+        sha256 = "5bbce1b2b9a3d4b03c0697687023ef5471578e76f994363c641c5f50ff0c7268",
         urls = [
-            "https://github.com/bazelbuild/apple_support/releases/download/0.11.0/apple_support.0.11.0.tar.gz",
+            "https://github.com/bazelbuild/apple_support/releases/download/0.13.0/apple_support.0.13.0.tar.gz",
         ],
         ignore_version_differences = ignore_version_differences,
     )
@@ -121,9 +121,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "build_bazel_rules_swift",
         urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/0.24.0/rules_swift.0.24.0.tar.gz",
+            "https://github.com/bazelbuild/rules_swift/releases/download/0.26.0/rules_swift.0.26.0.tar.gz",
         ],
-        sha256 = "4f167e5dbb49b082c5b7f49ee688630d69fb96f15c84c448faa2e97a5780dbbc",
+        sha256 = "3e52a508cdc47a7adbad36a3d2b712e282cc39cc211b0d63efcaf608961eb36b",
         ignore_version_differences = ignore_version_differences,
     )
 
@@ -142,9 +142,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "xctestrunner",
         urls = [
-            "https://github.com/google/xctestrunner/archive/a13ec9de45d225620dd4b5e30b23bdc663631f31.tar.gz",
+            "https://github.com/google/xctestrunner/archive/db0fce198e07d1df34f09c69cfe1eb9692c61a44.tar.gz",
         ],
-        strip_prefix = "xctestrunner-a13ec9de45d225620dd4b5e30b23bdc663631f31",
-        sha256 = "22fcb8658d08486d55c67c9b72ee7c736ccbd083a5231995e0fd2aee6b07b030",
+        strip_prefix = "xctestrunner-db0fce198e07d1df34f09c69cfe1eb9692c61a44",
+        sha256 = "a2c048c6cc8b8ee7a9f7b130ce114cb11de9e3a860d6bae30aed82adcd7aa30b",
         ignore_version_differences = ignore_version_differences,
     )

@@ -130,7 +130,7 @@ Macro to orchestrate an objc_library with generated sources for mlmodel files.
 ## objc_intent_library
 
 <pre>
-objc_intent_library(<a href="#objc_intent_library-name">name</a>, <a href="#objc_intent_library-src">src</a>, <a href="#objc_intent_library-class_prefix">class_prefix</a>, <a href="#objc_intent_library-class_visibility">class_visibility</a>, <a href="#objc_intent_library-testonly">testonly</a>, <a href="#objc_intent_library-swift_version">swift_version</a>, <a href="#objc_intent_library-kwargs">kwargs</a>)
+objc_intent_library(<a href="#objc_intent_library-name">name</a>, <a href="#objc_intent_library-src">src</a>, <a href="#objc_intent_library-class_prefix">class_prefix</a>, <a href="#objc_intent_library-testonly">testonly</a>, <a href="#objc_intent_library-kwargs">kwargs</a>)
 </pre>
 
 Macro to orchestrate an objc_library with generated sources for intentdefiniton files.
@@ -143,9 +143,7 @@ Macro to orchestrate an objc_library with generated sources for intentdefiniton 
 | <a id="objc_intent_library-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="objc_intent_library-src"></a>src |  <p align="center"> - </p>   |  none |
 | <a id="objc_intent_library-class_prefix"></a>class_prefix |  <p align="center"> - </p>   |  <code>None</code> |
-| <a id="objc_intent_library-class_visibility"></a>class_visibility |  <p align="center"> - </p>   |  <code>None</code> |
 | <a id="objc_intent_library-testonly"></a>testonly |  <p align="center"> - </p>   |  <code>False</code> |
-| <a id="objc_intent_library-swift_version"></a>swift_version |  <p align="center"> - </p>   |  <code>None</code> |
 | <a id="objc_intent_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

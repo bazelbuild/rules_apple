@@ -203,6 +203,28 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  Depset of unowned resources.    |
 
 
+<a id="#AppleStaticXcframeworkBundleInfo"></a>
+
+## AppleStaticXcframeworkBundleInfo
+
+<pre>
+AppleStaticXcframeworkBundleInfo()
+</pre>
+
+
+Denotes that a target is a static library XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
+
+
 <a id="#AppleSupportToolchainInfo"></a>
 
 ## AppleSupportToolchainInfo
@@ -213,7 +235,8 @@ AppleSupportToolchainInfo(<a href="#AppleSupportToolchainInfo-dsym_info_plist_te
                           <a href="#AppleSupportToolchainInfo-resolved_bundletool_experimental">resolved_bundletool_experimental</a>, <a href="#AppleSupportToolchainInfo-resolved_clangrttool">resolved_clangrttool</a>,
                           <a href="#AppleSupportToolchainInfo-resolved_codesigningtool">resolved_codesigningtool</a>, <a href="#AppleSupportToolchainInfo-resolved_dossier_codesigningtool">resolved_dossier_codesigningtool</a>,
                           <a href="#AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor">resolved_imported_dynamic_framework_processor</a>, <a href="#AppleSupportToolchainInfo-resolved_plisttool">resolved_plisttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
+                          <a href="#AppleSupportToolchainInfo-resolved_provisioning_profile_tool">resolved_provisioning_profile_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>,
+                          <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
 </pre>
 
 
@@ -239,6 +262,7 @@ files used as script templates for the purposes of executing Apple actions. Defi
 | <a id="AppleSupportToolchainInfo-resolved_dossier_codesigningtool"></a>resolved_dossier_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to generate codesigning dossiers.    |
 | <a id="AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor"></a>resolved_imported_dynamic_framework_processor |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to process an imported dynamic framework such that the given framework only contains the same slices as the app binary, every file belonging to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable artifact.    |
 | <a id="AppleSupportToolchainInfo-resolved_plisttool"></a>resolved_plisttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to perform plist operations such as variable substitution, merging, and conversion of plist files to binary format.    |
+| <a id="AppleSupportToolchainInfo-resolved_provisioning_profile_tool"></a>resolved_provisioning_profile_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that extracts entitlements from a provisioning profile.    |
 | <a id="AppleSupportToolchainInfo-resolved_swift_stdlib_tool"></a>resolved_swift_stdlib_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that copies and lipos Swift stdlibs required for the target to run.    |
 | <a id="AppleSupportToolchainInfo-resolved_xctoolrunner"></a>resolved_xctoolrunner |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that acts as a wrapper for xcrun actions.    |
 
@@ -302,6 +326,28 @@ test rules runfiles.
 | <a id="AppleTestRunnerInfo-execution_environment"></a>execution_environment |  Optional dictionary with the environment variables that are to be set in the test action, and are not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s substitution, but will be set in the test action.    |
 | <a id="AppleTestRunnerInfo-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in the test action.    |
 | <a id="AppleTestRunnerInfo-test_runner_template"></a>test_runner_template |  Required template file that contains the specific mechanism with which the tests will be run. The *_ui_test and *_unit_test rules will substitute the following values:     * %(test_host_path)s:   Path to the app being tested.     * %(test_bundle_path)s: Path to the test bundle that contains the tests.     * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).     * %(test_type)s:        The test type, whether it is unit or UI.    |
+
+
+<a id="#AppleXcframeworkBundleInfo"></a>
+
+## AppleXcframeworkBundleInfo
+
+<pre>
+AppleXcframeworkBundleInfo()
+</pre>
+
+
+Denotes that a target is an XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
 
 
 <a id="#IosAppClipBundleInfo"></a>
@@ -870,5 +916,23 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 
 **FIELDS**
 
+
+
+<a id="#merge_apple_framework_import_info"></a>
+
+## merge_apple_framework_import_info
+
+<pre>
+merge_apple_framework_import_info(<a href="#merge_apple_framework_import_info-apple_framework_import_infos">apple_framework_import_infos</a>)
+</pre>
+
+    Merges multiple `AppleFrameworkImportInfo` into one.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
 
 

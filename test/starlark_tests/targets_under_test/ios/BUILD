@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:ios.bzl",
     "ios_app_clip",
@@ -166,6 +165,27 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:structured_resources_in_resources_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_processed_resources_in_structured_resources",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:processed_resources_in_structured_resources_lib",
     ],
 )
 
@@ -2254,6 +2274,14 @@ ios_static_framework(
     deps = [":StaticFmwkUpperLib"],
 )
 
+ios_static_framework(
+    name = "static_framework_with_generated_header",
+    bundle_name = "StaticFmwkWithGenHeader",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":StaticFmwkWithGenHeader"],
+)
+
 genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
@@ -2283,6 +2311,14 @@ swift_library(
     tags = FIXTURE_TAGS,
 )
 
+swift_library(
+    name = "StaticFmwkWithGenHeader",
+    srcs = ["Dummy.swift"],
+    generates_header = True,
+    module_name = "StaticFmwkWithGenHeader",
+    tags = FIXTURE_TAGS,
+)
+
 apple_dynamic_framework_import(
     name = "bundle_only_imported_fmwk",
     bundle_only = True,
@@ -2297,4 +2333,182 @@ generate_import_framework(
     minimum_os_version = "8.0",
     sdk = "iphonesimulator",
     tags = FIXTURE_TAGS,
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
+    name = "app_with_objc_library_dep_with_ios_framework_runtime_dep",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":objc_lib_with_runtime_dep_fmwk",
+    ],
+)
+
+ios_application(
+    name = "app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    ],
+)
+
+ios_application(
+    name = "app_with_load_and_runtime_framework_dep",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":objc_lib_with_runtime_dep_fmwk",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_with_fmwk"],
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+objc_library(
+    name = "objc_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_8_0_minimum"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for importing XCFramework tests.
+
+ios_application(
+    name = "app_with_imported_dynamic_xcfmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_dynamic_xcfw",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_dynamic_xcfmwk_with_lib_ids",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_dynamic_xcfw",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_static_xcfmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_importing_imported_static_xcfw",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_static_xcfmwk_with_lib_ids",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_lib_importing_imported_static_xcfw",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_xcfmwk_bundling_static_fmwks",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_xcfw_bundling_static_fmwks",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_static_xcfmwk_with_module_map",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_static_xcfw",
+    ],
 )

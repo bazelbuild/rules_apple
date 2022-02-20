@@ -14,6 +14,7 @@
 
 """Support for linking related actions."""
 
+load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
@@ -45,7 +46,38 @@ def _sectcreate_objc_provider(segname, sectname, file):
         link_inputs = depset([file]),
     )
 
-def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
+def _parse_platform_key(key):
+    """Parses a string key from a `link_multi_arch_binary` result dictionary.
+
+    Args:
+        key: A string key from the `outputs_by_platform` dictionary of the
+            struct returned by `apple_common.link_multi_arch_binary`.
+
+    Returns:
+        A `struct` containing three fields:
+
+        *   `platform`: A string denoting the platform: `ios`, `macos`, `tvos`,
+            or `watchos`.
+        *   `arch`: The CPU architecture (e.g., `x86_64` or `arm64`).
+        *   `environment`: The target environment: `device` or `simulator`.
+    """
+    platform, _, rest = key.partition("_")
+    if platform == "darwin":
+        platform = "macos"
+
+    arch, _, environment = rest.rpartition("_")
+    return struct(platform = platform, arch = arch, environment = environment)
+
+def _register_linking_action(
+        ctx,
+        *,
+        avoid_deps = [],
+        bundle_loader = None,
+        entitlements = None,
+        extra_linkopts = [],
+        extra_link_inputs = [],
+        platform_prerequisites,
+        stamp):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -53,28 +85,46 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
 
     Args:
         ctx: The rule context.
+        avoid_deps: A list of `Target`s representing dependencies of the binary but whose
+            symbols should not be linked into it.
+        bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
+            This target must propagate the `apple_common.AppleExecutableBinary` provider.
+            This simplifies the process of passing the bundle loader to all the arguments
+            that need it: the binary will automatically be added to the linker inputs, its
+            path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
+            provider of its dependencies (obtained from the `AppleExecutableBinary` provider)
+            will be passed as an additional `avoid_dep` to ensure that those dependencies are
+            subtracted when linking the bundle's binary.
+        entitlements: An optional `File` that provides the processed entitlements for the
+            binary or bundle being built. The entitlements will be embedded in a special section
+            of the binary.
+        extra_linkopts: Extra linkopts to add to the linking action.
+        extra_link_inputs: Extra input files to the linking action.
+        platform_prerequisites: The platform prerequisites.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
             `--[no]stamp` flag. This should be set to 0 when generating the executable output
             for test rules.
-        extra_linkopts: Extra linkopts to add to the linking action.
 
     Returns:
-        The `struct` returned by `apple_common.link_multi_arch_binary`, which contains the
-        following fields:
+        A `struct` which contains the following fields, which are a superset of the fields
+        returned by `apple_common.link_multi_arch_binary`:
 
-        *   `binary_provider`: A provider describing the binary that was linked. This is an
-            instance of either `AppleExecutableBinaryInfo`, `AppleDylibBinaryInfo`, or
-            `AppleLoadableBundleBinaryInfo`; all three have a `binary` field that is the linked
-            binary `File`.
-        *   `debug_outputs_provider`: An `AppleDebugOutputsInfo` provider that contains debug
-            outputs, such as linkmaps and dSYM binaries.
+        *   `binary`: The final binary `File` that was linked. If only one architecture was
+            requested, then it is a symlink to that single architecture binary. Otherwise, it
+            is a new universal (fat) binary obtained by invoking `lipo`.
+        *   `objc`: The `apple_common.Objc` provider containing information about the targets
+            that were linked.
+        *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
+            debug outputs, with identifying information about the target platform, architecture,
+            and environment that each was built for.
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
     linkopts = []
     link_inputs = []
+    link_inputs.extend(extra_link_inputs)
 
     # Add linkopts/linker inputs that are common to all the rules.
     for exported_symbols_list in ctx.files.exported_symbols_lists:
@@ -82,6 +132,18 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
             "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
         )
         link_inputs.append(exported_symbols_list)
+
+    if entitlements:
+        if platform_prerequisites and platform_prerequisites.platform.is_device:
+            fail("entitlements should be None when targeting a device")
+        linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__entitlements",
+                file = entitlements.path,
+            ),
+        )
+        link_inputs.append(entitlements)
 
     # Compatibility path for `apple_binary`, which does not have a product type.
     if hasattr(ctx.attr, "_product_type"):
@@ -91,14 +153,67 @@ def _register_linking_action(ctx, *, stamp, extra_linkopts = []):
 
     linkopts.extend(extra_linkopts)
 
-    return apple_common.link_multi_arch_binary(
+    all_avoid_deps = list(avoid_deps)
+    if bundle_loader:
+        bundle_loader_file = bundle_loader[apple_common.AppleExecutableBinary].binary
+        all_avoid_deps.append(bundle_loader)
+        linkopts.extend(["-bundle_loader", bundle_loader_file.path])
+        link_inputs.append(bundle_loader_file)
+
+    linking_outputs = apple_common.link_multi_arch_binary(
         ctx = ctx,
+        avoid_deps = all_avoid_deps,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         stamp = stamp,
+        should_lipo = False,
     )
 
+    fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
+
+    _lipo_or_symlink_inputs(
+        actions = ctx.actions,
+        inputs = [output.binary for output in linking_outputs.outputs],
+        output = fat_binary,
+        apple_fragment = ctx.fragments.apple,
+        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    return struct(
+        binary = fat_binary,
+        debug_outputs_provider = linking_outputs.debug_outputs_provider,
+        objc = linking_outputs.objc,
+        outputs = linking_outputs.outputs,
+        output_groups = linking_outputs.output_groups,
+    )
+
+def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
+    """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
+
+    Args:
+      actions: The rule context actions.
+      inputs: Binary inputs to use for lipo action.
+      output: Binary output for universal binary or symlink.
+      apple_fragment: The `apple` configuration fragment used to configure
+                      the action environment.
+      xcode_config: The `apple_common.XcodeVersionConfig` provider used to
+                    configure the action environment.
+    """
+    if len(inputs) > 1:
+        lipo.create(
+            actions = actions,
+            inputs = inputs,
+            output = output,
+            apple_fragment = apple_fragment,
+            xcode_config = xcode_config,
+        )
+    else:
+        # Symlink if there was only a single architecture created; it's faster.
+        actions.symlink(target_file = inputs[0], output = output)
+
 linking_support = struct(
+    lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
+    parse_platform_key = _parse_platform_key,
     register_linking_action = _register_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )

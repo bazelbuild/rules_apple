@@ -13,9 +13,6 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [
-        "//apple/internal:binary_support",
-    ],
 )
 
 bzl_library(
@@ -28,7 +25,6 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
-        "//apple/internal:entitlements_support",
         "//apple/internal:experimental",
         "//apple/internal:features_support",
         "//apple/internal:linking_support",

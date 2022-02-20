@@ -17,8 +17,22 @@
 load(
     "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
     _apple_dynamic_framework_import = "apple_dynamic_framework_import",
+    _apple_dynamic_xcframework_import = "apple_dynamic_xcframework_import",
     _apple_static_framework_import = "apple_static_framework_import",
+    _apple_static_xcframework_import = "apple_static_xcframework_import",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_universal_binary.bzl",
+    _apple_universal_binary = "apple_universal_binary",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:xcframework_rules.bzl",
+    _apple_xcframework = "apple_xcframework",
 )
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
+apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
 apple_static_framework_import = _apple_static_framework_import
+apple_static_xcframework_import = _apple_static_xcframework_import
+apple_universal_binary = _apple_universal_binary
+apple_xcframework = _apple_xcframework

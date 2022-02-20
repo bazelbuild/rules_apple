@@ -31,11 +31,12 @@ load(
     "output_group_test",
 )
 
-# buildifier: disable=unnamed-macro
-def macos_dylib_test_suite():
-    """Test suite for macos_dylib."""
-    name = "macos_dylib"
+def macos_dylib_test_suite(name):
+    """Test suite for macos_dylib.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",

@@ -30,14 +30,6 @@ load(
     _tvos_unit_test = "tvos_unit_test",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_dynamic_framework = "tvos_dynamic_framework",
@@ -46,64 +38,11 @@ load(
     _tvos_static_framework = "tvos_static_framework",
 )
 
-def tvos_application(name, **kwargs):
-    """Builds and bundles a tvOS application."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.tvos),
-        product_type = apple_product_type.application,
-        **kwargs
-    )
-
-    _tvos_application(
-        name = name,
-        dylibs = kwargs.get("frameworks", []),
-        **bundling_args
-    )
-
-def tvos_extension(name, **kwargs):
-    """Builds and bundles a tvOS extension."""
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.tvos),
-        product_type = apple_product_type.app_extension,
-        **kwargs
-    )
-
-    _tvos_extension(
-        name = name,
-        dylibs = kwargs.get("frameworks", []),
-        **bundling_args
-    )
-
-def tvos_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles a tvOS dynamic framework."""
-    binary_args = dict(kwargs)
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    bundle_name = binary_args.get("bundle_name", name)
-    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
-        "-install_name,@rpath/%s.framework/%s" % (bundle_name, bundle_name),
-    ]
-
-    bundling_args = binary_support.add_entitlements(
-        name,
-        platform_type = str(apple_common.platform_type.tvos),
-        product_type = apple_product_type.framework,
-        **binary_args
-    )
-
-    # Remove any kwargs that shouldn't be passed to the underlying rule.
-    bundling_args.pop("entitlements", None)
-
-    _tvos_framework(
-        name = name,
-        dylibs = binary_args.get("frameworks", []),
-        **bundling_args
-    )
+# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
+tvos_application = _tvos_application
+tvos_dynamic_framework = _tvos_dynamic_framework
+tvos_extension = _tvos_extension
+tvos_framework = _tvos_framework
 
 def tvos_static_framework(name, **kwargs):
     # buildifier: disable=function-docstring-args
@@ -143,8 +82,6 @@ def tvos_unit_test(name, **kwargs):
         bundle_rule = _tvos_internal_unit_test_bundle,
         test_rule = _tvos_unit_test,
         runner = runner,
-        bundle_loader = kwargs.get("test_host"),
-        dylibs = kwargs.get("frameworks"),
         **kwargs
     )
 
@@ -156,38 +93,6 @@ def tvos_ui_test(name, **kwargs):
         test_rule = _tvos_ui_test,
         runner = runner,
         **kwargs
-    )
-
-def tvos_dynamic_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles a tvOS dynamic framework that is consumable by Xcode."""
-
-    binary_args = dict(kwargs)
-
-    # TODO(b/120861201): The linkopts macro additions here only exist because the Starlark linking
-    # API does not accept extra linkopts and link inputs. With those, it will be possible to merge
-    # these workarounds into the rule implementations.
-    bundle_name = binary_args.get("bundle_name", name)
-    binary_args["linkopts"] = binary_args.pop("linkopts", []) + [
-        "-install_name",
-        "@rpath/%s.framework/%s" % (bundle_name, bundle_name),
-    ]
-    bundling_args = binary_support.add_entitlements(
-        name,
-        include_entitlements = False,
-        platform_type = str(apple_common.platform_type.watchos),
-        product_type = apple_product_type.framework,
-        exported_symbols_lists = binary_args.pop("exported_symbols_lists", None),
-        **binary_args
-    )
-
-    # Remove any kwargs that shouldn't be passed to the underlying rule.
-    bundling_args.pop("entitlements", None)
-
-    _tvos_dynamic_framework(
-        name = name,
-        extension_safe = kwargs.get("extension_safe"),
-        **bundling_args
     )
 
 tvos_build_test = apple_build_test_rule(

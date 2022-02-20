@@ -79,6 +79,10 @@ def _apple_support_toolchain_impl(ctx):
                 attr_name = "plisttool",
                 rule_ctx = ctx,
             ),
+            resolved_provisioning_profile_tool = _resolve_tools_for_executable(
+                attr_name = "provisioning_profile_tool",
+                rule_ctx = ctx,
+            ),
             resolved_swift_stdlib_tool = _resolve_tools_for_executable(
                 attr_name = "swift_stdlib_tool",
                 rule_ctx = ctx,
@@ -95,14 +99,14 @@ def _apple_support_toolchain_impl(ctx):
 apple_support_toolchain = rule(
     attrs = {
         "alticonstool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
 """,
         ),
         "bundletool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
@@ -110,7 +114,7 @@ paths to build the directory structure for those files.
 """,
         ),
         "bundletool_experimental": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
@@ -118,27 +122,27 @@ post-processing, and signing steps into a single action that eliminates the arch
 """,
         ),
         "clangrttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to find all Clang runtime libs linked to a binary.",
         ),
         "codesigningtool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
         "dossier_codesigningtool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in generating signing dossiers.",
         ),
         "dsym_info_plist_template": attr.label(
-            cfg = "host",
+            cfg = "exec",
             allow_single_file = True,
             doc = "A `File` referencing a plist template for dSYM bundles.",
         ),
         "imported_dynamic_framework_processor": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to process an imported dynamic framework such that the given framework
@@ -148,7 +152,7 @@ artifact.
 """,
         ),
         "plisttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
@@ -159,15 +163,22 @@ conversion of plist files to binary format.
             allow_single_file = True,
             doc = "A `File` referencing a template for a shell script to process and sign.",
         ),
+        "provisioning_profile_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that extracts entitlements from a provisioning profile.
+""",
+        ),
         "swift_stdlib_tool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.
 """,
         ),
         "xctoolrunner": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool that acts as a wrapper for xcrun actions.",
         ),
@@ -178,6 +189,5 @@ A `File` referencing a tool that copies and lipos Swift stdlibs required for the
 
 # Define the loadable module that lists the exported symbols in this file.
 apple_support_toolchain_utils = struct(
-    resolve_tools_for_executable = _resolve_tools_for_executable,
     shared_attrs = _shared_attrs,
 )

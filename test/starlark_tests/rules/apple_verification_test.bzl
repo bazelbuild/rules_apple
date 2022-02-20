@@ -38,9 +38,16 @@ load(
 
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
+
+    # This was added because this transition is also used by
+    # `infoplist_contents_test` and has no "macos_cpus" attribute.
+    macos_cpus = "x86_64"
+    if hasattr(attr, "macos_cpus"):
+        macos_cpus = ",".join(attr.macos_cpus)
+
     output_dictionary = {
         "//command_line_option:ios_signing_cert_name": "-",
-        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:macos_cpus": macos_cpus,
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_bitcode": attr.apple_bitcode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
@@ -58,10 +65,11 @@ def _apple_verification_transition_impl(settings, attr):
             "//command_line_option:watchos_cpus": "armv7k",
         })
     existing_features = settings.get("//command_line_option:features") or []
-    if attr.sanitizer != "none":
-        output_dictionary["//command_line_option:features"] = existing_features + [attr.sanitizer]
-    else:
-        output_dictionary["//command_line_option:features"] = existing_features
+    if hasattr(attr, "target_features"):
+        existing_features.extend(attr.target_features)
+    if hasattr(attr, "sanitizer") and attr.sanitizer != "none":
+        existing_features.append(attr.sanitizer)
+    output_dictionary["//command_line_option:features"] = existing_features
     return output_dictionary
 
 apple_verification_transition = transition(
@@ -91,7 +99,6 @@ def _apple_verification_test_impl(ctx):
     if AppleBundleInfo in target_under_test:
         bundle_info = target_under_test[AppleBundleInfo]
         archive = bundle_info.archive
-        verifier_script = ctx.file.verifier_script
 
         bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
 
@@ -223,12 +230,24 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
 """,
         ),
+        "macos_cpus": attr.string_list(
+            doc = """
+List of MacOS CPU's to use for test under target.
+https://docs.bazel.build/versions/main/command-line-reference.html#flag--macos_cpus
+""",
+        ),
         "sanitizer": attr.string(
             default = "none",
             values = ["none", "asan", "tsan", "ubsan"],
             doc = """
 Possible values are `none`, `asan`, `tsan` or `ubsan`. Defaults to `none`.
 Passes a sanitizer to the target under test.
+""",
+        ),
+        "target_features": attr.string_list(
+            mandatory = False,
+            doc = """
+List of additional features to build for the target under testing.
 """,
         ),
         "target_under_test": attr.label(

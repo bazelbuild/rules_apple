@@ -287,7 +287,7 @@ EOF
     ! do_build watchos //app:app || fail "Should fail"
     # The fact that multiple things are tried is left as an impl detail and
     # only the final message is looked for.
-    expect_log 'While processing target "//app:watch_app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+    expect_log 'While processing target "//app:watch_app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
   else
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary, so the build shouldn't fail.
@@ -327,7 +327,7 @@ EOF
   ! do_build watchos //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:watch_ext_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "//app:watch_ext", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Test that a watchOS app with a bundle_id that isn't a prefixed by

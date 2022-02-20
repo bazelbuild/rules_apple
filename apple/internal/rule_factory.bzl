@@ -27,12 +27,8 @@ load(
     "apple_support_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlement_rules.bzl",
-    "AppleEntitlementsInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_import_aspect.bzl",
-    "framework_import_aspect",
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
@@ -108,7 +104,7 @@ def _is_test_product_type(product_type):
 _COMMON_ATTRS = dicts.add(
     {
         "_grep_includes": attr.label(
-            cfg = "host",
+            cfg = "exec",
             allow_single_file = True,
             executable = True,
             default = Label("@bazel_tools//tools/cpp:grep-includes"),
@@ -142,7 +138,7 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
         # apple_common.link_multi_arch_binary requires this attribute.
         # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
         "_xcrunwrapper": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
         ),
@@ -181,12 +177,12 @@ AppleTestRunnerInfo provider.
         providers = [AppleBundleInfo],
     ),
     "_apple_coverage_support": attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
 }
 
-def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
+def _common_binary_linking_attrs(deps_cfg, product_type):
     deps_aspects = [
         swift_usage_aspect,
     ]
@@ -195,7 +191,7 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
     if product_type:
         deps_aspects.extend([
             apple_resource_aspect,
-            framework_import_aspect,
+            framework_provider_aspect,
         ])
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
@@ -209,26 +205,6 @@ def _common_binary_linking_attrs(default_binary_type, deps_cfg, product_type):
         _COMMON_ATTRS,
         _COMMON_BINARY_RULE_ATTRS,
         {
-            "binary_type": attr.string(
-                default = default_binary_type,
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
-            "bundle_loader": attr.label(
-                providers = [[apple_common.AppleExecutableBinary]],
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
-            "dylibs": attr.label_list(
-                doc = """
-This attribute is public as an implementation detail while we migrate the architecture of the rules.
-Do not change its value.
-    """,
-            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -257,6 +233,12 @@ A list of strings representing extra flags that should be passed to `codesign`.
             "linkopts": attr.string_list(
                 doc = """
 A list of strings representing extra flags that should be passed to the linker.
+    """,
+            ),
+            "additional_linker_inputs": attr.label_list(
+                allow_files = True,
+                doc = """
+A list of input files to be passed to the linker.
     """,
             ),
             "stamp": attr.int(
@@ -353,7 +335,7 @@ the target will be used instead.
         "ipa_post_processor": attr.label(
             allow_files = True,
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 A tool that edits this target's archive after it is assembled but before it is signed. The tool is
 invoked with a single command-line argument that denotes the path to a directory containing the
@@ -472,7 +454,7 @@ bundle in a directory named `Settings.bundle`.
     if rule_descriptor.codesigning_exceptions == rule_support.codesigning_exceptions.none:
         attrs.append({
             "entitlements": attr.label(
-                providers = [[], [AppleEntitlementsInfo]],
+                allow_single_file = True,
                 doc = """
 The entitlements file required for device builds of this target. If absent, the default entitlements
 from the provisioning profile will be used.
@@ -619,7 +601,7 @@ the application bundle.
 """,
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
@@ -645,7 +627,7 @@ Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
@@ -662,7 +644,7 @@ Info.plist under the key `UILaunchStoryboardName`.
 
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = required_providers,
             ),
@@ -674,7 +656,7 @@ Info.plist under the key `UILaunchStoryboardName`.
         extra_args = {}
         if (rule_descriptor.product_type == apple_product_type.application or
             rule_descriptor.product_type == apple_product_type.app_clip):
-            extra_args["aspects"] = [framework_import_aspect]
+            extra_args["aspects"] = [framework_provider_aspect]
 
         attrs.append({
             "frameworks": attr.label_list(
@@ -729,6 +711,18 @@ desired Contents subdirectory.
         ),
     })
 
+    if rule_descriptor.product_type == apple_product_type.bundle:
+        attrs.append({
+            "bundle_loader": attr.label(
+                doc = """
+The target representing the executable that will be loading this bundle. Undefined symbols from the
+bundle are checked against this execuable during linking as if it were one of the dynamic libraries
+the bundle was linked with.
+""",
+                providers = [apple_common.AppleExecutableBinary],
+            ),
+        })
+
     if rule_descriptor.product_type in [apple_product_type.application, apple_product_type.bundle]:
         attrs.append({
             # TODO(b/117886202): This should be part of the rule descriptor, once the new
@@ -757,7 +751,7 @@ set, then the default extension is determined by the application's product_type.
                 doc = "A list of macOS XPC Services to include in the final application bundle.",
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
             ),
@@ -776,7 +770,7 @@ set, then the default extension is determined by the application's product_type.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, MacosApplicationBundleInfo],
@@ -800,7 +794,7 @@ def _get_tvos_attrs(rule_descriptor):
                 doc = "A list of tvOS extensions to include in the final application bundle.",
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 # Currently using the iOS Simulator template for tvOS, as tvOS does not require
                 # significantly different sim runner logic from iOS.
@@ -861,7 +855,7 @@ fashion, such as a Cocoapod.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, TvosApplicationBundleInfo],
@@ -875,7 +869,7 @@ fashion, such as a Cocoapod.
     if rule_descriptor.requires_deps:
         extra_args = {}
         if rule_descriptor.product_type == apple_product_type.application:
-            extra_args["aspects"] = [framework_import_aspect]
+            extra_args["aspects"] = [framework_provider_aspect]
 
         attrs.append({
             "frameworks": attr.label_list(
@@ -991,7 +985,7 @@ fashion, such as a Cocoapod.
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
             "test_host": attr.label(
-                aspects = [framework_import_aspect],
+                aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, WatchosApplicationBundleInfo],
             ),
@@ -1056,7 +1050,8 @@ def _create_apple_binary_rule(
         additional_attrs = {},
         implicit_outputs = None,
         platform_type = None,
-        product_type = None):
+        product_type = None,
+        require_linking_attrs = True):
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
@@ -1122,7 +1117,6 @@ binaries/libraries will be created combining all architectures specified by
 
         if rule_descriptor.requires_deps:
             rule_attrs.append(_common_binary_linking_attrs(
-                default_binary_type = rule_descriptor.binary_type,
                 deps_cfg = rule_descriptor.deps_cfg,
                 product_type = product_type,
             ))
@@ -1134,11 +1128,13 @@ binaries/libraries will be created combining all architectures specified by
         )
     else:
         is_executable = False
-        rule_attrs.append(_common_binary_linking_attrs(
-            default_binary_type = "executable",
-            deps_cfg = apple_common.multi_arch_split,
-            product_type = None,
-        ))
+        if require_linking_attrs:
+            rule_attrs.append(_common_binary_linking_attrs(
+                deps_cfg = apple_common.multi_arch_split,
+                product_type = None,
+            ))
+        else:
+            rule_attrs.append(_COMMON_ATTRS)
 
     rule_attrs.append(additional_attrs)
 
@@ -1151,6 +1147,7 @@ binaries/libraries will be created combining all architectures specified by
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
         outputs = implicit_outputs,
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 def _create_apple_bundling_rule(
@@ -1184,7 +1181,6 @@ def _create_apple_bundling_rule(
 
     if rule_descriptor.requires_deps:
         rule_attrs.append(_common_binary_linking_attrs(
-            default_binary_type = rule_descriptor.binary_type,
             deps_cfg = rule_descriptor.deps_cfg,
             product_type = product_type,
         ))
@@ -1224,6 +1220,7 @@ def _create_apple_bundling_rule(
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 def _create_apple_test_rule(implementation, doc, platform_type):
@@ -1244,6 +1241,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         ),
         doc = doc,
         test = True,
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     )
 
 rule_factory = struct(

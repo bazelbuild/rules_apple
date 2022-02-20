@@ -27,6 +27,7 @@ def _get_template_substitutions(ctx):
         "device_type": device_type,
         "os_version": str(os_version),
         "testrunner_binary": ctx.executable._testrunner.short_path,
+        "simulator_creator": ctx.executable._simulator_creator.short_path,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -54,7 +55,8 @@ def _ios_test_runner_impl(ctx):
             test_environment = ctx.attr.test_environment,
         ),
         DefaultInfo(
-            runfiles = ctx.attr._testrunner[DefaultInfo].default_runfiles,
+            runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
         ),
     ]
 
@@ -102,11 +104,18 @@ into the XCTest invocation.
                 "@xctestrunner//:ios_test_runner",
             ),
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.
 """,
+        ),
+        "_simulator_creator": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+            ),
+            executable = True,
+            cfg = "exec",
         ),
         "_xcode_config": attr.label(
             default = configuration_field(

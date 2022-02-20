@@ -50,9 +50,21 @@ import filecmp
 import json
 import os
 import shutil
-import subprocess
 import sys
 import zipfile
+from ctypes import cdll, c_char_p, c_int
+
+_CLONEFILE = None
+def _load_clonefile():
+  global _CLONEFILE
+  if _CLONEFILE:
+    return _CLONEFILE
+
+  system = cdll.LoadLibrary('/usr/lib/libSystem.dylib')
+  _CLONEFILE = system.clonefile
+  _CLONEFILE.argtypes = [c_char_p, c_char_p, c_int] # src, dest, flags
+  _CLONEFILE.restype = c_int  # 0 on success
+  return _CLONEFILE
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the bundle')
@@ -201,7 +213,10 @@ class Bundler(object):
 
     self._makedirs_safely(os.path.dirname(full_dest))
     if sys.platform == "darwin":
-      subprocess.check_output(["/bin/cp", "-c", src, full_dest])
+      clonefile = _load_clonefile()
+      result = clonefile(src.encode(), full_dest.encode(), 0)
+      if result != 0:
+        raise Exception(f"failed to clonefile {src} to {full_dest}")
     else:
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)

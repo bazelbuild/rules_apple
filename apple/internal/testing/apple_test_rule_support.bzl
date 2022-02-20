@@ -116,7 +116,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_coverage_execution_environment(ctx, covered_binaries):
+def _get_coverage_execution_environment(_ctx, covered_binaries):
     """Returns environment variables required for test coverage support."""
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 

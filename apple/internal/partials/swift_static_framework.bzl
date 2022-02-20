@@ -15,12 +15,12 @@
 """Partial implementation for Swift static frameworks."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_info_support.bzl",
+    "swift_info_support",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -31,15 +31,6 @@ load(
     "paths",
 )
 
-def _modulemap_contents(module_name):
-    """Returns the contents for the modulemap file for the framework."""
-    return """\
-framework module {module_name} {{
-  header "{module_name}.h"
-  requires objc
-}}
-""".format(module_name = module_name)
-
 def _swift_static_framework_partial_impl(
         *,
         actions,
@@ -49,70 +40,55 @@ def _swift_static_framework_partial_impl(
         swift_static_framework_info):
     """Implementation for the Swift static framework processing partial."""
 
-    expected_module_name = bundle_name
-    if expected_module_name != swift_static_framework_info.module_name:
-        fail("""
-error: Found swift_library with module name '{actual}' but expected '{expected}'. Swift static \
-frameworks expect a single swift_library dependency with `module_name` set to the same \
-`bundle_name` as the static framework target.\
-""".format(
-            actual = swift_static_framework_info.module_name,
-            expected = expected_module_name,
-        ))
+    swift_info_support.verify_found_module_name(
+        bundle_name = bundle_name,
+        found_module_name = swift_static_framework_info.module_name,
+    )
 
     generated_header = swift_static_framework_info.generated_header
     swiftdocs = swift_static_framework_info.swiftdocs
     swiftinterfaces = swift_static_framework_info.swiftinterfaces
 
     bundle_files = []
+    expected_module_name = bundle_name
     modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
 
     for arch, swiftinterface in swiftinterfaces.items():
-        bundle_interface = intermediates.file(
+        bundle_interface = swift_info_support.declare_swiftinterface(
             actions = actions,
-            target_name = label_name,
+            arch = arch,
+            label_name = label_name,
             output_discriminator = output_discriminator,
-            file_name = "{}.swiftinterface".format(arch),
-        )
-        actions.symlink(
-            target_file = swiftinterface,
-            output = bundle_interface,
+            swiftinterface = swiftinterface,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
 
     for arch, swiftdoc in swiftdocs.items():
-        bundle_doc = intermediates.file(
+        bundle_doc = swift_info_support.declare_swiftdoc(
             actions = actions,
-            target_name = label_name,
+            arch = arch,
+            label_name = label_name,
             output_discriminator = output_discriminator,
-            file_name = "{}.swiftdoc".format(arch),
-        )
-        actions.symlink(
-            target_file = swiftdoc,
-            output = bundle_doc,
+            swiftdoc = swiftdoc,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
 
     if generated_header:
-        bundle_header = intermediates.file(
+        bundle_header = swift_info_support.declare_generated_header(
             actions = actions,
-            target_name = label_name,
+            generated_header = generated_header,
+            label_name = label_name,
             output_discriminator = output_discriminator,
-            file_name = "{}.h".format(expected_module_name),
-        )
-        actions.symlink(
-            target_file = generated_header,
-            output = bundle_header,
+            module_name = expected_module_name,
         )
         bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
-        modulemap = intermediates.file(
+        modulemap = swift_info_support.declare_modulemap(
             actions = actions,
-            target_name = label_name,
+            label_name = label_name,
             output_discriminator = output_discriminator,
-            file_name = "module.modulemap",
+            module_name = expected_module_name,
         )
-        actions.write(modulemap, _modulemap_contents(expected_module_name))
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
 
     return struct(bundle_files = bundle_files)

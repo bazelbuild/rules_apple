@@ -26,7 +26,8 @@ def execute_and_filter_output(cmd_args,
                               custom_env=None,
                               inputstr=None,
                               print_output=False,
-                              raise_on_failure=False):
+                              raise_on_failure=False,
+                              timeout=900):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
@@ -46,6 +47,7 @@ def execute_and_filter_output(cmd_args,
       this subprocess.
     raise_on_failure: Raises an exception if the subprocess does not return a
       successful result.
+    timeout: Timeout in seconds.
 
   Returns:
     A tuple consisting of the result of running the command, stdout output from
@@ -64,7 +66,15 @@ def execute_and_filter_output(cmd_args,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       env=env)
-  stdout, stderr = proc.communicate(input=inputstr)
+  try:
+      stdout, stderr = proc.communicate(
+        input=inputstr,
+        timeout=timeout,
+      )
+  except subprocess.TimeoutExpired:
+      proc.kill()
+      stdout, stderr = proc.communicate()
+
   cmd_result = proc.returncode
 
   # The invoked tools don't specify what encoding they use, so for lack of a
@@ -94,27 +104,18 @@ def execute_and_filter_output(cmd_args,
   elif print_output:
     # The default encoding of stdout/stderr is 'ascii', so we need to reopen the
     # streams in utf8 mode since some messages from Apple's tools use characters
-    # like curly quotes. (It would be nice to use the `reconfigure` method here,
-    # but that's only available in Python 3.7, which we can't guarantee.)
-    # It is essential that we only attempt to re-open stdout and stderr once
-    # to avoid potential error conditions, and as this may invalidate the buffer
-    # depending on the version of Python, it is also essential that we flush
-    # the pending buffers prior to re-opening.
-    try:
-      if sys.stdout.encoding != "utf8":
-        sys.stdout.flush()
-        sys.stdout = open(
-            sys.stdout.fileno(), mode="w", encoding="utf8", buffering=1)
-      if sys.stderr.encoding != "utf8":
-        sys.stderr.flush()
-        sys.stderr = open(sys.stderr.fileno(), mode="w", encoding="utf8")
-    except io.UnsupportedOperation:
-      # When running under test, `fileno` is not supported.
-      pass
+    # like curly quotes.
+    def _ensure_utf8_encoding(s):
+      # Tests might hook sys.stdout/sys.stderr, so be defensive.
+      if (getattr(s, "encoding", "utf8") != "utf8" and
+          callable(getattr(s, "reconfigure", None))):
+        s.reconfigure(encoding="utf8")
 
     if stdout:
+      _ensure_utf8_encoding(sys.stdout)
       sys.stdout.write(stdout)
     if stderr:
+      _ensure_utf8_encoding(sys.stderr)
       sys.stderr.write(stderr)
 
   return cmd_result, stdout, stderr
