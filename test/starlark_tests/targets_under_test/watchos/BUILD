@@ -67,6 +67,7 @@ watchos_extension(
     minimum_os_version = "4.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
+        "//test/starlark_tests/resources:complications_watchos",
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:localization",
         "//test/starlark_tests/resources:resource_bundle",
