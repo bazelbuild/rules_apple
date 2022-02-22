@@ -616,6 +616,11 @@ filegroup(
     srcs = glob(["WatchAppIcon.xcassets/**"]),
 )
 
+filegroup(
+    name = "complications_watchos",
+    srcs = glob(["complications_watchos.xcassets/**"]),
+)
+
 cc_binary(
     name = "cc_test_binary",
     srcs = ["main.cc"],
