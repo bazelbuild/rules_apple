@@ -41,18 +41,17 @@ def _analysis_xcasset_argv_test_impl(ctx):
     ]
     no_xcasset = True
     for action in analysistest.target_actions(env):
-        for output in action.outputs.to_list():
-            if hasattr(action, "argv") and action.argv:
-                concat_action_argv = " ".join(action.argv)
-                if not "xctoolrunner actool " in concat_action_argv:
-                    continue
-                for test_argv in expected_argv:
-                    if not test_argv in concat_action_argv:
-                        unittest.fail(env, "\"{}\" not in actool's arguments \"{}\".".format(
-                            test_argv,
-                            concat_action_argv,
-                        ))
-                no_xcasset = False
+        if hasattr(action, "argv") and action.argv:
+            concat_action_argv = " ".join(action.argv)
+            if not "xctoolrunner actool " in concat_action_argv:
+                continue
+            for test_argv in expected_argv:
+                if not test_argv in concat_action_argv:
+                    unittest.fail(env, "\"{}\" not in actool's arguments \"{}\".".format(
+                        test_argv,
+                        concat_action_argv,
+                    ))
+            no_xcasset = False
 
     if no_xcasset:
         unittest.fail(env, "Did not find any xcasset actions to test.")
