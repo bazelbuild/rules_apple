@@ -237,8 +237,7 @@ def bitcode_symbol_map_test(
         bc_symbol_maps_root = "",
         binary_paths,
         tags,
-        target_under_test,
-        **kwargs):
+        target_under_test):
     """Macro to call `apple_verification_test` with `bitcode_verifier.sh`.
 
     This simplifies Bitcode verification tests by forcing
@@ -256,7 +255,6 @@ def bitcode_symbol_map_test(
             Bitcode symbol maps in the archive root.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **kwargs: Other arguments passed directly to `apple_verification_test`.
     """
     apple_verification_test(
         name = name,
@@ -280,8 +278,7 @@ def apple_symbols_file_test(
         binary_paths,
         build_type,
         tags,
-        target_under_test,
-        **kwargs):
+        target_under_test):
     """Macro to call `apple_verification_test` with `apple-symbols_file_verifier.sh`.
 
     This simplifies .symbols file verification tests by forcing
@@ -296,7 +293,6 @@ def apple_symbols_file_test(
             `simulator` and `device`.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **kwargs: Other arguments passed directly to `apple_verification_test`.
 
     """
     apple_verification_test(
@@ -316,8 +312,7 @@ def entry_point_test(
         build_type,
         entry_point,
         tags,
-        target_under_test,
-        **kwargs):
+        target_under_test):
     """Macro to call `apple_verification_test` with `entry_point_verifier.sh`.
 
     Args:
@@ -328,7 +323,6 @@ def entry_point_test(
             point of the binary.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **kwargs: Other arguments passed directly to `apple_verification_test`.
     """
     apple_verification_test(
         name = name,
