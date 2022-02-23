@@ -75,7 +75,6 @@ def _register_linking_action(
         bundle_loader = None,
         entitlements = None,
         extra_linkopts = [],
-        extra_link_inputs = [],
         platform_prerequisites,
         stamp):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
@@ -101,7 +100,6 @@ def _register_linking_action(
             targeting non-simulator environments, this file is ignored (it is assumed that
             the entitlements will be provided during code signing).
         extra_linkopts: Extra linkopts to add to the linking action.
-        extra_link_inputs: Extra input files to the linking action.
         platform_prerequisites: The platform prerequisites.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
