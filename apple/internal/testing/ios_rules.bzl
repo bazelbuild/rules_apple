@@ -84,7 +84,7 @@ To run the same test on multiple simulators/devices see
 
 The following is a list of the `ios_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
     platform_type = "ios",
 )
@@ -120,6 +120,6 @@ To run the same test on multiple simulators/devices see
 
 The following is a list of the `ios_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).""",
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).""",
     platform_type = "ios",
 )
