@@ -86,17 +86,18 @@ def clang_rt_dylibs_partial(
         actions,
         apple_toolchain_info,
         binary_artifact,
+        dylibs,
         features,
         label_name,
         output_discriminator = None,
-        platform_prerequisites,
-        dylibs):
+        platform_prerequisites):
     """Constructor for the Clang runtime dylibs processing partial.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
+      dylibs: List of dylibs (usually from a toolchain).
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
