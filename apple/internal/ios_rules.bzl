@@ -892,7 +892,6 @@ def _ios_extension_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs_provider = link_result.debug_outputs_provider
-    output_groups = link_result.output_groups
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,

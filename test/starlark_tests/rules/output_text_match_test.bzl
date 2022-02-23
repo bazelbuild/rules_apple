@@ -22,7 +22,6 @@ load(
 def _output_text_match_test_impl(ctx):
     """Implementation of the `output_text_match_test` rule."""
     target_under_test = ctx.attr.target_under_test
-    target_package = target_under_test.label.package
 
     path_suffixes = dicts.add(
         ctx.attr.files_match,

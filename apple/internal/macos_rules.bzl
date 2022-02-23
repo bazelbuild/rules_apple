@@ -1453,7 +1453,6 @@ def _macos_command_line_application_impl(ctx):
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
-    bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1547,7 +1546,6 @@ def _macos_dylib_impl(ctx):
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bin_root_path = ctx.bin_dir.path
-    bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
