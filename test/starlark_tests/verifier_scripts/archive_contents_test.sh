@@ -330,7 +330,7 @@ if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
         "$newline$(/usr/libexec/PlistBuddy -c Print $path)"
     fi
     if [[ "$value" != $expected_value ]]; then
-      fail "Expected plist value \"$value\" to be \"$expected_value\""
+      fail "Expected plist value \"$value\" at key \"$key\" to be \"$expected_value\""
     fi
   done
 fi
