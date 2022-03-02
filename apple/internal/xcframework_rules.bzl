@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:lipo.bzl",
-    "lipo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -142,18 +138,13 @@ def _lipoed_link_outputs_by_framework(
     for framework_key, link_outputs in link_outputs_by_framework.items():
         fat_binary = actions.declare_file("{}_{}".format(label_name, framework_key))
 
-        if len(link_outputs) > 1:
-            lipo.create(
-                actions = actions,
-                inputs = [output.binary for output in link_outputs],
-                output = fat_binary,
-                apple_fragment = apple_fragment,
-                xcode_config = xcode_config,
-            )
-        else:
-            # Symlink if there was only a single architecture created; it's faster.
-            output = link_outputs[0]
-            actions.symlink(target_file = output.binary, output = fat_binary)
+        linking_support.lipo_or_symlink_inputs(
+            actions = actions,
+            inputs = [output.binary for output in link_outputs],
+            output = fat_binary,
+            apple_fragment = apple_fragment,
+            xcode_config = xcode_config,
+        )
 
         architectures = []
         bitcode_symbol_maps = {}
