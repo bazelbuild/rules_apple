@@ -397,7 +397,10 @@ def _create_xcframework_bundle(
     actions.run(
         arguments = [bundletool_control_file.path],
         executable = resolved_bundletool.executable,
-        inputs = depset([bundletool_control_file, root_info_plist], transitive = [resolved_bundletool.inputs] + framework_archive_files),
+        inputs = depset(
+            direct = [bundletool_control_file, root_info_plist],
+            transitive = [resolved_bundletool.inputs] + framework_archive_files,
+        ),
         input_manifests = resolved_bundletool.input_manifests,
         mnemonic = "CreateXCFrameworkBundle",
         outputs = [output_archive],
