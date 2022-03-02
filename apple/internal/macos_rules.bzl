@@ -1678,9 +1678,6 @@ macos_command_line_application = rule_factory.create_apple_binary_rule(
     platform_type = "macos",
     product_type = apple_product_type.tool,
     doc = "Builds a macOS Command Line Application binary.",
-    additional_attrs = {
-        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
-    },
 )
 
 macos_dylib = rule_factory.create_apple_binary_rule(
