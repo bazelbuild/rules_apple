@@ -129,7 +129,7 @@ if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
   IFS=","
   ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
   for TEST in $ALL_TESTS; do
-    if [[ ${TEST:0:1} == "-" ]]; then
+    if [[ $TEST == -* ]]; then
       if [[ -n "$SKIP_TESTS" ]]; then
         SKIP_TESTS+=",${TEST:1}"
       else
