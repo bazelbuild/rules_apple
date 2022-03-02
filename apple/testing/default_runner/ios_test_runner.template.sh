@@ -119,12 +119,44 @@ fi
 
 # Use the TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
 # flag to set tests_to_run value in ios_test_runner's launch_options.
+# Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests 
+# is passed to "tests_to_run"
 if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
     LAUNCH_OPTIONS_JSON_STR+=","
   fi
-  TESTS="${TESTBRIDGE_TEST_ONLY//,/\",\"}"
-  LAUNCH_OPTIONS_JSON_STR+="\"tests_to_run\":[\"$TESTS\"]"
+
+  IFS=","
+  ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+  for TEST in $ALL_TESTS; do
+    if [[ ${TEST:0:1} == "-" ]]; then
+      if [[ -n "$SKIP_TESTS" ]]; then
+        SKIP_TESTS+=",${TEST:1}"
+      else
+        SKIP_TESTS="${TEST:1}"
+      fi
+    else
+      if [[ -n "$ONLY_TESTS" ]]; then
+          ONLY_TESTS+=",$TEST"
+      else
+          ONLY_TESTS="$TEST"
+      fi
+    fi
+  done
+
+  if [[ -n "$SKIP_TESTS" ]]; then
+    SKIP_TESTS="${SKIP_TESTS//,/\",\"}"
+    LAUNCH_OPTIONS_JSON_STR+="\"skip_tests\":[\"$SKIP_TESTS\"]"
+
+    if [[ -n "$ONLY_TESTS" ]]; then
+      LAUNCH_OPTIONS_JSON_STR+=","
+    fi
+  fi
+
+  if [[ -n "$ONLY_TESTS" ]]; then
+    ONLY_TESTS="${ONLY_TESTS//,/\",\"}"
+    LAUNCH_OPTIONS_JSON_STR+="\"tests_to_run\":[\"$ONLY_TESTS\"]"
+  fi
 fi
 
 if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
