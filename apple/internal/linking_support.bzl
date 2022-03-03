@@ -75,7 +75,6 @@ def _register_linking_action(
         bundle_loader = None,
         entitlements = None,
         extra_linkopts = [],
-        extra_link_inputs = [],
         platform_prerequisites,
         stamp):
     """Registers linking actions using the Starlark Linking API for Apple binaries.
@@ -99,7 +98,6 @@ def _register_linking_action(
             binary or bundle being built. The entitlements will be embedded in a special section
             of the binary.
         extra_linkopts: Extra linkopts to add to the linking action.
-        extra_link_inputs: Extra input files to the linking action.
         platform_prerequisites: The platform prerequisites.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
@@ -124,7 +122,6 @@ def _register_linking_action(
     """
     linkopts = []
     link_inputs = []
-    link_inputs.extend(extra_link_inputs)
 
     # Add linkopts/linker inputs that are common to all the rules.
     for exported_symbols_list in ctx.files.exported_symbols_lists:
