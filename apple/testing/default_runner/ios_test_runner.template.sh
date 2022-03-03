@@ -61,11 +61,13 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
   cp -RL "$TEST_BUNDLE_PATH" "$TMP_DIR"
   chmod -R 777 "${TMP_DIR}/$(basename "$TEST_BUNDLE_PATH")"
   runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
+  test_binary="$TEST_BUNDLE_PATH/$(basename "$TEST_BUNDLE_PATH" .xctest)"
 else
   TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
   TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
   unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
   runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
+  test_binary="${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest/$TEST_BUNDLE_NAME"
 fi
 
 
@@ -99,6 +101,16 @@ fi
 LAUNCH_OPTIONS_JSON_STR=""
 
 TEST_ENV="%(test_env)s"
+readonly profraw="$TMP_DIR/coverage.profraw"
+if [[ "${COVERAGE:-}" -eq 1 ]]; then
+  readonly profile_env="LLVM_PROFILE_FILE=$profraw"
+  if [[ -n "$TEST_ENV" ]]; then
+    TEST_ENV="$TEST_ENV,$profile_env"
+  else
+    TEST_ENV="$profile_env"
+  fi
+fi
+
 if [[ -n "${TEST_ENV}" ]]; then
   # Converts the test env string to json format and addes it into launch
   # options string.
@@ -176,5 +188,33 @@ cmd=("%(testrunner_binary)s"
   "${target_flags[@]}"
   "${custom_xctestrunner_args[@]}")
 "${cmd[@]}" 2>&1
-status=$?
-exit ${status}
+
+if [[ "${COVERAGE:-}" -ne 1 ]]; then
+  # Normal tests run without coverage
+  exit 0
+fi
+
+readonly profdata="$TMP_DIR/coverage.profdata"
+xcrun llvm-profdata merge "$profraw" --output "$profdata"
+
+readonly error_file="$TMP_DIR/llvm-cov-error.txt"
+llvm_cov_status=0
+xcrun llvm-cov \
+  export \
+  -format lcov \
+  -instr-profile "$profdata" \
+  -ignore-filename-regex='.*external/.+' \
+  -path-equivalence="$ROOT",. \
+  "$test_binary" \
+  @"$COVERAGE_MANIFEST" \
+  > "$COVERAGE_OUTPUT_FILE" \
+  2> "$error_file" \
+  || llvm_cov_status=$?
+
+# Error ourselves if lcov outputs warnings, such as if we misconfigure
+# something and the file path of one of the covered files doesn't exist
+if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
+  echo "error: while exporting coverage report" >&2
+  cat "$error_file" >&2
+  exit 1
+fi
