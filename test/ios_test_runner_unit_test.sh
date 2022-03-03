@@ -445,6 +445,7 @@ function test_ios_unit_test_with_multi_filter() {
   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
+
 function test_ios_unit_test_with_host_with_filter() {
   create_sim_runners
   create_test_host_app
