@@ -163,7 +163,6 @@ def _register_linking_action(
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         stamp = stamp,
-        should_lipo = False,
     )
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
