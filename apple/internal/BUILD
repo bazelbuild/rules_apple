@@ -366,7 +366,9 @@ bzl_library(
 bzl_library(
     name = "resources",
     srcs = ["resources.bzl"],
-    visibility = ["//apple:__subpackages__"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
     deps = [
         "//apple:providers",
         "//apple/internal/partials/support:resources_support",
@@ -451,7 +453,9 @@ bzl_library(
 bzl_library(
     name = "swift_support",
     srcs = ["swift_support.bzl"],
-    visibility = ["//apple:__subpackages__"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
     deps = [
         "@build_bazel_rules_swift//swift",
     ],

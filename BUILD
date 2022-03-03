@@ -23,5 +23,7 @@ filegroup(
         "@subpar//:subpar.bzl",
         "@xctestrunner//:for_bazel_tests",
     ],
-    visibility = ["//:__subpackages__"],
+    visibility = [
+        "//:__subpackages__",
+    ],
 )
