@@ -61,7 +61,9 @@ filegroup(
         "apple_shell_testutils.sh",
         "unittest.bash",
     ],
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
 )
 
 # Gather external dependencies into a target that can be injected into the
