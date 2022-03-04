@@ -101,24 +101,24 @@ fi
 LAUNCH_OPTIONS_JSON_STR=""
 
 TEST_ENV="%(test_env)s"
+if [[ -n "$TEST_ENV" ]]; then
+  TEST_ENV="$TEST_ENV,TEST_SRCDIR=$TEST_SRCDIR"
+else
+  TEST_ENV="TEST_SRCDIR=$TEST_SRCDIR"
+fi
+
 readonly profraw="$TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"
-  if [[ -n "$TEST_ENV" ]]; then
-    TEST_ENV="$TEST_ENV,$profile_env"
-  else
-    TEST_ENV="$profile_env"
-  fi
+  TEST_ENV="$TEST_ENV,$profile_env"
 fi
 
-if [[ -n "${TEST_ENV}" ]]; then
-  # Converts the test env string to json format and addes it into launch
-  # options string.
-  TEST_ENV=$(echo "$TEST_ENV" | awk -F ',' '{for (i=1; i <=NF; i++) { d = index($i, "="); print substr($i, 1, d-1) "\":\"" substr($i, d+1); }}')
-  TEST_ENV=${TEST_ENV//$'\n'/\",\"}
-  TEST_ENV="{\"${TEST_ENV}\"}"
-  LAUNCH_OPTIONS_JSON_STR="\"env_vars\":${TEST_ENV}"
-fi
+# Converts the test env string to json format and addes it into launch
+# options string.
+TEST_ENV=$(echo "$TEST_ENV" | awk -F ',' '{for (i=1; i <=NF; i++) { d = index($i, "="); print substr($i, 1, d-1) "\":\"" substr($i, d+1); }}')
+TEST_ENV=${TEST_ENV//$'\n'/\",\"}
+TEST_ENV="{\"${TEST_ENV}\"}"
+LAUNCH_OPTIONS_JSON_STR="\"env_vars\":${TEST_ENV}"
 
 if [[ -n "${command_line_args}" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
