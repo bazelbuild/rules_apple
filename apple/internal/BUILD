@@ -444,6 +444,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "@bazel_skylib//lib:sets",
+        "@build_bazel_rules_swift//swift",
     ],
 )
 
