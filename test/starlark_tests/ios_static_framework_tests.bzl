@@ -38,15 +38,15 @@ def ios_static_framework_test_suite(name):
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_fmwk_with_swift_and_avoid_deps",
         contains = [
-            "$BUNDLE_ROOT/Modules/StaticFmwkUpperLib.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/StaticFmwkUpperLib.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftinterface",
         ],
-        binary_test_file = "$BUNDLE_ROOT/StaticFmwkUpperLib",
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwkUpperLib",
         binary_test_architecture = "x86_64",
-        binary_contains_symbols = ["_$s18StaticFmwkUpperLib5DummyVMf"],
+        binary_contains_symbols = ["_$s17SwiftFmwkUpperLib5DummyVMn"],
         binary_not_contains_symbols = [
-            "_$s18StaticFmwkLowerLib5DummyVMf",
-            "_$s19StaticFmwkLowestLib5DummyVMf",
+            "_$s17SwiftFmwkLowerLib5DummyVMn",
+            "_$s18SwiftFmwkLowestLib5DummyVMn",
         ],
         tags = [name],
     )
@@ -104,10 +104,10 @@ def ios_static_framework_test_suite(name):
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
         contains = [
-            "$BUNDLE_ROOT/Headers/StaticFmwkWithGenHeader.h",
+            "$BUNDLE_ROOT/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/StaticFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/StaticFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
         tags = [name],
     )
