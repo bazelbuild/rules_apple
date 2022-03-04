@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu
+set -euo pipefail
 
 newline=$'\n'
 
@@ -272,7 +272,8 @@ if [[ -n "${NOT_CONTAINS-}" ]]; then
     something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ -e $expanded_path ]]; then
-      fail "Archive did contain \"$expanded_path\""
+      fail "Archive did contain \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
     fi
   done
 fi
