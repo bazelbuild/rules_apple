@@ -18,6 +18,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
 load("@bazel_skylib//lib:sets.bzl", "sets")
 
 def _verify_found_module_name(*, bundle_name, found_module_name):
@@ -36,6 +40,17 @@ frameworks expect a single swift_library dependency with `module_name` set to th
             actual = found_module_name,
             expected = bundle_name,
         ))
+
+def _modules_from_avoid_deps(*, avoid_deps):
+    """Returns a set of module names found from the SwiftInfo providers of avoid_deps"""
+    avoid_swiftinfos = [t[SwiftInfo] for t in avoid_deps if SwiftInfo in t]
+    avoid_modules = sets.make()
+    for swiftinfo in avoid_swiftinfos:
+        for module in swiftinfo.transitive_modules.to_list():
+            if not module.swift:
+                continue
+            sets.insert(avoid_modules, module.name)
+    return avoid_modules
 
 def _swift_include_info(
         *,
@@ -212,6 +227,7 @@ def _declare_swiftinterface(
 
 swift_info_support = struct(
     verify_found_module_name = _verify_found_module_name,
+    modules_from_avoid_deps = _modules_from_avoid_deps,
     swift_include_info = _swift_include_info,
     declare_modulemap = _declare_modulemap,
     declare_generated_header = _declare_generated_header,
