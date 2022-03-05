@@ -449,6 +449,8 @@ function do_action() {
       # Explicitly pass these flags to ensure the external testing infrastructure
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
+      # TODO: Remove this once we can use the late bound coverage attribute
+      "--test_env=LCOV_MERGER=/usr/bin/true"
   )
 
   local bazel_version="$(bazel --version)"
