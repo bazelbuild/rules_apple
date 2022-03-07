@@ -23,9 +23,7 @@ COMPILATION_MODE_OPTIONS = ["--compilation_mode opt"]
 #
 # TODO(b/35091927): Here and below, switch to Bitcode mode "embedded".
 IOS_DEVICE_OPTIONS = COMPILATION_MODE_OPTIONS + ["--ios_multi_cpus=arm64,armv7"]
-IOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
-    "--ios_multi_cpus=i386,x86_64",
-]
+IOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS
 
 IOS_CONFIGURATIONS = {
     "device": IOS_DEVICE_OPTIONS,
@@ -45,7 +43,7 @@ IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS = {
     # "device_bitcode": IOS_DEVICE_OPTIONS + [
     #    "--apple_bitcode=embedded_markers",
     #],
-    "simulator": COMPILATION_MODE_OPTIONS + ["--ios_multi_cpus=x86_64"],
+    "simulator": COMPILATION_MODE_OPTIONS,
 }
 
 IOS_TEST_CONFIGURATIONS = {
