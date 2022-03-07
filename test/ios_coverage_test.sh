@@ -161,14 +161,14 @@ EOF
 
 function test_standalone_unit_test_coverage() {
   create_common_files
-  do_coverage ios --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test || fail "Should build"
 
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
 
 function test_hosted_unit_test_coverage() {
   create_common_files
-  do_coverage ios --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"
 
   # Validate normal coverage is included
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/hosted_test/coverage.dat"
