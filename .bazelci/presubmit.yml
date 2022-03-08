@@ -16,9 +16,9 @@ x_defaults:
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
-  macos_latest:
-    name: "Latest Bazel"
-    bazel: latest
+  macos_rolling:
+    name: "Rolling Bazel"
+    bazel: rolling
     <<: *common
 
   macos_last_green:
@@ -26,9 +26,9 @@ tasks:
     bazel: last_green
     <<: *common
 
-  macos_latest_head_deps:
-    name: "Latest Bazel with Head Deps"
-    bazel: latest
+  macos_rolling_head_deps:
+    name: "Rolling Bazel with Head Deps"
+    bazel: rolling
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
