@@ -160,7 +160,7 @@ def _register_linking_action(
     # TODO: This is a hack to support bazel 5.x and 6.x at the same time after
     # should_lipo was removed from the arguments list, but is still required
     # before that point. The addition of link_multi_arch_static_library probably
-    # doesn't line up perfectly, but should be good enough
+    # doesn't line up perfectly, but should be good enough.
     kwargs = {"should_lipo": False}
     if getattr(apple_common, "link_multi_arch_static_library", False):
         kwargs = {}
