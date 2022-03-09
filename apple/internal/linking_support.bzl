@@ -157,12 +157,20 @@ def _register_linking_action(
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
+    # TODO: This is a hack to support bazel 5.x and 6.x at the same time after
+    # should_lipo was removed from the arguments list, but is still required
+    # before that point. The addition of link_multi_arch_static_library probably
+    # doesn't line up perfectly, but should be good enough
+    kwargs = {"should_lipo": False}
+    if getattr(apple_common, "link_multi_arch_static_library", False):
+        kwargs = {}
     linking_outputs = apple_common.link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         stamp = stamp,
+        **kwargs
     )
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
