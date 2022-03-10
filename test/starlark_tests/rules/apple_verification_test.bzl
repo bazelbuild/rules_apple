@@ -189,6 +189,7 @@ def _apple_verification_test_impl(ctx):
         target_under_test[OutputGroupInfo],
     ]
 
+# Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {

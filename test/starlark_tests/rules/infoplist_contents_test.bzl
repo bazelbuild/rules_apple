@@ -98,9 +98,7 @@ def _infoplist_contents_test_impl(ctx):
         ),
     ]
 
-# TODO(b/131753996): Migrate this to analysistest.make instead. This is an ugly hack to be able to
-# use analysistest style tests, but still waiting for
-# https://github.com/bazelbuild/bazel-skylib/pull/140 to be merged and released.
+# Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
     attrs = {
