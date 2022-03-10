@@ -405,11 +405,6 @@ apple_shell_test(
         "--ios_multi_cpus=i386,x86_64",
     ],
     shard_count = 9,
-    tags = [
-        # Disable these tests on BuildKite because we can't guarantee that it
-        # has a version of Xcode installed that has 32-bit iOS simulators.
-        "manual",  # disabled in oss
-    ],
 )
 
 apple_shell_test(

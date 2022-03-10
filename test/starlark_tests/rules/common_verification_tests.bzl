@@ -267,10 +267,7 @@ def bitcode_symbol_map_test(
         },
         target_under_test = target_under_test,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/bitcode_verifier.sh",
-        tags = tags + [
-            # OSS Blocked by b/73546952
-            "manual",  # disabled in oss
-        ],
+        tags = tags,
     )
 
 def apple_symbols_file_test(

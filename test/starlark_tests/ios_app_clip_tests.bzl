@@ -101,11 +101,7 @@ def ios_app_clip_test_suite(name):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
-        tags = [
-            name,
-            # OSS Blocked by b/73547215
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     # Verifies that Info.plist contains correct package type
