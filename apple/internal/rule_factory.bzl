@@ -175,6 +175,13 @@ AppleTestRunnerInfo provider.
         cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
+    "_lcov_merger": attr.label(
+        default = configuration_field(
+            fragment = "coverage",
+            name = "output_generator",
+        ),
+        cfg = "exec",
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):
