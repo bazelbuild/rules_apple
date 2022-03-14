@@ -427,6 +427,6 @@ something similar to:
 
 Note: If your test target's name shares the same name as part of its subpath, this will not
 work i.e. naming your tests something like `ModelsTests` residing at `src/ModelsTests` then
-runfiles will break. To fix this rename the tests to something like `ModelsUnitTests`
+runfiles will break. To fix this rename the test target to something like `ModelsUnitTests`
 
 This issue is tracked [here](https://github.com/bazelbuild/bazel/issues/12312)
