@@ -410,13 +410,23 @@ ios_unit_test(
 To read this file from, for example, a Swift test, you'd get the path with
 something similar to:
 
-```
+``` swift
 // MyTest.swift
 
 ...
-  if let runfilesPath = ProcessInfo.processInfo.environment["TEST_SRCDIR"] {
-    let resourceFullPath = "\(runfilesPath)/\(workspaceName)/\(resourcePath)"
+  guard let runfilesPath = ProcessInfo.processInfo.environment["TEST_SRCDIR"],
+        let workspaceName = ProcessInfo.processInfo.environment["TEST_WORKSPACE"],
+        let binaryPath = ProcessInfo.processInfo.environment["TEST_BINARY"]
+  else {
+    fatalError("Unable to determine runfiles path")
   }
+  let resourceFullPath = "\(runfilesPath)/\(workspaceName)/\(binaryPath)\(resourcePath)"
 ...
 
 ```
+
+Note: If your test target's name shares the same name as part of its subpath, this will not
+work i.e. naming your tests something like `ModelsTests` residing at `src/ModelsTests` then
+runfiles will break. To fix this rename the tests to something like `ModelsUnitTests`
+
+This issue is tracked [here](https://github.com/bazelbuild/bazel/issues/12312)
