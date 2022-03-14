@@ -116,9 +116,15 @@ if [[ "${COVERAGE:-}" -eq 1 ]]; then
 fi
 
 XCTESTRUN_ENV=""
+COVERAGE_PRODUCE_JSON=false
 for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
   XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
+  if [[ "${COVERAGE:-}" -eq 1 ]]; then
+    if [[ "$key" = "COVERAGE_PRODUCE_JSON" && "$value" = "TRUE" ]]; then
+      COVERAGE_PRODUCE_JSON=true
+    fi
+  fi
 done
 
 # Replace the substitution values into the xctestrun file.
@@ -149,8 +155,8 @@ fi
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
-readonly error_file="$TEST_TMP_DIR/llvm-cov-error.txt"
-llvm_cov_status=0
+readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
+llvm_cov_export_status=0
 xcrun llvm-cov \
   export \
   -format lcov \
@@ -160,13 +166,34 @@ xcrun llvm-cov \
   "$test_binary" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
-  2> "$error_file" \
-  || llvm_cov_status=$?
+  2> "$export_error_file" \
+  || llvm_cov_export_status=$?
 
 # Error ourselves if lcov outputs warnings, such as if we misconfigure
 # something and the file path of one of the covered files doesn't exist
-if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
+if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
-  cat "$error_file" >&2
+  cat "$export_error_file" >&2
   exit 1
+fi
+
+llvm_cov_json_export_status=0
+if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+  mkdir -p "$TEST_UNDECLARED_OUTPUTS_DIR"
+  xcrun llvm-cov \
+    export \
+    -format text \
+    -instr-profile "$profdata" \
+    -ignore-filename-regex='.*external/.+' \
+    -path-equivalence="$ROOT",. \
+    "$test_binary" \
+    @"$COVERAGE_MANIFEST" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+      2> "$export_error_file" \
+      || llvm_cov_json_export_status=$?
+  if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
+    cat "$export_error_file" >&2
+    exit 1
+  fi
 fi
