@@ -109,37 +109,57 @@ _COMMON_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
-# Private attributes on rules that perform binary linking.
-_COMMON_BINARY_RULE_ATTRS = dicts.add(
-    {
-        "_cc_toolchain": attr.label(
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-        ),
+def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for Bazel Apple linking API's.
+
+    These rule attributes are required by both Bazel Apple linking API's under apple_common module:
+      - apple_common.link_multi_arch_binary
+      - apple_common.link_multi_arch_static_library
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return {
         "_child_configuration_dummy": attr.label(
-            cfg = apple_common.multi_arch_split,
+            cfg = cfg,
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
-        # Needed for the J2ObjC processing code that already exists in the implementation of
-        # apple_common.link_multi_arch_binary.
-        "_dummy_lib": attr.label(
-            cfg = apple_common.multi_arch_split,
-            default = Label("@bazel_tools//tools/objc:dummy_lib"),
-        ),
-        # Needed for the J2ObjC processing code that already exists in the implementation of
-        # apple_common.link_multi_arch_binary.
-        "_j2objc_dead_code_pruner": attr.label(
-            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
-        ),
-        # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
-        # apple_common.link_multi_arch_binary requires this attribute.
-        # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
-        "_xcrunwrapper": attr.label(
-            cfg = "host",
-            executable = True,
-            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-        ),
-    },
-)
+    }
+
+def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return dicts.add(
+        _common_linking_api_attrs(cfg = cfg),
+        {
+            # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
+            # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
+            # See CompilationSupport.java:
+            # - `registerJ2ObjcDeadCodeRemovalActions()`
+            # - `registerLinkActions()` --> `registerBinaryStripAction()`
+            # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
+            "_xcrunwrapper": attr.label(
+                cfg = "host",
+                executable = True,
+                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+            ),
+        },
+    )
+
+# Needed for the J2ObjC processing code that already exists in the implementation of
+# apple_common.link_multi_arch_binary.
+_J2OBJC_BINARY_LINKING_ATTRS = {
+    "_dummy_lib": attr.label(
+        cfg = apple_common.multi_arch_split,
+        default = Label("@bazel_tools//tools/objc:dummy_lib"),
+    ),
+    "_j2objc_dead_code_pruner": attr.label(
+        default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
+    ),
+}
 
 _COMMON_TEST_ATTRS = {
     "data": attr.label_list(
@@ -208,8 +228,14 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
 
     return dicts.add(
         _COMMON_ATTRS,
-        _COMMON_BINARY_RULE_ATTRS,
+        _J2OBJC_BINARY_LINKING_ATTRS,
+        _link_multi_arch_binary_attrs(),
         {
+            # This attribute is required by the Clang runtime libraries processing partial.
+            # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
+            "_cc_toolchain": attr.label(
+                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -1130,6 +1156,9 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     )
 
 rule_factory = struct(
+    common_bazel_attributes = struct(
+        link_multi_arch_binary_attrs = _link_multi_arch_binary_attrs,
+    ),
     common_tool_attributes = dicts.add(
         _COMMON_ATTRS,
         apple_support_toolchain_utils.shared_attrs(),
