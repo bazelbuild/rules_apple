@@ -770,25 +770,16 @@ def _apple_xcframework_impl(ctx):
 apple_xcframework = rule(
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
+        rule_factory.common_bazel_attributes.link_multi_arch_binary_attrs(
+            cfg = transition_support.xcframework_transition,
+        ),
         {
             "_allowlist_function_transition": attr.label(
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
-            "_child_configuration_dummy": attr.label(
-                cfg = transition_support.xcframework_transition,
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-            ),
-            "_cc_toolchain": attr.label(
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-            ),
             "_environment_plist_ios": attr.label(
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
-            ),
-            "_xcrunwrapper": attr.label(
-                cfg = "exec",
-                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-                executable = True,
             ),
             "bundle_id": attr.string(
                 doc = """
