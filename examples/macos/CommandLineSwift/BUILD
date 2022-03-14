@@ -11,12 +11,37 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load(
+    "@build_bazel_rules_apple//apple:macos.bzl",
+    "macos_unit_test",
+)
 
 licenses(["notice"])
 
 swift_library(
     name = "Sources",
-    srcs = ["Sources/main.swift"],
+    module_name = "Sources",
+    srcs = [
+        "Sources/main.swift",
+        "Sources/Logger.swift"
+    ],
+)
+
+swift_library(
+    name = "SourcesTests",
+    srcs = [
+        "Tests/LoggerTests.swift",
+        "Tests/MockLog.swift"
+    ],
+    deps = [
+        ":Sources"
+    ]
+)
+
+macos_unit_test(
+    name = "SourcesUnitTests",
+    deps = [":SourcesTests"],
+    minimum_os_version = "12.0"
 )
 
 apple_bundle_version(

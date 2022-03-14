@@ -1,4 +1,4 @@
-// Copyright 2017 The Bazel Authors. All rights reserved.
+// Copyright 2022 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
+@testable import Sources
 
-// Since the Info.plist file gets embedded in the binary, we can access values
-// like the bundle identifier using the NSBundle APIs.
-let bundle = Bundle.main
-let logger: Logger = .init(log: LogImp())
-logger.printHelloWorld(bundle: bundle)
+public final class MockLog: Log {
+
+    public private(set) var contents: String = ""
+
+    public init() {}
+
+    public func append(_ item: Any, terminator: String) {
+        contents += "\(item)\(terminator)"
+    }
+}

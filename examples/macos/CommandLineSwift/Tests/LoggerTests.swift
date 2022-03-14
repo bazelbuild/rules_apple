@@ -1,4 +1,4 @@
-// Copyright 2017 The Bazel Authors. All rights reserved.
+// Copyright 2022 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
+@testable import Sources
+import XCTest
 
-// Since the Info.plist file gets embedded in the binary, we can access values
-// like the bundle identifier using the NSBundle APIs.
-let bundle = Bundle.main
-let logger: Logger = .init(log: LogImp())
-logger.printHelloWorld(bundle: bundle)
+final class LoggerTests: XCTestCase {
+    var logger: Logger!
+    var log: MockLog!
+
+    override func setUp() {
+        super.setUp()
+        log = .init()
+        logger = Logger(log: log)
+    }
+
+    func testHelloWorld() {
+        logger.printHelloWorld(bundle: Bundle(for: Logger.self))
+        XCTAssertTrue(!log.contents.isEmpty)
+    }
+}
