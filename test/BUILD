@@ -341,11 +341,10 @@ apple_multi_shell_test(
     shard_count = 6,
 )
 
-apple_multi_shell_test(
+apple_shell_test(
     name = "ios_coverage_test",
     size = "medium",
     src = "ios_coverage_test.sh",
-    configurations = IOS_TEST_CONFIGURATIONS,
 )
 
 apple_multi_shell_test(
