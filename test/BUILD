@@ -341,6 +341,12 @@ apple_multi_shell_test(
     shard_count = 6,
 )
 
+apple_shell_test(
+    name = "ios_coverage_test",
+    size = "medium",
+    src = "ios_coverage_test.sh",
+)
+
 apple_multi_shell_test(
     name = "ios_ui_test_test",
     size = "medium",

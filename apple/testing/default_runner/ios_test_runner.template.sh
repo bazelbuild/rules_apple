@@ -61,13 +61,11 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
   cp -RL "$TEST_BUNDLE_PATH" "$TMP_DIR"
   chmod -R 777 "${TMP_DIR}/$(basename "$TEST_BUNDLE_PATH")"
   runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
-  test_binary="$TEST_BUNDLE_PATH/$(basename "$TEST_BUNDLE_PATH" .xctest)"
 else
   TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
   TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
   unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
   runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
-  test_binary="${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest/$TEST_BUNDLE_NAME"
 fi
 
 
@@ -229,15 +227,34 @@ fi
 readonly profdata="$TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
+lcov_args=(
+  -format lcov
+  -instr-profile "$profdata"
+  -ignore-filename-regex='.*external/.+'
+  -path-equivalence="$ROOT",.
+)
+has_binary=false
+IFS=";"
+arch=$(uname -m)
+for binary in $TEST_BINARIES_FOR_LLVM_COV; do
+  if [[ "$has_binary" == false ]]; then
+    lcov_args+=("${binary}")
+    has_binary=true
+    if file "$binary" | grep -q "executable $arch"; then
+      arch=x86_64
+    fi
+  else
+    lcov_args+=(-object "${binary}")
+  fi
+
+  lcov_args+=("-arch=$arch")
+done
+
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
   export \
-  -format lcov \
-  -instr-profile "$profdata" \
-  -ignore-filename-regex='.*external/.+' \
-  -path-equivalence="$ROOT",. \
-  "$test_binary" \
+  "${lcov_args[@]}" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
   2> "$error_file" \
