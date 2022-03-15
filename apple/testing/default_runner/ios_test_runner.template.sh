@@ -235,13 +235,19 @@ lcov_args=(
 )
 has_binary=false
 IFS=";"
+arch=$(uname -m)
 for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   if [[ "$has_binary" == false ]]; then
     lcov_args+=("${binary}")
     has_binary=true
+    if file "$binary" | grep -q "executable $arch"; then
+      arch=x86_64
+    fi
   else
-    lcov_args+=(-object ${binary})
+    lcov_args+=(-object "${binary}")
   fi
+
+  lcov_args+=("-arch=$arch")
 done
 
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
