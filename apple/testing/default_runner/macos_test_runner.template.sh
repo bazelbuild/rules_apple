@@ -116,15 +116,9 @@ if [[ "${COVERAGE:-}" -eq 1 ]]; then
 fi
 
 XCTESTRUN_ENV=""
-COVERAGE_PRODUCE_JSON=false
 for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
   XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
-  if [[ "${COVERAGE:-}" -eq 1 ]]; then
-    if [[ "$key" = "COVERAGE_PRODUCE_JSON" && "$value" = "TRUE" ]]; then
-      COVERAGE_PRODUCE_JSON=true
-    fi
-  fi
 done
 
 # Replace the substitution values into the xctestrun file.
@@ -178,7 +172,7 @@ if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
 fi
 
 llvm_cov_json_export_status=0
-if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+if [[ "$TEST_ENV" =~ "COVERAGE_PRODUCE_JSON" ]]; then
   mkdir -p "$TEST_UNDECLARED_OUTPUTS_DIR"
   xcrun llvm-cov \
     export \
@@ -189,9 +183,9 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     "$test_binary" \
     @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
-      2> "$export_error_file" \
-      || llvm_cov_json_export_status=$?
-  if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
+    2> "$export_error_file" \
+    || llvm_cov_json_export_status=$?
+  if [[ -s "$export_error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
     echo "error: while exporting json coverage report" >&2
     cat "$export_error_file" >&2
     exit 1

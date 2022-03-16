@@ -129,7 +129,7 @@ fi
 
 # Use the TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
 # flag to set tests_to_run value in ios_test_runner's launch_options.
-# Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests 
+# Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests
 # is passed to "tests_to_run"
 if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
@@ -266,4 +266,27 @@ if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
   cat "$error_file" >&2
   exit 1
+fi
+
+llvm_cov_json_export_status=0
+if [[ "$TEST_ENV" =~ "COVERAGE_PRODUCE_JSON" ]]; then
+  mkdir -p "$TEST_UNDECLARED_OUTPUTS_DIR"
+  lcov_args=(
+    -format text
+    -instr-profile "$profdata"
+    -ignore-filename-regex='.*external/.+'
+    -path-equivalence="$ROOT",.
+  )
+  xcrun llvm-cov \
+    export \
+    "${lcov_args[@]}" \
+    @"$COVERAGE_MANIFEST" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+    2> "$error_file" \
+    || llvm_cov_json_export_status=$?
+  if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
+    cat "$error_file" >&2
+    exit 1
+  fi
 fi
