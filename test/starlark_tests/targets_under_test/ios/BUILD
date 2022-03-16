@@ -492,6 +492,25 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_swift_concurrency_dep",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "13.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
 ios_static_framework(
     name = "swift_static_framework",
     bundle_name = "swift_framework_lib",

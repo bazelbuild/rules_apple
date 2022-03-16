@@ -124,6 +124,13 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_concurrency_lib",
+    testonly = True,
+    srcs = ["concurrency.swift"],
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
     name = "swift_transitive_lib",
     testonly = True,
     srcs = ["Transitives.swift"],

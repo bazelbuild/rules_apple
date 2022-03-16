@@ -363,6 +363,19 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_libswiftconcurrency_copied_lt_ios_15_0_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_concurrency_dep",
+        tags = [name],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+    )
+
     # Tests that the provisioning profile is present when built for device.
     archive_contents_test(
         name = "{}_contains_provisioning_profile_test".format(name),
