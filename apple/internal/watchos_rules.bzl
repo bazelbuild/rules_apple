@@ -155,7 +155,7 @@ def _watchos_dynamic_framework_impl(ctx):
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
@@ -596,7 +596,7 @@ def _watchos_extension_impl(ctx):
     else:
         extra_linkopts = []
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = linking_entitlements,
         extra_linkopts = extra_linkopts,

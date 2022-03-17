@@ -159,7 +159,7 @@ def _ios_application_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = linking_entitlements,
@@ -448,7 +448,7 @@ def _ios_app_clip_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = linking_entitlements,
@@ -699,7 +699,7 @@ def _ios_framework_impl(ctx):
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
@@ -921,7 +921,7 @@ def _ios_extension_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = linking_entitlements,
@@ -1164,7 +1164,7 @@ def _ios_dynamic_framework_impl(ctx):
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
@@ -1652,7 +1652,7 @@ def _ios_imessage_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = linking_entitlements,
