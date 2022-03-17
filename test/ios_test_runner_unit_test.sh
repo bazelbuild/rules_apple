@@ -132,10 +132,13 @@ EOF
 import XCTest
 
 class PassingUnitTest : XCTestCase {
-
   func testPass() throws {
     let result = 1 + 1;
     XCTAssertEqual(result, 2, "should pass");
+  }
+
+  func testSrcdirSet() {
+    XCTAssertNotNil(ProcessInfo.processInfo.environment["TEST_SRCDIR"])
   }
 }
 EOF
@@ -399,7 +402,7 @@ function test_ios_unit_swift_test_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
-  expect_log "Executed 1 test, with 0 failures"
+  expect_log "Executed 2 tests, with 0 failures"
 }
 
 function test_ios_unit_test_fail() {
@@ -456,6 +459,48 @@ function test_ios_unit_test_with_host_with_filter() {
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_with_host_and_skip_filter() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=-PassingUnitTest/testPass //ios:PassingWithHost || fail "should pass"
+
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 3 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_host_and_multi_skip_filter() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=-PassingUnitTest/testPass,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
+
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_host_and_skip_and_only_filters() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
+
+  expect_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_test_with_env() {

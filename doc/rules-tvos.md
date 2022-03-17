@@ -320,7 +320,7 @@ Note: tvOS UI tests are not currently supported in the default test runner.
 
 The following is a list of the `tvos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 
 
 **ATTRIBUTES**
@@ -363,7 +363,7 @@ find more information about app and library testing for Apple platforms
 
 The following is a list of the `tvos_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/versions/master/docs/be/common-definitions.html#common-attributes-tests).
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 
 
 **ATTRIBUTES**
