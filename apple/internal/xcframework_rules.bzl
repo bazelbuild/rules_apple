@@ -89,21 +89,22 @@ load(
 )
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
-def _lipoed_link_outputs_by_framework(
+def _group_link_outputs_by_library_identifier(
         *,
         actions,
         apple_fragment,
         label_name,
-        link_result_outputs,
+        link_result,
         xcode_config):
-    """Lipos binaries when necessary and returns a list of lipoed outputs with platform information.
+    """Groups linking outputs by library identifier with additional platform information.
+
+    Linking outputs artifacts are combined using the lipo tool if necessary due to grouping.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         label_name: Name of the target being built.
-        link_result_outputs: The list of outputs from the struct returned by
-            `linking_support.register_binary_linking_action`.
+        link_result: The struct returned by `linking_support.register_binary_linking_action`.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
     Returns:
@@ -116,20 +117,29 @@ def _lipoed_link_outputs_by_framework(
         `linkmaps` which is a mapping of architectures to linkmaps if any were created,  and
         `platform` to reference the target platform the binary was built for.
     """
+    linking_type = None
+    for attr_name in ["binary", "library"]:
+        if hasattr(link_result, attr_name):
+            linking_type = attr_name
+            break
+
+    if not linking_type:
+        fail("Apple linking APIs output struct must define either 'binary' or 'library'.\n" +
+             "This is most likely a rules_apple bug, please file a bug with reproduction steps.")
 
     # Organize each output as a platform_environment, where each can accept one or more archs.
     link_outputs_by_framework = {}
 
     # Iterate through the outputs of the registered linking action, match archs to platform and
     # environment combinations.
-    for link_output in link_result_outputs:
+    for link_output in link_result.outputs:
         framework_key = link_output.platform + "_" + link_output.environment
         if link_outputs_by_framework.get(framework_key):
             link_outputs_by_framework[framework_key].append(link_output)
         else:
             link_outputs_by_framework[framework_key] = [link_output]
 
-    lipoed_link_outputs_by_framework = []
+    link_outputs_by_library_identifier = {}
 
     # Iterate through the structure again, this time creating a structure equivalent to link_result
     # .outputs but with .architecture replaced with .architectures, .bitcode_symbols replaced with
@@ -137,10 +147,10 @@ def _lipoed_link_outputs_by_framework(
     # .linkmaps
     for framework_key, link_outputs in link_outputs_by_framework.items():
         fat_binary = actions.declare_file("{}_{}".format(label_name, framework_key))
-
+        inputs = [getattr(output, linking_type) for output in link_outputs]
         linking_support.lipo_or_symlink_inputs(
             actions = actions,
-            inputs = [output.binary for output in link_outputs],
+            inputs = inputs,
             output = fat_binary,
             apple_fragment = apple_fragment,
             xcode_config = xcode_config,
@@ -157,17 +167,26 @@ def _lipoed_link_outputs_by_framework(
             dsym_binaries[link_output.architecture] = link_output.dsym_binary
             linkmaps[link_output.architecture] = link_output.linkmap
 
-        lipoed_link_outputs_by_framework.append(struct(
+        environment = link_outputs[0].environment
+        platform = link_outputs[0].platform
+
+        library_identifier = _library_identifier(
+            architectures = architectures,
+            environment = environment,
+            platform = platform,
+        )
+
+        link_outputs_by_library_identifier[library_identifier] = struct(
             architectures = architectures,
             binary = fat_binary,
             bitcode_symbol_maps = bitcode_symbol_maps,
             dsym_binaries = dsym_binaries,
-            environment = link_outputs[0].environment,
+            environment = environment,
             linkmaps = linkmaps,
-            platform = link_outputs[0].platform,
-        ))
+            platform = platform,
+        )
 
-    return lipoed_link_outputs_by_framework
+    return link_outputs_by_library_identifier
 
 def _library_identifier(*, architectures, environment, platform):
     """Return a unique identifier for an embedded framework to disambiguate it from others.
@@ -445,11 +464,11 @@ def _apple_xcframework_impl(ctx):
         stamp = ctx.attr.stamp,
     )
 
-    lipoed_link_outputs_by_framework = _lipoed_link_outputs_by_framework(
+    link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
         apple_fragment = ctx.fragments.apple,
         label_name = label.name,
-        link_result_outputs = link_result.outputs,
+        link_result = link_result,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
@@ -460,7 +479,7 @@ def _apple_xcframework_impl(ctx):
     framework_output_files = []
     framework_output_groups = []
 
-    for link_output in lipoed_link_outputs_by_framework:
+    for library_identifier, link_output in link_outputs_by_library_identifier.items():
         split_attr_keys = []
         for architecture in link_output.architectures:
             split_attr_keys.append(
@@ -472,12 +491,6 @@ def _apple_xcframework_impl(ctx):
             )
 
         binary_artifact = link_output.binary
-
-        library_identifier = _library_identifier(
-            architectures = link_output.architectures,
-            environment = link_output.environment,
-            platform = link_output.platform,
-        )
 
         rule_descriptor = rule_support.rule_descriptor_no_ctx(
             link_output.platform,
