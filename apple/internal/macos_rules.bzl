@@ -136,7 +136,7 @@ def _macos_application_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -363,7 +363,7 @@ def _macos_bundle_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         bundle_loader = ctx.attr.bundle_loader,
         entitlements = entitlements,
@@ -547,7 +547,7 @@ def _macos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -743,7 +743,7 @@ def _macos_quick_look_plugin_impl(ctx):
         "-install_name",
         "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         extra_linkopts = extra_linkopts,
@@ -932,7 +932,7 @@ def _macos_kernel_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1116,7 +1116,7 @@ def _macos_spotlight_importer_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1299,7 +1299,7 @@ def _macos_xpc_service_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1464,7 +1464,7 @@ def _macos_command_line_application_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         # Command-line applications do not have entitlements.
         entitlements = None,
@@ -1557,7 +1557,7 @@ def _macos_dylib_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     rule_descriptor = rule_support.rule_descriptor(ctx)
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         # Dynamic libraries do not have entitlements.
         entitlements = None,

@@ -149,7 +149,7 @@ def _ios_application_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
@@ -430,7 +430,7 @@ def _ios_app_clip_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
@@ -662,7 +662,7 @@ def _ios_framework_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
@@ -882,7 +882,7 @@ def _ios_extension_impl(ctx):
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
@@ -1360,7 +1360,7 @@ def _ios_imessage_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,

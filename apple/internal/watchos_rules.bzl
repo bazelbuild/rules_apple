@@ -348,7 +348,7 @@ def _watchos_extension_impl(ctx):
     else:
         extra_linkopts = []
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         extra_linkopts = extra_linkopts,

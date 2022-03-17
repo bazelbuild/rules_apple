@@ -133,7 +133,7 @@ def _tvos_application_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
@@ -359,7 +359,7 @@ def _tvos_framework_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
@@ -563,7 +563,7 @@ def _tvos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,

@@ -68,7 +68,7 @@ def _parse_platform_key(key):
     arch, _, environment = rest.rpartition("_")
     return struct(platform = platform, arch = arch, environment = environment)
 
-def _register_linking_action(
+def _register_binary_linking_action(
         ctx,
         *,
         avoid_deps = [],
@@ -210,6 +210,6 @@ def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_confi
 linking_support = struct(
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     parse_platform_key = _parse_platform_key,
-    register_linking_action = _register_linking_action,
+    register_binary_linking_action = _register_binary_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )

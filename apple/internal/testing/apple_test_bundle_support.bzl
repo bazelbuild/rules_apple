@@ -300,7 +300,7 @@ def _apple_test_bundle_impl(ctx):
     else:
         bundle_loader = None
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,

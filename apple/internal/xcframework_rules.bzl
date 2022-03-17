@@ -103,7 +103,7 @@ def _lipoed_link_outputs_by_framework(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         label_name: Name of the target being built.
         link_result_outputs: The list of outputs from the struct returned by
-            `linking_support.register_linking_action`.
+            `linking_support.register_binary_linking_action`.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
     Returns:
@@ -429,7 +429,7 @@ def _apple_xcframework_impl(ctx):
         if framework_type != "dynamic":
             fail("Unsupported framework_type found: " + framework_type)
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         # Frameworks do not have entitlements.
         entitlements = None,
