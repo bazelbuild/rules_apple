@@ -546,7 +546,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_apple_support//lib:lipo",
         "@build_bazel_rules_swift//swift",
     ],
 )
