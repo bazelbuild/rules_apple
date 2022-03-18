@@ -866,3 +866,15 @@ apple_universal_binary(
     platform_type = "macos",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
+
+apple_universal_binary(
+    name = "multi_arch_forced_cpus_cc_binary",
+    binary = "//test/starlark_tests/resources:cc_test_binary",
+    forced_cpus = [
+        "x86_64",
+        "arm64",
+    ],
+    minimum_os_version = "11.0",
+    platform_type = "macos",
+    tags = TARGETS_UNDER_TEST_TAGS,
+)

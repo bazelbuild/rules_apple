@@ -16,6 +16,30 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
+_PLATFORM_TYPE_TO_CPU_FLAG = {
+    "ios": "//command_line_option:ios_multi_cpus",
+    "macos": "//command_line_option:macos_cpus",
+    "tvos": "//command_line_option:tvos_cpus",
+    "watchos": "//command_line_option:watchos_cpus",
+}
+
+def _platform_specific_cpu_setting_name(platform_type):
+    """Returns the name of a platform-specific CPU setting.
+
+    Args:
+        platform_type: A string denoting the platform type; `"ios"`, `"macos"`,
+            `"tvos"`, or `"watchos"`.
+
+    Returns:
+        The `"//command_line_option:..."` string that is used as the key for the
+        CPU flag of the given platform in settings dictionaries. This function
+        never returns `None`; if the platform type is invalid, the build fails.
+    """
+    flag = _PLATFORM_TYPE_TO_CPU_FLAG.get(platform_type, None)
+    if not flag:
+        fail("ERROR: Unknown platform type: {}".format(platform_type))
+    return flag
+
 def _cpu_string(*, cpu, platform_type, settings = {}):
     """Generates a <platform>_<arch> string for the current target based on the given parameters.
 
@@ -372,6 +396,12 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
 ]
+_apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_outputs + [
+    "//command_line_option:ios_multi_cpus",
+    "//command_line_option:macos_cpus",
+    "//command_line_option:tvos_cpus",
+    "//command_line_option:watchos_cpus",
+]
 
 _apple_rule_base_transition = transition(
     implementation = _apple_rule_base_transition_impl,
@@ -394,6 +424,45 @@ _apple_rule_arm64_as_arm64e_transition = transition(
     implementation = _apple_rule_arm64_as_arm64e_transition_impl,
     inputs = _apple_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs + ["//command_line_option:macos_cpus"],
+)
+
+def _apple_universal_binary_rule_transition_impl(settings, attr):
+    """Rule transition for `apple_universal_binary` supporting forced CPUs."""
+    forced_cpus = attr.forced_cpus
+    platform_type = attr.platform_type
+    new_settings = dict(settings)
+
+    # If forced CPUs were given, first we overwrite the existing CPU settings
+    # for the target's platform type with those CPUs. We do this before applying
+    # the base rule transition in case it wants to read that setting.
+    if forced_cpus:
+        new_settings[_platform_specific_cpu_setting_name(platform_type)] = forced_cpus
+
+    # Next, apply the base transition and get its output settings.
+    new_settings = _apple_rule_base_transition_impl(new_settings, attr)
+
+    # The output settings from applying the base transition won't have the
+    # platform-specific CPU flags, so we need to re-apply those before returning
+    # our result. For the target's platform type, use the forced CPUs if they
+    # were given or use the original value otherwise. For every other platform
+    # type, re-propagate the original input.
+    #
+    # Note that even if we don't have `forced_cpus`, we must provide values for
+    # all of the platform-specific CPU flags because they are declared outputs
+    # of the transition; the build will fail at analysis time if any are
+    # missing.
+    for other_type, flag in _PLATFORM_TYPE_TO_CPU_FLAG.items():
+        if forced_cpus and platform_type == other_type:
+            new_settings[flag] = forced_cpus
+        else:
+            new_settings[flag] = settings[flag]
+
+    return new_settings
+
+_apple_universal_binary_rule_transition = transition(
+    implementation = _apple_universal_binary_rule_transition_impl,
+    inputs = _apple_rule_base_transition_inputs,
+    outputs = _apple_universal_binary_rule_transition_outputs,
 )
 
 def _static_framework_transition_impl(_settings, _attr):
@@ -488,6 +557,7 @@ _xcframework_native_lipo_transition = transition(
 transition_support = struct(
     apple_rule_transition = _apple_rule_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
+    apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
     static_framework_transition = _static_framework_transition,
     xcframework_split_attr_key = _xcframework_split_attr_key,
     xcframework_transition = _xcframework_transition,
