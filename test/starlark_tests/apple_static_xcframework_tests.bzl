@@ -36,12 +36,12 @@ def apple_static_xcframework_test_suite(name):
             # libraries rather than specify which architectures were identified.
             "AvailableLibraries:0:HeadersPath": "Headers",
             "AvailableLibraries:0:LibraryIdentifier": "ios-arm64*",
-            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework.apple_static_library_lipo.a",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework_ios_*.a",
             "AvailableLibraries:0:SupportedArchitectures": "*",
             "AvailableLibraries:0:SupportedPlatform": "ios",
             "AvailableLibraries:1:HeadersPath": "Headers",
             "AvailableLibraries:1:LibraryIdentifier": "ios-arm64*",
-            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework.apple_static_library_lipo.a",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework_ios_*.a",
             "AvailableLibraries:1:SupportedArchitectures": "*",
             "AvailableLibraries:1:SupportedPlatform": "ios",
             "CFBundlePackageType": "XFWK",
@@ -56,9 +56,9 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
         contains = [
             "$BUNDLE_ROOT/ios-arm64/Headers/shared.h",
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework.apple_static_library_lipo.a",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_ios_device.a",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/shared.h",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework.apple_static_library_lipo.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_ios_simulator.a",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],
@@ -70,18 +70,30 @@ def apple_static_xcframework_test_suite(name):
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_avoid_deps",
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_avoid_deps_ios_device.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps_ios_simulator.a",
             "$BUNDLE_ROOT/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/ios-arm64/Headers/DummyFmwk.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/DummyFmwk.h",
         ],
-        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps.apple_static_library_lipo.a",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_avoid_deps_ios_simulator.a",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_doStuff"],
         binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+
+    # Verifies that the include scanning feature builds for the given XCFramework rule.
+    archive_contents_test(
+        name = "{}_ios_arm64_cc_include_scanning_test".format(name),
+        build_type = "device",
+        target_features = ["cc_include_scanning"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_ios_device.a",
+        ],
         tags = [name],
     )
 
