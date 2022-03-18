@@ -130,6 +130,14 @@ def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
         ),
     }
 
+def _link_multi_arch_static_library_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return _common_linking_api_attrs(cfg = cfg)
+
 def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
     """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
 
@@ -1271,6 +1279,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
 rule_factory = struct(
     common_bazel_attributes = struct(
         link_multi_arch_binary_attrs = _link_multi_arch_binary_attrs,
+        link_multi_arch_static_library_attrs = _link_multi_arch_static_library_attrs,
     ),
     common_tool_attributes = dicts.add(
         _COMMON_ATTRS,
