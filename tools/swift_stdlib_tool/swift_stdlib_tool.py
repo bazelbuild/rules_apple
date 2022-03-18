@@ -32,8 +32,8 @@ def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_paths, sdk_platform,
   # these binaries require.
   developer_dir = os.environ["DEVELOPER_DIR"]
   swift_library_dirs = [
-    os.path.join(developer_dir, x, sdk_platform)
-    for x in swift_dylibs_paths
+    os.path.join(developer_dir, dylibs_path, sdk_platform)
+    for dylibs_path in swift_dylibs_paths
   ]
 
   cmd = [
