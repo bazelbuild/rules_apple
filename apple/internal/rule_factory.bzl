@@ -1043,6 +1043,7 @@ def _create_apple_binary_rule(
         implementation,
         doc,
         additional_attrs = {},
+        cfg = transition_support.apple_rule_transition,
         implicit_outputs = None,
         platform_type = None,
         product_type = None,
@@ -1137,7 +1138,7 @@ binaries/libraries will be created combining all architectures specified by
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = transition_support.apple_rule_transition,
+        cfg = cfg,
         doc = doc,
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],

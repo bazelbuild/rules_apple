@@ -29,11 +29,9 @@ def apple_universal_binary_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
-    test_target = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary"
-
     analysis_target_outputs_test(
         name = "{}_output_test".format(name),
-        target_under_test = test_target,
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary",
         expected_outputs = ["multi_arch_cc_binary"],
         tags = [name],
     )
@@ -42,7 +40,7 @@ def apple_universal_binary_test_suite(name):
         name = "{}_x86_binary_contents_test".format(name),
         build_type = "device",
         macos_cpus = ["x86_64", "arm64"],
-        target_under_test = test_target,
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["__Z19function_for_x86_64v"],
@@ -54,10 +52,43 @@ def apple_universal_binary_test_suite(name):
         name = "{}_arm64_binary_contents_test".format(name),
         build_type = "device",
         macos_cpus = ["x86_64", "arm64"],
-        target_under_test = test_target,
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         binary_contains_symbols = ["__Z19function_for_arch64v"],
         binary_not_contains_symbols = ["__Z19function_for_x86_64v"],
+        tags = [name],
+    )
+
+    # The following two tests verify the `forced_cpus` behavior. They set the
+    # `macos_cpus` to be a single CPU (the opposite CPU from the one being
+    # checked in each test), then verify that the other slice still exists (thus
+    # `forced_cpus` overrode the `--macos_cpus` flag correctly).
+    binary_contents_test(
+        name = "{}_forced_cpus_x86_binary_contents_test".format(name),
+        build_type = "device",
+        macos_cpus = ["arm64"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_forced_cpus_cc_binary",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["__Z19function_for_x86_64v"],
+        binary_not_contains_symbols = ["__Z19function_for_arch64v"],
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_forced_cpus_arm64_binary_contents_test".format(name),
+        build_type = "device",
+        macos_cpus = ["x86_64"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_forced_cpus_cc_binary",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["__Z19function_for_arch64v"],
+        binary_not_contains_symbols = ["__Z19function_for_x86_64v"],
+        tags = [name],
+    )
+
+    native.test_suite(
+        name = name,
         tags = [name],
     )
