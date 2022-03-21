@@ -31,18 +31,16 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
         plist_test_file = "$BUNDLE_ROOT/Info.plist",
         plist_test_values = {
-            # The array positioning of these plist values will change between runs of the
-            # underlying xcodebuild -create-xcframework tool, requiring we do a fuzzy match for two
-            # libraries rather than specify which architectures were identified.
             "AvailableLibraries:0:HeadersPath": "Headers",
-            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64*",
-            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework_ios_*.a",
-            "AvailableLibraries:0:SupportedArchitectures": "*",
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework_ios_device.a",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
             "AvailableLibraries:0:SupportedPlatform": "ios",
             "AvailableLibraries:1:HeadersPath": "Headers",
-            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64*",
-            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework_ios_*.a",
-            "AvailableLibraries:1:SupportedArchitectures": "*",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework_ios_simulator.a",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
             "AvailableLibraries:1:SupportedPlatform": "ios",
             "CFBundlePackageType": "XFWK",
             "XCFrameworkFormatVersion": "1.0",
