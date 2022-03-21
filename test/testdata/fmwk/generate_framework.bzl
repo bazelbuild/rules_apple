@@ -113,7 +113,7 @@ Determines if the framework will be built as a dynamic framework or a static fra
 """,
         ),
         "_generate_framework_script": attr.label(
-            cfg = "host",
+            cfg = "exec",
             allow_files = True,
             default = Label(
                 "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework.py",

@@ -95,7 +95,7 @@ def _apple_support_toolchain_impl(ctx):
 apple_support_toolchain = rule(
     attrs = {
         "bundletool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
@@ -103,7 +103,7 @@ paths to build the directory structure for those files.
 """,
         ),
         "bundletool_experimental": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
@@ -111,27 +111,27 @@ post-processing, and signing steps into a single action that eliminates the arch
 """,
         ),
         "clangrttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to find all Clang runtime libs linked to a binary.",
         ),
         "codesigningtool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
         "dossier_codesigningtool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in generating signing dossiers.",
         ),
         "dsym_info_plist_template": attr.label(
-            cfg = "host",
+            cfg = "exec",
             allow_single_file = True,
             doc = "A `File` referencing a plist template for dSYM bundles.",
         ),
         "imported_dynamic_framework_processor": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to process an imported dynamic framework such that the given framework
@@ -141,7 +141,7 @@ artifact.
 """,
         ),
         "plisttool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
@@ -153,21 +153,21 @@ conversion of plist files to binary format.
             doc = "A `File` referencing a template for a shell script to process and sign.",
         ),
         "provisioning_profile_tool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that extracts entitlements from a provisioning profile.
 """,
         ),
         "swift_stdlib_tool": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.
 """,
         ),
         "xctoolrunner": attr.label(
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool that acts as a wrapper for xcrun actions.",
         ),

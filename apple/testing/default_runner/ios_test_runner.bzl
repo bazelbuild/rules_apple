@@ -98,7 +98,7 @@ By default, it is the latest supported version of the device type.'
             ),
             allow_single_file = True,
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.

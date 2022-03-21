@@ -100,7 +100,7 @@ def _is_test_product_type(product_type):
 _COMMON_ATTRS = dicts.add(
     {
         "_grep_includes": attr.label(
-            cfg = "host",
+            cfg = "exec",
             allow_single_file = True,
             executable = True,
             default = Label("@bazel_tools//tools/cpp:grep-includes"),
@@ -150,7 +150,7 @@ def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
             # - `registerLinkActions()` --> `registerBinaryStripAction()`
             # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
             "_xcrunwrapper": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 executable = True,
                 default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
             ),
@@ -201,17 +201,17 @@ AppleTestRunnerInfo provider.
         providers = [AppleBundleInfo],
     ),
     "_apple_coverage_support": attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
     # gcov and mcov are binary files required to calculate test coverage.
     "_gcov": attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("@bazel_tools//tools/objc:gcov"),
         allow_single_file = True,
     ),
     "_mcov": attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("@bazel_tools//tools/objc:mcov"),
         allow_single_file = True,
     ),
@@ -355,7 +355,7 @@ of the target will be used instead.
         "ipa_post_processor": attr.label(
             allow_files = True,
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             doc = """
 A tool that edits this target's archive after it is assembled but before it is signed. The tool is
 invoked with a single command-line argument that denotes the path to a directory containing the
@@ -595,7 +595,7 @@ the application bundle.
 """,
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
@@ -621,7 +621,7 @@ Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
@@ -742,7 +742,7 @@ set, then the default extension is determined by the application's product_type.
                 doc = "A list of macOS XPC Services to include in the final application bundle.",
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
             ),
@@ -782,7 +782,7 @@ def _get_tvos_attrs(rule_descriptor):
                 doc = "A list of tvOS extensions to include in the final application bundle.",
             ),
             "_runner_template": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 allow_single_file = True,
                 # Currently using the iOS Simulator template for tvOS, as tvOS does not require
                 # significantly different sim runner logic from iOS.
