@@ -146,7 +146,7 @@ def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
             # - `registerLinkActions()` --> `registerBinaryStripAction()`
             # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
             "_xcrunwrapper": attr.label(
-                cfg = "host",
+                cfg = "exec",
                 executable = True,
                 default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
             ),
