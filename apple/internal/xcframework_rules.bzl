@@ -88,6 +88,7 @@ load(
     "swift_usage_aspect",
 )
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _group_link_outputs_by_library_identifier(
         *,
@@ -244,10 +245,10 @@ def _available_library_dictionary(
         *,
         architectures,
         bitcode_symbol_maps,
-        bundle_extension,
-        bundle_name,
         environment,
+        headers_path,
         library_identifier,
+        library_path,
         platform):
     """Generates a dictionary containing keys referencing a framework in the XCFramework bundle.
 
@@ -256,13 +257,15 @@ def _available_library_dictionary(
             `arm64`.
         bitcode_symbol_maps: A mapping of architectures to Files representing bitcode symbol maps
             for each architecture.
-        bundle_extension: The extension for the library inside the archive.
-        bundle_name: The name of the library inside the archive.
         environment: The environment of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_common` linking APIs.
             Typically `device` or `simulator`.
+        headers_path: A string representing the path inside the library identifier to reference
+            bundled headers and modulemap files.
         library_identifier: A string representing the path to the framework to reference in the
             xcframework bundle.
+        library_path: A string representing the path inside the library identifier to reference in
+            the xcframework bundle.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
             For example, `ios`, `macos`, `tvos` or `watchos`.
@@ -273,7 +276,7 @@ def _available_library_dictionary(
     """
     available_library = {
         "LibraryIdentifier": library_identifier,
-        "LibraryPath": bundle_name + bundle_extension,
+        "LibraryPath": library_path,
         "SupportedArchitectures": architectures,
         "SupportedPlatform": platform,
     }
@@ -288,6 +291,9 @@ def _available_library_dictionary(
         if bitcode_symbol_map:
             available_library["BitcodeSymbolMapsPath"] = "BCSymbolMaps"
             break
+
+    if headers_path:
+        available_library["HeadersPath"] = headers_path
 
     if environment != "device":
         available_library["SupportedPlatformVariant"] = environment
@@ -365,7 +371,7 @@ def _create_xcframework_bundle(
         bundle_name,
         framework_archive_files,
         framework_archive_merge_files,
-        framework_archive_merge_zips,
+        framework_archive_merge_zips = [],
         label_name,
         output_archive,
         resolved_bundletool,
@@ -702,7 +708,7 @@ def _apple_xcframework_impl(ctx):
                     framework_archive_merge_files.append(
                         struct(
                             src = bitcode_file.path,
-                            dest = library_identifier + "/BCSymbolMaps",
+                            dest = paths.join(library_identifier, "BCSymbolMaps"),
                         ),
                     )
                 framework_archive_files.append(provider.bitcode)
@@ -721,10 +727,10 @@ def _apple_xcframework_impl(ctx):
         available_libraries.append(_available_library_dictionary(
             architectures = link_output.architectures,
             bitcode_symbol_maps = link_output.bitcode_symbol_maps,
-            bundle_extension = nested_bundle_extension,
-            bundle_name = bundle_name,
             environment = link_output.environment,
+            headers_path = None,
             library_identifier = library_identifier,
+            library_path = bundle_name + nested_bundle_extension,
             platform = link_output.platform,
         ))
 
@@ -923,93 +929,103 @@ will also be transitively included in the framework bundles.
     outputs = {"archive": "%{name}.xcframework.zip"},
 )
 
-def _apple_static_xcframework_transition_rule_impl(ctx):
-    """Underlying rule for apple_static_xcframework to apply a transition and generate files."""
+def _apple_static_xcframework_impl(ctx):
+    """Implementation of apple_static_xcframework."""
 
+    actions = ctx.actions
     apple_fragment = ctx.fragments.apple
+    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name = ctx.label.name
-    bundle_name_with_extension = bundle_name + ".xcframework"
+    label = ctx.label
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
+    outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
-        actions = ctx.actions,
+        actions = actions,
         apple_fragment = apple_fragment,
         label_name = bundle_name,
         link_result = link_result,
         xcode_config = xcode_config,
     )
-    resolved_libraries = depset([o.binary for o in link_outputs_by_library_identifier.values()])
 
-    if ctx.attr.public_hdrs:
-        resolved_headers = depset(transitive = [dep.files for dep in ctx.attr.public_hdrs])
+    available_libraries = []
+    framework_archive_files = []
+    framework_archive_merge_files = []
+    for library_identifier, link_output in link_outputs_by_library_identifier.items():
+        # Bundle binary artifact for specific library identifier
+        binary_artifact = link_output.binary
+        framework_archive_merge_files.append(struct(
+            src = binary_artifact.path,
+            dest = paths.join(library_identifier, binary_artifact.basename),
+        ))
+        framework_archive_files.append(depset([binary_artifact]))
 
-        # Create an intermediate folder to contain all of the header files, as they cannot be passed
-        # individually to the xcodebuild -create-xcframework tool.
-        headers_directory = intermediates.directory(
-            actions = ctx.actions,
-            target_name = ctx.label.name,
-            output_discriminator = None,
-            dir_name = "headers",
-        )
-        ctx.actions.run_shell(
-            command = "mkdir -p " + headers_directory.path + " ; " + " ; ".join(
-                ["cp %s %s" % (x.path, headers_directory.path) for x in resolved_headers.to_list()],
+        # Include public headers on XCFramework bundle.
+        for public_header in ctx.attr.public_hdrs:
+            framework_archive_files.append(public_header.files)
+            for public_header_file in public_header.files.to_list():
+                framework_archive_merge_files.append(struct(
+                    src = public_header_file.path,
+                    dest = paths.join(library_identifier, "Headers", public_header_file.basename),
+                ))
+
+        # Save additional library details for the XCFramework's root info plist.
+        available_libraries.append(
+            _available_library_dictionary(
+                architectures = link_output.architectures,
+                bitcode_symbol_maps = {},
+                environment = link_output.environment,
+                headers_path = "Headers",
+                library_identifier = library_identifier,
+                library_path = binary_artifact.basename,
+                platform = link_output.platform,
             ),
-            inputs = resolved_headers,
-            mnemonic = "XCFrameworkStaticLibraryCopyHeaders",
-            outputs = [headers_directory],
-            progress_message = "Copying headers %s" % ctx.label,
         )
-        headers_cmd = " -headers " + headers_directory.path
-        generator_inputs = depset([headers_directory], transitive = [resolved_libraries])
-    else:
-        headers_cmd = ""
-        generator_inputs = resolved_libraries
 
-    # Assemble the final xcodebuild -create-framework command using paths to libraries referenced
-    # and headers.
-    library_list_cmd = " ".join(
-        [" -library " + x.path + headers_cmd for x in resolved_libraries.to_list()],
+    root_info_plist = _create_xcframework_root_infoplist(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        available_libraries = available_libraries,
+        resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        rule_label = label,
+        xcode_config = xcode_config,
+        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
     )
 
-    cmd = ("xcodebuild -create-xcframework " + library_list_cmd + " -output " +
-           bundle_name_with_extension + " ; zip -rXq " + ctx.outputs.archive.path + " " +
-           bundle_name_with_extension)
-
-    apple_support.run_shell(
-        actions = ctx.actions,
-        apple_fragment = apple_fragment,
-        command = cmd,
-        env = ctx.configuration.default_shell_env,
-        inputs = generator_inputs,
-        mnemonic = "XCFrameworkStaticLibraryGenerate",
-        outputs = [ctx.outputs.archive],
-        progress_message = "Generating static library XCFramework %s" % ctx.label,
-        xcode_config = xcode_config,
+    _create_xcframework_bundle(
+        actions = actions,
+        bundle_name = bundle_name,
+        framework_archive_files = framework_archive_files,
+        framework_archive_merge_files = framework_archive_merge_files,
+        label_name = label.name,
+        output_archive = outputs_archive,
+        resolved_bundletool = apple_toolchain_info.resolved_bundletool,
+        root_info_plist = root_info_plist,
     )
 
     return [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
         AppleBundleInfo(
-            archive = ctx.outputs.archive,
+            archive = outputs_archive,
             bundle_extension = ".xcframework",
             bundle_name = bundle_name,
             executable_name = executable_name,
+            infoplist = root_info_plist,
             platform_type = None,
         ),
         AppleStaticXcframeworkBundleInfo(),
         DefaultInfo(
-            files = depset([ctx.outputs.archive]),
+            files = depset([outputs_archive]),
         ),
     ]
 
 apple_static_xcframework = rule(
-    implementation = _apple_static_xcframework_transition_rule_impl,
+    implementation = _apple_static_xcframework_impl,
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
     attrs = dicts.add(
-        apple_support.action_required_attrs(),
+        rule_factory.common_tool_attributes,
         rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
             cfg = transition_support.xcframework_transition,
         ),
@@ -1026,7 +1042,7 @@ the target will be used instead.
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
             "public_hdrs": attr.label_list(
-                allow_files = True,
+                allow_files = [".h"],
                 cfg = transition_support.xcframework_transition,
                 doc = """
 A list of files directly referencing header files to be used as the publicly visible interface for
