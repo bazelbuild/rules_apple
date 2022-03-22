@@ -213,6 +213,9 @@ class Bundler(object):
 
     self._makedirs_safely(os.path.dirname(full_dest))
     if sys.platform == "darwin":
+      # Clonefile will fail if destination already exists
+      if os.path.exists(full_dest):
+        os.remove(full_dest)
       clonefile = _load_clonefile()
       result = clonefile(src.encode(), full_dest.encode(), 0)
       if result != 0:
