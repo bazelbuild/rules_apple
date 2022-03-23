@@ -240,7 +240,7 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   if [[ "$has_binary" == false ]]; then
     lcov_args+=("${binary}")
     has_binary=true
-    if file "$binary" | grep -q "executable $arch"; then
+    if ! file "$binary" | grep -q "$arch"; then
       arch=x86_64
     fi
   else
