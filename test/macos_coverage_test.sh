@@ -158,7 +158,7 @@ EOF
 
 function test_standalone_unit_test_coverage() {
   create_common_files
-  do_coverage macos --experimental_use_llvm_covmap //app:standalone_test || fail "Should build"
+  do_coverage macos --test_output=errors --experimental_use_llvm_covmap //app:standalone_test || fail "Should build"
 
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
@@ -166,7 +166,7 @@ function test_standalone_unit_test_coverage() {
 function test_hosted_unit_test_coverage() {
   create_common_files
   # TODO: Remove local test running https://github.com/bazelbuild/rules_apple/issues/1404
-  do_coverage macos --strategy=TestRunner=local --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"
+  do_coverage macos --test_output=errors --strategy=TestRunner=local --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"
 
   # Validate normal coverage is included
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/hosted_test/coverage.dat"
