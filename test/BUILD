@@ -389,6 +389,12 @@ apple_multi_shell_test(
     shard_count = 4,
 )
 
+apple_shell_test(
+    name = "macos_coverage_test",
+    size = "medium",
+    src = "macos_coverage_test.sh",
+)
+
 apple_multi_shell_test(
     name = "tvos_unit_test_test",
     size = "medium",

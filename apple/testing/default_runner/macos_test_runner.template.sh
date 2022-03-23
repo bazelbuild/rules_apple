@@ -55,7 +55,6 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
 else
   unzip -qq -d "${TEST_TMP_DIR}" "${TEST_BUNDLE_PATH}"
 fi
-readonly test_binary="$TEST_TMP_DIR/${TEST_BUNDLE_NAME}.xctest/Contents/MacOS/$TEST_BUNDLE_NAME"
 
 # In case there is no test host, TEST_HOST_PATH will be empty. TEST_BUNDLE_PATH
 # will always be populated.
@@ -151,33 +150,49 @@ fi
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
-readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
-llvm_cov_export_status=0
 lcov_args=(
+  -format lcov
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
   -path-equivalence="$ROOT",.
 )
+has_binary=false
+IFS=";"
+arch=$(uname -m)
+for binary in $TEST_BINARIES_FOR_LLVM_COV; do
+  file $binary
+  if [[ "$has_binary" == false ]]; then
+    lcov_args+=("${binary}")
+    has_binary=true
+    if ! file "$binary" | grep -q "$arch"; then
+      arch=x86_64
+    fi
+  else
+    lcov_args+=(-object "${binary}")
+  fi
+
+  lcov_args+=("-arch=$arch")
+done
+
+readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
+lcov_status=0
 xcrun llvm-cov \
   export \
-  -format lcov \
   "${lcov_args[@]}" \
-  "$test_binary" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
   2> "$export_error_file" \
-  || llvm_cov_export_status=$?
+  || lcov_status=$?
 
 # Error ourselves if lcov outputs warnings, such as if we misconfigure
 # something and the file path of one of the covered files doesn't exist
-if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
+if [[ -s "$export_error_file" || "$lcov_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
   cat "$export_error_file" >&2
   exit 1
 fi
 
 if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
-  llvm_cov_json_export_status=0
   xcrun llvm-cov \
     export \
     -format text \
@@ -186,8 +201,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
     2> "$export_error_file" \
-    || llvm_cov_json_export_status=$?
-  if [[ -s "$export_error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+    || lcov_status=$?
+  if [[ -s "$export_error_file" || "$lcov_status" -ne 0 ]]; then
     echo "error: while exporting json coverage report" >&2
     cat "$export_error_file" >&2
     exit 1
