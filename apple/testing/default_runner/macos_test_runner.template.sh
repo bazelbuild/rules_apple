@@ -151,12 +151,15 @@ xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
 readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
 llvm_cov_export_status=0
+lcov_args=(
+  -instr-profile "$profdata"
+  -ignore-filename-regex='.*external/.+'
+  -path-equivalence="$ROOT",.
+)
 xcrun llvm-cov \
   export \
   -format lcov \
-  -instr-profile "$profdata" \
-  -ignore-filename-regex='.*external/.+' \
-  -path-equivalence="$ROOT",. \
+  "${lcov_args[@]}" \
   "$test_binary" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
@@ -171,15 +174,12 @@ if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
   exit 1
 fi
 
-llvm_cov_json_export_status=0
-if [[ "$TEST_ENV" =~ "COVERAGE_PRODUCE_JSON" ]]; then
-  mkdir -p "$TEST_UNDECLARED_OUTPUTS_DIR"
+if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+  llvm_cov_json_export_status=0
   xcrun llvm-cov \
     export \
     -format text \
-    -instr-profile "$profdata" \
-    -ignore-filename-regex='.*external/.+' \
-    -path-equivalence="$ROOT",. \
+    "${lcov_args[@]}" \
     "$test_binary" \
     @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
