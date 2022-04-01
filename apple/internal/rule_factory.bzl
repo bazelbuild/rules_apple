@@ -171,7 +171,7 @@ _J2OBJC_BINARY_LINKING_ATTRS = {
         # produces at least _two_ output files (the executable plus any files in srcs)
         allow_files = True,
         cfg = "exec",
-        default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
+        default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
     ),
 }
 
