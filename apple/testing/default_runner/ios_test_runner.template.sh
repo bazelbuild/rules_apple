@@ -253,7 +253,7 @@ readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
   export \
-  -format lcov
+  -format lcov \
   "${lcov_args[@]}" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
@@ -272,7 +272,7 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
   llvm_cov_json_export_status=0
   xcrun llvm-cov \
     export \
-    -format text
+    -format text \
     "${lcov_args[@]}" \
     @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
