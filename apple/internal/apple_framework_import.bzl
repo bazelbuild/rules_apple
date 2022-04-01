@@ -144,15 +144,15 @@ def _grouped_framework_files(framework_imports):
 
     return framework_groups
 
-def _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos = []):
+def _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc_infos = []):
     """Returns a new Objc provider which includes transitive Objc dependencies."""
     objc_provider_fields["providers"] = [
         dep[apple_common.Objc]
-        for dep in ctx.attr.deps
+        for dep in deps
     ] + additional_objc_infos
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos = []):
+def _cc_info_with_dependencies(deps, header_imports, additional_cc_infos = []):
     """Returns a new CcInfo which includes transitive Cc dependencies."""
     cc_info = CcInfo(
         compilation_context = cc_common.create_compilation_context(
@@ -160,7 +160,7 @@ def _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos = []):
             framework_includes = depset(_framework_search_paths(header_imports)),
         ),
     )
-    dep_cc_infos = [dep[CcInfo] for dep in ctx.attr.deps]
+    dep_cc_infos = [dep[CcInfo] for dep in deps]
     return cc_common.merge_cc_infos(
         cc_infos = [cc_info] + dep_cc_infos + additional_cc_infos,
     )
@@ -182,7 +182,7 @@ def _framework_import_info(transitive_sets, arch_found):
     provider_fields["build_archs"] = depset([arch_found])
     return AppleFrameworkImportInfo(**provider_fields)
 
-def _is_debugging(ctx):
+def _is_debugging(compilation_mode):
     """Returns `True` if the current compilation mode produces debug info.
 
     rules_apple specific implementation of rules_swift's `is_debugging`, which
@@ -190,7 +190,7 @@ def _is_debugging(ctx):
 
     See: https://github.com/bazelbuild/rules_swift/blob/44146fccd9e56fe1dc650a4e0f21420a503d301c/swift/internal/api.bzl#L315-L326
     """
-    return ctx.var["COMPILATION_MODE"] in ("dbg", "fastbuild")
+    return compilation_mode in ("dbg", "fastbuild")
 
 def _ensure_swiftmodule_is_embedded(swiftmodule):
     """Ensures that a `.swiftmodule` file is embedded in a library or binary.
@@ -220,7 +220,7 @@ def _framework_objc_provider_fields(
 
     return objc_provider_fields
 
-def _swift_interop_info_with_dependencies(ctx, framework_groups, module_map_imports):
+def _swift_interop_info_with_dependencies(deps, framework_groups, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
     if not module_map_imports:
         return None
@@ -236,7 +236,7 @@ def _swift_interop_info_with_dependencies(ctx, framework_groups, module_map_impo
     return swift_common.create_swift_interop_info(
         module_map = module_map_imports[0],
         module_name = framework_name,
-        swift_infos = [dep[SwiftInfo] for dep in ctx.attr.deps if SwiftInfo in dep],
+        swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],
     )
 
 def _framework_search_paths(header_imports):
@@ -255,12 +255,13 @@ def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     providers = []
 
+    deps = ctx.attr.deps
     framework_imports = ctx.files.framework_imports
     bundling_imports, header_imports, module_map_imports = (
         _classify_framework_imports(framework_imports)
     )
 
-    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    transitive_sets = _transitive_framework_imports(deps)
     if bundling_imports:
         transitive_sets.append(depset(bundling_imports))
     providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
@@ -273,8 +274,8 @@ def _apple_dynamic_framework_import_impl(ctx):
         _all_framework_binaries(framework_groups),
     )
 
-    objc_provider = _objc_provider_with_dependencies(ctx, objc_provider_fields)
-    cc_info = _cc_info_with_dependencies(ctx, header_imports)
+    objc_provider = _objc_provider_with_dependencies(deps, objc_provider_fields)
+    cc_info = _cc_info_with_dependencies(deps, header_imports)
     providers.append(objc_provider)
     providers.append(cc_info)
     providers.append(apple_common.new_dynamic_framework_provider(
@@ -286,7 +287,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
-        ctx = ctx,
+        deps = deps,
         framework_groups = framework_groups,
         module_map_imports = module_map_imports,
     )
@@ -299,10 +300,11 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     providers = []
 
+    deps = ctx.attr.deps
     framework_imports = ctx.files.framework_imports
     _, header_imports, module_map_imports = _classify_framework_imports(framework_imports)
 
-    transitive_sets = _transitive_framework_imports(ctx.attr.deps)
+    transitive_sets = _transitive_framework_imports(deps)
     providers.append(_framework_import_info(transitive_sets, ctx.fragments.apple.single_arch_cpu))
 
     framework_groups = _grouped_framework_files(framework_imports)
@@ -346,7 +348,7 @@ def _apple_static_framework_import_impl(ctx):
         additional_objc_infos.extend(toolchain.implicit_deps_providers.objc_infos)
         additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
 
-        if _is_debugging(ctx):
+        if _is_debugging(compilation_mode = ctx.var["COMPILATION_MODE"]):
             cpu = ctx.fragments.apple.single_arch_cpu
             swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
             if not swiftmodule:
@@ -354,16 +356,16 @@ def _apple_static_framework_import_impl(ctx):
             objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
     providers.append(
-        _objc_provider_with_dependencies(ctx, objc_provider_fields, additional_objc_infos),
+        _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc_infos),
     )
     providers.append(
-        _cc_info_with_dependencies(ctx, header_imports, additional_cc_infos),
+        _cc_info_with_dependencies(deps, header_imports, additional_cc_infos),
     )
 
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
-        ctx = ctx,
+        deps = deps,
         framework_groups = framework_groups,
         module_map_imports = module_map_imports,
     )
