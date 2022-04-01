@@ -23,15 +23,14 @@ load(
     "AppleTestRunnerInfo",
 )
 
-def _get_xctestrun_template_substitutions(ctx):
+def _get_xctestrun_template_substitutions(xcode_config):
     """Returns the template substitutions for the xctestrun template."""
-    xcode_version = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     # Xcode 10 introduced new dylibs that are required when running unit tests, so we need to
     # provide different values in the xctestrun file that describes the test.
     # TODO(kaipi): Revisit this when Nitro has support for macOS. Nitro should be the one detecting
     #              Xcode version and configuring it appropriately.
-    if xcode_support.is_xcode_at_least_version(xcode_version, "10.0"):
+    if xcode_support.is_xcode_at_least_version(xcode_config, "10.0"):
         xctestrun_insert_libraries = [
             "__PLATFORMS__/MacOSX.platform/Developer/usr/lib/libXCTestBundleInject.dylib",
             "__DEVELOPERUSRLIB__/libMainThreadChecker.dylib",
@@ -55,10 +54,10 @@ def _get_template_substitutions(xctestrun_template):
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_execution_environment(ctx):
+def _get_execution_environment(xcode_config):
     """Returns environment variables the test runner requires"""
     execution_environment = {}
-    xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
+    xcode_version = str(xcode_config.xcode_version())
     if xcode_version:
         execution_environment["XCODE_VERSION"] = xcode_version
 
@@ -70,10 +69,12 @@ def _macos_test_runner_impl(ctx):
         "{}.generated.xctestrun".format(ctx.label.name),
     )
 
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     ctx.actions.expand_template(
         template = ctx.file._xctestrun_template,
         output = preprocessed_xctestrun_template,
-        substitutions = _get_xctestrun_template_substitutions(ctx),
+        substitutions = _get_xctestrun_template_substitutions(xcode_config),
     )
 
     ctx.actions.expand_template(
@@ -86,7 +87,7 @@ def _macos_test_runner_impl(ctx):
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {"requires-darwin": ""},
-            execution_environment = _get_execution_environment(ctx),
+            execution_environment = _get_execution_environment(xcode_config),
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
