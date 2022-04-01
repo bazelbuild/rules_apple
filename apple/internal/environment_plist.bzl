@@ -33,7 +33,7 @@ load(
     "dicts",
 )
 
-def _environment_plist(ctx):
+def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -87,5 +87,5 @@ amount of duplicative work done generating these plists for the same platforms.
 """,
     fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
-    implementation = _environment_plist,
+    implementation = _environment_plist_impl,
 )
