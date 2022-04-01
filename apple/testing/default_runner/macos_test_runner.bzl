@@ -23,9 +23,8 @@ load(
     "AppleTestRunnerInfo",
 )
 
-def _get_xctestrun_template_substitutions(ctx):
+def _get_xctestrun_template_substitutions(xcode_config):
     """Returns the template substitutions for the xctestrun template."""
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     # Xcode version is only set when Xcode is installed. Xcode tool
     # chain can be available both on macOS and Linux.
@@ -62,10 +61,10 @@ def _get_template_substitutions(xctestrun_template):
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_execution_environment(ctx):
+def _get_execution_environment(xcode_config):
     """Returns environment variables the test runner requires"""
     execution_environment = {}
-    xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
+    xcode_version = str(xcode_config.xcode_version())
     if xcode_version:
         execution_environment["XCODE_VERSION_OVERRIDE"] = xcode_version
 
@@ -77,10 +76,12 @@ def _macos_test_runner_impl(ctx):
         "{}.generated.xctestrun".format(ctx.label.name),
     )
 
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     ctx.actions.expand_template(
         template = ctx.file._xctestrun_template,
         output = preprocessed_xctestrun_template,
-        substitutions = _get_xctestrun_template_substitutions(ctx),
+        substitutions = _get_xctestrun_template_substitutions(xcode_config),
     )
 
     ctx.actions.expand_template(
@@ -93,7 +94,7 @@ def _macos_test_runner_impl(ctx):
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {"requires-darwin": ""},
-            execution_environment = _get_execution_environment(ctx),
+            execution_environment = _get_execution_environment(xcode_config),
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(

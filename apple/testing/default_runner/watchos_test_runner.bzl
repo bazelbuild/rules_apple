@@ -19,19 +19,19 @@ load(
     "AppleTestRunnerInfo",
 )
 
-def _get_template_substitutions(ctx):
+def _get_template_substitutions(*, device_type, os_version, testrunner):
     """Returns the template substitutions for this runner."""
     subs = {
-        "device_type": ctx.attr.device_type,
-        "os_version": ctx.attr.os_version,
-        "testrunner_binary": ctx.executable._testrunner.short_path,
+        "device_type": device_type,
+        "os_version": os_version,
+        "testrunner_binary": testrunner,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_execution_environment(ctx):
+def _get_execution_environment(*, xcode_config):
     """Returns environment variables the test runner requires"""
     execution_environment = {}
-    xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
+    xcode_version = str(xcode_config.xcode_version())
     if xcode_version:
         execution_environment["XCODE_VERSION"] = xcode_version
 
@@ -42,13 +42,19 @@ def _watchos_test_runner_impl(ctx):
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
-        substitutions = _get_template_substitutions(ctx),
+        substitutions = _get_template_substitutions(
+            device_type = ctx.attr.device_type,
+            os_version = ctx.attr.os_version,
+            testrunner = ctx.executable._testrunner.short_path,
+        ),
     )
     return [
         AppleTestRunnerInfo(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
-            execution_environment = _get_execution_environment(ctx),
+            execution_environment = _get_execution_environment(
+                xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+            ),
         ),
         DefaultInfo(
             runfiles = ctx.attr._testrunner[DefaultInfo].default_runfiles,
