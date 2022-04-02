@@ -121,9 +121,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "build_bazel_rules_swift",
         urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/0.26.0/rules_swift.0.26.0.tar.gz",
+            "https://github.com/bazelbuild/rules_swift/releases/download/0.27.0/rules_swift.0.27.0.tar.gz",
         ],
-        sha256 = "3e52a508cdc47a7adbad36a3d2b712e282cc39cc211b0d63efcaf608961eb36b",
+        sha256 = "a2fd565e527f83fb3f9eb07eb9737240e668c9242d3bc318712efa54a7deda97",
         ignore_version_differences = ignore_version_differences,
     )
 
@@ -142,9 +142,9 @@ def apple_rules_dependencies(ignore_version_differences = False):
         http_archive,
         name = "xctestrunner",
         urls = [
-            "https://github.com/google/xctestrunner/archive/db0fce198e07d1df34f09c69cfe1eb9692c61a44.tar.gz",
+            "https://github.com/google/xctestrunner/archive/e0bc4b29976cf000794e9e796cb8a584b0c443bc.tar.gz",
         ],
-        strip_prefix = "xctestrunner-db0fce198e07d1df34f09c69cfe1eb9692c61a44",
-        sha256 = "a2c048c6cc8b8ee7a9f7b130ce114cb11de9e3a860d6bae30aed82adcd7aa30b",
+        strip_prefix = "xctestrunner-e0bc4b29976cf000794e9e796cb8a584b0c443bc",
+        sha256 = "6cd157ae7523d024eeb7ec05811979e9c191597f061a80244041374e10ebca13",
         ignore_version_differences = ignore_version_differences,
     )
