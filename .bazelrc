@@ -31,3 +31,10 @@ build --nocheck_visibility
 # here forever.
 build --define=RULES_SWIFT_BUILD_DUMMY_WORKER=1
 build --strategy=SwiftCompile=local
+
+# Required to avoid missing coverage runner file errors.
+# GitHub Issue: https://github.com/bazelbuild/rules_apple/issues/1128
+coverage --action_env=LCOV_MERGER=/usr/bin/true
+
+# Use llvm-cov instead of gcov (default).
+coverage --experimental_use_llvm_covmap
