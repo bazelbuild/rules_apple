@@ -169,9 +169,8 @@ function test_standalone_unit_test_coverage() {
 function test_standalone_unit_test_coverage_json() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --test_env=COVERAGE_PRODUCE_JSON=1 //app:standalone_test || fail "Should build"
-  cd "test-testlogs/app/standalone_test/test.outputs" || fail "Should unzip"
-  unzip "outputs.zip"
-  assert_contains "\"name\":\"SharedLogic.m:-\[SharedLogic doSomething\]\"" "coverage.json"
+  unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" coverage.json \
+      grep '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
 }
 
 function test_hosted_unit_test_coverage() {
