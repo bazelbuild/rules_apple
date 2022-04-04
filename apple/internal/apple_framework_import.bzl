@@ -599,7 +599,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
 
     if swiftmodule_imports:
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
-        providers.append(SwiftUsageInfo(toolchain = toolchain))
+        providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
         # library/framework search paths) as an implicit dependency. In the
