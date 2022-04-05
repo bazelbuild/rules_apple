@@ -33,7 +33,6 @@ load(
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftToolchainInfo",
     "swift_clang_module_aspect",
     "swift_common",
 )
@@ -77,6 +76,10 @@ load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )
+
+# The name of the execution group that houses the Swift toolchain and is used to
+# run Swift actions.
+_SWIFT_EXEC_GROUP = "swift"
 
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
@@ -255,7 +258,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -321,7 +324,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
-        toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
+        toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -390,7 +393,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -429,7 +432,6 @@ apple_dynamic_framework_import = rule(
     fragments = ["cpp"],
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -499,7 +501,6 @@ apple_static_framework_import = rule(
     fragments = ["cpp", "objc"],
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -576,6 +577,11 @@ not include Swift interface or Swift module files.
             ),
         },
     ),
+    exec_groups = {
+        _SWIFT_EXEC_GROUP: exec_group(
+            toolchains = swift_common.use_toolchain(),
+        ),
+    },
     toolchains = use_cpp_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
