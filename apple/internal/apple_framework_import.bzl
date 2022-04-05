@@ -53,7 +53,6 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
-    "SwiftToolchainInfo",
     "swift_clang_module_aspect",
     "swift_common",
 )
@@ -340,7 +339,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_cc_infos = []
 
     if swiftmodule_imports:
-        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+        toolchain = swift_common.get_toolchain(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
