@@ -51,6 +51,10 @@ load(
     "defines",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "SwiftUsageInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -58,7 +62,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
     "SwiftToolchainInfo",
-    "SwiftUsageInfo",
     "swift_clang_module_aspect",
     "swift_common",
 )
