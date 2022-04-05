@@ -42,6 +42,7 @@ bzl_library(
         ":resources",
         "//apple:providers",
         "//apple:utils",
+        "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
@@ -391,6 +392,7 @@ bzl_library(
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_static_framework_aspect",
+        "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/testing:apple_test_rule_support",
         "@bazel_skylib//lib:dicts",
@@ -455,7 +457,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "@build_bazel_rules_swift//swift",
+        "//apple/internal/aspects:swift_usage_aspect",
     ],
 )
 
@@ -540,6 +542,7 @@ bzl_library(
         ":transition_support",
         "//apple:providers",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/aspects:swift_usage_aspect",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
     ],

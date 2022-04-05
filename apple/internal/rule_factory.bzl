@@ -39,6 +39,10 @@ load(
     "swift_static_framework_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "swift_usage_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
@@ -79,10 +83,6 @@ load(
     "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_usage_aspect",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
