@@ -281,7 +281,7 @@ def _debug_symbols_partial_impl(
         if _AppleDebugInfo in x
     ]
 
-    debug_output_filename = bundle_name
+    debug_output_filename = executable_name
     if debug_discriminator:
         debug_output_filename += "_" + debug_discriminator
 
