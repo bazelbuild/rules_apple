@@ -115,21 +115,20 @@ def _collect_linkmaps(
 def _copy_dsym_into_declared_bundle(
         *,
         actions,
-        debug_output_filename,
         dsym_binaries,
         dsym_bundle_name,
+        dsym_output_filename,
         _executable_name,
         platform_prerequisites):
     """Declares the dSYM binary file and copies it into the preferred .dSYM bundle location.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      debug_output_filename: The base file name to use for this debug output, which will be followed
-        by the architecture with an underscore to make the dSYM binary file name or with the bundle
-        extension following it for the dSYM bundle file name.
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
       dsym_bundle_name: The full name of the dSYM bundle, including its extension.
+      dsym_output_filename: The base file name to use for this debug output, which will be followed
+        by the architecture with an underscore to make the dSYM binary file name.
       _executable_name: The name of the output DWARF executable.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
@@ -140,7 +139,7 @@ def _copy_dsym_into_declared_bundle(
     output_binary = actions.declare_file(
         "%s/Contents/Resources/DWARF/%s" % (
             dsym_bundle_name,
-            debug_output_filename,
+            dsym_output_filename,
         ),
     )
 
@@ -184,6 +183,7 @@ def _bundle_dsym_files(
         debug_output_filename,
         dsym_binaries = {},
         dsym_info_plist_template,
+        dsym_output_filename,
         executable_name,
         platform_prerequisites):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
@@ -199,12 +199,12 @@ def _bundle_dsym_files(
       actions: The actions provider from `ctx.actions`.
       bundle_extension: The extension for the bundle.
       debug_outputs_provider: The AppleDebugOutput provider for the binary target.
-      debug_output_filename: The base file name to use for this debug output, which will be followed
-        by each architecture with an underscore to make each dSYM binary file name or with the
+      debug_output_filename: The base file name to use for this debug output, with the
         bundle extension following it for the dSYM bundle file name.
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      dsym_output_filename: The dSYM binary file name.
       executable_name: The name of the output DWARF executable.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
@@ -223,7 +223,7 @@ def _bundle_dsym_files(
             dsym_binaries[arch] = arch_outputs["dsym_binary"]
         outputs.append(_copy_dsym_into_declared_bundle(
             actions = actions,
-            debug_output_filename = debug_output_filename,
+            dsym_output_filename = dsym_output_filename,
             dsym_binaries = dsym_binaries,
             dsym_bundle_name = dsym_bundle_name,
             _executable_name = executable_name,
@@ -233,7 +233,7 @@ def _bundle_dsym_files(
     if dsym_binaries:
         outputs.append(_copy_dsym_into_declared_bundle(
             actions = actions,
-            debug_output_filename = debug_output_filename,
+            dsym_output_filename = dsym_output_filename,
             dsym_binaries = dsym_binaries,
             dsym_bundle_name = dsym_bundle_name,
             _executable_name = executable_name,
@@ -300,6 +300,9 @@ def _debug_symbols_partial_impl(
 
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
+            dsym_output_filename = executable_name
+            if debug_discriminator:
+                dsym_output_filename += "_" + debug_discriminator
             dsym_files = _bundle_dsym_files(
                 actions = actions,
                 bundle_extension = bundle_extension,
@@ -307,6 +310,7 @@ def _debug_symbols_partial_impl(
                 debug_outputs_provider = debug_outputs_provider,
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
+                dsym_output_filename = dsym_output_filename,
                 executable_name = executable_name,
                 platform_prerequisites = platform_prerequisites,
             )
