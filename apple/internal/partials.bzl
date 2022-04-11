@@ -99,6 +99,10 @@ load(
     _swift_framework_partial = "swift_framework_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:swift_static_framework.bzl",
+    _swift_static_framework_partial = "swift_static_framework_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:watchos_stub.bzl",
     _watchos_stub_partial = "watchos_stub_partial",
 )
@@ -124,6 +128,7 @@ partials = struct(
     settings_bundle_partial = _settings_bundle_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
     swift_framework_partial = _swift_framework_partial,
+    swift_static_framework_partial = _swift_static_framework_partial,
     apple_symbols_file_partial = _apple_symbols_file_partial,
     watchos_stub_partial = _watchos_stub_partial,
 )

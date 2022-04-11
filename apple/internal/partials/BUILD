@@ -308,6 +308,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "swift_static_framework",
+    srcs = ["swift_static_framework.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:processor",
+        "//apple/internal:swift_info_support",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
     name = "watchos_stub",
     srcs = ["watchos_stub.bzl"],
     visibility = [
