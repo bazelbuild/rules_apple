@@ -29,10 +29,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundle_package_type.bzl",
     "bundle_package_type",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
-)
 
 # Options to declare signing behavior and exceptions.
 #
@@ -346,7 +342,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = transition_support.static_framework_transition,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -660,7 +656,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = transition_support.static_framework_transition,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
