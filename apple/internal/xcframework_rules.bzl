@@ -23,6 +23,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
+    "cc_info_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -88,6 +92,7 @@ load(
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _group_link_outputs_by_library_identifier(
@@ -165,8 +170,16 @@ def _group_link_outputs_by_library_identifier(
         bitcode_symbol_maps = {}
         dsym_binaries = {}
         linkmaps = {}
+        split_attr_keys = []
         for link_output in link_outputs:
             architectures.append(link_output.architecture)
+            split_attr_keys.append(
+                transition_support.xcframework_split_attr_key(
+                    cpu = link_output.architecture,
+                    environment = link_output.environment,
+                    platform_type = link_output.platform,
+                ),
+            )
 
             # static library linking does not support bitcode, dsym, and linkmaps yet.
             if linking_type == "binary":
@@ -191,6 +204,7 @@ def _group_link_outputs_by_library_identifier(
             environment = environment,
             linkmaps = linkmaps,
             platform = platform,
+            split_attr_keys = split_attr_keys,
         )
 
     return link_outputs_by_library_identifier
@@ -492,16 +506,6 @@ def _apple_xcframework_impl(ctx):
     framework_output_groups = []
 
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
-        split_attr_keys = []
-        for architecture in link_output.architectures:
-            split_attr_keys.append(
-                transition_support.xcframework_split_attr_key(
-                    cpu = architecture,
-                    environment = link_output.environment,
-                    platform_type = link_output.platform,
-                ),
-            )
-
         binary_artifact = link_output.binary
 
         rule_descriptor = rule_support.rule_descriptor_no_ctx(
@@ -509,7 +513,7 @@ def _apple_xcframework_impl(ctx):
             apple_product_type.framework,
         )
         uses_swift = False
-        for split_attr_key in split_attr_keys:
+        for split_attr_key in link_output.split_attr_keys:
             if swift_support.uses_swift(ctx.split_attr.deps[split_attr_key]):
                 uses_swift = True
 
@@ -546,18 +550,18 @@ def _apple_xcframework_impl(ctx):
         resource_deps = _unioned_attrs(
             attr_names = ["data", "deps"],
             split_attr = ctx.split_attr,
-            split_attr_keys = split_attr_keys,
+            split_attr_keys = link_output.split_attr_keys,
         )
 
         top_level_infoplists = resources.collect(
             attr = ctx.split_attr,
             res_attrs = ["infoplists"],
-            split_attr_keys = split_attr_keys,
+            split_attr_keys = link_output.split_attr_keys,
         )
         top_level_resources = resources.collect(
             attr = ctx.split_attr,
             res_attrs = ["data"],
-            split_attr_keys = split_attr_keys,
+            split_attr_keys = link_output.split_attr_keys,
         )
 
         processor_partials = [
@@ -962,13 +966,31 @@ def _apple_static_xcframework_impl(ctx):
         ))
         framework_archive_files.append(depset([binary_artifact]))
 
-        # Include public headers on XCFramework bundle.
-        for public_header in ctx.attr.public_hdrs:
-            framework_archive_files.append(public_header.files)
-            for public_header_file in public_header.files.to_list():
+        # Generate headers & modulemaps, and bundle using custom bundler.
+        sdk_frameworks = cc_info_support.get_sdk_frameworks(
+            deps = ctx.split_attr.deps,
+            split_deps_keys = link_output.split_attr_keys,
+        )
+        sdk_dylibs = cc_info_support.get_sdk_dylibs(
+            deps = ctx.split_attr.deps,
+            split_deps_keys = link_output.split_attr_keys,
+        )
+        framework_header_modulemap = partial.call(partials.framework_header_modulemap_partial(
+            actions = actions,
+            bundle_name = bundle_name,
+            hdrs = ctx.files.public_hdrs,
+            label_name = label.name,
+            output_discriminator = library_identifier,
+            umbrella_header = None,
+            sdk_frameworks = sdk_frameworks,
+            sdk_dylibs = sdk_dylibs,
+        ))
+        for _, _, files in framework_header_modulemap.bundle_files:
+            framework_archive_files.append(files)
+            for file in files.to_list():
                 framework_archive_merge_files.append(struct(
-                    src = public_header_file.path,
-                    dest = paths.join(library_identifier, "Headers", public_header_file.basename),
+                    src = file.path,
+                    dest = paths.join(library_identifier, "Headers", file.basename),
                 ))
 
         # Save additional library details for the XCFramework's root info plist.

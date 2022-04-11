@@ -54,8 +54,12 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
         contains = [
             "$BUNDLE_ROOT/ios-arm64/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64/Headers/ios_static_xcframework.h",
+            "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_ios_device.a",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/ios_static_xcframework.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_ios_simulator.a",
             "$BUNDLE_ROOT/Info.plist",
         ],
@@ -80,6 +84,33 @@ def apple_static_xcframework_test_suite(name):
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_doStuff"],
         binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_objc_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
+        text_test_values = [
+            "framework module ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
+            "umbrella header \"ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks.h\"",
+            "link \"c++\"",
+            "link \"sqlite3\"",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
+        text_test_values = [
+            "framework module ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
+            "umbrella header \"ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks.h\"",
+            "link \"c++\"",
+        ],
         tags = [name],
     )
 

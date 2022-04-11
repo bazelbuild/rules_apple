@@ -245,6 +245,25 @@ objc_library(
     tags = TARGETS_UNDER_TEST_TAGS,
 )
 
+objc_library(
+    name = "objc_lib_with_sdk_dylibs_and_sdk_framework",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    linkopts = ["-lc++"],
+    sdk_dylibs = ["libsqlite3"],
+    sdk_frameworks = ["UIKit"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_with_sdk_dylib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    linkopts = ["-lc++"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
 swift_library(
     name = "swift_fmwk_lib",
     srcs = [
@@ -809,6 +828,36 @@ apple_static_xcframework(
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":StaticFmwkUpperLib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
+    ios = {
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":objc_lib_with_sdk_dylibs_and_sdk_framework"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
+    ios = {
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":swift_lib_with_sdk_dylib"],
 )
 
 genrule(
