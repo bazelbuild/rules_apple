@@ -40,6 +40,7 @@ bzl_library(
     ],
     deps = [
         ":resources",
+        ":rule_factory",
         "//apple:providers",
         "//apple:utils",
         "//apple/internal/aspects:swift_usage_aspect",
@@ -48,6 +49,7 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:sets",
+        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_rules_swift//swift",
     ],
 )

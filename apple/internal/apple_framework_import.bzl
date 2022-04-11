@@ -47,6 +47,10 @@ load(
     "SwiftUsageInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -56,6 +60,7 @@ load(
     "swift_clang_module_aspect",
     "swift_common",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _is_swiftmodule(path):
     """Predicate to identify Swift modules/interfaces."""
@@ -154,17 +159,44 @@ def _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc
     ] + additional_objc_infos
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _cc_info_with_dependencies(deps, header_imports, additional_cc_infos = []):
+def _cc_info_with_dependencies(
+        ctx,
+        name,
+        deps,
+        grep_includes,
+        header_imports,
+        additional_cc_infos = []):
     """Returns a new CcInfo which includes transitive Cc dependencies."""
-    cc_info = CcInfo(
-        compilation_context = cc_common.create_compilation_context(
-            headers = depset(header_imports),
-            framework_includes = depset(_framework_search_paths(header_imports)),
-        ),
+
+    all_cc_infos = [dep[CcInfo] for dep in deps] + additional_cc_infos
+    dep_compilation_contexts = [cc_info.compilation_context for cc_info in all_cc_infos]
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features + ["lang_objc"],  # b/210775356
+        unsupported_features = ctx.disabled_features,
     )
-    dep_cc_infos = [dep[CcInfo] for dep in deps]
-    return cc_common.merge_cc_infos(
-        cc_infos = [cc_info] + dep_cc_infos + additional_cc_infos,
+    (compilation_context, _compilation_outputs) = cc_common.compile(
+        name = name,
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        public_hdrs = header_imports,
+        framework_includes = _framework_search_paths(header_imports),
+        compilation_contexts = dep_compilation_contexts,
+        language = "objc",
+        grep_includes = grep_includes,
+    )
+
+    dep_linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]
+    linking_context = cc_common.merge_linking_contexts(
+        linking_contexts = dep_linking_contexts,
+    )
+
+    return CcInfo(
+        compilation_context = compilation_context,
+        linking_context = linking_context,
     )
 
 def _transitive_framework_imports(deps):
@@ -277,7 +309,13 @@ def _apple_dynamic_framework_import_impl(ctx):
     )
 
     objc_provider = _objc_provider_with_dependencies(deps, objc_provider_fields)
-    cc_info = _cc_info_with_dependencies(deps, header_imports)
+    cc_info = _cc_info_with_dependencies(
+        ctx,
+        ctx.label.name,
+        ctx.attr.deps,
+        ctx.file._grep_includes,
+        header_imports,
+    )
     providers.append(objc_provider)
     providers.append(cc_info)
     providers.append(apple_common.new_dynamic_framework_provider(
@@ -361,7 +399,14 @@ def _apple_static_framework_import_impl(ctx):
         _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc_infos),
     )
     providers.append(
-        _cc_info_with_dependencies(deps, header_imports, additional_cc_infos),
+        _cc_info_with_dependencies(
+            ctx,
+            ctx.label.name,
+            ctx.attr.deps,
+            ctx.file._grep_includes,
+            header_imports,
+            additional_cc_infos,
+        ),
     )
 
     # For now, Swift interop is restricted only to a Clang module map inside
@@ -392,29 +437,36 @@ def _apple_static_framework_import_impl(ctx):
 
 apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
-    fragments = ["apple"],
-    attrs = {
-        "framework_imports": attr.label_list(
-            allow_empty = False,
-            allow_files = True,
-            mandatory = True,
-            doc = """
+    fragments = ["apple", "cpp"],
+    attrs = dicts.add(
+        rule_factory.common_tool_attributes,
+        {
+            "framework_imports": attr.label_list(
+                allow_empty = False,
+                allow_files = True,
+                mandatory = True,
+                doc = """
 The list of files under a .framework directory which are provided to Apple based targets that depend
 on this target.
 """,
-        ),
-        "deps": attr.label_list(
-            aspects = [swift_clang_module_aspect],
-            doc = """
+            ),
+            "deps": attr.label_list(
+                aspects = [swift_clang_module_aspect],
+                doc = """
 A list of targets that are dependencies of the target being built, which will be linked into that
 target.
 """,
-            providers = [
-                [apple_common.Objc, CcInfo],
-                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
-            ],
-        ),
-    },
+                providers = [
+                    [apple_common.Objc, CcInfo],
+                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                ],
+            ),
+            "_cc_toolchain": attr.label(
+                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                doc = "The C++ toolchain to use.",
+            ),
+        },
+    ),
     doc = """
 This rule encapsulates an already-built dynamic framework. It is defined by a list of files in
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
@@ -424,61 +476,69 @@ targets through the `deps` attribute.
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
-    fragments = ["apple"],
-    attrs = dicts.add(swift_common.toolchain_attrs(), {
-        "framework_imports": attr.label_list(
-            allow_empty = False,
-            allow_files = True,
-            mandatory = True,
-            doc = """
+    fragments = ["apple", "cpp"],
+    attrs = dicts.add(
+        rule_factory.common_tool_attributes,
+        swift_common.toolchain_attrs(),
+        {
+            "framework_imports": attr.label_list(
+                allow_empty = False,
+                allow_files = True,
+                mandatory = True,
+                doc = """
 The list of files under a .framework directory which are provided to Apple based targets that depend
 on this target.
 """,
-        ),
-        "sdk_dylibs": attr.string_list(
-            doc = """
+            ),
+            "sdk_dylibs": attr.string_list(
+                doc = """
 Names of SDK .dylib libraries to link with. For instance, `libz` or `libarchive`. `libc++` is
 included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree.
 When linking a binary, all libraries named in that binary's transitive dependency graph are used.
 """,
-        ),
-        "sdk_frameworks": attr.string_list(
-            doc = """
+            ),
+            "sdk_frameworks": attr.string_list(
+                doc = """
 Names of SDK frameworks to link with (e.g. `AddressBook`, `QuartzCore`). `UIKit` and `Foundation`
 are always included when building for the iOS, tvOS and watchOS platforms. For macOS, only
 `Foundation` is always included. When linking a top level binary, all SDK frameworks listed in that
 binary's transitive dependency graph are linked.
 """,
-        ),
-        "weak_sdk_frameworks": attr.string_list(
-            doc = """
+            ),
+            "weak_sdk_frameworks": attr.string_list(
+                doc = """
 Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`. In difference to
 regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
 are not present at runtime.
 """,
-        ),
-        "deps": attr.label_list(
-            aspects = [swift_clang_module_aspect],
-            doc = """
+            ),
+            "deps": attr.label_list(
+                aspects = [swift_clang_module_aspect],
+                doc = """
 A list of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
 """,
-            providers = [
-                [apple_common.Objc, CcInfo],
-                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
-            ],
-        ),
-        "alwayslink": attr.bool(
-            default = False,
-            doc = """
+                providers = [
+                    [apple_common.Objc, CcInfo],
+                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                ],
+            ),
+            "alwayslink": attr.bool(
+                default = False,
+                doc = """
 If true, any binary that depends (directly or indirectly) on this framework will link in all the
 object files for the framework file, even if some contain no symbols referenced by the binary. This
 is useful if your code isn't explicitly called by code in the binary; for example, if you rely on
 runtime checks for protocol conformances added in extensions in the library but do not directly
 reference any other symbols in the object file that adds that conformance.
 """,
-        ),
-    }),
+            ),
+            "_cc_toolchain": attr.label(
+                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                doc = "The C++ toolchain to use.",
+            ),
+        },
+    ),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of files in a
 .framework directory. apple_static_framework_import targets need to be added to library targets
