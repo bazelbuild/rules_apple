@@ -40,13 +40,12 @@ bzl_library(
 )
 
 bzl_library(
-    name = "swift_static_framework_aspect",
-    srcs = ["swift_static_framework_aspect.bzl"],
+    name = "swift_usage_aspect",
+    srcs = ["swift_usage_aspect.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:swift_info_support",
         "@build_bazel_rules_swift//swift",
     ],
 )
