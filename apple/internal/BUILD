@@ -41,6 +41,7 @@ bzl_library(
     ],
     deps = [
         ":resources",
+        ":rule_factory",
         "//apple:providers",
         "//apple:utils",
         "//apple/internal/aspects:swift_usage_aspect",

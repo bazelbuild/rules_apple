@@ -1139,6 +1139,7 @@ objc_library(
 apple_dynamic_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
+    features = ["-parse_headers"],
 )
 EOF
 
