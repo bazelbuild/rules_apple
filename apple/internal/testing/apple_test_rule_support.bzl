@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleDsymBundleInfo",
     "AppleExtraOutputsInfo",
     "AppleTestInfo",
     "AppleTestRunnerInfo",
@@ -187,6 +188,7 @@ def _apple_test_rule_impl(ctx, test_type):
         # Repropagate the AppleBundleInfo and AppleTestInfo providers from the test bundle so that
         # clients interacting with the test targets themselves can access the bundle's structure.
         test_bundle_target[AppleBundleInfo],
+        test_bundle_target[AppleDsymBundleInfo],
         test_bundle_target[AppleTestInfo],
         test_bundle_target[OutputGroupInfo],
         coverage_common.instrumented_files_info(

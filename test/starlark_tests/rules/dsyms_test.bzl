@@ -18,6 +18,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
+    "AppleDsymBundleInfo",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
@@ -49,10 +50,20 @@ def _dsyms_test_impl(ctx):
             fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
                  target_under_test.label)
 
-    outputs = {
+    output_group_dsyms = {
         x.short_path: None
         for x in target_under_test[OutputGroupInfo]["dsyms"].to_list()
     }
+
+    dsym_bundle_info_outputs = {}
+
+    if ctx.attr.check_public_provider:
+        if AppleDsymBundleInfo not in target_under_test:
+            fail(("Target %s does not provide AppleDsymBundleInfo") % target_under_test.label)
+        dsym_bundle_info_outputs.update({
+            x.short_path: None
+            for x in target_under_test[AppleDsymBundleInfo].dsym_bundles.to_list()
+        })
 
     package = target_under_test.label.package
 
@@ -93,12 +104,32 @@ def _dsyms_test_impl(ctx):
     for expected in expected_infoplists + expected_binaries:
         asserts.true(
             env,
-            expected in outputs,
-            msg = "Expected\n\n{0}\n\nto be built. Contents were:\n\n{1}\n\n".format(
+            expected in output_group_dsyms,
+            msg = """\
+Expected\n\n{0}\n\nto be in the dSYM output group.
+Contents were:\n\n{1}\n\n""".format(
                 expected,
-                "\n".join(outputs.keys()),
+                "\n".join(output_group_dsyms.keys()),
             ),
         )
+
+    if ctx.attr.check_public_provider:
+        expected_bundles = [
+            "{0}/dSYMs/{1}.dSYM".format(package, x)
+            for x in ctx.attr.expected_dsyms
+        ]
+
+        for expected in expected_bundles:
+            asserts.true(
+                env,
+                expected in dsym_bundle_info_outputs,
+                msg = """\
+Expected\n\n{0}\n\nto be in the AppleDsymBundleInfo provider.
+Contents were:\n\n{1}\n\n""".format(
+                    expected,
+                    "\n".join(dsym_bundle_info_outputs.keys()),
+                ),
+            )
 
     return analysistest.end(env)
 
@@ -126,6 +157,13 @@ created for them.
 List of expected binaries in dSYMs bundles in the format
 <bundle_name>.<bundle_extension>/Contents/Resources/DWARF/<executable_name> to
 verify that dSYMs binaries are created with the correct names.
+""",
+        ),
+        "check_public_provider": attr.bool(
+            default = True,
+            doc = """
+Checks for the presence of the AppleDsymBundleInfo provider and verifies its File-referenced
+contents. Defaults to `True`.
 """,
         ),
     },
