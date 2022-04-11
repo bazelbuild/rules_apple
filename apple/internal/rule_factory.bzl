@@ -219,6 +219,8 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
             default_stamp = 0
         if product_type == apple_product_type.framework:
             deps_aspects.append(swift_dynamic_framework_aspect)
+        if product_type == apple_product_type.static_framework:
+            deps_aspects.append(swift_static_framework_aspect)
 
     return dicts.add(
         _COMMON_ATTRS,
@@ -564,10 +566,6 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
-            "_emitswiftinterface": attr.bool(
-                default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
-            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -586,7 +584,6 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -850,10 +847,6 @@ use only extension-safe APIs.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
-            "_emitswiftinterface": attr.bool(
-                default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
-            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -872,7 +865,6 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
