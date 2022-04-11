@@ -87,7 +87,6 @@ def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -199,14 +198,12 @@ def _tvos_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -437,14 +434,12 @@ def _tvos_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive],
@@ -525,7 +520,6 @@ def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -632,14 +626,12 @@ def _tvos_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,

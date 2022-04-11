@@ -97,7 +97,6 @@ def _macos_application_impl(ctx):
 
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
@@ -186,14 +185,12 @@ def _macos_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -325,7 +322,6 @@ def _macos_bundle_impl(ctx):
     """Implementation of macos_bundle."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -423,14 +419,12 @@ def _macos_bundle_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -509,7 +503,6 @@ def _macos_extension_impl(ctx):
     """Experimental implementation of macos_extension."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -606,14 +599,12 @@ def _macos_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -701,7 +692,6 @@ def _macos_quick_look_plugin_impl(ctx):
     """Experimental implementation of macos_quick_look_plugin."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -805,14 +795,12 @@ def _macos_quick_look_plugin_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive],
@@ -898,7 +886,6 @@ def _macos_kernel_extension_impl(ctx):
     """Implementation of macos_kernel_extension."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -991,14 +978,12 @@ def _macos_kernel_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1086,7 +1071,6 @@ def _macos_spotlight_importer_impl(ctx):
     """Implementation of macos_spotlight_importer."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -1175,14 +1159,12 @@ def _macos_spotlight_importer_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1269,7 +1251,6 @@ def _macos_xpc_service_impl(ctx):
     """Implementation of macos_xpc_service."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -1358,14 +1339,12 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             debug_outputs_provider = debug_outputs_provider,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1452,7 +1431,6 @@ def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1476,13 +1454,11 @@ def _macos_command_line_application_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
-        bin_root_path = bin_root_path,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         debug_outputs_provider = debug_outputs_provider,
         dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
         platform_prerequisites = platform_prerequisites,
-        rule_label = label,
     )
 
     processor_result = processor.process(
@@ -1545,7 +1521,6 @@ def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1570,13 +1545,11 @@ def _macos_dylib_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
-        bin_root_path = bin_root_path,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         debug_outputs_provider = debug_outputs_provider,
         dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
         platform_prerequisites = platform_prerequisites,
-        rule_label = label,
     )
 
     processor_result = processor.process(
