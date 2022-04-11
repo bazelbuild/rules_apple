@@ -106,6 +106,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_info_support",
+    srcs = ["cc_info_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "codesigning_support",
     srcs = ["codesigning_support.bzl"],
     visibility = [
@@ -529,6 +537,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":cc_info_support",
         ":experimental",
         ":intermediates",
         ":linking_support",
