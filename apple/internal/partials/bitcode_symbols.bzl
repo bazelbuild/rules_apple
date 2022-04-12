@@ -43,7 +43,6 @@ def _bitcode_symbols_partial_impl(
         actions,
         binary_artifact,
         bitcode_symbol_maps,
-        debug_outputs_provider,
         dependency_targets,
         label_name,
         output_discriminator,
@@ -56,9 +55,6 @@ def _bitcode_symbols_partial_impl(
     bitcode_symbols = {}
     if bitcode_symbol_maps:
         bitcode_symbols.update(bitcode_symbol_maps)
-    if debug_outputs_provider:
-        for arch in debug_outputs_provider.outputs_map:
-            bitcode_symbols[arch] = debug_outputs_provider.outputs_map[arch].get("bitcode_symbols")
 
     if binary_artifact and bitcode_symbols:
         bitcode_files = []
@@ -124,7 +120,6 @@ def bitcode_symbols_partial(
         actions,
         binary_artifact = None,
         bitcode_symbol_maps = {},
-        debug_outputs_provider = None,
         dependency_targets = [],
         label_name,
         output_discriminator = None,
@@ -137,8 +132,6 @@ def bitcode_symbols_partial(
       binary_artifact: The main binary artifact for this target.
       bitcode_symbol_maps: A mapping of architectures to Files representing bitcode symbol maps for
         each architecture.
-      debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
-        outputs of this target's binary.
       dependency_targets: List of targets that should be checked for bitcode files that need to be
         bundled..
       label_name: Name of the target being built
@@ -156,7 +149,6 @@ def bitcode_symbols_partial(
         actions = actions,
         binary_artifact = binary_artifact,
         bitcode_symbol_maps = bitcode_symbol_maps,
-        debug_outputs_provider = debug_outputs_provider,
         dependency_targets = dependency_targets,
         label_name = label_name,
         output_discriminator = output_discriminator,
