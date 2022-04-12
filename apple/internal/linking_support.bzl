@@ -20,6 +20,38 @@ load(
     "rule_support",
 )
 
+def _debug_outputs_by_architecture(link_outputs):
+    """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
+
+    Args:
+        link_outputs: The dictionary of linking outputs found from the `outputs` field of
+            `register_binary_linking_action`'s output struct.
+
+    Returns:
+        A `struct` containing three fields:
+
+        *   `bitcode_symbol_maps`: A mapping of architectures to Files representing bitcode symbol
+            maps for each architecture.
+        *   `dsym_binaries`: A mapping of architectures to Files representing dSYM binary outputs
+            for each architecture.
+        *   `linkmaps`: A mapping of architectures to Files representing linkmaps for each
+            architecture.
+    """
+    bitcode_symbol_maps = {}
+    dsym_binaries = {}
+    linkmaps = {}
+
+    for link_output in link_outputs:
+        bitcode_symbol_maps[link_output.architecture] = link_output.bitcode_symbols
+        dsym_binaries[link_output.architecture] = link_output.dsym_binary
+        linkmaps[link_output.architecture] = link_output.linkmap
+
+    return struct(
+        bitcode_symbol_maps = bitcode_symbol_maps,
+        dsym_binaries = dsym_binaries,
+        linkmaps = linkmaps,
+    )
+
 def _sectcreate_objc_provider(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
@@ -247,6 +279,7 @@ def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_confi
         actions.symlink(target_file = inputs[0], output = output)
 
 linking_support = struct(
+    debug_outputs_by_architecture = _debug_outputs_by_architecture,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     parse_platform_key = _parse_platform_key,
     register_binary_linking_action = _register_binary_linking_action,

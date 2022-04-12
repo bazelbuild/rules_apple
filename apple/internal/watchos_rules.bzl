@@ -352,7 +352,7 @@ def _watchos_extension_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -385,7 +385,7 @@ def _watchos_extension_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = ctx.attr.extensions,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -418,8 +418,9 @@ def _watchos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.extensions,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -505,6 +506,8 @@ def _watchos_extension_impl(ctx):
             )
         ),
         WatchosExtensionBundleInfo(),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_bundling_rule(

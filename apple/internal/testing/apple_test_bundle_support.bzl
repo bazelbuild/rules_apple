@@ -310,7 +310,7 @@ def _apple_test_bundle_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
@@ -357,8 +357,9 @@ def _apple_test_bundle_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = debug_dependencies,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -483,6 +484,8 @@ def _apple_test_bundle_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ])
 
     return providers

@@ -142,7 +142,7 @@ def _macos_application_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -188,8 +188,9 @@ def _macos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -239,8 +240,8 @@ def _macos_application_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = embedded_targets,
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
             platform_prerequisites = platform_prerequisites,
@@ -316,6 +317,8 @@ def _macos_application_impl(ctx):
             binary = binary_artifact,
             objc = link_result.objc,
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_bundle_impl(ctx):
@@ -368,7 +371,7 @@ def _macos_bundle_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -422,8 +425,9 @@ def _macos_bundle_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -497,6 +501,8 @@ def _macos_bundle_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_extension_impl(ctx):
@@ -547,7 +553,7 @@ def _macos_extension_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -602,8 +608,9 @@ def _macos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -639,8 +646,8 @@ def _macos_extension_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = [],
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -686,6 +693,8 @@ def _macos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_quick_look_plugin_impl(ctx):
@@ -741,7 +750,7 @@ def _macos_quick_look_plugin_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -798,8 +807,9 @@ def _macos_quick_look_plugin_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -835,8 +845,8 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = [],
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -880,6 +890,8 @@ def _macos_quick_look_plugin_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_kernel_extension_impl(ctx):
@@ -926,7 +938,7 @@ def _macos_kernel_extension_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -981,8 +993,9 @@ def _macos_kernel_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -1018,8 +1031,8 @@ def _macos_kernel_extension_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = [],
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1065,6 +1078,8 @@ def _macos_kernel_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_spotlight_importer_impl(ctx):
@@ -1107,7 +1122,7 @@ def _macos_spotlight_importer_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -1162,8 +1177,9 @@ def _macos_spotlight_importer_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -1198,8 +1214,8 @@ def _macos_spotlight_importer_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = [],
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1245,6 +1261,8 @@ def _macos_spotlight_importer_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_xpc_service_impl(ctx):
@@ -1287,7 +1305,7 @@ def _macos_xpc_service_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive = outputs.archive(
         actions = actions,
@@ -1342,8 +1360,9 @@ def _macos_xpc_service_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -1378,8 +1397,8 @@ def _macos_xpc_service_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = [],
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1425,6 +1444,8 @@ def _macos_xpc_service_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_command_line_application_impl(ctx):
@@ -1450,14 +1471,15 @@ def _macos_command_line_application_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        debug_outputs_provider = debug_outputs_provider,
+        dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+        linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
     )
 
@@ -1515,6 +1537,8 @@ def _macos_command_line_application_impl(ctx):
             binary = output_file,
             objc = link_result.objc,
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_dylib_impl(ctx):
@@ -1541,14 +1565,15 @@ def _macos_dylib_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        debug_outputs_provider = debug_outputs_provider,
+        dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+        linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
     )
 
@@ -1594,6 +1619,8 @@ def _macos_dylib_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 macos_application = rule_factory.create_apple_bundling_rule(

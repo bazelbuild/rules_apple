@@ -157,7 +157,7 @@ def _ios_application_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     if ctx.attr.watch_application:
         embeddable_targets.append(ctx.attr.watch_application)
@@ -196,7 +196,7 @@ def _ios_application_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = embeddable_targets,
             label_name = label.name,
             package_bitcode = True,
@@ -228,8 +228,9 @@ def _ios_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -284,8 +285,8 @@ def _ios_application_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = embeddable_targets,
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
             platform_prerequisites = platform_prerequisites,
@@ -381,6 +382,8 @@ def _ios_application_impl(ctx):
             binary = binary_artifact,
             objc = link_result.objc,
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
@@ -434,7 +437,7 @@ def _ios_app_clip_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -472,7 +475,7 @@ def _ios_app_clip_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = embeddable_targets,
             label_name = label.name,
             package_bitcode = True,
@@ -505,8 +508,9 @@ def _ios_app_clip_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -623,6 +627,8 @@ def _ios_app_clip_impl(ctx):
             binary = binary_artifact,
             objc = link_result.objc,
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
@@ -673,7 +679,7 @@ def _ios_framework_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -705,7 +711,7 @@ def _ios_framework_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -739,8 +745,9 @@ def _ios_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -792,8 +799,8 @@ def _ios_framework_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -825,6 +832,8 @@ def _ios_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
@@ -882,7 +891,7 @@ def _ios_extension_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -920,7 +929,7 @@ def _ios_extension_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -953,8 +962,9 @@ def _ios_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -995,8 +1005,8 @@ def _ios_extension_impl(ctx):
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
             dependency_targets = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1040,6 +1050,8 @@ def _ios_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_static_framework_impl(ctx):
@@ -1356,7 +1368,7 @@ def _ios_imessage_extension_impl(ctx):
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
-    debug_outputs_provider = link_result.debug_outputs_provider
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1396,7 +1408,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.bitcode_symbols_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            debug_outputs_provider = debug_outputs_provider,
+            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1429,8 +1441,9 @@ def _ios_imessage_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            debug_outputs_provider = debug_outputs_provider,
+            dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -1508,6 +1521,8 @@ def _ios_imessage_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_sticker_pack_extension_impl(ctx):
