@@ -75,14 +75,12 @@ def _declare_linkmap(
 def _collect_linkmaps(
         *,
         actions,
-        debug_outputs_provider = None,
         debug_output_filename,
         linkmaps = {}):
     """Collects the available linkmaps from the binary.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      debug_outputs_provider: The AppleDebugOutput provider for the binary target.
       debug_output_filename: The base file name to use for this debug output, which will be followed
         by each architecture with an underscore to make each linkmap's file name.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
@@ -91,15 +89,6 @@ def _collect_linkmaps(
       A list of linkmap files, one per linked architecture.
     """
     outputs = []
-
-    if debug_outputs_provider:
-        for (arch, arch_outputs) in debug_outputs_provider.outputs_map.items():
-            outputs.append(_declare_linkmap(
-                actions = actions,
-                arch = arch,
-                debug_output_filename = debug_output_filename,
-                linkmap = arch_outputs["linkmap"],
-            ))
 
     if linkmaps:
         for (arch, linkmap) in linkmaps.items():
@@ -179,7 +168,6 @@ def _bundle_dsym_files(
         *,
         actions,
         bundle_extension = "",
-        debug_outputs_provider = None,
         debug_output_filename,
         dsym_binaries = {},
         dsym_info_plist_template,
@@ -198,8 +186,8 @@ def _bundle_dsym_files(
     Args:
       actions: The actions provider from `ctx.actions`.
       bundle_extension: The extension for the bundle.
-      debug_outputs_provider: The AppleDebugOutput provider for the binary target.
-      debug_output_filename: The base file name to use for this debug output, with the
+      debug_output_filename: The base file name to use for this debug output, which will be followed
+        by each architecture with an underscore to make each dSYM binary file name or with the
         bundle extension following it for the dSYM bundle file name.
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
@@ -216,19 +204,6 @@ def _bundle_dsym_files(
     dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
 
     outputs = []
-
-    if debug_outputs_provider:
-        dsym_binaries = {}
-        for (arch, arch_outputs) in debug_outputs_provider.outputs_map.items():
-            dsym_binaries[arch] = arch_outputs["dsym_binary"]
-        outputs.append(_copy_dsym_into_declared_bundle(
-            actions = actions,
-            dsym_output_filename = dsym_output_filename,
-            dsym_binaries = dsym_binaries,
-            dsym_bundle_name = dsym_bundle_name,
-            _executable_name = executable_name,
-            platform_prerequisites = platform_prerequisites,
-        ))
 
     if dsym_binaries:
         outputs.append(_copy_dsym_into_declared_bundle(
@@ -267,7 +242,6 @@ def _debug_symbols_partial_impl(
         bundle_name,
         debug_dependencies = [],
         debug_discriminator = None,
-        debug_outputs_provider = None,
         dsym_binaries = {},
         dsym_info_plist_template,
         executable_name,
@@ -295,9 +269,6 @@ def _debug_symbols_partial_impl(
 
     output_providers = []
 
-    if debug_outputs_provider:
-        output_providers.append(debug_outputs_provider)
-
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
             dsym_output_filename = executable_name
@@ -307,7 +278,6 @@ def _debug_symbols_partial_impl(
                 actions = actions,
                 bundle_extension = bundle_extension,
                 debug_output_filename = debug_output_filename,
-                debug_outputs_provider = debug_outputs_provider,
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
                 dsym_output_filename = dsym_output_filename,
@@ -330,7 +300,6 @@ def _debug_symbols_partial_impl(
         if platform_prerequisites.objc_fragment.generate_linkmap:
             linkmaps = _collect_linkmaps(
                 actions = actions,
-                debug_outputs_provider = debug_outputs_provider,
                 debug_output_filename = debug_output_filename,
                 linkmaps = linkmaps,
             )
@@ -377,7 +346,6 @@ def debug_symbols_partial(
         bundle_name,
         debug_dependencies = [],
         debug_discriminator = None,
-        debug_outputs_provider = None,
         dsym_binaries = {},
         dsym_info_plist_template,
         executable_name,
@@ -402,8 +370,6 @@ def debug_symbols_partial(
       debug_dependencies: List of targets from which to collect the transitive dependency debug
         information to propagate them upstream.
       debug_discriminator: A suffix to distinguish between different debug output files, or `None`.
-      debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
-        outputs of this target's binary.
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
@@ -423,7 +389,6 @@ def debug_symbols_partial(
         bundle_name = bundle_name,
         debug_dependencies = debug_dependencies,
         debug_discriminator = debug_discriminator,
-        debug_outputs_provider = debug_outputs_provider,
         dsym_binaries = dsym_binaries,
         dsym_info_plist_template = dsym_info_plist_template,
         executable_name = executable_name,
