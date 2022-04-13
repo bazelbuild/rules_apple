@@ -255,9 +255,17 @@ objc_library(
 )
 
 swift_library(
-    name = "swift_lib_with_sdk_dylib",
-    srcs = ["//test/testdata/sources:main.swift"],
-    linkopts = ["-lc++"],
+    name = "swift_lib_for_static_xcfmwk",
+    srcs = ["DummyFmwk.swift"],
+    module_name = "ios_static_xcfmwk_with_swift",
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+swift_library(
+    name = "swift_lib_for_static_xcfmwk_with_headers",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    module_name = "ios_static_xcfmwk_with_swift_generated_headers",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
 
@@ -637,9 +645,29 @@ apple_static_xcframework(
 )
 
 apple_static_xcframework(
-    name = "ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
+    name = "ios_static_xcfmwk_with_swift",
     ios = {
         "device": ["arm64"],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":swift_lib_for_static_xcfmwk"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_swift_generated_headers",
+    ios = {
+        "device": ["arm64"],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
     },
     minimum_os_versions = {
         "ios": "8.0",
@@ -648,7 +676,7 @@ apple_static_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     tags = TARGETS_UNDER_TEST_TAGS,
-    deps = [":swift_lib_with_sdk_dylib"],
+    deps = [":swift_lib_for_static_xcfmwk_with_headers"],
 )
 
 genrule(

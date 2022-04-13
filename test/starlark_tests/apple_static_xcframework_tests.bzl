@@ -102,14 +102,43 @@ def apple_static_xcframework_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_swift_generated_modulemap_file_content_test".format(name),
+        name = "{}_swift_ios_arm64_x86_64_archive_contents_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
-        text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
-        text_test_values = [
-            "framework module ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks",
-            "umbrella header \"ios_static_xcfmwk_with_swift_sdk_dylibs_and_and_sdk_frameworks.h\"",
-            "link \"c++\"",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_ios_device.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_ios_simulator.a",
+        ],
+        tags = [name],
+    )
+
+    # Test that the Swift generated header is propagated to the Headers directory visible within
+    # this iOS statix XCFramework along with the Swift interfaces and modulemap files.
+    archive_contents_test(
+        name = "{}_swift_generates_header_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_generated_headers",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/Headers/ios_static_xcfmwk_with_swift_generated_headers.h",
+            "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers_ios_device.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/ios_static_xcfmwk_with_swift_generated_headers.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers_ios_simulator.a",
         ],
         tags = [name],
     )

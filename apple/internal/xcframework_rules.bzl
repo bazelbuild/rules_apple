@@ -99,6 +99,7 @@ def _group_link_outputs_by_library_identifier(
         *,
         actions,
         apple_fragment,
+        deps,
         label_name,
         link_result,
         xcode_config):
@@ -109,6 +110,7 @@ def _group_link_outputs_by_library_identifier(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
+        deps: Label list of dependencies from rule context (ctx.split_attr.deps).
         label_name: Name of the target being built.
         link_result: The struct returned by `linking_support.register_binary_linking_action`.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -171,15 +173,25 @@ def _group_link_outputs_by_library_identifier(
         dsym_binaries = {}
         linkmaps = {}
         split_attr_keys = []
+        swift_infos = {}
+        uses_swift = False
         for link_output in link_outputs:
-            architectures.append(link_output.architecture)
-            split_attr_keys.append(
-                transition_support.xcframework_split_attr_key(
-                    cpu = link_output.architecture,
-                    environment = link_output.environment,
-                    platform_type = link_output.platform,
-                ),
+            split_attr_key = transition_support.xcframework_split_attr_key(
+                cpu = link_output.architecture,
+                environment = link_output.environment,
+                platform_type = link_output.platform,
             )
+
+            architectures.append(link_output.architecture)
+            split_attr_keys.append(split_attr_key)
+
+            # If there's any Swift dependencies on this framework rule,
+            # look for providers to see if we need to generate Swift interfaces.
+            if swift_support.uses_swift(deps[split_attr_key]):
+                uses_swift = True
+                for dep in deps[split_attr_key]:
+                    if SwiftInfo in dep:
+                        swift_infos[link_output.architecture] = dep[SwiftInfo]
 
             # static library linking does not support bitcode, dsym, and linkmaps yet.
             if linking_type == "binary":
@@ -205,6 +217,8 @@ def _group_link_outputs_by_library_identifier(
             linkmaps = linkmaps,
             platform = platform,
             split_attr_keys = split_attr_keys,
+            swift_infos = swift_infos,
+            uses_swift = uses_swift,
         )
 
     return link_outputs_by_library_identifier
@@ -454,6 +468,7 @@ def _apple_xcframework_impl(ctx):
     actions = ctx.actions
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
+    deps = ctx.split_attr.deps
 
     # Add the disable_legacy_signing feature to the list of features
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
@@ -492,6 +507,7 @@ def _apple_xcframework_impl(ctx):
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
         apple_fragment = ctx.fragments.apple,
+        deps = deps,
         label_name = label.name,
         link_result = link_result,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
@@ -511,10 +527,6 @@ def _apple_xcframework_impl(ctx):
             link_output.platform,
             apple_product_type.framework,
         )
-        uses_swift = False
-        for split_attr_key in link_output.split_attr_keys:
-            if swift_support.uses_swift(ctx.split_attr.deps[split_attr_key]):
-                uses_swift = True
 
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
@@ -527,7 +539,7 @@ def _apple_xcframework_impl(ctx):
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
-            uses_swift = uses_swift,
+            uses_swift = link_output.uses_swift,
             xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
@@ -624,31 +636,14 @@ def _apple_xcframework_impl(ctx):
             ),
         ]
 
-        swift_infos = {}
-
-        # If there's any Swift dependencies on this framework rule, look for providers to see if we
-        # need to generate Swift interfaces.
-        if uses_swift:
-            # Architecture does matter to the swiftinterfaces. Here, take advantage of the archs to
-            # create a new dictionary of arch-specific deps with SwiftInfo instances.
-            for architecture in link_output.architectures:
-                arch_split_attr_key = transition_support.xcframework_split_attr_key(
-                    cpu = architecture,
-                    environment = link_output.environment,
-                    platform_type = link_output.platform,
-                )
-                for dep in ctx.split_attr.deps[arch_split_attr_key]:
-                    if SwiftInfo in dep:
-                        swift_infos[architecture] = dep[SwiftInfo]
-
-        if swift_infos:
+        if link_output.uses_swift and link_output.swift_infos:
             processor_partials.append(
                 partials.swift_framework_partial(
                     actions = actions,
                     bundle_name = bundle_name,
                     label_name = label.name,
                     output_discriminator = library_identifier,
-                    swift_infos = swift_infos,
+                    swift_infos = link_output.swift_infos,
                 ),
             )
         else:
@@ -917,6 +912,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     bundle_name = ctx.label.name
+    deps = ctx.split_attr.deps
     label = ctx.label
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -925,6 +921,7 @@ def _apple_static_xcframework_impl(ctx):
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
         apple_fragment = apple_fragment,
+        deps = deps,
         label_name = bundle_name,
         link_result = link_result,
         xcode_config = xcode_config,
@@ -942,31 +939,63 @@ def _apple_static_xcframework_impl(ctx):
         ))
         framework_archive_files.append(depset([binary_artifact]))
 
-        # Generate headers & modulemaps, and bundle using custom bundler.
-        sdk_frameworks = cc_info_support.get_sdk_frameworks(
-            deps = ctx.split_attr.deps,
-            split_deps_keys = link_output.split_attr_keys,
-        )
-        sdk_dylibs = cc_info_support.get_sdk_dylibs(
-            deps = ctx.split_attr.deps,
-            split_deps_keys = link_output.split_attr_keys,
-        )
-        framework_header_modulemap = partial.call(partials.framework_header_modulemap_partial(
-            actions = actions,
-            bundle_name = bundle_name,
-            hdrs = ctx.files.public_hdrs,
-            label_name = label.name,
-            output_discriminator = library_identifier,
-            umbrella_header = None,
-            sdk_frameworks = sdk_frameworks,
-            sdk_dylibs = sdk_dylibs,
-        ))
-        for _, _, files in framework_header_modulemap.bundle_files:
+        if link_output.uses_swift and link_output.swift_infos:
+            # Generate headers, modulemaps, and swiftmodules
+            interface_artifacts = partial.call(
+                partials.swift_framework_partial(
+                    actions = actions,
+                    avoid_deps = ctx.attr.avoid_deps,
+                    bundle_name = bundle_name,
+                    label_name = label.name,
+                    output_discriminator = library_identifier,
+                    swift_infos = link_output.swift_infos,
+                ),
+            )
+        else:
+            # Generate headers, and modulemaps
+            sdk_frameworks = cc_info_support.get_sdk_frameworks(
+                deps = ctx.split_attr.deps,
+                split_deps_keys = link_output.split_attr_keys,
+            )
+            sdk_dylibs = cc_info_support.get_sdk_dylibs(
+                deps = ctx.split_attr.deps,
+                split_deps_keys = link_output.split_attr_keys,
+            )
+            interface_artifacts = partial.call(partials.framework_header_modulemap_partial(
+                actions = actions,
+                bundle_name = bundle_name,
+                hdrs = ctx.files.public_hdrs,
+                label_name = label.name,
+                output_discriminator = library_identifier,
+                umbrella_header = None,
+                sdk_frameworks = sdk_frameworks,
+                sdk_dylibs = sdk_dylibs,
+            ))
+
+        # Bundle headers & modulemaps (and swiftmodules if available)
+        for _, bundle_relative_path, files in interface_artifacts.bundle_files:
             framework_archive_files.append(files)
             for file in files.to_list():
+                # For Swift based static XCFrameworks, Xcode requires .swiftmodule files to be
+                # located under each library identifier directory. While headers and modulemap
+                # files need to be under a Headers/ directory. Thus, we default all interface
+                # artifacts to be moved to the Headers directory, except for swiftmodule files.
+                #
+                # e.g.
+                #     ios_arm64/
+                #       ├── libStatic.a
+                #       ├── Headers/..
+                #       └── libStatic.swiftmodule/..
+                dest_bundle_relative_path = "Headers"
+                if ".swiftmodule" in bundle_relative_path:
+                    dest_bundle_relative_path = bundle_relative_path.replace("Modules/", "")
                 framework_archive_merge_files.append(struct(
                     src = file.path,
-                    dest = paths.join(library_identifier, "Headers", file.basename),
+                    dest = paths.join(
+                        library_identifier,
+                        dest_bundle_relative_path,
+                        file.basename,
+                    ),
                 ))
 
         # Save additional library details for the XCFramework's root info plist.
@@ -1030,15 +1059,6 @@ apple_static_xcframework = rule(
             "_allowlist_function_transition": attr.label(
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
-            "public_hdrs": attr.label_list(
-                allow_files = [".h"],
-                cfg = transition_support.xcframework_transition,
-                doc = """
-A list of files directly referencing header files to be used as the publicly visible interface for
-each of these embedded libraries. These header files will be embedded within each platform split,
-typically in a subdirectory such as `Headers`.
-""",
-            ),
             "avoid_deps": attr.label_list(
                 allow_files = True,
                 cfg = transition_support.xcframework_transition,
@@ -1049,6 +1069,7 @@ closure of which will not be linked into the framework's binary.
 """,
             ),
             "deps": attr.label_list(
+                aspects = [swift_usage_aspect],
                 allow_files = True,
                 cfg = transition_support.xcframework_transition,
                 mandatory = True,
@@ -1070,6 +1091,15 @@ built for those platform variants (for example, `x86_64`, `arm64`) as their valu
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
 dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
 as keys.
+""",
+            ),
+            "public_hdrs": attr.label_list(
+                allow_files = [".h"],
+                cfg = transition_support.xcframework_transition,
+                doc = """
+A list of files directly referencing header files to be used as the publicly visible interface for
+each of these embedded libraries. These header files will be embedded within each platform split,
+typically in a subdirectory such as `Headers`.
 """,
             ),
         },
