@@ -350,14 +350,28 @@ def _debug_symbols_partial_impl(
         default = False,
     )
 
+    # Output the tree artifact dSYMs as the default outputs if requested.
+    tree_artifact_dsym_files = defines.bool_value(
+        config_vars = platform_prerequisites.config_vars,
+        define_name = "apple.tree_artifact_dsym_files",
+        default = False,
+    )
+
     dsym_bundle_info = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
 
-    if propagate_embedded_extra_outputs:
-        output_files = depset(transitive = [dsyms_group, linkmaps_group])
+    if tree_artifact_dsym_files:
+        all_output_dsyms = dsym_bundle_info
+        direct_output_dsyms = direct_dsym_bundles
     else:
-        output_files = depset(direct_dsyms + direct_linkmaps)
+        all_output_dsyms = dsyms_group
+        direct_output_dsyms = direct_dsyms
+
+    if propagate_embedded_extra_outputs:
+        output_files = depset(transitive = [all_output_dsyms, linkmaps_group])
+    else:
+        output_files = depset(direct_output_dsyms + direct_linkmaps)
 
     output_providers.extend([
         AppleDsymBundleInfo(
@@ -372,7 +386,7 @@ def _debug_symbols_partial_impl(
     return struct(
         output_files = output_files,
         output_groups = {
-            "dsyms": dsyms_group,
+            "dsyms": all_output_dsyms,
             "linkmaps": linkmaps_group,
         },
         providers = output_providers,
