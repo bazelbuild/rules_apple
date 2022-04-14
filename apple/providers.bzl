@@ -257,7 +257,7 @@ requirement.
     fields = {},
 )
 
-AppleSupportToolchainInfo = provider(
+AppleSupportMacToolsToolchainInfo = provider(
     doc = """
 Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
 

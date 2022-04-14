@@ -220,7 +220,7 @@ def _archive_paths(
 def _bundle_partial_outputs_files(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_name,
         codesign_inputs = [],
@@ -239,7 +239,7 @@ def _bundle_partial_outputs_files(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -403,11 +403,11 @@ def _bundle_partial_outputs_files(
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
 
-        resolved_bundletool = apple_toolchain_info.resolved_bundletool_experimental
+        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool_experimental
 
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
         # the experimental bundle tool script.
-        resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool
+        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
 
         bundling_tools = [resolved_bundletool.executable, resolved_codesigningtool.executable]
         if post_processor:
@@ -443,7 +443,7 @@ def _bundle_partial_outputs_files(
             **action_args
         )
     else:
-        resolved_bundletool = apple_toolchain_info.resolved_bundletool
+        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool
         actions.run(
             executable = resolved_bundletool.executable,
             inputs = depset(bundletool_inputs, transitive = [resolved_bundletool.inputs]),
@@ -456,7 +456,7 @@ def _bundle_partial_outputs_files(
 def _bundle_post_process_and_sign(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_name,
         codesign_inputs,
@@ -478,7 +478,7 @@ def _bundle_post_process_and_sign(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -524,7 +524,7 @@ def _bundle_post_process_and_sign(
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
-            codesigningtool = apple_toolchain_info.resolved_codesigningtool.executable,
+            codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool.executable,
             entitlements = entitlements,
             features = features,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
@@ -537,7 +537,7 @@ def _bundle_post_process_and_sign(
 
         _bundle_partial_outputs_files(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
@@ -568,7 +568,7 @@ def _bundle_post_process_and_sign(
         )
         _bundle_partial_outputs_files(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
@@ -604,7 +604,7 @@ def _bundle_post_process_and_sign(
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
-            resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool,
+            resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
@@ -642,7 +642,7 @@ def _bundle_post_process_and_sign(
             )
             _bundle_partial_outputs_files(
                 actions = actions,
-                apple_toolchain_info = apple_toolchain_info,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 embedding = True,
@@ -673,7 +673,7 @@ def _bundle_post_process_and_sign(
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
-                resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool,
+                resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
             )
@@ -681,7 +681,7 @@ def _bundle_post_process_and_sign(
 def _process(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
@@ -703,7 +703,7 @@ def _process(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
@@ -743,7 +743,7 @@ def _process(
         )
         _bundle_post_process_and_sign(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
