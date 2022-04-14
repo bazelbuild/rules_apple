@@ -17,11 +17,11 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
-    "AppleSupportXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -133,7 +133,7 @@ def _apple_bundle_version_impl(ctx):
     )
     inputs.append(control_file)
 
-    resolved_versiontool = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo].resolved_versiontool
+    resolved_versiontool = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].resolved_versiontool
 
     ctx.actions.run(
         executable = resolved_versiontool.executable,
@@ -152,7 +152,7 @@ def _apple_bundle_version_impl(ctx):
 apple_bundle_version = rule(
     _apple_bundle_version_impl,
     attrs = dicts.add(
-        apple_support_toolchain_utils.shared_attrs(),
+        apple_toolchain_utils.shared_attrs(),
         {
             "build_label_pattern": attr.string(
                 mandatory = False,

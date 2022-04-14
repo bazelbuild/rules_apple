@@ -23,6 +23,11 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
     "cc_info_support",
 )
@@ -87,8 +92,6 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleStaticXcframeworkBundleInfo",
-    "AppleSupportMacToolsToolchainInfo",
-    "AppleSupportXPlatToolsToolchainInfo",
     "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
@@ -467,8 +470,8 @@ def _apple_xcframework_impl(ctx):
              "set to 1 on the command line or in your active build configuration.")
 
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     deps = ctx.split_attr.deps
 
@@ -913,8 +916,8 @@ def _apple_static_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.label.name
     deps = ctx.split_attr.deps
     label = ctx.label

@@ -19,8 +19,8 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportMacToolsToolchainInfo",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -72,7 +72,7 @@ def _apple_core_ml_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
 
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
@@ -119,7 +119,7 @@ Label to a single mlmodel file from which to generate sources and compile into m
         ),
         "_mac_toolchain": attr.label(
             default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
-            providers = [[AppleSupportMacToolsToolchainInfo]],
+            providers = [[AppleMacToolsToolchainInfo]],
         ),
     }),
     output_to_genfiles = True,

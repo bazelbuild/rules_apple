@@ -23,8 +23,8 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
@@ -1005,7 +1005,7 @@ dotted version number (for example, "10.11").
     if platform_type:
         rule_attrs.extend([
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
+            apple_toolchain_utils.shared_attrs(),
             {
                 # TODO(kaipi): Make this attribute private when a platform_type is
                 # specified. It is required by the native linking API.
@@ -1101,7 +1101,7 @@ def _create_apple_bundling_rule(
     rule_attrs.extend(
         [
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
+            apple_toolchain_utils.shared_attrs(),
         ] + _get_common_bundling_attributes(rule_descriptor),
     )
 
@@ -1161,7 +1161,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         implementation = implementation,
         attrs = dicts.add(
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
+            apple_toolchain_utils.shared_attrs(),
             _COMMON_TEST_ATTRS,
             *extra_attrs
         ),
@@ -1177,7 +1177,7 @@ rule_factory = struct(
     ),
     common_tool_attributes = dicts.add(
         _COMMON_ATTRS,
-        apple_support_toolchain_utils.shared_attrs(),
+        apple_toolchain_utils.shared_attrs(),
     ),
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,

@@ -6,14 +6,14 @@ load(
 )
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
-    "//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_mac_tools_toolchain",
-    "apple_support_xplat_tools_toolchain",
+    "//apple/internal:apple_toolchains.bzl",
+    "apple_mac_tools_toolchain",
+    "apple_xplat_tools_toolchain",
 )
 
 licenses(["notice"])
 
-apple_support_mac_tools_toolchain(
+apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
     bundletool = "//tools/bundletool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
@@ -33,7 +33,7 @@ apple_support_mac_tools_toolchain(
     xctoolrunner = "//tools/xctoolrunner",
 )
 
-apple_support_xplat_tools_toolchain(
+apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     bundletool = "//tools/bundletool",
     versiontool = "//tools/versiontool",
@@ -74,6 +74,7 @@ bzl_library(
     deps = [
         ":linking_support",
         ":rule_factory",
+        ":transition_support",
         "//apple:providers",
     ],
 )
@@ -88,14 +89,11 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_support_toolchain",
-    srcs = ["apple_support_toolchain.bzl"],
+    name = "apple_toolchains",
+    srcs = ["apple_toolchains.bzl"],
     visibility = [
         "//apple:__subpackages__",
         "//test/starlark_tests:__subpackages__",
-    ],
-    deps = [
-        "//apple:providers",
     ],
 )
 
@@ -212,6 +210,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
@@ -252,6 +251,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":bundling_support",
         ":intermediates",
         ":linking_support",
@@ -272,6 +272,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":bundling_support",
         ":codesigning_support",
         ":entitlements_support",
@@ -409,8 +410,9 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_support_toolchain",
+        ":apple_toolchains",
         ":rule_support",
+        ":transition_support",
         "//apple:common",
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
@@ -468,7 +470,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple/internal:intermediates",
+        ":intermediates",
         "@bazel_skylib//lib:sets",
         "@build_bazel_rules_swift//swift",
     ],
@@ -504,6 +506,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
@@ -530,6 +533,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
@@ -556,6 +560,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":apple_toolchains",
         ":cc_info_support",
         ":experimental",
         ":intermediates",

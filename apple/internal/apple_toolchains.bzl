@@ -14,10 +14,83 @@
 
 """Shared toolchain required for processing Apple bundling rules."""
 
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportMacToolsToolchainInfo",
-    "AppleSupportXPlatToolsToolchainInfo",
+AppleMacToolsToolchainInfo = provider(
+    doc = """
+Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
+
+This provider exists as an internal detail for the rules to reference common, executable tools and
+files used as script templates for the purposes of executing Apple actions. Defined by the
+`apple_mac_tools_toolchain` rule.
+
+This toolchain is for the tools (and support files) for actions that *must* run on a Mac.
+""",
+    fields = {
+        "dsym_info_plist_template": """\
+A `File` referencing a plist template for dSYM bundles.
+""",
+        "process_and_sign_template": """\
+A `File` referencing a template for a shell script to process and sign.
+""",
+        "resolved_bundletool_experimental": """\
+A `struct` from `ctx.resolve_tools` referencing an experimental tool to create an Apple bundle by
+combining the bundling, post-processing, and signing steps into a single action that eliminates the
+archiving step.
+""",
+        "resolved_clangrttool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to find all Clang runtime libs linked to a
+binary.
+""",
+        "resolved_codesigningtool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
+for Apple apps and Apple executable bundles.
+""",
+        "resolved_dossier_codesigningtool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
+""",
+        "resolved_imported_dynamic_framework_processor": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
+such that the given framework only contains the same slices as the app binary, every file belonging
+to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
+and zipped as a cacheable artifact.
+""",
+        "resolved_plisttool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
+substitution, merging, and conversion of plist files to binary format.
+""",
+        "resolved_provisioning_profile_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that extracts entitlements from a
+provisioning profile.
+""",
+        "resolved_swift_stdlib_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
+for the target to run.
+""",
+        "resolved_xctoolrunner": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
+""",
+    },
+)
+
+AppleXPlatToolsToolchainInfo = provider(
+    doc = """
+Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
+
+This provider exists as an internal detail for the rules to reference common, executable tools and
+files used as script templates for the purposes of executing Apple actions. Defined by the
+`apple_xplat_tools_toolchain` rule.
+
+This toolchain is for the tools (and support files) for actions that can run on any platform,
+i.e. - they do *not* have to run on a Mac.
+""",
+    fields = {
+        "resolved_bundletool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
+files/ZIPs and destinations paths to build the directory structure for those files.
+""",
+        "resolved_versiontool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
+""",
+    },
 )
 
 def _shared_attrs():
@@ -25,11 +98,11 @@ def _shared_attrs():
     return {
         "_mac_toolchain": attr.label(
             default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
-            providers = [[AppleSupportMacToolsToolchainInfo]],
+            providers = [[AppleMacToolsToolchainInfo]],
         ),
         "_xplat_toolchain": attr.label(
             default = Label("@build_bazel_rules_apple//apple/internal:xplat_tools_toolchain"),
-            providers = [[AppleSupportXPlatToolsToolchainInfo]],
+            providers = [[AppleXPlatToolsToolchainInfo]],
         ),
     }
 
@@ -47,9 +120,9 @@ def _resolve_tools_for_executable(*, rule_ctx, attr_name):
         input_manifests = input_manifests,
     )
 
-def _apple_support_mac_tools_toolchain_impl(ctx):
+def _apple_mac_tools_toolchain_impl(ctx):
     return [
-        AppleSupportMacToolsToolchainInfo(
+        AppleMacToolsToolchainInfo(
             dsym_info_plist_template = ctx.file.dsym_info_plist_template,
             process_and_sign_template = ctx.file.process_and_sign_template,
             resolved_bundletool_experimental = _resolve_tools_for_executable(
@@ -92,7 +165,7 @@ def _apple_support_mac_tools_toolchain_impl(ctx):
         DefaultInfo(),
     ]
 
-apple_support_mac_tools_toolchain = rule(
+apple_mac_tools_toolchain = rule(
     attrs = {
         "bundletool": attr.label(
             cfg = "exec",
@@ -173,12 +246,12 @@ A `File` referencing a tool that copies and lipos Swift stdlibs required for the
         ),
     },
     doc = """Represents an Apple support toolchain for tools that must run on a Mac""",
-    implementation = _apple_support_mac_tools_toolchain_impl,
+    implementation = _apple_mac_tools_toolchain_impl,
 )
 
-def _apple_support_xplat_tools_toolchain_impl(ctx):
+def _apple_xplat_tools_toolchain_impl(ctx):
     return [
-        AppleSupportXPlatToolsToolchainInfo(
+        AppleXPlatToolsToolchainInfo(
             resolved_bundletool = _resolve_tools_for_executable(
                 attr_name = "bundletool",
                 rule_ctx = ctx,
@@ -191,7 +264,7 @@ def _apple_support_xplat_tools_toolchain_impl(ctx):
         DefaultInfo(),
     ]
 
-apple_support_xplat_tools_toolchain = rule(
+apple_xplat_tools_toolchain = rule(
     attrs = {
         "bundletool": attr.label(
             cfg = "exec",
@@ -210,10 +283,10 @@ A `File` referencing a tool for extracting version info from builds.
         ),
     },
     doc = """Represents an Apple support toolchain for tools that can run on any platform""",
-    implementation = _apple_support_xplat_tools_toolchain_impl,
+    implementation = _apple_xplat_tools_toolchain_impl,
 )
 
 # Define the loadable module that lists the exported symbols in this file.
-apple_support_toolchain_utils = struct(
+apple_toolchain_utils = struct(
     shared_attrs = _shared_attrs,
 )
