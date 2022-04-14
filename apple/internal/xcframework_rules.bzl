@@ -88,6 +88,7 @@ load(
     "AppleBundleVersionInfo",
     "AppleStaticXcframeworkBundleInfo",
     "AppleSupportMacToolsToolchainInfo",
+    "AppleSupportXPlatToolsToolchainInfo",
     "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
@@ -464,6 +465,7 @@ def _apple_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
@@ -669,6 +671,7 @@ def _apple_xcframework_impl(ctx):
         processor_result = processor.process(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
@@ -746,7 +749,7 @@ def _apple_xcframework_impl(ctx):
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = ctx.outputs.archive,
-        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool,
+        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 
@@ -929,6 +932,7 @@ def _apple_static_xcframework_impl(ctx):
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bundle_name = ctx.label.name
     deps = ctx.split_attr.deps
     label = ctx.label
@@ -1046,7 +1050,7 @@ def _apple_static_xcframework_impl(ctx):
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
         output_archive = outputs_archive,
-        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool,
+        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 
