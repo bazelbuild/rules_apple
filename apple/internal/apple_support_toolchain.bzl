@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleSupportMacToolsToolchainInfo",
+    "AppleSupportXPlatToolsToolchainInfo",
 )
 
 def _shared_attrs():
@@ -25,6 +26,10 @@ def _shared_attrs():
         "_mac_toolchain": attr.label(
             default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
             providers = [[AppleSupportMacToolsToolchainInfo]],
+        ),
+        "_xplat_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:xplat_tools_toolchain"),
+            providers = [[AppleSupportXPlatToolsToolchainInfo]],
         ),
     }
 
@@ -49,10 +54,6 @@ def _apple_support_mac_tools_toolchain_impl(ctx):
             process_and_sign_template = ctx.file.process_and_sign_template,
             resolved_alticonstool = _resolve_tools_for_executable(
                 attr_name = "alticonstool",
-                rule_ctx = ctx,
-            ),
-            resolved_bundletool = _resolve_tools_for_executable(
-                attr_name = "bundletool",
                 rule_ctx = ctx,
             ),
             resolved_bundletool_experimental = _resolve_tools_for_executable(
@@ -95,7 +96,6 @@ def _apple_support_mac_tools_toolchain_impl(ctx):
         DefaultInfo(),
     ]
 
-# Define an Apple toolchain rule with tools built in the default configuration.
 apple_support_mac_tools_toolchain = rule(
     attrs = {
         "alticonstool": attr.label(
@@ -183,8 +183,45 @@ A `File` referencing a tool that copies and lipos Swift stdlibs required for the
             doc = "A `File` referencing a tool that acts as a wrapper for xcrun actions.",
         ),
     },
-    doc = """Represents an Apple support toolchain""",
+    doc = """Represents an Apple support toolchain for tools that must run on a Mac""",
     implementation = _apple_support_mac_tools_toolchain_impl,
+)
+
+def _apple_support_xplat_tools_toolchain_impl(ctx):
+    return [
+        AppleSupportXPlatToolsToolchainInfo(
+            resolved_bundletool = _resolve_tools_for_executable(
+                attr_name = "bundletool",
+                rule_ctx = ctx,
+            ),
+            resolved_versiontool = _resolve_tools_for_executable(
+                attr_name = "versiontool",
+                rule_ctx = ctx,
+            ),
+        ),
+        DefaultInfo(),
+    ]
+
+apple_support_xplat_tools_toolchain = rule(
+    attrs = {
+        "bundletool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
+paths to build the directory structure for those files.
+""",
+        ),
+        "versiontool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool for extracting version info from builds.
+""",
+        ),
+    },
+    doc = """Represents an Apple support toolchain for tools that can run on any platform""",
+    implementation = _apple_support_xplat_tools_toolchain_impl,
 )
 
 # Define the loadable module that lists the exported symbols in this file.

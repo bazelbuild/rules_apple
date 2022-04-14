@@ -221,6 +221,7 @@ def _bundle_partial_outputs_files(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         codesign_inputs = [],
@@ -239,7 +240,8 @@ def _bundle_partial_outputs_files(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
+      apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -443,7 +445,7 @@ def _bundle_partial_outputs_files(
             **action_args
         )
     else:
-        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool
+        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool
         actions.run(
             executable = resolved_bundletool.executable,
             inputs = depset(bundletool_inputs, transitive = [resolved_bundletool.inputs]),
@@ -457,6 +459,7 @@ def _bundle_post_process_and_sign(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         codesign_inputs,
@@ -478,7 +481,8 @@ def _bundle_post_process_and_sign(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -538,6 +542,7 @@ def _bundle_post_process_and_sign(
         _bundle_partial_outputs_files(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
@@ -569,6 +574,7 @@ def _bundle_post_process_and_sign(
         _bundle_partial_outputs_files(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
@@ -643,6 +649,7 @@ def _bundle_post_process_and_sign(
             _bundle_partial_outputs_files(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 embedding = True,
@@ -682,6 +689,7 @@ def _process(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
@@ -703,7 +711,8 @@ def _process(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
+      apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
@@ -744,6 +753,7 @@ def _process(
         _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
