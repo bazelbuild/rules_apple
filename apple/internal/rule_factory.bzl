@@ -129,11 +129,6 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
             cfg = apple_common.multi_arch_split,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
-        # Needed for the J2ObjC processing code that already exists in the implementation of
-        # apple_common.link_multi_arch_binary.
-        "_j2objc_dead_code_pruner": attr.label(
-            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
-        ),
         # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
         # apple_common.link_multi_arch_binary requires this attribute.
         # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
