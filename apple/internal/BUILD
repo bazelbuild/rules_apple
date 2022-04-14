@@ -168,7 +168,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "@bazel_skylib//lib:sets",
+        "@bazel_skylib//lib:new_sets",
     ],
 )
 
@@ -398,7 +398,6 @@ bzl_library(
         "//apple/internal/testing:apple_test_rule_support",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
     ],
 )
 

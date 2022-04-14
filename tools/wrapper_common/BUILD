@@ -30,7 +30,7 @@ py_library(
     visibility = [
         "//tools:__subpackages__",
     ],
-    deps = ["//tools/wrapper_common:execute"],
+    deps = [":execute"],
 )
 
 # Consumed by bazel tests.
