@@ -280,7 +280,7 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
 def _resources_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
@@ -417,7 +417,7 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
-                "apple_toolchain_info": apple_toolchain_info,
+                "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
                 "output_discriminator": output_discriminator,
@@ -482,7 +482,7 @@ def _resources_partial_impl(
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,
@@ -495,7 +495,7 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_id = None,
         bundle_name,
@@ -520,7 +520,7 @@ def resources_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
@@ -555,7 +555,7 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,

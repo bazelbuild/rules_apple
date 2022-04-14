@@ -50,7 +50,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfoplistInfo",
     "AppleBundleVersionInfo",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -111,7 +111,7 @@ def _macos_binary_infoplist_impl(ctx):
         output_pkginfo = None,
         output_plist = merged_infoplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._toolchain[AppleSupportToolchainInfo].resolved_plisttool,
+        resolved_plisttool = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo].resolved_plisttool,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         version = ctx.attr.version,
@@ -178,7 +178,7 @@ def _macos_command_line_launchdplist_impl(ctx):
         output_discriminator = None,
         output_plist = merged_launchdplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._toolchain[AppleSupportToolchainInfo].resolved_plisttool,
+        resolved_plisttool = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo].resolved_plisttool,
         rule_label = rule_label,
     )
 

@@ -16,7 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -69,7 +69,7 @@ def _apple_intent_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
     resource_actions.generate_intent_classes_sources(
         actions = ctx.actions,
         input_file = ctx.file.src,
@@ -82,7 +82,7 @@ def _apple_intent_library_impl(ctx):
         swift_version = ctx.attr.swift_version,
         class_visibility = ctx.attr.class_visibility,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     )
 
     if is_swift:
@@ -129,9 +129,9 @@ Label to a single `.intentdefinition` files from which to generate sources files
         "header_name": attr.string(
             doc = "Name of the public header file (only when using Objective-C).",
         ),
-        "_toolchain": attr.label(
+        "_mac_toolchain": attr.label(
             default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
+            providers = [[AppleSupportMacToolsToolchainInfo]],
         ),
     }),
     output_to_genfiles = True,
