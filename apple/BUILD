@@ -139,6 +139,8 @@ bzl_library(
     srcs = ["versioning.bzl"],
     deps = [
         ":providers",
+        "//apple/internal:apple_support_toolchain",
+        "@bazel_skylib//lib:dicts",
     ],
 )
 

@@ -220,7 +220,9 @@ Propagates information about an Apple toolchain to internal bundling rules that 
 
 This provider exists as an internal detail for the rules to reference common, executable tools and
 files used as script templates for the purposes of executing Apple actions. Defined by the
-`apple_support_toolchain` rule.
+`apple_support_mac_tools_toolchain` rule.
+
+This toolchain is for the tools (and support files) for actions that *must* run on a Mac.
 """,
     fields = {
         "dsym_info_plist_template": """\
@@ -228,10 +230,6 @@ A `File` referencing a plist template for dSYM bundles.
 """,
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
-""",
-        "resolved_bundletool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
-files/ZIPs and destinations paths to build the directory structure for those files.
 """,
         "resolved_bundletool_experimental": """\
 A `struct` from `ctx.resolve_tools` referencing an experimental tool to create an Apple bundle by
@@ -268,6 +266,28 @@ A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swi
 for the target to run.
 """,
         "resolved_xctoolrunner": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
+""",
+    },
+)
+
+AppleSupportXPlatToolsToolchainInfo = provider(
+    doc = """
+Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
+
+This provider exists as an internal detail for the rules to reference common, executable tools and
+files used as script templates for the purposes of executing Apple actions. Defined by the
+`apple_support_xplat_tools_toolchain` rule.
+
+This toolchain is for the tools (and support files) for actions that can run on any platform,
+i.e. - they do *not* have to run on a Mac.
+""",
+    fields = {
+        "resolved_bundletool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
+files/ZIPs and destinations paths to build the directory structure for those files.
+""",
+        "resolved_versiontool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
 """,
     },

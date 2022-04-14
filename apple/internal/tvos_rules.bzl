@@ -77,6 +77,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleSupportMacToolsToolchainInfo",
+    "AppleSupportXPlatToolsToolchainInfo",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
@@ -87,6 +88,7 @@ def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -269,6 +271,7 @@ def _tvos_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -332,6 +335,7 @@ def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -496,6 +500,7 @@ def _tvos_framework_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
@@ -526,6 +531,7 @@ def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -689,6 +695,7 @@ def _tvos_extension_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -726,6 +733,7 @@ def _tvos_static_framework_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -799,6 +807,7 @@ def _tvos_static_framework_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,

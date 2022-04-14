@@ -8,6 +8,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple/internal:apple_support_toolchain.bzl",
     "apple_support_mac_tools_toolchain",
+    "apple_support_xplat_tools_toolchain",
 )
 
 licenses(["notice"])
@@ -30,6 +31,16 @@ apple_support_mac_tools_toolchain(
     # not used by other things.
     visibility = ["//visibility:public"],
     xctoolrunner = "//tools/xctoolrunner",
+)
+
+apple_support_xplat_tools_toolchain(
+    name = "xplat_tools_toolchain",
+    bundletool = "//tools/bundletool",
+    versiontool = "//tools/versiontool",
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
 )
 
 bzl_library(
@@ -209,12 +220,14 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":resources",
         ":rule_factory",
         ":rule_support",
         ":run_support",
         ":stub_support",
         "//apple:providers",
         "//apple/internal/aspects:swift_static_framework_aspect",
+        "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
     ],
 )
@@ -268,11 +281,13 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":resources",
         ":rule_factory",
         ":rule_support",
         ":run_support",
         ":transition_support",
         "//apple:providers",
+        "//apple/internal/utils:clang_rt_dylibs",
     ],
 )
 
@@ -347,7 +362,6 @@ bzl_library(
         ":outputs",
         "//apple/internal/utils:bundle_paths",
         "//apple/internal/utils:defines",
-        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
@@ -498,11 +512,13 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":resources",
         ":rule_factory",
         ":rule_support",
         ":run_support",
         "//apple:providers",
         "//apple/internal/aspects:swift_static_framework_aspect",
+        "//apple/internal/utils:clang_rt_dylibs",
     ],
 )
 
@@ -522,10 +538,12 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":resources",
         ":rule_factory",
         ":rule_support",
         ":stub_support",
         "//apple:providers",
+        "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:xcode_support",
     ],
 )
@@ -554,6 +572,9 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
     ],

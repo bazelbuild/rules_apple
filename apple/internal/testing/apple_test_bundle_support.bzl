@@ -67,6 +67,7 @@ load(
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
     "AppleSupportMacToolsToolchainInfo",
+    "AppleSupportXPlatToolsToolchainInfo",
     "AppleTestInfo",
 )
 load(
@@ -265,6 +266,7 @@ def _apple_test_bundle_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     config_vars = ctx.var
     features = features_support.compute_enabled_features(
@@ -416,6 +418,7 @@ def _apple_test_bundle_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
