@@ -1,10 +1,7 @@
 load(
-    "//apple/internal:xcframework_rules.bzl",
-    "apple_static_xcframework",
-)  # buildifier: disable=bzl-visibility
-load(
     "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
+    "apple_static_xcframework",
     "apple_static_xcframework_import",
     "apple_universal_binary",
     "apple_xcframework",
