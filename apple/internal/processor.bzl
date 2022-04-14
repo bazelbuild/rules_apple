@@ -240,8 +240,8 @@ def _bundle_partial_outputs_files(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
-      apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
+      apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+      apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -481,8 +481,8 @@ def _bundle_post_process_and_sign(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
-        apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
+        apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -711,8 +711,8 @@ def _process(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_mac_toolchain_info: A AppleSupportMacToolsToolchainInfo provider.
-      apple_xplat_toolchain_info: A AppleSupportXPlatToolsToolchainInfo provider.
+      apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+      apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after

@@ -19,8 +19,9 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -37,7 +38,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
-    "AppleSupportMacToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -91,7 +91,7 @@ def _apple_resource_aspect_impl(target, ctx):
     # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
-        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo],
+        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
         "bundle_id": None,
         "product_type": None,
         "rule_label": ctx.label,
@@ -265,7 +265,7 @@ apple_resource_aspect = aspect(
     attr_aspects = ["data", "deps", "resources", "structured_resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
-        apple_support_toolchain_utils.shared_attrs(),
+        apple_toolchain_utils.shared_attrs(),
     ),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
