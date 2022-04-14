@@ -1,9 +1,6 @@
 load(
-    "//apple/internal:xcframework_rules.bzl",
-    "apple_static_xcframework",
-)
-load(
     "//apple:apple.bzl",
+    "apple_static_xcframework",
     "apple_universal_binary",
     "apple_xcframework",
 )
