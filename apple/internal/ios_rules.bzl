@@ -19,6 +19,11 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -88,8 +93,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportMacToolsToolchainInfo",
-    "AppleSupportXPlatToolsToolchainInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
@@ -108,8 +111,8 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -417,8 +420,8 @@ def _ios_application_impl(ctx):
 def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -677,8 +680,8 @@ def _ios_app_clip_impl(ctx):
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -899,8 +902,8 @@ def _ios_framework_impl(ctx):
 def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -1147,8 +1150,8 @@ def _ios_dynamic_framework_impl(ctx):
     binary_target = ctx.attr.deps[0]
 
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -1370,8 +1373,8 @@ def _ios_static_framework_impl(ctx):
     binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
 
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
     features = features_support.compute_enabled_features(
@@ -1472,8 +1475,8 @@ def _ios_static_framework_impl(ctx):
 def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -1648,8 +1651,8 @@ def _ios_imessage_application_impl(ctx):
 def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
@@ -1868,8 +1871,8 @@ def _ios_imessage_extension_impl(ctx):
 def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)

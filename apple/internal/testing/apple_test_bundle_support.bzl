@@ -19,6 +19,11 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
@@ -70,8 +75,6 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleExtraOutputsInfo",
-    "AppleSupportMacToolsToolchainInfo",
-    "AppleSupportXPlatToolsToolchainInfo",
     "AppleTestInfo",
 )
 load(
@@ -269,8 +272,8 @@ def _apple_test_bundle_impl(ctx):
              "them.")
 
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleSupportXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
