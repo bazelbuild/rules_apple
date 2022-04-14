@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -72,7 +72,7 @@ def _apple_core_ml_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
 
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
@@ -82,7 +82,7 @@ def _apple_core_ml_library_impl(ctx):
         output_source = coremlc_source,
         output_header = coremlc_header,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     )
 
     # But we would like our ObjC clients to use <target_name>.h instead, so we create that header
@@ -117,9 +117,9 @@ Label to a single mlmodel file from which to generate sources and compile into m
             mandatory = True,
             doc = "Private attribute to configure the ObjC header name to be exported.",
         ),
-        "_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
+        "_mac_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
+            providers = [[AppleSupportMacToolsToolchainInfo]],
         ),
     }),
     output_to_genfiles = True,

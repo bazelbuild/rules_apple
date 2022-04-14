@@ -15,7 +15,7 @@
 """Support code for resource processing.
 
 All methods in this file follow this convention:
-  - The argument signature is a combination of; actions, apple_toolchain_info, bundle_id, files,
+  - The argument signature is a combination of; actions, apple_mac_toolchain_info, bundle_id, files,
     output_discriminator, parent_dir, platform_prerequisites, product_type, and/or rule_label. Only
     the arguments required for each resource action should be referenced directly by keyword in the
     argument signature and implementation. Arguments should not be referenced through kwargs. The
@@ -139,7 +139,7 @@ def _compile_mappingmodels(
 def _asset_catalogs(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_id,
         files,
         output_discriminator,
@@ -180,7 +180,7 @@ def _asset_catalogs(
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     )
 
     return struct(
@@ -191,7 +191,7 @@ def _asset_catalogs(
 def _datamodels(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -243,7 +243,7 @@ def _datamodels(
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         swift_module = swift_module,
     ))
     output_files.extend(_compile_mappingmodels(
@@ -253,7 +253,7 @@ def _datamodels(
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     ))
 
     return struct(files = output_files)
@@ -261,7 +261,7 @@ def _datamodels(
 def _infoplists(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -277,7 +277,7 @@ def _infoplists(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         files: The infoplist files to process.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -307,7 +307,7 @@ def _infoplists(
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = rule_label,
         )
         return struct(
@@ -322,7 +322,7 @@ def _infoplists(
 def _mlmodels(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -355,7 +355,7 @@ def _mlmodels(
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         )
 
         mlmodel_bundles.append(
@@ -491,7 +491,7 @@ def _pngs(
 def _storyboards(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -525,7 +525,7 @@ def _storyboards(
             input_file = storyboard,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
         )
         compiled_storyboardcs.append(storyboardc_dir)
@@ -542,7 +542,7 @@ def _storyboards(
         actions = actions,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         storyboardc_dirs = compiled_storyboardcs,
     )
     return struct(
@@ -597,7 +597,7 @@ def _texture_atlases(
 def _xibs(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -622,7 +622,7 @@ def _xibs(
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
         )
         nib_files.append(out_dir)

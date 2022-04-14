@@ -76,7 +76,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
 )
@@ -84,7 +84,7 @@ load(
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
     actions = ctx.actions
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -113,7 +113,7 @@ def _watchos_application_impl(ctx):
 
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -175,7 +175,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -184,7 +184,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -201,7 +201,7 @@ def _watchos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = [ctx.attr.extension],
-            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
@@ -212,7 +212,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -229,7 +229,7 @@ def _watchos_application_impl(ctx):
         ),
         partials.swift_dylibs_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = [ctx.attr.extension],
@@ -254,7 +254,7 @@ def _watchos_application_impl(ctx):
 
     processor_result = processor.process(
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -263,7 +263,7 @@ def _watchos_application_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
@@ -280,7 +280,7 @@ def _watchos_application_impl(ctx):
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
     actions = ctx.actions
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     features = features_support.compute_enabled_features(
@@ -308,7 +308,7 @@ def _watchos_extension_impl(ctx):
 
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -392,7 +392,7 @@ def _watchos_extension_impl(ctx):
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -401,7 +401,7 @@ def _watchos_extension_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
@@ -419,7 +419,7 @@ def _watchos_extension_impl(ctx):
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.extensions,
             dsym_binaries = debug_outputs.dsym_binaries,
-            dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -434,7 +434,7 @@ def _watchos_extension_impl(ctx):
         # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
         partials.framework_import_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             features = features,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -444,7 +444,7 @@ def _watchos_extension_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_verification_targets = bundle_verification_targets,
             bundle_id = bundle_id,
@@ -461,7 +461,7 @@ def _watchos_extension_impl(ctx):
         ),
         partials.swift_dylibs_partial(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
             dependency_targets = ctx.attr.extensions,
@@ -480,7 +480,7 @@ def _watchos_extension_impl(ctx):
 
     processor_result = processor.process(
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -489,7 +489,7 @@ def _watchos_extension_impl(ctx):
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_toolchain_info.process_and_sign_template,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,

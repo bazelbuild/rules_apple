@@ -7,13 +7,13 @@ load(
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain",
+    "apple_support_mac_tools_toolchain",
 )
 
 licenses(["notice"])
 
-apple_support_toolchain(
-    name = "toolchain_support",
+apple_support_mac_tools_toolchain(
+    name = "mac_tools_toolchain",
     bundletool = "//tools/bundletool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",

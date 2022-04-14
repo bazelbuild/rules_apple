@@ -16,15 +16,15 @@
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
 )
 
 def _shared_attrs():
     """Private attributes on every rule to provide access to bundling tools and other file deps."""
     return {
-        "_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
+        "_mac_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
+            providers = [[AppleSupportMacToolsToolchainInfo]],
         ),
     }
 
@@ -42,9 +42,9 @@ def _resolve_tools_for_executable(*, rule_ctx, attr_name):
         input_manifests = input_manifests,
     )
 
-def _apple_support_toolchain_impl(ctx):
+def _apple_support_mac_tools_toolchain_impl(ctx):
     return [
-        AppleSupportToolchainInfo(
+        AppleSupportMacToolsToolchainInfo(
             dsym_info_plist_template = ctx.file.dsym_info_plist_template,
             process_and_sign_template = ctx.file.process_and_sign_template,
             resolved_bundletool = _resolve_tools_for_executable(
@@ -92,7 +92,7 @@ def _apple_support_toolchain_impl(ctx):
     ]
 
 # Define an Apple toolchain rule with tools built in the default configuration.
-apple_support_toolchain = rule(
+apple_support_mac_tools_toolchain = rule(
     attrs = {
         "bundletool": attr.label(
             cfg = "exec",
@@ -173,7 +173,7 @@ A `File` referencing a tool that copies and lipos Swift stdlibs required for the
         ),
     },
     doc = """Represents an Apple support toolchain""",
-    implementation = _apple_support_toolchain_impl,
+    implementation = _apple_support_mac_tools_toolchain_impl,
 )
 
 # Define the loadable module that lists the exported symbols in this file.

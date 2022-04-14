@@ -87,7 +87,7 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleStaticXcframeworkBundleInfo",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
     "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
@@ -466,7 +466,7 @@ def _apple_xcframework_impl(ctx):
              "set to 1 on the command line or in your active build configuration.")
 
     actions = ctx.actions
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     deps = ctx.split_attr.deps
 
@@ -604,13 +604,13 @@ def _apple_xcframework_impl(ctx):
                 bundle_name = bundle_name,
                 debug_discriminator = link_output.platform + "_" + link_output.environment,
                 dsym_binaries = link_output.dsym_binaries,
-                dsym_info_plist_template = apple_toolchain_info.dsym_info_plist_template,
+                dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
             ),
             partials.resources_partial(
                 actions = actions,
-                apple_toolchain_info = apple_toolchain_info,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
@@ -629,7 +629,7 @@ def _apple_xcframework_impl(ctx):
             ),
             partials.swift_dylibs_partial(
                 actions = actions,
-                apple_toolchain_info = apple_toolchain_info,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
                 binary_artifact = binary_artifact,
                 label_name = label.name,
                 platform_prerequisites = platform_prerequisites,
@@ -660,7 +660,7 @@ def _apple_xcframework_impl(ctx):
 
         processor_result = processor.process(
             actions = actions,
-            apple_toolchain_info = apple_toolchain_info,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
@@ -670,7 +670,7 @@ def _apple_xcframework_impl(ctx):
             partials = processor_partials,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = overridden_predeclared_outputs,
-            process_and_sign_template = apple_toolchain_info.process_and_sign_template,
+            process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
             provisioning_profile = None,
             rule_descriptor = rule_descriptor,
             rule_label = label,
@@ -724,7 +724,7 @@ def _apple_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = ctx.fragments.apple,
         available_libraries = available_libraries,
-        resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
@@ -738,7 +738,7 @@ def _apple_xcframework_impl(ctx):
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = ctx.outputs.archive,
-        resolved_bundletool = apple_toolchain_info.resolved_bundletool,
+        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 
@@ -910,7 +910,7 @@ def _apple_static_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo]
     bundle_name = ctx.label.name
     deps = ctx.split_attr.deps
     label = ctx.label
@@ -1015,7 +1015,7 @@ def _apple_static_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         available_libraries = available_libraries,
-        resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
         xcode_config = xcode_config,
         xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
@@ -1028,7 +1028,7 @@ def _apple_static_xcframework_impl(ctx):
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
         output_archive = outputs_archive,
-        resolved_bundletool = apple_toolchain_info.resolved_bundletool,
+        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 

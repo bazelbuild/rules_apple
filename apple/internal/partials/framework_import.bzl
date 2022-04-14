@@ -50,7 +50,7 @@ load(
 def _framework_import_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         features,
         label_name,
         output_discriminator,
@@ -161,8 +161,8 @@ def _framework_import_partial_impl(
         )
         args.add_all(codesign_args)
 
-        resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool
-        resolved_imported_dynamic_framework_processor = apple_toolchain_info.resolved_imported_dynamic_framework_processor
+        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
+        resolved_imported_dynamic_framework_processor = apple_mac_toolchain_info.resolved_imported_dynamic_framework_processor
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, and the provisioning profile if specified.
@@ -203,7 +203,7 @@ def _framework_import_partial_impl(
 def framework_import_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         features,
         label_name,
         output_discriminator = None,
@@ -219,7 +219,7 @@ def framework_import_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -237,7 +237,7 @@ def framework_import_partial(
     return partial.make(
         _framework_import_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         features = features,
         label_name = label_name,
         output_discriminator = output_discriminator,

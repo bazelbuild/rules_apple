@@ -37,7 +37,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
-    "AppleSupportToolchainInfo",
+    "AppleSupportMacToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -89,7 +89,7 @@ def _apple_resource_aspect_impl(target, ctx):
     # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
-        "apple_toolchain_info": ctx.attr._toolchain[AppleSupportToolchainInfo],
+        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleSupportMacToolsToolchainInfo],
         "bundle_id": None,
         "product_type": None,
         "rule_label": ctx.label,

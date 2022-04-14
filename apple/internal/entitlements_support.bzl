@@ -217,7 +217,7 @@ def _validate_bundle_id(bundle_id):
 
 def _process_entitlements(
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_id,
         entitlements_file,
         platform_prerequisites,
@@ -245,7 +245,7 @@ def _process_entitlements(
 
     Args:
         actions: The object used to register actions.
-        apple_toolchain_info: The `struct` of tools from the shared Apple
+        apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
@@ -275,7 +275,7 @@ def _process_entitlements(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         resolved_provisioning_profile_tool = (
-            apple_toolchain_info.resolved_provisioning_profile_tool
+            apple_mac_toolchain_info.resolved_provisioning_profile_tool
         ),
         rule_label = rule_label,
     )
@@ -336,7 +336,7 @@ def _process_entitlements(
         mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
     )
 
     return final_entitlements
