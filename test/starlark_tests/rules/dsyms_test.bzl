@@ -61,15 +61,23 @@ def _dsyms_test_impl(ctx):
         for x in ctx.attr.expected_dsyms
     ]
 
-    expected_binaries = []
-    expected_binaries.extend([
-        "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
-            package,
-            x,
-            paths.split_extension(x)[0],
-        )
-        for x in ctx.attr.expected_dsyms
-    ])
+    if ctx.attr.expected_binaries:
+        expected_binaries = [
+            "{0}/{1}".format(
+                package,
+                x,
+            )
+            for x in ctx.attr.expected_binaries
+        ]
+    else:
+        expected_binaries = [
+            "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
+                package,
+                x,
+                paths.split_extension(x)[0],
+            )
+            for x in ctx.attr.expected_dsyms
+        ]
 
     workspace = target_under_test.label.workspace_name
     if workspace != "":
