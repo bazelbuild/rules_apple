@@ -111,10 +111,11 @@ apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
         "mlmodel": attr.label(
-            allow_single_file = ["mlmodel"],
+            allow_single_file = ["mlmodel", "mlpackage"],
             mandatory = True,
             doc = """
-Label to a single `.mlmodel` file from which to generate sources and compile into mlmodelc files.
+Label to a single `.mlmodel` file or `.mlpackage` bundle from which to generate sources and compile
+into mlmodelc files.
 """,
         ),
         "header_name": attr.string(
@@ -132,11 +133,11 @@ Label to a single `.mlmodel` file from which to generate sources and compile int
         "source": "%{name}.m",
     },
     doc = """
-This rule takes a single mlmodel file and creates a target that can be added as a dependency from
-objc_library or swift_library targets. For Swift, just import like any other objc_library target.
-For objc_library, this target generates a header named `<target_name>.h` that can be imported from
-within the package where this target resides. For example, if this target's label is
-`//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
+This rule takes a single mlmodel file or mlpackage bundle and creates a target that can be added
+as a dependency from objc_library or swift_library targets. For Swift, just import like any other
+objc_library target. For objc_library, this target generates a header named `<target_name>.h` that
+can be imported from within the package where this target resides. For example, if this target's
+label is `//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
 
 This rule supports the integration of CoreML `mlmodel` files into Apple rules.
 `apple_core_ml_library` targets are added directly into `deps` for both
