@@ -18,6 +18,7 @@ exports_files([
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
     "sample.mlmodel",
+    "sample.mlpackage",
     "sample.png",
     "storyboard_ios.storyboard",
     "view_ios.xib",
@@ -38,6 +39,7 @@ filegroup(
     srcs = [
         "BUILD",
         "sample.mlmodel",
+        "sample.mlpackage",
     ],
 )
 

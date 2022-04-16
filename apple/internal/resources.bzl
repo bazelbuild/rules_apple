@@ -262,7 +262,7 @@ def _bucketize_data(
             bucket_name = "plists"
         elif resource_short_path.endswith(".metal"):
             bucket_name = "metals"
-        elif resource_short_path.endswith(".mlmodel"):
+        elif resource_short_path.endswith(".mlmodel") or resource_short_path.endswith(".mlpackage"):
             bucket_name = "mlmodels"
         else:
             bucket_name = "unprocessed"
