@@ -15,7 +15,6 @@ licenses(["notice"])
 
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
-    bundletool = "//tools/bundletool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
     codesigningtool = "//tools/codesigningtool",

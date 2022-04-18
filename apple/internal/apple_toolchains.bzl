@@ -167,14 +167,6 @@ def _apple_mac_tools_toolchain_impl(ctx):
 
 apple_mac_tools_toolchain = rule(
     attrs = {
-        "bundletool": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = """
-A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
-paths to build the directory structure for those files.
-""",
-        ),
         "bundletool_experimental": attr.label(
             cfg = "exec",
             executable = True,
