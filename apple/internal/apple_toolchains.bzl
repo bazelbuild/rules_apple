@@ -182,14 +182,6 @@ apple_mac_tools_toolchain = rule(
 A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
 """,
         ),
-        "bundletool": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = """
-A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
-paths to build the directory structure for those files.
-""",
-        ),
         "bundletool_experimental": attr.label(
             cfg = "exec",
             executable = True,
