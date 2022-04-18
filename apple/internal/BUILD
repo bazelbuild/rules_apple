@@ -21,6 +21,7 @@ apple_mac_tools_toolchain(
     codesigningtool = "//tools/codesigningtool",
     dossier_codesigningtool = "//tools/dossier_codesigningtool",
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
+    environment_plist_tool = "//tools/environment_plist",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
     plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
@@ -161,6 +162,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_toolchains",
         ":platform_support",
         ":rule_factory",
         "@bazel_skylib//lib:dicts",
