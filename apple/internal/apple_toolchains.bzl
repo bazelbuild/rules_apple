@@ -47,6 +47,9 @@ for Apple apps and Apple executable bundles.
         "resolved_dossier_codesigningtool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
 """,
+        "resolved_environment_plist_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool for collecting dev environment values.
+""",
         "resolved_imported_dynamic_framework_processor": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
 such that the given framework only contains the same slices as the app binary, every file belonging
@@ -141,6 +144,10 @@ def _apple_mac_tools_toolchain_impl(ctx):
                 attr_name = "clangrttool",
                 rule_ctx = ctx,
             ),
+            resolved_environment_plist_tool = _resolve_tools_for_executable(
+                attr_name = "environment_plist_tool",
+                rule_ctx = ctx,
+            ),
             resolved_imported_dynamic_framework_processor = _resolve_tools_for_executable(
                 attr_name = "imported_dynamic_framework_processor",
                 rule_ctx = ctx,
@@ -194,6 +201,14 @@ post-processing, and signing steps into a single action that eliminates the arch
             cfg = "exec",
             allow_single_file = True,
             doc = "A `File` referencing a plist template for dSYM bundles.",
+        ),
+        "environment_plist_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool to collect data from the development environment to be record into
+final bundles.
+""",
         ),
         "imported_dynamic_framework_processor": attr.label(
             cfg = "exec",
