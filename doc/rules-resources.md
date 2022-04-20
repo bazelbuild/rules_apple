@@ -147,6 +147,26 @@ Macro to orchestrate an objc_library with generated sources for intentdefiniton 
 | <a id="objc_intent_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
+<a id="#swift_apple_core_ml_library"></a>
+
+## swift_apple_core_ml_library
+
+<pre>
+swift_apple_core_ml_library(<a href="#swift_apple_core_ml_library-name">name</a>, <a href="#swift_apple_core_ml_library-mlmodel">mlmodel</a>, <a href="#swift_apple_core_ml_library-kwargs">kwargs</a>)
+</pre>
+
+Macro to orchestrate a swift_library with generated sources for mlmodel files.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="swift_apple_core_ml_library-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="swift_apple_core_ml_library-mlmodel"></a>mlmodel |  <p align="center"> - </p>   |  none |
+| <a id="swift_apple_core_ml_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
 <a id="#swift_intent_library"></a>
 
 ## swift_intent_library
