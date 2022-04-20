@@ -137,8 +137,10 @@ fi
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
+rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
+    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult" \
     -xctestrun "$XCTESTRUN"
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
