@@ -198,10 +198,20 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   fi
 
   if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" || -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
-    # Remove the leftmost white space from otool output to make string matching
-    # of symbols possible, avoiding the accidental elimination of white space
-    # from paths and identifiers.
-    IFS=$'\n' actual_symbols=($(otool -l "$path" | awk '{$1=$1}1'))
+    # The `otool` commands below remove the leftmost white space from the
+    # output to make string matching of symbols possible, avoiding the
+    # accidental elimination of white space from paths and identifiers.
+    IFS=$'\n'
+    if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+      arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+      if [[ ! -n $arch ]]; then
+        fail "No architecture specified for binary file at \"$path\""
+      else
+        actual_symbols=($(otool -arch "$arch" -l "$path" | awk '{$1=$1}1'))
+      fi
+    else
+      actual_symbols=($(otool -l "$path" | awk '{$1=$1}1'))
+    fi
     if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
       for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
       do
