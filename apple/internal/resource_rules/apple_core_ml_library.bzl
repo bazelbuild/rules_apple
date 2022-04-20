@@ -31,6 +31,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -45,6 +49,9 @@ def _apple_core_ml_library_impl(ctx):
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
     is_swift = ctx.attr.language == "Swift"
+
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = is_swift or (swift_support.uses_swift(deps) if deps else False)
 
     if is_swift and not ctx.attr.swift_source:
         fail("Attribute `swift_source` is mandatory when generating Swift.")
@@ -75,7 +82,7 @@ def _apple_core_ml_library_impl(ctx):
         features = ctx.features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
-        uses_swift = is_swift,
+        uses_swift = uses_swift,
         xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
