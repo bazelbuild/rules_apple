@@ -885,6 +885,25 @@ apple_static_xcframework(
     deps = [":swift_lib_for_static_xcfmwk_with_headers"],
 )
 
+apple_static_xcframework(
+    name = "ios_static_xcframework_min_os_12",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "12.0",
+    },
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib"],
+)
+
 genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],
