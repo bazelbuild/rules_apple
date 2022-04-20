@@ -143,6 +143,67 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Tests below verify device/simulator builds for static libraries using Mach-O load commands.
+    # Logic behind which load command gets written, and platform information can be found on LLVM's:
+    #     - llvm/include/llvm/BinaryFormat/MachO.h
+    #     - llvm/llvm-project/llvm/lib/MC/MCStreamer.cpp
+
+    # Verify device/simulator static libraries with Mach-O load commands:
+    #   - LC_VERSION_MIN_IOS: Present if target minimum version is below 12.0 and is not arm64 sim.
+    #   - LC_BUILD_VERSION: Present if target minimum version is above 12.0 or is arm64 sim.
+    archive_contents_test(
+        name = "{}_ios_arm64_macho_load_cmd_for_simulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_ios_simulator.a",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 7"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_ios_x86_64_below_12_0_macho_load_cmd_for_simulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_ios_simulator.a",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_ios_x86_64_above_12_0_macho_load_cmd_for_simulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_min_os_12",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_min_os_12_ios_simulator.a",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 7"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+
+    # Verifies device static libraries build with Mach-O load commands.
+    #   - LC_VERSION_MIN_IOS: Present if target minimum version is below 12.0.
+    #   - LC_BUILD_VERSION: Present if target minimum version is above 12.0.
+    archive_contents_test(
+        name = "{}_ios_x86_64_arm64_below_12_0_macho_load_cmd_for_device".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_ios_device.a",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_ios_x86_64_arm64_above_12_0_macho_load_cmd_for_device".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_min_os_12",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_min_os_12_ios_device.a",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 2"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+
     # Verifies that the include scanning feature builds for the given XCFramework rule.
     archive_contents_test(
         name = "{}_ios_arm64_cc_include_scanning_test".format(name),

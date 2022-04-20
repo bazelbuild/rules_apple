@@ -110,9 +110,12 @@ def archive_contents_test(
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
+            macho_load_commands_contain,
+            macho_load_commands_not_contain,
         ]):
-            fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking " +
-                 "for symbols")
+            fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
+                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+                 "binary_test_architecture")
     else:
         if any([binary_contains_symbols, binary_not_contains_symbols, binary_test_architecture]):
             fail("Need binary_test_file to check the binary for symbols")
