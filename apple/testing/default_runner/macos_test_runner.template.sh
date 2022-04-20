@@ -140,7 +140,7 @@ fi
 rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
-    -resultBundlePath "${TEST_UNDECLARED_OUTPUTS_DIR}/test.xcresult" \
+    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult" \
     -xctestrun "$XCTESTRUN"
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
