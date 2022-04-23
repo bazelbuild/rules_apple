@@ -160,15 +160,6 @@ _J2OBJC_BINARY_LINKING_ATTRS = {
         cfg = apple_common.multi_arch_split,
         default = Label("@bazel_tools//tools/objc:dummy_lib"),
     ),
-    "_j2objc_dead_code_pruner": attr.label(
-        executable = True,
-        # Setting `allow_single_file=True` would be more correct. Unfortunately,
-        # doing so prevents using py_binary as the underlying target because py_binary
-        # produces at least _two_ output files (the executable plus any files in srcs)
-        allow_files = True,
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
-    ),
 }
 
 _COMMON_TEST_ATTRS = {
