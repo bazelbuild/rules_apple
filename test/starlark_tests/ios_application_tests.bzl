@@ -76,10 +76,7 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",
-        tags = [
-            name,
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     apple_verification_test(
@@ -382,11 +379,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -397,11 +390,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -412,11 +401,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "tsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -427,11 +412,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -442,11 +423,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     infoplist_contents_test(
