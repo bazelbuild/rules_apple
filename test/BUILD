@@ -61,9 +61,9 @@ filegroup(
         "apple_shell_testutils.sh",
         "unittest.bash",
     ],
-    visibility = [
-        "//test/starlark_tests:__subpackages__",
-    ],
+    # This is required as a default attribute of apple_verification_test but
+    # should be considered private for other uses
+    visibility = ["//visibility:public"],
 )
 
 # Gather external dependencies into a target that can be injected into the
