@@ -315,13 +315,13 @@ genrule(
             platform_id,
             file,
         )
+        for (platform_id, platform) in [
+            ("ios-arm64", "device"),
+            ("ios-arm64_x86_64-simulator", "simulator"),
+        ]
         for file in [
             "Headers/shared.h",
-            "ios_static_xcframework.apple_static_library_lipo.a",
-        ]
-        for platform_id in [
-            "ios-arm64",
-            "ios-arm64_x86_64-simulator",
+            "ios_static_xcframework_ios_{}.a".format(platform),
         ]
     ],
     cmd = """
@@ -341,14 +341,14 @@ genrule(
             platform_id,
             file,
         )
+        for (platform_id, platform) in [
+            ("ios-arm64", "device"),
+            ("ios-arm64_x86_64-simulator", "simulator"),
+        ]
         for file in [
             "Headers/shared.h",
             "Modules/module.modulemap",
-            "ios_static_xcframework_with_module_map.apple_static_library_lipo.a",
-        ]
-        for platform_id in [
-            "ios-arm64",
-            "ios-arm64_x86_64-simulator",
+            "ios_static_xcframework_with_module_map_ios_{}.a".format(platform),
         ]
     ],
     # rules_apple can't generate static XCFrameworks that are importable from
@@ -423,7 +423,7 @@ do
   platform_dir="$$xcframework_path/$$platform_id"
   framework_dir="$$platform_dir/$$xcframework_name.framework"
   mkdir -p "$$framework_dir"
-  mv "$$platform_dir/ios_static_xcframework.apple_static_library_lipo.a" "$$framework_dir/$$xcframework_name"
+  mv "$$platform_dir/ios_static_xcframework"*.a "$$framework_dir/$$xcframework_name"
   mv "$$platform_dir/Headers" "$$framework_dir/"
 
   modules_dir="$$framework_dir/Modules"
