@@ -32,6 +32,10 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
+    "cc_info_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -80,8 +84,16 @@ load(
     "stub_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_static_framework_aspect.bzl",
-    "SwiftStaticFrameworkInfo",
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
@@ -101,10 +113,6 @@ load(
     "IosImessageExtensionBundleInfo",
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 load("@bazel_skylib//lib:collections.bzl", "collections")
 
@@ -1368,14 +1376,11 @@ def _ios_dynamic_framework_impl(ctx):
     ] + providers
 
 def _ios_static_framework_impl(ctx):
-    """Experimental implementation of ios_static_framework."""
-    binary_target = ctx.attr.deps[0]
-    binary_artifact = binary_target[apple_common.AppleStaticLibrary].archive
+    """Implementation of ios_static_framework."""
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
     avoid_deps = ctx.attr.avoid_deps
     deps = ctx.attr.deps
     label = ctx.label
@@ -1387,11 +1392,12 @@ def _ios_static_framework_impl(ctx):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
-    predeclared_outputs = ctx.outputs
     resource_deps = ctx.attr.deps + ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
+    binary_artifact = link_result.library
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -1413,15 +1419,27 @@ def _ios_static_framework_impl(ctx):
         ),
     ]
 
+    swift_infos = {}
+    if swift_support.uses_swift(deps):
+        for link_output in link_result.outputs:
+            split_attr_key = transition_support.apple_common_multi_arch_split_key(
+                cpu = link_output.architecture,
+                platform_type = link_output.platform,
+            )
+            for dep in split_deps[split_attr_key]:
+                if SwiftInfo in dep:
+                    swift_infos[link_output.architecture] = dep[SwiftInfo]
+
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
     # framework.
-    if SwiftStaticFrameworkInfo in binary_target:
+    if swift_infos:
         processor_partials.append(
-            partials.swift_static_framework_partial(
+            partials.swift_framework_partial(
                 actions = actions,
+                avoid_deps = avoid_deps,
                 bundle_name = bundle_name,
                 label_name = label.name,
-                swift_static_framework_info = binary_target[SwiftStaticFrameworkInfo],
+                swift_infos = swift_infos,
             ),
         )
     else:
@@ -1431,8 +1449,8 @@ def _ios_static_framework_impl(ctx):
                 bundle_name = bundle_name,
                 hdrs = ctx.files.hdrs,
                 label_name = label.name,
-                sdk_dylibs = getattr(binary_target[apple_common.Objc], "sdk_dylib", []),
-                sdk_frameworks = getattr(binary_target[apple_common.Objc], "sdk_framework", []),
+                sdk_dylibs = cc_info_support.get_sdk_dylibs(deps = deps),
+                sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = deps),
                 umbrella_header = ctx.file.umbrella_header,
             ),
         )

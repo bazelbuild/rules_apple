@@ -213,6 +213,7 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":bundling_support",
+        ":cc_info_support",
         ":entitlements_support",
         ":features_support",
         ":linking_support",
@@ -225,9 +226,12 @@ bzl_library(
         ":rule_support",
         ":run_support",
         ":stub_support",
+        ":swift_support",
+        ":transition_support",
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
+        "@build_bazel_rules_swift//swift",
     ],
 )
 
@@ -334,7 +338,6 @@ bzl_library(
         "//apple/internal/partials:settings_bundle",
         "//apple/internal/partials:swift_dylibs",
         "//apple/internal/partials:swift_framework",
-        "//apple/internal/partials:swift_static_framework",
         "//apple/internal/partials:watchos_stub",
     ],
 )
@@ -418,7 +421,6 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "//apple/internal/aspects:swift_static_framework_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/testing:apple_test_rule_support",
@@ -436,7 +438,6 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundle_package_type",
-        ":transition_support",
     ],
 )
 
@@ -508,6 +509,7 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":bundling_support",
+        ":cc_info_support",
         ":entitlements_support",
         ":features_support",
         ":linking_support",
@@ -519,6 +521,8 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":swift_support",
+        ":transition_support",
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_rules_swift//swift",
