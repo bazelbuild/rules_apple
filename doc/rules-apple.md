@@ -132,6 +132,32 @@ objc_library(
 | <a id="apple_static_framework_import-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with. For instance, <code>MediaAccessibility</code>. In difference to regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they are not present at runtime.   | List of strings | optional | [] |
 
 
+<a id="#apple_static_xcframework"></a>
+
+## apple_static_xcframework
+
+<pre>
+apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a href="#apple_static_xcframework-avoid_deps">avoid_deps</a>, <a href="#apple_static_xcframework-deps">deps</a>, <a href="#apple_static_xcframework-executable_name">executable_name</a>, <a href="#apple_static_xcframework-ios">ios</a>,
+                         <a href="#apple_static_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>, <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>)
+</pre>
+
+Generates an XCFramework with static libraries for third-party distribution.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_static_xcframework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_static_xcframework-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_static_xcframework-deps"></a>deps |  A list of files directly referencing libraries to be represented for each given platform split in the XCFramework. These libraries will be embedded within each platform split.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
+| <a id="apple_static_xcframework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | "" |
+| <a id="apple_static_xcframework-ios"></a>ios |  A dictionary of strings indicating which platform variants should be built for the <code>ios</code> platform ( <code>device</code> or <code>simulator</code>) as keys, and arrays of strings listing which architectures should be built for those platform variants (for example, <code>x86_64</code>, <code>arm64</code>) as their values.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> List of strings</a> | optional | {} |
+| <a id="apple_static_xcframework-minimum_deployment_os_versions"></a>minimum_deployment_os_versions |  A dictionary of strings indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0") as values, with their respective platforms such as <code>ios</code> as keys. This is different from <code>minimum_os_versions</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="apple_static_xcframework-minimum_os_versions"></a>minimum_os_versions |  A dictionary of strings indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "8.0") as values, with their respective platforms such as <code>ios</code> as keys.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | required |  |
+| <a id="apple_static_xcframework-public_hdrs"></a>public_hdrs |  A list of files directly referencing header files to be used as the publicly visible interface for each of these embedded libraries. These header files will be embedded within each platform split, typically in a subdirectory such as <code>Headers</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+
+
 <a id="#apple_static_xcframework_import"></a>
 
 ## apple_static_xcframework_import
