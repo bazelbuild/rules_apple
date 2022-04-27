@@ -298,6 +298,7 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.passkit.pass-presentation-suppression',
     'com.apple.developer.payment-pass-provisioning',
     'com.apple.developer.siri',
+    'com.apple.developer.usernotifications.critical-alerts',
     'com.apple.developer.usernotifications.time-sensitive',
     # Keys which have a list of potential values in the profile, but only one in
     # the entitlements that must be in the profile's list of values
