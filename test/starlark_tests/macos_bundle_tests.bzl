@@ -144,7 +144,8 @@ def macos_bundle_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        expected_dsyms = ["bundle.bundle"],
+        expected_direct_dsyms = ["bundle.bundle"],
+        expected_transitive_dsyms = ["bundle.bundle"],
         tags = [name],
     )
 

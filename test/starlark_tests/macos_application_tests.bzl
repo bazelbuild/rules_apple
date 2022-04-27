@@ -179,7 +179,8 @@ def macos_application_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
-        expected_dsyms = ["app.app"],
+        expected_direct_dsyms = ["app.app"],
+        expected_transitive_dsyms = ["app.app"],
         tags = [name],
     )
 
