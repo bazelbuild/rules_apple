@@ -78,7 +78,8 @@ def macos_dylib_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
-        expected_dsyms = ["dylib"],
+        expected_direct_dsyms = ["dylib"],
+        expected_transitive_dsyms = ["dylib"],
         tags = [name],
     )
 

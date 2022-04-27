@@ -309,7 +309,7 @@ def _debug_symbols_partial_impl(
         debug_output_filename += "_" + debug_discriminator
 
     direct_dsym_bundles = []
-    transitive_dsym_bundles = [x.dsym_bundles for x in deps_dsym_bundle_providers]
+    transitive_dsym_bundles = [x.transitive_dsyms for x in deps_dsym_bundle_providers]
 
     direct_dsyms = []
     transitive_dsyms = [x.dsyms for x in deps_debug_info_providers]
@@ -343,7 +343,6 @@ def _debug_symbols_partial_impl(
             direct_linkmaps.extend(linkmaps)
 
     # Only output dependency debug files if requested.
-    # TODO(b/131699846): Remove this.
     propagate_embedded_extra_outputs = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.propagate_embedded_extra_outputs",
@@ -357,12 +356,11 @@ def _debug_symbols_partial_impl(
         default = False,
     )
 
-    dsym_bundle_info = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
 
     if tree_artifact_dsym_files:
-        all_output_dsyms = dsym_bundle_info
+        all_output_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
         direct_output_dsyms = direct_dsym_bundles
     else:
         all_output_dsyms = dsyms_group
@@ -375,7 +373,8 @@ def _debug_symbols_partial_impl(
 
     output_providers.extend([
         AppleDsymBundleInfo(
-            dsym_bundles = dsym_bundle_info,
+            direct_dsyms = direct_dsym_bundles,
+            transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),
         _AppleDebugInfo(
             dsyms = dsyms_group,

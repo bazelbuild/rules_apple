@@ -194,7 +194,16 @@ def ios_application_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        expected_dsyms = ["app.app"],
+        expected_direct_dsyms = ["app.app"],
+        expected_transitive_dsyms = ["app.app"],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_transitive_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
+        expected_direct_dsyms = ["app_with_ext_and_fmwk_provisioned.app"],
+        expected_transitive_dsyms = ["app_with_ext_and_fmwk_provisioned.app", "ext_with_fmwk_provisioned.appex", "fmwk_with_provisioning.framework"],
         tags = [name],
     )
 
