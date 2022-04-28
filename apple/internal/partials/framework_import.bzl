@@ -205,7 +205,6 @@ def _framework_import_partial_impl(
             outputs = [framework_zip],
             tools = [resolved_codesigningtool.executable],
             xcode_config = platform_prerequisites.xcode_version_config,
-            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
 
         bundle_zips.append(

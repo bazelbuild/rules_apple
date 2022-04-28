@@ -60,7 +60,6 @@ def compile_mlmodel(
         mnemonic = "MlmodelCompile",
         outputs = [output_bundle, output_plist],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def generate_mlmodel_sources(
@@ -117,5 +116,4 @@ def generate_mlmodel_sources(
         mnemonic = "MlmodelGenerate",
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
