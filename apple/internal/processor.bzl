@@ -429,7 +429,6 @@ def _bundle_partial_outputs_files(
             progress_message = "Bundling, processing and signing %s" % label_name,
             tools = bundling_tools,
             xcode_config = platform_prerequisites.xcode_version_config,
-            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
             **action_args
         )
     else:

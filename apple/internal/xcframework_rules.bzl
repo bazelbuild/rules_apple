@@ -338,8 +338,7 @@ def _create_xcframework_root_infoplist(
         available_libraries,
         resolved_plisttool,
         rule_label,
-        xcode_config,
-        xcode_path_wrapper):
+        xcode_config):
     """Generates a root Info.plist for a given XCFramework.
 
      Args:
@@ -350,7 +349,6 @@ def _create_xcframework_root_infoplist(
         resolved_plisttool: A struct referencing the resolved plist tool.
         rule_label: The label of the target being analyzed.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
-        xcode_path_wrapper: The Xcode path wrapper script.
 
     Returns:
         A `File` representing a root Info.plist to be embedded within an XCFramework bundle.
@@ -393,7 +391,6 @@ def _create_xcframework_root_infoplist(
         mnemonic = "CreateXCFrameworkRootInfoPlist",
         outputs = [root_info_plist],
         xcode_config = xcode_config,
-        xcode_path_wrapper = xcode_path_wrapper,
     )
     return root_info_plist
 
@@ -545,7 +542,6 @@ def _apple_xcframework_impl(ctx):
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
-            xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
 
@@ -733,7 +729,6 @@ def _apple_xcframework_impl(ctx):
         resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
     )
 
     _create_xcframework_bundle(
@@ -1025,7 +1020,6 @@ def _apple_static_xcframework_impl(ctx):
         resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
         xcode_config = xcode_config,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
     )
 
     _create_xcframework_bundle(

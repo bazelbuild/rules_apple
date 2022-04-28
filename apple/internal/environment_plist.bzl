@@ -48,7 +48,6 @@ def _environment_plist_impl(ctx):
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     resolved_environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_environment_plist_tool

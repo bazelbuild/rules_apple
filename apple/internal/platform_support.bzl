@@ -71,7 +71,6 @@ def _platform_prerequisites(
         objc_fragment = None,
         platform_type_string,
         uses_swift,
-        xcode_path_wrapper,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
 
@@ -84,8 +83,6 @@ def _platform_prerequisites(
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
-      xcode_path_wrapper: The Xcode path wrapper script. Can be none if and only we don't need to
-          resolve __BAZEL_XCODE_SDKROOT__ and other placeholders in environment arguments.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
 
     Returns:
@@ -113,7 +110,6 @@ def _platform_prerequisites(
         objc_fragment = objc_fragment,
         sdk_version = sdk_version,
         uses_swift = uses_swift,
-        xcode_path_wrapper = xcode_path_wrapper,
         xcode_version_config = xcode_version_config,
     )
 
@@ -143,7 +139,6 @@ def _platform_prerequisites_from_rule_ctx(ctx):
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
         uses_swift = uses_swift,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 

@@ -104,7 +104,6 @@ def _swift_dylib_action(
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def _swift_dylibs_partial_impl(

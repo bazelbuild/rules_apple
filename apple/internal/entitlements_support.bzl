@@ -183,7 +183,6 @@ def _extract_signing_info(
             mnemonic = "ExtractFromProvisioningProfile",
             outputs = outputs,
             xcode_config = platform_prerequisites.xcode_version_config,
-            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
 
     return struct(

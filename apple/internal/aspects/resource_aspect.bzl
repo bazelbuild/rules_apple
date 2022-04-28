@@ -68,7 +68,6 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         objc_fragment = None,
         platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
-        xcode_path_wrapper = aspect_ctx.executable._xcode_path_wrapper,
         xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
