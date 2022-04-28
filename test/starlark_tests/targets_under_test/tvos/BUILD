@@ -295,6 +295,21 @@ tvos_static_framework(
     ],
 )
 
+tvos_static_framework(
+    name = "swift_static_fmwk",
+    bundle_name = "swift_static_fmwk",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [":swift_fmwk_lib"],
+)
+
+swift_library(
+    name = "swift_fmwk_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    module_name = "swift_static_fmwk",
+    tags = FIXTURE_TAGS,
+)
+
 # ---------------------------------------------------------------------------------------
 
 tvos_ui_test(

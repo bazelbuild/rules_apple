@@ -168,7 +168,7 @@ def _xcframework_split_attr_key(*, cpu, environment, platform_type):
      Args:
         cpu: The architecture of the target that was built. For example, `x86_64` or `arm64`.
         environment: The environment of the target that was built, which corresponds to the
-            toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`.
+            toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
             for environment. Typically `device` or `simulator`.
         platform_type: The platform of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
@@ -352,7 +352,7 @@ _apple_universal_binary_rule_transition = transition(
 )
 
 # TODO(b/230527536): Add support for Bazel platforms on ios/tvos_static_framework transition support method
-def _apple_common_multi_arch_split_key(*, cpu, platform_type):
+def _apple_common_multi_arch_split_key(*, cpu, environment, platform_type):
     """Returns split key for the apple_common.multi_arch_split transition based on target triplet.
 
     See ApplePlatform.cpuStringForTarget for reference on how apple_common.multi_arch_split
@@ -361,10 +361,17 @@ def _apple_common_multi_arch_split_key(*, cpu, platform_type):
      Args:
         cpu: The architecture of the target that was built. For example, `x86_64` or
             `arm64`.
+        environment: The environment of the target that was built, which corresponds to the
+            toolchain's target triple values as reported by `apple_support.link_multi_arch_*`
+            for environment. Typically `device` or `simulator`.
         platform_type: The platform of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_common.link_multi_arch_*`
             for platform. For example, `ios`, `macos`, `tvos` or `watchos`.
     """
+    cpu = _resolved_cpu_for_cpu(
+        cpu = cpu,
+        environment = environment,
+    )
     return _cpu_string(
         cpu = cpu,
         platform_type = platform_type,

@@ -1124,6 +1124,7 @@ def _ios_static_framework_impl(ctx):
         for link_output in link_result.outputs:
             split_attr_key = transition_support.apple_common_multi_arch_split_key(
                 cpu = link_output.architecture,
+                environment = link_output.environment,
                 platform_type = link_output.platform,
             )
             for dep in split_deps[split_attr_key]:
