@@ -1074,7 +1074,11 @@ def _apple_static_xcframework_impl(ctx):
 
 apple_static_xcframework = rule(
     implementation = _apple_static_xcframework_impl,
-    doc = "Generates an XCFramework with static libraries for third-party distribution.",
+    doc = """
+Generates an XCFramework with static libraries for third-party distribution.
+
+NOTE: This is only supported on bazel 6.0+
+""",
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(

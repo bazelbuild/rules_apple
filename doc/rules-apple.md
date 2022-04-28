@@ -141,7 +141,11 @@ apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a h
                          <a href="#apple_static_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>, <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>)
 </pre>
 
+
 Generates an XCFramework with static libraries for third-party distribution.
+
+NOTE: This is only supported on bazel 6.0+
+
 
 **ATTRIBUTES**
 
