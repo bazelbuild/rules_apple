@@ -48,5 +48,4 @@ def compile_texture_atlas(
         mnemonic = "CompileTextureAtlas",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )

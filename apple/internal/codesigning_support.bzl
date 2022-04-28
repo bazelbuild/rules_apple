@@ -552,7 +552,6 @@ def _generate_codesigning_dossier_action(
         progress_message = progress_message,
         tools = [resolved_codesigning_dossier_tool.executable],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def _post_process_and_sign_archive_action(
