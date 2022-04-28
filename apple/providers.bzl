@@ -109,9 +109,24 @@ specific to any particular binary type.
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) file that the target represents.
 """,
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
+""",
         "product_type": """
 `string`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).
+""",
+    },
+)
+
+AppleBinaryInfoplistInfo = provider(
+    doc = """
+Provides information about the Info.plist that was linked into an Apple binary
+target.
+""",
+    fields = {
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
 """,
     },
 )
