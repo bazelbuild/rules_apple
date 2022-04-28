@@ -63,7 +63,7 @@ the binary directly at analysis time; for example, for code coverage.
         "executable_name": """
 `string`. The name of the executable that was bundled.
 """,
-        "entitlements": "`File`. Entitlements file used to codesign, if any.",
+        "entitlements": "`File`. Entitlements file used, if any.",
         "extension_safe": """
 Boolean. True if the target propagating this provider was
 compiled and linked with -application-extension, restricting it to

@@ -68,7 +68,7 @@ It is propagated by most bundling rulesâapplications, extensions, framework
 | <a id="AppleBundleInfo-bundle_id"></a>bundle_id |  <code>string</code>. The bundle identifier (i.e., <code>CFBundleIdentifier</code> in <code>Info.plist</code>) of the bundle.    |
 | <a id="AppleBundleInfo-bundle_name"></a>bundle_name |  <code>string</code>. The name of the bundle, without the extension.    |
 | <a id="AppleBundleInfo-executable_name"></a>executable_name |  <code>string</code>. The name of the executable that was bundled.    |
-| <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used to codesign, if any.    |
+| <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used, if any.    |
 | <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  Boolean. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
 | <a id="AppleBundleInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> file for the bundle.    |
 | <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  <code>string</code>. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support. This is different from <code>minimum_os_version</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.    |

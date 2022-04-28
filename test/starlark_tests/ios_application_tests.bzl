@@ -29,6 +29,10 @@ load(
     "bitcode_symbol_map_test",
 )
 load(
+    ":rules/entitlements_contents_test.bzl",
+    "entitlements_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -165,6 +169,30 @@ def ios_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    entitlements_contents_test(
+        name = "{}_entitlements_contents_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_values = {
+            "application-identifier": "FOOBARBAZ1.*",
+            "get-task-allow": "true",
+            "test-an-entitlement": "false",
+        },
+        tags = [name],
+    )
+
+    entitlements_contents_test(
+        name = "{}_entitlements_contents_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_values = {
+            "application-identifier": "FOOBARBAZ1.*",
+            "get-task-allow": "true",
+            "test-an-entitlement": "false",
+        },
         tags = [name],
     )
 

@@ -141,7 +141,7 @@ def _ios_application_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -162,7 +162,7 @@ def _ios_application_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -193,7 +193,7 @@ def _ios_application_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -221,7 +221,7 @@ def _ios_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -345,7 +345,7 @@ def _ios_application_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -439,7 +439,7 @@ def _ios_app_clip_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -454,7 +454,7 @@ def _ios_app_clip_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -484,7 +484,7 @@ def _ios_app_clip_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -513,7 +513,7 @@ def _ios_app_clip_impl(ctx):
             bundle_location = processor.location.app_clip,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
@@ -602,7 +602,7 @@ def _ios_app_clip_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -912,7 +912,7 @@ def _ios_extension_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -933,7 +933,7 @@ def _ios_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -964,7 +964,7 @@ def _ios_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -993,7 +993,7 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1083,7 +1083,7 @@ def _ios_extension_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -1479,7 +1479,7 @@ def _ios_imessage_application_impl(ctx):
         ],
     )
 
-    entitlements, _ = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1510,7 +1510,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1528,7 +1528,7 @@ def _ios_imessage_application_impl(ctx):
             apple_toolchain_info = apple_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1600,7 +1600,7 @@ def _ios_imessage_application_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -1652,7 +1652,7 @@ def _ios_imessage_extension_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1667,7 +1667,7 @@ def _ios_imessage_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -1699,7 +1699,7 @@ def _ios_imessage_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1728,7 +1728,7 @@ def _ios_imessage_extension_impl(ctx):
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1809,7 +1809,7 @@ def _ios_imessage_extension_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -1868,7 +1868,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         ],
     )
 
-    entitlements, _ = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1912,7 +1912,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1931,7 +1931,7 @@ def _ios_sticker_pack_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1979,7 +1979,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         apple_toolchain_info = apple_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
