@@ -77,6 +77,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
+    "AppleBinaryInfoplistInfo",
     "AppleSupportToolchainInfo",
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
@@ -1588,9 +1589,19 @@ def _macos_command_line_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    infoplists = [
+        x[AppleBinaryInfoplistInfo].infoplist
+        for x in getattr(ctx.attr, "deps", [])
+        if AppleBinaryInfoplistInfo in x
+    ]
+
+    # There should only be one `AppleBinaryInfoplistInfo` providing dep
+    infoplist = infoplists[0] if infoplists else None
+
     return [
         AppleBinaryInfo(
             binary = output_file,
+            infoplist = infoplist,
             product_type = rule_descriptor.product_type,
         ),
         DefaultInfo(
@@ -1687,9 +1698,19 @@ def _macos_dylib_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    infoplists = [
+        x[AppleBinaryInfoplistInfo].infoplist
+        for x in getattr(ctx.attr, "deps", [])
+        if AppleBinaryInfoplistInfo in x
+    ]
+
+    # There should only be one `AppleBinaryInfoplistInfo` providing dep
+    infoplist = infoplists[0] if infoplists else None
+
     return [
         AppleBinaryInfo(
             binary = output_file,
+            infoplist = infoplist,
             product_type = rule_descriptor.product_type,
         ),
         DefaultInfo(files = depset(transitive = [

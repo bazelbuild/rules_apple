@@ -18,7 +18,7 @@ relevant information that they need.
 ## AppleBinaryInfo
 
 <pre>
-AppleBinaryInfo(<a href="#AppleBinaryInfo-binary">binary</a>, <a href="#AppleBinaryInfo-product_type">product_type</a>)
+AppleBinaryInfo(<a href="#AppleBinaryInfo-binary">binary</a>, <a href="#AppleBinaryInfo-infoplist">infoplist</a>, <a href="#AppleBinaryInfo-product_type">product_type</a>)
 </pre>
 
 
@@ -34,7 +34,29 @@ specific to any particular binary type.
 | Name  | Description |
 | :------------- | :------------- |
 | <a id="AppleBinaryInfo-binary"></a>binary |  <code>File</code>. The binary (executable, dynamic library, etc.) file that the target represents.    |
+| <a id="AppleBinaryInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
 | <a id="AppleBinaryInfo-product_type"></a>product_type |  <code>string</code>. The dot-separated product type identifier associated with the binary (for example, <code>com.apple.product-type.tool</code>).    |
+
+
+<a id="#AppleBinaryInfoplistInfo"></a>
+
+## AppleBinaryInfoplistInfo
+
+<pre>
+AppleBinaryInfoplistInfo(<a href="#AppleBinaryInfoplistInfo-infoplist">infoplist</a>)
+</pre>
+
+
+Provides information about the Info.plist that was linked into an Apple binary
+target.
+
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleBinaryInfoplistInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
 
 
 <a id="#AppleBundleInfo"></a>
