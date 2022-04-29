@@ -121,7 +121,7 @@ def _macos_application_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -135,7 +135,7 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -149,7 +149,7 @@ def _macos_application_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -176,7 +176,7 @@ def _macos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             embedded_targets = embedded_targets,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -269,7 +269,7 @@ def _macos_application_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -358,7 +358,7 @@ def _macos_bundle_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -373,7 +373,7 @@ def _macos_bundle_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         bundle_loader = ctx.attr.bundle_loader,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         extra_linkopts = ["-bundle"],
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -396,7 +396,7 @@ def _macos_bundle_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -493,7 +493,7 @@ def _macos_bundle_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -552,7 +552,7 @@ def _macos_extension_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -566,7 +566,7 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -588,7 +588,7 @@ def _macos_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -616,7 +616,7 @@ def _macos_extension_impl(ctx):
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -695,7 +695,7 @@ def _macos_extension_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -757,7 +757,7 @@ def _macos_quick_look_plugin_impl(ctx):
         ],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -776,7 +776,7 @@ def _macos_quick_look_plugin_impl(ctx):
     ]
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -799,7 +799,7 @@ def _macos_quick_look_plugin_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -829,7 +829,7 @@ def _macos_quick_look_plugin_impl(ctx):
             bundle_location = processor.location.framework,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -907,7 +907,7 @@ def _macos_quick_look_plugin_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -960,7 +960,7 @@ def _macos_kernel_extension_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -974,7 +974,7 @@ def _macos_kernel_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -996,7 +996,7 @@ def _macos_kernel_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1024,7 +1024,7 @@ def _macos_kernel_extension_impl(ctx):
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1103,7 +1103,7 @@ def _macos_kernel_extension_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
@@ -1154,7 +1154,7 @@ def _macos_spotlight_importer_impl(ctx):
         res_attrs = ["infoplists"],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1168,7 +1168,7 @@ def _macos_spotlight_importer_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -1190,7 +1190,7 @@ def _macos_spotlight_importer_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1218,7 +1218,7 @@ def _macos_spotlight_importer_impl(ctx):
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1296,7 +1296,7 @@ def _macos_spotlight_importer_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
@@ -1346,7 +1346,7 @@ def _macos_xpc_service_impl(ctx):
         res_attrs = ["infoplists"],
     )
 
-    entitlements, linking_entitlements = entitlements_support.process_entitlements(
+    entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_toolchain_info = apple_toolchain_info,
         bundle_id = bundle_id,
@@ -1360,7 +1360,7 @@ def _macos_xpc_service_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = linking_entitlements,
+        entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
@@ -1382,7 +1382,7 @@ def _macos_xpc_service_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             bundle_id = bundle_id,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1410,7 +1410,7 @@ def _macos_xpc_service_impl(ctx):
             bundle_location = processor.location.xpc_service,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1488,7 +1488,7 @@ def _macos_xpc_service_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        entitlements = entitlements,
+        entitlements = entitlements.codesigning,
         executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
