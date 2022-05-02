@@ -875,9 +875,11 @@ objc_library(
 """,
 )
 
-_xcframework_import_common_attrs = {
-    "library_identifiers": attr.string_dict(
-        doc = """
+_xcframework_import_common_attrs = dicts.add(
+    rule_factory.common_tool_attributes,
+    {
+        "library_identifiers": attr.string_dict(
+            doc = """
 An optional key-value map of platforms to the corresponding platform IDs
 (containing all supported architectures), relative to the XCFramework. The
 identifier keys should be case-insensitive variants of the values in
@@ -890,33 +892,37 @@ case-sensitive variants of values that might be found in the
 Passing this attribute should not be neccessary if the XCFramework follows the
 standard naming convention (that is, it was created by Xcode or Bazel).
 """,
-    ),
-    "xcframework_imports": attr.label_list(
-        allow_empty = False,
-        allow_files = True,
-        mandatory = True,
-        doc = """
+        ),
+        "xcframework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
+            mandatory = True,
+            doc = """
 The list of files under a .xcframework directory which are provided to Apple
 based targets that depend on this target.
 """,
-    ),
-    "deps": attr.label_list(
-        aspects = [swift_clang_module_aspect],
-        doc = """
+        ),
+        "deps": attr.label_list(
+            aspects = [swift_clang_module_aspect],
+            doc = """
 A list of targets that are dependencies of the target being built, which will
 provide headers (if the importing XCFramework is a dynamic framework) and can be
 linked into that target.
 """,
-        providers = [
-            [apple_common.Objc, CcInfo],
-            [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
-        ],
-    ),
-}
+            providers = [
+                [apple_common.Objc, CcInfo],
+                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+            ],
+        ),
+        "_cc_toolchain": attr.label(
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
+    },
+)
 
 apple_dynamic_xcframework_import = rule(
     implementation = _apple_dynamic_xcframework_import_impl,
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     attrs = dicts.add(_xcframework_import_common_attrs, {
         "bundle_only": attr.bool(
             default = False,
@@ -953,7 +959,7 @@ objc_library(
 
 apple_static_xcframework_import = rule(
     implementation = _apple_static_xcframework_import_impl,
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     attrs = dicts.add(
         _xcframework_import_common_attrs,
         swift_common.toolchain_attrs(),
