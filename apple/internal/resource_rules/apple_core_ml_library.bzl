@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -125,37 +126,37 @@ def _apple_core_ml_library_impl(ctx):
 
 apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
-        "mlmodel": attr.label(
-            allow_single_file = ["mlmodel", "mlpackage"],
-            mandatory = True,
-            doc = """
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        apple_toolchain_utils.shared_attrs(),
+        {
+            "mlmodel": attr.label(
+                allow_single_file = ["mlmodel", "mlpackage"],
+                mandatory = True,
+                doc = """
 Label to a single `.mlmodel` file or `.mlpackage` bundle from which to generate sources and compile
 into mlmodelc files.
 """,
-        ),
-        "language": attr.string(
-            mandatory = True,
-            values = ["Objective-C", "Swift"],
-            doc = "Language of generated classes (\"Objective-C\", \"Swift\")",
-        ),
-        "swift_source": attr.output(
-            doc = "Name of the output file (only when using Swift).",
-        ),
-        "objc_source": attr.output(
-            doc = "Name of the implementation file (only when using Objective-C).",
-        ),
-        "objc_header": attr.output(
-            doc = "Name of the header file (only when using Objective-C).",
-        ),
-        "objc_public_header": attr.output(
-            doc = "Name of the public header file (only when using Objective-C).",
-        ),
-        "_mac_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
-            providers = [[AppleMacToolsToolchainInfo]],
-        ),
-    }),
+            ),
+            "language": attr.string(
+                mandatory = True,
+                values = ["Objective-C", "Swift"],
+                doc = "Language of generated classes (\"Objective-C\", \"Swift\")",
+            ),
+            "swift_source": attr.output(
+                doc = "Name of the output file (only when using Swift).",
+            ),
+            "objc_source": attr.output(
+                doc = "Name of the implementation file (only when using Objective-C).",
+            ),
+            "objc_header": attr.output(
+                doc = "Name of the header file (only when using Objective-C).",
+            ),
+            "objc_public_header": attr.output(
+                doc = "Name of the public header file (only when using Objective-C).",
+            ),
+        },
+    ),
     output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
