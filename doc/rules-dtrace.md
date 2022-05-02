@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Bazel rules for working with dtrace.
-<a id="#dtrace_compile"></a>
+
+<a id="dtrace_compile"></a>
 
 ## dtrace_compile
 

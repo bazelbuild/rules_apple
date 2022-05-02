@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Rules that apply to all Apple platforms.
-<a id="#apple_dynamic_framework_import"></a>
+
+<a id="apple_dynamic_framework_import"></a>
 
 ## apple_dynamic_framework_import
 
@@ -43,7 +44,7 @@ objc_library(
 | <a id="apple_dynamic_framework_import-framework_imports"></a>framework_imports |  The list of files under a .framework directory which are provided to Apple based targets that depend on this target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 
 
-<a id="#apple_dynamic_xcframework_import"></a>
+<a id="apple_dynamic_xcframework_import"></a>
 
 ## apple_dynamic_xcframework_import
 
@@ -87,7 +88,7 @@ objc_library(
 | <a id="apple_dynamic_xcframework_import-xcframework_imports"></a>xcframework_imports |  The list of files under a .xcframework directory which are provided to Apple based targets that depend on this target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 
 
-<a id="#apple_static_framework_import"></a>
+<a id="apple_static_framework_import"></a>
 
 ## apple_static_framework_import
 
@@ -132,7 +133,7 @@ objc_library(
 | <a id="apple_static_framework_import-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with. For instance, <code>MediaAccessibility</code>. In difference to regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they are not present at runtime.   | List of strings | optional | [] |
 
 
-<a id="#apple_static_xcframework"></a>
+<a id="apple_static_xcframework"></a>
 
 ## apple_static_xcframework
 
@@ -162,7 +163,7 @@ NOTE: This is only supported on bazel 6.0+
 | <a id="apple_static_xcframework-public_hdrs"></a>public_hdrs |  A list of files directly referencing header files to be used as the publicly visible interface for each of these embedded libraries. These header files will be embedded within each platform split, typically in a subdirectory such as <code>Headers</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#apple_static_xcframework_import"></a>
+<a id="apple_static_xcframework_import"></a>
 
 ## apple_static_xcframework_import
 
@@ -211,7 +212,7 @@ objc_library(
 | <a id="apple_static_xcframework_import-xcframework_imports"></a>xcframework_imports |  The list of files under a .xcframework directory which are provided to Apple based targets that depend on this target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 
 
-<a id="#apple_universal_binary"></a>
+<a id="apple_universal_binary"></a>
 
 ## apple_universal_binary
 
@@ -238,7 +239,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
 | <a id="apple_universal_binary-platform_type"></a>platform_type |  The target Apple platform for which to create a binary. This dictates which SDK is used for compilation/linking and which flag is used to determine the architectures to target. For example, if <code>ios</code> is specified, then the output binaries/libraries will be created combining all architectures specified by <code>--ios_multi_cpus</code>. Options are:<br><br>*   <code>ios</code>: architectures gathered from <code>--ios_multi_cpus</code>. *   <code>macos</code>: architectures gathered from <code>--macos_cpus</code>. *   <code>tvos</code>: architectures gathered from <code>--tvos_cpus</code>. *   <code>watchos</code>: architectures gathered from <code>--watchos_cpus</code>.   | String | required |  |
 
 
-<a id="#apple_xcframework"></a>
+<a id="apple_xcframework"></a>
 
 ## apple_xcframework
 

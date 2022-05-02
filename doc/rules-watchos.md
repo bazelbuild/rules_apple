@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Bazel rules for creating watchOS applications and bundles.
-<a id="#watchos_application"></a>
+
+<a id="watchos_application"></a>
 
 ## watchos_application
 
@@ -40,7 +41,7 @@ Builds and bundles an watchOS Application.
 | <a id="watchos_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#watchos_build_test"></a>
+<a id="watchos_build_test"></a>
 
 ## watchos_build_test
 
@@ -75,7 +76,7 @@ watchos_build_test(
 | <a id="watchos_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#watchos_dynamic_framework"></a>
+<a id="watchos_dynamic_framework"></a>
 
 ## watchos_dynamic_framework
 
@@ -118,7 +119,7 @@ Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
 | <a id="watchos_dynamic_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#watchos_extension"></a>
+<a id="watchos_extension"></a>
 
 ## watchos_extension
 
@@ -166,7 +167,7 @@ so these bundling rules do not support that version of the platform.
 | <a id="watchos_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#watchos_static_framework"></a>
+<a id="watchos_static_framework"></a>
 
 ## watchos_static_framework
 
@@ -208,7 +209,7 @@ Builds and bundles a watchOS Static Framework.
 | <a id="watchos_static_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#watchos_ui_test"></a>
+<a id="watchos_ui_test"></a>
 
 ## watchos_ui_test
 
@@ -232,7 +233,7 @@ watchOS UI Test rule.
 | <a id="watchos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#watchos_unit_test"></a>
+<a id="watchos_unit_test"></a>
 
 ## watchos_unit_test
 
