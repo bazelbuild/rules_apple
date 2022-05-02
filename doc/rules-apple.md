@@ -143,11 +143,7 @@ apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a h
                          <a href="#apple_static_xcframework-umbrella_header">umbrella_header</a>)
 </pre>
 
-
 Generates an XCFramework with static libraries for third-party distribution.
-
-NOTE: This is only supported on bazel 6.0+
-
 
 **ATTRIBUTES**
 
