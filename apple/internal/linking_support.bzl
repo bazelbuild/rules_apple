@@ -236,11 +236,8 @@ def _register_static_library_linking_action(ctx):
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
+    linking_outputs = apple_common.link_multi_arch_static_library(ctx = ctx)
 
-    if not getattr(apple_common, "link_multi_arch_static_library", False):
-        fail("static xcframework support requires bazel 6.x+")
-
-    linking_outputs = getattr(apple_common, "link_multi_arch_static_library")(ctx = ctx)
     fat_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
 
     _lipo_or_symlink_inputs(
