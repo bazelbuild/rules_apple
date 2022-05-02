@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Bazel rules for creating tvOS applications and bundles.
-<a id="#tvos_application"></a>
+
+<a id="tvos_application"></a>
 
 ## tvos_application
 
@@ -50,7 +51,7 @@ Builds and bundles a tvOS Application.
 | <a id="tvos_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_build_test"></a>
+<a id="tvos_build_test"></a>
 
 ## tvos_build_test
 
@@ -85,7 +86,7 @@ tvos_build_test(
 | <a id="tvos_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#tvos_dynamic_framework"></a>
+<a id="tvos_dynamic_framework"></a>
 
 ## tvos_dynamic_framework
 
@@ -129,7 +130,7 @@ Builds and bundles a tvOS dynamic framework that is consumable by Xcode.
 | <a id="tvos_dynamic_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_extension"></a>
+<a id="tvos_extension"></a>
 
 ## tvos_extension
 
@@ -173,7 +174,7 @@ Builds and bundles a tvOS Extension.
 | <a id="tvos_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_framework"></a>
+<a id="tvos_framework"></a>
 
 ## tvos_framework
 
@@ -221,7 +222,7 @@ To use this framework for your app and extensions, list it in the frameworks att
 | <a id="tvos_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_static_framework"></a>
+<a id="tvos_static_framework"></a>
 
 ## tvos_static_framework
 
@@ -302,7 +303,7 @@ i.e. `--features=-swift.no_generated_header`).
 | <a id="tvos_static_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_ui_test"></a>
+<a id="tvos_ui_test"></a>
 
 ## tvos_ui_test
 
@@ -337,7 +338,7 @@ the attributes inherited by all test rules, please check the
 | <a id="tvos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#tvos_unit_test"></a>
+<a id="tvos_unit_test"></a>
 
 ## tvos_unit_test
 

@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Build rules for iOS
-<a id="#ios_app_clip"></a>
+
+<a id="ios_app_clip"></a>
 
 ## ios_app_clip
 
@@ -48,7 +49,7 @@ Builds and bundles an iOS App Clip.
 | <a id="ios_app_clip-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_application"></a>
+<a id="ios_application"></a>
 
 ## ios_application
 
@@ -105,7 +106,7 @@ Builds and bundles an iOS Application.
 | <a id="ios_application-watch_application"></a>watch_application |  A <code>watchos_application</code> target that represents an Apple Watch application that should be embedded in the application bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_build_test"></a>
+<a id="ios_build_test"></a>
 
 ## ios_build_test
 
@@ -140,7 +141,7 @@ ios_build_test(
 | <a id="ios_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#ios_dynamic_framework"></a>
+<a id="ios_dynamic_framework"></a>
 
 ## ios_dynamic_framework
 
@@ -186,7 +187,7 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 | <a id="ios_dynamic_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_extension"></a>
+<a id="ios_extension"></a>
 
 ## ios_extension
 
@@ -238,7 +239,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 | <a id="ios_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_framework"></a>
+<a id="ios_framework"></a>
 
 ## ios_framework
 
@@ -287,7 +288,7 @@ of those `ios_application` and/or `ios_extension` rules.
 | <a id="ios_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_imessage_application"></a>
+<a id="ios_imessage_application"></a>
 
 ## ios_imessage_application
 
@@ -328,7 +329,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.
 | <a id="ios_imessage_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_imessage_extension"></a>
+<a id="ios_imessage_extension"></a>
 
 ## ios_imessage_extension
 
@@ -375,7 +376,7 @@ Builds and bundles an iOS iMessage Extension.
 | <a id="ios_imessage_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_static_framework"></a>
+<a id="ios_static_framework"></a>
 
 ## ios_static_framework
 
@@ -455,7 +456,7 @@ i.e. `--features=-swift.no_generated_header`).
 | <a id="ios_static_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_sticker_pack_extension"></a>
+<a id="ios_sticker_pack_extension"></a>
 
 ## ios_sticker_pack_extension
 
@@ -494,7 +495,7 @@ Builds and bundles an iOS Sticker Pack Extension.
 | <a id="ios_sticker_pack_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_ui_test"></a>
+<a id="ios_ui_test"></a>
 
 ## ios_ui_test
 
@@ -531,7 +532,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_unit_test"></a>
+<a id="ios_unit_test"></a>
 
 ## ios_unit_test
 
@@ -573,7 +574,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
-<a id="#ios_ui_test_suite"></a>
+<a id="ios_ui_test_suite"></a>
 
 ## ios_ui_test_suite
 
@@ -599,7 +600,7 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 | <a id="ios_ui_test_suite-kwargs"></a>kwargs |  passed to the [ios_ui_test]   |  none |
 
 
-<a id="#ios_unit_test_suite"></a>
+<a id="ios_unit_test_suite"></a>
 
 ## ios_unit_test_suite
 
