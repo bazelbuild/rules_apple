@@ -412,7 +412,7 @@ appropriate resources location within the bundle.
             providers = [[AppleBundleVersionInfo]],
             doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
         ),
     })
@@ -1068,7 +1068,7 @@ for what is supported.
             providers = [[AppleBundleVersionInfo]],
             doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
         ),
     })
