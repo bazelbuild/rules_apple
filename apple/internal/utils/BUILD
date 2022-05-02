@@ -24,9 +24,6 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [
-        "@bazel_tools//tools/cpp:toolchain_utils",
-    ],
 )
 
 bzl_library(
