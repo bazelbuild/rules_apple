@@ -913,7 +913,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_name = ctx.label.name
+    bundle_name = ctx.attr.bundle_name or ctx.label.name
     deps = ctx.split_attr.deps
     label = ctx.label
     outputs_archive = ctx.outputs.archive
@@ -1067,6 +1067,13 @@ apple_static_xcframework = rule(
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "bundle_name": attr.string(
+                mandatory = False,
+                doc = """
+The desired name of the XCFramework bundle (without the extension) and the binaries for all embedded
+static libraries. If this attribute is not set, then the name of the target will be used instead.
 """,
             ),
             "deps": attr.label_list(

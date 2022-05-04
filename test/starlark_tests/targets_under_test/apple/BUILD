@@ -267,6 +267,14 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_lib_for_static_xcfmwk_custom_bundle_name",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    module_name = "ios_static_xcfmwk_with_custom_bundle_name",
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+swift_library(
     name = "swift_fmwk_lib",
     srcs = [
         "DummyFmwk.swift",
@@ -655,6 +663,23 @@ apple_static_xcframework(
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":swift_lib_for_static_xcfmwk"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_swift_and_bundle_name",
+    bundle_name = "ios_static_xcfmwk_with_custom_bundle_name",
+    ios = {
+        "device": ["arm64"],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":swift_lib_for_static_xcfmwk_custom_bundle_name"],
 )
 
 apple_static_xcframework(
