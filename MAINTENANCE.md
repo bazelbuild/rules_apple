@@ -8,12 +8,8 @@ rules repos (this doc is not duplicated across the repos):
 
 # Maintainers
 
-The current maintainers are:
-
-- @keith
-- @segiddins
-- @brentleyjones
-- @thii
+The current maintainers can be seen in the [CODEOWNERS](CODEOWNERS)
+file.
 
 # Upstream changes
 
