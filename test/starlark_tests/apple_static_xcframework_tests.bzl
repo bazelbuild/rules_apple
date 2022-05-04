@@ -216,6 +216,26 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Verifies that bundle_name changes the embedded static libraries and the modulemap file as well
+    # as the name of the bundle for the xcframeworks.
+    archive_contents_test(
+        name = "{}_ios_bundle_name_contents_swift_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_and_bundle_name",
+        contains = [
+            "$ARCHIVE_ROOT/ios_static_xcfmwk_with_custom_bundle_name.xcframework/",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_custom_bundle_name_ios_device.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_custom_bundle_name_ios_simulator.a",
+        ],
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
+        text_test_values = [
+            "framework module ios_static_xcfmwk_with_custom_bundle_name",
+            "header \"ios_static_xcfmwk_with_custom_bundle_name.h\"",
+            "requires objc",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
