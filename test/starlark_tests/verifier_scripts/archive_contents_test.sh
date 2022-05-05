@@ -163,10 +163,10 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       if [[ ! -n $arch ]]; then
         fail "No architecture specified for binary file at \"$path\""
       else
-        actual_symbols=($(otool -arch "$arch" -l "$path" | awk '{$1=$1}1'))
+        actual_symbols=($(otool -v -arch "$arch" -l "$path" | awk '{$1=$1}1'))
       fi
     else
-      actual_symbols=($(otool -l "$path" | awk '{$1=$1}1'))
+      actual_symbols=($(otool -v -l "$path" | awk '{$1=$1}1'))
     fi
     if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
       for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
