@@ -69,7 +69,9 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
 
     archs_to_keep = target_archs & file_archs
 
-    if len(file_archs) == 1 or archs_to_keep == file_archs:
+    # On M1 hardware, thin x86_64 libraries do not need lipo when archs_to_keep
+    # is empty.
+    if len(file_archs) == 1 or archs_to_keep == file_archs or not archs_to_keep:
       # If there is no need to lipo, copy and mark as executable.
       shutil.copy(exec_file_source_path, exec_file_destination_path)
       os.chmod(exec_file_destination_path, 0o755)
