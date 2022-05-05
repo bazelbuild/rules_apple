@@ -155,6 +155,7 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
         binary_test_architecture = "arm64",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework.framework/ios_static_xcframework",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
@@ -174,7 +175,7 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_min_os_12",
         binary_test_architecture = "x86_64",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_min_os_12.framework/ios_static_xcframework_min_os_12",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 7"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
@@ -196,7 +197,7 @@ def apple_static_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_min_os_12",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_min_os_12.framework/ios_static_xcframework_min_os_12",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 2"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )

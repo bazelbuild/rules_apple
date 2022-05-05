@@ -36,7 +36,7 @@ def ios_static_framework_test_suite(name):
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform 7"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
@@ -50,7 +50,7 @@ def ios_static_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
-        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform 7"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
         tags = [name],
     )
 
