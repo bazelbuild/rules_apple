@@ -248,48 +248,6 @@ requirement.
 
 
 
-<a id="AppleSupportToolchainInfo"></a>
-
-## AppleSupportToolchainInfo
-
-<pre>
-AppleSupportToolchainInfo(<a href="#AppleSupportToolchainInfo-dsym_info_plist_template">dsym_info_plist_template</a>, <a href="#AppleSupportToolchainInfo-process_and_sign_template">process_and_sign_template</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_alticonstool">resolved_alticonstool</a>, <a href="#AppleSupportToolchainInfo-resolved_bundletool">resolved_bundletool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_bundletool_experimental">resolved_bundletool_experimental</a>, <a href="#AppleSupportToolchainInfo-resolved_clangrttool">resolved_clangrttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_codesigningtool">resolved_codesigningtool</a>, <a href="#AppleSupportToolchainInfo-resolved_dossier_codesigningtool">resolved_dossier_codesigningtool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor">resolved_imported_dynamic_framework_processor</a>, <a href="#AppleSupportToolchainInfo-resolved_plisttool">resolved_plisttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_provisioning_profile_tool">resolved_provisioning_profile_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
-</pre>
-
-
-Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
-
-This provider exists as an internal detail for the rules to reference common, executable tools and
-files used as script templates for the purposes of executing Apple actions. Defined by the
-`apple_support_toolchain` rule.
-
-
-**FIELDS**
-
-
-| Name  | Description |
-| :------------- | :------------- |
-| <a id="AppleSupportToolchainInfo-dsym_info_plist_template"></a>dsym_info_plist_template |  A <code>File</code> referencing a plist template for dSYM bundles.    |
-| <a id="AppleSupportToolchainInfo-process_and_sign_template"></a>process_and_sign_template |  A <code>File</code> referencing a template for a shell script to process and sign.    |
-| <a id="AppleSupportToolchainInfo-resolved_alticonstool"></a>resolved_alticonstool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to insert alternate icons entries in the app bundle's <code>Info.plist</code>.    |
-| <a id="AppleSupportToolchainInfo-resolved_bundletool"></a>resolved_bundletool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destinations paths to build the directory structure for those files.    |
-| <a id="AppleSupportToolchainInfo-resolved_bundletool_experimental"></a>resolved_bundletool_experimental |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing an experimental tool to create an Apple bundle by combining the bundling, post-processing, and signing steps into a single action that eliminates the archiving step.    |
-| <a id="AppleSupportToolchainInfo-resolved_clangrttool"></a>resolved_clangrttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to find all Clang runtime libs linked to a binary.    |
-| <a id="AppleSupportToolchainInfo-resolved_codesigningtool"></a>resolved_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to select the appropriate signing identity for Apple apps and Apple executable bundles.    |
-| <a id="AppleSupportToolchainInfo-resolved_dossier_codesigningtool"></a>resolved_dossier_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to generate codesigning dossiers.    |
-| <a id="AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor"></a>resolved_imported_dynamic_framework_processor |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to process an imported dynamic framework such that the given framework only contains the same slices as the app binary, every file belonging to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable artifact.    |
-| <a id="AppleSupportToolchainInfo-resolved_plisttool"></a>resolved_plisttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to perform plist operations such as variable substitution, merging, and conversion of plist files to binary format.    |
-| <a id="AppleSupportToolchainInfo-resolved_provisioning_profile_tool"></a>resolved_provisioning_profile_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that extracts entitlements from a provisioning profile.    |
-| <a id="AppleSupportToolchainInfo-resolved_swift_stdlib_tool"></a>resolved_swift_stdlib_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that copies and lipos Swift stdlibs required for the target to run.    |
-| <a id="AppleSupportToolchainInfo-resolved_xctoolrunner"></a>resolved_xctoolrunner |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that acts as a wrapper for xcrun actions.    |
-
-
 <a id="AppleTestInfo"></a>
 
 ## AppleTestInfo
