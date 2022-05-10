@@ -122,6 +122,18 @@ def apple_xcframework_test_suite(name):
     )
 
     archive_contents_test(
+        name = "{}_ios_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module ios_dynamic_xcframework",
+            "header \"ios_dynamic_xcframework.h\"",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_ios_arm64_device_archive_contents_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
@@ -465,6 +477,19 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_bundle_name_contents_swift_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module SwiftFmwkWithGenHeader",
+            "header \"SwiftFmwkWithGenHeader.h\"",
+            "requires objc",
         ],
         tags = [name],
     )
