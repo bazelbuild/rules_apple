@@ -261,6 +261,7 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
+        objc = linking_outputs.objc,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
