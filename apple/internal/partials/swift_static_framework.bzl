@@ -86,6 +86,7 @@ def _swift_static_framework_partial_impl(
         modulemap = swift_info_support.declare_modulemap(
             actions = actions,
             label_name = label_name,
+            framework_modulemap = True,
             output_discriminator = output_discriminator,
             module_name = expected_module_name,
         )
