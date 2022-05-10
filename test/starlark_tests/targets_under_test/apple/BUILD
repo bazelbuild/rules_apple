@@ -999,6 +999,12 @@ genrule(
 )
 
 genrule(
+    name = "dummy_fmwk_cc_src",
+    outs = ["DummyFmwk.c"],
+    cmd = "echo '#include <stdio.h>\nvoid doStuff() { printf(\"Framework method called\\n\"); }' > $@",
+)
+
+genrule(
     name = "dummy_fmwk_swift_src",
     outs = ["DummyFmwk.swift"],
     cmd = "echo 'import Foundation\n@objc public class SharedClass: NSObject {\n@objc public func doSomethingShared() {\nNSLog(\"Doing something shared!\")\n}\n}\n' > $@",
@@ -1008,6 +1014,12 @@ genrule(
     name = "dummy_fmwk_dependent_objc_src",
     outs = ["DummyFmwkDependent.m"],
     cmd = "echo '#import <Foundation/Foundation.h>\nvoid frameworkDependent() { NSLog(@\"frameworkDependent() called\"); }' > $@",
+)
+
+genrule(
+    name = "dummy_fmwk_dependent_cc_src",
+    outs = ["DummyFmwkDependent.c"],
+    cmd = "echo '#include <stdio.h>\nvoid frameworkDependent() { printf(\"frameworkDependent() called\\n\"); }' > $@",
 )
 
 objc_library(
@@ -1021,8 +1033,24 @@ objc_library(
 )
 
 objc_library(
+    name = "StaticFmwkCcUpperLib",
+    srcs = [
+        "DummyFmwk.c",
+        "DummyFmwk.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":StaticFmwkCcLowerLib"],
+)
+
+objc_library(
     name = "StaticFmwkLowerLib",
     srcs = ["DummyFmwkDependent.m"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+cc_library(
+    name = "StaticFmwkCcLowerLib",
+    srcs = ["DummyFmwkDependent.c"],
     tags = TARGETS_UNDER_TEST_TAGS,
 )
 

@@ -106,6 +106,7 @@ def _command_line_options(
         emit_swiftinterface = False,
         minimum_os_version,
         platform_type,
+        platforms = [],
         settings):
     """Generates a dictionary of command line options suitable for the current target.
 
@@ -118,6 +119,8 @@ def _command_line_options(
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
             `"macos"`, `"tvos"`, or `"watchos"`).
+        platforms: A list of labels referencing platforms if any should be set by the current rule.
+            Defaults to an empty list so that platform mapping can take place.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -141,6 +144,7 @@ def _command_line_options(
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": settings["//command_line_option:apple_grte_top"],
+        "//command_line_option:platforms": platforms,
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
@@ -272,6 +276,11 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
 ]
+_apple_platform_transition_inputs = _apple_rule_base_transition_inputs + [
+    "//command_line_option:apple_platforms",
+    "//command_line_option:incompatible_enable_apple_toolchain_resolution",
+    "//command_line_option:platforms",
+]
 _apple_rule_base_transition_outputs = [
     "//command_line_option:apple configuration distinguisher",
     "//command_line_option:apple_platform_type",
@@ -283,6 +292,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
     "//command_line_option:macos_minimum_os",
+    "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
     "@build_bazel_rules_swift//swift:emit_swiftinterface",
@@ -356,6 +366,34 @@ _apple_universal_binary_rule_transition = transition(
     outputs = _apple_universal_binary_rule_transition_outputs,
 )
 
+def _apple_platform_transition_impl(settings, attr):
+    """Rule transition to handle setting crosstool and platform flags for Apple rules."""
+    if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
+        platforms = (
+            settings["//command_line_option:apple_platforms"] or
+            settings["//command_line_option:platforms"]
+        )
+        return _command_line_options(
+            minimum_os_version = attr.minimum_os_version,
+            platform_type = attr.platform_type,
+            platforms = platforms,
+            settings = settings,
+        )
+
+    # Ensure platforms aren't set so that platform mapping can take place.
+    return _command_line_options(
+        minimum_os_version = attr.minimum_os_version,
+        platform_type = attr.platform_type,
+        platforms = [],
+        settings = settings,
+    )
+
+_apple_platform_transition = transition(
+    implementation = _apple_platform_transition_impl,
+    inputs = _apple_platform_transition_inputs,
+    outputs = _apple_rule_base_transition_outputs,
+)
+
 # TODO(b/230527536): Add support for Bazel platforms on ios/tvos_static_framework transition support method
 def _apple_common_multi_arch_split_key(*, cpu, environment, platform_type):
     """Returns split key for the apple_common.multi_arch_split transition based on target triplet.
@@ -410,6 +448,7 @@ _xcframework_transition = transition(
 )
 
 transition_support = struct(
+    apple_platform_transition = _apple_platform_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
