@@ -15,9 +15,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-# Export the script in support of generate_import_framework.bzl.
-exports_files(["generate_framework.py"])
-
 apple_dynamic_framework_import(
     name = "iOSImportedDynamicFramework",
     framework_imports = [":iOSDynamicFramework"],
@@ -54,7 +51,7 @@ filegroup(
     srcs = [
         "BUILD",
         "generate_framework.bzl",
-        "generate_framework.py",
+        "generation_support.bzl",
     ],
 )
 
@@ -79,7 +76,18 @@ bzl_library(
     srcs = ["generate_framework.bzl"],
     visibility = ["//visibility:private"],
     deps = [
+        ":generation_support",
         "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "generation_support",
+    srcs = ["generation_support.bzl"],
+    visibility = ["//test:__subpackages__"],
+    deps = [
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],

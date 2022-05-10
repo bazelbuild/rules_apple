@@ -15,63 +15,67 @@
 """Rules to generate import-ready frameworks for testing."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load(
+    "@build_bazel_rules_apple//test/testdata/fmwk:generation_support.bzl",
+    "generation_support",
+)
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _generate_import_framework_impl(ctx):
-    # The script has to run on a Mac, so just like the issues in the rule's
-    # tools, a py_binary doesn't always work, it is a plain file that gets
-    # invoked and has a shebang to force it to run under python3.
-    if len(ctx.files._generate_framework_script) != 1:
-        fail("Internal Error: Didn't get a single file for the script")
+    actions = ctx.actions
+    apple_fragment = ctx.fragments.apple
+    label = ctx.label
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    args = ctx.actions.args()
-    args.add("--name", ctx.label.name)
-    args.add("--sdk", ctx.attr.sdk)
-    args.add("--minimum_os_version", ctx.attr.minimum_os_version)
-    args.add("--libtype", ctx.attr.libtype)
-    for arch in ctx.attr.archs:
-        args.add("--arch", arch)
+    srcs = ctx.files.src
+    hdrs = ctx.files.hdrs
+    sdk = ctx.attr.sdk
+    libtype = ctx.attr.libtype
+    architectures = ctx.attr.archs
+    minimum_os_version = ctx.attr.minimum_os_version
 
-    framework_dir_name = "{}.framework".format(ctx.label.name)
-    binary_file = ctx.actions.declare_file(paths.join(framework_dir_name, ctx.label.name))
-    args.add("--framework_path", binary_file.dirname)
+    # Compile library
+    binary = generation_support.compile_binary(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        archs = architectures,
+        hdrs = hdrs,
+        label = label,
+        minimum_os_version = minimum_os_version,
+        sdk = sdk,
+        srcs = srcs,
+        xcode_config = xcode_config,
+    )
 
-    input_files = []
-    output_files = [binary_file]
+    # Create dynamic or static library
+    if libtype == "dynamic":
+        library = generation_support.create_dynamic_library(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            archs = architectures,
+            binary = binary,
+            minimum_os_version = minimum_os_version,
+            sdk = sdk,
+            xcode_config = xcode_config,
+        )
+    else:
+        library = generation_support.create_static_library(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            binary = binary,
+            xcode_config = xcode_config,
+        )
 
-    for source_file in ctx.attr.src.files.to_list():
-        args.add("--source_file", source_file)
-        input_files.append(source_file)
-
-    for header_file in ctx.attr.hdrs.files.to_list():
-        args.add("--header_file", header_file)
-        input_files.append(header_file)
-        output_files.append(ctx.actions.declare_file(paths.join(
-            framework_dir_name,
-            "Headers",
-            header_file.basename,
-        )))
-
-    # Special outputs to handle the generated text files.
-    output_files.extend([
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Headers", ctx.label.name + ".h")),
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Info.plist")),
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Modules/module.modulemap")),
-    ])
-
-    apple_support.run(
-        ctx,
-        inputs = input_files,
-        outputs = output_files,
-        executable = ctx.files._generate_framework_script[0],
-        tools = ctx.files._generate_framework_script,
-        arguments = [args],
-        mnemonic = "GenerateImportedAppleFramework",
+    # Create (dynamic) framework bundle
+    framework_files = generation_support.create_framework(
+        actions = actions,
+        bundle_name = label.name,
+        library = library,
+        headers = hdrs,
     )
 
     return [
-        DefaultInfo(files = depset(output_files)),
+        DefaultInfo(files = depset(framework_files)),
     ]
 
 generate_import_framework = rule(
@@ -111,13 +115,6 @@ Minimum version of the OS corresponding to the SDK that this binary will support
 Possible values are `dynamic` or `static`.
 Determines if the framework will be built as a dynamic framework or a static framework.
 """,
-        ),
-        "_generate_framework_script": attr.label(
-            cfg = "exec",
-            allow_files = True,
-            default = Label(
-                "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework.py",
-            ),
         ),
     }),
     fragments = ["apple"],
