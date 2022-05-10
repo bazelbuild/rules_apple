@@ -66,8 +66,8 @@ def _compile_binary(
         actions,
         apple_fragment,
         archs,
-        embed_bitcode,
-        embed_debug_info,
+        embed_bitcode = False,
+        embed_debug_info = False,
         hdrs,
         label,
         minimum_os_version,
@@ -267,6 +267,7 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
             _generate_module_map(
                 actions = actions,
                 bundle_name = bundle_name,
+                is_framework_module = True,
                 module_map_path = module_map_path,
             ),
         )
@@ -323,30 +324,37 @@ def _generate_umbrella_header(*, actions, bundle_name, headers, headers_path):
 
     return umbrella_header
 
-def _generate_module_map(*, actions, bundle_name, module_map_path):
+def _generate_module_map(*, actions, bundle_name, is_framework_module = False, module_map_path):
     """Generates a single module map given a sequence of header files.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         bundle_name: Name of the Framework/XCFramework bundle.
+        is_framework_module: Boolean to indicate if the generated modulemap is for a framework.
+          Defaults to `False`.
         module_map_path: Base path for the generated modulemap file.
     Returns:
         File for the generated modulemap file.
     """
+    module_qualifiers = ""
+    if is_framework_module:
+        module_qualifiers = "framework "
+
     module_map_text = """
-framework module {0} {{
-umbrella header "{0}.h"
+{module_qualifiers}module {module_id} {{
+umbrella header "{umbrella_header_name}.h"
 
 export *
 module * {{ export * }}
 }}
-    """.format(bundle_name)
+    """.format(
+        module_id = bundle_name,
+        module_qualifiers = module_qualifiers,
+        umbrella_header_name = bundle_name,
+    )
 
     modulemap_file = actions.declare_file(paths.join(module_map_path, "module.modulemap"))
-    actions.write(
-        output = modulemap_file,
-        content = module_map_text,
-    )
+    actions.write(output = modulemap_file, content = module_map_text)
 
     return modulemap_file
 
