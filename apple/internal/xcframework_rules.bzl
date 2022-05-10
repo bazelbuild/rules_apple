@@ -948,6 +948,7 @@ def _apple_static_xcframework_impl(ctx):
                     actions = actions,
                     avoid_deps = ctx.attr.avoid_deps,
                     bundle_name = bundle_name,
+                    framework_modulemap = False,
                     label_name = label.name,
                     output_discriminator = library_identifier,
                     swift_infos = link_output.swift_infos,
@@ -966,6 +967,7 @@ def _apple_static_xcframework_impl(ctx):
             interface_artifacts = partial.call(partials.framework_header_modulemap_partial(
                 actions = actions,
                 bundle_name = bundle_name,
+                framework_modulemap = False,
                 hdrs = ctx.files.public_hdrs,
                 label_name = label.name,
                 output_discriminator = library_identifier,

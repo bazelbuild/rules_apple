@@ -93,7 +93,7 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
         text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
         text_test_values = [
-            "framework module ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
+            "module ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
             "umbrella header \"ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks.h\"",
             "link \"c++\"",
             "link \"sqlite3\"",
@@ -229,7 +229,7 @@ def apple_static_xcframework_test_suite(name):
         ],
         text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
         text_test_values = [
-            "framework module ios_static_xcfmwk_with_custom_bundle_name",
+            "module ios_static_xcfmwk_with_custom_bundle_name",
             "header \"ios_static_xcfmwk_with_custom_bundle_name.h\"",
             "requires objc",
         ],
