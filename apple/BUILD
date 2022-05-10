@@ -49,6 +49,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_static_library",
+    srcs = ["apple_static_library.bzl"],
+    deps = [
+        ":providers",
+        "//apple/internal:linking_support",
+        "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "@bazel_skylib//lib:dicts",
+    ],
+)
+
+bzl_library(
     name = "aspects",
     srcs = ["aspects.bzl"],
     deps = [
