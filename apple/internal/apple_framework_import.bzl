@@ -71,10 +71,6 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-def _is_swiftmodule(path):
-    """Predicate to identify Swift modules/interfaces."""
-    return path.endswith((".swiftmodule", ".swiftinterface"))
-
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
 
@@ -90,17 +86,42 @@ def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     return module
 
 def _classify_framework_imports(config_vars, framework_imports):
-    """Classify a list of framework files into bundling, header, or module_map."""
+    """Classify a list of framework files.
 
+    Args:
+        config_vars: A dictionary (String to String) of configuration variables. Can be from ctx.var.
+        framework_imports: List of File for an imported Apple framework.
+    Returns:
+        A struct containing classified framework import files by categories:
+            - bundle_name: The framework bundle name infered by filepaths.
+            - binary_imports: Apple framework binary imports.
+            - bundling_imports: Apple framework bundle imports.
+            - header_imports: Apple framework header imports.
+            - module_map_imports: Apple framework modulemap imports.
+            - swift_module_imports: Apple framework swiftmodule imports.
+    """
+    bundle_name = None
+    binary_imports = []
     bundling_imports = []
     header_imports = []
     module_map_imports = []
+    swift_module_imports = []
     for file in framework_imports:
-        file_short_path = file.short_path
-        if file_short_path.endswith(".h"):
+        # Directory matching
+        parent_dir_name = paths.basename(file.dirname)
+        is_bundle_root_file = parent_dir_name.endswith(".framework")
+        if is_bundle_root_file:
+            bundle_name, _ = paths.split_extension(parent_dir_name)
+            if file.basename == bundle_name:
+                binary_imports.append(file)
+                continue
+
+        # Extension matching
+        file_extension = file.extension
+        if file_extension == "h":
             header_imports.append(file)
             continue
-        if file_short_path.endswith(".modulemap"):
+        if file_extension == "modulemap":
             # With the flip of `--incompatible_objc_framework_cleanup`, the
             # `objc_library` implementation in Bazel no longer passes module
             # maps as inputs to the compile actions, so that `@import`
@@ -117,21 +138,33 @@ def _classify_framework_imports(config_vars, framework_imports):
                 header_imports.append(file)
             module_map_imports.append(file)
             continue
-        if "Headers/" in file_short_path:
-            # This matches /Headers/ and /PrivateHeaders/
-            header_imports.append(file)
-            continue
-        if _is_swiftmodule(file_short_path):
-            # Add Swift's module files to header_imports so that they are correctly included in the build
+        if file_extension in ["swiftmodule", "swiftinterface"]:
+            # Add Swift's module files to header_imports so
+            # that they are correctly included in the build
             # by Bazel but they aren't processed in any way
             header_imports.append(file)
+            swift_module_imports.append(file)
             continue
-        if file_short_path.endswith((".swiftdoc", ".swiftsourceinfo")):
+        if file_extension in ["swiftdoc", "swiftsourceinfo"]:
             # Ignore swiftdoc files, they don't matter in the build, only for IDEs
             continue
+
+        # Path matching
+        if "Headers" in file.short_path:
+            header_imports.append(file)
+            continue
+
+        # Unknown file type, sending tu bundling (i.e. resources)
         bundling_imports.append(file)
 
-    return bundling_imports, header_imports, module_map_imports
+    return struct(
+        bundle_name = bundle_name,
+        binary_imports = binary_imports,
+        bundling_imports = bundling_imports,
+        header_imports = header_imports,
+        module_map_imports = module_map_imports,
+        swift_module_imports = swift_module_imports,
+    )
 
 def _all_framework_binaries(frameworks_groups):
     """Returns a list of Files of all imported binaries."""
@@ -315,22 +348,17 @@ def _framework_objc_provider_fields(
 
     return objc_provider_fields
 
-def _swift_interop_info_with_dependencies(deps, framework_groups, module_map_imports):
+def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
     if not module_map_imports:
         return None
 
-    # We can just take the first key because the rule implementation guarantees
-    # that we only have files for a single framework.
-    framework_dir = framework_groups.keys()[0]
-    framework_name = paths.split_extension(paths.basename(framework_dir))[0]
-
-    # Likewise, assume that there is only a single module map file (the
-    # legacy implementation that read from the Objc provider made the same
+    # Assume that there is only a single module map file (the legacy
+    # implementation that read from the Objc provider made the same
     # assumption).
     return swift_common.create_swift_interop_info(
         module_map = module_map_imports[0],
-        module_name = framework_name,
+        module_name = module_name,
         swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],
     )
 
@@ -484,13 +512,13 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         framework_imports = ctx.files.framework_imports
 
     deps = ctx.attr.deps
-    bundling_imports, header_imports, module_map_imports = (
-        _classify_framework_imports(ctx.var, framework_imports)
-    )
+    framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
     transitive_sets = _transitive_framework_imports(deps)
-    if bundling_imports:
-        transitive_sets.append(depset(bundling_imports))
+    transitive_sets.append(depset(framework_imports_by_category.binary_imports))
+    if framework_imports_by_category.bundling_imports:
+        transitive_sets.append(depset(framework_imports_by_category.bundling_imports))
+
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
 
@@ -518,8 +546,8 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     framework_dirs_set = depset(framework_groups.keys())
     objc_provider_fields = _framework_objc_provider_fields(
         "dynamic_framework_file",
-        module_map_imports,
-        [] if ctx.attr.bundle_only else framework_binaries,
+        framework_imports_by_category.module_map_imports,
+        [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
     )
 
     objc_provider = _objc_provider_with_dependencies(deps, objc_provider_fields)
@@ -528,7 +556,7 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         ctx.label.name,
         ctx.attr.deps,
         ctx.file._grep_includes,
-        header_imports,
+        framework_imports_by_category.header_imports,
     )
     providers.append(objc_provider)
     providers.append(cc_info)
@@ -542,8 +570,8 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
         deps = deps,
-        framework_groups = framework_groups,
-        module_map_imports = module_map_imports,
+        module_name = framework_imports_by_category.bundle_name,
+        module_map_imports = framework_imports_by_category.module_map_imports,
     )
     if swift_interop_info:
         providers.append(swift_interop_info)
@@ -561,11 +589,8 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         framework_name = _get_framework_name(framework_imports)
         single_platform_dir = None
 
-    other_imports, header_imports, module_map_imports = _classify_framework_imports(
-        ctx.var,
-        framework_imports,
-    )
     deps = ctx.attr.deps
+    framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
     transitive_sets = _transitive_framework_imports(deps)
     providers.append(_framework_import_info(
@@ -589,7 +614,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
 
         objc_provider_fields = _framework_objc_provider_fields(
             "static_framework_file",
-            module_map_imports,
+            framework_imports_by_category.module_map_imports,
             framework_binaries,
         )
     else:
@@ -601,14 +626,14 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         # assume the library filename is the same with XCFramework name or has
         # the .a extension. If the library file has a different naming, the
         # XCFramework can't be processed now.
-        for f in other_imports:
+        for f in framework_imports_by_category.bundling_imports:
             file_basename = f.basename
             if file_basename == framework_name or file_basename.endswith(".a"):
                 framework_binaries.append(f)
 
         objc_provider_fields = _framework_objc_provider_fields(
             "library",
-            module_map_imports,
+            framework_imports_by_category.module_map_imports,
             framework_binaries,
         )
 
@@ -616,9 +641,11 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         fail("Static XCFrameworks without binaries are not supported.")
 
     if ctx.attr.alwayslink:
-        if not framework_binaries:
+        if not framework_imports_by_category.binary_imports:
             fail("ERROR: There has to be a binary file in the imported framework.")
-        objc_provider_fields["force_load_library"] = depset(framework_binaries)
+        objc_provider_fields["force_load_library"] = depset(
+            framework_imports_by_category.binary_imports,
+        )
     if ctx.attr.sdk_dylibs:
         objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
     if ctx.attr.sdk_frameworks:
@@ -626,16 +653,9 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     if ctx.attr.weak_sdk_frameworks:
         objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
 
-    swiftmodule_imports = [
-        header
-        for header in header_imports
-        if _is_swiftmodule(header.basename)
-    ]
-
-    additional_objc_infos = []
     additional_cc_infos = []
-
-    if swiftmodule_imports:
+    additional_objc_infos = []
+    if framework_imports_by_category.swift_module_imports:
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo())
 
@@ -649,7 +669,10 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
 
         if _is_debugging(compilation_mode = ctx.var["COMPILATION_MODE"]):
             cpu = ctx.fragments.apple.single_arch_cpu
-            swiftmodule = _swiftmodule_for_cpu(swiftmodule_imports, cpu)
+            swiftmodule = _swiftmodule_for_cpu(
+                framework_imports_by_category.swift_module_imports,
+                cpu,
+            )
             if swiftmodule:
                 objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
@@ -670,7 +693,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             ctx.label.name,
             ctx.attr.deps,
             ctx.file._grep_includes,
-            header_imports,
+            framework_imports_by_category.header_imports,
             additional_cc_infos,
             includes,
             is_framework,
@@ -681,8 +704,8 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
         deps = deps,
-        framework_groups = framework_groups,
-        module_map_imports = module_map_imports,
+        module_name = framework_name,
+        module_map_imports = framework_imports_by_category.module_map_imports,
     )
     if swift_interop_info:
         providers.append(swift_interop_info)
