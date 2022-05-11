@@ -504,21 +504,27 @@ def _process_xcframework_imports(ctx):
 
 def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     """Common implementation for the apple_dynamic_framework_import and apple_dynamic_xcframework_import rules."""
-    providers = []
-
+    cpu = ctx.fragments.apple.single_arch_cpu
+    deps = ctx.attr.deps
+    label = ctx.label
     if is_xcframework:
         _, _, framework_imports = _process_xcframework_imports(ctx)
     else:
         framework_imports = ctx.files.framework_imports
 
-    deps = ctx.attr.deps
+    # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
+    grep_includes = ctx.file._grep_includes
+
+    providers = []
     framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
+    # Create AppleFrameworkImportInfo provider.
     transitive_sets = _transitive_framework_imports(deps)
     transitive_sets.append(depset(framework_imports_by_category.binary_imports))
     if framework_imports_by_category.bundling_imports:
         transitive_sets.append(depset(framework_imports_by_category.bundling_imports))
 
+    # Create apple_common.Objc provider.
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
 
@@ -536,7 +542,7 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     )
     providers.append(
         _framework_import_info(
-            arch_found = ctx.fragments.apple.single_arch_cpu,
+            arch_found = cpu,
             debug_info_binaries = debug_info_binaries,
             dsyms = dsym_imports,
             transitive_sets = transitive_sets,
@@ -549,23 +555,27 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         framework_imports_by_category.module_map_imports,
         [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
     )
-
     objc_provider = _objc_provider_with_dependencies(deps, objc_provider_fields)
+    providers.append(objc_provider)
+
+    # Create CcInfo provider.
     cc_info = _cc_info_with_dependencies(
         ctx,
-        ctx.label.name,
-        ctx.attr.deps,
-        ctx.file._grep_includes,
+        label.name,
+        deps,
+        grep_includes,
         framework_imports_by_category.header_imports,
     )
-    providers.append(objc_provider)
     providers.append(cc_info)
+
+    # Create AppleDynamicFramework provider.
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),
     ))
 
+    # Create _SwiftInteropInfo provider.
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
@@ -580,7 +590,14 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
 
 def _common_static_framework_import_impl(ctx, is_xcframework):
     """Common implementation for the apple_static_framework_import and apple_static_xcframework_import rules."""
-    providers = []
+    alwayslink = ctx.attr.alwayslink
+    cpu = ctx.fragments.apple.single_arch_cpu
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+    deps = ctx.attr.deps
+    label = ctx.label
+    sdk_dylibs = ctx.attr.sdk_dylibs
+    sdk_frameworks = ctx.attr.sdk_frameworks
+    weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
 
     if is_xcframework:
         framework_name, single_platform_dir, framework_imports = _process_xcframework_imports(ctx)
@@ -589,12 +606,16 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         framework_name = _get_framework_name(framework_imports)
         single_platform_dir = None
 
-    deps = ctx.attr.deps
+    # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
+    grep_includes = ctx.file._grep_includes
+
+    providers = []
     framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
+    # Create AppleFrameworkImportInfo provider.
     transitive_sets = _transitive_framework_imports(deps)
     providers.append(_framework_import_info(
-        arch_found = ctx.fragments.apple.single_arch_cpu,
+        arch_found = cpu,
         debug_info_binaries = [],
         dsyms = [],
         transitive_sets = transitive_sets,
@@ -640,18 +661,18 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     if is_xcframework and not framework_binaries:
         fail("Static XCFrameworks without binaries are not supported.")
 
-    if ctx.attr.alwayslink:
+    if alwayslink:
         if not framework_imports_by_category.binary_imports:
             fail("ERROR: There has to be a binary file in the imported framework.")
         objc_provider_fields["force_load_library"] = depset(
             framework_imports_by_category.binary_imports,
         )
-    if ctx.attr.sdk_dylibs:
-        objc_provider_fields["sdk_dylib"] = depset(ctx.attr.sdk_dylibs)
-    if ctx.attr.sdk_frameworks:
-        objc_provider_fields["sdk_framework"] = depset(ctx.attr.sdk_frameworks)
-    if ctx.attr.weak_sdk_frameworks:
-        objc_provider_fields["weak_sdk_framework"] = depset(ctx.attr.weak_sdk_frameworks)
+    if sdk_dylibs:
+        objc_provider_fields["sdk_dylib"] = depset(sdk_dylibs)
+    if sdk_frameworks:
+        objc_provider_fields["sdk_framework"] = depset(sdk_frameworks)
+    if weak_sdk_frameworks:
+        objc_provider_fields["weak_sdk_framework"] = depset(weak_sdk_frameworks)
 
     additional_cc_infos = []
     additional_objc_infos = []
@@ -667,8 +688,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         additional_objc_infos.extend(toolchain.implicit_deps_providers.objc_infos)
         additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
 
-        if _is_debugging(compilation_mode = ctx.var["COMPILATION_MODE"]):
-            cpu = ctx.fragments.apple.single_arch_cpu
+        if _is_debugging(compilation_mode):
             swiftmodule = _swiftmodule_for_cpu(
                 framework_imports_by_category.swift_module_imports,
                 cpu,
@@ -687,12 +707,13 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             for x in ctx.attr.includes
         ])
 
+    # Create CcInfo provider.
     providers.append(
         _cc_info_with_dependencies(
             ctx,
-            ctx.label.name,
-            ctx.attr.deps,
-            ctx.file._grep_includes,
+            label.name,
+            deps,
+            grep_includes,
             framework_imports_by_category.header_imports,
             additional_cc_infos,
             includes,
@@ -700,6 +721,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         ),
     )
 
+    # Create _SwiftInteropInfo provider.
     # For now, Swift interop is restricted only to a Clang module map inside
     # the framework.
     swift_interop_info = _swift_interop_info_with_dependencies(
@@ -710,6 +732,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     if swift_interop_info:
         providers.append(swift_interop_info)
 
+    # Create AppleResourceInfo provider.
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
         parent_dir_param = partial.make(
@@ -718,7 +741,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         )
         resource_provider = resources.bucketize_typed(
             bundle_files,
-            owner = str(ctx.label),
+            owner = str(label),
             bucket_type = "unprocessed",
             parent_dir_param = parent_dir_param,
         )
