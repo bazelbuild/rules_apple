@@ -288,12 +288,12 @@ This rule declares a bazel target that you can pass to the
 'provisioning_profile' attribute of rules that require it. It discovers a
 provisioning profile for the given attributes either on the user's local
 machine, or with the optional 'fallback_profiles' passed to
-'local_provisioning_profiles'. This will automatically pick the newest profile
-if there are multiple profiles matching the given criteria. By default this
-rule will search for a profile with the same name as the rule itself, you can
-pass profile_name to use a different name, and you can pass team_id if you'd
-like to disambiguate between 2 Apple developer accounts that have the same
-profile name.
+'provisioning_profile_repository'. This will automatically pick the newest
+profile if there are multiple profiles matching the given criteria. By default
+this rule will search for a profile with the same name as the rule itself, you
+can pass profile_name to use a different name, and you can pass team_id if
+you'd like to disambiguate between 2 Apple developer accounts that have the
+same profile name.
 
 ## Example
 
@@ -332,12 +332,12 @@ ios_application(
 | <a id="local_provisioning_profile-team_id"></a>team_id |  Team ID of the profile to find. This is useful for disambiguating between multiple profiles with the same name on different developer accounts.   | String | optional | "" |
 
 
-<a id="local_provisioning_profiles"></a>
+<a id="provisioning_profile_repository"></a>
 
-## local_provisioning_profiles
+## provisioning_profile_repository
 
 <pre>
-local_provisioning_profiles(<a href="#local_provisioning_profiles-name">name</a>, <a href="#local_provisioning_profiles-fallback_profiles">fallback_profiles</a>, <a href="#local_provisioning_profiles-repo_mapping">repo_mapping</a>)
+provisioning_profile_repository(<a href="#provisioning_profile_repository-name">name</a>, <a href="#provisioning_profile_repository-fallback_profiles">fallback_profiles</a>, <a href="#provisioning_profile_repository-repo_mapping">repo_mapping</a>)
 </pre>
 
 
@@ -350,11 +350,29 @@ not having to update it every time a new device or certificate is added.
 
 ## Example
 
-load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profiles")
+### In your `WORKSPACE` file:
 
-local_provisioning_profiles(
+load("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository")
+
+provisioning_profile_repository(
     name = "local_provisioning_profiles",
-    fallback_profiles = "//path/to/some:filegroup",
+    fallback_profiles = "//path/to/some:filegroup", # Optional profiles to use if one isn't found locally
+)
+
+### In your `BUILD` files (see `local_provisioning_profile` for more examples):
+
+load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profile")
+
+local_provisioning_profile(
+    name = "app_debug_profile",
+    profile_name = "Development App",
+    team_id = "abc123",
+)
+
+ios_application(
+    name = "app",
+    ...
+    provisioning_profile = ":app_debug_profile",
 )
 
 
@@ -363,8 +381,8 @@ local_provisioning_profiles(
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="local_provisioning_profiles-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="local_provisioning_profiles-fallback_profiles"></a>fallback_profiles |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
-| <a id="local_provisioning_profiles-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.&lt;p&gt;For example, an entry <code>"@foo": "@bar"</code> declares that, for any time this repository depends on <code>@foo</code> (such as a dependency on <code>@foo//some:target</code>, it should actually resolve that dependency within globally-declared <code>@bar</code> (<code>@bar//some:target</code>).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | required |  |
+| <a id="provisioning_profile_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="provisioning_profile_repository-fallback_profiles"></a>fallback_profiles |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.&lt;p&gt;For example, an entry <code>"@foo": "@bar"</code> declares that, for any time this repository depends on <code>@foo</code> (such as a dependency on <code>@foo//some:target</code>, it should actually resolve that dependency within globally-declared <code>@bar</code> (<code>@bar//some:target</code>).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | required |  |
 
 

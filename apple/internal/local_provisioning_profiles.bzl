@@ -1,6 +1,6 @@
 """# Rules for using locally installed provisioning profiles"""
 
-def _local_provisioning_profiles(repository_ctx):
+def _provisioning_profile_repository(repository_ctx):
     system_profiles_path = "{}/Library/MobileDevice/Provisioning Profiles".format(repository_ctx.os.environ["HOME"])
     repository_ctx.execute(["mkdir", "-p", system_profiles_path])
     repository_ctx.symlink(system_profiles_path, "profiles")
@@ -25,9 +25,9 @@ alias(
 )
 """.format(repository_ctx.attr.fallback_profiles or ":empty"))
 
-local_provisioning_profiles = repository_rule(
+provisioning_profile_repository = repository_rule(
     environ = ["HOME"],
-    implementation = _local_provisioning_profiles,
+    implementation = _provisioning_profile_repository,
     attrs = {
         "fallback_profiles": attr.label(
             allow_files = [".mobileprovision"],
@@ -43,11 +43,29 @@ not having to update it every time a new device or certificate is added.
 
 ## Example
 
-load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profiles")
+### In your `WORKSPACE` file:
 
-local_provisioning_profiles(
+load("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository")
+
+provisioning_profile_repository(
     name = "local_provisioning_profiles",
-    fallback_profiles = "//path/to/some:filegroup",
+    fallback_profiles = "//path/to/some:filegroup", # Optional profiles to use if one isn't found locally
+)
+
+### In your `BUILD` files (see `local_provisioning_profile` for more examples):
+
+load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profile")
+
+local_provisioning_profile(
+    name = "app_debug_profile",
+    profile_name = "Development App",
+    team_id = "abc123",
+)
+
+ios_application(
+    name = "app",
+    ...
+    provisioning_profile = ":app_debug_profile",
 )
 """,
 )
@@ -107,12 +125,12 @@ This rule declares a bazel target that you can pass to the
 'provisioning_profile' attribute of rules that require it. It discovers a
 provisioning profile for the given attributes either on the user's local
 machine, or with the optional 'fallback_profiles' passed to
-'local_provisioning_profiles'. This will automatically pick the newest profile
-if there are multiple profiles matching the given criteria. By default this
-rule will search for a profile with the same name as the rule itself, you can
-pass profile_name to use a different name, and you can pass team_id if you'd
-like to disambiguate between 2 Apple developer accounts that have the same
-profile name.
+'provisioning_profile_repository'. This will automatically pick the newest
+profile if there are multiple profiles matching the given criteria. By default
+this rule will search for a profile with the same name as the rule itself, you
+can pass profile_name to use a different name, and you can pass team_id if
+you'd like to disambiguate between 2 Apple developer accounts that have the
+same profile name.
 
 ## Example
 
