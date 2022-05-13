@@ -91,8 +91,9 @@ def _compile_binary(
     Returns:
         A compiled binary file.
     """
-    binary_name = "{label}_{sdk}.o".format(label = label.name, sdk = sdk)
-    binary = actions.declare_file(binary_name)
+    binary_name = "{label}.o".format(label = label.name)
+    binary_dir = "{sdk}_{archs}".format(sdk = sdk, archs = "_".join(archs))
+    binary = actions.declare_file(paths.join("intermediates", binary_dir, binary_name))
 
     inputs = []
     inputs.extend(srcs)
@@ -131,20 +132,21 @@ def _compile_binary(
 
     return binary
 
-def _create_static_library(*, actions, apple_fragment, base_path = "", binary, xcode_config):
+def _create_static_library(*, actions, apple_fragment, parent_dir = "", binary, xcode_config):
     """Creates an Apple static library using libtool.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
-        base_path: Base path for the generated archive file (optional).
         binary: A binary file to use for the archive file.
+        parent_dir: Optional parent directory name for the generated archive file.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         A static library (archive) file.
     """
     static_library_name = paths.replace_extension(binary.basename, ".a")
-    static_library = actions.declare_file(paths.join(base_path, static_library_name))
+    static_library_path = paths.join("intermediates", parent_dir, static_library_name)
+    static_library = actions.declare_file(static_library_path)
 
     args = ["/usr/bin/xcrun", "libtool", "-static", binary.path, "-o", static_library.path]
 
@@ -183,8 +185,10 @@ def _create_dynamic_library(
     Returns:
         A dynamic library file.
     """
-    filename, _ = binary.basename.split(".")
-    dylib_binary = actions.declare_file(filename)
+    dylib_name, _ = binary.basename.split(".")
+    dylib_dir = "{sdk}_{archs}".format(sdk = sdk, archs = "_".join(archs))
+    dylib_path = paths.join("intermediates", dylib_dir, dylib_name)
+    dylib_binary = actions.declare_file(dylib_path)
 
     args = ["/usr/bin/xcrun"]
     args.extend(["-sdk", sdk])
@@ -194,7 +198,7 @@ def _create_dynamic_library(
     args.append("-dynamiclib")
     args.extend([
         "-install_name",
-        "@rpath/{}.framework/{}".format(filename, filename),
+        "@rpath/{}.framework/{}".format(dylib_name, dylib_name),
     ])
 
     for arch in archs:
@@ -229,7 +233,7 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
         List of files for a .framework bundle.
     """
     framework_files = []
-    framework_directory = paths.join(base_path, bundle_name + ".framework/")
+    framework_directory = paths.join(base_path, bundle_name + ".framework")
 
     framework_binary = actions.declare_file(paths.join(framework_directory, bundle_name))
     actions.symlink(
