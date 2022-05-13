@@ -919,6 +919,7 @@ def _apple_static_xcframework_impl(ctx):
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
+    binary_name = bundle_name + ".a"
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
@@ -937,7 +938,7 @@ def _apple_static_xcframework_impl(ctx):
         binary_artifact = link_output.binary
         framework_archive_merge_files.append(struct(
             src = binary_artifact.path,
-            dest = paths.join(library_identifier, binary_artifact.basename),
+            dest = paths.join(library_identifier, binary_name),
         ))
         framework_archive_files.append(depset([binary_artifact]))
 
@@ -1010,7 +1011,7 @@ def _apple_static_xcframework_impl(ctx):
                 environment = link_output.environment,
                 headers_path = "Headers",
                 library_identifier = library_identifier,
-                library_path = binary_artifact.basename,
+                library_path = binary_name,
                 platform = link_output.platform,
             ),
         )
