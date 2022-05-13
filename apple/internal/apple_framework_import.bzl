@@ -215,9 +215,11 @@ def _objc_provider_with_dependencies(
     return apple_common.new_objc_provider(**objc_provider_fields)
 
 def _cc_info_with_dependencies(
+        *,
         ctx,
         name,
         deps,
+        framework_includes,
         grep_includes,
         header_imports,
         additional_cc_infos = []):
@@ -225,6 +227,7 @@ def _cc_info_with_dependencies(
 
     all_cc_infos = [dep[CcInfo] for dep in deps] + additional_cc_infos
     dep_compilation_contexts = [cc_info.compilation_context for cc_info in all_cc_infos]
+
     cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
@@ -232,13 +235,14 @@ def _cc_info_with_dependencies(
         requested_features = ctx.features + ["lang_objc"],  # b/210775356
         unsupported_features = ctx.disabled_features,
     )
+
     (compilation_context, _compilation_outputs) = cc_common.compile(
         name = name,
         actions = ctx.actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         public_hdrs = header_imports,
-        framework_includes = _framework_search_paths(header_imports),
+        framework_includes = framework_includes,
         compilation_contexts = dep_compilation_contexts,
         language = "objc",
         grep_includes = grep_includes,
@@ -370,11 +374,12 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     # Create CcInfo provider.
     cc_info = _cc_info_with_dependencies(
-        ctx,
-        label.name,
-        deps,
-        grep_includes,
-        framework_imports_by_category.header_imports,
+        ctx = ctx,
+        deps = deps,
+        framework_includes = _framework_search_paths(framework_imports_by_category.header_imports),
+        grep_includes = grep_includes,
+        header_imports = framework_imports_by_category.header_imports,
+        name = label.name,
     )
     providers.append(cc_info)
 
@@ -471,12 +476,15 @@ def _apple_static_framework_import_impl(ctx):
     # Create CcInfo provider.
     providers.append(
         _cc_info_with_dependencies(
-            ctx,
-            label.name,
-            deps,
-            grep_includes,
-            framework_imports_by_category.header_imports,
-            additional_cc_infos,
+            additional_cc_infos = additional_cc_infos,
+            ctx = ctx,
+            deps = deps,
+            framework_includes = _framework_search_paths(
+                framework_imports_by_category.header_imports,
+            ),
+            grep_includes = grep_includes,
+            header_imports = framework_imports_by_category.header_imports,
+            name = label.name,
         ),
     )
 
