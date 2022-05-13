@@ -138,6 +138,7 @@ def _create_xcframework(
     """
     bundle_name = label.name + ".xcframework"
     xcframework_directory = paths.join(target_dir, bundle_name)
+    intermediates_directory = paths.join(label.package, "intermediates")
 
     if (frameworks and libraries) or (not frameworks and not libraries):
         fail("Can only generate XCFrameworks using static libraries or dynamic frameworks.")
@@ -153,7 +154,7 @@ def _create_xcframework(
     if libraries:
         inputs.extend(libraries)
         for library in libraries:
-            library_relative_path = paths.relativize(library.short_path, label.package)
+            library_relative_path = paths.relativize(library.short_path, intermediates_directory)
             outputs.append(actions.declare_file(library_relative_path, sibling = info_plist))
             args.extend(["-library", library.path])
 
@@ -163,7 +164,7 @@ def _create_xcframework(
     for header in headers:
         inputs.append(header)
         outputs.append(actions.declare_file(
-            paths.relativize(header.short_path, label.package),
+            paths.relativize(header.short_path, intermediates_directory),
             sibling = info_plist,
         ))
 
@@ -171,7 +172,7 @@ def _create_xcframework(
         inputs.extend(framework_files)
         outputs.extend([
             actions.declare_file(
-                paths.relativize(f.short_path, label.package),
+                paths.relativize(f.short_path, intermediates_directory),
                 sibling = info_plist,
             )
             for f in framework_files
@@ -271,7 +272,7 @@ def _generate_dynamic_xcframework_impl(ctx):
         # Create (dynamic) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
-            base_path = library_identifier,
+            base_path = paths.join("intermediates", library_identifier),
             bundle_name = label.name,
             library = dynamic_library,
             headers = hdrs,
@@ -279,6 +280,7 @@ def _generate_dynamic_xcframework_impl(ctx):
 
         framework_path = paths.join(
             target_dir,
+            "intermediates",
             library_identifier,
             label.name + ".framework",
         )
@@ -345,13 +347,13 @@ def _generate_static_xcframework_impl(ctx):
         static_library = generation_support.create_static_library(
             actions = actions,
             apple_fragment = apple_fragment,
-            base_path = library_identifier,
             binary = binary,
+            parent_dir = library_identifier,
             xcode_config = xcode_config,
         )
 
         # Copy headers and generate umbrella header
-        headers_path = paths.join(library_identifier, "Headers")
+        headers_path = paths.join("intermediates", library_identifier, "Headers")
         headers.extend(
             generation_support.copy_headers(
                 actions = actions,
