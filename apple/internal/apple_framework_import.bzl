@@ -236,12 +236,55 @@ def _grouped_xcframework_files(framework_imports):
 
     return framework_groups
 
-def _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc_infos = []):
-    """Returns a new Objc provider which includes transitive Objc dependencies."""
-    objc_provider_fields["providers"] = [
-        dep[apple_common.Objc]
-        for dep in deps
-    ] + additional_objc_infos
+def _objc_provider_with_dependencies(
+        *,
+        additional_objc_provider_fields = {},
+        additional_objc_providers = [],
+        alwayslink = False,
+        dynamic_framework_file = None,
+        module_map,
+        sdk_dylib = None,
+        sdk_framework = None,
+        static_framework_file = None,
+        weak_sdk_framework = None):
+    """Returns a new Objc provider which includes transitive Objc dependencies.
+
+    Args:
+        additional_objc_provider_fields: Additional fields to set for the Objc provider constructor.
+        additional_objc_providers: Additional Objc providers to merge with this target provider.
+        alwayslink: Boolean to indicate if force_load_library should be set with the static
+            framework file.
+        dynamic_framework_file: File referencing a framework dynamic library.
+        module_map: File referencing imported framework module map.
+        sdk_dylib: List of Apple SDK dylibs to link. Defaults to None.
+        sdk_framework: List of Apple SDK frameworks to link. Defaults to None.
+        static_framework_file: File referencing a framework static library.
+        weak_sdk_framework: List of Apple SDK frameworks to weakly link. Defaults to None.
+    Returns:
+        apple_common.Objc provider
+    """
+    objc_provider_fields = {}
+    objc_provider_fields["providers"] = additional_objc_providers
+
+    if dynamic_framework_file:
+        objc_provider_fields["dynamic_framework_file"] = dynamic_framework_file
+
+    if static_framework_file:
+        objc_provider_fields["static_framework_file"] = static_framework_file
+
+        if alwayslink:
+            objc_provider_fields["force_load_library"] = depset(static_framework_file)
+
+    if module_map:
+        objc_provider_fields["module_map"] = depset(module_map)
+    if sdk_dylib:
+        objc_provider_fields["sdk_dylib"] = depset(sdk_dylib)
+    if sdk_framework:
+        objc_provider_fields["sdk_framework"] = depset(sdk_framework)
+    if weak_sdk_framework:
+        objc_provider_fields["weak_sdk_framework"] = depset(weak_sdk_framework)
+
+    objc_provider_fields.update(**additional_objc_provider_fields)
     return apple_common.new_objc_provider(**objc_provider_fields)
 
 def _cc_info_with_dependencies(
@@ -332,21 +375,6 @@ def _ensure_swiftmodule_is_embedded(swiftmodule):
         linkopt = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
         link_inputs = depset([swiftmodule]),
     )
-
-def _framework_objc_provider_fields(
-        framework_binary_field,
-        module_map_imports,
-        framework_binaries):
-    """Return an objc_provider initializer dictionary with information for a given framework."""
-
-    objc_provider_fields = {}
-    if module_map_imports:
-        objc_provider_fields["module_map"] = depset(module_map_imports)
-
-    if framework_binaries:
-        objc_provider_fields[framework_binary_field] = depset(framework_binaries)
-
-    return objc_provider_fields
 
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
@@ -525,8 +553,17 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         transitive_sets.append(depset(framework_imports_by_category.bundling_imports))
 
     # Create apple_common.Objc provider.
-    framework_groups = _grouped_framework_files(framework_imports)
-    framework_binaries = _all_framework_binaries(framework_groups)
+    transitive_objc_providers = [
+        dep[apple_common.Objc]
+        for dep in deps
+        if apple_common.Objc in dep
+    ]
+    objc_provider = _objc_provider_with_dependencies(
+        additional_objc_providers = transitive_objc_providers,
+        dynamic_framework_file = depset([] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports),
+        module_map = framework_imports_by_category.module_map_imports,
+    )
+    providers.append(objc_provider)
 
     # TODO: Support dSYM import
     if is_xcframework:
@@ -536,6 +573,8 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         dsym_binaries = _all_dsym_binaries(ctx.files.dsym_imports)
         dsym_imports = ctx.files.dsym_imports
 
+    framework_groups = _grouped_framework_files(framework_imports)
+    framework_binaries = _all_framework_binaries(framework_groups)
     debug_info_binaries = _debug_info_binaries(
         dsym_binaries = dsym_binaries,
         framework_binaries = framework_binaries,
@@ -549,15 +588,6 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         ),
     )
 
-    framework_dirs_set = depset(framework_groups.keys())
-    objc_provider_fields = _framework_objc_provider_fields(
-        "dynamic_framework_file",
-        framework_imports_by_category.module_map_imports,
-        [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
-    )
-    objc_provider = _objc_provider_with_dependencies(deps, objc_provider_fields)
-    providers.append(objc_provider)
-
     # Create CcInfo provider.
     cc_info = _cc_info_with_dependencies(
         ctx,
@@ -569,6 +599,8 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     providers.append(cc_info)
 
     # Create AppleDynamicFramework provider.
+    framework_groups = _grouped_framework_files(framework_imports)
+    framework_dirs_set = depset(framework_groups.keys())
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         framework_dirs = framework_dirs_set,
@@ -621,23 +653,44 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         transitive_sets = transitive_sets,
     ))
 
+    # Collect transitive Objc/CcInfo providers from Swift toolchain.
+    additional_cc_infos = []
+    additional_objc_providers = []
+    additional_objc_provider_fields = {}
+    if framework_imports_by_category.swift_module_imports:
+        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+        providers.append(SwiftUsageInfo())
+
+        # The Swift toolchain propagates Swift-specific linker flags (e.g.,
+        # library/framework search paths) as an implicit dependency. In the
+        # rare case that a binary has a Swift framework import dependency but
+        # no other Swift dependencies, make sure we pick those up so that it
+        # links to the standard libraries correctly.
+        additional_objc_providers.extend(toolchain.implicit_deps_providers.objc_infos)
+        additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
+
+        if _is_debugging(compilation_mode):
+            swiftmodule = _swiftmodule_for_cpu(
+                framework_imports_by_category.swift_module_imports,
+                cpu,
+            )
+            if swiftmodule:
+                additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
+
     is_framework = False
     for f in framework_imports:
         if f.dirname.endswith(".framework"):
             is_framework = True
             break
 
+    static_framework_file = None
     if is_framework:
         framework_groups = _grouped_framework_files(framework_imports)
         framework_binaries = _all_framework_binaries(
             frameworks_groups = framework_groups,
         )
 
-        objc_provider_fields = _framework_objc_provider_fields(
-            "static_framework_file",
-            framework_imports_by_category.module_map_imports,
-            framework_binaries,
-        )
+        static_framework_file = depset(framework_binaries)
     else:
         framework_groups = _grouped_xcframework_files(framework_imports)
         framework_binaries = []
@@ -652,52 +705,31 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             if file_basename == framework_name or file_basename.endswith(".a"):
                 framework_binaries.append(f)
 
-        objc_provider_fields = _framework_objc_provider_fields(
-            "library",
-            framework_imports_by_category.module_map_imports,
-            framework_binaries,
-        )
+        # TODO: Remove reliance on additional_objc_provider_fields
+        additional_objc_provider_fields.update({"library": depset(framework_binaries)})
+        if ctx.attr.alwayslink:
+            additional_objc_provider_fields.update({"force_load_library": depset(framework_binaries)})
 
     if is_xcframework and not framework_binaries:
         fail("Static XCFrameworks without binaries are not supported.")
 
-    if alwayslink:
-        if not framework_imports_by_category.binary_imports:
-            fail("ERROR: There has to be a binary file in the imported framework.")
-        objc_provider_fields["force_load_library"] = depset(
-            framework_imports_by_category.binary_imports,
-        )
-    if sdk_dylibs:
-        objc_provider_fields["sdk_dylib"] = depset(sdk_dylibs)
-    if sdk_frameworks:
-        objc_provider_fields["sdk_framework"] = depset(sdk_frameworks)
-    if weak_sdk_frameworks:
-        objc_provider_fields["weak_sdk_framework"] = depset(weak_sdk_frameworks)
-
-    additional_cc_infos = []
-    additional_objc_infos = []
-    if framework_imports_by_category.swift_module_imports:
-        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
-        providers.append(SwiftUsageInfo())
-
-        # The Swift toolchain propagates Swift-specific linker flags (e.g.,
-        # library/framework search paths) as an implicit dependency. In the
-        # rare case that a binary has a Swift framework import dependency but
-        # no other Swift dependencies, make sure we pick those up so that it
-        # links to the standard libraries correctly.
-        additional_objc_infos.extend(toolchain.implicit_deps_providers.objc_infos)
-        additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
-
-        if _is_debugging(compilation_mode):
-            swiftmodule = _swiftmodule_for_cpu(
-                framework_imports_by_category.swift_module_imports,
-                cpu,
-            )
-            if swiftmodule:
-                objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
-
+    # Create apple_common.Objc provider.
+    additional_objc_providers.extend([
+        dep[apple_common.Objc]
+        for dep in deps
+        if apple_common.Objc in dep
+    ])
     providers.append(
-        _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc_infos),
+        _objc_provider_with_dependencies(
+            additional_objc_provider_fields = additional_objc_provider_fields,
+            additional_objc_providers = additional_objc_providers,
+            alwayslink = alwayslink,
+            module_map = framework_imports_by_category.module_map_imports,
+            sdk_dylib = sdk_dylibs,
+            sdk_framework = sdk_frameworks,
+            static_framework_file = static_framework_file,
+            weak_sdk_framework = weak_sdk_frameworks,
+        ),
     )
 
     includes = []
