@@ -50,6 +50,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":framework_import_support",
         ":resources",
         ":rule_factory",
         "//apple:providers",
@@ -60,7 +61,6 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:sets",
-        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_rules_swift//swift",
     ],
 )
@@ -189,6 +189,20 @@ bzl_library(
     ],
     deps = [
         "@bazel_skylib//lib:new_sets",
+    ],
+)
+
+bzl_library(
+    name = "framework_import_support",
+    srcs = ["framework_import_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+        "@bazel_skylib//lib:paths",
+        "@bazel_tools//tools/cpp:toolchain_utils",
+        "@build_bazel_rules_swift//swift",
     ],
 )
 
