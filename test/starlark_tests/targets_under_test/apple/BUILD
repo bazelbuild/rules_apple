@@ -353,7 +353,7 @@ genrule(
         ]
         for file in [
             "Headers/shared.h",
-            "ios_static_xcframework_ios_{}.a".format(platform),
+            "ios_static_xcframework.a",
         ]
     ],
     cmd = """
@@ -380,7 +380,7 @@ genrule(
         for file in [
             "Headers/shared.h",
             "Modules/module.modulemap",
-            "ios_static_xcframework_with_module_map_ios_{}.a".format(platform),
+            "ios_static_xcframework_with_module_map.a",
         ]
     ],
     # rules_apple can't generate static XCFrameworks that are importable from
