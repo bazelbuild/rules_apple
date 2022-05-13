@@ -329,29 +329,40 @@ def _cc_info_with_dependencies(
         linking_context = linking_context,
     )
 
-def _transitive_framework_imports(deps):
-    """Returns the list of transitive framework imports for the given deps."""
-    return [
+def _framework_import_info_with_dependencies(
+        *,
+        build_archs,
+        deps,
+        debug_info_binaries,
+        dsyms,
+        framework_imports = []):
+    """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs.
+
+    Args:
+        build_archs: List of supported architectures for the imported Framework.
+        deps: List of transitive dependencies of the current target.
+        debug_info_binaries: List of debug info binaries for the imported Framework.
+        dsyms: List of dSYM files for the imported Framework.
+        framework_imports: List of files to bundle for the imported Framework.
+    Returns:
+        AppleFrameworkImportInfo provider.
+    """
+    transitive_framework_imports = [
         dep[AppleFrameworkImportInfo].framework_imports
         for dep in deps
         if (AppleFrameworkImportInfo in dep and
             hasattr(dep[AppleFrameworkImportInfo], "framework_imports"))
     ]
 
-def _framework_import_info(
-        *,
-        arch_found,
-        debug_info_binaries,
-        dsyms,
-        transitive_sets):
-    """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs."""
-    provider_fields = {}
-    if transitive_sets:
-        provider_fields["framework_imports"] = depset(transitive = transitive_sets)
-    provider_fields["build_archs"] = depset([arch_found])
-    provider_fields["debug_info_binaries"] = depset(debug_info_binaries)
-    provider_fields["dsym_imports"] = depset(dsyms)
-    return AppleFrameworkImportInfo(**provider_fields)
+    return AppleFrameworkImportInfo(
+        build_archs = depset(build_archs),
+        debug_info_binaries = depset(debug_info_binaries),
+        dsym_imports = depset(dsyms),
+        framework_imports = depset(
+            framework_imports,
+            transitive = transitive_framework_imports,
+        ),
+    )
 
 def _is_debugging(compilation_mode):
     """Returns `True` if the current compilation mode produces debug info.
@@ -546,25 +557,6 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     providers = []
     framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
-    # Create AppleFrameworkImportInfo provider.
-    transitive_sets = _transitive_framework_imports(deps)
-    transitive_sets.append(depset(framework_imports_by_category.binary_imports))
-    if framework_imports_by_category.bundling_imports:
-        transitive_sets.append(depset(framework_imports_by_category.bundling_imports))
-
-    # Create apple_common.Objc provider.
-    transitive_objc_providers = [
-        dep[apple_common.Objc]
-        for dep in deps
-        if apple_common.Objc in dep
-    ]
-    objc_provider = _objc_provider_with_dependencies(
-        additional_objc_providers = transitive_objc_providers,
-        dynamic_framework_file = depset([] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports),
-        module_map = framework_imports_by_category.module_map_imports,
-    )
-    providers.append(objc_provider)
-
     # TODO: Support dSYM import
     if is_xcframework:
         dsym_binaries = []
@@ -579,14 +571,31 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         dsym_binaries = dsym_binaries,
         framework_binaries = framework_binaries,
     )
-    providers.append(
-        _framework_import_info(
-            arch_found = cpu,
-            debug_info_binaries = debug_info_binaries,
-            dsyms = dsym_imports,
-            transitive_sets = transitive_sets,
+
+    # Create AppleFrameworkImportInfo provider.
+    providers.append(_framework_import_info_with_dependencies(
+        build_archs = [cpu],
+        deps = deps,
+        debug_info_binaries = debug_info_binaries,
+        dsyms = dsym_imports,
+        framework_imports = (
+            framework_imports_by_category.binary_imports +
+            framework_imports_by_category.bundling_imports
         ),
+    ))
+
+    # Create apple_common.Objc provider.
+    transitive_objc_providers = [
+        dep[apple_common.Objc]
+        for dep in deps
+        if apple_common.Objc in dep
+    ]
+    objc_provider = _objc_provider_with_dependencies(
+        additional_objc_providers = transitive_objc_providers,
+        dynamic_framework_file = depset([] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports),
+        module_map = framework_imports_by_category.module_map_imports,
     )
+    providers.append(objc_provider)
 
     # Create CcInfo provider.
     cc_info = _cc_info_with_dependencies(
@@ -645,12 +654,11 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     framework_imports_by_category = _classify_framework_imports(ctx.var, framework_imports)
 
     # Create AppleFrameworkImportInfo provider.
-    transitive_sets = _transitive_framework_imports(deps)
-    providers.append(_framework_import_info(
-        arch_found = cpu,
+    providers.append(_framework_import_info_with_dependencies(
+        build_archs = [cpu],
+        deps = deps,
         debug_info_binaries = [],
         dsyms = [],
-        transitive_sets = transitive_sets,
     ))
 
     # Collect transitive Objc/CcInfo providers from Swift toolchain.
