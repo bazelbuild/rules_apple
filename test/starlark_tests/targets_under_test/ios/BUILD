@@ -11,7 +11,7 @@ load(
     "ios_unit_test",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")

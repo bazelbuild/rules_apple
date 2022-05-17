@@ -61,7 +61,8 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:sets",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
+        "@build_bazel_rules_swift//swift:swift_common",
     ],
 )
 
@@ -202,7 +203,8 @@ bzl_library(
         "//apple:providers",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
+        "@build_bazel_rules_swift//swift:swift_common",
     ],
 )
 
@@ -245,7 +247,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -486,7 +488,7 @@ bzl_library(
     deps = [
         ":intermediates",
         "@bazel_skylib//lib:sets",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -538,7 +540,7 @@ bzl_library(
         ":transition_support",
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -598,7 +600,7 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 

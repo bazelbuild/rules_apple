@@ -35,7 +35,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -46,7 +46,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 

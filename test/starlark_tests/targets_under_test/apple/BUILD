@@ -17,7 +17,7 @@ load(
     "apple_core_data_model",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
 

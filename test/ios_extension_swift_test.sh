@@ -34,7 +34,7 @@ function create_minimal_ios_application_with_swift_extension() {
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension")
-load("@build_bazel_rules_swift//swift:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift_library.bzl",
      "swift_library")
 
 swift_library(

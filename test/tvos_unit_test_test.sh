@@ -34,7 +34,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_unit_test",
     )
-load("@build_bazel_rules_swift//swift:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift_library.bzl",
      "swift_library"
     )
 

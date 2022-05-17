@@ -84,7 +84,7 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
 load(

@@ -55,8 +55,11 @@ load(
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
     "swift_clang_module_aspect",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift_common.bzl",
     "swift_common",
 )
 load(

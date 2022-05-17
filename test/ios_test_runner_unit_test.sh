@@ -31,7 +31,7 @@ load(
     "ios_application",
     "ios_unit_test"
 )
-load("@build_bazel_rules_swift//swift:swift.bzl",
+load("@build_bazel_rules_swift//swift:swift_library.bzl",
      "swift_library"
 )
 load(

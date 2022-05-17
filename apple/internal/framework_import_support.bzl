@@ -16,8 +16,11 @@
 
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift_common.bzl",
     "swift_common",
 )
 load("@bazel_skylib//lib:paths.bzl", "paths")

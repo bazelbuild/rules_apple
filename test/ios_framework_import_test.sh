@@ -99,7 +99,7 @@ function create_swift_static_framework() {
   mkdir fmwk
 
   cat >> libraries/BUILD <<EOF
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 swift_library(
     name = "iOSSwiftStaticFrameworkLibrary",
     generates_header = True,
@@ -190,7 +190,7 @@ function test_swift_library_depends_on_dynamic_import() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
@@ -215,7 +215,7 @@ function test_swift_library_depends_on_static_import() {
   create_common_files
 
   cat >> app/BUILD <<EOF
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
@@ -239,7 +239,7 @@ function test_swift_library_depends_on_swift_static_import() {
     create_swift_static_framework
 
     cat >> app/BUILD <<EOF
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 swift_library(
     name = "main",
     srcs = ["main.swift"],
