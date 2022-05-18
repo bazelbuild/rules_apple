@@ -985,6 +985,10 @@ that this target depends on.
             })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -1003,6 +1007,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
