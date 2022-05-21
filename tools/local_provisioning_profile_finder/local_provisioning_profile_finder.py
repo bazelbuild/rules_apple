@@ -12,19 +12,19 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("name", help="The name of the profile to find")
     parser.add_argument("output", help="The path to copy the profile to")
     parser.add_argument(
-        "--local-profiles",
+        "--local_profiles",
         nargs="*",
         required=True,
         help="All local provisioning profiles to search through",
     )
     parser.add_argument(
-        "--fallback-profiles",
+        "--fallback_profiles",
         nargs="*",
         required=True,
         help="Fallback provisioning profiles to use if not found locally",
     )
     parser.add_argument(
-        "--team-id",
+        "--team_id",
         help="The team ID of the profile to find, useful for disambiguation",
         default=None,
         type=str,

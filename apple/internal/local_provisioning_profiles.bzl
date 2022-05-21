@@ -5,7 +5,7 @@ def _provisioning_profile_repository(repository_ctx):
     repository_ctx.execute(["mkdir", "-p", system_profiles_path])
     repository_ctx.symlink(system_profiles_path, "profiles")
 
-    repository_ctx.file("BUILD", """
+    repository_ctx.file("BUILD.bazel", """\
 filegroup(
     name = "profiles",
     srcs = glob(["profiles/*.mobileprovision"], allow_empty = True),
@@ -81,12 +81,9 @@ def _local_provisioning_profile(ctx):
     args.add(ctx.attr.profile_name or ctx.attr.name)
     args.add(selected_profile)
     if ctx.attr.team_id:
-        args.add("--team-id")
-        args.add(ctx.attr.team_id)
-    args.add("--local-profiles")
-    args.add_all(ctx.files._local_srcs)
-    args.add("--fallback-profiles")
-    args.add_all(ctx.files._fallback_srcs)
+        args.add("--team_id", ctx.attr.team_id)
+    args.add_all("--local_profiles", ctx.files._local_srcs)
+    args.add_all("--fallback_profiles", ctx.files._fallback_srcs)
 
     ctx.actions.run(
         executable = ctx.executable._finder,
