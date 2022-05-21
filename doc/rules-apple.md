@@ -275,3 +275,114 @@ apple_xcframework(<a href="#apple_xcframework-name">name</a>, <a href="#apple_xc
 | <a id="apple_xcframework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
 
+<a id="local_provisioning_profile"></a>
+
+## local_provisioning_profile
+
+<pre>
+local_provisioning_profile(<a href="#local_provisioning_profile-name">name</a>, <a href="#local_provisioning_profile-profile_name">profile_name</a>, <a href="#local_provisioning_profile-team_id">team_id</a>)
+</pre>
+
+
+This rule declares a bazel target that you can pass to the
+'provisioning_profile' attribute of rules that require it. It discovers a
+provisioning profile for the given attributes either on the user's local
+machine, or with the optional 'fallback_profiles' passed to
+'provisioning_profile_repository'. This will automatically pick the newest
+profile if there are multiple profiles matching the given criteria. By default
+this rule will search for a profile with the same name as the rule itself, you
+can pass profile_name to use a different name, and you can pass team_id if
+you'd like to disambiguate between 2 Apple developer accounts that have the
+same profile name.
+
+## Example
+
+load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profile")
+
+local_provisioning_profile(
+    name = "app_debug_profile",
+    profile_name = "Development App",
+    team_id = "abc123",
+)
+
+ios_application(
+    name = "app",
+    ...
+    provisioning_profile = ":app_debug_profile",
+)
+
+local_provisioning_profile(
+    name = "app_release_profile",
+)
+
+ios_application(
+    name = "release_app",
+    ...
+    provisioning_profile = ":app_release_profile",
+)
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="local_provisioning_profile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="local_provisioning_profile-profile_name"></a>profile_name |  Name of the profile to use, if it's not provided the name of the rule is used   | String | optional | "" |
+| <a id="local_provisioning_profile-team_id"></a>team_id |  Team ID of the profile to find. This is useful for disambiguating between multiple profiles with the same name on different developer accounts.   | String | optional | "" |
+
+
+<a id="provisioning_profile_repository"></a>
+
+## provisioning_profile_repository
+
+<pre>
+provisioning_profile_repository(<a href="#provisioning_profile_repository-name">name</a>, <a href="#provisioning_profile_repository-fallback_profiles">fallback_profiles</a>, <a href="#provisioning_profile_repository-repo_mapping">repo_mapping</a>)
+</pre>
+
+
+This rule declares an external repository for discovering locally installed
+provisioning profiles. This is consumed by `ios_local_provisioning_profile`.
+You can optionally set 'fallback_profiles' to point at a stable location of
+profiles if a newer version of the desired profile does not exist on the local
+machine. This is useful for checking in the current version of the profile, but
+not having to update it every time a new device or certificate is added.
+
+## Example
+
+### In your `WORKSPACE` file:
+
+load("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository")
+
+provisioning_profile_repository(
+    name = "local_provisioning_profiles",
+    fallback_profiles = "//path/to/some:filegroup", # Optional profiles to use if one isn't found locally
+)
+
+### In your `BUILD` files (see `local_provisioning_profile` for more examples):
+
+load("@build_bazel_rules_apple//apple:apple.bzl", "local_provisioning_profile")
+
+local_provisioning_profile(
+    name = "app_debug_profile",
+    profile_name = "Development App",
+    team_id = "abc123",
+)
+
+ios_application(
+    name = "app",
+    ...
+    provisioning_profile = ":app_debug_profile",
+)
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="provisioning_profile_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="provisioning_profile_repository-fallback_profiles"></a>fallback_profiles |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.&lt;p&gt;For example, an entry <code>"@foo": "@bar"</code> declares that, for any time this repository depends on <code>@foo</code> (such as a dependency on <code>@foo//some:target</code>, it should actually resolve that dependency within globally-declared <code>@bar</code> (<code>@bar//some:target</code>).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | required |  |
+
+
