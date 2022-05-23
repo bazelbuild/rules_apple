@@ -27,6 +27,7 @@ def _apple_resource_bundle_impl(_ctx):
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
+        CcInfo(),
         AppleResourceBundleInfo(),
     ]
 
