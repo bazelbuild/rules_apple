@@ -418,6 +418,7 @@ genrule(
             file,
         )
         for file in [
+            "Headers/ios_static_xcframework.h",
             "Headers/shared.h",
             "Modules/module.modulemap",
             "ios_xcframework_bundling_static_fmwks",
@@ -456,15 +457,11 @@ do
   framework_dir="$$platform_dir/$$xcframework_name.framework"
   mkdir -p "$$framework_dir"
   mv "$$platform_dir/ios_static_xcframework"*.a "$$framework_dir/$$xcframework_name"
-  mv "$$platform_dir/Headers" "$$framework_dir/"
-
   modules_dir="$$framework_dir/Modules"
   mkdir -p "$$modules_dir"
-  cat > "$$modules_dir/module.modulemap" << EOF
-module ios_xcframework_bundling_static_fmwks {
-  umbrella "Headers"
-}
-EOF
+  mv "$$platform_dir/Headers/module.modulemap" "$$modules_dir/"
+  sed -i "" "s/^module/framework module/g" "$$modules_dir/module.modulemap"
+  mv "$$platform_dir/Headers" "$$framework_dir/"
 done
 """,
 )
