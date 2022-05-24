@@ -332,7 +332,7 @@ genrule(
         ]
     ],
     cmd = """
-unzip -qq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
+unzip -oqq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
 """,
 )
 
@@ -357,7 +357,7 @@ genrule(
         ]
     ],
     cmd = """
-unzip -qq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
+unzip -oqq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
 """,
 )
 
@@ -386,7 +386,7 @@ genrule(
     # rules_apple can't generate static XCFrameworks that are importable from
     # Swift now, but those exist. This manually generates one for testing.
     cmd = """
-unzip -qq $(execpath :ios_static_xcframework_with_module_map.xcframework.zip) -d $(RULEDIR)
+unzip -oqq $(execpath :ios_static_xcframework_with_module_map.xcframework.zip) -d $(RULEDIR)
 
 xcframework_path="$(RULEDIR)/ios_static_xcframework_with_module_map.xcframework"
 declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
