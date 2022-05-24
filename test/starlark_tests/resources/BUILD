@@ -660,7 +660,7 @@ swift_library(
 genrule(
     name = "swift_importing_imported_xcfw_bundling_static_fmwks",
     outs = ["swift_importing_imported_xcfw_bundling_static_fmwks.swift"],
-    cmd = "echo 'import ios_xcframework_bundling_static_fmwks' > $@",
+    cmd = "echo 'import ios_static_xcframework' > $@",
     tags = FIXTURE_TAGS,
 )
 
