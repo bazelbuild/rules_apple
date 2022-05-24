@@ -4,10 +4,6 @@
 # https://github.com/bazelbuild/stardoc/issues/112
 common --incompatible_allow_tags_propagation
 
-# Force the tests to not run in sandboxed mode, since it can introduce
-# errors and flakes.
-test --spawn_strategy=local
-
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 test --test_env=PATH
