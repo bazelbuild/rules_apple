@@ -66,6 +66,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
@@ -140,7 +141,7 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    cpu = ctx.fragments.apple.single_arch_cpu
+    cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -156,6 +157,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     )
 
     # Create AppleFrameworkImportInfo provider.
+    cpu = cc_toolchain.target_gnu_system_name.split("-")[0]
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [cpu],
         deps = deps,
@@ -181,6 +183,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
+        cc_toolchain = cc_toolchain,
         ctx = ctx,
         deps = deps,
         disabled_features = disabled_features,
@@ -218,8 +221,8 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink
+    cc_toolchain = find_cpp_toolchain(ctx)
     compilation_mode = ctx.var["COMPILATION_MODE"]
-    cpu = ctx.fragments.apple.single_arch_cpu
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -238,6 +241,7 @@ def _apple_static_framework_import_impl(ctx):
     )
 
     # Create AppleFrameworkImportInfo provider.
+    cpu = cc_toolchain.target_gnu_system_name.split("-")[0]
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [cpu],
         deps = deps,
@@ -292,6 +296,7 @@ def _apple_static_framework_import_impl(ctx):
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
             additional_cc_infos = additional_cc_infos,
+            cc_toolchain = cc_toolchain,
             ctx = ctx,
             deps = deps,
             disabled_features = disabled_features,
@@ -335,7 +340,7 @@ def _apple_static_framework_import_impl(ctx):
 
 apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
@@ -370,11 +375,12 @@ This rule encapsulates an already-built dynamic framework. It is defined by a li
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
 targets through the `deps` attribute.
 """,
+    toolchains = use_cpp_toolchain(),
 )
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         swift_common.toolchain_attrs(),
@@ -442,4 +448,5 @@ This rule encapsulates an already-built static framework. It is defined by a lis
 .framework directory. apple_static_framework_import targets need to be added to library targets
 through the `deps` attribute.
 """,
+    toolchains = use_cpp_toolchain(),
 )
