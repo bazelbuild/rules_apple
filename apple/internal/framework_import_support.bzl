@@ -22,12 +22,12 @@ load(
     "swift_common",
 )
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _cc_info_with_dependencies(
         *,
         actions,
         additional_cc_infos = [],
+        cc_toolchain,
         ctx,
         deps,
         disabled_features,
@@ -43,6 +43,7 @@ def _cc_info_with_dependencies(
     Args:
         actions: The actions provider from `ctx.actions`.
         additional_cc_infos: List of additinal CcInfo providers to use for a merged compilation contexts.
+        cc_toolchain: CcToolchainInfo provider for current target.
         ctx: The Starlark context for a rule target being built.
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
         disabled_features: List of features to be disabled for cc_common.compile
@@ -59,7 +60,6 @@ def _cc_info_with_dependencies(
     all_cc_infos = [dep[CcInfo] for dep in deps] + additional_cc_infos
     dep_compilation_contexts = [cc_info.compilation_context for cc_info in all_cc_infos]
 
-    cc_toolchain = find_cpp_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
