@@ -23,6 +23,15 @@ _PLATFORM_TYPE_TO_CPU_FLAG = {
     "watchos": "//command_line_option:watchos_cpus",
 }
 
+# Should be kept in sync with constants from AppleCommandLineOptions in Bazel, currently ignoring
+# defaults that are dependent on the host arch.
+_PLATFORM_TYPE_TO_DEFAULT_CPU = {
+    "ios": "x86_64",
+    "macos": "x86_64",
+    "tvos": "x86_64",
+    "watchos": "i386",
+}
+
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
@@ -31,14 +40,31 @@ def _platform_specific_cpu_setting_name(platform_type):
             `"tvos"`, or `"watchos"`.
 
     Returns:
-        The `"//command_line_option:..."` string that is used as the key for the
-        CPU flag of the given platform in settings dictionaries. This function
-        never returns `None`; if the platform type is invalid, the build fails.
+        The `"//command_line_option:..."` string that is used as the key for the CPU flag of the
+            given platform in settings dictionaries. This function never returns `None`; if the
+            platform type is invalid, the build fails.
     """
     flag = _PLATFORM_TYPE_TO_CPU_FLAG.get(platform_type, None)
     if not flag:
         fail("ERROR: Unknown platform type: {}".format(platform_type))
     return flag
+
+def _platform_specific_default_cpu(platform_type):
+    """Returns the default architecture of a platform-specific CPU setting.
+
+    Args:
+        platform_type: A string denoting the platform type; `"ios"`, `"macos"`, `"tvos"`, or
+            `"watchos"`.
+
+    Returns:
+        The architecture string that is considered to be the default architecture for the given
+            platform type. This function never returns `None`; if the platform type is invalid, the
+            build fails.
+    """
+    default_cpu = _PLATFORM_TYPE_TO_DEFAULT_CPU.get(platform_type, None)
+    if not default_cpu:
+        fail("ERROR: Unknown platform type: {}".format(platform_type))
+    return default_cpu
 
 def _cpu_string(*, cpu, platform_type, settings = {}):
     """Generates a <platform>_<arch> string for the current target based on the given parameters.
@@ -102,15 +128,21 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
 
 def _command_line_options(
         *,
+        apple_platforms = [],
         cpu = None,
         emit_swiftinterface = False,
         minimum_os_version,
         platform_type,
-        platforms = [],
         settings):
     """Generates a dictionary of command line options suitable for the current target.
 
     Args:
+        apple_platforms: A list of labels referencing platforms if any should be set by the current
+            rule. This will be applied directly to `apple_platforms` to allow for forwarding
+            multiple platforms to rules evaluated after the transition is applied, and only the
+            first element will be applied to `platforms` as that will be what is resolved by the
+            underlying rule. Defaults to an empty list, which will signal to Bazel that platform
+            mapping can take place as a fallback measure.
         cpu: A valid Apple cpu command line option as a string, or None to infer a value from
             command line options passed through settings.
         emit_swiftinterface: Wheither to emit swift interfaces for the given target. Defaults to
@@ -119,8 +151,6 @@ def _command_line_options(
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
             `"macos"`, `"tvos"`, or `"watchos"`).
-        platforms: A list of labels referencing platforms if any should be set by the current rule.
-            Defaults to an empty list so that platform mapping can take place.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -132,6 +162,7 @@ def _command_line_options(
     output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
+        "//command_line_option:apple_platforms": apple_platforms,
         "//command_line_option:apple_split_cpu": cpu if cpu else "",
         "//command_line_option:compiler": settings["//command_line_option:apple_compiler"],
         "//command_line_option:cpu": _cpu_string(
@@ -144,7 +175,7 @@ def _command_line_options(
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": settings["//command_line_option:apple_grte_top"],
-        "//command_line_option:platforms": platforms,
+        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [],
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
@@ -284,6 +315,7 @@ _apple_platform_transition_inputs = _apple_rule_base_transition_inputs + [
 _apple_rule_base_transition_outputs = [
     "//command_line_option:apple configuration distinguisher",
     "//command_line_option:apple_platform_type",
+    "//command_line_option:apple_platforms",
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:cpu",
@@ -366,30 +398,58 @@ _apple_universal_binary_rule_transition = transition(
     outputs = _apple_universal_binary_rule_transition_outputs,
 )
 
-def _apple_platform_transition_impl(settings, attr):
-    """Rule transition to handle setting crosstool and platform flags for Apple rules."""
+def _apple_platform_split_transition_impl(settings, attr):
+    """Starlark 1:2+ transition for Apple platform-aware rules"""
+    output_dictionary = {}
+
     if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         platforms = (
             settings["//command_line_option:apple_platforms"] or
             settings["//command_line_option:platforms"]
         )
-        return _command_line_options(
-            minimum_os_version = attr.minimum_os_version,
-            platform_type = attr.platform_type,
-            platforms = platforms,
-            settings = settings,
-        )
+        # Currently there is no "default" platform for Apple-based platforms. If necessary, a
+        # default platform could be generated for the rule's underlying platform_type, but for now
+        # we work with the assumption that all users of the rules should set an appropriate set of
+        # platforms when building Apple targets with `apple_platforms`.
 
-    # Ensure platforms aren't set so that platform mapping can take place.
-    return _command_line_options(
-        minimum_os_version = attr.minimum_os_version,
-        platform_type = attr.platform_type,
-        platforms = [],
-        settings = settings,
-    )
+        for index, platform in enumerate(platforms):
+            # Create a new, reordered list so that the platform we need to resolve is always first,
+            # and the other platforms will follow.
+            apple_platforms = list(platforms)
+            platform_to_resolve = apple_platforms.pop(index)
+            apple_platforms.insert(0, platform_to_resolve)
 
-_apple_platform_transition = transition(
-    implementation = _apple_platform_transition_impl,
+            if str(platform) not in output_dictionary:
+                output_dictionary[str(platform)] = _command_line_options(
+                    apple_platforms = apple_platforms,
+                    minimum_os_version = attr.minimum_os_version,
+                    platform_type = attr.platform_type,
+                    settings = settings,
+                )
+
+    else:
+        platform_type = attr.platform_type
+        cpus = settings[_platform_specific_cpu_setting_name(platform_type)]
+        if not cpus:
+            cpus = [_platform_specific_default_cpu(platform_type)]
+        for cpu in cpus:
+            found_cpu = _cpu_string(
+                cpu = cpu,
+                platform_type = platform_type,
+                settings = settings,
+            )
+            if found_cpu not in output_dictionary:
+                output_dictionary[found_cpu] = _command_line_options(
+                    cpu = cpu,
+                    minimum_os_version = attr.minimum_os_version,
+                    platform_type = platform_type,
+                    settings = settings,
+                )
+
+    return output_dictionary
+
+_apple_platform_split_transition = transition(
+    implementation = _apple_platform_split_transition_impl,
     inputs = _apple_platform_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
@@ -448,7 +508,7 @@ _xcframework_transition = transition(
 )
 
 transition_support = struct(
-    apple_platform_transition = _apple_platform_transition,
+    apple_platform_split_transition = _apple_platform_split_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
