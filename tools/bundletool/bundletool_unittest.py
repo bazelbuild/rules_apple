@@ -112,7 +112,8 @@ class BundlerTest(unittest.TestCase):
         z.writestr(zipinfo, content)
     return path
 
-  def _assert_zip_contains(self, zip_file, entry, executable=False):
+  def _assert_zip_contains(self, zip_file, entry, executable=False,
+                           compressed=False):
     """Asserts that a `ZipFile` has an entry with the given path.
 
     This is a convenience function that catches the `KeyError` that would be
@@ -122,6 +123,7 @@ class BundlerTest(unittest.TestCase):
       zip_file: The `ZipFile` object.
       entry: The archive-relative path to verify.
       executable: The expected value of the executable bit (True or False).
+      compressed: If the entry should be compressed (True or False).
     """
     try:
       zipinfo = zip_file.getinfo(entry)
@@ -133,6 +135,15 @@ class BundlerTest(unittest.TestCase):
         self.assertEquals(
             0, zipinfo.external_attr >> 16 & 0o111,
             'Expected %r not to be executable, but it was' % entry)
+
+      if compressed:
+        self.assertEquals(
+            zipfile.ZIP_DEFLATED, zipinfo.compress_type,
+            'Expected %r to be compressed, but it was not' % entry)
+      else:
+        self.assertEquals(
+            zipfile.ZIP_STORED, zipinfo.compress_type,
+            'Expected %r not to be compressed, but it was' % entry)
     except KeyError:
       self.fail('Bundled ZIP should have contained %r, but it did not' % entry)
 
@@ -303,6 +314,17 @@ class BundlerTest(unittest.TestCase):
               {'src': two_zip, 'dest': '.'},
           ]
       })
+
+  def test_compressed_entries(self):
+    a_txt = self._scratch_file('a.txt')
+    root = os.path.dirname(a_txt)
+    out_zip = _run_bundler({
+        'bundle_path': 'Payload/foo.app',
+        'bundle_merge_files': [{'src': root, 'dest': 'x/y/z'}],
+        'compress': True,
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/a.txt', compressed=True)
 
 if __name__ == '__main__':
   unittest.main()

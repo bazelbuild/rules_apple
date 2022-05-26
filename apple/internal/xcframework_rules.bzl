@@ -439,6 +439,7 @@ def _create_xcframework_bundle(
         bundle_merge_zips = framework_archive_merge_zips,
         bundle_path = bundle_name + ".xcframework",
         output = output_archive.path,
+        compress = True,
     )
     actions.write(
         output = bundletool_control_file,
