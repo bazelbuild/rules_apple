@@ -178,7 +178,7 @@ def _asset_catalogs(
     for f in files.to_list():
         if ".alticon/" in f.path:
             if f.extension != "png":
-                fail("Alternate icons must be .png files packaged in a .alticon folder.")
+                fail("Alternate icons must be .png files packaged in a .alticon folder. Not: {}".format(f.path))
 
             # Process icon PNGs like any other PNG
             alticon_id = paths.basename(f.dirname)
