@@ -63,7 +63,7 @@ apple_static_library = rule(
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
-            cfg = apple_common.multi_arch_split,
+            cfg = transition_support.apple_platform_split_transition,
         ),
         {
             "additional_linker_inputs": attr.label_list(
@@ -75,7 +75,7 @@ A list of input files to be passed to the linker.
 """,
             ),
             "avoid_deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
+                cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
                 # Flag required for compile_one_dependency
                 flags = ["DIRECT_COMPILE_TIME_INPUT"],
@@ -91,7 +91,7 @@ Files to be made available to the library archive upon execution.
 """,
             ),
             "deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
+                cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
                 # Flag required for compile_one_dependency
                 flags = ["DIRECT_COMPILE_TIME_INPUT"],
@@ -167,7 +167,6 @@ not in the top-level bundle.
     outputs = {
         "lipo_archive": "%{name}_lipo.a",
     },
-    cfg = transition_support.apple_platform_transition,
     fragments = ["objc", "apple", "cpp"],
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     incompatible_use_toolchain_transition = True,

@@ -62,7 +62,7 @@ def apple_static_library_test_suite(name):
     # multi arch iOS Simulator builds.
     analysis_lipo_test(
         name = "{}_ios_lipo_test".format(name),
-        expected_sdk_platform = "iPhoneSimulator",
+        expected_sdk_platform = "MacOSX",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
         tags = [name],
     )
@@ -71,7 +71,7 @@ def apple_static_library_test_suite(name):
     # multi arch watchOS builds.
     analysis_lipo_test(
         name = "{}_watchos_lipo_test".format(name),
-        expected_sdk_platform = "WatchOS",
+        expected_sdk_platform = "MacOSX",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
         tags = [name],
     )
