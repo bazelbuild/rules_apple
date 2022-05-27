@@ -307,6 +307,54 @@ apple_xcframework(
     deps = [":fmwk_lib"],
 )
 
+genrule(
+    name = "generate_umbrella_header",
+    outs = ["Umbrella.h"],
+    cmd = 'echo "#import \\"shared.h\\"" > $(OUTS)',
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework_umbrella_header",
+    bundle_id = "com.google.example",
+    framework_type = ["dynamic"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    umbrella_header = ":generate_umbrella_header",
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_umbrella_header",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    umbrella_header = ":generate_umbrella_header",
+    deps = [":fmwk_lib"],
+)
+
 # Generate importable dynamic XCFramework files
 genrule(
     name = "generated_ios_dynamic_xcframework",

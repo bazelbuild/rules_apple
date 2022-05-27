@@ -235,6 +235,18 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_custom_umbrella_header_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_umbrella_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/Headers/module.modulemap",
+        text_test_values = [
+            "module ios_static_xcframework_umbrella_header",
+            "umbrella header \"Umbrella.h\"",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
