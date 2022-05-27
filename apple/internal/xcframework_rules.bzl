@@ -668,7 +668,7 @@ def _apple_xcframework_impl(ctx):
                     hdrs = ctx.files.public_hdrs,
                     label_name = label.name,
                     output_discriminator = library_identifier,
-                    umbrella_header = None,
+                    umbrella_header = ctx.file.umbrella_header,
                 ),
             )
 
@@ -923,6 +923,15 @@ individual binaries. Any resources, such as asset catalogs, that are referenced 
 will also be transitively included in the framework bundles.
 """,
             ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
         },
     ),
     fragments = ["apple", "objc", "cpp"],
@@ -997,7 +1006,7 @@ def _apple_static_xcframework_impl(ctx):
                 hdrs = ctx.files.public_hdrs,
                 label_name = label.name,
                 output_discriminator = library_identifier,
-                umbrella_header = None,
+                umbrella_header = ctx.file.umbrella_header,
                 sdk_frameworks = sdk_frameworks,
                 sdk_dylibs = sdk_dylibs,
             ))
@@ -1158,6 +1167,15 @@ as keys.
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded libraries. These header files will be embedded within each platform split,
 typically in a subdirectory such as `Headers`.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
 """,
             ),
         },
