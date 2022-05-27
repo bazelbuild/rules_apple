@@ -29,16 +29,29 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
+    "ApplePlatformInfo",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _apple_static_library_impl(ctx):
-    # Validation of the platform type and minimum version OS currently happen in
-    # `transition_support.apple_platform_transition`, either implicitly through native
+    # Most validation of the platform type and minimum version OS currently happens in
+    # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
+
+    # Validate that the resolved platform matches the platform_type attr.
+    for toolchain_key, resolved_toolchain in ctx.split_attr._cc_toolchain_forwarder.items():
+        if resolved_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
+            fail("""
+ERROR: Unexpected resolved platform:
+Expected Apple platform type of "{platform_type}", but that was not found in {toolchain_key}.
+""".format(
+                platform_type = ctx.attr.platform_type,
+                toolchain_key = toolchain_key,
+            ))
 
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
 
@@ -66,6 +79,12 @@ apple_static_library = rule(
             cfg = transition_support.apple_platform_split_transition,
         ),
         {
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
             "additional_linker_inputs": attr.label_list(
                 # Flag required for compile_one_dependency
                 flags = ["DIRECT_COMPILE_TIME_INPUT"],
@@ -168,6 +187,5 @@ not in the top-level bundle.
         "lipo_archive": "%{name}_lipo.a",
     },
     fragments = ["objc", "apple", "cpp"],
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
-    incompatible_use_toolchain_transition = True,
+    toolchains = use_cpp_toolchain(),
 )

@@ -160,6 +160,21 @@ Depset of strings that represent binary architectures reported from the current 
     },
 )
 
+ApplePlatformInfo = provider(
+    doc = "Provides information for the currently selected Apple platforms.",
+    fields = {
+        "target_os": """
+`String` representing the selected Apple OS.
+""",
+        "target_arch": """
+`String` representing the selected target architecture or cpu type.
+""",
+        "target_environment": """
+`String` representing the selected target environment (e.g. "device", "simulator").
+""",
+    },
+)
+
 def merge_apple_framework_import_info(apple_framework_import_infos):
     """
     Merges multiple `AppleFrameworkImportInfo` into one.
