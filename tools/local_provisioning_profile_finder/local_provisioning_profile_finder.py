@@ -14,13 +14,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--local_profiles",
         nargs="*",
-        required=True,
         help="All local provisioning profiles to search through",
     )
     parser.add_argument(
         "--fallback_profiles",
         nargs="*",
-        required=True,
         help="Fallback provisioning profiles to use if not found locally",
     )
     parser.add_argument(
@@ -81,6 +79,6 @@ if __name__ == "__main__":
         args.name,
         args.team_id,
         args.output,
-        args.local_profiles,
-        args.fallback_profiles,
+        args.local_profiles or [],
+        args.fallback_profiles or [],
     )

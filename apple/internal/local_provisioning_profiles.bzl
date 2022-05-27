@@ -82,8 +82,12 @@ def _local_provisioning_profile(ctx):
     args.add(selected_profile)
     if ctx.attr.team_id:
         args.add("--team_id", ctx.attr.team_id)
-    args.add_all("--local_profiles", ctx.files._local_srcs)
-    args.add_all("--fallback_profiles", ctx.files._fallback_srcs)
+    if ctx.files._local_srcs:
+        args.add_all("--local_profiles", ctx.files._local_srcs)
+    if ctx.files._fallback_srcs:
+        args.add_all("--fallback_profiles", ctx.files._fallback_srcs)
+    if not ctx.files._local_srcs and not ctx.attr._fallback_srcs:
+        fail("Either local or fallback provisioning profiles must exist")
 
     ctx.actions.run(
         executable = ctx.executable._finder,
