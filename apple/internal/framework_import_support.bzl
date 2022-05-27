@@ -212,7 +212,6 @@ def _objc_provider_with_dependencies(
         additional_objc_providers = [],
         alwayslink = False,
         dynamic_framework_file = None,
-        module_map,
         sdk_dylib = None,
         sdk_framework = None,
         static_framework_file = None,
@@ -225,7 +224,6 @@ def _objc_provider_with_dependencies(
         alwayslink: Boolean to indicate if force_load_library should be set with the static
             framework file.
         dynamic_framework_file: File referencing a framework dynamic library.
-        module_map: File referencing imported framework module map.
         sdk_dylib: List of Apple SDK dylibs to link. Defaults to None.
         sdk_framework: List of Apple SDK frameworks to link. Defaults to None.
         static_framework_file: File referencing a framework static library.
@@ -245,8 +243,6 @@ def _objc_provider_with_dependencies(
         if alwayslink:
             objc_provider_fields["force_load_library"] = depset(static_framework_file)
 
-    if module_map:
-        objc_provider_fields["module_map"] = depset(module_map)
     if sdk_dylib:
         objc_provider_fields["sdk_dylib"] = depset(sdk_dylib)
     if sdk_framework:
