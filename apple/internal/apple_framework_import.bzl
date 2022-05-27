@@ -374,7 +374,6 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = transitive_objc_providers,
         dynamic_framework_file = depset([] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports),
-        module_map = framework_imports_by_category.module_map_imports,
     )
     providers.append(objc_provider)
 
@@ -523,7 +522,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             additional_objc_provider_fields = additional_objc_provider_fields,
             additional_objc_providers = additional_objc_providers,
             alwayslink = alwayslink,
-            module_map = framework_imports_by_category.module_map_imports,
             sdk_dylib = sdk_dylibs,
             sdk_framework = sdk_frameworks,
             static_framework_file = static_framework_file,
