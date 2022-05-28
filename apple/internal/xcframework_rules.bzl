@@ -953,7 +953,6 @@ def _apple_static_xcframework_impl(ctx):
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    binary_name = bundle_name + ".a"
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
@@ -970,9 +969,10 @@ def _apple_static_xcframework_impl(ctx):
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         # Bundle binary artifact for specific library identifier
         binary_artifact = link_output.binary
+        framework_dir = paths.join(library_identifier, bundle_name + ".framework")
         framework_archive_merge_files.append(struct(
             src = binary_artifact.path,
-            dest = paths.join(library_identifier, binary_name),
+            dest = paths.join(framework_dir, bundle_name),
         ))
         framework_archive_files.append(depset([binary_artifact]))
 
@@ -983,7 +983,7 @@ def _apple_static_xcframework_impl(ctx):
                     actions = actions,
                     avoid_deps = ctx.attr.avoid_deps,
                     bundle_name = bundle_name,
-                    framework_modulemap = False,
+                    framework_modulemap = True,
                     label_name = label.name,
                     output_discriminator = library_identifier,
                     swift_infos = link_output.swift_infos,
@@ -1002,7 +1002,7 @@ def _apple_static_xcframework_impl(ctx):
             interface_artifacts = partial.call(partials.framework_header_modulemap_partial(
                 actions = actions,
                 bundle_name = bundle_name,
-                framework_modulemap = False,
+                framework_modulemap = True,
                 hdrs = ctx.files.public_hdrs,
                 label_name = label.name,
                 output_discriminator = library_identifier,
@@ -1015,24 +1015,11 @@ def _apple_static_xcframework_impl(ctx):
         for _, bundle_relative_path, files in interface_artifacts.bundle_files:
             framework_archive_files.append(files)
             for file in files.to_list():
-                # For Swift based static XCFrameworks, Xcode requires .swiftmodule files to be
-                # located under each library identifier directory. While headers and modulemap
-                # files need to be under a Headers/ directory. Thus, we default all interface
-                # artifacts to be moved to the Headers directory, except for swiftmodule files.
-                #
-                # e.g.
-                #     ios_arm64/
-                #       ├── libStatic.a
-                #       ├── Headers/..
-                #       └── libStatic.swiftmodule/..
-                dest_bundle_relative_path = "Headers"
-                if ".swiftmodule" in bundle_relative_path:
-                    dest_bundle_relative_path = bundle_relative_path.replace("Modules/", "")
                 framework_archive_merge_files.append(struct(
                     src = file.path,
                     dest = paths.join(
-                        library_identifier,
-                        dest_bundle_relative_path,
+                        framework_dir,
+                        bundle_relative_path,
                         file.basename,
                     ),
                 ))
@@ -1043,9 +1030,9 @@ def _apple_static_xcframework_impl(ctx):
                 architectures = link_output.architectures,
                 bitcode_symbol_maps = {},
                 environment = link_output.environment,
-                headers_path = "Headers",
+                headers_path = None,
                 library_identifier = library_identifier,
-                library_path = binary_name,
+                library_path = bundle_name + ".framework",
                 platform = link_output.platform,
             ),
         )
