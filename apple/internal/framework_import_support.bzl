@@ -37,7 +37,8 @@ def _cc_info_with_dependencies(
         framework_includes,
         grep_includes,
         header_imports,
-        label):
+        label,
+        swiftmodule_imports):
     """Returns a new CcInfo which includes transitive Cc dependencies.
 
     Args:
@@ -52,6 +53,8 @@ def _cc_info_with_dependencies(
         grep_includes: File reference to grep_includes binary required by cc_common APIs.
         header_imports: List of imported header files.
         label: Label of the target being built.
+        swiftmodule_imports: List of imported Swift module files to include during build phase,
+            but aren't processed in any way.
     Returns:
         CcInfo provider.
     """
@@ -65,12 +68,15 @@ def _cc_info_with_dependencies(
         unsupported_features = disabled_features,
     )
 
+    public_hdrs = []
+    public_hdrs.extend(header_imports)
+    public_hdrs.extend(swiftmodule_imports)
     (compilation_context, _compilation_outputs) = cc_common.compile(
         name = label.name,
         actions = actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
-        public_hdrs = header_imports,
+        public_hdrs = public_hdrs,
         framework_includes = framework_includes,
         compilation_contexts = dep_compilation_contexts,
         language = "objc",
@@ -87,8 +93,58 @@ def _cc_info_with_dependencies(
         linking_context = linking_context,
     )
 
+def _classify_file_imports(import_files):
+    """Classifies a list of imported files based on extension, and paths.
+
+    This support method is used to classify import files for Apple frameworks and XCFrameworks.
+    Any file that does not match any known extension will be added to an unknown_imports bucket.
+
+    Args:
+        import_files: List of File to classify.
+    Returns:
+        A struct containing classified import files by categories:
+            - header_imports: Objective-C(++) header imports.
+            - module_map_imports: Clang modulemap imports.
+            - swift_module_imports: Swift module imports.
+            - unknown_imports: Unclassified imports.
+    """
+    unknown_imports = []
+    header_imports = []
+    module_map_imports = []
+    swift_module_imports = []
+    for file in import_files:
+        # Extension matching
+        file_extension = file.extension
+        if file_extension == "h":
+            header_imports.append(file)
+            continue
+        if file_extension == "modulemap":
+            module_map_imports.append(file)
+            continue
+        if file_extension in ["swiftmodule", "swiftinterface"]:
+            swift_module_imports.append(file)
+            continue
+        if file_extension == "swiftdoc":
+            # Ignore swiftdoc files, they don't matter in the build, only for IDEs
+            continue
+
+        # Path matching
+        if "Headers/" in file.short_path:
+            header_imports.append(file)
+            continue
+
+        # Unknown file type, sending to unknown (i.e. resources, Info.plist, etc.)
+        unknown_imports.append(file)
+
+    return struct(
+        header_imports = header_imports,
+        module_map_imports = module_map_imports,
+        swift_module_imports = swift_module_imports,
+        unknown_imports = unknown_imports,
+    )
+
 def _classify_framework_imports(framework_imports):
-    """Classify a list of framework files.
+    """Classify a list of files referencing an Apple framework.
 
     Args:
         framework_imports: List of File for an imported Apple framework.
@@ -101,14 +157,13 @@ def _classify_framework_imports(framework_imports):
             - module_map_imports: Apple framework modulemap imports.
             - swift_module_imports: Apple framework swiftmodule imports.
     """
+    framework_imports_by_category = _classify_file_imports(framework_imports)
+
     bundle_name = None
-    binary_imports = []
     bundling_imports = []
-    header_imports = []
-    module_map_imports = []
-    swift_module_imports = []
-    for file in framework_imports:
-        # Directory matching
+    binary_imports = []
+    for file in framework_imports_by_category.unknown_imports:
+        # Infer framework bundle name and binary
         parent_dir_name = paths.basename(file.dirname)
         is_bundle_root_file = parent_dir_name.endswith(".framework")
         if is_bundle_root_file:
@@ -117,40 +172,20 @@ def _classify_framework_imports(framework_imports):
                 binary_imports.append(file)
                 continue
 
-        # Extension matching
-        file_extension = file.extension
-        if file_extension == "h":
-            header_imports.append(file)
-            continue
-        if file_extension == "modulemap":
-            module_map_imports.append(file)
-            continue
-        if file_extension in ["swiftmodule", "swiftinterface"]:
-            # Add Swift's module files to header_imports so
-            # that they are correctly included in the build
-            # by Bazel but they aren't processed in any way
-            header_imports.append(file)
-            swift_module_imports.append(file)
-            continue
-        if file_extension == "swiftdoc":
-            # Ignore swiftdoc files, they don't matter in the build, only for IDEs
-            continue
-
-        # Path matching
-        if "Headers" in file.short_path:
-            header_imports.append(file)
-            continue
-
-        # Unknown file type, sending tu bundling (i.e. resources)
         bundling_imports.append(file)
+
+    if not bundle_name:
+        fail("Could not infer Apple framework name from unclassified framework import files.")
+    if not binary_imports:
+        fail("Could not find Apple framework binary from framework import files.")
 
     return struct(
         bundle_name = bundle_name,
         binary_imports = binary_imports,
         bundling_imports = bundling_imports,
-        header_imports = header_imports,
-        module_map_imports = module_map_imports,
-        swift_module_imports = swift_module_imports,
+        header_imports = framework_imports_by_category.header_imports,
+        module_map_imports = framework_imports_by_category.module_map_imports,
+        swift_module_imports = framework_imports_by_category.swift_module_imports,
     )
 
 def _framework_import_info_with_dependencies(
@@ -245,6 +280,7 @@ def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports)
 
 framework_import_support = struct(
     cc_info_with_dependencies = _cc_info_with_dependencies,
+    classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,

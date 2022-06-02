@@ -191,6 +191,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         grep_includes = grep_includes,
         header_imports = framework_imports_by_category.header_imports,
         label = label,
+        swiftmodule_imports = framework_imports_by_category.swift_module_imports,
     )
     providers.append(cc_info)
 
@@ -305,6 +306,7 @@ def _apple_static_framework_import_impl(ctx):
             grep_includes = grep_includes,
             header_imports = framework_imports_by_category.header_imports,
             label = label,
+            swiftmodule_imports = framework_imports_by_category.swift_module_imports,
         ),
     )
 

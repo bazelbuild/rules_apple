@@ -99,6 +99,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_xcframework_import",
+    srcs = ["apple_xcframework_import.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":cc_toolchain_info_support",
+        ":framework_import_support",
+        ":rule_factory",
+        "//apple:providers",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@bazel_tools//tools/cpp:toolchain_utils",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
     name = "bundle_package_type",
     srcs = ["bundle_package_type.bzl"],
     visibility = [
@@ -120,6 +138,14 @@ bzl_library(
 bzl_library(
     name = "cc_info_support",
     srcs = ["cc_info_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "cc_toolchain_info_support",
+    srcs = ["cc_toolchain_info_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
@@ -202,7 +228,6 @@ bzl_library(
     deps = [
         "//apple:providers",
         "@bazel_skylib//lib:paths",
-        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_rules_swift//swift:providers",
         "@build_bazel_rules_swift//swift:swift_common",
     ],

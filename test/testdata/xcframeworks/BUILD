@@ -7,6 +7,9 @@ load(
 
 licenses(["notice"])
 
+# TODO(b/232578557): Migrate targets to starlark_tests/
+package(default_visibility = ["//test/starlark_tests:__subpackages__"])
+
 generate_dynamic_xcframework(
     name = "generated_dynamic_xcframework",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
