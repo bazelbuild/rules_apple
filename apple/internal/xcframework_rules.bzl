@@ -989,9 +989,9 @@ def _apple_static_xcframework_impl(ctx):
                 # e.g.
                 #     ios_arm64/
                 #       ├── libStatic.a
-                #       ├── Headers/..
+                #       ├── Headers/<bundle_name>..
                 #       └── libStatic.swiftmodule/..
-                dest_bundle_relative_path = "Headers"
+                dest_bundle_relative_path = paths.join("Headers", bundle_name)
                 if ".swiftmodule" in bundle_relative_path:
                     dest_bundle_relative_path = bundle_relative_path.replace("Modules/", "")
                 framework_archive_merge_files.append(struct(
