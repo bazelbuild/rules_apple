@@ -1521,6 +1521,132 @@ objc_library(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for Apple XCFramework import tests.
+
+# Objective-C app with imported Objective-C XCFramework.
+ios_application(
+    name = "app_with_imported_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_depending_lib",
+    srcs = ["lib_with_imported_objc_xcframework.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
+)
+
+genrule(
+    name = "dynamic_xcframework_depending_lib_file",
+    outs = ["lib_with_imported_objc_xcframework.m"],
+    cmd = """cat > $@ <<EOF
+#import <generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
+# Swift app with imported Objective-C XCFramework.
+ios_application(
+    name = "swift_app_with_imported_objc_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_objc_xcframework_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_objc_xcframework_depending_swift_lib",
+    srcs = ["SwiftWithObjcFramework.swift"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
+)
+
+genrule(
+    name = "swift_with_framework_src",
+    outs = ["SwiftWithObjcFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import generated_dynamic_xcframework_with_headers
+
+func main() {
+  let sc = generated_dynamic_xcframework_with_headers.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
+)
+
+# Objective-C app with imported Swift XCFramework.
+ios_application(
+    name = "app_with_imported_swift_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_swift_xcframework_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_swift_xcframework_depending_objc_lib",
+    srcs = ["ObjcWithFramework.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework"],
+)
+
+genrule(
+    name = "objc_with_framework_src",
+    outs = ["ObjcWithFramework.m"],
+    cmd = """cat > $@ <<EOF
+#import <SwiftFmwkWithGenHeader/SwiftFmwkWithGenHeader.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
+# ---------------------------------------------------------------------------------------
 
 ios_imessage_application(
     name = "imessage_app",
