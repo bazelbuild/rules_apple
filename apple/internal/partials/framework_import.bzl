@@ -108,6 +108,14 @@ def _framework_import_partial_impl(
         if not framework_binaries_by_framework.get(framework_basename):
             framework_binaries_by_framework[framework_basename] = []
 
+        # Check if file is a tree artifact to treat as bundle files.
+        # XCFramework import rules forward tree artifacts when using the
+        # xcframework_processor_tool, since the effective XCFramework library
+        # files are not known during analysis phase.
+        if file.is_directory:
+            files_by_framework[framework_basename].append(file)
+            continue
+
         # Check if this file is a binary to slice and code sign.
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
@@ -116,12 +124,11 @@ def _framework_import_partial_impl(
         if framework_relative_dir:
             parent_dir = paths.join(parent_dir, framework_relative_dir)
 
+        # Classify if it's a file to bundle or framework binary
         if paths.replace_extension(parent_dir, "") == file.basename:
             framework_binaries_by_framework[framework_basename].append(file)
-            continue
-
-        # Treat the rest as files to copy into the bundle.
-        files_by_framework[framework_basename].append(file)
+        else:
+            files_by_framework[framework_basename].append(file)
 
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
@@ -137,18 +144,18 @@ def _framework_import_partial_impl(
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
 
-        for framework_binary in framework_binaries_by_framework[framework_basename]:
-            args.add("--framework_binary", framework_binary.path)
+        args.add_all(
+            framework_binaries_by_framework[framework_basename],
+            before_each = "--framework_binary",
+        )
 
-        for build_arch in build_archs_found:
-            args.add("--slice", build_arch)
+        args.add_all(build_archs_found, before_each = "--slice")
 
         args.add("--output_zip", framework_zip.path)
 
         args.add("--temp_path", temp_framework_bundle_path)
 
-        for file in files_by_framework[framework_basename]:
-            args.add("--framework_file", file.path)
+        args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
@@ -166,7 +173,10 @@ def _framework_import_partial_impl(
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, and the provisioning profile if specified.
-        input_files = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
+        input_files = (
+            files_by_framework[framework_basename] +
+            framework_binaries_by_framework[framework_basename]
+        )
         if provisioning_profile:
             input_files.append(provisioning_profile)
 

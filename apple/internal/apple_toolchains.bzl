@@ -68,6 +68,10 @@ provisioning profile.
 A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
 for the target to run.
 """,
+        "resolved_xcframework_processor_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool that extracts and copies an XCFramework
+library for a target triplet.
+""",
         "resolved_xctoolrunner": """\
 A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
 """,
@@ -164,6 +168,10 @@ def _apple_mac_tools_toolchain_impl(ctx):
                 attr_name = "swift_stdlib_tool",
                 rule_ctx = ctx,
             ),
+            resolved_xcframework_processor_tool = _resolve_tools_for_executable(
+                attr_name = "xcframework_processor_tool",
+                rule_ctx = ctx,
+            ),
             resolved_xctoolrunner = _resolve_tools_for_executable(
                 attr_name = "xctoolrunner",
                 rule_ctx = ctx,
@@ -244,6 +252,14 @@ A `File` referencing a tool that extracts entitlements from a provisioning profi
             executable = True,
             doc = """
 A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.
+""",
+        ),
+        "xcframework_processor_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that extracts and copies an XCFramework library for a given target
+triplet.
 """,
         ),
         "xctoolrunner": attr.label(

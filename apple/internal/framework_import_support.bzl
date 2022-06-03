@@ -38,7 +38,7 @@ def _cc_info_with_dependencies(
         grep_includes,
         header_imports,
         label,
-        swiftmodule_imports):
+        swiftmodule_imports = []):
     """Returns a new CcInfo which includes transitive Cc dependencies.
 
     Args:
