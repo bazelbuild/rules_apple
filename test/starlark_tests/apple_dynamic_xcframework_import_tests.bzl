@@ -143,6 +143,27 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify ios_application bundles Framework files when using xcframework_processor_tool.
+    archive_contents_test(
+        name = "{}_contains_imported_xcframework_framework_files_with_xcframework_import_tool".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Modules/",
+        ],
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers (offset 24)",
+        ],
+        target_features = ["apple.parse_xcframework_info_plist"],
+        tags = [name],
+    )
+
     # Verify importing XCFramework with dynamic libraries (i.e. not Apple frameworks) fails.
     analysis_failure_message_test(
         name = "{}_fails_importing_xcframework_with_libraries_test".format(name),
