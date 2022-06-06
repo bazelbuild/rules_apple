@@ -21,7 +21,6 @@ COMPILATION_MODE_OPTIONS = ["--compilation_mode opt"]
 # Configuration options used with `apple_shell_test` to run tests for
 # iOS simulator and device builds.
 #
-# TODO(b/35091927): Here and below, switch to Bitcode mode "embedded".
 IOS_DEVICE_OPTIONS = COMPILATION_MODE_OPTIONS + ["--ios_multi_cpus=arm64,armv7"]
 IOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
     "--ios_multi_cpus=i386,x86_64",
@@ -29,10 +28,6 @@ IOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
 
 IOS_CONFIGURATIONS = {
     "device": IOS_DEVICE_OPTIONS,
-    # Blocked on b/73546952
-    # "device_bitcode": IOS_DEVICE_OPTIONS + [
-    #    "--apple_bitcode=embedded_markers",
-    #],
     "simulator": IOS_SIMULATOR_OPTIONS,
 }
 
@@ -41,10 +36,6 @@ IOS_CONFIGURATIONS = {
 # simulator architecture test, so instead create a special configuration for the sanitizer tests.
 IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS = {
     "device": IOS_DEVICE_OPTIONS,
-    # Blocked on b/73546952
-    # "device_bitcode": IOS_DEVICE_OPTIONS + [
-    #    "--apple_bitcode=embedded_markers",
-    #],
     "simulator": COMPILATION_MODE_OPTIONS + ["--ios_multi_cpus=x86_64"],
 }
 
@@ -66,10 +57,6 @@ TVOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + ["--tvos_cpus=x86_64"]
 
 TVOS_CONFIGURATIONS = {
     "device": TVOS_DEVICE_OPTIONS,
-    # Blocked on b/73546952
-    # "device_bitcode": TVOS_DEVICE_OPTIONS + [
-    #    "--apple_bitcode=embedded_markers",
-    #],
     "simulator": TVOS_SIMULATOR_OPTIONS,
 }
 
@@ -93,9 +80,5 @@ WATCHOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
 
 WATCHOS_CONFIGURATIONS = {
     "device": WATCHOS_DEVICE_OPTIONS,
-    # Blocked on b/73546952
-    # "device_bitcode": WATCHOS_DEVICE_OPTIONS + [
-    #    "--apple_bitcode=embedded_markers",
-    #],
     "simulator": WATCHOS_SIMULATOR_OPTIONS,
 }

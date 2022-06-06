@@ -44,7 +44,6 @@ def _apple_verification_transition_impl(settings, attr):
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
-        "//command_line_option:apple_bitcode": attr.apple_bitcode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
     }
     if attr.build_type == "simulator":
@@ -88,7 +87,6 @@ apple_verification_transition = transition(
         "//command_line_option:watchos_cpus",
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
-        "//command_line_option:apple_bitcode",
         "//command_line_option:apple_generate_dsym",
     ],
 )
@@ -204,15 +202,6 @@ def _apple_verification_test_impl(ctx):
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {
-        "apple_bitcode": attr.string(
-            mandatory = False,
-            default = "none",
-            values = ["none", "embedded_markers", "embedded"],
-            doc = """
-The Bitcode mode to use for compilation steps. Possible values are `none`,
-`embedded_markers`, or `embedded`. Defaults to `none`.
-""",
-        ),
         "apple_cpu": attr.string(
             doc = """
 A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
