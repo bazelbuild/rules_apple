@@ -365,10 +365,10 @@ def _generate_static_xcframework_impl(ctx):
         # Copy headers and generate umbrella header
         headers_path = paths.join(library_path, "Headers")
         headers.extend(
-            generation_support.copy_headers(
+            generation_support.copy_files(
                 actions = actions,
-                headers = hdrs,
-                headers_path = headers_path,
+                files = hdrs,
+                base_path = headers_path,
             ),
         )
         headers.append(
