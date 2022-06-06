@@ -37,6 +37,7 @@ def archive_contents_test(
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
+        binary_contains_regex_symbols = [],
         binary_not_contains_symbols = [],
         codesign_info_contains = [],
         codesign_info_not_contains = [],
@@ -76,12 +77,16 @@ def archive_contents_test(
             in the asset catalog specified in `asset_catalog_file`.
         text_test_file: Optional, The text file to test (see the next Arg).
         text_test_values: Optional, A list of regular expressions that should be tested against
-            the contents of `text_test_file`.
+            the contents of `text_test_file`. Regular expressions must follow POSIX Basic Regular
+            Expression (BRE) syntax.
         binary_test_file: Optional, The binary file to test (see next three Args).
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
+        binary_contains_regex_symbols: Optional, a list of regular expressions to match symbols
+            that should appear in the binary file specified in `binary_test_file`. Regular
+            expressions must follow POSIX Basic Regular Expression (BRE) syntax.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
         codesign_info_contains: Optional, A list of codesign info that should appear in the binary
@@ -109,21 +114,29 @@ def archive_contents_test(
         fail("Need both text_test_file and text_test_values")
 
     if binary_test_file:
-        if any([binary_contains_symbols, binary_not_contains_symbols]) and (
-            not binary_test_architecture
-        ):
+        if any([
+            binary_contains_symbols,
+            binary_not_contains_symbols,
+            binary_contains_regex_symbols,
+        ]) and not binary_test_architecture:
             fail("Need binary_test_architecture when checking symbols")
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
+            binary_contains_regex_symbols,
             macho_load_commands_contain,
             macho_load_commands_not_contain,
         ]):
             fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
-                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
-                 "binary_test_architecture")
+                 "binary_contains_regex_symbols, macho_load_commands_contain, " +
+                 "macho_load_commands_not_contain) when specifying binary_test_architecture")
     else:
-        if any([binary_contains_symbols, binary_not_contains_symbols, binary_test_architecture]):
+        if any([
+            binary_contains_symbols,
+            binary_not_contains_symbols,
+            binary_contains_regex_symbols,
+            binary_test_architecture,
+        ]):
             fail("Need binary_test_file to check the binary for symbols")
         if any([macho_load_commands_contain, macho_load_commands_not_contain]):
             fail("Need binary_test_file to check macho load commands")
@@ -168,6 +181,7 @@ def archive_contents_test(
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
+            "BINARY_CONTAINS_REGEX_SYMBOLS": binary_contains_regex_symbols,
             "CODESIGN_INFO_CONTAINS": codesign_info_contains,
             "CODESIGN_INFO_NOT_CONTAINS": codesign_info_not_contains,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
