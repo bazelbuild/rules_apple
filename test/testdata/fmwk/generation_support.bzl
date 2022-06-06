@@ -220,7 +220,14 @@ def _create_dynamic_library(
 
     return dylib_binary
 
-def _create_framework(*, actions, base_path = "", bundle_name, library, headers):
+def _create_framework(
+        *,
+        actions,
+        base_path = "",
+        bundle_name,
+        library,
+        headers,
+        swiftmodule = []):
     """Creates an Apple platform framework bundle.
 
     Args:
@@ -229,6 +236,7 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
         bundle_name: Name of the Framework bundle.
         library: The library for the Framework bundle.
         headers: List of header files for the Framework bundle.
+        swiftmodule: List of swiftmodule files for the framework bundle (optional).
     Returns:
         List of files for a .framework bundle.
     """
@@ -252,10 +260,10 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
     if headers:
         headers_path = paths.join(framework_directory, "Headers")
         framework_files.extend(
-            _copy_headers(
+            _copy_files(
                 actions = actions,
-                headers = headers,
-                headers_path = headers_path,
+                files = headers,
+                base_path = headers_path,
             ),
         )
         framework_files.append(
@@ -277,32 +285,39 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
             ),
         )
 
+    if swiftmodule:
+        modules_path = paths.join(framework_directory, "Modules", bundle_name + ".swiftmodule")
+        framework_files.extend(
+            _copy_files(
+                actions = actions,
+                files = swiftmodule,
+                base_path = modules_path,
+            ),
+        )
+
     return framework_files
 
-def _copy_headers(*, actions, headers, headers_path):
-    """Copies headers and generates text files to further reference them.
+def _copy_files(*, actions, files, base_path):
+    """Copies files to a target directory.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        headers: List of header files for the Framework bundle.
-        headers_path: Base path for the copied headers files.
+        files: List of files to copy.
+        base_path: Base path for the copied files.
     Returns:
-        List of copied header files
+        List of copied files.
     """
-    if not headers:
+    if not files:
         return []
 
-    header_files = []
-    for header in headers:
-        header_path = paths.join(headers_path, header.basename)
-        header_file = actions.declare_file(header_path)
-        header_files.append(header_file)
-        actions.symlink(
-            output = header_file,
-            target_file = header,
-        )
+    copied_files = []
+    for file in files:
+        copied_file_path = paths.join(base_path, file.basename)
+        copied_file = actions.declare_file(copied_file_path)
+        copied_files.append(copied_file)
+        actions.symlink(output = copied_file, target_file = file)
 
-    return header_files
+    return copied_files
 
 def _generate_umbrella_header(
         *,
@@ -375,7 +390,7 @@ module * {{ export * }}
 
 generation_support = struct(
     compile_binary = _compile_binary,
-    copy_headers = _copy_headers,
+    copy_files = _copy_files,
     create_dynamic_library = _create_dynamic_library,
     create_framework = _create_framework,
     create_static_library = _create_static_library,
