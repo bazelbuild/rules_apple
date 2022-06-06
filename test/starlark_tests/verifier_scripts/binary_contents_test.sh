@@ -50,7 +50,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
 
     # Filter out undefined symbols from the objdump mach-o symbol output and
     # return the rightmost value; these binary symbols will not have spaces.
-    IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print substr($0,index($0,$5))}'))
+    IFS=$'\n' actual_symbols=($(objdump --syms --macho --arch="$arch" "$path" | grep -v "*UND*" | awk '{print substr($0,index($0,$5))}'))
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
