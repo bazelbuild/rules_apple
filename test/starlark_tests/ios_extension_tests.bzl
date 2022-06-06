@@ -21,7 +21,6 @@ load(
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
-    "bitcode_symbol_map_test",
     "entry_point_test",
 )
 load(
@@ -123,18 +122,6 @@ def ios_extension_test_suite(name):
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "ext_multiple_infoplists",
         },
-        tags = [name],
-    )
-
-    # Tests that the archive contains Bitcode symbol maps when Bitcode is
-    # enabled.
-    bitcode_symbol_map_test(
-        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
-        binary_paths = [
-            "Payload/app_with_ext.app/app_with_ext",
-            "Payload/app_with_ext.app/PlugIns/ext.appex/ext",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext",
         tags = [name],
     )
 

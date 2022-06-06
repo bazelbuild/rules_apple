@@ -102,14 +102,6 @@ def _infoplist_contents_test_impl(ctx):
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
     attrs = {
-        "apple_bitcode": attr.string(
-            default = "none",
-            doc = """
-The Bitcode mode to use for compilation steps. Possible values are `none`,
-`embedded_markers`, or `embedded`. Defaults to `none`.
-""",
-            values = ["none", "embedded_markers", "embedded"],
-        ),
         "build_type": attr.string(
             default = "simulator",
             doc = """

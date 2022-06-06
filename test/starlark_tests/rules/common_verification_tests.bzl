@@ -268,45 +268,6 @@ def binary_contents_test(
         **kwargs
     )
 
-def bitcode_symbol_map_test(
-        *,
-        name,
-        bc_symbol_maps_root = "",
-        binary_paths,
-        tags,
-        target_under_test):
-    """Macro to call `apple_verification_test` with `bitcode_verifier.sh`.
-
-    This simplifies Bitcode verification tests by forcing
-    `apple_bitcode = "embedded"`, `build_type = "device"`, and also currently
-    disables the test in OSS until Bitcode is properly supported in Bazel's
-    crosstool.
-
-    Args:
-        name: Name of the generated test target.
-        bc_symbol_maps_root: A relative path to the root of the BCSymbolsMaps subdirectory, if it is
-            not at the root of the expanded archive. Assumed to be the root of the expanded archive
-            if this is not provided.
-        binary_paths: The list of archive-relative paths of binaries whose
-            DWARF info should have UDIDs extracted and checked against
-            Bitcode symbol maps in the archive root.
-        tags: Tags to be applied to the test target.
-        target_under_test: The archive target whose contents are to be verified.
-    """
-    apple_verification_test(
-        name = name,
-        apple_bitcode = "embedded",
-        build_type = "device",
-        env = {
-            "BITCODE_BINARIES": binary_paths,
-            "BC_SYMBOL_MAPS_ROOT": [bc_symbol_maps_root],
-            "PLATFORM": ["unused"],
-        },
-        target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/bitcode_verifier.sh",
-        tags = tags,
-    )
-
 def apple_symbols_file_test(
         name,
         binary_paths,

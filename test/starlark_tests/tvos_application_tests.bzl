@@ -21,7 +21,6 @@ load(
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
-    "bitcode_symbol_map_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -189,15 +188,6 @@ def tvos_application_test_suite(name):
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "app_multiple_infoplists",
         },
-        tags = [name],
-    )
-
-    # Tests that the archive contains Bitcode symbol maps when Bitcode is
-    # enabled.
-    bitcode_symbol_map_test(
-        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
-        binary_paths = ["Payload/app.app/app"],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         tags = [name],
     )
 

@@ -246,11 +246,6 @@ EOF
 
 # Tests that linkopts get passed to the underlying apple_binary target.
 function test_linkopts_passed_to_binary() {
-  # Bail out early if this is a Bitcode build; the -alias flag we use to test
-  # this isn't compatible with Bitcode. That's ok; as long as the test passes
-  # for non-Bitcode builds, we're good.
-  is_bitcode_build && return 0
-
   create_common_files
 
   cat >> app/BUILD <<EOF

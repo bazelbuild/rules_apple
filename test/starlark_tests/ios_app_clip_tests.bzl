@@ -21,7 +21,6 @@ load(
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
-    "bitcode_symbol_map_test",
 )
 load(
     ":rules/infoplist_contents_test.bzl",
@@ -81,18 +80,6 @@ def ios_app_clip_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        tags = [name],
-    )
-
-    # Tests that the archive contains Bitcode symbol maps when Bitcode is
-    # enabled.
-    bitcode_symbol_map_test(
-        name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
-        binary_paths = [
-            "Payload/app_with_app_clip.app/app_with_app_clip",
-            "Payload/app_with_app_clip.app/AppClips/app_clip.app/app_clip",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_clip",
         tags = [name],
     )
 
