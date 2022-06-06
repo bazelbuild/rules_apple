@@ -41,11 +41,15 @@ newline=$'\n'
 #  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
 #  TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
 #  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
-#      text file with.
+#      text file with. Regular expressions must follow POSIX Basic Regular
+#      Expression (BRE) syntax.
 #  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
 #  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#  BINARY_CONTAINS_REGEX_SYMBOLS: Array of regular expressions for symbols that
+#      should be present. Regular expressions must follow POSIX Extended Regular
+#      Expression (ERE) syntax.
 #  MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
 #      be present.
 #  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
@@ -124,6 +128,25 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       done
     fi
 
+    if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+      for test_regex in "${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
+      do
+        something_tested=true
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" =~ $test_regex ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected symbol \"$test_regex\" was not found. The " \
+              "symbols in the binary were:$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+
     if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
       do
@@ -146,6 +169,10 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for symbols," \
         "but no arch was set to check: ${BINARY_CONTAINS_SYMBOLS[@]}"
+    fi
+    if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for symbols," \
+        "but no arch was set to check: ${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
     fi
     if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for missing symbols," \
@@ -220,6 +247,10 @@ else
   if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
     fail "Rule Misconfigured: Supposed to look for missing symbols," \
       "but no binary was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+  fi
+  if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for regex symbols," \
+      "but no binary was set to check: ${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
   fi
   if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
     fail "Rule Misconfigured: Supposed to look for macho load commands," \

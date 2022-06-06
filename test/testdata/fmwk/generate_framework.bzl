@@ -19,6 +19,7 @@ load(
     "@build_bazel_rules_apple//test/testdata/fmwk:generation_support.bzl",
     "generation_support",
 )
+load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 def _generate_import_framework_impl(ctx):
@@ -34,37 +35,58 @@ def _generate_import_framework_impl(ctx):
     architectures = ctx.attr.archs
     minimum_os_version = ctx.attr.minimum_os_version
 
-    # Compile library
-    binary = generation_support.compile_binary(
-        actions = actions,
-        apple_fragment = apple_fragment,
-        archs = architectures,
-        hdrs = hdrs,
-        label = label,
-        minimum_os_version = minimum_os_version,
-        sdk = sdk,
-        srcs = srcs,
-        xcode_config = xcode_config,
-    )
+    swiftmodule = []
+    swift_library_files = ctx.files.swift_library
 
-    # Create dynamic or static library
-    if libtype == "dynamic":
-        library = generation_support.create_dynamic_library(
+    if swift_library_files and len(architectures) > 1:
+        fail("Internal error: Can only generate a Swift " +
+             "framework with a single architecture at this time")
+
+    if not swift_library_files:
+        # Compile library
+        binary = generation_support.compile_binary(
             actions = actions,
             apple_fragment = apple_fragment,
             archs = architectures,
-            binary = binary,
+            hdrs = hdrs,
+            label = label,
             minimum_os_version = minimum_os_version,
             sdk = sdk,
+            srcs = srcs,
             xcode_config = xcode_config,
         )
+
+        # Create dynamic or static library
+        if libtype == "dynamic":
+            library = generation_support.create_dynamic_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                archs = architectures,
+                binary = binary,
+                minimum_os_version = minimum_os_version,
+                sdk = sdk,
+                xcode_config = xcode_config,
+            )
+        else:
+            library = generation_support.create_static_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                binary = binary,
+                xcode_config = xcode_config,
+            )
     else:
-        library = generation_support.create_static_library(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            binary = binary,
-            xcode_config = xcode_config,
-        )
+        # Get dylib and swiftmodule files from swift_library target
+        library = None
+        for file in swift_library_files:
+            if file.extension == "a":
+                library = file
+                continue
+            if file.extension == "swiftmodule":
+                architecture = architectures[0]
+                swiftmodule_file = actions.declare_file(architecture + ".swiftmodule")
+                actions.symlink(output = swiftmodule_file, target_file = file)
+                swiftmodule.append(swiftmodule_file)
+                continue
 
     # Create (dynamic) framework bundle
     framework_files = generation_support.create_framework(
@@ -72,6 +94,7 @@ def _generate_import_framework_impl(ctx):
         bundle_name = label.name,
         library = library,
         headers = hdrs,
+        swiftmodule = swiftmodule,
     )
 
     return [
@@ -108,6 +131,11 @@ Minimum version of the OS corresponding to the SDK that this binary will support
                 "@build_bazel_rules_apple//test/testdata/fmwk:objc_headers",
             ),
             doc = "Header files for the generated framework.",
+        ),
+        "swift_library": attr.label(
+            allow_files = True,
+            doc = "Label for a Swift library target to source archive and swiftmodule files from.",
+            providers = [SwiftInfo],
         ),
         "libtype": attr.string(
             values = ["dynamic", "static"],

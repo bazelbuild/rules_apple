@@ -111,19 +111,6 @@ apple_shell_test(
     ],
 )
 
-apple_shell_test(
-    name = "ios_framework_import_test",
-    size = "medium",
-    src = "ios_framework_import_test.sh",
-    data = [
-        "//test/testdata/fmwk:ios_framework_generators",
-        "//test/testdata/fmwk:objc_headers",
-        "//test/testdata/fmwk:objc_source",
-        "//test/testdata/fmwk:swift_source",
-    ],
-    shard_count = 4,
-)
-
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",

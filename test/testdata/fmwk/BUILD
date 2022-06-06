@@ -1,13 +1,15 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
     "apple_static_framework_import",
 )
+load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
 )
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Public only because these are used by the integration tests from generated
 # workspaces. Please no not depend on them as they can change at any time.
@@ -17,12 +19,20 @@ licenses(["notice"])
 
 apple_dynamic_framework_import(
     name = "iOSImportedDynamicFramework",
+    features = ["-swift.layering_check"],
     framework_imports = [":iOSDynamicFramework"],
 )
 
 apple_static_framework_import(
     name = "iOSImportedStaticFramework",
+    features = ["-swift.layering_check"],
     framework_imports = [":iOSStaticFramework"],
+)
+
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSSwiftStaticFramework"],
 )
 
 filegroup(
@@ -71,6 +81,23 @@ generate_import_framework(
     sdk = "iphonesimulator",
 )
 
+swift_library(
+    name = "swift_framework_lib",
+    srcs = ["SharedClass.swift"],
+    generates_header = True,
+    module_name = "iOSSwiftStaticFramework",
+    tags = FIXTURE_TAGS,
+)
+
+generate_import_framework(
+    name = "iOSSwiftStaticFramework",
+    archs = ["x86_64"],
+    libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+    swift_library = ":swift_framework_lib",
+)
+
 bzl_library(
     name = "generate_framework_bzl",
     srcs = ["generate_framework.bzl"],
@@ -80,6 +107,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
