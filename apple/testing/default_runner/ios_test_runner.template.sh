@@ -284,3 +284,21 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     exit 1
   fi
 fi
+
+if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
+  llvm_cov_html_export_status=0
+  xcrun llvm-cov \
+    show \
+    -format html \
+    -use-color \
+    "${lcov_args[@]}" \
+    @"$COVERAGE_MANIFEST" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
+    2> "$error_file" \
+    || llvm_cov_html_export_status=$?
+  if [[ -s "$error_file" || "$llvm_cov_html_export_status" -ne 0 ]]; then
+    echo "error: while exporting html coverage report" >&2
+    cat "$error_file" >&2
+    exit 1
+  fi
+fi
