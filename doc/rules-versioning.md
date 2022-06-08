@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Rules related to Apple bundle versioning.
-<a id="#apple_bundle_version"></a>
+
+<a id="apple_bundle_version"></a>
 
 ## apple_bundle_version
 

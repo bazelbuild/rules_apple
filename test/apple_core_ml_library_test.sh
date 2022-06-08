@@ -30,7 +30,11 @@ function tear_down() {
 function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_apple//apple:resources.bzl", "apple_core_ml_library")
+load(
+    "@build_bazel_rules_apple//apple:resources.bzl",
+    "apple_core_ml_library",
+    "swift_apple_core_ml_library",
+)
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 objc_library(
@@ -48,14 +52,16 @@ objc_library(
 swift_library(
     name = "swift_lib",
     srcs = ["swift_lib.swift"],
-    # Apple's generated code triggers this warning, so we need to disable it,
-    # smh.
-    copts = ["-Xcc", "-Wno-nullability"],
-    deps = [":SampleCoreML"],
+    deps = [":SampleSwiftCoreML"],
 )
 
 apple_core_ml_library(
     name = "SampleCoreML",
+    mlmodel = "@build_bazel_rules_apple//test/testdata/resources:sample.mlmodel",
+)
+
+swift_apple_core_ml_library(
+    name = "SampleSwiftCoreML",
     mlmodel = "@build_bazel_rules_apple//test/testdata/resources:sample.mlmodel",
 )
 
@@ -91,7 +97,7 @@ EOF
 
   cat > app/swift_lib.swift <<EOF
 import Foundation
-import app_SampleCoreML
+import app_SampleSwiftCoreML
 
 public struct SwiftLib {
   public var mySample = sample()

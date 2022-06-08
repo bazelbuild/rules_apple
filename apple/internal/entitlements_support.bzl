@@ -183,7 +183,6 @@ def _extract_signing_info(
             mnemonic = "ExtractFromProvisioningProfile",
             outputs = outputs,
             xcode_config = platform_prerequisites.xcode_version_config,
-            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
 
     return struct(
@@ -217,7 +216,7 @@ def _validate_bundle_id(bundle_id):
 
 def _process_entitlements(
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_id,
         entitlements_file,
         platform_prerequisites,
@@ -245,7 +244,7 @@ def _process_entitlements(
 
     Args:
         actions: The object used to register actions.
-        apple_toolchain_info: The `struct` of tools from the shared Apple
+        apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
@@ -260,10 +259,11 @@ def _process_entitlements(
             how the entitlements should be validated.
 
     Returns:
-        A tuple containing an entitlement that should be used for code signing
-        and another that should be used for linking. Each are a `File`
-        containing the processed entitlements, or `None` if there are no
-        entitlements being used in the build or no entitlements should be be
+        A struct containing entitlements that should be used for code signing,
+        entitlements that should be used for linking, and another (which is one
+        of the previous two) that should be returned in `AppleBundleInfo`. Each
+        is a `File` containing the processed entitlements, or `None` if there
+        are no entitlements being used in the build or no entitlements should be
         embedded via linking.
     """
 
@@ -278,7 +278,7 @@ def _process_entitlements(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         resolved_provisioning_profile_tool = (
-            apple_toolchain_info.resolved_provisioning_profile_tool
+            apple_mac_toolchain_info.resolved_provisioning_profile_tool
         ),
         rule_label = rule_label,
     )
@@ -297,7 +297,7 @@ def _process_entitlements(
 
     # Return early if there is no entitlements to use.
     if not inputs and not forced_plists:
-        return None, None
+        return struct(bundle = None, codesigning = None, linking = None)
 
     final_entitlements = actions.declare_file(
         "%s_entitlements.entitlements" % rule_label.name,
@@ -339,11 +339,15 @@ def _process_entitlements(
         mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
     )
 
     if platform_prerequisites.platform.is_device:
-        return final_entitlements, None
+        return struct(
+            bundle = final_entitlements,
+            codesigning = final_entitlements,
+            linking = None,
+        )
 
     simulator_entitlements = None
     if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
@@ -374,10 +378,14 @@ def _process_entitlements(
             mnemonic = "ProcessSimulatorEntitlementsFile",
             outputs = [simulator_entitlements],
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         )
 
-    return simulator_entitlements, final_entitlements
+    return struct(
+        bundle = final_entitlements,
+        codesigning = simulator_entitlements,
+        linking = final_entitlements,
+    )
 
 entitlements_support = struct(
     process_entitlements = _process_entitlements,

@@ -25,6 +25,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -33,7 +37,7 @@ load(
     "dicts",
 )
 
-def _environment_plist(ctx):
+def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -47,9 +51,9 @@ def _environment_plist(ctx):
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
+    resolved_environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
@@ -61,7 +65,9 @@ def _environment_plist(ctx):
             "--output",
             ctx.outputs.plist.path,
         ],
-        executable = ctx.executable._environment_plist_tool,
+        executable = resolved_environment_plist_tool.executable,
+        inputs = resolved_environment_plist_tool.inputs,
+        input_manifests = resolved_environment_plist_tool.input_manifests,
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
@@ -70,11 +76,6 @@ environment_plist = rule(
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         {
-            "_environment_plist_tool": attr.label(
-                cfg = "exec",
-                executable = True,
-                default = Label("@build_bazel_rules_apple//tools/environment_plist"),
-            ),
             "platform_type": attr.string(
                 mandatory = True,
                 doc = """
@@ -90,5 +91,5 @@ amount of duplicative work done generating these plists for the same platforms.
 """,
     fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
-    implementation = _environment_plist,
+    implementation = _environment_plist_impl,
 )

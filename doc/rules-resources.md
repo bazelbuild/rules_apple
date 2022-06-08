@@ -1,7 +1,8 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Rules related to Apple resources and resource bundles.
-<a id="#apple_bundle_import"></a>
+
+<a id="apple_bundle_import"></a>
 
 ## apple_bundle_import
 
@@ -26,7 +27,7 @@ targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
 | <a id="apple_bundle_import-bundle_imports"></a>bundle_imports |  The list of files under a <code>.bundle</code> directory to be propagated to the top-level bundling target.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 
 
-<a id="#apple_core_data_model"></a>
+<a id="apple_core_data_model"></a>
 
 ## apple_core_data_model
 
@@ -50,7 +51,7 @@ dependency to a swift_library target.
 | <a id="apple_core_data_model-swift_version"></a>swift_version |  Target Swift version for generated classes.   | String | optional | "" |
 
 
-<a id="#apple_resource_bundle"></a>
+<a id="apple_resource_bundle"></a>
 
 ## apple_resource_bundle
 
@@ -78,7 +79,7 @@ library targets through the `data` attribute.
 | <a id="apple_resource_bundle-structured_resources"></a>structured_resources |  Files to include in the final resource bundle. They are not processed or compiled in any way besides the processing done by the rules that actually generate them. These files are placed in the bundle root in the same structure passed to this argument, so <code>["res/foo.png"]</code> will end up in <code>res/foo.png</code> inside the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#apple_resource_group"></a>
+<a id="apple_resource_group"></a>
 
 ## apple_resource_group
 
@@ -105,7 +106,7 @@ to library targets through the `data` attribute, or to other
 | <a id="apple_resource_group-structured_resources"></a>structured_resources |  Files to include in the final application bundle. They are not processed or compiled in any way besides the processing done by the rules that actually generate them. These files are placed in the bundle root in the same structure passed to this argument, so <code>["res/foo.png"]</code> will end up in <code>res/foo.png</code> inside the bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
 
-<a id="#apple_core_ml_library"></a>
+<a id="apple_core_ml_library"></a>
 
 ## apple_core_ml_library
 
@@ -125,7 +126,7 @@ Macro to orchestrate an objc_library with generated sources for mlmodel files.
 | <a id="apple_core_ml_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
-<a id="#objc_intent_library"></a>
+<a id="objc_intent_library"></a>
 
 ## objc_intent_library
 
@@ -147,7 +148,27 @@ Macro to orchestrate an objc_library with generated sources for intentdefiniton 
 | <a id="objc_intent_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
-<a id="#swift_intent_library"></a>
+<a id="swift_apple_core_ml_library"></a>
+
+## swift_apple_core_ml_library
+
+<pre>
+swift_apple_core_ml_library(<a href="#swift_apple_core_ml_library-name">name</a>, <a href="#swift_apple_core_ml_library-mlmodel">mlmodel</a>, <a href="#swift_apple_core_ml_library-kwargs">kwargs</a>)
+</pre>
+
+Macro to orchestrate a swift_library with generated sources for mlmodel files.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="swift_apple_core_ml_library-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="swift_apple_core_ml_library-mlmodel"></a>mlmodel |  <p align="center"> - </p>   |  none |
+| <a id="swift_apple_core_ml_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+
+<a id="swift_intent_library"></a>
 
 ## swift_intent_library
 

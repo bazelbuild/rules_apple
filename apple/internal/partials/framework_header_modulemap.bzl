@@ -65,21 +65,24 @@ def _get_umbrella_header_declaration(basename):
 
 def _create_modulemap(
         actions,
+        framework_modulemap,
         output,
         module_name,
-        umbrella_header_name,
         sdk_dylibs,
-        sdk_frameworks):
+        sdk_frameworks,
+        umbrella_header_name):
     """Creates a modulemap for a framework.
 
     Args:
       actions: The actions module from a rule or aspect context.
+      framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+          framework instead of a library or a generic module. Defaults to `True`.
       output: A declared `File` to which the module map will be written.
       module_name: The name of the module to declare in the module map file.
-      umbrella_header_name: The basename of the umbrella header file, or None if
-          there is no umbrella header.
       sdk_dylibs: A list of system dylibs to list in the module.
       sdk_frameworks: A list of system frameworks to list in the module.
+      umbrella_header_name: The basename of the umbrella header file, or None if
+          there is no umbrella header.
     """
     declarations = []
     if umbrella_header_name:
@@ -93,13 +96,16 @@ def _create_modulemap(
     declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
 
     content = (
-        ("framework module %s {\n" % module_name) +
+        "{module_with_qualifier} {module_name} {{\n".format(
+            module_with_qualifier = "framework module" if framework_modulemap else "module",
+            module_name = module_name,
+        ) +
         "\n".join(["  " + decl for decl in declarations]) +
         "\n}\n"
     )
     actions.write(output = output, content = content)
 
-def _create_umbrella_header(actions, output, bundle_name, headers):
+def _create_umbrella_header(actions, output, bundle_name, headers, framework_imports):
     """Creates an umbrella header that imports a list of other headers.
 
     Args:
@@ -107,8 +113,12 @@ def _create_umbrella_header(actions, output, bundle_name, headers):
       output: A declared `File` to which the umbrella header will be written.
       bundle_name: The name of the output bundle.
       headers: A list of header files to be imported by the umbrella header.
+      framework_imports: Whether to import with the framework style or directly quoted.
     """
-    import_lines = ["#import <%s/%s>" % (bundle_name, f.basename) for f in headers]
+    if framework_imports:
+        import_lines = ["#import <%s/%s>" % (bundle_name, f.basename) for f in headers]
+    else:
+        import_lines = ['#import "%s"' % f.basename for f in headers]
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
@@ -116,6 +126,7 @@ def _framework_header_modulemap_partial_impl(
         *,
         actions,
         bundle_name,
+        framework_modulemap,
         hdrs,
         label_name,
         output_discriminator,
@@ -144,6 +155,7 @@ def _framework_header_modulemap_partial_impl(
             umbrella_header_file,
             bundle_name,
             sorted(hdrs),
+            framework_modulemap,
         )
 
         # Don't bundle the umbrella header if there is only one public header
@@ -169,12 +181,13 @@ def _framework_header_modulemap_partial_impl(
             file_name = "module.modulemap",
         )
         _create_modulemap(
-            actions,
-            modulemap_file,
-            bundle_name,
-            umbrella_header_name,
-            sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
-            sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
+            actions = actions,
+            framework_modulemap = framework_modulemap,
+            output = modulemap_file,
+            module_name = bundle_name,
+            sdk_dylibs = sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
+            sdk_frameworks = sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
+            umbrella_header_name = umbrella_header_name,
         )
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
 
@@ -186,6 +199,7 @@ def framework_header_modulemap_partial(
         *,
         actions,
         bundle_name,
+        framework_modulemap = True,
         hdrs,
         label_name,
         output_discriminator = None,
@@ -199,6 +213,8 @@ def framework_header_modulemap_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       bundle_name: The name of the output bundle.
+      framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+          framework instead of a library or a generic module. Defaults to `True`.
       hdrs: The list of headers to bundle.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -215,6 +231,7 @@ def framework_header_modulemap_partial(
         _framework_header_modulemap_partial_impl,
         actions = actions,
         bundle_name = bundle_name,
+        framework_modulemap = framework_modulemap,
         hdrs = hdrs,
         label_name = label_name,
         output_discriminator = output_discriminator,

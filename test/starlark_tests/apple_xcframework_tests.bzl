@@ -118,6 +118,18 @@ def apple_xcframework_test_suite(name):
     )
 
     archive_contents_test(
+        name = "{}_ios_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module ios_dynamic_xcframework",
+            "header \"ios_dynamic_xcframework.h\"",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_ios_arm64_device_archive_contents_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
@@ -446,6 +458,19 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_ios_bundle_name_contents_swift_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module SwiftFmwkWithGenHeader",
+            "header \"SwiftFmwkWithGenHeader.h\"",
+            "requires objc",
+        ],
+        tags = [name],
+    )
+
     # Verifies that the include scanning feature builds for the given XCFramework rule.
     archive_contents_test(
         name = "{}_ios_arm64_cc_include_scanning_test".format(name),
@@ -454,6 +479,18 @@ def apple_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_custom_umbrella_header_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_umbrella_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_umbrella_header.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module ios_dynamic_xcframework",
+            "header \"Umbrella.h\"",
         ],
         tags = [name],
     )

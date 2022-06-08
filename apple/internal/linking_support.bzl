@@ -20,6 +20,38 @@ load(
     "rule_support",
 )
 
+def _debug_outputs_by_architecture(link_outputs):
+    """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
+
+    Args:
+        link_outputs: The dictionary of linking outputs found from the `outputs` field of
+            `register_binary_linking_action`'s output struct.
+
+    Returns:
+        A `struct` containing three fields:
+
+        *   `bitcode_symbol_maps`: A mapping of architectures to Files representing bitcode symbol
+            maps for each architecture.
+        *   `dsym_binaries`: A mapping of architectures to Files representing dSYM binary outputs
+            for each architecture.
+        *   `linkmaps`: A mapping of architectures to Files representing linkmaps for each
+            architecture.
+    """
+    bitcode_symbol_maps = {}
+    dsym_binaries = {}
+    linkmaps = {}
+
+    for link_output in link_outputs:
+        bitcode_symbol_maps[link_output.architecture] = link_output.bitcode_symbols
+        dsym_binaries[link_output.architecture] = link_output.dsym_binary
+        linkmaps[link_output.architecture] = link_output.linkmap
+
+    return struct(
+        bitcode_symbol_maps = bitcode_symbol_maps,
+        dsym_binaries = dsym_binaries,
+        linkmaps = linkmaps,
+    )
+
 def _sectcreate_objc_provider(segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
@@ -68,7 +100,7 @@ def _parse_platform_key(key):
     arch, _, environment = rest.rpartition("_")
     return struct(platform = platform, arch = arch, environment = environment)
 
-def _register_linking_action(
+def _register_binary_linking_action(
         ctx,
         *,
         avoid_deps = [],
@@ -77,7 +109,7 @@ def _register_linking_action(
         extra_linkopts = [],
         platform_prerequisites,
         stamp):
-    """Registers linking actions using the Starlark Linking API for Apple binaries.
+    """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
     linkopts given when invoking this method.
@@ -191,6 +223,48 @@ def _register_linking_action(
         output_groups = linking_outputs.output_groups,
     )
 
+def _register_static_library_linking_action(ctx):
+    """Registers linking actions using the Starlark Apple static library linking API.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        A `struct` which contains the following fields, which are a superset of the fields
+        returned by `apple_common.link_multi_arch_static_library`:
+
+        *   `library`: The final library `File` that was linked. If only one architecture was
+            requested, then it is a symlink to that single architecture binary. Otherwise, it
+            is a new universal (fat) library obtained by invoking `lipo`.
+        *   `objc`: The `apple_common.Objc` provider containing information about the targets
+            that were linked.
+        *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
+            debug outputs, with identifying information about the target platform, architecture,
+            and environment that each was built for.
+        *   `output_groups`: A `dict` containing output groups that should be returned in the
+            `OutputGroupInfo` provider of the calling rule.
+    """
+
+    if not getattr(apple_common, "link_multi_arch_static_library", False):
+        fail("static xcframework support requires bazel 6.x+")
+
+    linking_outputs = getattr(apple_common, "link_multi_arch_static_library")(ctx = ctx)
+    fat_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
+
+    _lipo_or_symlink_inputs(
+        actions = ctx.actions,
+        inputs = [output.library for output in linking_outputs.outputs],
+        output = fat_library,
+        apple_fragment = ctx.fragments.apple,
+        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    return struct(
+        library = fat_library,
+        outputs = linking_outputs.outputs,
+        output_groups = linking_outputs.output_groups,
+    )
+
 def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
     """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
 
@@ -216,8 +290,10 @@ def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_confi
         actions.symlink(target_file = inputs[0], output = output)
 
 linking_support = struct(
+    debug_outputs_by_architecture = _debug_outputs_by_architecture,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     parse_platform_key = _parse_platform_key,
-    register_linking_action = _register_linking_action,
+    register_binary_linking_action = _register_binary_linking_action,
+    register_static_library_linking_action = _register_static_library_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )

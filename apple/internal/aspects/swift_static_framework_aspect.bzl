@@ -22,7 +22,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-load("@bazel_skylib//lib:sets.bzl", "sets")
 
 SwiftStaticFrameworkInfo = provider(
     fields = {
@@ -84,16 +83,6 @@ def _swift_static_framework_aspect_impl(_target, ctx):
     if not swiftdeps:
         return []
 
-    # Collect the names of any Swift modules reachable from `avoid_deps`. These
-    # will be ignored when checking for a single `swift_library` below.
-    avoid_swiftinfos = [t[SwiftInfo] for t in ctx.rule.attr.avoid_deps if SwiftInfo in t]
-    avoid_modules = sets.make()
-    for swiftinfo in avoid_swiftinfos:
-        for module in swiftinfo.transitive_modules.to_list():
-            if not module.swift:
-                continue
-            sets.insert(avoid_modules, module.name)
-
     # There can only be one (transitively) exposed swift_library in when wanting to expose a Swift
     # from the framework. And there can't really be exposed ObjC since it wouldn't be importable by
     # a Swift consumer, but don't bother checking that since it can be useful for other
@@ -101,6 +90,9 @@ def _swift_static_framework_aspect_impl(_target, ctx):
     # need to be linked to provide a complete library.
 
     # Collect all relevant artifacts for Swift static framework generation.
+    avoid_modules = swift_info_support.modules_from_avoid_deps(
+        avoid_deps = ctx.rule.attr.avoid_deps,
+    )
     module_name = None
     generated_header = None
     swiftdocs = {}

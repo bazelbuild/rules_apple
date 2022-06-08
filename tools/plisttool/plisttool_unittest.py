@@ -113,7 +113,7 @@ class PlistToolVariableReferenceTest(unittest.TestCase):
     m = plisttool.VARIABLE_REFERENCE_RE.match(s)
     # Testing that based on the whole string.
     self.assertEqual(m.group(0), s)
-    self.assertEqual(plisttool.ExtractVariableFromMatch(m), expected)
+    self.assertEqual(plisttool.extract_variable_from_match(m), expected)
 
   def _assert_invalid(self, s):
     """Asserts string is not a valid variable reference."""
@@ -165,10 +165,10 @@ class PlistToolVariableReferenceTest(unittest.TestCase):
 class PlistToolVersionStringTest(unittest.TestCase):
 
   def _assert_valid(self, s):
-    self.assertEqual(plisttool.IsValidVersionString(s), True)
+    self.assertEqual(plisttool.is_valid_version_string(s), True)
 
   def _assert_invalid(self, s):
-    self.assertEqual(plisttool.IsValidVersionString(s), False)
+    self.assertEqual(plisttool.is_valid_version_string(s), False)
 
   def test_all_good(self):
     self._assert_valid('1')
@@ -263,10 +263,10 @@ class PlistToolVersionStringTest(unittest.TestCase):
 class PlistToolShortVersionStringTest(unittest.TestCase):
 
   def _assert_valid(self, s):
-    self.assertEqual(plisttool.IsValidShortVersionString(s), True)
+    self.assertEqual(plisttool.is_valid_short_version_string(s), True)
 
   def _assert_invalid(self, s):
-    self.assertEqual(plisttool.IsValidShortVersionString(s), False)
+    self.assertEqual(plisttool.is_valid_short_version_string(s), False)
 
   def test_all_good(self):
     self._assert_valid('1')
@@ -345,36 +345,36 @@ class PlistToolGetWithKeyPath(unittest.TestCase):
 
   def test_one_level(self):
     d = {'a': 'A', 'b': 2, 3: 'c', 'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['a']), 'A')
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['b']), 2)
-    self.assertEqual(plisttool.GetWithKeyPath(d, [3]), 'c')
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['list']), ['x', 'y'])
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict']), {1: 2, 3: 4})
+    self.assertEqual(plisttool.get_with_key_path(d, ['a']), 'A')
+    self.assertEqual(plisttool.get_with_key_path(d, ['b']), 2)
+    self.assertEqual(plisttool.get_with_key_path(d, [3]), 'c')
+    self.assertEqual(plisttool.get_with_key_path(d, ['list']), ['x', 'y'])
+    self.assertEqual(plisttool.get_with_key_path(d, ['dict']), {1: 2, 3: 4})
 
   def test_two_level(self):
     d = {'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['list', 1]), 'y')
-    self.assertEqual(plisttool.GetWithKeyPath(d, ['dict', 3]), 4)
+    self.assertEqual(plisttool.get_with_key_path(d, ['list', 1]), 'y')
+    self.assertEqual(plisttool.get_with_key_path(d, ['dict', 3]), 4)
 
   def test_deep(self):
     d = {1: {'a': ['c', [4, 'e']]}}
-    self.assertEqual(plisttool.GetWithKeyPath(d, [1, 'a', 1, 1]), 'e')
+    self.assertEqual(plisttool.get_with_key_path(d, [1, 'a', 1, 1]), 'e')
 
   def test_misses(self):
     d = {'list': ['x', 'y'], 'dict': {1: 2, 3: 4}}
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['not_found']))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, [99]))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['list', 99]))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['dict', 'not_found']))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['dict', 99]))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['not_found']))
+    self.assertIsNone(plisttool.get_with_key_path(d, [99]))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['list', 99]))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['dict', 'not_found']))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['dict', 99]))
 
   def test_invalids(self):
     d = {'list': ['x', 'y'], 'str': 'foo', 'int': 42}
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['list', 'not_int']))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['str', 'nope']))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['str', 99]))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['int', 'nope']))
-    self.assertIsNone(plisttool.GetWithKeyPath(d, ['int', 99]))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['list', 'not_int']))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['str', 'nope']))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['str', 99]))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['int', 'nope']))
+    self.assertIsNone(plisttool.get_with_key_path(d, ['int', 99]))
 
 
 class PlistToolTest(unittest.TestCase):
@@ -1214,12 +1214,14 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(
-          ' '.join([
-            plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
-              _testing_target, '${AppIdentifierPrefix}', 'Foo',
-              '${AppIdentifierPrefix}.my.bundle.id'),
-            plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
-        ]))):
+            ' '.join([
+                plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+                    _testing_target,
+                    '${AppIdentifierPrefix}',
+                    'Foo',
+                    '${AppIdentifierPrefix}.my.bundle.id'),
+                plisttool.UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG
+            ]))):
       _plisttool_result({
           'plists': [{'Foo': '${AppIdentifierPrefix}.my.bundle.id'}],
           'entitlements_options': {
@@ -1231,12 +1233,14 @@ class PlistToolTest(unittest.TestCase):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(
-          ' '.join([
-            plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
-              _testing_target, '$(AppIdentifierPrefix:rfc1034identifier)', 'Foo',
-              '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'),
-            plisttool.UNKNOWN_SUBSTITUTION_ADDITION_AppIdentifierPrefix_MSG
-        ]))):
+            ' '.join([
+                plisttool.UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
+                    _testing_target,
+                    '$(AppIdentifierPrefix:rfc1034identifier)',
+                    'Foo',
+                    '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'),
+                plisttool.UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG
+            ]))):
       _plisttool_result({
           'plists': [{
               'Foo': '$(AppIdentifierPrefix:rfc1034identifier).my.bundle.id'

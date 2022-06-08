@@ -27,12 +27,21 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:xcframework_rules.bzl",
+    _apple_static_xcframework = "apple_static_xcframework",
     _apple_xcframework = "apple_xcframework",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:local_provisioning_profiles.bzl",
+    _local_provisioning_profile = "local_provisioning_profile",
+    _provisioning_profile_repository = "provisioning_profile_repository",
 )
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
 apple_static_framework_import = _apple_static_framework_import
 apple_static_xcframework_import = _apple_static_xcframework_import
+apple_static_xcframework = _apple_static_xcframework
 apple_universal_binary = _apple_universal_binary
 apple_xcframework = _apple_xcframework
+local_provisioning_profile = _local_provisioning_profile
+provisioning_profile_repository = _provisioning_profile_repository

@@ -125,7 +125,6 @@ def _swift_dylib_action(
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def _target_platform_is_arm_simulator(platform_prerequisites):
@@ -141,7 +140,7 @@ def _target_platform_is_arm_simulator(platform_prerequisites):
 def _swift_dylibs_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         binary_artifact,
         bundle_dylibs,
         dependency_targets,
@@ -217,7 +216,7 @@ def _swift_dylibs_partial_impl(
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                resolved_swift_stdlib_tool = apple_toolchain_info.resolved_swift_stdlib_tool,
+                resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
                 strip_bitcode = strip_bitcode,
                 swift_dylibs_paths = swift_dylibs_paths,
             )
@@ -241,7 +240,7 @@ def _swift_dylibs_partial_impl(
                         output_dir = swift_support_output_dir,
                         platform_name = platform_name,
                         platform_prerequisites = platform_prerequisites,
-                        resolved_swift_stdlib_tool = apple_toolchain_info.resolved_swift_stdlib_tool,
+                        resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
                         strip_bitcode = False,
                         swift_dylibs_paths = swift_dylibs_paths,
                     )
@@ -283,7 +282,7 @@ def _swift_dylibs_partial_impl(
 def swift_dylibs_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         binary_artifact,
         bundle_dylibs = False,
         dependency_targets = [],
@@ -297,7 +296,7 @@ def swift_dylibs_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
       bundle_dylibs: Whether the partial should return the Swift files to be bundled inside the
         target's bundle.
@@ -318,7 +317,7 @@ def swift_dylibs_partial(
     return partial.make(
         _swift_dylibs_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary_artifact = binary_artifact,
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,

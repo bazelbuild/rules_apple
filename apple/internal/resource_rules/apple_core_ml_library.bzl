@@ -19,8 +19,9 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -48,14 +49,25 @@ def _apple_core_ml_library_impl(ctx):
     actions = ctx.actions
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
-    deps = getattr(ctx.attr, "deps", None)
-    uses_swift = swift_support.uses_swift(deps) if deps else False
+    is_swift = ctx.attr.language == "Swift"
 
-    coremlc_source = actions.declare_file(
-        "{}.m".format(basename),
-        sibling = ctx.outputs.source,
-    )
-    coremlc_header = actions.declare_file("{}.h".format(basename), sibling = coremlc_source)
+    deps = getattr(ctx.attr, "deps", None)
+    uses_swift = is_swift or (swift_support.uses_swift(deps) if deps else False)
+
+    if is_swift and not ctx.attr.swift_source:
+        fail("Attribute `swift_source` is mandatory when generating Swift.")
+    if not is_swift and (not ctx.attr.objc_header or not ctx.attr.objc_source):
+        fail("Attributes `objc_header` and `objc_source` are mandatory when generating Objective-C.")
+
+    swift_output_src = None
+    objc_output_src = None
+    objc_output_hdr = None
+
+    if is_swift:
+        swift_output_src = actions.declare_file("{}.swift".format(basename))
+    else:
+        objc_output_src = actions.declare_file("{}.m".format(basename))
+        objc_output_hdr = actions.declare_file("{}.h".format(basename))
 
     # TODO(b/168721966): Consider if an aspect could be used to generate mlmodel sources. This
     # would be similar to how we are planning to use the resource aspect with the
@@ -72,71 +84,87 @@ def _apple_core_ml_library_impl(ctx):
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
 
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
-    resource_actions.generate_objc_mlmodel_sources(
+    resource_actions.generate_mlmodel_sources(
         actions = actions,
+        language = ctx.attr.language,
         input_file = ctx.file.mlmodel,
-        output_source = coremlc_source,
-        output_header = coremlc_header,
+        swift_output_src = swift_output_src,
+        objc_output_src = objc_output_src,
+        objc_output_hdr = objc_output_hdr,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     )
 
-    # But we would like our ObjC clients to use <target_name>.h instead, so we create that header
-    # too and import the coremlc header.
-    public_header = actions.declare_file("{}.h".format(ctx.attr.header_name))
+    if is_swift:
+        actions.symlink(target_file = swift_output_src, output = ctx.outputs.swift_source)
+        return [
+            DefaultInfo(files = depset([swift_output_src])),
+        ]
+
     actions.write(
-        public_header,
-        "#import \"{}\"".format(coremlc_header.path),
+        ctx.outputs.objc_public_header,
+        "#import \"{}\"".format(objc_output_hdr.path),
     )
 
-    # In order to reference the source file from the macro context, we need to have an implicit
-    # output, but those can only reference the name of the target, so we need to symlink the coremlc
-    # source into the implicit output. We don't want to do this for the headers since we would like
-    # the header to be named as the objc_library target and not the target for this rule.
-    actions.symlink(target_file = coremlc_source, output = ctx.outputs.source)
+    actions.symlink(target_file = objc_output_hdr, output = ctx.outputs.objc_header)
+    actions.symlink(target_file = objc_output_src, output = ctx.outputs.objc_source)
 
     # This rule returns the headers as its outputs so that they can be referenced in the hdrs of the
     # underlying objc_library.
-    return [DefaultInfo(files = depset([public_header, coremlc_header]))]
+    return [
+        DefaultInfo(
+            files = depset([ctx.outputs.objc_public_header, objc_output_hdr, objc_output_src, ctx.outputs.objc_header, ctx.outputs.objc_source]),
+        ),
+    ]
 
 apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
-        "mlmodel": attr.label(
-            allow_single_file = ["mlmodel"],
-            mandatory = True,
-            doc = """
-Label to a single `.mlmodel` file from which to generate sources and compile into mlmodelc files.
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        apple_toolchain_utils.shared_attrs(),
+        {
+            "mlmodel": attr.label(
+                allow_single_file = ["mlmodel", "mlpackage"],
+                mandatory = True,
+                doc = """
+Label to a single `.mlmodel` file or `.mlpackage` bundle from which to generate sources and compile
+into mlmodelc files.
 """,
-        ),
-        "header_name": attr.string(
-            mandatory = True,
-            doc = "Private attribute to configure the ObjC header name to be exported.",
-        ),
-        "_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
-        ),
-    }),
+            ),
+            "language": attr.string(
+                mandatory = True,
+                values = ["Objective-C", "Swift"],
+                doc = "Language of generated classes (\"Objective-C\", \"Swift\")",
+            ),
+            "swift_source": attr.output(
+                doc = "Name of the output file (only when using Swift).",
+            ),
+            "objc_source": attr.output(
+                doc = "Name of the implementation file (only when using Objective-C).",
+            ),
+            "objc_header": attr.output(
+                doc = "Name of the header file (only when using Objective-C).",
+            ),
+            "objc_public_header": attr.output(
+                doc = "Name of the public header file (only when using Objective-C).",
+            ),
+        },
+    ),
     output_to_genfiles = True,
     fragments = ["apple"],
-    outputs = {
-        "source": "%{name}.m",
-    },
     doc = """
-This rule takes a single mlmodel file and creates a target that can be added as a dependency from
-objc_library or swift_library targets. For Swift, just import like any other objc_library target.
-For objc_library, this target generates a header named `<target_name>.h` that can be imported from
-within the package where this target resides. For example, if this target's label is
-`//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
+This rule takes a single mlmodel file or mlpackage bundle and creates a target that can be added
+as a dependency from objc_library or swift_library targets. For Swift, just import like any other
+objc_library target. For objc_library, this target generates a header named `<target_name>.h` that
+can be imported from within the package where this target resides. For example, if this target's
+label is `//my/package:coreml`, you can import the header as `#import "my/package/coreml.h"`.
 
 This rule supports the integration of CoreML `mlmodel` files into Apple rules.
 `apple_core_ml_library` targets are added directly into `deps` for both
@@ -153,8 +181,5 @@ as `#import my/package/MyModel.h`.
 
 This rule will also compile the `mlmodel` into an `mlmodelc` and propagate it
 upstream so that it is packaged as a resource inside the top level bundle.
-
-This rule currently only returns an ObjC interface since the Swift generated files do not have the
-necessary public interfaces to export its symbols outside of the module.
 """,
 )

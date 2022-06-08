@@ -105,13 +105,18 @@ below.
     <tr>
       <th align="left" valign="top" rowspan="2">General</th>
       <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
-      <td valign="top"><code><a href="rules-general.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
+      <td valign="top"><code><a href="rules-versioning.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
     </tr>
     <tr>
       <td valign="top"><code>@build_bazel_rules_apple//apple:apple.bzl</code></td>
       <td valign="top">
-        <code><a href="rules-general.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
-        <code><a href="rules-general.md#apple_static_framework_import">apple_static_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_dynamic_xcframework_import">apple_dynamic_xcframework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_framework_import">apple_static_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_xcframework">apple_static_xcframework</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_xcframework_import">apple_static_xcframework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_universal_binary">apple_universal_binary</a></code><br/>
+        <code><a href="rules-apple.md#apple_xcframework">apple_xcframework</a></code><br/>
       </td>
     </tr>
     <tr>

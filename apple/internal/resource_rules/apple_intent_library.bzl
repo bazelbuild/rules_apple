@@ -15,8 +15,9 @@
 """Implementation of ObjC/Swift Intent library rule."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -66,11 +67,10 @@ def _apple_intent_library_impl(ctx):
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     resource_actions.generate_intent_classes_sources(
         actions = ctx.actions,
         input_file = ctx.file.src,
@@ -83,7 +83,7 @@ def _apple_intent_library_impl(ctx):
         swift_version = ctx.attr.swift_version,
         class_visibility = ctx.attr.class_visibility,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     )
 
     if is_swift:
@@ -103,38 +103,38 @@ def _apple_intent_library_impl(ctx):
 
 apple_intent_library = rule(
     implementation = _apple_intent_library_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
-        "src": attr.label(
-            allow_single_file = [".intentdefinition"],
-            mandatory = True,
-            doc = """
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        apple_toolchain_utils.shared_attrs(),
+        {
+            "src": attr.label(
+                allow_single_file = [".intentdefinition"],
+                mandatory = True,
+                doc = """
 Label to a single `.intentdefinition` files from which to generate sources files.
 """,
-        ),
-        "language": attr.string(
-            mandatory = True,
-            values = ["Objective-C", "Swift"],
-            doc = "Language of generated classes (\"Objective-C\", \"Swift\")",
-        ),
-        "class_prefix": attr.string(
-            doc = "Class prefix to use for the generated classes.",
-        ),
-        "swift_version": attr.string(
-            doc = "Version of Swift to use for the generated classes.",
-        ),
-        "class_visibility": attr.string(
-            values = ["public", "private", "project"],
-            default = "",
-            doc = "Visibility attribute for the generated classes (\"public\", \"private\", \"project\").",
-        ),
-        "header_name": attr.string(
-            doc = "Name of the public header file (only when using Objective-C).",
-        ),
-        "_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:toolchain_support"),
-            providers = [[AppleSupportToolchainInfo]],
-        ),
-    }),
+            ),
+            "language": attr.string(
+                mandatory = True,
+                values = ["Objective-C", "Swift"],
+                doc = "Language of generated classes (\"Objective-C\", \"Swift\")",
+            ),
+            "class_prefix": attr.string(
+                doc = "Class prefix to use for the generated classes.",
+            ),
+            "swift_version": attr.string(
+                doc = "Version of Swift to use for the generated classes.",
+            ),
+            "class_visibility": attr.string(
+                values = ["public", "private", "project"],
+                default = "",
+                doc = "Visibility attribute for the generated classes (\"public\", \"private\", \"project\").",
+            ),
+            "header_name": attr.string(
+                doc = "Name of the public header file (only when using Objective-C).",
+            ),
+        },
+    ),
     output_to_genfiles = True,
     fragments = ["apple"],
     doc = """

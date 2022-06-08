@@ -65,7 +65,7 @@ def _coverage_files_aspect_impl(target, ctx):
     # embedded in them.
     direct_binaries = []
     transitive_binaries_sets = []
-    if AppleBundleInfo in target:
+    if AppleBundleInfo in target and target[AppleBundleInfo].binary:
         direct_binaries.append(target[AppleBundleInfo].binary)
 
     # Collect dependencies coverage files.

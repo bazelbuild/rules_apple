@@ -104,6 +104,7 @@ EOF
   do_build ios \
     --compilation_mode=dbg \
     --ios_minimum_os="$IOS_VERSION" \
+    --cpu=ios_x86_64 \
     --apple_platform_type=ios \
     //libraries:iOSSwiftStaticFrameworkLibrary
 

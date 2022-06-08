@@ -27,16 +27,20 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfo",
     "AppleBundleInfo",
 )
 
 def _infoplist_contents_test_impl(ctx):
     """Implementation of the plist_contents_test rule."""
     target_under_test = ctx.attr.target_under_test[0]
-    if not AppleBundleInfo in target_under_test:
-        fail(("Target %s does not provide AppleBundleInfo") % target_under_test.label)
+    if AppleBundleInfo in target_under_test:
+        plist_file = target_under_test[AppleBundleInfo].infoplist
+    elif AppleBinaryInfo in target_under_test:
+        plist_file = target_under_test[AppleBinaryInfo].infoplist
+    else:
+        fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") % target_under_test.label)
 
-    plist_file = target_under_test[AppleBundleInfo].infoplist
     plist_path = plist_file.short_path
 
     test_lines = [
@@ -98,9 +102,7 @@ def _infoplist_contents_test_impl(ctx):
         ),
     ]
 
-# TODO(b/131753996): Migrate this to analysistest.make instead. This is an ugly hack to be able to
-# use analysistest style tests, but still waiting for
-# https://github.com/bazelbuild/bazel-skylib/pull/140 to be merged and released.
+# Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
     attrs = {
@@ -134,10 +136,17 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
 """,
         ),
+        "macos_cpus": attr.string_list(
+            default = ["x86_64"],
+            doc = """
+List of MacOS CPU's to use for test under target.
+https://docs.bazel.build/versions/main/command-line-reference.html#flag--macos_cpus
+""",
+        ),
         "target_under_test": attr.label(
             cfg = apple_verification_transition,
             doc = "Target containing an Info.plist file to verify.",
-            providers = [AppleBundleInfo],
+            providers = [[AppleBinaryInfo], [AppleBundleInfo]],
             mandatory = True,
         ),
         "expected_values": attr.string_dict(

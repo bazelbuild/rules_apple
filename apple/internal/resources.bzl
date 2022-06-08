@@ -262,7 +262,7 @@ def _bucketize_data(
             bucket_name = "plists"
         elif resource_short_path.endswith(".metal"):
             bucket_name = "metals"
-        elif resource_short_path.endswith(".mlmodel"):
+        elif resource_short_path.endswith(".mlmodel") or resource_short_path.endswith(".mlpackage"):
             bucket_name = "mlmodels"
         else:
             bucket_name = "unprocessed"
@@ -407,7 +407,7 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
 def _process_bucketized_data(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bucketized_owners = [],
         buckets,
         bundle_id,
@@ -426,7 +426,7 @@ def _process_bucketized_data(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
         buckets: A dictionary with bucketized resources organized by resource type.
         bundle_id: The bundle ID to configure for this target.
@@ -455,7 +455,7 @@ def _process_bucketized_data(
 
             processing_args = {
                 "actions": actions,
-                "apple_toolchain_info": apple_toolchain_info,
+                "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
                 "output_discriminator": output_discriminator,

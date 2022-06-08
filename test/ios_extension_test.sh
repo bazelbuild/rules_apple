@@ -195,6 +195,7 @@ objc_library(
 $import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
+    features = ["-parse_headers"],
 )
 EOF
 

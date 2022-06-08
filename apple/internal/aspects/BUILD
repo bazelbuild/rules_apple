@@ -28,7 +28,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:apple_support_toolchain",
+        "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resources",
         "//apple/internal:swift_support",
@@ -47,7 +47,17 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:swift_info_support",
-        "@bazel_skylib//lib:sets",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
+    name = "swift_usage_aspect",
+    srcs = ["swift_usage_aspect.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
         "@build_bazel_rules_swift//swift",
     ],
 )

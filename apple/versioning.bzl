@@ -18,6 +18,15 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
 
 def _collect_group_names(s):
     """Returns the list of placeholder names found in the given string.
@@ -124,10 +133,13 @@ def _apple_bundle_version_impl(ctx):
     )
     inputs.append(control_file)
 
+    resolved_versiontool = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].resolved_versiontool
+
     ctx.actions.run(
-        executable = ctx.executable._versiontool,
+        executable = resolved_versiontool.executable,
         arguments = [control_file.path, bundle_version_file.path],
-        inputs = inputs,
+        inputs = depset(inputs, transitive = [resolved_versiontool.inputs]),
+        input_manifests = resolved_versiontool.input_manifests,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",
     )
@@ -139,59 +151,55 @@ def _apple_bundle_version_impl(ctx):
 
 apple_bundle_version = rule(
     _apple_bundle_version_impl,
-    attrs = {
-        "build_label_pattern": attr.string(
-            mandatory = False,
-            doc = """
+    attrs = dicts.add(
+        apple_toolchain_utils.shared_attrs(),
+        {
+            "build_label_pattern": attr.string(
+                mandatory = False,
+                doc = """
 A pattern that should contain placeholders inside curly braces (e.g.,
 `"foo_{version}_bar"`) that is used to parse the build label that is generated
 in the build info file with the `--embed_label` option passed to Bazel. Each of
 the placeholders is expected to match one of the keys in the `capture_groups`
 attribute.
 """,
-        ),
-        "build_version": attr.string(
-            mandatory = True,
-            doc = """
+            ),
+            "build_version": attr.string(
+                mandatory = True,
+                doc = """
 A string that will be used as the value for the `CFBundleVersion` key in a
 depending bundle's Info.plist. If this string contains placeholders, then they
 will be replaced by strings captured out of `build_label_pattern`.
 """,
-        ),
-        "capture_groups": attr.string_dict(
-            mandatory = False,
-            doc = """
+            ),
+            "capture_groups": attr.string_dict(
+                mandatory = False,
+                doc = """
 A dictionary where each key is the name of a placeholder found in
 `build_label_pattern` and the corresponding value is the regular expression that
 should match that placeholder. If this attribute is provided, then
 `build_label_pattern` must also be provided.
 """,
-        ),
-        "fallback_build_label": attr.string(
-            mandatory = False,
-            doc = """
+            ),
+            "fallback_build_label": attr.string(
+                mandatory = False,
+                doc = """
 A build label to use when the no `--embed_label` was provided on the build. Used
 to provide a version that will be used during development.
 """,
-        ),
-        "short_version_string": attr.string(
-            mandatory = False,
-            doc = """
+            ),
+            "short_version_string": attr.string(
+                mandatory = False,
+                doc = """
 A string that will be used as the value for the `CFBundleShortVersionString` key
 in a depending bundle's Info.plist. If this string contains placeholders, then
 they will be replaced by strings captured out of `build_label_pattern`. This
 attribute is optional; if it is omitted, then the value of `build_version` will
 be used for this key as well.
 """,
-        ),
-        "_versiontool": attr.label(
-            cfg = "exec",
-            default = Label(
-                "@build_bazel_rules_apple//tools/versiontool",
             ),
-            executable = True,
-        ),
-    },
+        },
+    ),
     doc = """
 Produces a target that contains versioning information for an Apple bundle.
 

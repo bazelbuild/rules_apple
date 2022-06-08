@@ -1,4 +1,4 @@
-<!-- Generated with Stardoc, Do Not Edit! -->
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 # Providers
 
@@ -13,12 +13,13 @@ that want to propagate information to the bundling rules or that want to
 consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 
-<a id="#AppleBinaryInfo"></a>
+
+<a id="AppleBinaryInfo"></a>
 
 ## AppleBinaryInfo
 
 <pre>
-AppleBinaryInfo(<a href="#AppleBinaryInfo-binary">binary</a>, <a href="#AppleBinaryInfo-product_type">product_type</a>)
+AppleBinaryInfo(<a href="#AppleBinaryInfo-binary">binary</a>, <a href="#AppleBinaryInfo-infoplist">infoplist</a>, <a href="#AppleBinaryInfo-product_type">product_type</a>)
 </pre>
 
 
@@ -34,10 +35,32 @@ specific to any particular binary type.
 | Name  | Description |
 | :------------- | :------------- |
 | <a id="AppleBinaryInfo-binary"></a>binary |  <code>File</code>. The binary (executable, dynamic library, etc.) file that the target represents.    |
+| <a id="AppleBinaryInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
 | <a id="AppleBinaryInfo-product_type"></a>product_type |  <code>string</code>. The dot-separated product type identifier associated with the binary (for example, <code>com.apple.product-type.tool</code>).    |
 
 
-<a id="#AppleBundleInfo"></a>
+<a id="AppleBinaryInfoplistInfo"></a>
+
+## AppleBinaryInfoplistInfo
+
+<pre>
+AppleBinaryInfoplistInfo(<a href="#AppleBinaryInfoplistInfo-infoplist">infoplist</a>)
+</pre>
+
+
+Provides information about the Info.plist that was linked into an Apple binary
+target.
+
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleBinaryInfoplistInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
+
+
+<a id="AppleBundleInfo"></a>
 
 ## AppleBundleInfo
 
@@ -68,7 +91,7 @@ It is propagated by most bundling rulesâapplications, extensions, framework
 | <a id="AppleBundleInfo-bundle_id"></a>bundle_id |  <code>string</code>. The bundle identifier (i.e., <code>CFBundleIdentifier</code> in <code>Info.plist</code>) of the bundle.    |
 | <a id="AppleBundleInfo-bundle_name"></a>bundle_name |  <code>string</code>. The name of the bundle, without the extension.    |
 | <a id="AppleBundleInfo-executable_name"></a>executable_name |  <code>string</code>. The name of the executable that was bundled.    |
-| <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used to codesign, if any.    |
+| <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used, if any.    |
 | <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  Boolean. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
 | <a id="AppleBundleInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> file for the bundle.    |
 | <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  <code>string</code>. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support. This is different from <code>minimum_os_version</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.    |
@@ -78,7 +101,7 @@ It is propagated by most bundling rulesâapplications, extensions, framework
 | <a id="AppleBundleInfo-uses_swift"></a>uses_swift |  Boolean. True if Swift is used by the target propagating this provider. This does not consider embedded bundles; for example, an Objective-C application containing a Swift extension would have this field set to true for the extension but false for the application.    |
 
 
-<a id="#AppleBundleVersionInfo"></a>
+<a id="AppleBundleVersionInfo"></a>
 
 ## AppleBundleVersionInfo
 
@@ -96,7 +119,7 @@ Provides versioning information for an Apple bundle.
 | <a id="AppleBundleVersionInfo-version_file"></a>version_file |  A <code>File</code> containing JSON-formatted text describing the version number information propagated by the target. It contains two keys: <code>build_version</code>, which corresponds to <code>CFBundleVersion</code>; and <code>short_version_string</code>, which corresponds to <code>CFBundleShortVersionString</code>.    |
 
 
-<a id="#AppleExtraOutputsInfo"></a>
+<a id="AppleExtraOutputsInfo"></a>
 
 ## AppleExtraOutputsInfo
 
@@ -124,7 +147,7 @@ being built (the application).
 | <a id="AppleExtraOutputsInfo-files"></a>files |  <code>depset</code> of <code>File</code>s. These files will be propagated from embedded bundles (such as frameworks and extensions) to the top-level bundle (such as an application) to ensure that they are explicitly produced as outputs of the build.    |
 
 
-<a id="#AppleFrameworkImportInfo"></a>
+<a id="AppleFrameworkImportInfo"></a>
 
 ## AppleFrameworkImportInfo
 
@@ -145,7 +168,7 @@ Provider that propagates information about framework import targets.
 | <a id="AppleFrameworkImportInfo-debug_info_binaries"></a>debug_info_binaries |  Depset of Files that represent framework binaries and dSYM binaries that provide debug info.    |
 
 
-<a id="#AppleResourceBundleInfo"></a>
+<a id="AppleResourceBundleInfo"></a>
 
 ## AppleResourceBundleInfo
 
@@ -167,7 +190,7 @@ requirement.
 
 
 
-<a id="#AppleResourceInfo"></a>
+<a id="AppleResourceInfo"></a>
 
 ## AppleResourceInfo
 
@@ -203,7 +226,7 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  Depset of unowned resources.    |
 
 
-<a id="#AppleStaticXcframeworkBundleInfo"></a>
+<a id="AppleStaticXcframeworkBundleInfo"></a>
 
 ## AppleStaticXcframeworkBundleInfo
 
@@ -225,49 +248,7 @@ requirement.
 
 
 
-<a id="#AppleSupportToolchainInfo"></a>
-
-## AppleSupportToolchainInfo
-
-<pre>
-AppleSupportToolchainInfo(<a href="#AppleSupportToolchainInfo-dsym_info_plist_template">dsym_info_plist_template</a>, <a href="#AppleSupportToolchainInfo-process_and_sign_template">process_and_sign_template</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_alticonstool">resolved_alticonstool</a>, <a href="#AppleSupportToolchainInfo-resolved_bundletool">resolved_bundletool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_bundletool_experimental">resolved_bundletool_experimental</a>, <a href="#AppleSupportToolchainInfo-resolved_clangrttool">resolved_clangrttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_codesigningtool">resolved_codesigningtool</a>, <a href="#AppleSupportToolchainInfo-resolved_dossier_codesigningtool">resolved_dossier_codesigningtool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor">resolved_imported_dynamic_framework_processor</a>, <a href="#AppleSupportToolchainInfo-resolved_plisttool">resolved_plisttool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_provisioning_profile_tool">resolved_provisioning_profile_tool</a>, <a href="#AppleSupportToolchainInfo-resolved_swift_stdlib_tool">resolved_swift_stdlib_tool</a>,
-                          <a href="#AppleSupportToolchainInfo-resolved_xctoolrunner">resolved_xctoolrunner</a>)
-</pre>
-
-
-Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
-
-This provider exists as an internal detail for the rules to reference common, executable tools and
-files used as script templates for the purposes of executing Apple actions. Defined by the
-`apple_support_toolchain` rule.
-
-
-**FIELDS**
-
-
-| Name  | Description |
-| :------------- | :------------- |
-| <a id="AppleSupportToolchainInfo-dsym_info_plist_template"></a>dsym_info_plist_template |  A <code>File</code> referencing a plist template for dSYM bundles.    |
-| <a id="AppleSupportToolchainInfo-process_and_sign_template"></a>process_and_sign_template |  A <code>File</code> referencing a template for a shell script to process and sign.    |
-| <a id="AppleSupportToolchainInfo-resolved_alticonstool"></a>resolved_alticonstool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to insert alternate icons entries in the app bundle's <code>Info.plist</code>.    |
-| <a id="AppleSupportToolchainInfo-resolved_bundletool"></a>resolved_bundletool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destinations paths to build the directory structure for those files.    |
-| <a id="AppleSupportToolchainInfo-resolved_bundletool_experimental"></a>resolved_bundletool_experimental |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing an experimental tool to create an Apple bundle by combining the bundling, post-processing, and signing steps into a single action that eliminates the archiving step.    |
-| <a id="AppleSupportToolchainInfo-resolved_clangrttool"></a>resolved_clangrttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to find all Clang runtime libs linked to a binary.    |
-| <a id="AppleSupportToolchainInfo-resolved_codesigningtool"></a>resolved_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to select the appropriate signing identity for Apple apps and Apple executable bundles.    |
-| <a id="AppleSupportToolchainInfo-resolved_dossier_codesigningtool"></a>resolved_dossier_codesigningtool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to generate codesigning dossiers.    |
-| <a id="AppleSupportToolchainInfo-resolved_imported_dynamic_framework_processor"></a>resolved_imported_dynamic_framework_processor |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to process an imported dynamic framework such that the given framework only contains the same slices as the app binary, every file belonging to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable artifact.    |
-| <a id="AppleSupportToolchainInfo-resolved_plisttool"></a>resolved_plisttool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool to perform plist operations such as variable substitution, merging, and conversion of plist files to binary format.    |
-| <a id="AppleSupportToolchainInfo-resolved_provisioning_profile_tool"></a>resolved_provisioning_profile_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that extracts entitlements from a provisioning profile.    |
-| <a id="AppleSupportToolchainInfo-resolved_swift_stdlib_tool"></a>resolved_swift_stdlib_tool |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that copies and lipos Swift stdlibs required for the target to run.    |
-| <a id="AppleSupportToolchainInfo-resolved_xctoolrunner"></a>resolved_xctoolrunner |  A <code>struct</code> from <code>ctx.resolve_tools</code> referencing a tool that acts as a wrapper for xcrun actions.    |
-
-
-<a id="#AppleTestInfo"></a>
+<a id="AppleTestInfo"></a>
 
 ## AppleTestInfo
 
@@ -301,7 +282,7 @@ target.
 | <a id="AppleTestInfo-deps"></a>deps |  <code>depset</code> of <code>string</code>s representing the labels of all immediate deps of the test. Only source files from these deps will be present in <code>sources</code>. This may be used by IDEs to differentiate a test target's transitive module maps from its direct module maps, as including the direct module maps may break indexing for the source files of the immediate deps.    |
 
 
-<a id="#AppleTestRunnerInfo"></a>
+<a id="AppleTestRunnerInfo"></a>
 
 ## AppleTestRunnerInfo
 
@@ -328,7 +309,7 @@ test rules runfiles.
 | <a id="AppleTestRunnerInfo-test_runner_template"></a>test_runner_template |  Required template file that contains the specific mechanism with which the tests will be run. The *_ui_test and *_unit_test rules will substitute the following values:     * %(test_host_path)s:   Path to the app being tested.     * %(test_bundle_path)s: Path to the test bundle that contains the tests.     * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).     * %(test_type)s:        The test type, whether it is unit or UI.    |
 
 
-<a id="#AppleXcframeworkBundleInfo"></a>
+<a id="AppleXcframeworkBundleInfo"></a>
 
 ## AppleXcframeworkBundleInfo
 
@@ -350,7 +331,7 @@ requirement.
 
 
 
-<a id="#IosAppClipBundleInfo"></a>
+<a id="IosAppClipBundleInfo"></a>
 
 ## IosAppClipBundleInfo
 
@@ -371,7 +352,7 @@ is an iOS app clip should use this provider to describe that requirement.
 
 
 
-<a id="#IosApplicationBundleInfo"></a>
+<a id="IosApplicationBundleInfo"></a>
 
 ## IosApplicationBundleInfo
 
@@ -393,7 +374,7 @@ requirement.
 
 
 
-<a id="#IosExtensionBundleInfo"></a>
+<a id="IosExtensionBundleInfo"></a>
 
 ## IosExtensionBundleInfo
 
@@ -415,7 +396,7 @@ provider to describe that requirement.
 
 
 
-<a id="#IosFrameworkBundleInfo"></a>
+<a id="IosFrameworkBundleInfo"></a>
 
 ## IosFrameworkBundleInfo
 
@@ -437,7 +418,7 @@ that requirement.
 
 
 
-<a id="#IosImessageApplicationBundleInfo"></a>
+<a id="IosImessageApplicationBundleInfo"></a>
 
 ## IosImessageApplicationBundleInfo
 
@@ -459,7 +440,7 @@ that requirement.
 
 
 
-<a id="#IosImessageExtensionBundleInfo"></a>
+<a id="IosImessageExtensionBundleInfo"></a>
 
 ## IosImessageExtensionBundleInfo
 
@@ -481,7 +462,7 @@ that requirement.
 
 
 
-<a id="#IosStaticFrameworkBundleInfo"></a>
+<a id="IosStaticFrameworkBundleInfo"></a>
 
 ## IosStaticFrameworkBundleInfo
 
@@ -503,7 +484,7 @@ that requirement.
 
 
 
-<a id="#IosStickerPackExtensionBundleInfo"></a>
+<a id="IosStickerPackExtensionBundleInfo"></a>
 
 ## IosStickerPackExtensionBundleInfo
 
@@ -525,7 +506,7 @@ that requirement.
 
 
 
-<a id="#IosXcTestBundleInfo"></a>
+<a id="IosXcTestBundleInfo"></a>
 
 ## IosXcTestBundleInfo
 
@@ -546,7 +527,7 @@ is an iOS .xctest bundle should use this provider to describe that requirement.
 
 
 
-<a id="#MacosApplicationBundleInfo"></a>
+<a id="MacosApplicationBundleInfo"></a>
 
 ## MacosApplicationBundleInfo
 
@@ -568,7 +549,7 @@ requirement.
 
 
 
-<a id="#MacosBundleBundleInfo"></a>
+<a id="MacosBundleBundleInfo"></a>
 
 ## MacosBundleBundleInfo
 
@@ -590,7 +571,7 @@ requirement.
 
 
 
-<a id="#MacosExtensionBundleInfo"></a>
+<a id="MacosExtensionBundleInfo"></a>
 
 ## MacosExtensionBundleInfo
 
@@ -612,7 +593,7 @@ provider to describe that requirement.
 
 
 
-<a id="#MacosKernelExtensionBundleInfo"></a>
+<a id="MacosKernelExtensionBundleInfo"></a>
 
 ## MacosKernelExtensionBundleInfo
 
@@ -634,7 +615,7 @@ requirement.
 
 
 
-<a id="#MacosQuickLookPluginBundleInfo"></a>
+<a id="MacosQuickLookPluginBundleInfo"></a>
 
 ## MacosQuickLookPluginBundleInfo
 
@@ -656,7 +637,7 @@ that requirement.
 
 
 
-<a id="#MacosSpotlightImporterBundleInfo"></a>
+<a id="MacosSpotlightImporterBundleInfo"></a>
 
 ## MacosSpotlightImporterBundleInfo
 
@@ -678,7 +659,7 @@ requirement.
 
 
 
-<a id="#MacosXPCServiceBundleInfo"></a>
+<a id="MacosXPCServiceBundleInfo"></a>
 
 ## MacosXPCServiceBundleInfo
 
@@ -700,7 +681,7 @@ requirement.
 
 
 
-<a id="#MacosXcTestBundleInfo"></a>
+<a id="MacosXcTestBundleInfo"></a>
 
 ## MacosXcTestBundleInfo
 
@@ -722,7 +703,7 @@ requirement.
 
 
 
-<a id="#TvosApplicationBundleInfo"></a>
+<a id="TvosApplicationBundleInfo"></a>
 
 ## TvosApplicationBundleInfo
 
@@ -744,7 +725,7 @@ requirement.
 
 
 
-<a id="#TvosExtensionBundleInfo"></a>
+<a id="TvosExtensionBundleInfo"></a>
 
 ## TvosExtensionBundleInfo
 
@@ -766,7 +747,7 @@ provider to describe that requirement.
 
 
 
-<a id="#TvosFrameworkBundleInfo"></a>
+<a id="TvosFrameworkBundleInfo"></a>
 
 ## TvosFrameworkBundleInfo
 
@@ -788,7 +769,7 @@ that requirement.
 
 
 
-<a id="#TvosStaticFrameworkBundleInfo"></a>
+<a id="TvosStaticFrameworkBundleInfo"></a>
 
 ## TvosStaticFrameworkBundleInfo
 
@@ -810,7 +791,7 @@ that requirement.
 
 
 
-<a id="#TvosXcTestBundleInfo"></a>
+<a id="TvosXcTestBundleInfo"></a>
 
 ## TvosXcTestBundleInfo
 
@@ -831,7 +812,7 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
 
 
 
-<a id="#WatchosApplicationBundleInfo"></a>
+<a id="WatchosApplicationBundleInfo"></a>
 
 ## WatchosApplicationBundleInfo
 
@@ -853,7 +834,7 @@ requirement.
 
 
 
-<a id="#WatchosExtensionBundleInfo"></a>
+<a id="WatchosExtensionBundleInfo"></a>
 
 ## WatchosExtensionBundleInfo
 
@@ -875,7 +856,7 @@ provider to describe that requirement.
 
 
 
-<a id="#WatchosStaticFrameworkBundleInfo"></a>
+<a id="WatchosStaticFrameworkBundleInfo"></a>
 
 ## WatchosStaticFrameworkBundleInfo
 
@@ -897,7 +878,7 @@ that requirement.
 
 
 
-<a id="#WatchosXcTestBundleInfo"></a>
+<a id="WatchosXcTestBundleInfo"></a>
 
 ## WatchosXcTestBundleInfo
 
@@ -918,7 +899,7 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 
 
 
-<a id="#merge_apple_framework_import_info"></a>
+<a id="merge_apple_framework_import_info"></a>
 
 ## merge_apple_framework_import_info
 
@@ -934,5 +915,9 @@ merge_apple_framework_import_info(<a href="#merge_apple_framework_import_info-ap
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
+
+**RETURNS**
+
+Result of merging all the received framework infos.
 
 

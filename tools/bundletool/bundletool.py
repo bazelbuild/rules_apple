@@ -104,21 +104,22 @@ class Bundler(object):
     bundle_merge_files = self._control.get('bundle_merge_files', [])
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
     root_merge_zips = self._control.get('root_merge_zips', [])
+    compress = self._control.get('compress', False)
 
     with zipfile.ZipFile(output_path, 'w', allowZip64 = True) as out_zip:
       for z in bundle_merge_zips:
         dest = os.path.normpath(os.path.join(bundle_path, z['dest']))
-        self._add_zip_contents(z['src'], dest, out_zip)
+        self._add_zip_contents(z['src'], dest, out_zip, compress)
 
       for f in bundle_merge_files:
         dest = os.path.join(bundle_path, f['dest'])
         self._add_files(f['src'], dest, f.get('executable', False),
-                        f.get('contents_only', False), out_zip)
+                        f.get('contents_only', False), out_zip, compress)
 
       for z in root_merge_zips:
-        self._add_zip_contents(z['src'], z['dest'], out_zip)
+        self._add_zip_contents(z['src'], z['dest'], out_zip, compress)
 
-  def _add_files(self, src, dest, executable, contents_only, out_zip):
+  def _add_files(self, src, dest, executable, contents_only, out_zip, compress):
     """Adds a file or a directory of files to the ZIP archive.
 
     Args:
@@ -135,6 +136,7 @@ class Bundler(object):
           or `src` itself should be added to the bundle (if `src` is a
           directory).
       out_zip: The `ZipFile` into which the files should be added.
+      compress: Whether the files are compressed or just stored in the zip.
     """
     if os.path.isdir(src):
       for root, _, files in os.walk(src):
@@ -146,13 +148,13 @@ class Bundler(object):
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
           fexec = executable or os.access(fsrc, os.X_OK)
           with open(fsrc, 'rb') as f:
-            self._write_entry(fdest, f.read(), fexec, out_zip)
+            self._write_entry(fdest, f.read(), fexec, out_zip, compress)
     elif os.path.isfile(src):
       fexec = executable or os.access(src, os.X_OK)
       with open(src, 'rb') as f:
-        self._write_entry(dest, f.read(), fexec, out_zip)
+        self._write_entry(dest, f.read(), fexec, out_zip, compress)
 
-  def _add_zip_contents(self, src, dest, out_zip):
+  def _add_zip_contents(self, src, dest, out_zip, compress):
     """Adds the contents of another ZIP file to the output ZIP archive.
 
     Args:
@@ -161,6 +163,7 @@ class Bundler(object):
           should be expanded. The directory structure of `src` is preserved
           underneath this path.
       out_zip: The `ZipFile` into which the files should be added.
+      compress: Whether the files are compressed or just stored in the zip.
     """
     with zipfile.ZipFile(src, 'r', allowZip64 = True) as src_zip:
       for src_zipinfo in src_zip.infolist():
@@ -174,9 +177,9 @@ class Bundler(object):
         # Check for Unix --x--x--x permissions.
         executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
         data = src_zip.read(src_zipinfo)
-        self._write_entry(file_dest, data, executable, out_zip)
+        self._write_entry(file_dest, data, executable, out_zip, compress)
 
-  def _write_entry(self, dest, data, executable, out_zip):
+  def _write_entry(self, dest, data, executable, out_zip, compress):
     """Writes the given data as a file in the output ZIP archive.
 
     Args:
@@ -185,6 +188,7 @@ class Bundler(object):
       executable: A Boolean value indicating whether or not the file should be
           made executable.
       out_zip: The `ZipFile` into which the files should be added.
+      compress: Whether the files are compressed or just stored in the zip.
     Raises:
       BundleToolError: If two files with different content would be placed
           at the same location in the ZIP file.
@@ -199,7 +203,10 @@ class Bundler(object):
     self._entry_hashes[dest] = new_hash
 
     zipinfo = zipfile.ZipInfo(dest)
-    zipinfo.compress_type = zipfile.ZIP_STORED
+    if compress:
+      zipinfo.compress_type = zipfile.ZIP_DEFLATED
+    else:
+      zipinfo.compress_type = zipfile.ZIP_STORED
 
     if dest.endswith('/'):
       # Unix rwxr-xr-x permissions and S_IFDIR (directory) on the left side of

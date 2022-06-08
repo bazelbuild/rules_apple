@@ -47,8 +47,8 @@ def _apple_symbols_file_partial_impl(
         *,
         actions,
         binary_artifact,
-        debug_outputs_provider,
         dependency_targets,
+        dsym_binaries,
         label_name,
         output_discriminator,
         include_symbols_in_bundle,
@@ -56,10 +56,10 @@ def _apple_symbols_file_partial_impl(
     """Implementation for the Apple .symbols file processing partial."""
     outputs = []
     if (platform_prerequisites.cpp_fragment.apple_generate_dsym and
-        binary_artifact and debug_outputs_provider):
+        binary_artifact and dsym_binaries):
         inputs = [binary_artifact]
-        for debug_output in debug_outputs_provider.outputs_map.values():
-            inputs.append(debug_output["dsym_binary"])
+        for dsym_binary in dsym_binaries.values():
+            inputs.append(dsym_binary)
         for target in dependency_targets:
             if AppleFrameworkImportInfo in target:
                 inputs.extend(target[AppleFrameworkImportInfo].debug_info_binaries.to_list())
@@ -109,8 +109,8 @@ def apple_symbols_file_partial(
         *,
         actions,
         binary_artifact,
-        debug_outputs_provider,
         dependency_targets = [],
+        dsym_binaries,
         label_name,
         output_discriminator = None,
         include_symbols_in_bundle,
@@ -120,10 +120,10 @@ def apple_symbols_file_partial(
     Args:
       actions: Actions defined for the current build context.
       binary_artifact: The main binary artifact for this target.
-      debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
-        outputs of this target's binary.
       dependency_targets: List of targets that should be checked for files that need to be
         bundled.
+      dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
+        architecture.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -138,8 +138,8 @@ def apple_symbols_file_partial(
         _apple_symbols_file_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
-        debug_outputs_provider = debug_outputs_provider,
         dependency_targets = dependency_targets,
+        dsym_binaries = dsym_binaries,
         include_symbols_in_bundle = include_symbols_in_bundle,
         label_name = label_name,
         output_discriminator = output_discriminator,
