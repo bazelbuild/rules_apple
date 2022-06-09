@@ -168,6 +168,26 @@ Provider that propagates information about framework import targets.
 | <a id="AppleFrameworkImportInfo-debug_info_binaries"></a>debug_info_binaries |  Depset of Files that represent framework binaries and dSYM binaries that provide debug info.    |
 
 
+<a id="AppleProvisioningProfileInfo"></a>
+
+## AppleProvisioningProfileInfo
+
+<pre>
+AppleProvisioningProfileInfo(<a href="#AppleProvisioningProfileInfo-provisioning_profile">provisioning_profile</a>, <a href="#AppleProvisioningProfileInfo-profile_name">profile_name</a>, <a href="#AppleProvisioningProfileInfo-team_id">team_id</a>)
+</pre>
+
+Provides information about a provisioning profile.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleProvisioningProfileInfo-provisioning_profile"></a>provisioning_profile |  <code>File</code>. The provisioning profile.    |
+| <a id="AppleProvisioningProfileInfo-profile_name"></a>profile_name |  string. The profile name (e.g. "iOS Team Provisioning Profile: com.example.app").    |
+| <a id="AppleProvisioningProfileInfo-team_id"></a>team_id |  <code>string</code>. The Team ID the profile is associated with (e.g. "A12B3CDEFG"), or <code>None</code> if it's not known at analysis time.    |
+
+
 <a id="AppleResourceBundleInfo"></a>
 
 ## AppleResourceBundleInfo

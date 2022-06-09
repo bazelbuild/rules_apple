@@ -1,5 +1,10 @@
 """# Rules for using locally installed provisioning profiles"""
 
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleProvisioningProfileInfo",
+)
+
 def _provisioning_profile_repository(repository_ctx):
     system_profiles_path = "{}/Library/MobileDevice/Provisioning Profiles".format(repository_ctx.os.environ["HOME"])
     repository_ctx.execute(["mkdir", "-p", system_profiles_path])
@@ -74,11 +79,12 @@ def _local_provisioning_profile(ctx):
     if not ctx.files._local_srcs and not ctx.attr._fallback_srcs:
         ctx.fail("Either local or fallback provisioning profiles must exist")
 
-    selected_profile_path = "{name}.mobileprovision".format(name = ctx.attr.profile_name or ctx.attr.name)
+    profile_name = ctx.attr.profile_name or ctx.attr.name
+    selected_profile_path = "{name}.mobileprovision".format(name = profile_name)
     selected_profile = ctx.actions.declare_file(selected_profile_path)
 
     args = ctx.actions.args()
-    args.add(ctx.attr.profile_name or ctx.attr.name)
+    args.add(profile_name)
     args.add(selected_profile)
     if ctx.attr.team_id:
         args.add("--team_id", ctx.attr.team_id)
@@ -98,7 +104,14 @@ def _local_provisioning_profile(ctx):
         progress_message = "Finding provisioning profile %{label}",
     )
 
-    return [DefaultInfo(files = depset([selected_profile]))]
+    return [
+        DefaultInfo(files = depset([selected_profile])),
+        AppleProvisioningProfileInfo(
+            provisioning_profile = selected_profile,
+            profile_name = profile_name,
+            team_id = ctx.attr.team_id,
+        ),
+    ]
 
 local_provisioning_profile = rule(
     attrs = {
