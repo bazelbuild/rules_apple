@@ -19,6 +19,7 @@ load(
     "@build_bazel_rules_apple//test/testdata/fmwk:generation_support.bzl",
     "generation_support",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
@@ -30,54 +31,6 @@ _PLATFORM_TO_SDK = {
     "tvos_simulator": "appletvsimulator",
     "watchos": "watchos",
     "watchos_simulator": "watchsimulator",
-}
-
-_GENERATE_XCFRAMEWORK_SHARED_ATTRS = {
-    "srcs": attr.label_list(
-        doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
-        mandatory = True,
-        allow_files = True,
-    ),
-    "hdrs": attr.label_list(
-        doc = "Header files for generated XCFrameworks.",
-        mandatory = False,
-        allow_files = True,
-    ),
-    "platforms": attr.string_list_dict(
-        doc = """
-A dictionary of strings indicating which platform variants should be built (with the following
-format: <platform>[_<environment>]) as keys, and arrays of strings listing which architectures
-should be built for those platform variants as their values.
-
-    platforms = {
-        "ios_simulator": [
-            "x86_64",
-            "arm64",
-        ],
-        "ios": ["arm64"],
-        "watchos_simulator": ["i386"],
-    },
-""",
-        mandatory = True,
-    ),
-    "minimum_os_versions": attr.string_dict(
-        doc = """
-A dictionary of strings indicating the minimum OS version supported by each platform variant
-represented as a dotted version number as values.
-
-    minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
-        "watchos_simulator": "4.0",
-    },
-""",
-        mandatory = True,
-    ),
-    "generate_modulemap": attr.bool(
-        doc = """Flag to indicate if modulemap generation is enabled.""",
-        mandatory = False,
-        default = True,
-    ),
 }
 
 def _platform_to_library_identifier(platform, architectures):
@@ -119,6 +72,7 @@ def _create_xcframework(
         headers = [],
         label,
         libraries = [],
+        swiftmodule = [],
         target_dir,
         xcode_config):
     """Generates XCFramework using xcodebuild.
@@ -130,6 +84,7 @@ def _create_xcframework(
         headers: A list of files referencing headers.
         label: Label of the target being built.
         libraries: A list of files referencing static libraries.
+        swiftmodule: List of files referencing Swift module files.
         target_dir: Path referencing directory of the current target.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
@@ -178,6 +133,19 @@ def _create_xcframework(
             for f in framework_files
         ])
         args.extend(["-framework", framework_path])
+
+    for module_file in swiftmodule:
+        inputs.append(module_file)
+
+        # xcodebuild removes swiftmodule files for XCFrameworks.
+        # This filters out these files to avoid Bazel errors due
+        # no action generating these files.
+        if module_file.extension == "swiftmodule":
+            continue
+        outputs.append(actions.declare_file(
+            paths.relativize(module_file.short_path, intermediates_directory),
+            sibling = info_plist,
+        ))
 
     args.extend(["-output", xcframework_directory])
 
@@ -312,48 +280,88 @@ def _generate_static_xcframework_impl(ctx):
 
     srcs = ctx.files.srcs
     hdrs = ctx.files.hdrs
+    swift_library = ctx.files.swift_library
+
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
     generate_modulemap = ctx.attr.generate_modulemap
 
-    if platforms.keys() != minimum_os_versions.keys():
+    if not swift_library and platforms.keys() != minimum_os_versions.keys():
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
+
+    if swift_library and len(platforms) > 1:
+        fail("Providing a pre-compiled static library is only allowed for a single platform.")
+
+    if swift_library and minimum_os_versions:
+        fail("Attributes `minimum_os_versions` and `swift_library` can't be set simulatenously." +
+             "\n - Use `minimum_os_versions` when using Objective-C sources for XCFrameworks." +
+             "\n - Use `swift_library` when sourcing a previously compiled Swift library.")
 
     headers = []
     libraries = []
     outputs = []
+    swiftmodule = []
+    swift_headers = []
     for platform in platforms:
         architectures = platforms[platform]
-        minimum_os_version = minimum_os_versions[platform]
         library_identifier = _platform_to_library_identifier(
             platform = platform,
             architectures = architectures,
         )
+        library_path = paths.join("intermediates", library_identifier)
 
-        # Compile library
-        binary = generation_support.compile_binary(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            archs = architectures,
-            label = label,
-            minimum_os_version = minimum_os_version,
-            sdk = _sdk_for_platform(platform),
-            srcs = srcs,
-            hdrs = hdrs,
-            xcode_config = xcode_config,
-        )
+        if not swift_library:
+            # Compile library
+            minimum_os_version = minimum_os_versions[platform]
+            binary = generation_support.compile_binary(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                archs = architectures,
+                label = label,
+                minimum_os_version = minimum_os_version,
+                sdk = _sdk_for_platform(platform),
+                srcs = srcs,
+                hdrs = hdrs,
+                xcode_config = xcode_config,
+            )
 
-        # Create static library
-        static_library = generation_support.create_static_library(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            binary = binary,
-            parent_dir = library_identifier,
-            xcode_config = xcode_config,
-        )
+            # Create static library
+            static_library = generation_support.create_static_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                binary = binary,
+                parent_dir = library_identifier,
+                xcode_config = xcode_config,
+            )
+        else:
+            # Copy static library to intermediate directory
+            static_library_intermediate = generation_support.copy_files(
+                actions = actions,
+                files = [f for f in swift_library if f.extension == "a"],
+                base_path = library_path,
+            )
+            static_library = static_library_intermediate.pop()
+
+            # Copy Swift module files to intermediate directory
+            static_library_name, _ = paths.split_extension(static_library.basename)
+            swiftmodule_name = static_library_name[3:]  # remove 'lib' prefix
+            swiftmodule_path = paths.join(library_path, swiftmodule_name + ".swiftmodule")
+            swiftmodule = generation_support.copy_files(
+                actions = actions,
+                files = [f for f in swift_library if f.extension.startswith("swift")],
+                base_path = swiftmodule_path,
+            )
+
+            # Copy swiftc generated headers to intermediate directory
+            swift_headers = [f for f in swift_library if f.extension == "h"]
+            headers.extend(generation_support.copy_files(
+                actions = actions,
+                files = swift_headers,
+                base_path = paths.join(library_path, "Headers"),
+            ))
 
         # Copy headers and generate umbrella header
-        headers_path = paths.join("intermediates", library_identifier, "Headers")
+        headers_path = paths.join(library_path, "Headers")
         headers.extend(
             generation_support.copy_headers(
                 actions = actions,
@@ -365,7 +373,7 @@ def _generate_static_xcframework_impl(ctx):
             generation_support.generate_umbrella_header(
                 actions = actions,
                 bundle_name = label.name,
-                headers = hdrs,
+                headers = hdrs + swift_headers,
                 headers_path = headers_path,
             ),
         )
@@ -375,9 +383,10 @@ def _generate_static_xcframework_impl(ctx):
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
+        headers = headers,
         label = label,
         libraries = libraries,
-        headers = headers,
+        swiftmodule = swiftmodule,
         target_dir = target_dir,
         xcode_config = xcode_config,
     )
@@ -408,7 +417,53 @@ generate_dynamic_xcframework = rule(
     implementation = _generate_dynamic_xcframework_impl,
     attrs = dicts.add(
         apple_support.action_required_attrs(),
-        _GENERATE_XCFRAMEWORK_SHARED_ATTRS,
+        {
+            "srcs": attr.label_list(
+                doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
+                mandatory = True,
+                allow_files = True,
+            ),
+            "hdrs": attr.label_list(
+                doc = "Header files for generated XCFrameworks.",
+                mandatory = False,
+                allow_files = True,
+            ),
+            "platforms": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built (with the following
+format: <platform>[_<environment>]) as keys, and arrays of strings listing which architectures
+should be built for those platform variants as their values.
+
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+        "watchos_simulator": ["i386"],
+    },
+""",
+                mandatory = True,
+            ),
+            "minimum_os_versions": attr.string_dict(
+                doc = """
+A dictionary of strings indicating the minimum OS version supported by each platform variant
+represented as a dotted version number as values.
+
+    minimum_os_versions = {
+        "ios_simulator": "11.0",
+        "ios": "11.0",
+        "watchos_simulator": "4.0",
+    },
+""",
+                mandatory = True,
+            ),
+            "generate_modulemap": attr.bool(
+                doc = """Flag to indicate if modulemap generation is enabled.""",
+                mandatory = False,
+                default = True,
+            ),
+        },
     ),
     fragments = ["apple"],
 )
@@ -418,7 +473,64 @@ generate_static_xcframework = rule(
     implementation = _generate_static_xcframework_impl,
     attrs = dicts.add(
         apple_support.action_required_attrs(),
-        _GENERATE_XCFRAMEWORK_SHARED_ATTRS,
+        {
+            "srcs": attr.label_list(
+                doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
+                mandatory = False,
+                allow_files = True,
+            ),
+            "hdrs": attr.label_list(
+                doc = "Header files for generated XCFrameworks.",
+                mandatory = False,
+                allow_files = True,
+            ),
+            "platforms": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built (with the following
+format: <platform>[_<environment>]) as keys, and arrays of strings listing which architectures
+should be built for those platform variants as their values.
+
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+        "watchos_simulator": ["i386"],
+    },
+""",
+                mandatory = True,
+            ),
+            "minimum_os_versions": attr.string_dict(
+                doc = """
+A dictionary of strings indicating the minimum OS version supported by each platform variant
+represented as a dotted version number as values.
+
+    minimum_os_versions = {
+        "ios_simulator": "11.0",
+        "ios": "11.0",
+        "watchos_simulator": "4.0",
+    },
+""",
+                mandatory = False,
+            ),
+            "generate_modulemap": attr.bool(
+                doc = """Flag to indicate if modulemap generation is enabled.""",
+                mandatory = False,
+                default = True,
+            ),
+            "swift_library": attr.label(
+                allow_files = True,
+                mandatory = False,
+                providers = [SwiftInfo],
+                doc = """
+Label referencing a `swift_library` target to source static library and module to use for the
+generated XCFramework bundle. Target platform and architecture must match with the `platforms`
+attribute. This means that if you're building using `bazel build --config=ios_x86_64`, then the
+`platforms` attribute must define the following dictionary: {"ios_simulator": ["x86_64"]}.
+""",
+            ),
+        },
     ),
     fragments = ["apple"],
 )

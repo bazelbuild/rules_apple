@@ -1,9 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/xcframeworks:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
     "generate_static_xcframework",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 licenses(["notice"])
 
@@ -94,6 +96,25 @@ generate_static_xcframework(
     },
 )
 
+swift_library(
+    name = "swift_lib_for_static_xcframework",
+    srcs = ["//test/testdata/fmwk:swift_source"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
+    generates_header = True,
+    module_name = "swift_lib_for_static_xcframework",
+    tags = FIXTURE_TAGS,
+)
+
+generate_static_xcframework(
+    name = "generated_swift_static_xcframework",
+    platforms = {"ios_simulator": ["x86_64"]},
+    swift_library = ":swift_lib_for_static_xcframework",
+    tags = FIXTURE_TAGS,
+)
+
 bzl_library(
     name = "generate_xcframework_bzl",
     srcs = ["generate_xcframework.bzl"],
@@ -103,5 +124,6 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift",
     ],
 )
