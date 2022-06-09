@@ -200,7 +200,8 @@ if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   # we couldn't use $COVERAGE_MANIFEST", as it will result an empty html
   xcrun llvm-cov \
     export \
-    -format text \
+    -format html \
+    -use-color \
     "${lcov_args[@]}" \
     "$test_binary" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
