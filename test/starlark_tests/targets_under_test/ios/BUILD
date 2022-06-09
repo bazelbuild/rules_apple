@@ -1521,7 +1521,7 @@ objc_library(
 )
 
 # ---------------------------------------------------------------------------------------
-# Targets for Apple XCFramework import tests.
+# Targets for Apple dynamic XCFramework import tests.
 
 # Objective-C app with imported Objective-C XCFramework.
 ios_application(
@@ -1636,6 +1636,91 @@ genrule(
     outs = ["ObjcWithFramework.m"],
     cmd = """cat > $@ <<EOF
 #import <SwiftFmwkWithGenHeader/SwiftFmwkWithGenHeader.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple static XCFramework import tests.
+
+# Objective-C app with imported Objective-C XCFramework
+ios_application(
+    name = "app_with_imported_xcframework_with_static_library",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":static_xcframework_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_depending_objc_lib",
+    srcs = ["ObjcWithXCFrameworkStaticLibrary.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework"],
+)
+
+genrule(
+    name = "objc_with_static_xcframework_src",
+    outs = ["ObjcWithXCFrameworkStaticLibrary.m"],
+    cmd = """cat > $@ <<EOF
+#import <generated_static_xcframework_with_headers.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
+# Objective-C app with imported Swift XCFramework
+ios_application(
+    name = "app_with_imported_swift_xcframework_with_static_library",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":swift_static_xcframework_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "swift_static_xcframework_depending_objc_lib",
+    srcs = ["ObjcWithSwiftXCFrameworkStaticLibrary.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework"],
+)
+
+genrule(
+    name = "objc_with_swift_static_xcframework_src",
+    outs = ["ObjcWithSwiftXCFrameworkStaticLibrary.m"],
+    cmd = """cat > $@ <<EOF
+#import <generated_swift_static_xcframework.h>
 
 int main() {
   SharedClass *sharedClass = [[SharedClass alloc] init];

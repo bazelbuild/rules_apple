@@ -264,6 +264,7 @@ def _create_framework(*, actions, base_path = "", bundle_name, library, headers)
                 bundle_name = bundle_name,
                 headers = headers,
                 headers_path = headers_path,
+                is_framework_umbrella_header = True,
             ),
         )
         module_map_path = paths.join(framework_directory, "Modules")
@@ -303,7 +304,13 @@ def _copy_headers(*, actions, headers, headers_path):
 
     return header_files
 
-def _generate_umbrella_header(*, actions, bundle_name, headers, headers_path):
+def _generate_umbrella_header(
+        *,
+        actions,
+        bundle_name,
+        headers,
+        headers_path,
+        is_framework_umbrella_header = False):
     """Generates a single umbrella header given a sequence of header files.
 
     Args:
@@ -311,12 +318,16 @@ def _generate_umbrella_header(*, actions, bundle_name, headers, headers_path):
         bundle_name: Name of the Framework/XCFramework bundle.
         headers: List of header files for the Framework bundle.
         headers_path: Base path for the generated umbrella header file.
+        is_framework_umbrella_header: Boolean to indicate if the generated umbrella header is for an
+          Apple framework. Defaults to `False`.
     Returns:
         File for the generated umbrella header.
     """
     header_text = "#import <Foundation/Foundation.h>\n"
+
+    header_prefix = bundle_name if is_framework_umbrella_header else ""
     for header in headers:
-        header_text += "#import <{}>\n".format(paths.join(bundle_name, header.basename))
+        header_text += "#import <{}>\n".format(paths.join(header_prefix, header.basename))
 
     umbrella_header = actions.declare_file(
         paths.join(headers_path, bundle_name + ".h"),
