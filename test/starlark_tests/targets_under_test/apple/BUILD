@@ -2,6 +2,7 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
     "apple_static_xcframework",
+    "apple_static_xcframework_import",
     "apple_universal_binary",
     "apple_xcframework",
 )
@@ -818,7 +819,7 @@ apple_universal_binary(
 )
 
 # ---------------------------------------------------------------------------------------
-# Targets for Apple XCFramework import tests.
+# Targets for Apple dynamic XCFramework import tests.
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
@@ -885,4 +886,25 @@ apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_with_libraries",
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple static XCFramework import tests.
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_with_headers"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_xcframework_with_static_frameworks",
+    visibility = ["//visibility:public"],
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_swift_static_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
 )
