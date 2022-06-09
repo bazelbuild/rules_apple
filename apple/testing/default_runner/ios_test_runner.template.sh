@@ -287,12 +287,13 @@ fi
 
 if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   llvm_cov_html_export_status=0
+
+  # we couldn't use $COVERAGE_MANIFEST", as it will result an empty html
   xcrun llvm-cov \
     show \
     -format html \
     -use-color \
     "${lcov_args[@]}" \
-    @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
     2> "$error_file" \
     || llvm_cov_html_export_status=$?
