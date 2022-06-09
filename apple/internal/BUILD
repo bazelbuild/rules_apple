@@ -113,10 +113,12 @@ bzl_library(
         ":intermediates",
         ":rule_factory",
         "//apple:providers",
+        "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
+        "@build_bazel_rules_swift//swift:swift_common",
     ],
 )
 

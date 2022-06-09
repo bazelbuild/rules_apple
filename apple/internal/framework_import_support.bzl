@@ -32,12 +32,13 @@ def _cc_info_with_dependencies(
         deps,
         disabled_features,
         features,
-        framework_includes,
+        framework_includes = [],
         grep_includes,
         header_imports,
         label,
-        swiftmodule_imports = [],
+        linkopts = [],
         includes = [],
+        swiftmodule_imports = [],
         is_framework = True):
     """Returns a new CcInfo which includes transitive Cc dependencies.
 
@@ -49,13 +50,14 @@ def _cc_info_with_dependencies(
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
-        framework_includes: List of Apple framework search paths.
+        framework_includes: List of Apple framework search paths (defaults to: []).
         grep_includes: File reference to grep_includes binary required by cc_common APIs.
         header_imports: List of imported header files.
+        includes: List of included headers search paths (defaults to: []).
         label: Label of the target being built.
+        linkopts: List of linker flags strings to propagate as linker input.
         swiftmodule_imports: List of imported Swift module files to include during build phase,
             but aren't processed in any way.
-        includes: List of include search paths.
         is_framework: Whether the target is a framework vs library.
     Returns:
         CcInfo provider.
@@ -80,16 +82,29 @@ def _cc_info_with_dependencies(
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         public_hdrs = public_hdrs,
-        includes = includes,
         framework_includes = framework_includes if is_framework else [],
+        includes = includes,
         compilation_contexts = dep_compilation_contexts,
         language = "objc",
         grep_includes = grep_includes,
     )
 
-    dep_linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]
+    linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]
+
+    if linkopts:
+        linking_contexts.append(
+            cc_common.create_linking_context(
+                linker_inputs = depset([
+                    cc_common.create_linker_input(
+                        owner = label,
+                        user_link_flags = linkopts,
+                    ),
+                ]),
+            ),
+        )
+
     linking_context = cc_common.merge_linking_contexts(
-        linking_contexts = dep_linking_contexts,
+        linking_contexts = linking_contexts,
     )
 
     return CcInfo(
@@ -101,7 +116,7 @@ def _classify_file_imports(config_vars, import_files):
     """Classifies a list of imported files based on extension, and paths.
 
     This support method is used to classify import files for Apple frameworks and XCFrameworks.
-    Any file that does not match any known extension will be added to an unknown_imports bucket.
+    Any file that does not match any known extension will be added to an bundling_imports bucket.
 
     Args:
         config_vars: A dictionary of configuration variables from ctx.var.
@@ -111,9 +126,10 @@ def _classify_file_imports(config_vars, import_files):
             - header_imports: Objective-C(++) header imports.
             - module_map_imports: Clang modulemap imports.
             - swift_module_imports: Swift module imports.
-            - unknown_imports: Unclassified imports.
+            - bundling_imports: Unclassified imports.
     """
-    unknown_imports = []
+    bundling_imports = []
+    binary_imports = []
     header_imports = []
     module_map_imports = []
     swift_module_imports = []
@@ -150,6 +166,9 @@ def _classify_file_imports(config_vars, import_files):
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
             # Ignore swiftdoc files, they don't matter in the build, only for IDEs
             continue
+        if file_extension == "a":
+            binary_imports.append(file)
+            continue
 
         # Path matching
         if "Headers/" in file.short_path:
@@ -157,13 +176,14 @@ def _classify_file_imports(config_vars, import_files):
             continue
 
         # Unknown file type, sending to unknown (i.e. resources, Info.plist, etc.)
-        unknown_imports.append(file)
+        bundling_imports.append(file)
 
     return struct(
+        binary_imports = binary_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
         swift_module_imports = swift_module_imports,
-        unknown_imports = unknown_imports,
+        bundling_imports = bundling_imports,
     )
 
 def _classify_framework_imports(config_vars, framework_imports):
@@ -186,7 +206,7 @@ def _classify_framework_imports(config_vars, framework_imports):
     bundle_name = None
     bundling_imports = []
     binary_imports = []
-    for file in framework_imports_by_category.unknown_imports:
+    for file in framework_imports_by_category.bundling_imports:
         # Infer framework bundle name and binary
         parent_dir_name = paths.basename(file.dirname)
         is_bundle_root_file = parent_dir_name.endswith(".framework")
@@ -253,6 +273,7 @@ def _objc_provider_with_dependencies(
         additional_objc_provider_fields = {},
         additional_objc_providers = [],
         alwayslink = False,
+        library = None,
         dynamic_framework_file = None,
         sdk_dylib = None,
         sdk_framework = None,
@@ -265,6 +286,7 @@ def _objc_provider_with_dependencies(
         additional_objc_providers: Additional Objc providers to merge with this target provider.
         alwayslink: Boolean to indicate if force_load_library should be set with the static
             framework file.
+        library: File referencing a static library.
         dynamic_framework_file: File referencing a framework dynamic library.
         sdk_dylib: List of Apple SDK dylibs to link. Defaults to None.
         sdk_framework: List of Apple SDK frameworks to link. Defaults to None.
@@ -275,6 +297,9 @@ def _objc_provider_with_dependencies(
     """
     objc_provider_fields = {}
     objc_provider_fields["providers"] = additional_objc_providers
+
+    if library:
+        objc_provider_fields["library"] = library
 
     if dynamic_framework_file:
         objc_provider_fields["dynamic_framework_file"] = dynamic_framework_file

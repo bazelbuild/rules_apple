@@ -29,8 +29,16 @@ load(
 )
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
 load("@build_bazel_rules_apple//apple/internal:rule_factory.bzl", "rule_factory")
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "SwiftUsageInfo",
+)
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_clang_module_aspect")
+load(
+    "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
+    "swift_clang_module_aspect",
+)
+load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
@@ -190,8 +198,14 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     ]
 
     framework_dirs = [f.dirname for f in binaries]
-    framework_includes = [paths.dirname(f) for f in framework_dirs]
     framework_files = [f for f in xcframework.files if library_identifier in f.short_path]
+
+    includes = []
+    framework_includes = []
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        framework_includes = [paths.dirname(f) for f in framework_dirs]
+    else:
+        includes = [h.dirname for h in headers]
 
     return struct(
         binary = binaries[0],
@@ -200,6 +214,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         framework_imports = framework_imports,
         framework_includes = framework_includes,
         headers = headers,
+        includes = includes,
         module_maps = module_maps,
         swift_module_map = module_maps[0] if module_maps else None,
         swiftmodule = swiftmodules,
@@ -248,8 +263,9 @@ def _get_xcframework_library_with_xcframework_processor(
     # The folowing artifacts are declared here to be used later on as inputs for different
     # providers; but not added as arguments to the xcframework_processor tool because it's
     # not really needed if you add the target directory for the copied .framework bundle.
+    binary_extension = ".a" if xcframework.bundle_type == _BUNDLE_TYPE.libraries else ""
     binary = intermediates.file(
-        file_name = paths.join(library_path, xcframework.bundle_name),
+        file_name = paths.join(library_path, xcframework.bundle_name + binary_extension),
         **intermediates_common
     )
     headers_dir = intermediates.directory(
@@ -314,13 +330,21 @@ def _get_xcframework_library_with_xcframework_processor(
         xcode_config = xcode_config,
     )
 
+    includes = []
+    framework_includes = []
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        framework_includes = [library_dir.dirname]
+    else:
+        includes = [headers_dir.path]
+
     return struct(
         binary = binary,
         framework_dirs = [library_dir.path],
         framework_files = [library_dir],
         framework_imports = [framework_imports_dir],
-        framework_includes = [library_dir.dirname],
+        framework_includes = framework_includes,
         headers = [headers_dir],
+        includes = includes,
         module_maps = [modulemap_dir],
         swift_module_map = module_map_file,
         swiftmodule = [],
@@ -456,6 +480,106 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     return providers
 
+def _apple_static_xcframework_import_impl(ctx):
+    """Implementation of apple_static_xcframework_import."""
+    actions = ctx.actions
+    alwayslink = ctx.attr.alwayslink
+    apple_fragment = ctx.fragments.apple
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    cc_toolchain = find_cpp_toolchain(ctx)
+    deps = ctx.attr.deps
+    disabled_features = ctx.disabled_features
+    features = ctx.features
+    grep_includes = ctx.file._grep_includes
+    has_swift = ctx.attr.has_swift
+    label = ctx.label
+    linkopts = ctx.attr.linkopts
+    xcframework_imports = ctx.files.xcframework_imports
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    xcframework = _classify_xcframework_imports(xcframework_imports)
+    target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
+
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        fail("Importing XCFrameworks with static frameworks is not supported.")
+
+    xcframework_library = _get_xcframework_library(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        label = label,
+        parse_xcframework_info_plist = "apple.parse_xcframework_info_plist" in features,
+        target_triplet = target_triplet,
+        xcframework = xcframework,
+        xcode_config = xcode_config,
+    )
+
+    providers = []
+    providers.append(DefaultInfo(files = depset(xcframework_imports)))
+
+    # Create AppleFrameworkImportInfo provider
+    apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
+        build_archs = [apple_fragment.single_arch_cpu],
+        deps = deps,
+    )
+    providers.append(apple_framework_import_info)
+
+    additional_cc_infos = []
+    additional_objc_providers = []
+    if xcframework.files_by_category.swift_module_imports or has_swift:
+        swift_toolchain = swift_common.get_toolchain(ctx)
+        providers.append(SwiftUsageInfo())
+
+        # The Swift toolchain propagates Swift-specific linker flags (e.g.,
+        # library/framework search paths) as an implicit dependency. In the
+        # rare case that a binary has a Swift framework import dependency but
+        # no other Swift dependencies, make sure we pick those up so that it
+        # links to the standard libraries correctly.
+        additional_cc_infos.extend(swift_toolchain.implicit_deps_providers.cc_infos)
+        additional_objc_providers.extend(swift_toolchain.implicit_deps_providers.objc_infos)
+
+    # Create Objc provider
+    additional_objc_providers.extend([
+        dep[apple_common.Objc]
+        for dep in deps
+        if apple_common.Objc in dep
+    ])
+    objc_provider = framework_import_support.objc_provider_with_dependencies(
+        additional_objc_providers = additional_objc_providers,
+        alwayslink = alwayslink,
+        library = depset([xcframework_library.binary]),
+    )
+    providers.append(objc_provider)
+
+    # Create CcInfo provider
+    cc_info = framework_import_support.cc_info_with_dependencies(
+        actions = actions,
+        additional_cc_infos = additional_cc_infos,
+        cc_toolchain = cc_toolchain,
+        ctx = ctx,
+        deps = deps,
+        disabled_features = disabled_features,
+        features = features,
+        grep_includes = grep_includes,
+        header_imports = xcframework_library.headers,
+        label = label,
+        linkopts = linkopts,
+        swiftmodule_imports = [],
+        includes = xcframework_library.includes,
+    )
+    providers.append(cc_info)
+
+    # Create _SwiftInteropInfo provider if applicable
+    swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
+        deps = deps,
+        module_name = xcframework.bundle_name,
+        module_map_imports = [xcframework_library.swift_module_map],
+    )
+    if swift_interop_info:
+        providers.append(swift_interop_info)
+
+    return providers
+
 apple_dynamic_xcframework_import = rule(
     doc = """
 This rule encapsulates an already-built XCFramework. Defined by a list of files in a .xcframework
@@ -528,5 +652,69 @@ Unnecssary and ignored, will be removed in the future.
         apple_common.AppleDynamicFramework,
         apple_common.Objc,
     ],
+    toolchains = use_cpp_toolchain(),
+)
+
+apple_static_xcframework_import = rule(
+    doc = """
+This rule encapsulates an already-built XCFramework with static libraries. Defined by a list of
+files in a .xcframework directory. apple_xcframework_import targets need to be added as dependencies
+to library targets through the `deps` attribute.
+""",
+    implementation = _apple_static_xcframework_import_impl,
+    attrs = dicts.add(
+        rule_factory.common_tool_attributes,
+        swift_common.toolchain_attrs(),
+        {
+            "alwayslink": attr.bool(
+                default = False,
+                doc = """
+If true, any binary that depends (directly or indirectly) on this XCFramework will link in all the
+object files for the XCFramework bundle, even if some contain no symbols referenced by the binary.
+This is useful if your code isn't explicitly called by code in the binary; for example, if you rely
+on runtime checks for protocol conformances added in extensions in the library but do not directly
+reference any other symbols in the object file that adds that conformance.
+""",
+            ),
+            "deps": attr.label_list(
+                doc = """
+List of targets that are dependencies of the target being built, which will provide headers and be
+linked into that target.
+""",
+                providers = [
+                    [apple_common.Objc, CcInfo],
+                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                ],
+            ),
+            "has_swift": attr.bool(
+                doc = """
+A boolean indicating if the target has Swift source code. This helps flag XCFrameworks that do not
+include Swift interface files.
+""",
+                mandatory = False,
+                default = False,
+            ),
+            "linkopts": attr.string_list(
+                mandatory = False,
+                doc = """
+A list of strings representing extra flags that should be passed to the linker.
+""",
+            ),
+            "xcframework_imports": attr.label_list(
+                allow_empty = False,
+                allow_files = True,
+                mandatory = True,
+                doc = """
+List of files under a .xcframework directory which are provided to Apple based targets that depend
+on this target.
+""",
+            ),
+            "_cc_toolchain": attr.label(
+                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                doc = "The C++ toolchain to use.",
+            ),
+        },
+    ),
+    fragments = ["apple", "cpp"],
     toolchains = use_cpp_toolchain(),
 )
