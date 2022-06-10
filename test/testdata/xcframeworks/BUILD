@@ -115,6 +115,14 @@ generate_static_xcframework(
     tags = FIXTURE_TAGS,
 )
 
+generate_static_xcframework(
+    name = "generated_swift_static_xcframework_without_swiftmodule",
+    include_module_interface_files = False,
+    platforms = {"ios_simulator": ["x86_64"]},
+    swift_library = ":swift_lib_for_static_xcframework",
+    tags = FIXTURE_TAGS,
+)
+
 bzl_library(
     name = "generate_xcframework_bzl",
     srcs = ["generate_xcframework.bzl"],
