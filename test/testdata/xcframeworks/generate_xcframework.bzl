@@ -72,7 +72,7 @@ def _create_xcframework(
         headers = [],
         label,
         libraries = [],
-        swiftmodule = [],
+        module_interfaces = [],
         target_dir,
         xcode_config):
     """Generates XCFramework using xcodebuild.
@@ -84,7 +84,7 @@ def _create_xcframework(
         headers: A list of files referencing headers.
         label: Label of the target being built.
         libraries: A list of files referencing static libraries.
-        swiftmodule: List of files referencing Swift module files.
+        module_interfaces: List of files referencing Swift module interface files.
         target_dir: Path referencing directory of the current target.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
@@ -134,16 +134,16 @@ def _create_xcframework(
         ])
         args.extend(["-framework", framework_path])
 
-    for module_file in swiftmodule:
-        inputs.append(module_file)
+    for module_interface in module_interfaces:
+        inputs.append(module_interface)
 
         # xcodebuild removes swiftmodule files for XCFrameworks.
         # This filters out these files to avoid Bazel errors due
         # no action generating these files.
-        if module_file.extension == "swiftmodule":
+        if module_interface.extension == "swiftmodule":
             continue
         outputs.append(actions.declare_file(
-            paths.relativize(module_file.short_path, intermediates_directory),
+            paths.relativize(module_interface.short_path, intermediates_directory),
             sibling = info_plist,
         ))
 
@@ -281,6 +281,7 @@ def _generate_static_xcframework_impl(ctx):
     srcs = ctx.files.srcs
     hdrs = ctx.files.hdrs
     swift_library = ctx.files.swift_library
+    include_module_interface_files = ctx.attr.include_module_interface_files
 
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
@@ -299,8 +300,8 @@ def _generate_static_xcframework_impl(ctx):
 
     headers = []
     libraries = []
+    module_interfaces = []
     outputs = []
-    swiftmodule = []
     swift_headers = []
     for platform in platforms:
         architectures = platforms[platform]
@@ -343,14 +344,15 @@ def _generate_static_xcframework_impl(ctx):
             static_library = static_library_intermediate.pop()
 
             # Copy Swift module files to intermediate directory
-            static_library_name, _ = paths.split_extension(static_library.basename)
-            swiftmodule_name = static_library_name[3:]  # remove 'lib' prefix
-            swiftmodule_path = paths.join(library_path, swiftmodule_name + ".swiftmodule")
-            swiftmodule = generation_support.copy_files(
-                actions = actions,
-                files = [f for f in swift_library if f.extension.startswith("swift")],
-                base_path = swiftmodule_path,
-            )
+            if include_module_interface_files:
+                static_library_name, _ = paths.split_extension(static_library.basename)
+                swiftmodule_name = static_library_name[3:]  # remove 'lib' prefix
+                swiftmodule_path = paths.join(library_path, swiftmodule_name + ".swiftmodule")
+                module_interfaces = generation_support.copy_files(
+                    actions = actions,
+                    files = [f for f in swift_library if f.extension.startswith("swift")],
+                    base_path = swiftmodule_path,
+                )
 
             # Copy swiftc generated headers to intermediate directory
             swift_headers = [f for f in swift_library if f.extension == "h"]
@@ -386,7 +388,7 @@ def _generate_static_xcframework_impl(ctx):
         headers = headers,
         label = label,
         libraries = libraries,
-        swiftmodule = swiftmodule,
+        module_interfaces = module_interfaces,
         target_dir = target_dir,
         xcode_config = xcode_config,
     )
@@ -515,7 +517,7 @@ represented as a dotted version number as values.
                 mandatory = False,
             ),
             "generate_modulemap": attr.bool(
-                doc = """Flag to indicate if modulemap generation is enabled.""",
+                doc = "Flag to indicate if modulemap generation is enabled.",
                 mandatory = False,
                 default = True,
             ),
@@ -528,6 +530,14 @@ Label referencing a `swift_library` target to source static library and module t
 generated XCFramework bundle. Target platform and architecture must match with the `platforms`
 attribute. This means that if you're building using `bazel build --config=ios_x86_64`, then the
 `platforms` attribute must define the following dictionary: {"ios_simulator": ["x86_64"]}.
+""",
+            ),
+            "include_module_interface_files": attr.bool(
+                default = True,
+                doc = """
+Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` directory) from the
+`swift_library` target should be included in the XCFramework bundle or discarded for testing
+purposes.
 """,
             ),
         },
