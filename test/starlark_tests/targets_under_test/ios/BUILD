@@ -1693,6 +1693,47 @@ EOF
 """,
 )
 
+# Objective-C app with imported Swift XCFramework with no .swiftmodule files and has_swift enabled
+ios_application(
+    name = "app_with_imported_swift_xcframework_with_static_library_without_swiftmodule",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":swift_static_xcframework_without_swiftmodule_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "swift_static_xcframework_without_swiftmodule_depending_objc_lib",
+    srcs = ["ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
+)
+
+genrule(
+    name = "objc_with_swift_static_xcframework_without_swiftmodule_src",
+    outs = ["ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m"],
+    cmd = """cat > $@ <<EOF
+#import <generated_swift_static_xcframework_without_swiftmodule.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_imessage_application(

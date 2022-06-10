@@ -908,3 +908,10 @@ apple_static_xcframework_import(
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
 )
+
+apple_static_xcframework_import(
+    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
+    has_swift = True,
+    visibility = ["//visibility:public"],
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework_without_swiftmodule"],
+)

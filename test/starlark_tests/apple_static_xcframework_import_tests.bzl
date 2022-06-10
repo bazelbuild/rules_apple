@@ -26,7 +26,7 @@ def apple_static_xcframework_import_test_suite(name):
 
     # Verify importing XCFramework with static frameworks (i.e. not libraries) fails.
     analysis_failure_message_test(
-        name = "{}_fails_importing_xcframework_with_libraries_test".format(name),
+        name = "{}_fails_importing_xcframework_with_static_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks",
         expected_error = "Importing XCFrameworks with static frameworks is not supported.",
         tags = [name],
@@ -48,10 +48,10 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Verify ios_application with XCFramework with Swift static library dependency contains symbols,
-    # bundles Swift standar libraries, and does not bundle XCFramework under Frameworks/
+    # Verify ios_application with an imported XCFramework that has a Swift static library
+    # contains symbols visible to Objective-C, and bundles Swift standard libraries.
     archive_contents_test(
-        name = "{}_swift_with_imported_static_fmwk_contains_symbols_and_not_bundles_files".format(name),
+        name = "{}_swift_with_imported_static_fmwk_contains_symbols_and_bundles_swift_std_libraries".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library",
         binary_test_file = "$BINARY",
@@ -60,7 +60,22 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$__TtC32swift_lib_for_static_xcframework11SharedClass",
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
+        tags = [name],
+    )
+
+    # Verify Swift standard libraries are bundled for an imported XCFramework that has a Swift
+    # static library containing no module interface files (.swiftmodule directory) and where the
+    # import rule sets `has_swift` = True.
+    archive_contents_test(
+        name = "{}_swift_with_no_module_interface_files_and_has_swift_attr_enabled_bundles_swift_std_libraries".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library_without_swiftmodule",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "_OBJC_CLASS_$__TtC32swift_lib_for_static_xcframework11SharedClass",
+        ],
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 
