@@ -295,8 +295,8 @@ machine, or with the optional 'fallback_profiles' passed to
 'provisioning_profile_repository'. This will automatically pick the newest
 profile if there are multiple profiles matching the given criteria. By default
 this rule will search for a profile with the same name as the rule itself, you
-can pass profile_name to use a different name or UUID, and you can pass team_id
-if you'd like to disambiguate between 2 Apple developer accounts that have the
+can pass profile_name to use a different name, and you can pass team_id if
+you'd like to disambiguate between 2 Apple developer accounts that have the
 same profile name.
 
 ## Example
@@ -332,7 +332,7 @@ ios_application(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="local_provisioning_profile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="local_provisioning_profile-profile_name"></a>profile_name |  Name (or UUID) of the profile to use, if it's not provided the name of the rule is used   | String | optional | "" |
+| <a id="local_provisioning_profile-profile_name"></a>profile_name |  Name of the profile to use, if it's not provided the name of the rule is used   | String | optional | "" |
 | <a id="local_provisioning_profile-team_id"></a>team_id |  Team ID of the profile to find. This is useful for disambiguating between multiple profiles with the same name on different developer accounts.   | String | optional | "" |
 
 
