@@ -39,8 +39,7 @@ def _cc_info_with_dependencies(
         header_imports,
         label,
         linkopts = [],
-        includes = [],
-        swiftmodule_imports = []):
+        includes = []):
     """Returns a new CcInfo which includes transitive Cc dependencies.
 
     Args:
@@ -57,8 +56,6 @@ def _cc_info_with_dependencies(
         includes: List of included headers search paths (defaults to: []).
         label: Label of the target being built.
         linkopts: List of linker flags strings to propagate as linker input.
-        swiftmodule_imports: List of imported Swift module files to include during build phase,
-            but aren't processed in any way.
     Returns:
         CcInfo provider.
     """
@@ -72,15 +69,12 @@ def _cc_info_with_dependencies(
         unsupported_features = disabled_features,
     )
 
-    public_hdrs = []
-    public_hdrs.extend(header_imports)
-    public_hdrs.extend(swiftmodule_imports)
     (compilation_context, _compilation_outputs) = cc_common.compile(
         name = label.name,
         actions = actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
-        public_hdrs = public_hdrs,
+        public_hdrs = header_imports,
         framework_includes = framework_includes,
         includes = includes,
         compilation_contexts = dep_compilation_contexts,

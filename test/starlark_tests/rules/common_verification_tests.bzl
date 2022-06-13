@@ -37,7 +37,6 @@ def archive_contents_test(
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
-        binary_contains_regex_symbols = [],
         binary_not_contains_symbols = [],
         macho_load_commands_contain = [],
         macho_load_commands_not_contain = [],
@@ -82,9 +81,6 @@ def archive_contents_test(
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
-        binary_contains_regex_symbols: Optional, a list of regular expressions to match symbols
-            that should appear in the binary file specified in `binary_test_file`. Regular
-            expressions must follow POSIX Basic Regular Expression (BRE) syntax.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
         macho_load_commands_contain: Optional, A list of Mach-O load commands that should appear in
@@ -111,24 +107,21 @@ def archive_contents_test(
         if any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
         ]) and not binary_test_architecture:
             fail("Need binary_test_architecture when checking symbols")
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
             macho_load_commands_contain,
             macho_load_commands_not_contain,
         ]):
             fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
-                 "binary_contains_regex_symbols, macho_load_commands_contain, " +
-                 "macho_load_commands_not_contain) when specifying binary_test_architecture")
+                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+                 "binary_test_architecture")
     else:
         if any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
             binary_test_architecture,
         ]):
             fail("Need binary_test_file to check the binary for symbols")
@@ -173,7 +166,6 @@ def archive_contents_test(
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
-            "BINARY_CONTAINS_REGEX_SYMBOLS": binary_contains_regex_symbols,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
             "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
         },

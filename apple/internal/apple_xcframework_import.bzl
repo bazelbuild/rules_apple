@@ -456,7 +456,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
         label = label,
-        swiftmodule_imports = xcframework_library.swiftmodule,
     )
     providers.append(cc_info)
 
@@ -563,7 +562,6 @@ def _apple_static_xcframework_import_impl(ctx):
         header_imports = xcframework_library.headers,
         label = label,
         linkopts = linkopts,
-        swiftmodule_imports = [],
         includes = xcframework_library.includes,
     )
     providers.append(cc_info)

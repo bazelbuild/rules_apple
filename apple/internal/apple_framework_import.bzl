@@ -68,20 +68,6 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
-def _swiftmodule_for_cpu(swiftmodule_files, cpu):
-    """Select the cpu specific swiftmodule."""
-
-    # The paths will be of the following format:
-    #   ABC.framework/Modules/ABC.swiftmodule/<arch>.swiftmodule
-    # Where <arch> will be a common arch like x86_64, arm64, etc.
-    named_files = {f.basename: f for f in swiftmodule_files}
-
-    module = named_files.get("{}.swiftmodule".format(cpu))
-    if not module and cpu == "armv7":
-        module = named_files.get("arm.swiftmodule")
-
-    return module
-
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
@@ -102,29 +88,6 @@ def _grouped_framework_files(framework_imports):
              "single '.framework' bundle.", attr = "framework_imports")
 
     return framework_groups
-
-def _is_debugging(compilation_mode):
-    """Returns `True` if the current compilation mode produces debug info.
-
-    rules_apple specific implementation of rules_swift's `is_debugging`, which
-    is not currently exported.
-
-    See: https://github.com/bazelbuild/rules_swift/blob/44146fccd9e56fe1dc650a4e0f21420a503d301c/swift/internal/api.bzl#L315-L326
-    """
-    return compilation_mode in ("dbg", "fastbuild")
-
-def _ensure_swiftmodule_is_embedded(swiftmodule):
-    """Ensures that a `.swiftmodule` file is embedded in a library or binary.
-
-    rules_apple specific implementation of rules_swift's
-    `ensure_swiftmodule_is_embedded`, which is not currently exported.
-
-    See: https://github.com/bazelbuild/rules_swift/blob/e78ceb37c401a9bf9e551a6accd1df7d864688d5/swift/internal/debugging.bzl#L20-L47
-    """
-    return dict(
-        linkopt = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
-        link_inputs = depset([swiftmodule]),
-    )
 
 def _framework_search_paths(header_imports):
     """Return the list framework search paths for the headers_imports."""
@@ -191,7 +154,6 @@ def _apple_dynamic_framework_import_impl(ctx):
         grep_includes = grep_includes,
         header_imports = framework_imports_by_category.header_imports,
         label = label,
-        swiftmodule_imports = framework_imports_by_category.swift_module_imports,
     )
     providers.append(cc_info)
 
@@ -222,7 +184,6 @@ def _apple_static_framework_import_impl(ctx):
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink
     cc_toolchain = find_cpp_toolchain(ctx)
-    compilation_mode = ctx.var["COMPILATION_MODE"]
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -263,15 +224,6 @@ def _apple_static_framework_import_impl(ctx):
         additional_objc_providers.extend(toolchain.implicit_deps_providers.objc_infos)
         additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
 
-        if _is_debugging(compilation_mode):
-            swiftmodule = _swiftmodule_for_cpu(
-                framework_imports_by_category.swift_module_imports,
-                cpu,
-            )
-            if not swiftmodule:
-                fail("ERROR: Missing imported swiftmodule for {}".format(cpu))
-            additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
-
     # Create apple_common.Objc provider.
     additional_objc_providers.extend([
         dep[apple_common.Objc]
@@ -306,7 +258,6 @@ def _apple_static_framework_import_impl(ctx):
             grep_includes = grep_includes,
             header_imports = framework_imports_by_category.header_imports,
             label = label,
-            swiftmodule_imports = framework_imports_by_category.swift_module_imports,
         ),
     )
 
