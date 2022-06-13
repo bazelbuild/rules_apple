@@ -37,13 +37,13 @@ def _profile_contents(profile: str) -> Tuple[str, datetime.datetime, str]:
 
 
 def _find_newest_profile(
-    expected_identifier: str, team_id: Optional[str], profiles: List[str]
+    expected_specifier: str, team_id: Optional[str], profiles: List[str]
 ) -> Optional[str]:
     newest_path: Optional[str] = None
     newest_date: Optional[datetime.datetime] = None
     for profile in profiles:
         profile_name, profile_uuid, creation_date, actual_team_id = _profile_contents(profile)
-        if profile_name != expected_identifier and profile_uuid != expected_identifier:
+        if profile_name != expected_specifier and profile_uuid != expected_specifier:
             continue
         if team_id and team_id != actual_team_id:
             continue
