@@ -38,12 +38,18 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
     _apple_core_data_model = "apple_core_data_model",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    _resources_common = "resources",
+)
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_core_data_model = _apple_core_data_model
+
+resources_common = _resources_common
 
 # TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
 def apple_core_ml_library(name, mlmodel, **kwargs):
