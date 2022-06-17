@@ -98,3 +98,16 @@ ios_application(
 
 See the [examples](https://github.com/bazelbuild/rules_apple/tree/master/examples)
 directory for sample applications.
+
+## Supported bazel versions
+
+rules_apple and rules_swift are often affected by changes in bazel
+itself. This means you generally need to update these rules as you
+update bazel.
+
+You can also see the supported bazel versions in the notes for each
+release on the [releases
+page](https://github.com/bazelbuild/rules_apple/releases).
+
+Besides these constraint this repo follows [semver](https://semver.org/)
+as best as we can since the 1.0.0 release.
