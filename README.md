@@ -114,7 +114,7 @@ as best as we can since the 1.0.0 release.
 
 | Bazel release | Minimum supported rules version | Final supported rules version|
 |:-------------------:|:-------------------:|:-------------------------:|
-| 6.x (most recent rolling) | 0.34.0 | current |
+| 6.x (most recent rolling) | 0.34.2 | current |
 | 5.x | 0.33.0 | current |
 | 4.x | 0.30.0 | 0.32.0 |
 | 3.x | 0.20.0 | 0.21.2 |
