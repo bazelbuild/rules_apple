@@ -330,7 +330,7 @@ def _infoplists(
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir, "Info.plist"),
         )
-        processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
+        processed_origins[out_plist.path] = [f.path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
             bundle_id = bundle_id,
@@ -499,7 +499,7 @@ def _plists_and_strings(
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir or "", file.basename),
         )
-        processed_origins[plist_file.short_path] = [file.short_path]
+        processed_origins[plist_file.path] = [file.path]
         resource_actions.compile_plist(
             actions = actions,
             input_file = file,
@@ -551,7 +551,7 @@ def _pngs(
             output_discriminator = output_discriminator,
             file_name = png_path,
         )
-        processed_origins[png_file.short_path] = [file.short_path]
+        processed_origins[png_file.path] = [file.path]
         resource_actions.copy_png(
             actions = actions,
             input_file = file,
@@ -716,7 +716,7 @@ def _noop(
     """Registers files to be bundled as is."""
     processed_origins = {}
     for file in files.to_list():
-        processed_origins[file.short_path] = [file.short_path]
+        processed_origins[file.path] = [file.path]
     return struct(
         files = [(processor.location.resource, parent_dir, files)],
         processed_origins = processed_origins,

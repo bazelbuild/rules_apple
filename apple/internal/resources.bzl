@@ -214,13 +214,14 @@ def _bucketize_data(
         allowed_bucket_set = {k: None for k in allowed_buckets}
 
     for resource in resources:
-        # Local cache of the resource short path since it gets used quite a bit below.
+        # Local cache of the resource path since it gets used quite a bit below.
+        resource_path = resource.path
         resource_short_path = resource.short_path
 
         if owner:
-            owners.append((resource_short_path, owner))
+            owners.append((resource_path, owner))
         else:
-            unowned_resources.append(resource_short_path)
+            unowned_resources.append(resource_path)
 
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
@@ -349,11 +350,12 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
     unowned_resources = []
 
     for resource in resources:
+        resource_path = resource.path
         resource_short_path = resource.short_path
         if owner:
-            owners.append((resource_short_path, owner))
+            owners.append((resource_path, owner))
         else:
-            unowned_resources.append(resource_short_path)
+            unowned_resources.append(resource_path)
 
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
@@ -499,9 +501,9 @@ def _process_bucketized_data(
             for _, _, processed_files in result.files:
                 for processed_file in processed_files.to_list():
                     if processing_owner:
-                        bucketized_owners.append((processed_file.short_path, processing_owner))
+                        bucketized_owners.append((processed_file.path, processing_owner))
                     else:
-                        unowned_resources.append(processed_file.short_path)
+                        unowned_resources.append(processed_file.path)
 
     return AppleResourceInfo(
         owners = depset(bucketized_owners),

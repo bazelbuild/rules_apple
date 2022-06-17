@@ -168,15 +168,15 @@ def _deduplicate(
           duplicating files referenced by library targets and top level targets.
 
     Returns:
-      A list of tuples with the resources present in avoid_providers removed from
-      resources_providers.
+      A list of tuples with the resources present in avoid_provider removed from
+      resources_provider.
     """
 
     avoid_dict = {}
     if avoid_provider and hasattr(avoid_provider, field):
         for parent_dir, swift_module, files in getattr(avoid_provider, field):
             key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-            avoid_dict[key] = {x.short_path: None for x in files.to_list()}
+            avoid_dict[key] = {x.path: None for x in files.to_list()}
 
     # Get the resources to keep, compare them to the avoid_dict under the same
     # key, and remove the duplicated file references. Then recreate the original
@@ -199,21 +199,22 @@ def _deduplicate(
 
         deduped_files = []
         for to_bundle_file in files.to_list():
+            path = to_bundle_file.path
             short_path = to_bundle_file.short_path
             if short_path in multi_architecture_deduplication_set:
                 continue
             multi_architecture_deduplication_set[short_path] = None
-            if key in avoid_dict and short_path in avoid_dict[key]:
+            if key in avoid_dict and path in avoid_dict[key]:
                 # If the resource file is present in the provider of resources to avoid, we compare
                 # the owners of the resource through the owners dictionaries of the providers. If
                 # there are owners present in resources_provider which are not present in
                 # avoid_provider, it means that there is at least one target that declares usage of
                 # the resource which is not accounted for in avoid_provider. If this is the case, we
-                # add the resource to be bundled in the bundle represented by resource_provider.
+                # add the resource to be bundled in the bundle represented by resources_provider.
                 deduped_owners = [
                     o
-                    for o in owners[short_path]
-                    if o not in avoid_owners[short_path]
+                    for o in owners[path]
+                    if o not in avoid_owners[path]
                 ]
                 if not deduped_owners:
                     continue
@@ -221,7 +222,7 @@ def _deduplicate(
             if field == "processed":
                 # Check for duplicates referencing our map of where the processed resources were
                 # based from.
-                path_origins = processed_origins[short_path]
+                path_origins = processed_origins[path]
                 if path_origins in processed_deduplication_list:
                     continue
                 processed_deduplication_list.append(path_origins)
@@ -233,9 +234,9 @@ def _deduplicate(
                     for path_origins in processed_deduplication_list
                     for path_origin in path_origins
                 ]
-                if short_path in all_path_origins:
+                if path in all_path_origins:
                     continue
-                processed_deduplication_list.append([short_path])
+                processed_deduplication_list.append([path])
 
             deduped_files.append(to_bundle_file)
 
