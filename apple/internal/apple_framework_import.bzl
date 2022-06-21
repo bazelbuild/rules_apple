@@ -247,7 +247,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     ]
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = transitive_objc_providers,
-        dynamic_framework_file = depset([] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports),
+        dynamic_framework_file = [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
     )
     providers.append(objc_provider)
 
