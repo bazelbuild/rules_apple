@@ -138,7 +138,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     ]
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = transitive_objc_providers,
-        dynamic_framework_file = depset(framework_imports_by_category.binary_imports),
+        dynamic_framework_file = framework_imports_by_category.binary_imports,
     )
     providers.append(objc_provider)
 
@@ -237,7 +237,7 @@ def _apple_static_framework_import_impl(ctx):
             alwayslink = alwayslink,
             sdk_dylib = sdk_dylibs,
             sdk_framework = sdk_frameworks,
-            static_framework_file = depset(framework_imports_by_category.binary_imports),
+            static_framework_file = framework_imports_by_category.binary_imports,
             weak_sdk_framework = weak_sdk_frameworks,
         ),
     )

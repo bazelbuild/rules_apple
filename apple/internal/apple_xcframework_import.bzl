@@ -440,7 +440,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
             for dep in deps
             if apple_common.Objc in dep
         ],
-        dynamic_framework_file = depset([xcframework_library.binary]),
+        dynamic_framework_file = [xcframework_library.binary],
     )
     providers.append(objc_provider)
 
@@ -545,7 +545,7 @@ def _apple_static_xcframework_import_impl(ctx):
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = additional_objc_providers,
         alwayslink = alwayslink,
-        library = depset([xcframework_library.binary]),
+        library = [xcframework_library.binary],
     )
     providers.append(objc_provider)
 
