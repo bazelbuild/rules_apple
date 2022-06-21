@@ -437,7 +437,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
             for dep in deps
             if apple_common.Objc in dep
         ],
-        dynamic_framework_file = depset([] if ctx.attr.bundle_only else [xcframework_library.binary]),
+        dynamic_framework_file = [] if ctx.attr.bundle_only else [xcframework_library.binary],
     )
     providers.append(objc_provider)
 
@@ -517,9 +517,9 @@ def _apple_static_xcframework_import_impl(ctx):
     fields = {}
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
         framework_imports = [xcframework_library.binary] + xcframework_library.framework_imports
-        fields = {"static_framework_file": depset([xcframework_library.binary])}
+        fields = {"static_framework_file": [xcframework_library.binary]}
     else:
-        fields = {"library": depset([xcframework_library.binary])}
+        fields = {"library": [xcframework_library.binary]}
 
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
