@@ -2,6 +2,10 @@ load(
     "//apple:apple_binary.bzl",
     "apple_binary",
 )
+load(
+    "//apple:apple_static_library.bzl",
+    "apple_static_library",
+)
 
 # Public only because these are used by the integration tests from generated
 # workspaces. Please no not depend on them as they can change at any time.
