@@ -23,7 +23,7 @@ if [[ "$BUILD_TYPE" == "simulator" ]]; then
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
 elif [[ "$BUILD_TYPE" == "device" ]]; then
-  codesign -d --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
+  codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
 else
   fail "Unsupported BUILD_TYPE = $BUILD_TYPE for this test"
 fi
