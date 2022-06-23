@@ -17,6 +17,7 @@
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
+    "binary_contents_test",
 )
 load(
     ":rules/infoplist_contents_test.bzl",
@@ -132,6 +133,37 @@ def tvos_framework_test_suite(name):
             "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_load_and_runtime_framework_dep",
+        tags = [name],
+    )
+
+    # Test that if a tvos_framework target depends on a prebuilt static library (i.e.,
+    # apple_static_framework_import), that the static library is defined in the tvos_framework.
+    binary_contents_test(
+        name = "{}_defines_static_library_impl".format(name),
+        build_type = "simulator",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_static_framework.framework/fmwk_with_imported_static_framework",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_runtime_framework_using_import_static_lib_dep",
+        tags = [name],
+    )
+
+    # Test that if a tvos_framework target depends on a prebuilt static library (i.e.,
+    # apple_static_framework_import), that the static library is NOT defined in its associated
+    # tvos_application.
+    binary_contents_test(
+        name = "{}_associated_tvos_application_does_not_define_static_library_impl".format(name),
+        build_type = "simulator",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BINARY",
+        binary_not_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_runtime_framework_using_import_static_lib_dep",
         tags = [name],
     )
 
