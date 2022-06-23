@@ -11,6 +11,7 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_static_framework_import",
 )
 load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
@@ -174,6 +175,21 @@ tvos_application(
     ],
 )
 
+tvos_application(
+    name = "app_with_runtime_framework_using_import_static_lib_dep",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_imported_static_framework"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 tvos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
@@ -261,6 +277,19 @@ tvos_framework(
     ],
 )
 
+tvos_framework(
+    name = "fmwk_with_imported_static_framework",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":static_fmwk_depending_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 objc_library(
@@ -283,6 +312,27 @@ generate_import_framework(
     minimum_os_version = "9.0",
     sdk = "appletvsimulator",
     tags = FIXTURE_TAGS,
+)
+
+# ---------------------------------------------------------------------------------------
+
+objc_library(
+    name = "static_fmwk_depending_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    deps = [":imported_tvos_static_fmwk"],
+)
+
+apple_static_framework_import(
+    name = "imported_tvos_static_fmwk",
+    framework_imports = [":generated_tvos_static_fmwk"],
+)
+
+generate_import_framework(
+    name = "generated_tvos_static_fmwk",
+    archs = ["x86_64"],
+    libtype = "static",
+    minimum_os_version = "9.0",
+    sdk = "appletvsimulator",
 )
 
 # ---------------------------------------------------------------------------------------
