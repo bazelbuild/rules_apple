@@ -357,6 +357,19 @@ tvos_unit_test(
     ],
 )
 
+tvos_unit_test(
+    name = "unit_test_with_fmwk_from_objc_library_runtime_deps",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":objc_lib_with_runtime_dep_fmwk",
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 tvos_application(
