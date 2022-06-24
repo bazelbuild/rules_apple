@@ -19,6 +19,10 @@ load(
     "apple_verification_test",
 )
 load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -70,6 +74,16 @@ def tvos_unit_test_test_suite(name):
             "MinimumOSVersion": "9.0",
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_bundles_framework_from_objc_library_runtime_deps".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk_from_objc_library_runtime_deps",
         tags = [name],
     )
 

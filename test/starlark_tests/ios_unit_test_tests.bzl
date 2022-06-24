@@ -104,6 +104,16 @@ def ios_unit_test_test_suite(name):
     )
 
     archive_contents_test(
+        name = "{}_test_target_bundles_framework_from_objc_library_runtime_deps".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_8_0_minimum.framework/fmwk_8_0_minimum",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_fmwk_from_objc_library_runtime_deps",
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_test_target_bundles_imported_framework".format(name),
         build_type = "simulator",
         contains = [
