@@ -296,8 +296,7 @@ def _debug_symbols_partial_impl(
                 transitive = [dsym_bundles],
             )
 
-    if platform_prerequisites.objc_fragment:
-        if platform_prerequisites.objc_fragment.generate_linkmap:
+        if platform_prerequisites.cpp_fragment.objc_generate_linkmap:
             linkmaps = _collect_linkmaps(
                 actions = actions,
                 debug_output_filename = debug_output_filename,
