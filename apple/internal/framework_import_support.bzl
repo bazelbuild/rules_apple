@@ -65,7 +65,8 @@ def _cc_info_with_dependencies(
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = features + ["lang_objc"],  # b/210775356
+        language = "objc",
+        requested_features = features,
         unsupported_features = disabled_features,
     )
 
