@@ -288,7 +288,6 @@ swift_library(
 apple_xcframework(
     name = "ios_dynamic_xcframework",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -309,7 +308,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -337,7 +335,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_lipoed_swift_xcframework",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -360,7 +357,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_min_ver_10",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -384,7 +380,6 @@ apple_xcframework(
     families_required = {
         "ios": ["ipad"],
     },
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
@@ -406,7 +401,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_multiple_infoplists",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
@@ -432,7 +426,6 @@ apple_xcframework(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:resource_bundle",
     ],
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -453,7 +446,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_with_deps_resource_bundle",
     bundle_id = "com.google.example",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -480,7 +472,6 @@ apple_xcframework(
     exported_symbols_lists = [
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -506,7 +497,6 @@ apple_xcframework(
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
         "//test/starlark_tests/resources:ExportDontCallMeShared.exp",
     ],
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -531,7 +521,6 @@ apple_xcframework(
     exported_symbols_lists = [
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -554,7 +543,6 @@ apple_xcframework(
     name = "ios_swift_xcframework_with_generated_header",
     bundle_id = "com.google.example",
     bundle_name = "SwiftFmwkWithGenHeader",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -581,7 +569,6 @@ apple_xcframework(
     name = "ios_dynamic_xcframework_with_umbrella_header_conflict",
     bundle_id = "com.google.example",
     bundle_name = "UmbrellaHeaderConflict",
-    framework_type = ["dynamic"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
