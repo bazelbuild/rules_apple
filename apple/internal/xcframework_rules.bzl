@@ -489,10 +489,6 @@ def _apple_xcframework_impl(ctx):
     # as this value is not used in the XCFramework's root Info.plist.
     nested_bundle_id = ctx.attr.bundle_id
 
-    for framework_type in ctx.attr.framework_type:
-        if framework_type != "dynamic":
-            fail("Unsupported framework_type found: " + framework_type)
-
     link_result = linking_support.register_binary_linking_action(
         ctx,
         # Frameworks do not have entitlements.
@@ -821,13 +817,6 @@ appropriate resources location within each of the embedded framework bundles.
 A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
 values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
 Currently, this only affects processing of `ios` resources.
-""",
-            ),
-            "framework_type": attr.string_list(
-                doc = """
-Indicates what type of framework the output should be, if defined. Currently only `dynamic` is
-supported. If this is not given, the default is to have all contained frameworks built as dynamic
-frameworks.
 """,
             ),
             "exported_symbols_lists": attr.label_list(
