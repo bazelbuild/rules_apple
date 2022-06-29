@@ -302,7 +302,7 @@ def _generate_static_xcframework_impl(ctx):
     libraries = []
     module_interfaces = []
     outputs = []
-    swift_headers = []
+    umbrella_header = None
     for platform in platforms:
         architectures = platforms[platform]
         library_identifier = _platform_to_library_identifier(
@@ -310,6 +310,7 @@ def _generate_static_xcframework_impl(ctx):
             architectures = architectures,
         )
         library_path = paths.join("intermediates", library_identifier)
+        headers_path = paths.join(library_path, "Headers")
 
         if not swift_library:
             # Compile library
@@ -334,51 +335,61 @@ def _generate_static_xcframework_impl(ctx):
                 parent_dir = library_identifier,
                 xcode_config = xcode_config,
             )
+
+            # Copy headers and generate umbrella header
+            headers.extend([
+                generation_support.copy_file(
+                    actions = actions,
+                    file = header,
+                    base_path = headers_path,
+                )
+                for header in hdrs
+            ])
+            umbrella_header = generation_support.generate_umbrella_header(
+                actions = actions,
+                bundle_name = label.name,
+                headers = hdrs,
+                headers_path = headers_path,
+            )
+            headers.append(umbrella_header)
         else:
             # Copy static library to intermediate directory
-            static_library_intermediate = generation_support.copy_files(
+            static_library = generation_support.copy_file(
                 actions = actions,
-                files = [f for f in swift_library if f.extension == "a"],
                 base_path = library_path,
+                file = generation_support.get_file_with_extension(
+                    files = swift_library,
+                    extension = "a",
+                ),
+                target_filename = label.name + ".a",
             )
-            static_library = static_library_intermediate.pop()
 
             # Copy Swift module files to intermediate directory
             if include_module_interface_files:
-                static_library_name, _ = paths.split_extension(static_library.basename)
-                swiftmodule_name = static_library_name[3:]  # remove 'lib' prefix
-                swiftmodule_path = paths.join(library_path, swiftmodule_name + ".swiftmodule")
-                module_interfaces = generation_support.copy_files(
-                    actions = actions,
-                    files = [f for f in swift_library if f.extension.startswith("swift")],
-                    base_path = swiftmodule_path,
-                )
+                swiftmodule_path = paths.join(library_path, label.name + ".swiftmodule")
+                module_interfaces = [
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = interface_file,
+                        base_path = swiftmodule_path,
+                    )
+                    for interface_file in swift_library
+                    if interface_file.extension.startswith("swift")
+                ]
 
             # Copy swiftc generated headers to intermediate directory
-            swift_headers = [f for f in swift_library if f.extension == "h"]
-            headers.extend(generation_support.copy_files(
-                actions = actions,
-                files = swift_headers,
-                base_path = paths.join(library_path, "Headers"),
-            ))
+            headers.append(
+                generation_support.copy_file(
+                    actions = actions,
+                    base_path = headers_path,
+                    file = generation_support.get_file_with_extension(
+                        files = swift_library,
+                        extension = "h",
+                    ),
+                    target_filename = label.name + ".h",
+                ),
+            )
 
-        # Copy headers and generate umbrella header
-        headers_path = paths.join(library_path, "Headers")
-        headers.extend(
-            generation_support.copy_files(
-                actions = actions,
-                files = hdrs,
-                base_path = headers_path,
-            ),
-        )
-        headers.append(
-            generation_support.generate_umbrella_header(
-                actions = actions,
-                bundle_name = label.name,
-                headers = hdrs + swift_headers,
-                headers_path = headers_path,
-            ),
-        )
         libraries.append(static_library)
 
     # Create static XCFramework
@@ -396,11 +407,13 @@ def _generate_static_xcframework_impl(ctx):
 
     # Generate modulemap and copy to XCFramework
     if generate_modulemap:
-        module_map_path = paths.join(label.name, "Modules")
+        module_map_path = paths.join(label.name, "Headers")
         modulemap = generation_support.generate_module_map(
             actions = actions,
             bundle_name = label.name,
+            headers = headers,
             module_map_path = module_map_path,
+            umbrella_header = umbrella_header,
         )
         outputs.extend(_copy_modules_to_xcframework(
             actions = actions,

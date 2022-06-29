@@ -249,22 +249,23 @@ def _create_framework(
 
     if headers:
         headers_path = paths.join(framework_directory, "Headers")
-        framework_files.extend(
-            _copy_files(
+        framework_files.extend([
+            _copy_file(
                 actions = actions,
-                files = headers,
+                file = header,
                 base_path = headers_path,
-            ),
+            )
+            for header in headers
+        ])
+        umbrella_header = _generate_umbrella_header(
+            actions = actions,
+            bundle_name = bundle_name,
+            headers = headers,
+            headers_path = headers_path,
+            is_framework_umbrella_header = True,
         )
-        framework_files.append(
-            _generate_umbrella_header(
-                actions = actions,
-                bundle_name = bundle_name,
-                headers = headers,
-                headers_path = headers_path,
-                is_framework_umbrella_header = True,
-            ),
-        )
+        framework_files.append(umbrella_header)
+
         module_map_path = paths.join(framework_directory, "Modules")
         framework_files.append(
             _generate_module_map(
@@ -272,42 +273,53 @@ def _create_framework(
                 bundle_name = bundle_name,
                 is_framework_module = True,
                 module_map_path = module_map_path,
+                umbrella_header = umbrella_header,
             ),
         )
 
     if swiftmodule:
         modules_path = paths.join(framework_directory, "Modules", bundle_name + ".swiftmodule")
-        framework_files.extend(
-            _copy_files(
+        framework_files.extend([
+            _copy_file(
                 actions = actions,
-                files = swiftmodule,
+                file = interface_file,
                 base_path = modules_path,
-            ),
-        )
+            )
+            for interface_file in swiftmodule
+        ])
 
     return framework_files
 
-def _copy_files(*, actions, files, base_path):
-    """Copies files to a target directory.
+def _copy_file(*, actions, base_path, file, target_filename = None):
+    """Copies file to a target directory.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        files: List of files to copy.
         base_path: Base path for the copied files.
+        file: File to copy.
+        target_filename: (optional) String for target filename. If None, file basename is used.
     Returns:
         List of copied files.
     """
-    if not files:
-        return []
+    filename = target_filename if target_filename else file.basename
+    copied_file_path = paths.join(base_path, filename)
+    copied_file = actions.declare_file(copied_file_path)
+    actions.symlink(output = copied_file, target_file = file)
+    return copied_file
 
-    copied_files = []
+def _get_file_with_extension(*, extension, files):
+    """Traverse a given file list and return file matching given extension.
+
+    Args:
+        extension: File extension to match.
+        files: List of files to traverse.
+    Returns:
+        File matching extension, None otherwise.
+    """
     for file in files:
-        copied_file_path = paths.join(base_path, file.basename)
-        copied_file = actions.declare_file(copied_file_path)
-        copied_files.append(copied_file)
-        actions.symlink(output = copied_file, target_file = file)
-
-    return copied_files
+        if file.extension == extension:
+            return file
+    return None
 
 def _generate_umbrella_header(
         *,
@@ -344,46 +356,58 @@ def _generate_umbrella_header(
 
     return umbrella_header
 
-def _generate_module_map(*, actions, bundle_name, is_framework_module = False, module_map_path):
+def _generate_module_map(
+        *,
+        actions,
+        bundle_name,
+        headers = None,
+        is_framework_module = False,
+        module_map_path,
+        umbrella_header = None):
     """Generates a single module map given a sequence of header files.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         bundle_name: Name of the Framework/XCFramework bundle.
+        headers: List of header files to use for the generated modulemap file.
         is_framework_module: Boolean to indicate if the generated modulemap is for a framework.
           Defaults to `False`.
         module_map_path: Base path for the generated modulemap file.
+        umbrella_header: Umbrella header file to use for generated modulemap file.
     Returns:
         File for the generated modulemap file.
     """
-    module_qualifiers = ""
+    modulemap_content = actions.args()
+    modulemap_content.set_param_file_format("multiline")
+
     if is_framework_module:
-        module_qualifiers = "framework "
+        modulemap_content.add("framework module %s {" % bundle_name)
+    else:
+        modulemap_content.add("module %s {" % bundle_name)
 
-    module_map_text = """
-{module_qualifiers}module {module_id} {{
-umbrella header "{umbrella_header_name}.h"
+    if umbrella_header:
+        modulemap_content.add("umbrella header \"%s\"" % umbrella_header.basename)
+        modulemap_content.add("export *")
+        modulemap_content.add("module * { export * }")
+    elif headers:
+        for header in headers:
+            modulemap_content.add("header \"%s\"" % header.basename)
+        modulemap_content.add("requires objc")
 
-export *
-module * {{ export * }}
-}}
-    """.format(
-        module_id = bundle_name,
-        module_qualifiers = module_qualifiers,
-        umbrella_header_name = bundle_name,
-    )
+    modulemap_content.add("}")
 
     modulemap_file = actions.declare_file(paths.join(module_map_path, "module.modulemap"))
-    actions.write(output = modulemap_file, content = module_map_text)
+    actions.write(output = modulemap_file, content = modulemap_content)
 
     return modulemap_file
 
 generation_support = struct(
     compile_binary = _compile_binary,
-    copy_files = _copy_files,
+    copy_file = _copy_file,
     create_dynamic_library = _create_dynamic_library,
     create_framework = _create_framework,
     create_static_library = _create_static_library,
+    get_file_with_extension = _get_file_with_extension,
     generate_module_map = _generate_module_map,
     generate_umbrella_header = _generate_umbrella_header,
 )
