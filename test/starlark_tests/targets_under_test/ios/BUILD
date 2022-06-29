@@ -1734,6 +1734,43 @@ EOF
 """,
 )
 
+# Swift app with imported Objective-C XCFramework
+ios_application(
+    name = "swift_app_with_imported_xcframework_with_static_library",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":static_xcframework_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "static_xcframework_depending_swift_lib",
+    srcs = ["SwiftWithStaticFramework.swift"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework",
+    ],
+)
+
+genrule(
+    name = "static_xcframework_depending_swift_lib_src",
+    outs = ["SwiftWithStaticFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import generated_static_xcframework_with_headers
+
+func main() {
+  let sc = generated_static_xcframework_with_headers.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_imessage_application(

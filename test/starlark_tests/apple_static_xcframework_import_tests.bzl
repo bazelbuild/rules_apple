@@ -48,6 +48,23 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify ios_application with XCFramework with Swift static library dependency contains
+    # Objective-C symbols, doesn't bundle XCFramework, and does bundle Swift standard libraries.
+    archive_contents_test(
+        name = "{}_swift_ios_application_with_imported_static_xcframework_includes_symbols".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_xcframework_with_static_library",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/generated_static_xcframework_with_headers"],
+        tags = [name],
+    )
+
     # Verify ios_application with an imported XCFramework that has a Swift static library
     # contains symbols visible to Objective-C, and bundles Swift standard libraries.
     archive_contents_test(
