@@ -57,7 +57,7 @@ def apple_static_xcframework_import_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = [
-            "_OBJC_CLASS_$__TtC32swift_lib_for_static_xcframework11SharedClass",
+            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
@@ -73,7 +73,7 @@ def apple_static_xcframework_import_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = [
-            "_OBJC_CLASS_$__TtC32swift_lib_for_static_xcframework11SharedClass",
+            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
