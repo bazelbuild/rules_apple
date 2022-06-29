@@ -104,7 +104,7 @@ swift_library(
         "swift.enable_library_evolution",
     ],
     generates_header = True,
-    module_name = "swift_lib_for_static_xcframework",
+    module_name = "generated_swift_static_xcframework",
     tags = FIXTURE_TAGS,
 )
 
