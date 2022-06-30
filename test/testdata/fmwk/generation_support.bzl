@@ -217,7 +217,7 @@ def _create_framework(
         bundle_name,
         library,
         headers,
-        swiftmodule = []):
+        module_interfaces = []):
     """Creates an Apple platform framework bundle.
 
     Args:
@@ -226,7 +226,7 @@ def _create_framework(
         bundle_name: Name of the Framework bundle.
         library: The library for the Framework bundle.
         headers: List of header files for the Framework bundle.
-        swiftmodule: List of swiftmodule files for the framework bundle (optional).
+        module_interfaces: List of Swift module interface files for the framework bundle (optional).
     Returns:
         List of files for a .framework bundle.
     """
@@ -277,7 +277,7 @@ def _create_framework(
             ),
         )
 
-    if swiftmodule:
+    if module_interfaces:
         modules_path = paths.join(framework_directory, "Modules", bundle_name + ".swiftmodule")
         framework_files.extend([
             _copy_file(
@@ -285,7 +285,7 @@ def _create_framework(
                 file = interface_file,
                 base_path = modules_path,
             )
-            for interface_file in swiftmodule
+            for interface_file in module_interfaces
         ])
 
     return framework_files

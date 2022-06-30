@@ -30,6 +30,7 @@ def _generate_import_framework_impl(ctx):
 
     architectures = ctx.attr.archs
     hdrs = ctx.files.hdrs
+    include_module_interface_files = ctx.attr.include_module_interface_files
     libtype = ctx.attr.libtype
     minimum_os_version = ctx.attr.minimum_os_version
     sdk = ctx.attr.sdk
@@ -41,7 +42,7 @@ def _generate_import_framework_impl(ctx):
              "framework with a single architecture at this time")
 
     headers = []
-    swiftmodule = []
+    module_interfaces = []
 
     if not swift_library_files:
         # Compile library
@@ -97,9 +98,10 @@ def _generate_import_framework_impl(ctx):
         # However, Apple framework import rules use Swift interface files to flag an imported
         # framework contains Swift, and thus propagate Swift toolchain specific flags up the
         # build graph.
-        swiftmodule_file = actions.declare_file(architectures[0] + ".swiftmodule")
-        actions.write(output = swiftmodule_file, content = "I'm a mock .swiftmodule file")
-        swiftmodule.append(swiftmodule_file)
+        if include_module_interface_files:
+            module_interface = actions.declare_file(architectures[0] + ".swiftmodule")
+            actions.write(output = module_interface, content = "I'm a mock .swiftmodule file")
+            module_interfaces.append(module_interface)
 
     # Create framework bundle
     framework_files = generation_support.create_framework(
@@ -107,7 +109,7 @@ def _generate_import_framework_impl(ctx):
         bundle_name = label.name,
         library = library,
         headers = headers,
-        swiftmodule = swiftmodule,
+        module_interfaces = module_interfaces,
     )
 
     return [
@@ -155,6 +157,14 @@ Minimum version of the OS corresponding to the SDK that this binary will support
             doc = """
 Possible values are `dynamic` or `static`.
 Determines if the framework will be built as a dynamic framework or a static framework.
+""",
+        ),
+        "include_module_interface_files": attr.bool(
+            default = True,
+            doc = """
+Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` directory) from the
+`swift_library` target should be included in the XCFramework bundle or discarded for testing
+purposes.
 """,
         ),
     }),

@@ -1363,6 +1363,44 @@ EOF
 """,
 )
 
+# Objective-C app with imported Swift static framework without Swift module interface files.
+ios_application(
+    name = "app_with_imported_swift_static_fmwk_without_module_interface_files",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":swift_static_without_module_interfaces_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "swift_static_without_module_interfaces_fmwk_depending_lib",
+    srcs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
+    tags = FIXTURE_TAGS,
+    deps = ["//test/testdata/fmwk:iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
+)
+
+genrule(
+    name = "swift_static_without_module_interfaces_fmwk_depending_lib_src",
+    outs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
+    cmd = """cat > $@ <<EOF
+#import <iOSSwiftStaticFramework/iOSSwiftStaticFramework.h>
+
+int main() {
+  SharedClass *sharedClass = [[SharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+EOF
+""",
+)
+
 # Swift app with imported Objective-C dynamic framework.
 ios_application(
     name = "swift_app_with_imported_dynamic_fmwk",
