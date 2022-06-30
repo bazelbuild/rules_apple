@@ -51,6 +51,38 @@ dependency to a swift_library target.
 | <a id="apple_core_data_model-swift_version"></a>swift_version |  Target Swift version for generated classes.   | String | optional | "" |
 
 
+<a id="apple_intent_library"></a>
+
+## apple_intent_library
+
+<pre>
+apple_intent_library(<a href="#apple_intent_library-name">name</a>, <a href="#apple_intent_library-class_prefix">class_prefix</a>, <a href="#apple_intent_library-class_visibility">class_visibility</a>, <a href="#apple_intent_library-header_name">header_name</a>, <a href="#apple_intent_library-language">language</a>, <a href="#apple_intent_library-src">src</a>,
+                     <a href="#apple_intent_library-swift_version">swift_version</a>)
+</pre>
+
+
+This rule supports the integration of Intents `.intentdefinition` files into Apple rules.
+It takes a single `.intentdefinition` file and creates a target that can be added as a dependency from `objc_library` or
+`swift_library` targets. It accepts the regular `objc_library` attributes too.
+This target generates a header named `<target_name>.h` that can be imported from within the package where this target
+resides. For example, if this target's label is `//my/package:intent`, you can import the header as
+`#import "my/package/intent.h"`.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_intent_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_intent_library-class_prefix"></a>class_prefix |  Class prefix to use for the generated classes.   | String | optional | "" |
+| <a id="apple_intent_library-class_visibility"></a>class_visibility |  Visibility attribute for the generated classes ("public", "private", "project").   | String | optional | "" |
+| <a id="apple_intent_library-header_name"></a>header_name |  Name of the public header file (only when using Objective-C).   | String | optional | "" |
+| <a id="apple_intent_library-language"></a>language |  Language of generated classes ("Objective-C", "Swift")   | String | required |  |
+| <a id="apple_intent_library-src"></a>src |  Label to a single <code>.intentdefinition</code> files from which to generate sources files.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+| <a id="apple_intent_library-swift_version"></a>swift_version |  Version of Swift to use for the generated classes.   | String | optional | "" |
+
+
 <a id="apple_resource_bundle"></a>
 
 ## apple_resource_bundle

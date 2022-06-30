@@ -45,6 +45,7 @@ load(
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
+apple_intent_library = _apple_intent_library
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_core_data_model = _apple_core_data_model
