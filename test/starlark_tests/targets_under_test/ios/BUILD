@@ -1333,11 +1333,10 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
     deps = [
-        ":dynamic_fmwk_depending_lib",
+        ":swift_static_fmwk_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
