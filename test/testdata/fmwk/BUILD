@@ -54,6 +54,13 @@ apple_static_framework_import(
     framework_imports = [":iOSSwiftStaticFramework"],
 )
 
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSSwiftStaticFramework"],
+    has_swift = True,
+)
+
 filegroup(
     name = "swift_source",
     srcs = [
@@ -134,6 +141,16 @@ swift_library(
 generate_import_framework(
     name = "iOSSwiftStaticFramework",
     archs = ["x86_64"],
+    libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+    swift_library = ":swift_framework_lib",
+)
+
+generate_import_framework(
+    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    archs = ["x86_64"],
+    include_module_interface_files = False,
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",

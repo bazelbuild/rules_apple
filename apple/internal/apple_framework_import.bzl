@@ -299,6 +299,7 @@ def _apple_static_framework_import_impl(ctx):
     disabled_features = ctx.disabled_features
     features = ctx.features
     framework_imports = ctx.files.framework_imports
+    has_swift = ctx.attr.has_swift
     label = ctx.label
     sdk_dylibs = ctx.attr.sdk_dylibs
     sdk_frameworks = ctx.attr.sdk_frameworks
@@ -324,7 +325,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_cc_infos = []
     additional_objc_providers = []
     additional_objc_provider_fields = {}
-    if framework_imports_by_category.swift_module_imports:
+    if framework_imports_by_category.swift_module_imports or has_swift:
         toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo())
 
@@ -537,6 +538,13 @@ is useful if your code isn't explicitly called by code in the binary; for exampl
 runtime checks for protocol conformances added in extensions in the library but do not directly
 reference any other symbols in the object file that adds that conformance.
 """,
+            ),
+            "has_swift": attr.bool(
+                doc = """
+A boolean indicating if the target has Swift source code. This helps flag frameworks that do not
+include Swift interface files but require linking the Swift libraries.
+""",
+                default = False,
             ),
             "_cc_toolchain": attr.label(
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
