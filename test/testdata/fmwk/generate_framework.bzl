@@ -28,19 +28,20 @@ def _generate_import_framework_impl(ctx):
     label = ctx.label
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    srcs = ctx.files.src
-    hdrs = ctx.files.hdrs
-    sdk = ctx.attr.sdk
-    libtype = ctx.attr.libtype
     architectures = ctx.attr.archs
+    hdrs = ctx.files.hdrs
+    libtype = ctx.attr.libtype
     minimum_os_version = ctx.attr.minimum_os_version
-
-    swiftmodule = []
+    sdk = ctx.attr.sdk
+    srcs = ctx.files.src
     swift_library_files = ctx.files.swift_library
 
     if swift_library_files and len(architectures) > 1:
         fail("Internal error: Can only generate a Swift " +
              "framework with a single architecture at this time")
+
+    headers = []
+    swiftmodule = []
 
     if not swift_library_files:
         # Compile library
@@ -76,26 +77,38 @@ def _generate_import_framework_impl(ctx):
                 binary = binary,
                 xcode_config = xcode_config,
             )
-    else:
-        # Get dylib and swiftmodule files from swift_library target
-        library = None
-        for file in swift_library_files:
-            if file.extension == "a":
-                library = file
-                continue
-            if file.extension == "swiftmodule":
-                architecture = architectures[0]
-                swiftmodule_file = actions.declare_file(architecture + ".swiftmodule")
-                actions.symlink(output = swiftmodule_file, target_file = file)
-                swiftmodule.append(swiftmodule_file)
-                continue
 
-    # Create (dynamic) framework bundle
+        # Add headers to framework
+        headers.extend(hdrs)
+
+    else:
+        # Get static library and generated header files
+        library = generation_support.get_file_with_extension(
+            files = swift_library_files,
+            extension = "a",
+        )
+        headers.append(
+            generation_support.get_file_with_extension(
+                files = swift_library_files,
+                extension = "h",
+            ),
+        )
+
+        # Mock swiftmodule file. Imported `.swiftmodule` files are not supported due to Swift
+        # toolchain compatibility and Swift's ABI stability through `.swiftinterface` files.
+        # However, Apple framework import rules use Swift interface files to flag an imported
+        # framework contains Swift, and thus propagate Swift toolchain specific flags up the
+        # build graph.
+        swiftmodule_file = actions.declare_file(architectures[0] + ".swiftmodule")
+        actions.write(output = swiftmodule_file, content = "I'm a mock .swiftmodule file")
+        swiftmodule.append(swiftmodule_file)
+
+    # Create framework bundle
     framework_files = generation_support.create_framework(
         actions = actions,
         bundle_name = label.name,
         library = library,
-        headers = hdrs,
+        headers = headers,
         swiftmodule = swiftmodule,
     )
 
