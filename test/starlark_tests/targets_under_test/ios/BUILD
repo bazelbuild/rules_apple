@@ -1442,46 +1442,6 @@ EOF
 """,
 )
 
-# Swift app with imported Swift static framework.
-ios_application(
-    name = "swift_app_with_imported_swift_static_fmwk",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = "8.0",
-    tags = FIXTURE_TAGS,
-    deps = [
-        ":swift_static_fmwk_depending_swift_lib",
-        "//test/starlark_tests/resources:swift_main_lib",
-    ],
-)
-
-swift_library(
-    name = "swift_static_fmwk_depending_swift_lib",
-    srcs = ["SwiftStaticFmwkDependingSwiftLib.swift"],
-    module_name = "swift_static_fmwk_depending_swift_lib",
-    deps = ["//test/testdata/fmwk:iOSImportedSwiftStaticFramework"],
-)
-
-genrule(
-    name = "swift_static_fmwk_depending_swift_lib_file",
-    outs = ["SwiftStaticFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
-import iOSSwiftStaticFramework
-
-func main() {
-  let sharedClass = SharedClass()
-  sharedClass.doSomethingShared()
-}
-EOF
-""",
-)
-
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic XCFramework import tests.
 

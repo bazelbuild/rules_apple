@@ -147,17 +147,6 @@ def ios_application_test_suite(name):
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
     )
-    archive_contents_test(
-        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_not_bundles_files".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_static_fmwk",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        binary_contains_symbols = ["_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass"],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSSwiftStaticFramework.framework"],
-        tags = [name],
-    )
 
     apple_verification_test(
         name = "{}_fmwk_with_imported_fmwk_codesign_test".format(name),
