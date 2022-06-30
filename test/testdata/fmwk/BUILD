@@ -3,7 +3,6 @@ load(
     "apple_dynamic_framework_import",
     "apple_static_framework_import",
 )
-load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
@@ -86,7 +85,6 @@ swift_library(
     srcs = ["SharedClass.swift"],
     generates_header = True,
     module_name = "iOSSwiftStaticFramework",
-    tags = FIXTURE_TAGS,
 )
 
 generate_import_framework(
