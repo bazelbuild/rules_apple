@@ -30,12 +30,15 @@ def _generate_import_framework_impl(ctx):
 
     architectures = ctx.attr.archs
     hdrs = ctx.files.hdrs
-    include_module_interface_files = ctx.attr.include_module_interface_files
     libtype = ctx.attr.libtype
     minimum_os_version = ctx.attr.minimum_os_version
     sdk = ctx.attr.sdk
     srcs = ctx.files.src
+
     swift_library_files = ctx.files.swift_library
+
+    include_module_interface_files = ctx.attr.include_module_interface_files
+    include_resource_bundle = ctx.attr.include_resource_bundle
 
     if swift_library_files and len(architectures) > 1:
         fail("Internal error: Can only generate a Swift " +
@@ -109,6 +112,7 @@ def _generate_import_framework_impl(ctx):
         bundle_name = label.name,
         library = library,
         headers = headers,
+        include_resource_bundle = include_resource_bundle,
         module_interfaces = module_interfaces,
     )
 
@@ -146,6 +150,14 @@ Minimum version of the OS corresponding to the SDK that this binary will support
                 "@build_bazel_rules_apple//test/testdata/fmwk:objc_headers",
             ),
             doc = "Header files for the generated framework.",
+        ),
+        "include_resource_bundle": attr.bool(
+            mandatory = False,
+            default = False,
+            doc = """
+Boolean to indicate if the generate framework should include a resource bundle containing an
+Info.plist file to test resource propagation.
+""",
         ),
         "swift_library": attr.label(
             allow_files = True,
