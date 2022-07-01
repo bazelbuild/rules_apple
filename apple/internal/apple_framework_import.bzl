@@ -39,6 +39,10 @@ load(
     "AppleFrameworkImportInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "cc_toolchain_info_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -346,9 +350,9 @@ def _apple_dynamic_framework_import_impl(ctx):
     )
 
     # Create AppleFrameworkImportInfo provider.
-    cpu = cc_toolchain.target_gnu_system_name.split("-")[0]
+    target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     providers.append(framework_import_support.framework_import_info_with_dependencies(
-        build_archs = [cpu],
+        build_archs = [target_triplet.architecture],
         deps = deps,
         debug_info_binaries = debug_info_binaries,
         dsyms = dsym_imports,
@@ -439,9 +443,9 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     )
 
     # Create AppleFrameworkImportInfo provider.
-    cpu = cc_toolchain.target_gnu_system_name.split("-")[0]
+    target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     providers.append(framework_import_support.framework_import_info_with_dependencies(
-        build_archs = [cpu],
+        build_archs = [target_triplet.architecture],
         deps = deps,
         debug_info_binaries = [],
         dsyms = [],
@@ -466,7 +470,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         if _is_debugging(compilation_mode):
             swiftmodule = _swiftmodule_for_cpu(
                 framework_imports_by_category.swift_module_imports,
-                cpu,
+                target_triplet.architecture,
             )
             if swiftmodule:
                 additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))

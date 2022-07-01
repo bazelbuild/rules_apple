@@ -51,6 +51,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":cc_toolchain_info_support",
         ":framework_import_support",
         ":resources",
         ":rule_factory",
