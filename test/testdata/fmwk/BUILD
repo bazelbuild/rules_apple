@@ -95,6 +95,7 @@ filegroup(
 generate_import_framework(
     name = "iOSDynamicFramework",
     archs = ["x86_64"],
+    include_resource_bundle = True,
     libtype = "dynamic",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
@@ -126,6 +127,7 @@ generate_import_framework(
 generate_import_framework(
     name = "iOSStaticFramework",
     archs = ["x86_64"],
+    include_resource_bundle = True,
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",

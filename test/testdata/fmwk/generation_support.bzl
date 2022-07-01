@@ -227,6 +227,7 @@ def _create_framework(
         bundle_name,
         library,
         headers,
+        include_resource_bundle = False,
         module_interfaces = []):
     """Creates an Apple platform framework bundle.
 
@@ -236,6 +237,8 @@ def _create_framework(
         bundle_name: Name of the Framework bundle.
         library: The library for the Framework bundle.
         headers: List of header files for the Framework bundle.
+        include_resource_bundle: Boolean to indicate if a resource bundle should be added to
+            the framework bundle (optional).
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
     Returns:
         List of files for a .framework bundle.
@@ -297,6 +300,12 @@ def _create_framework(
             )
             for interface_file in module_interfaces
         ])
+
+    if include_resource_bundle:
+        resources_path = paths.join(framework_directory, "Resources", bundle_name + ".bundle")
+        resource_file = actions.declare_file(paths.join(resources_path, "Info.plist"))
+        actions.write(output = resource_file, content = "Mock resource bundle")
+        framework_files.append(resource_file)
 
     return framework_files
 

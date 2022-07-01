@@ -115,6 +115,7 @@ def ios_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
@@ -140,9 +141,10 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
-    # Verify ios_application with imported static framework contains symbols for Objective-C/Swift
+    # Verify ios_application with imported static framework contains symbols for Objective-C/Swift,
+    # and resource bundles; but does not bundle the static library.
     archive_contents_test(
-        name = "{}_with_imported_static_fmwk_contains_symbols_and_not_bundles_files".format(name),
+        name = "{}_with_imported_static_fmwk_contains_symbols_and_bundles_resources".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_fmwk",
         binary_test_file = "$BINARY",
@@ -151,6 +153,7 @@ def ios_application_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
+        contains = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
     )
