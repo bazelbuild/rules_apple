@@ -8,7 +8,7 @@ used to bundle applications for Apple platforms.
 These rules handle the linking and bundling of applications and extensions
 (that is, the formation of an `.app` with an executable and resources,
 archived in an `.ipa`). Compilation is still performed by the existing
-[`objc_library` rule](https://bazel.build/versions/master/docs/be/objective-c.html#objc_library)
+[`objc_library` rule](https://bazel.build/reference/be/objective-c#objc_library)
 in Bazel, and by the
 [`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#swift_library)
 available from [rules_swift](https://github.com/bazelbuild/rules_swift).
