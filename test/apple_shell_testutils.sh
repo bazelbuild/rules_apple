@@ -536,7 +536,7 @@ function print_debug_entitlements() {
   # look like hex), then runs it through `xxd` to turn the hex into ASCII.
   # The results should be the entitlements plist text, which we can compare
   # against.
-  xcrun llvm-objdump -macho -section=__TEXT,__entitlements "$binary" | \
+  xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$binary" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
           -e 'tx' -e 'd' -e ':x' | xxd -r -p
 }
@@ -608,7 +608,7 @@ function assert_objdump_contains() {
   local symbol_regexp="$3"
 
   [[ -f "$path" ]] || fail "$path does not exist"
-  local contents=$(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*")
+  local contents=$(objdump -t --macho --arch="$arch" "$path" | grep -v "*UND*")
   echo "$contents" | grep -e "$symbol_regexp" >& /dev/null && return 0
   fail "Expected binary '$path' to contain '$symbol_regexp' but it did not." \
       "contents were: $contents"
@@ -624,7 +624,7 @@ function assert_objdump_not_contains() {
   local symbol_regexp="$3"
 
   [[ -f "$path" ]] || fail "$path does not exist"
-  local contents=$(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*")
+  local contents=$(objdump -t --macho --arch="$arch" "$path" | grep -v "*UND*")
   echo "$contents" | grep -e "$symbol_regexp" >& /dev/null || return 0
   fail "Expected binary '$path' to not contain '$symbol_regexp' but it did."  \
       "contents were: $contents"

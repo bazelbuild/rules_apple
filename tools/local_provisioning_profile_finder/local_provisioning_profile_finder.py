@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("name", help="The name of the profile to find")
+    parser.add_argument("name", help="The name (or UUID) of the profile to find")
     parser.add_argument("output", help="The path to copy the profile to")
     parser.add_argument(
         "--local_profiles",
@@ -33,17 +33,17 @@ def _build_parser() -> argparse.ArgumentParser:
 def _profile_contents(profile: str) -> Tuple[str, datetime.datetime, str]:
     output = subprocess.check_output(["security", "cms", "-D", "-i", profile])
     plist = plistlib.loads(output)
-    return plist["Name"], plist["CreationDate"], plist["TeamIdentifier"][0]
+    return plist["Name"], plist["UUID"], plist["CreationDate"], plist["TeamIdentifier"][0]
 
 
 def _find_newest_profile(
-    expected_name: str, team_id: Optional[str], profiles: List[str]
+    expected_specifier: str, team_id: Optional[str], profiles: List[str]
 ) -> Optional[str]:
     newest_path: Optional[str] = None
     newest_date: Optional[datetime.datetime] = None
     for profile in profiles:
-        profile_name, creation_date, actual_team_id = _profile_contents(profile)
-        if profile_name != expected_name:
+        profile_name, profile_uuid, creation_date, actual_team_id = _profile_contents(profile)
+        if profile_name != expected_specifier and profile_uuid != expected_specifier:
             continue
         if team_id and team_id != actual_team_id:
             continue

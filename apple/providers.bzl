@@ -217,6 +217,22 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
         build_archs = depset(transitive = build_archs),
     )
 
+AppleProvisioningProfileInfo = provider(
+    doc = "Provides information about a provisioning profile.",
+    fields = {
+        "provisioning_profile": """
+`File`. The provisioning profile.
+""",
+        "profile_name": """\
+string. The profile name (e.g. "iOS Team Provisioning Profile: com.example.app").
+""",
+        "team_id": """\
+`string`. The Team ID the profile is associated with (e.g. "A12B3CDEFG"), or `None` if it's not
+known at analysis time.
+""",
+    },
+)
+
 AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items

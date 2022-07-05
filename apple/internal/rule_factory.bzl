@@ -298,7 +298,7 @@ bundle.
         },
     )
 
-def _get_common_bundling_attributes(rule_descriptor):
+def _get_common_bundling_attributes(deps_cfg, rule_descriptor):
     """Returns a list of dictionaries with attributes common to all bundling rules."""
 
     # TODO(kaipi): Review platform specific wording in the documentation before migrating macOS
@@ -403,6 +403,7 @@ in the bundle.
         "resources": attr.label_list(
             allow_files = True,
             aspects = [apple_resource_aspect],
+            cfg = deps_cfg,
             doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within the bundle.
@@ -1208,7 +1209,10 @@ def _create_apple_bundling_rule(
         [
             _COMMON_ATTRS,
             apple_toolchain_utils.shared_attrs(),
-        ] + _get_common_bundling_attributes(rule_descriptor),
+        ] + _get_common_bundling_attributes(
+            deps_cfg = rule_descriptor.deps_cfg,
+            rule_descriptor = rule_descriptor,
+        ),
     )
 
     if rule_descriptor.requires_deps:
