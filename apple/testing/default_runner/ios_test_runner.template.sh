@@ -249,6 +249,9 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   lcov_args+=("-arch=$arch")
 done
 
+# change dir to ROOT to sync with the path in the coverage report
+cd "$ROOT"
+
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
@@ -288,12 +291,12 @@ fi
 if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   llvm_cov_html_export_status=0
 
-  # we couldn't use $COVERAGE_MANIFEST", as it will result an empty html
   xcrun llvm-cov \
     show \
     -format html \
     -use-color \
     "${lcov_args[@]}" \
+    @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
     2> "$error_file" \
     || llvm_cov_html_export_status=$?
