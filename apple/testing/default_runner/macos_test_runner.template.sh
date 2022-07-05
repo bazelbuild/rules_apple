@@ -151,6 +151,9 @@ fi
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
+# change dir to ROOT to sync with the path in the coverage report
+cd "$ROOT"
+
 readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
 llvm_cov_export_status=0
 lcov_args=(
@@ -204,6 +207,7 @@ if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
     -use-color \
     "${lcov_args[@]}" \
     "$test_binary" \
+    @"$COVERAGE_MANIFEST" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
     2> "$export_error_file" \
     || llvm_cov_html_export_status=$?
