@@ -55,6 +55,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTests/ButtonsTests.swift",
     ],
@@ -66,6 +67,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsUITests/ButtonsUITests.swift",
     ],
