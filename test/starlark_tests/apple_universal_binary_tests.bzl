@@ -39,7 +39,7 @@ def apple_universal_binary_test_suite(name):
     binary_contents_test(
         name = "{}_x86_binary_contents_test".format(name),
         build_type = "device",
-        macos_cpus = ["x86_64", "arm64"],
+        cpus = {"macos_cpus": ["x86_64", "arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
@@ -51,7 +51,7 @@ def apple_universal_binary_test_suite(name):
     binary_contents_test(
         name = "{}_arm64_binary_contents_test".format(name),
         build_type = "device",
-        macos_cpus = ["x86_64", "arm64"],
+        cpus = {"macos_cpus": ["x86_64", "arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
@@ -67,7 +67,7 @@ def apple_universal_binary_test_suite(name):
     binary_contents_test(
         name = "{}_forced_cpus_x86_binary_contents_test".format(name),
         build_type = "device",
-        macos_cpus = ["arm64"],
+        cpus = {"macos_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_forced_cpus_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
@@ -79,7 +79,7 @@ def apple_universal_binary_test_suite(name):
     binary_contents_test(
         name = "{}_forced_cpus_arm64_binary_contents_test".format(name),
         build_type = "device",
-        macos_cpus = ["x86_64"],
+        cpus = {"macos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multi_arch_forced_cpus_cc_binary",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
