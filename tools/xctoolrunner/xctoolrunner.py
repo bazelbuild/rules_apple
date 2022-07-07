@@ -369,8 +369,7 @@ def mapc(_, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs)
   return return_code
 
 
