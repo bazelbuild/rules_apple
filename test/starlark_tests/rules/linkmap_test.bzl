@@ -15,10 +15,6 @@
 """Starlark test rules for linkmap generation."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
