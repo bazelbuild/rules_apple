@@ -35,5 +35,7 @@ tasks:
     platform: ubuntu2004
     test_targets:
     - "doc/..."
+    test_flags:
+      - "--action_env=DOC_CACHE_BUSTER=1"
 
 buildifier: latest
