@@ -213,6 +213,7 @@ ios_ui_test(
 
 swift_library(
     name = "pass_ui_swift_test_lib",
+    testonly = True,
     srcs = ["pass_ui_test.swift"],
 )
 
