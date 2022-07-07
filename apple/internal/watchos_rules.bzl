@@ -880,7 +880,7 @@ def _watchos_static_framework_impl(ctx):
             rule_label = label,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
-            version = ctx.attr.version,
+            version = None,
         ))
 
     processor_result = processor.process(

@@ -1080,7 +1080,7 @@ def _tvos_static_framework_impl(ctx):
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            version = ctx.attr.version,
+            version = None,
         ))
 
     processor_result = processor.process(
