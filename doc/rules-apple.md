@@ -133,6 +133,36 @@ objc_library(
 | <a id="apple_static_framework_import-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with. For instance, <code>MediaAccessibility</code>. In difference to regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they are not present at runtime.   | List of strings | optional | [] |
 
 
+<a id="apple_static_library"></a>
+
+## apple_static_library
+
+<pre>
+apple_static_library(<a href="#apple_static_library-name">name</a>, <a href="#apple_static_library-additional_linker_inputs">additional_linker_inputs</a>, <a href="#apple_static_library-avoid_deps">avoid_deps</a>, <a href="#apple_static_library-data">data</a>, <a href="#apple_static_library-deps">deps</a>, <a href="#apple_static_library-linkopts">linkopts</a>,
+                     <a href="#apple_static_library-minimum_os_version">minimum_os_version</a>, <a href="#apple_static_library-platform_type">platform_type</a>, <a href="#apple_static_library-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_library-sdk_frameworks">sdk_frameworks</a>,
+                     <a href="#apple_static_library-weak_sdk_frameworks">weak_sdk_frameworks</a>)
+</pre>
+
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_static_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="apple_static_library-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_static_library-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_static_library-data"></a>data |  Files to be made available to the library archive upon execution.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_static_library-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="apple_static_library-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional | [] |
+| <a id="apple_static_library-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="apple_static_library-platform_type"></a>platform_type |  The target Apple platform for which to create a binary. This dictates which SDK is used for compilation/linking and which flag is used to determine the architectures to target. For example, if <code>ios</code> is specified, then the output binaries/libraries will be created combining all architectures specified by <code>--ios_multi_cpus</code>. Options are:<br><br>*   <code>ios</code>: architectures gathered from <code>--ios_multi_cpus</code>. *   <code>macos</code>: architectures gathered from <code>--macos_cpus</code>. *   <code>tvos</code>: architectures gathered from <code>--tvos_cpus</code>. *   <code>watchos</code>: architectures gathered from <code>--watchos_cpus</code>.   | String | required |  |
+| <a id="apple_static_library-sdk_dylibs"></a>sdk_dylibs |  Names of SDK <code>.dylib</code> libraries to link with (e.g., <code>libz</code> or <code>libarchive</code>). <code>libc++</code> is included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree. When linking a binary, all libraries named in that binary's transitive dependency graph are used.   | List of strings | optional | [] |
+| <a id="apple_static_library-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | [] |
+| <a id="apple_static_library-weak_sdk_frameworks"></a>weak_sdk_frameworks |  Names of SDK frameworks to weakly link with (e.g., <code>MediaAccessibility</code>). Unlike regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause the binary to fail to load if they are not present in the version of the framework available at runtime.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | [] |
+
+
 <a id="apple_static_xcframework"></a>
 
 ## apple_static_xcframework
