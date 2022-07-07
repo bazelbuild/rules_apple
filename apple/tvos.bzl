@@ -43,35 +43,7 @@ tvos_application = _tvos_application
 tvos_dynamic_framework = _tvos_dynamic_framework
 tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework
-
-def tvos_static_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles a tvOS static framework for third-party distribution."""
-    avoid_deps = kwargs.get("avoid_deps")
-    deps = kwargs.get("deps")
-    apple_static_library_name = "%s.apple_static_library" % name
-
-    native.apple_static_library(
-        name = apple_static_library_name,
-        deps = deps,
-        avoid_deps = avoid_deps,
-        minimum_os_version = kwargs.get("minimum_os_version"),
-        platform_type = str(apple_common.platform_type.tvos),
-        tags = kwargs.get("tags"),
-        testonly = kwargs.get("testonly"),
-        visibility = kwargs.get("visibility"),
-    )
-
-    passthrough_args = kwargs
-    passthrough_args.pop("avoid_deps", None)
-    passthrough_args.pop("deps", None)
-
-    _tvos_static_framework(
-        name = name,
-        deps = [apple_static_library_name],
-        avoid_deps = [apple_static_library_name],
-        **passthrough_args
-    )
+tvos_static_framework = _tvos_static_framework
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner"
 

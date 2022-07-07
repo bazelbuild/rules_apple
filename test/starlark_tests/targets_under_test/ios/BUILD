@@ -2266,6 +2266,14 @@ ios_dynamic_framework(
 # Targets for iOS static framework tests.
 
 ios_static_framework(
+    name = "swift_ios_static_framework",
+    bundle_name = "SwiftFmwk",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":SwiftFmwk"],
+)
+
+ios_static_framework(
     name = "static_fmwk_with_swift_and_avoid_deps",
     avoid_deps = [":SwiftFmwkLowerLib"],
     bundle_name = "SwiftFmwkUpperLib",
@@ -2286,6 +2294,13 @@ genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
     cmd = "echo 'public struct Dummy {}' > $@",
+)
+
+swift_library(
+    name = "SwiftFmwk",
+    srcs = ["Dummy.swift"],
+    module_name = "SwiftFmwk",
+    tags = FIXTURE_TAGS,
 )
 
 swift_library(
