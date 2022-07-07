@@ -28,7 +28,7 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    bazel: 6.0.0-pre.20220608.2
     <<: *common
 
   macos_latest_head_deps:
@@ -48,7 +48,7 @@ tasks:
 
   macos_last_green_head_deps:
     name: "Last Green Bazel with Head Deps"
-    bazel: last_green
+    bazel: 6.0.0-pre.20220608.2
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
