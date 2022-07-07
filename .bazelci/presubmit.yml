@@ -26,11 +26,6 @@ tasks:
       - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
     <<: *common
 
-  macos_last_green:
-    name: "Last Green Bazel"
-    bazel: 6.0.0-pre.20220608.2
-    <<: *common
-
   macos_latest_head_deps:
     name: "Latest Bazel with Head Deps"
     bazel: latest
@@ -44,15 +39,6 @@ tasks:
     test_flags:
       - --build_tests_only
       - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
-    <<: *common
-
-  macos_last_green_head_deps:
-    name: "Last Green Bazel with Head Deps"
-    bazel: 6.0.0-pre.20220608.2
-    shell_commands:
-    # Update the WORKSPACE to use head versions of some deps to ensure nothing
-    # has landed on them breaking this project.
-    - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
 
   doc_tests:
