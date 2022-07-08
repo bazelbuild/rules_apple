@@ -99,6 +99,7 @@ function create_ios_unit_tests() {
 
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
 
 @interface PassingUnitTest : XCTestCase
 
@@ -123,6 +124,11 @@ function create_ios_unit_tests() {
   XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"SomeVariable2"], @"Its My Second Variable", @"should pass");
   XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"REFERENCE_DIR"], @"/Project/My Tests/ReferenceImages", @"should pass");
   XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"IMAGE_DIR"], @"/Project/My Tests/Images", @"should pass");
+}
+
+- (void)testUsingXCUITestSymbolsInUnitTest { 
+  XCUIApplication *app = [[XCUIApplication alloc] init];
+  XCTAssertNotNil(app);
 }
 
 @end
