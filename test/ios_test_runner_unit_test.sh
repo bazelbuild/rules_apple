@@ -99,13 +99,15 @@ function create_ios_unit_tests() {
 
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
-#import <XCTest/XCUIDevice.h>
+#import <XCTest/XCUIApplication.h>
 
 @interface PassingUnitTest : XCTestCase
 
 @end
 
-@implementation PassingUnitTest
+@implementation PassingUnitTest {
+  XCUIApplication *_app;
+}
 
 - (void)testPass {
   XCTAssertEqual(1, 1, @"should pass");
@@ -126,9 +128,9 @@ function create_ios_unit_tests() {
   XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"IMAGE_DIR"], @"/Project/My Tests/Images", @"should pass");
 }
 
-- (void)testUsingXCUITestSymbolsInUnitTest { 
-  XCUIDevice *device = [XCUIDevice sharedDevice];
-  XCTAssertNotNil(device);
+- (void)uiTestSymbols { 
+  // This function triggers https://github.com/google/xctestrunner/blob/7f8fc81b10c8d93f09f6fe38b2a3f37ba25336a6/test_runner/xctest_session.py#L382
+  _app = [[XCUIApplication alloc] init];
 }
 
 @end
