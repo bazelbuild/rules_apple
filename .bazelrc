@@ -17,9 +17,5 @@ test --build_tests_only
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
 
-# Required to avoid missing coverage runner file errors.
-# GitHub Issue: https://github.com/bazelbuild/rules_apple/issues/1128
-coverage --action_env=LCOV_MERGER=/usr/bin/true
-
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap
