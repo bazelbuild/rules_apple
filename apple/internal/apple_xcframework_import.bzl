@@ -552,6 +552,9 @@ def _apple_static_xcframework_import_impl(ctx):
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = additional_objc_providers,
         alwayslink = alwayslink,
+        sdk_dylib = ctx.attr.sdk_dylibs,
+        sdk_framework = ctx.attr.sdk_frameworks,
+        weak_sdk_framework = ctx.attr.weak_sdk_frameworks,
         **fields
     )
     providers.append(objc_provider)
@@ -719,6 +722,28 @@ far-reaching effects.
 A list of strings representing extra flags that should be passed to the linker.
 """,
             ),
+            "sdk_dylibs": attr.string_list(
+                doc = """
+Names of SDK .dylib libraries to link with. For instance, `libz` or `libarchive`. `libc++` is
+included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree.
+When linking a binary, all libraries named in that binary's transitive dependency graph are used.
+""",
+            ),
+            "sdk_frameworks": attr.string_list(
+                doc = """
+Names of SDK frameworks to link with (e.g. `AddressBook`, `QuartzCore`). `UIKit` and `Foundation`
+are always included when building for the iOS, tvOS and watchOS platforms. For macOS, only
+`Foundation` is always included. When linking a top level binary, all SDK frameworks listed in that
+binary's transitive dependency graph are linked.
+""",
+            ),
+            "weak_sdk_frameworks": attr.string_list(
+                doc = """
+Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`. In difference to
+regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
+are not present at runtime.
+""",
+            ),
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -726,6 +751,11 @@ A list of strings representing extra flags that should be passed to the linker.
                 doc = """
 List of files under a .xcframework directory which are provided to Apple based targets that depend
 on this target.
+""",
+            ),
+            "library_identifiers": attr.string_dict(
+                doc = """
+Unnecssary and ignored, will be removed in the future.
 """,
             ),
             "_cc_toolchain": attr.label(
