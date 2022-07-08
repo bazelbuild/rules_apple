@@ -1103,6 +1103,7 @@ apple_universal_binary(
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     features = ["-swift.layering_check"],
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework_with_headers"],
 )
@@ -1110,6 +1111,7 @@ apple_dynamic_xcframework_import(
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework",
     features = ["-swift.layering_check"],
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
@@ -1117,6 +1119,7 @@ apple_dynamic_xcframework_import(
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework_without_swift_files",
     features = ["-swift.layering_check"],
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework_without_swiftmodule"],
 )
@@ -1163,6 +1166,7 @@ genrule(
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_with_libraries",
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework"],
 )
