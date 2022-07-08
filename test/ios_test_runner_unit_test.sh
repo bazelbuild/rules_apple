@@ -99,7 +99,7 @@ function create_ios_unit_tests() {
 
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
-#import <XCTest/XCUIApplication.h>
+#import <XCTest/XCUIDevice.h>
 
 @interface PassingUnitTest : XCTestCase
 
@@ -127,8 +127,8 @@ function create_ios_unit_tests() {
 }
 
 - (void)testUsingXCUITestSymbolsInUnitTest { 
-  XCUIApplication *app = [[XCUIApplication alloc] init];
-  XCTAssertNotNil(app);
+  XCUIDevice *device = [XCUIDevice sharedDevice];
+  XCTAssertNotNil(device);
 }
 
 @end
