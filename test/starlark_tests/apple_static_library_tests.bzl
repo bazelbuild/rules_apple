@@ -188,7 +188,7 @@ def apple_static_library_test_suite(name):
     # apple_platforms command line option.
     binary_contents_test(
         name = "{}_ios_binary_contents_intel_simulator_os8_apple_platforms_test".format(name),
-        apple_platforms = ["//buildenv/platforms/apple/simulator:ios_x86_64"],
+        apple_platforms = ["@build_bazel_apple_support//platforms:ios_x86_64"],
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
         binary_test_file = "$BINARY",
@@ -217,7 +217,7 @@ def apple_static_library_test_suite(name):
     # apple_platforms command line option.
     binary_contents_test(
         name = "{}_ios_binary_contents_device_apple_platforms_test".format(name),
-        apple_platforms = ["//buildenv/platforms/apple:ios_arm64"],
+        apple_platforms = ["@build_bazel_apple_support//platforms:ios_arm64"],
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
         binary_test_file = "$BINARY",
@@ -247,8 +247,8 @@ def apple_static_library_test_suite(name):
     binary_contents_test(
         name = "{}_ios_simulator_multiarch_intel_apple_platforms_test".format(name),
         apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
@@ -279,8 +279,8 @@ def apple_static_library_test_suite(name):
     binary_contents_test(
         name = "{}_ios_simulator_multiarch_arm_apple_platforms_test".format(name),
         apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
@@ -383,7 +383,7 @@ def apple_static_library_test_suite(name):
     # the apple_platforms command line option.
     binary_contents_test(
         name = "{}_watchos_binary_contents_intel_simulator_apple_platforms_test".format(name),
-        apple_platforms = ["//buildenv/platforms/apple/simulator:watchos_x86_64"],
+        apple_platforms = ["@build_bazel_apple_support//platforms:watchos_x86_64"],
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
         binary_test_file = "$BINARY",
@@ -412,7 +412,7 @@ def apple_static_library_test_suite(name):
     # apple_platforms command line option.
     binary_contents_test(
         name = "{}_watchos_binary_contents_device_apple_platforms_test".format(name),
-        apple_platforms = ["//buildenv/platforms/apple:watchos_arm64_32"],
+        apple_platforms = ["@build_bazel_apple_support//platforms:watchos_arm64_32"],
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
         binary_test_file = "$BINARY",
