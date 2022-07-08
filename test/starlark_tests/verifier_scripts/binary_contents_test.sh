@@ -23,7 +23,9 @@ newline=$'\n'
 # variables.
 #
 # Supported operations:
-#  BINARY_TEST_FILE: The file to test with `PLIST_TEST_VALUES`
+#  BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in the
+#      assembled binary.
+#  BINARY_TEST_FILE: The file to test with.
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with
 #      `BINARY_CONTAINS_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
@@ -40,13 +42,32 @@ newline=$'\n'
 #      the key is a string without spaces, followed by by a single space,
 #      followed by the value to test. * can be used as a wildcard value.
 
-# Test that the binary contains and does not contain the specified plist symbols.
 if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   path=$(eval echo "$BINARY_TEST_FILE")
   if [[ ! -e "$path" ]]; then
     fail "Could not find binary at \"$path\""
   fi
   something_tested=false
+
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    IFS=' ' found_archs=($(lipo -archs "$path"))
+    for arch in "${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+    do
+      for found_arch in "${found_archs[@]}"
+      do
+        something_tested=true
+        arch_found=false
+        if [[ "$arch" == "$found_arch" ]]; then
+          arch_found=true
+          break
+        fi
+      done
+      if [[ "$arch_found" = true ]]; then
+        fail "Unexpectedly found architecture \"$arch\". The architectures " \
+          "in the binary were:$newline${found_archs[@]}"
+      fi
+    done
+  fi
 
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")

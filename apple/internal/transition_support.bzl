@@ -32,6 +32,13 @@ _PLATFORM_TYPE_TO_DEFAULT_CPU = {
     "watchos": "i386",
 }
 
+_32_BIT_APPLE_CPUS = [
+    "i386",
+    "armv7",
+    "armv7s",
+    "armv7k",
+]
+
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
@@ -125,6 +132,32 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
     if platform_type == platform:
         return minimum_os_version
     return None
+
+def _is_cpu_supported_for_target_tuple(*, cpu, minimum_os_version, platform_type):
+    """Indicates if the cpu selected is a supported arch for the given platform and min os.
+
+    Args:
+        cpu: A valid Apple cpu command line option as a string, or None to infer a value from
+            command line options passed through settings.
+        minimum_os_version: A string representing the minimum OS version specified for this
+            platform, represented as a dotted version number (for example, `"9.0"`).
+        platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
+            `"macos"`, `"tvos"`, or `"watchos"`).
+
+    Returns:
+        True if the cpu is supported for the given config, False otherwise.
+    """
+
+    dotted_minimum_os_version = apple_common.dotted_version(minimum_os_version)
+
+    if platform_type == "ios":
+        # TODO(b/237317468): Return False for 32 bit iOS archs if Xcode 14+ is the selected Xcode.
+        if dotted_minimum_os_version >= apple_common.dotted_version("11.0"):
+            if cpu in _32_BIT_APPLE_CPUS:
+                return False
+
+    # TODO(b/237318193): Return False for 32 bit watchOS archs if the minimum OS is 9 or higher.
+    return True
 
 def _command_line_options(
         *,
@@ -265,6 +298,12 @@ def _command_line_options_for_xcframework_platform(
                 cpu = cpu,
                 environment = target_environment,
             )
+
+            # TODO(b/237320075): Check that the archs requested are valid for the indicated platform
+            # in _command_line_options_for_xcframework_platform via
+            # _is_cpu_supported_for_target_tuple and fail the build if the result is an XCFramework
+            # with no valid archs to build for the given platform_type and minimum OS.
+
             found_cpu = {
                 _xcframework_split_attr_key(
                     cpu = cpu,
@@ -438,13 +477,43 @@ def _apple_platform_split_transition_impl(settings, attr):
                 platform_type = platform_type,
                 settings = settings,
             )
-            if found_cpu not in output_dictionary:
-                output_dictionary[found_cpu] = _command_line_options(
-                    cpu = cpu,
-                    minimum_os_version = attr.minimum_os_version,
-                    platform_type = platform_type,
-                    settings = settings,
+            if found_cpu in output_dictionary:
+                continue
+
+            minimum_os_version = attr.minimum_os_version
+            cpu_is_supported = _is_cpu_supported_for_target_tuple(
+                cpu = cpu,
+                minimum_os_version = minimum_os_version,
+                platform_type = platform_type,
+            )
+            if not cpu_is_supported:
+                # NOTE: This logic to filter unsupported Apple CPUs would be good to implement on
+                # the platforms side, but it is presently not possible as constraint resolution
+                # cannot be performed within a transition.
+                # Propagate a warning to the user so that the dropped arch becomes actionable.
+                # buildifier: disable=print
+                print(
+                    ("Warning: {cpu} not supported for {platform_type} with minimum OS of " +
+                     "{minimum_os_version}. This architecture has been dropped from the build. " +
+                     "Please remove it from your build invocation as it is a no-op.").format(
+                        cpu = cpu,
+                        platform_type = platform_type,
+                        minimum_os_version = minimum_os_version,
+                    ),
                 )
+                continue
+
+            output_dictionary[found_cpu] = _command_line_options(
+                cpu = cpu,
+                minimum_os_version = minimum_os_version,
+                platform_type = platform_type,
+                settings = settings,
+            )
+
+    if not bool(output_dictionary):
+        fail("Could not find any valid architectures to build for the current target. Please " +
+             "check that the specified cpus or platforms are valid for the current Xcode or " +
+             "minimum OS.")
 
     return output_dictionary
 
