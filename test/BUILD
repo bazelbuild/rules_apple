@@ -61,6 +61,8 @@ filegroup(
         "apple_shell_testutils.sh",
         "unittest.bash",
     ],
+    # This is required as a default attribute of apple_verification_test but
+    # should be considered private for other uses
     visibility = ["//visibility:public"],
 )
 
@@ -98,6 +100,15 @@ apple_shell_test(
     size = "medium",
     src = "apple_bundle_version_test.sh",
     shard_count = 3,
+)
+
+apple_shell_test(
+    name = "apple_core_ml_library_package_test",
+    size = "medium",
+    src = "apple_core_ml_library_package_test.sh",
+    data = [
+        "//test/testdata/resources:mlmodel_srcs",
+    ],
 )
 
 apple_shell_test(

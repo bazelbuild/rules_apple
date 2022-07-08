@@ -60,43 +60,60 @@ def compile_mlmodel(
         mnemonic = "MlmodelCompile",
         outputs = [output_bundle, output_plist],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
-def generate_objc_mlmodel_sources(
+def generate_mlmodel_sources(
         *,
         actions,
         input_file,
-        output_source,
-        output_header,
+        swift_output_src,
+        objc_output_src,
+        objc_output_hdr,
+        language,
         platform_prerequisites,
         resolved_xctoolrunner):
     """Creates an action that generates sources for an mlmodel file.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      input_file: The png file to be copied.
-      output_source: The file reference for the generated ObjC source.
-      output_header: The file reference for the generated ObjC header.
+      input_file: The input mlmodel file.
+      swift_output_src: The output file when generating Swift sources.
+      objc_output_src: The output source file when generating Obj-C.
+      objc_output_hdr: The output header file when generating Obj-C.
+      language: Language of generated classes ("Objective-C", "Swift").
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
     """
-    args = [
+
+    is_swift = language == "Swift"
+
+    arguments = [
         "coremlc",
         "generate",
         xctoolrunner.prefixed_path(input_file.path),
-        output_source.dirname,
     ]
+
+    outputs = []
+    if is_swift:
+        arguments += [
+            "--public-access",
+            "--language",
+            "Swift",
+            swift_output_src.dirname,
+        ]
+        outputs = [swift_output_src]
+    else:
+        arguments.append(objc_output_src.dirname)
+        outputs = [objc_output_src, objc_output_hdr]
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = arguments,
         executable = resolved_xctoolrunner.executable,
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MlmodelGenerate",
-        outputs = [output_source, output_header],
+        outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )

@@ -552,7 +552,6 @@ def _generate_codesigning_dossier_action(
         progress_message = progress_message,
         tools = [resolved_codesigning_dossier_tool.executable],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def _post_process_and_sign_archive_action(
@@ -640,15 +639,14 @@ def _post_process_and_sign_archive_action(
         processing_tools.append(ipa_post_processor)
         ipa_post_processor_path = ipa_post_processor.path
 
-    # Only compress the IPA for optimized (release) builds or when requested.
-    # For debug builds, zip without compression, which will speed up the build.
+    # Compress the IPA when requested. By default, enable compression for optimized (release) builds
+    # to reduce file size, and disable compression for debug builds to speed up the build.
     config_vars = platform_prerequisites.config_vars
-    compression_requested = defines.bool_value(
+    should_compress = defines.bool_value(
         config_vars = config_vars,
         define_name = "apple.compress_ipa",
-        default = False,
+        default = (config_vars["COMPILATION_MODE"] == "opt"),
     )
-    should_compress = (config_vars["COMPILATION_MODE"] == "opt") or compression_requested
 
     # TODO(b/163217926): These are kept the same for the three different actions
     # that could be run to ensure anything keying off these values continues to

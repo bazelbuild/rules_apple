@@ -38,15 +38,21 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
     _apple_core_data_model = "apple_core_data_model",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    _resources_common = "resources",
+)
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
+apple_intent_library = _apple_intent_library
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_core_data_model = _apple_core_data_model
 
+resources_common = _resources_common
+
 # TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
-# TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
 def apple_core_ml_library(name, mlmodel, **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for mlmodel files."""
@@ -70,21 +76,63 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
     core_ml_args = dict(kwargs)
     core_ml_args.pop("visibility", None)
 
-    # This target creates an implicit <core_ml_name>.m file that can be referenced in the srcs of
-    # the objc_library target below. Since this rule's outputs are the headers, we can set the hdrs
-    # attribute to be this target and propagate the headers correctly upstream.
+    objc_source = ":{}.m".format(core_ml_name)
+    objc_header = ":{}".format(core_ml_name)
+    objc_public_header = "{}.h".format(name)
     _apple_core_ml_library(
         name = core_ml_name,
         mlmodel = mlmodel,
-        header_name = name,
+        language = "Objective-C",
+        objc_source = objc_source,
+        objc_header = objc_header,
+        objc_public_header = objc_public_header,
         visibility = ["//visibility:private"],
         **core_ml_args
     )
     native.objc_library(
         name = name,
-        srcs = [":{}.m".format(core_ml_name)],
-        hdrs = [":{}".format(core_ml_name)],
+        srcs = [objc_source],
+        hdrs = [objc_header],
         sdk_frameworks = ["CoreML"],
+        data = [mlmodel],
+        **kwargs
+    )
+
+def swift_apple_core_ml_library(name, mlmodel, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Macro to orchestrate a swift_library with generated sources for mlmodel files."""
+
+    # List of allowed attributes for the apple_core_ml_library rule. Do not want to expose the
+    # underlying swift_library attributes which might slow down migration once we're able to create a
+    # proper rule.
+    allowed_attributes = [
+        "tags",
+        "testonly",
+        "visibility",
+    ]
+
+    for attr, _ in kwargs.items():
+        if attr not in allowed_attributes:
+            fail("Unknown attribute '{}' in rule 'swift_apple_core_ml_library'".format(attr))
+
+    core_ml_name = "{}.CoreML".format(name)
+
+    # Remove visibility from the internal target, to avoid misuse.
+    core_ml_args = dict(kwargs)
+    core_ml_args.pop("visibility", None)
+
+    swift_source = "{}.swift".format(core_ml_name)
+    _apple_core_ml_library(
+        name = core_ml_name,
+        mlmodel = mlmodel,
+        language = "Swift",
+        swift_source = swift_source,
+        visibility = ["//visibility:private"],
+        **core_ml_args
+    )
+    swift_library(
+        name = name,
+        srcs = [swift_source],
         data = [mlmodel],
         **kwargs
     )

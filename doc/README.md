@@ -105,13 +105,21 @@ below.
     <tr>
       <th align="left" valign="top" rowspan="2">General</th>
       <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
-      <td valign="top"><code><a href="rules-general.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
+      <td valign="top"><code><a href="rules-versioning.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
     </tr>
     <tr>
       <td valign="top"><code>@build_bazel_rules_apple//apple:apple.bzl</code></td>
       <td valign="top">
-        <code><a href="rules-general.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
-        <code><a href="rules-general.md#apple_static_framework_import">apple_static_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_dynamic_xcframework_import">apple_dynamic_xcframework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_framework_import">apple_static_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_library">apple_static_library</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_xcframework">apple_static_xcframework</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_xcframework_import">apple_static_xcframework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_universal_binary">apple_universal_binary</a></code><br/>
+        <code><a href="rules-apple.md#apple_xcframework">apple_xcframework</a></code><br/>
+        <code><a href="rules-apple.md#local_provisioning_profile">local_provisioning_profile</a></code><br/>
+        <code><a href="rules-apple.md#provisioning_profile_repository">provisioning_profile_repository</a></code><br/>
       </td>
     </tr>
     <tr>
@@ -119,8 +127,12 @@ below.
       <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
       <td valign="top">
         <code><a href="rules-resources.md#apple_bundle_import">apple_bundle_import</a></code><br/>
+        <code><a href="rules-resources.md#apple_core_data_model">apple_core_data_model</a></code><br/>
+        <code><a href="rules-resources.md#apple_core_ml_library">apple_core_ml_library</a></code><br/>
         <code><a href="rules-resources.md#apple_resource_bundle">apple_resource_bundle</a></code><br/>
         <code><a href="rules-resources.md#apple_resource_group">apple_resource_group</a></code><br/>
+        <code><a href="rules-resources.md#swift_apple_core_ml_library">swift_apple_core_ml_library</a></code><br/>
+        <code><a href="rules-resources.md#swift_intent_library">swift_intent_library</a></code><br/>
       </td>
     </tr>
   </tbody>

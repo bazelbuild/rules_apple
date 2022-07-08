@@ -19,7 +19,7 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 load(
@@ -39,15 +39,9 @@ load(
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
-    # This was added because this transition is also used by
-    # `infoplist_contents_test` and has no "macos_cpus" attribute.
-    macos_cpus = "x86_64"
-    if hasattr(attr, "macos_cpus"):
-        macos_cpus = ",".join(attr.macos_cpus)
-
     output_dictionary = {
         "//command_line_option:ios_signing_cert_name": "-",
-        "//command_line_option:macos_cpus": macos_cpus,
+        "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_bitcode": attr.apple_bitcode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
@@ -62,14 +56,21 @@ def _apple_verification_transition_impl(settings, attr):
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,armv7",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "armv7k",
+            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
         })
+
+    if hasattr(attr, "cpus"):
+        for cpu_option, cpus in attr.cpus.items():
+            command_line_option = "//command_line_option:%s" % cpu_option
+            output_dictionary.update({command_line_option: ",".join(cpus)})
+
     existing_features = settings.get("//command_line_option:features") or []
     if hasattr(attr, "target_features"):
         existing_features.extend(attr.target_features)
     if hasattr(attr, "sanitizer") and attr.sanitizer != "none":
         existing_features.append(attr.sanitizer)
     output_dictionary["//command_line_option:features"] = existing_features
+
     return output_dictionary
 
 apple_verification_transition = transition(
@@ -197,6 +198,7 @@ def _apple_verification_test_impl(ctx):
         target_under_test[OutputGroupInfo],
     ]
 
+# Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {
@@ -230,10 +232,10 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
 """,
         ),
-        "macos_cpus": attr.string_list(
+        "cpus": attr.string_list_dict(
             doc = """
-List of MacOS CPU's to use for test under target.
-https://docs.bazel.build/versions/main/command-line-reference.html#flag--macos_cpus
+Dictionary of command line options cpu flags (e.g. ios_multi_cpus, macos_cpus) and the list of
+cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']})
 """,
         ),
         "sanitizer": attr.string(

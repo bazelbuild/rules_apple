@@ -18,6 +18,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
 load("@bazel_skylib//lib:sets.bzl", "sets")
 
 def _verify_found_module_name(*, bundle_name, found_module_name):
@@ -36,6 +40,17 @@ frameworks expect a single swift_library dependency with `module_name` set to th
             actual = found_module_name,
             expected = bundle_name,
         ))
+
+def _modules_from_avoid_deps(*, avoid_deps):
+    """Returns a set of module names found from the SwiftInfo providers of avoid_deps"""
+    avoid_swiftinfos = [t[SwiftInfo] for t in avoid_deps if SwiftInfo in t]
+    avoid_modules = sets.make()
+    for swiftinfo in avoid_swiftinfos:
+        for module in swiftinfo.transitive_modules.to_list():
+            if not module.swift:
+                continue
+            sets.insert(avoid_modules, module.name)
+    return avoid_modules
 
 def _swift_include_info(
         *,
@@ -78,18 +93,34 @@ Please file an issue with a reproducible error case.\
 
     return swift_module
 
-def _modulemap_contents(*, module_name):
-    """Returns the contents for the modulemap file for a Swift framework."""
+def _modulemap_contents(
+        *,
+        framework_modulemap,
+        module_name):
+    """Returns the contents for the modulemap file for a Swift framework.
+
+    Args:
+        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+            framework instead of a library or a generic module.
+        module_name: The name of the Swift module.
+
+    Returns:
+        A string representing a generated modulemap.
+    """
     return """\
-framework module {module_name} {{
+{module_with_qualifier} {module_name} {{
   header "{module_name}.h"
   requires objc
 }}
-""".format(module_name = module_name)
+""".format(
+        module_with_qualifier = "framework module" if framework_modulemap else "module",
+        module_name = module_name,
+    )
 
 def _declare_modulemap(
         *,
         actions,
+        framework_modulemap,
         label_name,
         module_name,
         output_discriminator):
@@ -97,6 +128,8 @@ def _declare_modulemap(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+            framework instead of a library or a generic module.
         label_name: Name of the target being built.
         module_name: The name of the Swift module.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -111,7 +144,10 @@ def _declare_modulemap(
         output_discriminator = output_discriminator,
         file_name = "module.modulemap",
     )
-    actions.write(modulemap, _modulemap_contents(module_name = module_name))
+    actions.write(modulemap, _modulemap_contents(
+        framework_modulemap = framework_modulemap,
+        module_name = module_name,
+    ))
     return modulemap
 
 def _declare_generated_header(
@@ -212,6 +248,7 @@ def _declare_swiftinterface(
 
 swift_info_support = struct(
     verify_found_module_name = _verify_found_module_name,
+    modules_from_avoid_deps = _modules_from_avoid_deps,
     swift_include_info = _swift_include_info,
     declare_modulemap = _declare_modulemap,
     declare_generated_header = _declare_generated_header,

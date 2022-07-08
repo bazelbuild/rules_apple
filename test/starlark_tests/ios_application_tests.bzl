@@ -29,6 +29,10 @@ load(
     "bitcode_symbol_map_test",
 )
 load(
+    ":rules/entitlements_contents_test.bzl",
+    "entitlements_contents_test",
+)
+load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
@@ -76,10 +80,7 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",
-        tags = [
-            name,
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     apple_verification_test(
@@ -168,6 +169,30 @@ def ios_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    entitlements_contents_test(
+        name = "{}_entitlements_contents_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_values = {
+            "application-identifier": "FOOBARBAZ1.*",
+            "get-task-allow": "true",
+            "test-an-entitlement": "false",
+        },
+        tags = [name],
+    )
+
+    entitlements_contents_test(
+        name = "{}_entitlements_contents_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_values = {
+            "application-identifier": "FOOBARBAZ1.*",
+            "get-task-allow": "true",
+            "test-an-entitlement": "false",
+        },
         tags = [name],
     )
 
@@ -382,11 +407,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -397,11 +418,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -412,11 +429,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "tsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -427,11 +440,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -442,11 +451,7 @@ def ios_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        tags = [
-            name,
-            # OSS Blocked by b/73547309
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     infoplist_contents_test(

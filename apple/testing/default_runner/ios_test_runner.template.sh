@@ -135,7 +135,7 @@ fi
 
 # Use the TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
 # flag to set tests_to_run value in ios_test_runner's launch_options.
-# Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests 
+# Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests
 # is passed to "tests_to_run"
 if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
@@ -234,7 +234,6 @@ readonly profdata="$TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
 lcov_args=(
-  -format lcov
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
   -path-equivalence="$ROOT",.
@@ -246,7 +245,7 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   if [[ "$has_binary" == false ]]; then
     lcov_args+=("${binary}")
     has_binary=true
-    if file "$binary" | grep -q "executable $arch"; then
+    if ! file "$binary" | grep -q "$arch"; then
       arch=x86_64
     fi
   else
@@ -260,6 +259,7 @@ readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
   export \
+  -format lcov \
   "${lcov_args[@]}" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
@@ -272,4 +272,21 @@ if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
   cat "$error_file" >&2
   exit 1
+fi
+
+if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+  llvm_cov_json_export_status=0
+  xcrun llvm-cov \
+    export \
+    -format text \
+    "${lcov_args[@]}" \
+    @"$COVERAGE_MANIFEST" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+    2> "$error_file" \
+    || llvm_cov_json_export_status=$?
+  if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
+    cat "$error_file" >&2
+    exit 1
+  fi
 fi

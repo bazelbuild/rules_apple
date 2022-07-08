@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    ":rules/analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
     "bitcode_symbol_map_test",
@@ -113,6 +117,18 @@ def apple_xcframework_test_suite(name):
         },
         not_expected_keys = [
             "AvailableLibraries:1:BitcodeSymbolMapsPath",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module ios_dynamic_xcframework",
+            "header \"ios_dynamic_xcframework.h\"",
         ],
         tags = [name],
     )
@@ -446,6 +462,19 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_ios_bundle_name_contents_swift_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module SwiftFmwkWithGenHeader",
+            "header \"SwiftFmwkWithGenHeader.h\"",
+            "requires objc",
+        ],
+        tags = [name],
+    )
+
     # Verifies that the include scanning feature builds for the given XCFramework rule.
     archive_contents_test(
         name = "{}_ios_arm64_cc_include_scanning_test".format(name),
@@ -455,6 +484,27 @@ def apple_xcframework_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_custom_umbrella_header_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_umbrella_header",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_umbrella_header.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module ios_dynamic_xcframework",
+            "header \"Umbrella.h\"",
+        ],
+        tags = [name],
+    )
+
+    # Test that an actionable error is produced for the user when a header to
+    # bundle conflicts with the generated umbrella header.
+    analysis_failure_message_test(
+        name = "{}_umbrella_header_conflict_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_umbrella_header_conflict",
+        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
         tags = [name],
     )
 

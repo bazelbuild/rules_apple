@@ -55,15 +55,19 @@ swift_library(
 
 swift_library(
     name = "ButtonsTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTests/ButtonsTests.swift",
     ],
     module_name = "ButtonsTests",
-    deps = [":ButtonsLib"],
+    deps = [
+        ":ButtonsLib",
+    ],
 )
 
 swift_library(
     name = "ButtonsUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsUITests/ButtonsUITests.swift",
     ],
@@ -281,7 +285,9 @@ swift_library(
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
     module_name = "ButtonsMacTests",
-    deps = [":ButtonsMacLib"],
+    deps = [
+        ":ButtonsMacLib",
+    ],
 )
 
 swift_library(

@@ -166,6 +166,13 @@ function test_standalone_unit_test_coverage() {
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
 
+function test_standalone_unit_test_coverage_json() {
+  create_common_files
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --test_env=COVERAGE_PRODUCE_JSON=1 //app:standalone_test || fail "Should build"
+  unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" coverage.json \
+      grep '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
+}
+
 function test_hosted_unit_test_coverage() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"

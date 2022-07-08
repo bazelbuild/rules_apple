@@ -2266,20 +2266,40 @@ ios_dynamic_framework(
 # Targets for iOS static framework tests.
 
 ios_static_framework(
-    name = "static_fmwk_with_swift_and_avoid_deps",
-    avoid_deps = [":StaticFmwkLowerLib"],
-    bundle_name = "StaticFmwkUpperLib",
+    name = "swift_ios_static_framework",
+    bundle_name = "SwiftFmwk",
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
-    deps = [":StaticFmwkUpperLib"],
+    deps = [":SwiftFmwk"],
+)
+
+ios_static_framework(
+    name = "static_fmwk_with_swift_and_avoid_deps",
+    avoid_deps = [":SwiftFmwkLowerLib"],
+    bundle_name = "SwiftFmwkUpperLib",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":SwiftFmwkUpperLib"],
 )
 
 ios_static_framework(
     name = "static_framework_with_generated_header",
-    bundle_name = "StaticFmwkWithGenHeader",
+    bundle_name = "SwiftFmwkWithGenHeader",
     minimum_os_version = "8.0",
     tags = FIXTURE_TAGS,
-    deps = [":StaticFmwkWithGenHeader"],
+    deps = [":SwiftFmwkWithGenHeader"],
+)
+
+ios_static_framework(
+    name = "static_framework_with_umbrella_header_conflict",
+    hdrs = [
+        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    bundle_name = "UmbrellaHeaderConflict",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [":shared_lib"],
 )
 
 genrule(
@@ -2289,33 +2309,40 @@ genrule(
 )
 
 swift_library(
-    name = "StaticFmwkUpperLib",
+    name = "SwiftFmwk",
     srcs = ["Dummy.swift"],
-    module_name = "StaticFmwkUpperLib",
-    tags = FIXTURE_TAGS,
-    deps = [":StaticFmwkLowerLib"],
-)
-
-swift_library(
-    name = "StaticFmwkLowerLib",
-    srcs = ["Dummy.swift"],
-    module_name = "StaticFmwkLowerLib",
-    tags = FIXTURE_TAGS,
-    deps = [":StaticFmwkLowestLib"],
-)
-
-swift_library(
-    name = "StaticFmwkLowestLib",
-    srcs = ["Dummy.swift"],
-    module_name = "StaticFmwkLowestLib",
+    module_name = "SwiftFmwk",
     tags = FIXTURE_TAGS,
 )
 
 swift_library(
-    name = "StaticFmwkWithGenHeader",
+    name = "SwiftFmwkUpperLib",
+    srcs = ["Dummy.swift"],
+    module_name = "SwiftFmwkUpperLib",
+    tags = FIXTURE_TAGS,
+    deps = [":SwiftFmwkLowerLib"],
+)
+
+swift_library(
+    name = "SwiftFmwkLowerLib",
+    srcs = ["Dummy.swift"],
+    module_name = "SwiftFmwkLowerLib",
+    tags = FIXTURE_TAGS,
+    deps = [":SwiftFmwkLowestLib"],
+)
+
+swift_library(
+    name = "SwiftFmwkLowestLib",
+    srcs = ["Dummy.swift"],
+    module_name = "SwiftFmwkLowestLib",
+    tags = FIXTURE_TAGS,
+)
+
+swift_library(
+    name = "SwiftFmwkWithGenHeader",
     srcs = ["Dummy.swift"],
     generates_header = True,
-    module_name = "StaticFmwkWithGenHeader",
+    module_name = "SwiftFmwkWithGenHeader",
     tags = FIXTURE_TAGS,
 )
 

@@ -1139,6 +1139,7 @@ objc_library(
 apple_dynamic_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
+    features = ["-parse_headers"],
 )
 EOF
 
@@ -1711,6 +1712,8 @@ EOF
   mkdir -p staticlib
 
   cat > staticlib/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_static_library.bzl", "apple_static_library")
+
 genrule(
     name = "gen_staticlib",
     srcs = [":dostuff_staticlib_lipo.a"],

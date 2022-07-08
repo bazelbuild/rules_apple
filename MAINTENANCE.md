@@ -8,12 +8,23 @@ rules repos (this doc is not duplicated across the repos):
 
 # Maintainers
 
-The current maintainers are:
+The current maintainers can be seen in the [CODEOWNERS](CODEOWNERS)
+file.
 
-- @keith
-- @segiddins
-- @brentleyjones
-- @thii
+## How to become a maintainer
+
+These rules are community maintained. Any community member can become a
+maintainer. Ideally we have a large set of maintainers who can work on
+improving different parts of the rules for different use cases. In order
+to become a maintainer you must demonstrate proficiency working on these
+bazel rules. The best way to do this is to contribute multiple
+non-trivial features over time. If you would like to become a
+maintainer, once you have a collection of non-trivial changes, reach out
+to Keith Smiley (keithbsmiley@gmail.com) with links to your changes.
+Once you have met these criteria the existing maintainers will vote and
+require a 2/3rds majority to add new maintainers. Otherwise the
+maintainers will provide specific feedback on what they would like to
+see before granting access.
 
 # Upstream changes
 

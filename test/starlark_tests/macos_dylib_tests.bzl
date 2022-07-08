@@ -27,6 +27,10 @@ load(
     "dsyms_test",
 )
 load(
+    ":rules/infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
+load(
     ":rules/output_group_test.bzl",
     "output_group_test",
 )
@@ -83,6 +87,28 @@ def macos_dylib_test_suite(name):
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
         expected_dsyms = ["dylib"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        expected_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "dylib",
+            "CFBundleShortVersionString": "1.0",
+            "CFBundleSupportedPlatforms:0": "MacOSX",
+            "CFBundleVersion": "1.0",
+            "DTPlatformVersion": "*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "DTPlatformName": "macosx",
+            "DTSDKBuild": "*",
+            "DTSDKName": "macosx*",
+            "LSMinimumSystemVersion": "10.11",
+        },
         tags = [name],
     )
 

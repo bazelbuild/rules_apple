@@ -137,8 +137,10 @@ fi
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
+rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
+    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult" \
     -xctestrun "$XCTESTRUN"
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
@@ -149,24 +151,45 @@ fi
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
-readonly error_file="$TEST_TMP_DIR/llvm-cov-error.txt"
-llvm_cov_status=0
+readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
+llvm_cov_export_status=0
+lcov_args=(
+  -instr-profile "$profdata"
+  -ignore-filename-regex='.*external/.+'
+  -path-equivalence="$ROOT",.
+)
 xcrun llvm-cov \
   export \
   -format lcov \
-  -instr-profile "$profdata" \
-  -ignore-filename-regex='.*external/.+' \
-  -path-equivalence="$ROOT",. \
+  "${lcov_args[@]}" \
   "$test_binary" \
   @"$COVERAGE_MANIFEST" \
   > "$COVERAGE_OUTPUT_FILE" \
-  2> "$error_file" \
-  || llvm_cov_status=$?
+  2> "$export_error_file" \
+  || llvm_cov_export_status=$?
 
 # Error ourselves if lcov outputs warnings, such as if we misconfigure
 # something and the file path of one of the covered files doesn't exist
-if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
+if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
-  cat "$error_file" >&2
+  cat "$export_error_file" >&2
   exit 1
+fi
+
+if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+  llvm_cov_json_export_status=0
+  xcrun llvm-cov \
+    export \
+    -format text \
+    "${lcov_args[@]}" \
+    "$test_binary" \
+    @"$COVERAGE_MANIFEST" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+    2> "$export_error_file" \
+    || llvm_cov_json_export_status=$?
+  if [[ -s "$export_error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
+    cat "$export_error_file" >&2
+    exit 1
+  fi
 fi

@@ -23,8 +23,8 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
@@ -35,12 +35,12 @@ load(
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_static_framework_aspect.bzl",
-    "swift_static_framework_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "swift_dynamic_framework_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "swift_usage_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
@@ -85,10 +85,6 @@ load(
     "WatchosExtensionBundleInfo",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_usage_aspect",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -113,37 +109,62 @@ _COMMON_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
-# Private attributes on rules that perform binary linking.
-_COMMON_BINARY_RULE_ATTRS = dicts.add(
-    {
-        "_cc_toolchain": attr.label(
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-        ),
+def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for Bazel Apple linking API's.
+
+    These rule attributes are required by both Bazel Apple linking API's under apple_common module:
+      - apple_common.link_multi_arch_binary
+      - apple_common.link_multi_arch_static_library
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return {
         "_child_configuration_dummy": attr.label(
-            cfg = apple_common.multi_arch_split,
+            cfg = cfg,
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
-        # Needed for the J2ObjC processing code that already exists in the implementation of
-        # apple_common.link_multi_arch_binary.
-        "_dummy_lib": attr.label(
-            cfg = apple_common.multi_arch_split,
-            default = Label("@bazel_tools//tools/objc:dummy_lib"),
-        ),
-        # Needed for the J2ObjC processing code that already exists in the implementation of
-        # apple_common.link_multi_arch_binary.
-        "_j2objc_dead_code_pruner": attr.label(
-            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner"),
-        ),
-        # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
-        # apple_common.link_multi_arch_binary requires this attribute.
-        # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
-        "_xcrunwrapper": attr.label(
-            cfg = "exec",
-            executable = True,
-            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-        ),
-    },
-)
+    }
+
+def _link_multi_arch_static_library_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return _common_linking_api_attrs(cfg = cfg)
+
+def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
+    """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
+
+    Args:
+        cfg: Bazel split transition to use on attrs.
+    """
+    return dicts.add(
+        _common_linking_api_attrs(cfg = cfg),
+        {
+            # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
+            # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
+            # See CompilationSupport.java:
+            # - `registerJ2ObjcDeadCodeRemovalActions()`
+            # - `registerLinkActions()` --> `registerBinaryStripAction()`
+            # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
+            "_xcrunwrapper": attr.label(
+                cfg = "exec",
+                executable = True,
+                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
+            ),
+        },
+    )
+
+# Needed for the J2ObjC processing code that already exists in the implementation of
+# apple_common.link_multi_arch_binary.
+_J2OBJC_BINARY_LINKING_ATTRS = {
+    "_dummy_lib": attr.label(
+        cfg = apple_common.multi_arch_split,
+        default = Label("@bazel_tools//tools/objc:dummy_lib"),
+    ),
+}
 
 _COMMON_TEST_ATTRS = {
     "data": attr.label_list(
@@ -180,6 +201,13 @@ AppleTestRunnerInfo provider.
         cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
+    "_lcov_merger": attr.label(
+        default = configuration_field(
+            fragment = "coverage",
+            name = "output_generator",
+        ),
+        cfg = "exec",
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):
@@ -196,15 +224,19 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
             default_stamp = 0
-        if product_type == apple_product_type.static_framework:
-            deps_aspects.append(swift_static_framework_aspect)
         if product_type == apple_product_type.framework:
             deps_aspects.append(swift_dynamic_framework_aspect)
 
     return dicts.add(
         _COMMON_ATTRS,
-        _COMMON_BINARY_RULE_ATTRS,
+        _J2OBJC_BINARY_LINKING_ATTRS,
+        _link_multi_arch_binary_attrs(),
         {
+            # This attribute is required by the Clang runtime libraries processing partial.
+            # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
+            "_cc_toolchain": attr.label(
+                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -267,7 +299,7 @@ bundle.
         },
     )
 
-def _get_common_bundling_attributes(rule_descriptor):
+def _get_common_bundling_attributes(deps_cfg, rule_descriptor):
     """Returns a list of dictionaries with attributes common to all bundling rules."""
 
     # TODO(kaipi): Review platform specific wording in the documentation before migrating macOS
@@ -372,19 +404,24 @@ in the bundle.
         "resources": attr.label_list(
             allow_files = True,
             aspects = [apple_resource_aspect],
+            cfg = deps_cfg,
             doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within the bundle.
 """,
         ),
-        "version": attr.label(
-            providers = [[AppleBundleVersionInfo]],
-            doc = """
-An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
-""",
-        ),
     })
+
+    if rule_descriptor.product_type != apple_product_type.static_framework:
+        attrs.append({
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
+""",
+            ),
+        })
 
     if len(rule_descriptor.allowed_device_families) > 1:
         extra_args = {}
@@ -538,6 +575,10 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -556,6 +597,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -819,6 +861,10 @@ use only extension-safe APIs.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -837,6 +883,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -949,6 +996,10 @@ that this target depends on.
             })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -967,6 +1018,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -1037,7 +1089,7 @@ for what is supported.
             providers = [[AppleBundleVersionInfo]],
             doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
         ),
     })
@@ -1048,6 +1100,7 @@ def _create_apple_binary_rule(
         implementation,
         doc,
         additional_attrs = {},
+        cfg = transition_support.apple_rule_transition,
         implicit_outputs = None,
         platform_type = None,
         product_type = None,
@@ -1079,7 +1132,7 @@ dotted version number (for example, "10.11").
     if platform_type:
         rule_attrs.extend([
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
+            apple_toolchain_utils.shared_attrs(),
             {
                 # TODO(kaipi): Make this attribute private when a platform_type is
                 # specified. It is required by the native linking API.
@@ -1142,7 +1195,7 @@ binaries/libraries will be created combining all architectures specified by
         implementation = implementation,
         # TODO(kaipi): Replace dicts.add with a version that errors on duplicate keys.
         attrs = dicts.add(*rule_attrs),
-        cfg = transition_support.apple_rule_transition,
+        cfg = cfg,
         doc = doc,
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
@@ -1175,8 +1228,11 @@ def _create_apple_bundling_rule(
     rule_attrs.extend(
         [
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
-        ] + _get_common_bundling_attributes(rule_descriptor),
+            apple_toolchain_utils.shared_attrs(),
+        ] + _get_common_bundling_attributes(
+            deps_cfg = rule_descriptor.deps_cfg,
+            rule_descriptor = rule_descriptor,
+        ),
     )
 
     if rule_descriptor.requires_deps:
@@ -1235,7 +1291,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         implementation = implementation,
         attrs = dicts.add(
             _COMMON_ATTRS,
-            apple_support_toolchain_utils.shared_attrs(),
+            apple_toolchain_utils.shared_attrs(),
             _COMMON_TEST_ATTRS,
             *extra_attrs
         ),
@@ -1245,9 +1301,13 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     )
 
 rule_factory = struct(
+    common_bazel_attributes = struct(
+        link_multi_arch_binary_attrs = _link_multi_arch_binary_attrs,
+        link_multi_arch_static_library_attrs = _link_multi_arch_static_library_attrs,
+    ),
     common_tool_attributes = dicts.add(
         _COMMON_ATTRS,
-        apple_support_toolchain_utils.shared_attrs(),
+        apple_toolchain_utils.shared_attrs(),
     ),
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,

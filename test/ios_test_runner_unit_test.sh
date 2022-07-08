@@ -220,6 +220,7 @@ ios_unit_test(
 
 swift_library(
     name = "pass_unit_swift_test_lib",
+    testonly = True,
     srcs = ["pass_unit_test.swift"],
 )
 

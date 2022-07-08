@@ -116,9 +116,12 @@ def archive_contents_test(
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
+            macho_load_commands_contain,
+            macho_load_commands_not_contain,
         ]):
-            fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking " +
-                 "for symbols")
+            fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
+                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+                 "binary_test_architecture")
     else:
         if any([binary_contains_symbols, binary_not_contains_symbols, binary_test_architecture]):
             fail("Need binary_test_file to check the binary for symbols")
@@ -184,6 +187,9 @@ def binary_contents_test(
         binary_test_architecture = "",
         binary_contains_symbols = [],
         binary_not_contains_symbols = [],
+        binary_contains_file_info = [],
+        macho_load_commands_contain = [],
+        macho_load_commands_not_contain = [],
         embedded_plist_test_values = {},
         plist_section_name = "__info_plist",
         **kwargs):
@@ -200,6 +206,12 @@ def binary_contents_test(
             specified in `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
+        binary_contains_file_info: Optional, A list of strings that should appear as substrings of
+            the output when the binary is queried by the `file` command.
+        macho_load_commands_contain: Optional, A list of Mach-O load commands that should appear in
+            the binary file specified in `binary_test_file`.
+        macho_load_commands_not_contain: Optional, A list of Mach-O load commands that should not
+            appear in the binary file specified in `binary_test_file`.
         embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
             if the key does not exist or if its value doesn't match the specified value. * can
             be used as a wildcard value. An embedded plist will be extracted from the
@@ -209,11 +221,19 @@ def binary_contents_test(
             Defaults to `__info_plist`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
-    if any([binary_contains_symbols, binary_not_contains_symbols]) and not binary_test_architecture:
+    if any([binary_contains_symbols, binary_not_contains_symbols]) and (
+        not binary_test_architecture
+    ):
         fail("Need binary_test_architecture when checking symbols")
-    elif binary_test_architecture and not any([binary_contains_symbols, binary_not_contains_symbols]):
-        fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking an " +
-             "architecture")
+    elif binary_test_architecture and not any([
+        binary_contains_symbols,
+        binary_not_contains_symbols,
+        macho_load_commands_contain,
+        macho_load_commands_not_contain,
+    ]):
+        fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
+             "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+             "binary_test_architecture")
 
     if not any([binary_test_file, embedded_plist_test_values]):
         fail("There are no tests for the binary")
@@ -233,6 +253,9 @@ def binary_contents_test(
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
+            "BINARY_CONTAINS_FILE_INFO": binary_contains_file_info,
+            "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
+            "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
             "PLIST_SECTION_NAME": [plist_section_name],
             "PLIST_TEST_VALUES": plist_test_values_list,
         },
@@ -279,10 +302,7 @@ def bitcode_symbol_map_test(
         },
         target_under_test = target_under_test,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/bitcode_verifier.sh",
-        tags = tags + [
-            # OSS Blocked by b/73546952
-            "manual",  # disabled in oss
-        ],
+        tags = tags,
         **kwargs
     )
 

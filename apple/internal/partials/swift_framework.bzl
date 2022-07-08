@@ -34,7 +34,9 @@ load(
 def _swift_framework_partial_impl(
         *,
         actions,
+        avoid_deps,
         bundle_name,
+        framework_modulemap,
         label_name,
         output_discriminator,
         swift_infos):
@@ -46,6 +48,7 @@ Internal error: Expected to find a SwiftInfo before entering this partial. Pleas
 issue with a reproducible error case.
 """)
 
+    avoid_modules = swift_info_support.modules_from_avoid_deps(avoid_deps = avoid_deps)
     bundle_files = []
     expected_module_name = bundle_name
     found_module_name = None
@@ -54,6 +57,7 @@ issue with a reproducible error case.
 
     for arch, swiftinfo in swift_infos.items():
         swift_module = swift_info_support.swift_include_info(
+            avoid_modules = avoid_modules,
             found_module_name = found_module_name,
             transitive_modules = swiftinfo.transitive_modules,
         )
@@ -101,6 +105,7 @@ issue with a reproducible error case.
 
         modulemap = swift_info_support.declare_modulemap(
             actions = actions,
+            framework_modulemap = framework_modulemap,
             label_name = label_name,
             output_discriminator = output_discriminator,
             module_name = expected_module_name,
@@ -112,7 +117,9 @@ issue with a reproducible error case.
 def swift_framework_partial(
         *,
         actions,
+        avoid_deps = [],
         bundle_name,
+        framework_modulemap = True,
         label_name,
         output_discriminator = None,
         swift_infos):
@@ -123,7 +130,10 @@ def swift_framework_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        avoid_deps: A list of library targets with modules to avoid, if specified.
         bundle_name: The name of the output bundle.
+        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+            framework instead of a library or a generic module. Defaults to `True`.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -137,7 +147,9 @@ def swift_framework_partial(
     return partial.make(
         _swift_framework_partial_impl,
         actions = actions,
+        avoid_deps = avoid_deps,
         bundle_name = bundle_name,
+        framework_modulemap = framework_modulemap,
         label_name = label_name,
         output_discriminator = output_discriminator,
         swift_infos = swift_infos,

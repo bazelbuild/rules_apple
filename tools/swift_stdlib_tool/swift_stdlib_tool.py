@@ -25,15 +25,16 @@ from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
 
 
-def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
+def _copy_swift_stdlibs(binaries_to_scan, swift_dylibs_paths, sdk_platform,
+                        destination_path):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
   developer_dir = os.environ["DEVELOPER_DIR"]
-  swift_dylibs_root = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-*"
-  swift_library_dir_pattern = os.path.join(developer_dir, swift_dylibs_root,
-                                           sdk_platform)
-  swift_library_dirs = glob.glob(swift_library_dir_pattern)
+  swift_library_dirs = [
+    os.path.join(developer_dir, dylibs_path, sdk_platform)
+    for dylibs_path in swift_dylibs_paths
+  ]
 
   cmd = [
       "xcrun", "swift-stdlib-tool", "--copy", "--platform", sdk_platform,
@@ -68,7 +69,9 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
 
     archs_to_keep = target_archs & file_archs
 
-    if len(file_archs) == 1 or archs_to_keep == file_archs:
+    # On M1 hardware, thin x86_64 libraries do not need lipo when archs_to_keep
+    # is empty.
+    if len(file_archs) == 1 or archs_to_keep == file_archs or not archs_to_keep:
       # If there is no need to lipo, copy and mark as executable.
       shutil.copy(exec_file_source_path, exec_file_destination_path)
       os.chmod(exec_file_destination_path, 0o755)
@@ -92,6 +95,11 @@ def main():
       "'iphoneos'"
   )
   parser.add_argument(
+      "--swift_dylibs_path", action="append", type=str, required=True,
+      help="path relative from the developer directory to find the Swift "
+      "standard libraries, independent of platform"
+  )
+  parser.add_argument(
       "--strip_bitcode", action="store_true", default=False, help="strip "
       "bitcode from the Swift support libraries"
   )
@@ -105,7 +113,8 @@ def main():
   temp_path = tempfile.mkdtemp(prefix="swift_stdlib_tool.XXXXXX")
 
   # Use the binaries to copy only the Swift stdlibs we need for this app.
-  _copy_swift_stdlibs(args.binary, args.platform, temp_path)
+  _copy_swift_stdlibs(args.binary, args.swift_dylibs_path, args.platform,
+                      temp_path)
 
   # Determine the binary slices we need to strip with lipo.
   target_archs, _ = lipo.find_archs_for_binaries(args.binary)

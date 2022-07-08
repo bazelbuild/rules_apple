@@ -73,11 +73,7 @@ def macos_quick_look_plugin_test_suite(name):
         binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin",
         macho_load_commands_not_contain = ["cmd LC_RPATH"],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
-        tags = [
-            name,
-            # OSS Blocked by b/127807024
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(

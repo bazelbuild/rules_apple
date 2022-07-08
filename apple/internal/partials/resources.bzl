@@ -46,7 +46,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "CACHEABLE_PROVIDER_FIELD_TO_ACTION",
     "resources",
 )
 load(
@@ -62,8 +61,6 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-
-_PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 
 def _merge_root_infoplists(
         *,
@@ -112,138 +109,6 @@ def _merge_root_infoplists(
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _expand_owners(*, owners):
-    """Converts a depset of (path, owner) to a dict of paths to dict of owners.
-
-    Args:
-      owners: A depset of (path, owner) pairs.
-    """
-    dict = {}
-    for resource, owner in owners.to_list():
-        if owner:
-            dict.setdefault(resource, default = {})[owner] = None
-    return dict
-
-def _expand_processed_origins(*, processed_origins):
-    """Converts a depset of (processed_resource, resource) to a dict.
-
-    Args:
-      processed_origins: A depset of (processed_resource, resource) pairs.
-    """
-    processed_origins_dict = {}
-    for processed_resource, resource in processed_origins.to_list():
-        processed_origins_dict[processed_resource] = resource
-    return processed_origins_dict
-
-def _deduplicate(
-        *,
-        avoid_owners,
-        avoid_provider,
-        field,
-        owners,
-        processed_origins,
-        processed_deduplication_map,
-        resources_provider):
-    """Deduplicates and returns resources between 2 providers for a given field.
-
-    Deduplication happens by comparing the target path of a file and the files
-    themselves. If there are 2 resources with the same target path but different
-    contents, the files will not be deduplicated.
-
-    This approach is naïve in the sense that it deduplicates resources too
-    aggressively. We also need to compare the target that references the
-    resources so that they are not deduplicated if they are referenced within
-    multiple binary-containing bundles.
-
-    Args:
-      avoid_owners: The owners map for avoid_provider computed by _expand_owners.
-      avoid_provider: The provider with the resources to avoid bundling.
-      field: The field to deduplicate resources on.
-      resources_provider: The provider with the resources to be bundled.
-      owners: The owners map for resources_provider computed by _expand_owners.
-      processed_origins: The processed resources map for resources_provider computed by
-          _expand_processed_origins.
-      processed_deduplication_map: A dictionary of keys to lists of short paths referencing already-
-          deduplicated resources that can be referenced by the resource processing aspect to avoid
-          duplicating files referenced by library targets and top level targets.
-
-    Returns:
-      A list of tuples with the resources present in avoid_providers removed from
-      resources_providers.
-    """
-
-    avoid_dict = {}
-    if avoid_provider and hasattr(avoid_provider, field):
-        for parent_dir, swift_module, files in getattr(avoid_provider, field):
-            key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-            avoid_dict[key] = {x.short_path: None for x in files.to_list()}
-
-    # Get the resources to keep, compare them to the avoid_dict under the same
-    # key, and remove the duplicated file references. Then recreate the original
-    # tuple with only the remaining files, if any.
-    deduped_tuples = []
-
-    for parent_dir, swift_module, files in getattr(resources_provider, field):
-        key = "%s_%s" % (parent_dir or "root", swift_module or "root")
-
-        # Dictionary used as a set to mark files as processed by short_path to deduplicate generated
-        # files that may appear more than once if multiple architectures are being built.
-        multi_architecture_deduplication_set = {}
-
-        # Update the deduplication map for this key, representing the domain of this library
-        # processable resource in bundling, and use that as our deduplication list for library
-        # processable resources.
-        if not processed_deduplication_map.get(key, None):
-            processed_deduplication_map[key] = []
-        processed_deduplication_list = processed_deduplication_map[key]
-
-        deduped_files = []
-        for to_bundle_file in files.to_list():
-            short_path = to_bundle_file.short_path
-            if short_path in multi_architecture_deduplication_set:
-                continue
-            multi_architecture_deduplication_set[short_path] = None
-            if key in avoid_dict and short_path in avoid_dict[key]:
-                # If the resource file is present in the provider of resources to avoid, we compare
-                # the owners of the resource through the owners dictionaries of the providers. If
-                # there are owners present in resources_provider which are not present in
-                # avoid_provider, it means that there is at least one target that declares usage of
-                # the resource which is not accounted for in avoid_provider. If this is the case, we
-                # add the resource to be bundled in the bundle represented by resource_provider.
-                deduped_owners = [
-                    o
-                    for o in owners[short_path]
-                    if o not in avoid_owners[short_path]
-                ]
-                if not deduped_owners:
-                    continue
-
-            if field == "processed":
-                # Check for duplicates referencing our map of where the processed resources were
-                # based from.
-                path_origins = processed_origins[short_path]
-                if path_origins in processed_deduplication_list:
-                    continue
-                processed_deduplication_list.append(path_origins)
-            elif field in _PROCESSED_FIELDS:
-                # Check for duplicates across fields that can be processed by a resource aspect, to
-                # avoid dupes between top-level fields and fields processed by the resource aspect.
-                all_path_origins = [
-                    path_origin
-                    for path_origins in processed_deduplication_list
-                    for path_origin in path_origins
-                ]
-                if short_path in all_path_origins:
-                    continue
-                processed_deduplication_list.append([short_path])
-
-            deduped_files.append(to_bundle_file)
-
-        if deduped_files:
-            deduped_tuples.append((parent_dir, swift_module, depset(deduped_files)))
-
-    return deduped_tuples
-
 def _locales_requested(*, config_vars):
     """Determines which locales to include when resource actions.
 
@@ -280,7 +145,7 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
 def _resources_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
@@ -339,15 +204,6 @@ def _resources_partial_impl(
         if AppleResourceInfo in x
     ]
 
-    avoid_provider = None
-    if avoid_providers:
-        # Call merge_providers with validate_all_resources_owned set, to ensure that all the
-        # resources from dependency bundles have an owner.
-        avoid_provider = resources.merge_providers(
-            providers = avoid_providers,
-            validate_all_resources_owned = True,
-        )
-
     # Map of resource provider fields to a tuple that contains the method to use to process those
     # resources and a boolean indicating whether the Swift module is required for that processing.
     provider_field_to_action = {
@@ -370,41 +226,13 @@ def _resources_partial_impl(
     # configured location.
     bundle_files = []
 
-    fields = resources.populated_resource_fields(final_provider)
-
     infoplists = []
 
     locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
-    # Precompute owners, avoid_owners and processed_origins to avoid duplicate work in _deduplicate.
-    # Build a dictionary with the file paths under each key for the avoided resources.
-    avoid_owners = {}
-    if avoid_provider:
-        avoid_owners = _expand_owners(owners = avoid_provider.owners)
-    owners = _expand_owners(owners = final_provider.owners)
-    if final_provider.processed_origins:
-        processed_origins = _expand_processed_origins(
-            processed_origins = final_provider.processed_origins,
-        )
-    else:
-        processed_origins = {}
-
-    # Create the deduplication map for library processable resources to be referenced across fields
-    # for the purposes of deduplicating top level resources and multiple library scoped resources.
-    processed_deduplication_map = {}
-
-    for field in fields:
-        deduplicated = _deduplicate(
-            avoid_owners = avoid_owners,
-            avoid_provider = avoid_provider,
-            field = field,
-            owners = owners,
-            processed_origins = processed_origins,
-            processed_deduplication_map = processed_deduplication_map,
-            resources_provider = final_provider,
-        )
+    def _deduplicated_field_handler(field, deduplicated):
         processing_func, requires_swift_module = provider_field_to_action[field]
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
@@ -417,7 +245,7 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
-                "apple_toolchain_info": apple_toolchain_info,
+                "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
                 "output_discriminator": output_discriminator,
@@ -436,6 +264,12 @@ def _resources_partial_impl(
             bundle_files.extend(result.files)
             if hasattr(result, "infoplists"):
                 infoplists.extend(result.infoplists)
+
+    resources.deduplicate(
+        resources_provider = final_provider,
+        avoid_providers = avoid_providers,
+        field_handler = _deduplicated_field_handler,
+    )
 
     if locales_requested:
         _validate_processed_locales(
@@ -482,7 +316,7 @@ def _resources_partial_impl(
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,
@@ -495,7 +329,7 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_id = None,
         bundle_name,
@@ -520,7 +354,7 @@ def resources_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
@@ -555,7 +389,7 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,

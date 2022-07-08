@@ -25,6 +25,7 @@ py_test(
     deps = [
         ":xctoolrunner_lib",
         "//:py_init_shim",
+        "//tools/wrapper_common:execute",
     ],
 )
 

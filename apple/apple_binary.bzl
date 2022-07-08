@@ -67,7 +67,7 @@ def _apple_binary_impl(ctx):
         for framework in ctx.attr.weak_sdk_frameworks
     ])
 
-    link_result = linking_support.register_linking_action(
+    link_result = linking_support.register_binary_linking_action(
         ctx,
         bundle_loader = bundle_loader,
         extra_linkopts = extra_linkopts,
