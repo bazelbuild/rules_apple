@@ -317,18 +317,15 @@ def _process_xcframework_imports(ctx):
 
     return xcframework_name, single_platform_dir, framework_imports_for_platform
 
-def _common_dynamic_framework_import_impl(ctx, is_xcframework):
-    """Common implementation for the apple_dynamic_framework_import and apple_dynamic_xcframework_import rules."""
+def _apple_dynamic_framework_import_impl(ctx):
+    """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
+    framework_imports = ctx.files.framework_imports
     label = ctx.label
-    if is_xcframework:
-        _, _, framework_imports = _process_xcframework_imports(ctx)
-    else:
-        framework_imports = ctx.files.framework_imports
 
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
@@ -339,14 +336,8 @@ def _common_dynamic_framework_import_impl(ctx, is_xcframework):
         framework_imports,
     )
 
-    # TODO: Support dSYM import
-    if is_xcframework:
-        dsym_binaries = []
-        dsym_imports = []
-    else:
-        dsym_binaries = _all_dsym_binaries(ctx.files.dsym_imports)
-        dsym_imports = ctx.files.dsym_imports
-
+    dsym_binaries = _all_dsym_binaries(ctx.files.dsym_imports)
+    dsym_imports = ctx.files.dsym_imports
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
     debug_info_binaries = _debug_info_binaries(
@@ -591,14 +582,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
 
     return providers
 
-def _apple_dynamic_framework_import_impl(ctx):
-    """Implementation for the apple_dynamic_framework_import rule."""
-    return _common_dynamic_framework_import_impl(ctx, is_xcframework = False)
-
-def _apple_dynamic_xcframework_import_impl(ctx):
-    """Implementation for the apple_dynamic_xcframework_import rule."""
-    return _common_dynamic_framework_import_impl(ctx, is_xcframework = True)
-
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     return _common_static_framework_import_impl(ctx, is_xcframework = False)
@@ -807,43 +790,6 @@ linked into that target.
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
     },
-)
-
-apple_dynamic_xcframework_import = rule(
-    implementation = _apple_dynamic_xcframework_import_impl,
-    fragments = ["apple", "cpp"],
-    attrs = dicts.add(_xcframework_import_common_attrs, {
-        "bundle_only": attr.bool(
-            default = False,
-            doc = """
-Avoid linking the dynamic XCFramework, but still include it in the app. This is
-useful when you want to manually dlopen the XCFramework at runtime.
-""",
-        ),
-    }),
-    doc = """
-This rule encapsulates an already-built dynamic XCFramework. It is defined by a
-list of files in exactly one `.xcframework` directory.
-`apple_dynamic_xcframework_import` targets need to be added to library targets
-through the `deps` attribute.
-
-### Examples
-
-```starlark
-apple_dynamic_xcframework_import(
-    name = "my_dynamic_xcframework",
-    xcframework_imports = glob(["my_dynamic_framework.xcframework/**"]),
-)
-
-objc_library(
-    name = "foo_lib",
-    ...,
-    deps = [
-        ":my_dynamic_xcframework",
-    ],
-)
-```
-""",
 )
 
 apple_static_xcframework_import = rule(
