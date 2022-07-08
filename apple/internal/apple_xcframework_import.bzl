@@ -304,6 +304,23 @@ apple_dynamic_xcframework_import = rule(
 This rule encapsulates an already-built XCFramework. Defined by a list of files in a .xcframework
 directory. apple_xcframework_import targets need to be added as dependencies to library targets
 through the `deps` attribute.
+
+### Example
+
+```bzl
+apple_dynamic_xcframework_import(
+    name = "my_dynamic_xcframework",
+    xcframework_imports = glob(["my_dynamic_framework.xcframework/**"]),
+)
+
+objc_library(
+    name = "foo_lib",
+    ...,
+    deps = [
+        ":my_dynamic_xcframework",
+    ],
+)
+```
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
