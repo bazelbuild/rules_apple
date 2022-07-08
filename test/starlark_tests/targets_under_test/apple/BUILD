@@ -515,6 +515,10 @@ apple_dynamic_xcframework_import(
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework_with_lib_ids",
+    library_identifiers = {
+        "ios_device": "ios-arm64",
+        "ios_simulator": "ios-x86_64-simulator",
+    },
     tags = ["manual"],
     xcframework_imports = [":generated_ios_dynamic_xcframework"],
 )
@@ -528,6 +532,10 @@ apple_static_xcframework_import(
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework_with_lib_ids",
+    library_identifiers = {
+        "ios_device": "ios-arm64",
+        "ios_simulator": "ios-arm64_x86_64-simulator",
+    },
     tags = ["manual"],
     xcframework_imports = [":generated_ios_static_xcframework"],
 )

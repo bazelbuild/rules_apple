@@ -353,6 +353,11 @@ Avoid linking the dynamic framework, but still include it in the app. This is us
 to manually dlopen the framework at runtime.
 """,
             ),
+            "library_identifiers": attr.string_dict(
+                doc = """
+Unnecssary and ignored, will be removed in the future.
+""",
+            ),
             "_cc_toolchain": attr.label(
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
