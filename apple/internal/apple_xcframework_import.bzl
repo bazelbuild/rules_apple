@@ -34,11 +34,7 @@ load(
     "SwiftUsageInfo",
 )
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
-load(
-    "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
-    "swift_clang_module_aspect",
-)
-load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftToolchainInfo", "swift_clang_module_aspect", "swift_common")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
@@ -497,11 +493,11 @@ def _apple_static_xcframework_import_impl(ctx):
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    xcframework = _classify_xcframework_imports(xcframework_imports)
+    xcframework = _classify_xcframework_imports(ctx.var, xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        fail("Importing XCFrameworks with static frameworks is not supported.")
+    # if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+    #     fail("Importing XCFrameworks with static frameworks is not supported.")
 
     xcframework_library = _get_xcframework_library(
         actions = actions,
@@ -517,17 +513,26 @@ def _apple_static_xcframework_import_impl(ctx):
     providers = []
     providers.append(DefaultInfo(files = depset(xcframework_imports)))
 
+    framework_imports = []
+    fields = {}
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        framework_imports = [xcframework_library.binary] + xcframework_library.framework_imports
+        fields = {"static_framework_file": depset([xcframework_library.binary])}
+    else:
+        fields = {"library": depset([xcframework_library.binary])}
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [apple_fragment.single_arch_cpu],
         deps = deps,
+        framework_imports = framework_imports,
     )
     providers.append(apple_framework_import_info)
 
     additional_cc_infos = []
     additional_objc_providers = []
     if xcframework.files_by_category.swift_module_imports or has_swift:
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -547,7 +552,7 @@ def _apple_static_xcframework_import_impl(ctx):
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = additional_objc_providers,
         alwayslink = alwayslink,
-        library = depset([xcframework_library.binary]),
+        **fields
     )
     providers.append(objc_provider)
 
@@ -563,9 +568,10 @@ def _apple_static_xcframework_import_impl(ctx):
         grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
         label = label,
+        framework_includes = xcframework_library.framework_includes,
         linkopts = linkopts,
         swiftmodule_imports = [],
-        includes = xcframework_library.includes,
+        includes = xcframework_library.includes + ctx.attr.includes,
     )
     providers.append(cc_info)
 
@@ -693,6 +699,19 @@ include Swift interface files.
 """,
                 mandatory = False,
                 default = False,
+            ),
+            "includes": attr.string_list(
+                doc = """
+List of `#include/#import` search paths to add to this target and all depending
+targets.
+
+The paths are interpreted relative to the single platform directory inside the
+XCFramework for the platform being built.
+
+These flags are added for this rule and every rule that depends on it. (Note:
+not the rules it depends upon!) Be very careful, since this may have
+far-reaching effects.
+""",
             ),
             "linkopts": attr.string_list(
                 mandatory = False,

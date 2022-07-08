@@ -24,13 +24,13 @@ def apple_static_xcframework_import_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # Verify importing XCFramework with static frameworks (i.e. not libraries) fails.
-    analysis_failure_message_test(
-        name = "{}_fails_importing_xcframework_with_libraries_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks",
-        expected_error = "Importing XCFrameworks with static frameworks is not supported.",
-        tags = [name],
-    )
+    # # Verify importing XCFramework with static frameworks (i.e. not libraries) fails.
+    # analysis_failure_message_test(
+    #     name = "{}_fails_importing_xcframework_with_libraries_test".format(name),
+    #     target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks",
+    #     expected_error = "Importing XCFrameworks with static frameworks is not supported.",
+    #     tags = [name],
+    # )
 
     # Verify ios_application with XCFramework with static library dependency contains symbols and
     # does not bundle anything under Frameworks/

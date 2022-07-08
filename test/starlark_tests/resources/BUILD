@@ -684,5 +684,5 @@ objc_library(
     testonly = True,
     srcs = [":objc_importing_imported_static_xcfw"],
     tags = FIXTURE_TAGS,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_old"],
 )
