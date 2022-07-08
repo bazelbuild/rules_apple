@@ -140,6 +140,10 @@ def _classify_file_imports(config_vars, import_files):
             module_map_imports.append(file)
             continue
         if file_extension in ["swiftmodule", "swiftinterface"]:
+            # Add Swift's module files to header_imports so
+            # that they are correctly included in the build
+            # by Bazel but they aren't processed in any way
+            header_imports.append(file)
             swift_module_imports.append(file)
             continue
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
@@ -193,10 +197,11 @@ def _classify_framework_imports(config_vars, framework_imports):
 
         bundling_imports.append(file)
 
-    if not bundle_name:
-        fail("Could not infer Apple framework name from unclassified framework import files.")
-    if not binary_imports:
-        fail("Could not find Apple framework binary from framework import files.")
+    # TODO: Enable these checks once static library support works with them
+    # if not bundle_name:
+    #     fail("Could not infer Apple framework name from unclassified framework import files.")
+    # if not binary_imports:
+    #     fail("Could not find Apple framework binary from framework import files.")
 
     return struct(
         bundle_name = bundle_name,
@@ -211,8 +216,8 @@ def _framework_import_info_with_dependencies(
         *,
         build_archs,
         deps,
-        debug_info_binaries,
-        dsyms,
+        debug_info_binaries = [],
+        dsyms = [],
         framework_imports = []):
     """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs.
 

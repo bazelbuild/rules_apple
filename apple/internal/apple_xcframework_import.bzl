@@ -33,10 +33,11 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_c
 # This defines an _enum_ to identify an imported XCFramework bundle type.
 _BUNDLE_TYPE = struct(frameworks = 1, libraries = 2)
 
-def _classify_xcframework_imports(xcframework_imports):
+def _classify_xcframework_imports(config_vars, xcframework_imports):
     """Classifies XCFramework files for later processing.
 
     Args:
+        config_vars: A dict of configuration variables from ctx.var.
         xcframework_imports: List of File for an imported Apple XCFramework.
     Returns:
         A struct containing xcframework import files information:
@@ -73,11 +74,11 @@ def _classify_xcframework_imports(xcframework_imports):
     if framework_files:
         files = framework_files
         bundle_type = _BUNDLE_TYPE.frameworks
-        files_by_category = framework_import_support.classify_framework_imports(files)
+        files_by_category = framework_import_support.classify_framework_imports(config_vars, files)
     else:
         files = xcframework_files
         bundle_type = _BUNDLE_TYPE.libraries
-        files_by_category = framework_import_support.classify_file_imports(files)
+        files_by_category = framework_import_support.classify_file_imports(config_vars, files)
 
     return struct(
         bundle_name = bundle_name,
@@ -230,7 +231,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     label = ctx.label
     xcframework_imports = ctx.files.xcframework_imports
 
-    xcframework = _classify_xcframework_imports(xcframework_imports)
+    xcframework = _classify_xcframework_imports(ctx.var, xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
@@ -259,7 +260,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
             for dep in deps
             if apple_common.Objc in dep
         ],
-        dynamic_framework_file = depset([xcframework_library.binary]),
+        dynamic_framework_file = depset([] if ctx.attr.bundle_only else [xcframework_library.binary]),
     )
     providers.append(objc_provider)
 
@@ -327,6 +328,13 @@ linked into that target.
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
                 aspects = [swift_clang_module_aspect],
+            ),
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
             ),
             "_cc_toolchain": attr.label(
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
