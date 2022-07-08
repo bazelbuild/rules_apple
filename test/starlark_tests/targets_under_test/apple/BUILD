@@ -401,7 +401,7 @@ genrule(
             "Headers/shared.h",
             "ios_static_xcframework.a",
         ]
-    ],
+    ] + ["ios_static_xcframework.xcframework/Info.plist"],
     cmd = """
 unzip -oqq $(execpath :ios_static_xcframework.xcframework.zip) -d $(RULEDIR)
 TEMP_DIR="$$(mktemp -d "$${TMPDIR:-/tmp}/xcframework_test_dir.XXXXXX")"
@@ -419,6 +419,7 @@ unzip -oqq "$(execpath :ios_static_xcframework.xcframework.zip)" -d "$$TEMP_DIR"
 mv "$$TEMP_DIR/$$xcframework_dirname" "$(RULEDIR)/$$xcframework_dirname"
 # Some inner directories like Headers don't have the "w" permission
 chmod -R u+w "$(RULEDIR)/$$xcframework_dirname"
+touch "$(RULEDIR)/$$xcframework_dirname"/Info.plist
 
 declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
 
@@ -452,7 +453,7 @@ genrule(
             "Modules/module.modulemap",
             "ios_static_xcframework_with_module_map.a",
         ]
-    ],
+    ] + ["ios_static_xcframework_with_module_map.xcframework/Info.plist"],
     # rules_apple can't generate static XCFrameworks that are importable from
     # Swift now, but those exist. This manually generates one for testing.
     cmd = """
@@ -460,6 +461,7 @@ unzip -oqq $(execpath :ios_static_xcframework_with_module_map.xcframework.zip) -
 
 xcframework_path="$(RULEDIR)/ios_static_xcframework_with_module_map.xcframework"
 declare -a platform_ids=( ios-arm64 ios-arm64_x86_64-simulator )
+touch "$$xcframework_path/Info.plist"
 
 for platform_id in "$${platform_ids[@]}"
 do
@@ -499,7 +501,7 @@ genrule(
             "ios-arm64",
             "ios-arm64_x86_64-simulator",
         ]
-    ],
+    ] + ["ios_xcframework_bundling_static_fmwks.xcframework/Info.plist"],
     cmd = """
 unzip -oqq $(execpath :ios_xcframework_bundling_static_fmwks.xcframework.zip) -d $(RULEDIR)
 """,
@@ -522,7 +524,7 @@ apple_dynamic_xcframework_import(
 )
 
 apple_static_xcframework_import(
-    name = "ios_imported_static_xcframework",
+    name = "ios_imported_static_xcframework_old",
     includes = ["Headers"],
     tags = ["manual"],
     xcframework_imports = [":generated_ios_static_xcframework"],
@@ -1170,18 +1172,21 @@ apple_dynamic_xcframework_import(
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_with_headers"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_xcframework_with_static_frameworks",
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
 )
