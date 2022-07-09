@@ -669,6 +669,22 @@ apple_static_xcframework_import = rule(
 This rule encapsulates an already-built XCFramework with static libraries. Defined by a list of
 files in a .xcframework directory. apple_xcframework_import targets need to be added as dependencies
 to library targets through the `deps` attribute.
+### Examples
+
+```slarlark
+apple_static_xcframework_import(
+    name = "my_static_xcframework",
+    xcframework_imports = glob(["my_static_framework.xcframework/**"]),
+)
+
+objc_library(
+    name = "foo_lib",
+    ...,
+    deps = [
+        ":my_static_xcframework",
+    ],
+)
+```
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
