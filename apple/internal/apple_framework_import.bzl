@@ -137,27 +137,6 @@ def _grouped_framework_files(framework_imports):
 
     return framework_groups
 
-def _grouped_xcframework_files(framework_imports):
-    """Returns a dictionary of each framework's imports, grouped by path to the .xcframework root."""
-    framework_groups = group_files_by_directory(
-        framework_imports,
-        ["xcframework"],
-        attr = "xcframework_imports",
-    )
-
-    # Only check for unique basenames of these keys, since it's possible to
-    # have targets that glob files from different locations but with the same
-    # `.xcframework` name, causing them to be merged into the same framework
-    # during bundling.
-    unique_frameworks = collections.uniq(
-        [paths.basename(path) for path in framework_groups.keys()],
-    )
-    if len(unique_frameworks) > 1:
-        fail("A framework import target may only include files for a " +
-             "single '.xcframework' bundle.", attr = "xcframework_imports")
-
-    return framework_groups
-
 def _is_debugging(compilation_mode):
     """Returns `True` if the current compilation mode produces debug info.
 
@@ -218,108 +197,6 @@ def _debug_info_binaries(
             all_binaries_dict[framework_basename] = file
 
     return all_binaries_dict.values()
-
-def _get_current_library_identifier(
-        *,
-        current_platform,
-        xcframework_path,
-        xcframework_imports):
-    """Returns a string representing the path to the framework to reference in the XCFramework bundle."""
-    library_identifiers = sets.make()
-
-    for f in xcframework_imports:
-        inner_path = f.path[len(xcframework_path) + 1:]
-        for i in range(len(inner_path)):
-            if inner_path[i] == "/":
-                identifier = inner_path[:i]
-                sets.insert(library_identifiers, identifier)
-                break
-
-    platform_type = str(current_platform.platform_type).lower()
-    is_device = current_platform.is_device
-
-    for id in sets.to_list(library_identifiers):
-        # Bazel can't build for the catalyst platform (with the public
-        # crosstool), so just ignore it for now.
-        if id.endswith("-maccatalyst"):
-            continue
-
-        # Filter out any ids not starting with the current platform type. This
-        # will leave us a list of at most two identifiers that match either
-        # "<platform_type>-<archs>" or "<platform_type>-<archs>-simulator"
-        if not id.startswith(platform_type):
-            continue
-
-        # If the current platform is simulator, and the identifier also ends
-        # with "-simulator", we found the identifier.
-        if not is_device and id.endswith("-simulator"):
-            return id
-
-        # If the current platform is device, and the identifier doesn't end
-        # with "-simulator", we found the identifier.
-        if is_device and not id.endswith("-simulator"):
-            return id
-
-    return None
-
-def _get_framework_name(framework_imports):
-    """Returns the framework name (the directory name without .framework)."""
-
-    # We can just take the first key because the rule implementation guarantees
-    # that we only have files for a single framework.
-    framework_groups = _grouped_framework_files(framework_imports)
-    framework_dir = framework_groups.keys()[0]
-    return paths.split_extension(paths.basename(framework_dir))[0]
-
-def _process_xcframework_imports(ctx):
-    xcframework_groups = _grouped_xcframework_files(ctx.files.xcframework_imports)
-
-    # We can just take the first key because the rule implementation guarantees
-    # that we only have files for a single framework.
-    xcframework_path = xcframework_groups.keys()[0]
-    xcframework_name = paths.split_extension(paths.basename(xcframework_path))[0]
-
-    library_identifier = None
-    if ctx.attr.library_identifiers:
-        key = str(ctx.fragments.apple.single_arch_platform).lower()
-        if key in ctx.attr.library_identifiers:
-            library_identifier = ctx.attr.library_identifiers[key]
-        else:
-            fail(
-                "Missing framework path mapping for platform `{}`; is this platform supported?"
-                    .format(key),
-            )
-
-    # Try to figure out the library identifier from the platform being built
-    # and `xcframework_imports` if it's not provided
-    if not library_identifier:
-        library_identifier = _get_current_library_identifier(
-            current_platform = ctx.fragments.apple.single_arch_platform,
-            xcframework_path = xcframework_path,
-            xcframework_imports = ctx.files.xcframework_imports,
-        )
-
-    if not library_identifier:
-        fail("Failed to figure out library identifiers. Please provide a " +
-             "dictionary of library identifiers to `library_identifiers`.")
-
-    single_platform_dir = paths.join(xcframework_path, library_identifier)
-
-    # XCFramework with static frameworks
-    platform_path = "{}/{}/{}.framework".format(xcframework_path, library_identifier, xcframework_name)
-    framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
-
-    # If this is still empty, we are probably processing an XCFramework with
-    # static libraries, so do a second check with the platform path not
-    # including the `.framework` directory.
-    if not framework_imports_for_platform:
-        platform_path = "{}/{}/".format(xcframework_path, library_identifier)
-        framework_imports_for_platform = [f for f in ctx.files.xcframework_imports if platform_path in f.path]
-
-    if not framework_imports_for_platform:
-        fail("Couldn't find framework or library at path `{}`".format(platform_path))
-
-    return xcframework_name, single_platform_dir, framework_imports_for_platform
 
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
@@ -412,8 +289,8 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     return providers
 
-def _common_static_framework_import_impl(ctx, is_xcframework):
-    """Common implementation for the apple_static_framework_import and apple_static_xcframework_import rules."""
+def _apple_static_framework_import_impl(ctx):
+    """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -421,17 +298,11 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
+    framework_imports = ctx.files.framework_imports
     label = ctx.label
     sdk_dylibs = ctx.attr.sdk_dylibs
     sdk_frameworks = ctx.attr.sdk_frameworks
     weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
-
-    if is_xcframework:
-        framework_name, single_platform_dir, framework_imports = _process_xcframework_imports(ctx)
-    else:
-        framework_imports = ctx.files.framework_imports
-        framework_name = _get_framework_name(framework_imports)
-        single_platform_dir = None
 
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
@@ -447,8 +318,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
         deps = deps,
-        debug_info_binaries = [],
-        dsyms = [],
     ))
 
     # Collect transitive Objc/CcInfo providers from Swift toolchain.
@@ -475,42 +344,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             if swiftmodule:
                 additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
-    is_framework = False
-    for f in framework_imports:
-        if f.dirname.endswith(".framework"):
-            is_framework = True
-            break
-
-    static_framework_file = None
-    if is_framework:
-        framework_groups = _grouped_framework_files(framework_imports)
-        framework_binaries = _all_framework_binaries(
-            frameworks_groups = framework_groups,
-        )
-
-        static_framework_file = depset(framework_binaries)
-    else:
-        framework_groups = _grouped_xcframework_files(framework_imports)
-        framework_binaries = []
-
-        # For non-framework types (XCFrameworks not embedding any .framework
-        # bundle but only contain static libraries, headers, and module maps),
-        # assume the library filename is the same with XCFramework name or has
-        # the .a extension. If the library file has a different naming, the
-        # XCFramework can't be processed now.
-        for f in framework_imports_by_category.bundling_imports:
-            file_basename = f.basename
-            if file_basename == framework_name or file_basename.endswith(".a"):
-                framework_binaries.append(f)
-
-        # TODO: Remove reliance on additional_objc_provider_fields
-        additional_objc_provider_fields.update({"library": depset(framework_binaries)})
-        if ctx.attr.alwayslink:
-            additional_objc_provider_fields.update({"force_load_library": depset(framework_binaries)})
-
-    if is_xcframework and not framework_binaries:
-        fail("Static XCFrameworks without binaries are not supported.")
-
     # Create apple_common.Objc provider.
     additional_objc_providers.extend([
         dep[apple_common.Objc]
@@ -524,17 +357,10 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             alwayslink = alwayslink,
             sdk_dylib = sdk_dylibs,
             sdk_framework = sdk_frameworks,
-            static_framework_file = static_framework_file,
+            static_framework_file = framework_imports_by_category.binary_imports,
             weak_sdk_framework = weak_sdk_frameworks,
         ),
     )
-
-    includes = []
-    if is_xcframework and not is_framework and ctx.attr.includes:
-        includes.extend([
-            paths.join(single_platform_dir, x)
-            for x in ctx.attr.includes
-        ])
 
     # Create CcInfo provider.
     providers.append(
@@ -544,13 +370,11 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
             cc_toolchain = cc_toolchain,
             ctx = ctx,
             deps = deps,
-            is_framework = is_framework,
-            includes = includes,
             disabled_features = disabled_features,
             features = features,
             framework_includes = _framework_search_paths(
                 framework_imports_by_category.header_imports,
-            ) if is_framework else [],
+            ),
             grep_includes = grep_includes,
             header_imports = framework_imports_by_category.header_imports,
             label = label,
@@ -563,7 +387,7 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
     # the framework.
     swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
         deps = deps,
-        module_name = framework_name,
+        module_name = framework_imports_by_category.bundle_name,
         module_map_imports = framework_imports_by_category.module_map_imports,
     )
     if swift_interop_info:
@@ -585,14 +409,6 @@ def _common_static_framework_import_impl(ctx, is_xcframework):
         providers.append(resource_provider)
 
     return providers
-
-def _apple_static_framework_import_impl(ctx):
-    """Implementation for the apple_static_framework_import rule."""
-    return _common_static_framework_import_impl(ctx, is_xcframework = False)
-
-def _apple_static_xcframework_import_impl(ctx):
-    """Implementation for the apple_static_xcframework_import rule."""
-    return _common_static_framework_import_impl(ctx, is_xcframework = True)
 
 apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
@@ -749,134 +565,4 @@ objc_library(
 )
 ```
 """,
-)
-
-_xcframework_import_common_attrs = dicts.add(
-    rule_factory.common_tool_attributes,
-    {
-        "library_identifiers": attr.string_dict(
-            doc = """
-An optional key-value map of platforms to the corresponding platform IDs
-(containing all supported architectures), relative to the XCFramework. The
-identifier keys should be case-insensitive variants of the values in
-[`apple_common.platform`](https://docs.bazel.build/versions/5.0.0/skylark/lib/apple_common.html#platform);
-for example, `ios_device` or `ios_simulator`. The identifier values should be
-case-sensitive variants of values that might be found in the
-`LibraryIdentifier` of an `Info.plist` file in the XCFramework's root; for example,
-`ios-arm64_i386_x86_64-simulator` or `ios-arm64_armv7`.
-
-Passing this attribute should not be neccessary if the XCFramework follows the
-standard naming convention (that is, it was created by Xcode or Bazel).
-""",
-        ),
-        "xcframework_imports": attr.label_list(
-            allow_empty = False,
-            allow_files = True,
-            mandatory = True,
-            doc = """
-The list of files under a .xcframework directory which are provided to Apple
-based targets that depend on this target.
-""",
-        ),
-        "deps": attr.label_list(
-            aspects = [swift_clang_module_aspect],
-            doc = """
-A list of targets that are dependencies of the target being built, which will
-provide headers (if the importing XCFramework is a dynamic framework) and can be
-linked into that target.
-""",
-            providers = [
-                [apple_common.Objc, CcInfo],
-                [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
-            ],
-        ),
-        "_cc_toolchain": attr.label(
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-        ),
-    },
-)
-
-apple_static_xcframework_import = rule(
-    implementation = _apple_static_xcframework_import_impl,
-    fragments = ["apple", "cpp"],
-    attrs = dicts.add(
-        _xcframework_import_common_attrs,
-        swift_common.toolchain_attrs(),
-        {
-            "includes": attr.string_list(
-                doc = """
-List of `#include/#import` search paths to add to this target and all depending
-targets.
-
-The paths are interpreted relative to the single platform directory inside the
-XCFramework for the platform being built.
-
-These flags are added for this rule and every rule that depends on it. (Note:
-not the rules it depends upon!) Be very careful, since this may have
-far-reaching effects.
-""",
-            ),
-            "sdk_dylibs": attr.string_list(
-                doc = """
-Names of SDK .dylib libraries to link with. For instance, `libz` or
-`libarchive`. `libc++` is included automatically if the binary has any C++ or
-Objective-C++ sources in its dependency tree.  When linking a binary, all
-libraries named in that binary's transitive dependency graph are used.
-""",
-            ),
-            "sdk_frameworks": attr.string_list(
-                doc = """
-Names of SDK frameworks to link with (e.g. `AddressBook`, `QuartzCore`).
-`UIKit` and `Foundation` are always included when building for the iOS, tvOS
-and watchOS platforms. For macOS, only `Foundation` is always included. When
-linking a top level binary, all SDK frameworks listed in that binary's
-transitive dependency graph are linked.
-""",
-            ),
-            "weak_sdk_frameworks": attr.string_list(
-                doc = """
-Names of SDK frameworks to weakly link with. For instance,
-`MediaAccessibility`. In difference to regularly linked SDK frameworks, symbols
-from weakly linked frameworks do not cause an error if they are not present at
-runtime.
-""",
-            ),
-            "alwayslink": attr.bool(
-                default = False,
-                doc = """
-If true, any binary that depends (directly or indirectly) on this framework
-will link in all the object files for the framework file, even if some contain
-no symbols referenced by the binary. This is useful if your code isn't
-explicitly called by code in the binary; for example, if you rely on runtime
-checks for protocol conformances added in extensions in the library but do not
-directly reference any other symbols in the object file that adds that
-conformance.
-""",
-            ),
-        },
-    ),
-    doc = """
-This rule encapsulates an already-built static XCFramework. It is defined by a
-list of files in exactly one `.xcframework` directory.
-`apple_static_xcframework_import` targets need to be added to library targets
-through the `deps` attribute.
-
-### Examples
-
-```slarlark
-apple_static_xcframework_import(
-    name = "my_static_xcframework",
-    xcframework_imports = glob(["my_static_framework.xcframework/**"]),
-)
-
-objc_library(
-    name = "foo_lib",
-    ...,
-    deps = [
-        ":my_static_xcframework",
-    ],
-)
-```
-""",
-    toolchains = use_cpp_toolchain(),
 )
