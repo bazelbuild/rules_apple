@@ -31,6 +31,7 @@ apple_mac_tools_toolchain(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    xcframework_processor_tool = "//tools/xcframework_processor_tool",
     xctoolrunner = "//tools/xctoolrunner",
 )
 
@@ -106,12 +107,15 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":framework_import_support",
+        ":intermediates",
         ":rule_factory",
         "//apple:providers",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
     ],
 )
