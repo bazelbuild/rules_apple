@@ -143,7 +143,7 @@ def _get_library_from_plist(
   library for the given target triplet (platform, architecture, environment).
 
   Args:
-    architecture: Target Apple architecture (e.g. x864_64, arm64).
+    architecture: Target Apple architecture (e.g. x86_64, arm64).
     environment: Target Apple environment (e.g. device, simulator).
     info_plist: Parsed XCFramework Info.plist file contents.
     platform: Target Apple platform (e.g. macos, ios).
