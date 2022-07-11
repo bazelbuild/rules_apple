@@ -16,6 +16,7 @@
 
 load(
     ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
     "entry_point_test",
 )
 
@@ -29,6 +30,18 @@ def macos_extension_test_suite(name):
         name = "{}_entry_point_nsextensionmain_test".format(name),
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ext",
+        macho_load_commands_contain = [
+            "path @executable_path/../Frameworks (offset 12)",
+            "path @executable_path/../../../../Frameworks (offset 12)",
+        ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext",
         tags = [name],
     )

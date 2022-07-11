@@ -268,7 +268,9 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -283,8 +285,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
@@ -323,7 +327,9 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.messages_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -461,7 +467,10 @@ _RULE_TYPE_DESCRIPTORS = {
             rpaths = [
                 # Extension binaries live in
                 # Application.app/Contents/PlugIns/Extension.appex/Contents/MacOS/Extension
-                # Frameworks are packaged in Application.app/Contents/Frameworks
+                # Frameworks are packaged in
+                # Application.app/Contents/PlugIns/Extension.appex/Contents/Frameworks
+                # or Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
                 "@executable_path/../../../../Frameworks",
             ],
         ),
@@ -636,7 +645,9 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -650,8 +661,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
@@ -740,7 +753,9 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -754,8 +769,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
