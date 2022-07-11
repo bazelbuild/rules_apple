@@ -57,7 +57,7 @@ def _create_args_parser() -> argparse.ArgumentParser:
   parser = argparse.ArgumentParser(description="xcframework tool")
 
   value_args = {
-      "architecture": "Target Apple architecture (e.g. x864_64, arm64).",
+      "architecture": "Target Apple architecture (e.g. x86_64, arm64).",
       "binary": "Bazel declared file for XCFramework binary file.",
       "bundle_name": "The XCFramework bundle name (i.e. name.xcframework).",
       "environment": "Target Apple environment (e.g. device, simulator).",
