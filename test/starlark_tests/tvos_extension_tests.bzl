@@ -100,6 +100,18 @@ def tvos_extension_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/ext",
+        macho_load_commands_contain = [
+            "path @executable_path/Frameworks (offset 12)",
+            "path @executable_path/../../Frameworks (offset 12)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
