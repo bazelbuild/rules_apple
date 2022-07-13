@@ -496,9 +496,6 @@ def _apple_static_xcframework_import_impl(ctx):
     xcframework = _classify_xcframework_imports(ctx.var, xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-    # if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-    #     fail("Importing XCFrameworks with static frameworks is not supported.")
-
     xcframework_library = _get_xcframework_library(
         actions = actions,
         apple_fragment = apple_fragment,
