@@ -1195,6 +1195,7 @@ apple_static_xcframework_import(
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
     has_swift = True,
+    tags = TARGETS_UNDER_TEST_TAGS,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework_without_swiftmodule"],
 )
