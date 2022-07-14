@@ -31,7 +31,7 @@ tasks:
 
   doc_tests:
     name: "Doc tests"
-    bazel: 6.0.0-pre.20220630.1
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."
