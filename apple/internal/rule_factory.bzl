@@ -88,6 +88,7 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _is_test_product_type(product_type):
     """Returns whether the given product type is for tests purposes or not."""
@@ -1276,7 +1277,7 @@ def _create_apple_bundling_rule(
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
-        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+        toolchains = use_cpp_toolchain(),
     )
 
 def _create_apple_test_rule(implementation, doc, platform_type):
