@@ -32,7 +32,7 @@ and a target named `dtrace_gen` the header path would be
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="dtrace_compile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="dtrace_compile-srcs"></a>srcs |  dtrace(.d) source files to be compiled.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="dtrace_compile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="dtrace_compile-srcs"></a>srcs |  dtrace(.d) source files to be compiled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 
 
