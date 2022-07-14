@@ -560,17 +560,16 @@ apple_xcframework(
     ],
     ios = {
         "simulator": [
-            "i386",
             "arm64",
             "x86_64",
         ],
         "device": [
-            "armv7",
             "arm64",
+            "arm64e",
         ],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "11.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
