@@ -853,6 +853,35 @@ apple_static_xcframework(
     deps = [":fmwk_lib"],
 )
 
+objc_library(
+    name = "fmwk_lib_with_resources",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = ["//test/starlark_tests/resources:resource_bundle"],
+    tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_resources",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": "8.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    deps = [":fmwk_lib_with_resources"],
+)
+
 apple_static_xcframework(
     name = "ios_xcframework_bundling_static_fmwks",
     ios = {
