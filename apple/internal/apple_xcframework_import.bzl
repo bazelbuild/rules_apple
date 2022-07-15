@@ -28,6 +28,7 @@ load(
     "framework_import_support",
 )
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
+load("@build_bazel_rules_apple//apple/internal:resources.bzl", "resources")
 load("@build_bazel_rules_apple//apple/internal:rule_factory.bzl", "rule_factory")
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
@@ -37,6 +38,7 @@ load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo"
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftToolchainInfo", "swift_clang_module_aspect", "swift_common")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.
@@ -510,10 +512,8 @@ def _apple_static_xcframework_import_impl(ctx):
     providers = []
     providers.append(DefaultInfo(files = depset(xcframework_imports)))
 
-    framework_imports = []
     fields = {}
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_imports = [xcframework_library.binary] + xcframework_library.framework_imports
         fields = {"static_framework_file": [xcframework_library.binary]}
     else:
         fields = {"library": [xcframework_library.binary]}
@@ -522,7 +522,6 @@ def _apple_static_xcframework_import_impl(ctx):
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [apple_fragment.single_arch_cpu],
         deps = deps,
-        framework_imports = framework_imports,
     )
     providers.append(apple_framework_import_info)
 
@@ -583,6 +582,21 @@ def _apple_static_xcframework_import_impl(ctx):
     )
     if swift_interop_info:
         providers.append(swift_interop_info)
+
+    # Create AppleResourceInfo provider.
+    bundle_files = [x for x in xcframework_library.framework_files if ".bundle/" in x.short_path]
+    if bundle_files:
+        parent_dir_param = partial.make(
+            resources.bundle_relative_parent_dir,
+            extension = "bundle",
+        )
+        resource_provider = resources.bucketize_typed(
+            bundle_files,
+            owner = str(label),
+            bucket_type = "unprocessed",
+            parent_dir_param = parent_dir_param,
+        )
+        providers.append(resource_provider)
 
     return providers
 

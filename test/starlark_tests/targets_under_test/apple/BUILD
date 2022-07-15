@@ -882,6 +882,42 @@ apple_static_xcframework(
     deps = [":fmwk_lib_with_resources"],
 )
 
+genrule(
+    name = "generated_ios_static_xcframework_with_resources",
+    testonly = 1,
+    srcs = [":ios_static_xcframework_with_resources.xcframework.zip"],
+    outs = [
+        "{0}/{1}/{2}/{3}".format(
+            "ios_static_xcframework_with_resources.xcframework",
+            platform_id,
+            "ios_static_xcframework_with_resources.framework",
+            file,
+        )
+        for file in [
+            "Headers/ios_static_xcframework_with_resources.h",
+            "Headers/shared.h",
+            "Modules/module.modulemap",
+            "ios_static_xcframework_with_resources",
+            "resource_bundle.bundle/custom_apple_resource_info.out",
+            "resource_bundle.bundle/Info.plist",
+        ]
+        for platform_id in [
+            "ios-arm64",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ] + ["ios_static_xcframework_with_resources.xcframework/Info.plist"],
+    cmd = """
+unzip -oqq $(execpath :ios_static_xcframework_with_resources.xcframework.zip) -d $(RULEDIR)
+""",
+)
+
+apple_static_xcframework_import(
+    name = "ios_static_xcframework_with_resources_import",
+    tags = TARGETS_UNDER_TEST_TAGS,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_ios_static_xcframework_with_resources"],
+)
+
 apple_static_xcframework(
     name = "ios_xcframework_bundling_static_fmwks",
     ios = {
