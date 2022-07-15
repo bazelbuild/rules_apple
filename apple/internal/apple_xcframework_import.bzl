@@ -385,6 +385,8 @@ def _get_library_identifier(
 
         if target_environment == "simulator" and not library_identifier.endswith("-simulator"):
             continue
+        if target_environment != "simulator" and library_identifier.endswith("-simulator"):
+            continue
 
         return library_identifier
 
