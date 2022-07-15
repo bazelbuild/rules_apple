@@ -233,6 +233,19 @@ def _command_line_options(
 
     output_dictionary["@build_bazel_rules_swift//swift:emit_swiftinterface"] = emit_swiftinterface
 
+    # Without handling this flag our transition differs from what we get
+    # from bazel when the dependency tree contains a rule inheriting bazel's
+    # built in transitions. This flag should not be used, we can remove this
+    # once https://github.com/bazelbuild/bazel/pull/13872 is merged
+    if platform_type == "ios":
+        output_dictionary["//command_line_option:ios_cpu"] = _cpu_string(
+            cpu = cpu,
+            platform_type = platform_type,
+            settings = settings,
+        )
+    else:
+        output_dictionary["//command_line_option:ios_cpu"] = ""
+
     return output_dictionary
 
 def _xcframework_split_attr_key(*, cpu, environment, platform_type):
@@ -358,6 +371,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:cpu",
+    "//command_line_option:ios_cpu",
     "//command_line_option:crosstool_top",
     "//command_line_option:fission",
     "//command_line_option:grte_top",
