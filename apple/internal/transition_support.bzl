@@ -242,7 +242,7 @@ def _command_line_options(
             cpu = cpu,
             platform_type = platform_type,
             settings = settings,
-        )
+        )[len("ios_"):]
     else:
         output_dictionary["//command_line_option:ios_cpu"] = ""
 
