@@ -6,7 +6,7 @@ common --incompatible_allow_tags_propagation
 
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
-test --test_env=PATH
+build --test_env=PATH
 
 # `bazel test` tries to build everything also by default, so skip that so the
 # *_library targets in examples/... aren't built (and fail since they are
