@@ -183,20 +183,23 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     if not library_identifier:
         return None
 
+    def _matches_library(file):
+        return library_identifier in file.short_path.split("/")
+
     files = xcframework.files_by_category
-    binaries = [f for f in files.binary_imports if library_identifier in f.short_path]
-    framework_imports = [f for f in files.bundling_imports if library_identifier in f.short_path]
-    headers = [f for f in files.header_imports if library_identifier in f.short_path]
-    module_maps = [f for f in files.module_map_imports if library_identifier in f.short_path]
+    binaries = [f for f in files.binary_imports if _matches_library(f)]
+    framework_imports = [f for f in files.bundling_imports if _matches_library(f)]
+    headers = [f for f in files.header_imports if _matches_library(f)]
+    module_maps = [f for f in files.module_map_imports if _matches_library(f)]
     swiftmodules = [
         f
         for f in files.swift_module_imports
-        if library_identifier in f.short_path and
+        if _matches_library(f) and
            f.basename.startswith(target_triplet.architecture)
     ]
 
     framework_dirs = [f.dirname for f in binaries]
-    framework_files = [f for f in xcframework.files if library_identifier in f.short_path]
+    framework_files = [f for f in xcframework.files if _matches_library(f)]
 
     includes = []
     framework_includes = []
@@ -384,6 +387,8 @@ def _get_library_identifier(
             continue
 
         if target_environment == "simulator" and not library_identifier.endswith("-simulator"):
+            continue
+        if target_environment != "simulator" and library_identifier.endswith("-simulator"):
             continue
 
         return library_identifier
