@@ -3041,6 +3041,25 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_imported_xcfmwk_bundling_static_fmwks_with_resources",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_resources_import",
+    ],
+)
+
+ios_application(
     name = "app_with_imported_static_xcfmwk_with_module_map",
     bundle_id = "com.google.example",
     families = [
