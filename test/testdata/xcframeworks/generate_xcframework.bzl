@@ -427,6 +427,84 @@ def _generate_static_xcframework_impl(ctx):
         ),
     ]
 
+def _generate_static_framework_xcframework_impl(ctx):
+    """Implementation of generate_static_framework_xcframework."""
+    actions = ctx.actions
+    apple_fragment = ctx.fragments.apple
+    label = ctx.label
+    target_dir = paths.join(ctx.bin_dir.path, label.package)
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    srcs = ctx.files.srcs
+    hdrs = ctx.files.hdrs
+    platforms = ctx.attr.platforms
+    minimum_os_versions = ctx.attr.minimum_os_versions
+
+    if platforms.keys() != minimum_os_versions.keys():
+        fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
+
+    frameworks = {}
+    for platform in platforms:
+        sdk = _sdk_for_platform(platform)
+        architectures = platforms[platform]
+        minimum_os_version = minimum_os_versions[platform]
+        library_identifier = _platform_to_library_identifier(
+            platform = platform,
+            architectures = architectures,
+        )
+
+        # Compile library
+        binary = generation_support.compile_binary(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            archs = architectures,
+            hdrs = hdrs,
+            label = label,
+            minimum_os_version = minimum_os_version,
+            sdk = sdk,
+            srcs = srcs,
+            xcode_config = xcode_config,
+        )
+
+        dynamic_library = generation_support.create_static_library(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            binary = binary,
+            xcode_config = xcode_config,
+        )
+
+        framework_files = generation_support.create_framework(
+            actions = actions,
+            base_path = paths.join("intermediates", library_identifier),
+            bundle_name = label.name,
+            library = dynamic_library,
+            headers = hdrs,
+        )
+
+        framework_path = paths.join(
+            target_dir,
+            "intermediates",
+            library_identifier,
+            label.name + ".framework",
+        )
+        frameworks[framework_path] = framework_files
+
+    # Create xcframework bundle
+    xcframework_files = _create_xcframework(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        frameworks = frameworks,
+        label = label,
+        target_dir = target_dir,
+        xcode_config = xcode_config,
+    )
+
+    return [
+        DefaultInfo(
+            files = depset(xcframework_files),
+        ),
+    ]
+
 generate_dynamic_xcframework = rule(
     doc = "Generates XCFramework with dynamic frameworks using Xcode build utilities.",
     implementation = _generate_dynamic_xcframework_impl,
@@ -552,6 +630,57 @@ Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` direct
 `swift_library` target should be included in the XCFramework bundle or discarded for testing
 purposes.
 """,
+            ),
+        },
+    ),
+    fragments = ["apple"],
+)
+
+generate_static_framework_xcframework = rule(
+    doc = "Generates XCFramework with static frameworks using Xcode build utilities.",
+    implementation = _generate_static_framework_xcframework_impl,
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        {
+            "srcs": attr.label_list(
+                doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
+                mandatory = True,
+                allow_files = True,
+            ),
+            "hdrs": attr.label_list(
+                doc = "Header files for generated XCFrameworks.",
+                mandatory = False,
+                allow_files = True,
+            ),
+            "platforms": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built (with the following
+format: <platform>[_<environment>]) as keys, and arrays of strings listing which architectures
+should be built for those platform variants as their values.
+
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+        "watchos_simulator": ["i386"],
+    },
+""",
+                mandatory = True,
+            ),
+            "minimum_os_versions": attr.string_dict(
+                doc = """
+A dictionary of strings indicating the minimum OS version supported by each platform variant
+represented as a dotted version number as values.
+
+    minimum_os_versions = {
+        "ios_simulator": "11.0",
+        "ios": "11.0",
+        "watchos_simulator": "4.0",
+    },
+""",
+                mandatory = True,
             ),
         },
     ),
