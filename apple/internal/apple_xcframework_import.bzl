@@ -726,6 +726,7 @@ linked into that target.
                     [apple_common.Objc, CcInfo],
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
+                aspects = [swift_clang_module_aspect],
             ),
             "has_swift": attr.bool(
                 doc = """
