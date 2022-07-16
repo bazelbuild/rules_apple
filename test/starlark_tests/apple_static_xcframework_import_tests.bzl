@@ -23,6 +23,15 @@ def apple_static_xcframework_import_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    # Verify the dependent app target successfully builds
+    archive_contents_test(
+        name = "{}_swift_multi_level_static_xcframework".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_multi_level_static_xcframework",
+        contains = ["$ARCHIVE_ROOT/Payload"],
+        build_type = "simulator",
+        tags = [name],
+    )
+
     # Verify ios_application with XCFramework with static library dependency contains symbols and
     # does not bundle anything under Frameworks/
     archive_contents_test(

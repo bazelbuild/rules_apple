@@ -3,6 +3,7 @@ load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
 load(
     "//test/testdata/xcframeworks:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
+    "generate_static_framework_xcframework",
     "generate_static_xcframework",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
@@ -120,6 +121,30 @@ generate_static_xcframework(
     include_module_interface_files = False,
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = ":swift_lib_for_static_xcframework",
+    tags = FIXTURE_TAGS,
+)
+
+generate_static_framework_xcframework(
+    name = "generated_static_xcframework_base",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {"ios_simulator": "11.0"},
+    platforms = {"ios_simulator": ["x86_64"]},
+    tags = FIXTURE_TAGS,
+)
+
+genrule(
+    name = "generated_static_xcframework_depends_on_base_header",
+    outs = ["generated_static_xcframework_depends_on_base_header.h"],
+    cmd = "echo '@import generated_static_xcframework_base;' > $(OUTS)",
+)
+
+generate_static_framework_xcframework(
+    name = "generated_static_xcframework_depends_on_base",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    hdrs = ["generated_static_xcframework_depends_on_base_header"],
+    minimum_os_versions = {"ios_simulator": "11.0"},
+    platforms = {"ios_simulator": ["x86_64"]},
     tags = FIXTURE_TAGS,
 )
 

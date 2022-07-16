@@ -2023,6 +2023,34 @@ EOF
 """,
 )
 
+swift_library(
+    name = "swift_multi_level_static_xcframework",
+    srcs = [":swift_multi_level_static_xcframework_src"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_depends_on_base",
+    ],
+)
+
+genrule(
+    name = "swift_multi_level_static_xcframework_src",
+    outs = ["SwiftMultiLevelStaticXCFramework.swift"],
+    cmd = "echo 'import generated_static_xcframework_depends_on_base' > $(OUTS)",
+)
+
+ios_application(
+    name = "app_with_swift_multi_level_static_xcframework",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = "11.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":swift_multi_level_static_xcframework",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_imessage_application(

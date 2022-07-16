@@ -1264,3 +1264,17 @@ apple_static_xcframework_import(
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework_without_swiftmodule"],
 )
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_base",
+    tags = TARGETS_UNDER_TEST_TAGS,
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_base"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_depends_on_base",
+    tags = TARGETS_UNDER_TEST_TAGS,
+    visibility = ["//visibility:public"],
+    xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_depends_on_base"],
+    deps = [":ios_imported_static_xcframework_base"],
+)
