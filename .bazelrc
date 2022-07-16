@@ -17,5 +17,10 @@ test --build_tests_only
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
 
+# Disable the worker, which has sandboxing disabled by default, which can hide
+# issues with non-hermetic bugs.
+build --spawn_strategy=sandboxed,local
+build --worker_sandboxing=true
+
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap
