@@ -606,7 +606,7 @@ function assert_objdump_contains() {
   local symbol_regexp="$3"
 
   [[ -f "$path" ]] || fail "$path does not exist"
-  local contents=$(objdump -t --macho --arch="$arch" "$path" | grep -v "*UND*")
+  local contents=$(objdump --syms --macho --arch="$arch" "$path" | grep -v "*UND*")
   echo "$contents" | grep -e "$symbol_regexp" >& /dev/null && return 0
   fail "Expected binary '$path' to contain '$symbol_regexp' but it did not." \
       "contents were: $contents"
@@ -622,7 +622,7 @@ function assert_objdump_not_contains() {
   local symbol_regexp="$3"
 
   [[ -f "$path" ]] || fail "$path does not exist"
-  local contents=$(objdump -t --macho --arch="$arch" "$path" | grep -v "*UND*")
+  local contents=$(objdump --syms --macho --arch="$arch" "$path" | grep -v "*UND*")
   echo "$contents" | grep -e "$symbol_regexp" >& /dev/null || return 0
   fail "Expected binary '$path' to not contain '$symbol_regexp' but it did."  \
       "contents were: $contents"
