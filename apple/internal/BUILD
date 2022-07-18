@@ -472,6 +472,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/testing:apple_test_rule_support",
         "@bazel_skylib//lib:dicts",
+        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
