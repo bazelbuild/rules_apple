@@ -343,14 +343,21 @@ function assert_frameworks_not_resigned_given_output() {
 }
 
 
-# Usage: current_archs <platform>
+# Usage: current_archs <platform> <keep_sim_string>
 #
 # Prints the architectures for the given platform that were specified in the
 # configuration used to run the current test. For multiple architectures, the
 # values will be printed on separate lines; the output here is typically meant
 # to be captured into an array.
+#
+# `platform` should be a label for an apple platform type we want to get the
+# list of available architectures from, such as "ios".
+#
+# `keep_sim_string` should be a boolean to indicate if we want to keep the
+# "sim_" substrings in the architecture results. This is false by default.
 function current_archs() {
   local platform="$1"
+  local keep_sim_string="${2:-false}"
   if [[ "$platform" == ios ]]; then
     # Fudge the ios platform name to match the expected command line option.
     platform=ios_multi
@@ -359,7 +366,12 @@ function current_archs() {
   for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     case "$option" in
       --"${platform}"_cpus=*)
-        value="$(echo "$option" | cut -d= -f2)"
+        if [[ "$keep_sim_string" = true ]]; then
+          value="$(echo "$option" | cut -d= -f2)"
+        else
+          # Eliminate `sim_` prefixes from `cpu`s as it is not part of the arch.
+          value="$(echo "$option" | cut -d= -f2 | sed 's/sim_//g')"
+        fi
         echo "$value" | tr "," "\n"
         return
         ;;
@@ -488,10 +500,14 @@ function do_action() {
 # under multiple configurations.
 function is_device_build() {
   local platform="$1"
-  local archs="$(current_archs "$platform")"
+  local archs="$(current_archs "$platform" true)"
 
   # For simplicity, we just test the entire architecture list string and assume
   # users aren't writing tests with multiple incompatible architectures.
+  #
+  # This just happens to work given our current formatting for simulator archs
+  # which are `arm`, as when passed as arguments to Apple multi CPU flags, they
+  # will be of the form `sim_arm64` instead of `arm64`.
   [[ "$platform" == macos ]] || [[ "$archs" == arm* ]]
 }
 

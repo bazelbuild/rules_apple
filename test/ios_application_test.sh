@@ -499,9 +499,9 @@ apple_resource_bundle(
     name = "appResources",
     resources = select({
         "@build_bazel_rules_apple//apple:ios_x86_64": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_i386": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_armv7": ["foo_device.txt"],
         "@build_bazel_rules_apple//apple:ios_arm64": ["foo_device.txt"],
+        "@build_bazel_rules_apple//apple:ios_arm64e": ["foo_device.txt"],
+        "@bazel_tools//tools/objc:ios_sim_arm64": ["foo_sim.txt"],
     }),
 )
 EOF
