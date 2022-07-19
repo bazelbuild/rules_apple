@@ -32,7 +32,7 @@ def ios_static_framework_test_suite(name):
 
     # Tests Swift ios_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
     archive_contents_test(
-        name = "{}_swift_sim_arm64_builds".format(name),
+        name = "{}_swift_sim_arm64_builds_using_ios_multi_cpus".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         cpus = {
@@ -45,13 +45,43 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
-        name = "{}_swift_x86_64_builds".format(name),
+        name = "{}_swift_x86_64_builds_using_ios_multi_cpus".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         cpus = {
             "ios_multi_cpus": ["x86_64", "sim_arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Tests Swift ios_static_framework builds correctly for apple_platforms.
+    archive_contents_test(
+        name = "{}_swift_sim_arm64_builds_using_apple_platforms".format(name),
+        apple_platforms = [
+            "//buildenv/platforms/apple/simulator:ios_arm64",
+            "//buildenv/platforms/apple/simulator:ios_x86_64",
+        ],
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_x86_64_builds_using_apple_platforms".format(name),
+        apple_platforms = [
+            "//buildenv/platforms/apple/simulator:ios_arm64",
+            "//buildenv/platforms/apple/simulator:ios_x86_64",
+        ],
+        build_type = "simulator",
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],

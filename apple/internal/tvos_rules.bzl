@@ -15,6 +15,10 @@
 """Implementation of tvOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -80,23 +84,20 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
-    "SwiftInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "ApplePlatformInfo",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
     "TvosStaticFrameworkBundleInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:providers.bzl",
+    "SwiftInfo",
 )
 
 def _tvos_application_impl(ctx):
@@ -747,6 +748,7 @@ def _tvos_static_framework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     avoid_deps = ctx.attr.avoid_deps
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.attr.deps
     label = ctx.label
     predeclared_outputs = ctx.outputs
@@ -783,15 +785,11 @@ def _tvos_static_framework_impl(ctx):
 
     swift_infos = {}
     if swift_support.uses_swift(deps):
-        for link_output in link_result.outputs:
-            split_attr_key = transition_support.apple_common_multi_arch_split_key(
-                cpu = link_output.architecture,
-                environment = link_output.environment,
-                platform_type = link_output.platform,
-            )
+        for split_attr_key, cc_toolchain in cc_toolchain_forwarder.items():
+            apple_platform_info = cc_toolchain[ApplePlatformInfo]
             for dep in split_deps[split_attr_key]:
                 if SwiftInfo in dep:
-                    swift_infos[link_output.architecture] = dep[SwiftInfo]
+                    swift_infos[apple_platform_info.target_arch] = dep[SwiftInfo]
 
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
     # framework.
@@ -883,4 +881,5 @@ tvos_static_framework = rule_factory.create_apple_bundling_rule(
     platform_type = "tvos",
     product_type = apple_product_type.static_framework,
     doc = "Builds and bundles a tvOS Static Framework.",
+    cfg = transition_support.apple_platforms_rule_base_transition,
 )

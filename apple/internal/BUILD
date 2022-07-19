@@ -486,6 +486,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundle_package_type",
+        ":transition_support",
     ],
 )
 

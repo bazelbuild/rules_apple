@@ -62,6 +62,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "ApplePlatformInfo",
     "AppleResourceBundleInfo",
     "AppleTestRunnerInfo",
     "IosAppClipBundleInfo",
@@ -119,7 +120,9 @@ def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
     return {
         "_child_configuration_dummy": attr.label(
             cfg = cfg,
-            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+            default =
+                "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
         ),
     }
 
@@ -156,21 +159,22 @@ def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
 
 # Needed for the J2ObjC processing code that already exists in the implementation of
 # apple_common.link_multi_arch_binary.
-_J2OBJC_BINARY_LINKING_ATTRS = {
-    "_dummy_lib": attr.label(
-        cfg = apple_common.multi_arch_split,
-        default = Label("@bazel_tools//tools/objc:dummy_lib"),
-    ),
-    "_j2objc_dead_code_pruner": attr.label(
-        executable = True,
-        # Setting `allow_single_file=True` would be more correct. Unfortunately,
-        # doing so prevents using py_binary as the underlying target because py_binary
-        # produces at least _two_ output files (the executable plus any files in srcs)
-        allow_files = True,
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
-    ),
-}
+def _j2objc_binary_linking_attrs(*, cfg):
+    return {
+        "_dummy_lib": attr.label(
+            cfg = cfg,
+            default = Label("@bazel_tools//tools/objc:dummy_lib"),
+        ),
+        "_j2objc_dead_code_pruner": attr.label(
+            executable = True,
+            # Setting `allow_single_file=True` would be more correct. Unfortunately,
+            # doing so prevents using py_binary as the underlying target because py_binary
+            # produces at least _two_ output files (the executable plus any files in srcs)
+            allow_files = True,
+            cfg = "exec",
+            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
+        ),
+    }
 
 _COMMON_TEST_ATTRS = {
     "data": attr.label_list(
@@ -237,8 +241,8 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
 
     return dicts.add(
         _COMMON_ATTRS,
-        _J2OBJC_BINARY_LINKING_ATTRS,
-        _link_multi_arch_binary_attrs(),
+        _j2objc_binary_linking_attrs(cfg = deps_cfg),
+        _link_multi_arch_binary_attrs(cfg = deps_cfg),
         {
             # This attribute is required by the Clang runtime libraries processing partial.
             # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
@@ -537,6 +541,12 @@ use only extension-safe APIs.
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -555,7 +565,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
+                cfg = transition_support.apple_platform_split_transition,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -817,6 +827,12 @@ use only extension-safe APIs.
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -835,7 +851,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
-                cfg = apple_common.multi_arch_split,
+                cfg = transition_support.apple_platform_split_transition,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.

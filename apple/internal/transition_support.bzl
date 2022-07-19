@@ -317,7 +317,7 @@ def _command_line_options_for_xcframework_platform(
     return output_dictionary
 
 def _apple_rule_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules."""
+    """Rule transition for Apple rules using Bazel cpus and apple_common split transition."""
     return _command_line_options(
         emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
         minimum_os_version = attr.minimum_os_version,
@@ -340,6 +340,9 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
+]
+_apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
+    "//command_line_option:apple_platforms",
 ]
 _apple_platform_transition_inputs = _apple_rule_base_transition_inputs + [
     "//command_line_option:apple_platforms",
@@ -373,6 +376,22 @@ _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_ou
 _apple_rule_base_transition = transition(
     implementation = _apple_rule_base_transition_impl,
     inputs = _apple_rule_base_transition_inputs,
+    outputs = _apple_rule_base_transition_outputs,
+)
+
+def _apple_platforms_rule_base_transition_impl(settings, attr):
+    """Rule transition for Apple rules using Bazel platforms and Starlark split transition."""
+    return _command_line_options(
+        apple_platforms = settings["//command_line_option:apple_platforms"],
+        emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        minimum_os_version = attr.minimum_os_version,
+        platform_type = attr.platform_type,
+        settings = settings,
+    )
+
+_apple_platforms_rule_base_transition = transition(
+    implementation = _apple_platforms_rule_base_transition_impl,
+    inputs = _apple_platforms_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
 
@@ -436,6 +455,11 @@ def _apple_platform_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for Apple platform-aware rules"""
     output_dictionary = {}
 
+    # iOS and tvOS static frameworks require underlying swift_library targets generate a Swift
+    # interface file. These rules define a private attribute called `_emitswiftinterface` that
+    # let's this transition flip rules_swift config down the build graph.
+    emit_swiftinterface = hasattr(attr, "_emitswiftinterface")
+
     if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         platforms = (
             settings["//command_line_option:apple_platforms"] or
@@ -456,6 +480,7 @@ def _apple_platform_split_transition_impl(settings, attr):
             if str(platform) not in output_dictionary:
                 output_dictionary[str(platform)] = _command_line_options(
                     apple_platforms = apple_platforms,
+                    emit_swiftinterface = emit_swiftinterface,
                     minimum_os_version = attr.minimum_os_version,
                     platform_type = attr.platform_type,
                     settings = settings,
@@ -500,6 +525,7 @@ def _apple_platform_split_transition_impl(settings, attr):
 
             output_dictionary[found_cpu] = _command_line_options(
                 cpu = cpu,
+                emit_swiftinterface = emit_swiftinterface,
                 minimum_os_version = minimum_os_version,
                 platform_type = platform_type,
                 settings = settings,
@@ -517,32 +543,6 @@ _apple_platform_split_transition = transition(
     inputs = _apple_platform_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
-
-# TODO(b/230527536): Add support for Bazel platforms on ios/tvos_static_framework transition support method
-def _apple_common_multi_arch_split_key(*, cpu, environment, platform_type):
-    """Returns split key for the apple_common.multi_arch_split transition based on target triplet.
-
-    See ApplePlatform.cpuStringForTarget for reference on how apple_common.multi_arch_split
-    transition key is built.
-
-     Args:
-        cpu: The architecture of the target that was built. For example, `x86_64` or
-            `arm64`.
-        environment: The environment of the target that was built, which corresponds to the
-            toolchain's target triple values as reported by `apple_support.link_multi_arch_*`
-            for environment. Typically `device` or `simulator`.
-        platform_type: The platform of the target that was built, which corresponds to the
-            toolchain's target triple values as reported by `apple_common.link_multi_arch_*`
-            for platform. For example, `ios`, `macos`, `tvos` or `watchos`.
-    """
-    cpu = _resolved_cpu_for_cpu(
-        cpu = cpu,
-        environment = environment,
-    )
-    return _cpu_string(
-        cpu = cpu,
-        platform_type = platform_type,
-    )
 
 def _xcframework_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
@@ -573,10 +573,10 @@ _xcframework_transition = transition(
 
 transition_support = struct(
     apple_platform_split_transition = _apple_platform_split_transition,
-    apple_rule_transition = _apple_rule_base_transition,
+    apple_platforms_rule_base_transition = _apple_platforms_rule_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
+    apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
-    apple_common_multi_arch_split_key = _apple_common_multi_arch_split_key,
     xcframework_split_attr_key = _xcframework_split_attr_key,
     xcframework_transition = _xcframework_transition,
 )
