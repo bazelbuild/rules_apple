@@ -45,13 +45,13 @@ def _ios_test_runner_impl(ctx):
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
     ctx.actions.expand_template(
-        template = ctx.file._test_template,
+        template = ctx.file.test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             device_type = device_type,
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
-            testrunner = ctx.executable._testrunner.short_path,
+            testrunner = ctx.executable.testrunner.short_path,
         ),
     )
     return [
@@ -65,7 +65,7 @@ def _ios_test_runner_impl(ctx):
         ),
         DefaultInfo(
             runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
-                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
+                .merge(ctx.attr.testrunner[DefaultInfo].default_runfiles),
         ),
     ]
 
@@ -102,13 +102,13 @@ Optional dictionary with the environment variables that are to be propagated
 into the XCTest invocation.
 """,
         ),
-        "_test_template": attr.label(
+        "test_template": attr.label(
             default = Label(
                 "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),
-        "_testrunner": attr.label(
+        "testrunner": attr.label(
             default = Label(
                 "@xctestrunner//:ios_test_runner",
             ),

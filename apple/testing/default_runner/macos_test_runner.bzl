@@ -85,7 +85,7 @@ def _macos_test_runner_impl(ctx):
     )
 
     ctx.actions.expand_template(
-        template = ctx.file._test_template,
+        template = ctx.file.test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(preprocessed_xctestrun_template),
     )
@@ -106,7 +106,7 @@ def _macos_test_runner_impl(ctx):
 macos_test_runner = rule(
     _macos_test_runner_impl,
     attrs = {
-        "_test_template": attr.label(
+        "test_template": attr.label(
             default = Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.sh"),
             allow_single_file = True,
         ),
