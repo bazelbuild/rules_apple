@@ -40,6 +40,7 @@ def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
     output_dictionary = {
+        "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
@@ -79,6 +80,7 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ],
     outputs = [
+        "//command_line_option:cpu",
         "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
@@ -209,6 +211,11 @@ apple_verification_test = rule(
             doc = """
 The Bitcode mode to use for compilation steps. Possible values are `none`,
 `embedded_markers`, or `embedded`. Defaults to `none`.
+""",
+        ),
+        "apple_cpu": attr.string(
+            doc = """
+A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
 """,
         ),
         "build_type": attr.string(

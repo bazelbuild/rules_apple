@@ -484,7 +484,14 @@ def _apple_platform_split_transition_impl(settings, attr):
         platform_type = attr.platform_type
         cpus = settings[_platform_specific_cpu_setting_name(platform_type)]
         if not cpus:
-            cpus = [_platform_specific_default_cpu(platform_type)]
+            if platform_type == "ios":
+                # Legacy exception to interpret the --cpu as an iOS arch.
+                cpu_value = settings["//command_line_option:cpu"]
+                if cpu_value.startswith("ios_"):
+                    cpus = [cpu_value[4:]]
+            if not cpus:
+                # Set the default cpu for the given platform type.
+                cpus = [_platform_specific_default_cpu(platform_type)]
         for cpu in cpus:
             found_cpu = _cpu_string(
                 cpu = cpu,
