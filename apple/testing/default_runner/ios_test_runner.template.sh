@@ -60,14 +60,14 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
   # TODO(kaipi): Improve xctestrunner to account for Bazel permissions.
   cp -RL "$TEST_BUNDLE_PATH" "$TMP_DIR"
   chmod -R 777 "${TMP_DIR}/$(basename "$TEST_BUNDLE_PATH")"
-  runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
 else
   TEST_BUNDLE_NAME=$(basename_without_extension "${TEST_BUNDLE_PATH}")
   TEST_BUNDLE_TMP_DIR="${TMP_DIR}/${TEST_BUNDLE_NAME}"
   unzip -qq -d "${TEST_BUNDLE_TMP_DIR}" "${TEST_BUNDLE_PATH}"
-  runner_flags+=("--test_bundle_path=${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest")
+  TEST_BUNDLE_PATH="${TEST_BUNDLE_TMP_DIR}/${TEST_BUNDLE_NAME}.xctest"
 fi
 
+runner_flags+=("--test_bundle_path=${TEST_BUNDLE_PATH}")
 
 TEST_HOST_PATH="%(test_host_path)s"
 
@@ -109,6 +109,19 @@ if [[ -n "$TEST_ENV" ]]; then
   TEST_ENV="$TEST_ENV,TEST_SRCDIR=$TEST_SRCDIR"
 else
   TEST_ENV="TEST_SRCDIR=$TEST_SRCDIR"
+fi
+
+sanitizer_dyld_env=""
+readonly sanitizer_root="${TEST_BUNDLE_PATH}/Frameworks"
+for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
+  if [[ -n "$sanitizer_dyld_env" ]]; then
+    sanitizer_dyld_env="$sanitizer_dyld_env:"
+  fi
+  sanitizer_dyld_env="${sanitizer_dyld_env}${sanitizer}"
+done
+
+if [[ -n "$sanitizer_dyld_env" ]]; then
+  TEST_ENV="$TEST_ENV,DYLD_INSERT_LIBRARIES=$sanitizer_dyld_env"
 fi
 
 readonly profraw="$TMP_DIR/coverage.profraw"

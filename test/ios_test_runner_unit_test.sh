@@ -581,4 +581,14 @@ function test_ios_unit_test_with_multi_equal_env() {
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
 
+function test_ios_unit_test_pass_asan() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --features=asan //ios:PassingUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
+
 run_suite "ios_unit_test with iOS test runner bundling tests"
