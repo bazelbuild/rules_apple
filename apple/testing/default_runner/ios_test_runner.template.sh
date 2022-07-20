@@ -255,9 +255,6 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   lcov_args+=("-arch=$arch")
 done
 
-# change dir to ROOT to sync with the path in the coverage report
-cd "$ROOT"
-
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
@@ -297,13 +294,14 @@ fi
 if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   llvm_cov_html_export_status=0
 
+  # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
+  # reference: https://github.com/bazelbuild/rules_apple/pull/1490#discussion_r900379232
   xcrun llvm-cov \
     show \
     -format html \
     -use-color \
+    -output-dir="$TEST_UNDECLARED_OUTPUTS_DIR/html" \
     "${lcov_args[@]}" \
-    @"$COVERAGE_MANIFEST" \
-    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
     2> "$error_file" \
     || llvm_cov_html_export_status=$?
   if [[ -s "$error_file" || "$llvm_cov_html_export_status" -ne 0 ]]; then

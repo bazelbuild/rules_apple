@@ -151,9 +151,6 @@ fi
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
-# change dir to ROOT to sync with the path in the coverage report
-cd "$ROOT"
-
 readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
 llvm_cov_export_status=0
 lcov_args=(
@@ -200,15 +197,15 @@ fi
 if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   llvm_cov_html_export_status=0
 
-  # we couldn't use $COVERAGE_MANIFEST", as it will result an empty html
+  # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
+  # reference: https://github.com/bazelbuild/rules_apple/pull/1490#discussion_r900379232
   xcrun llvm-cov \
     export \
     -format html \
     -use-color \
+    -output-dir="$TEST_UNDECLARED_OUTPUTS_DIR/html" \
     "${lcov_args[@]}" \
     "$test_binary" \
-    @"$COVERAGE_MANIFEST" \
-    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.html"
     2> "$export_error_file" \
     || llvm_cov_html_export_status=$?
   if [[ -s "$export_error_file" || "$llvm_cov_html_export_status" -ne 0 ]]; then
