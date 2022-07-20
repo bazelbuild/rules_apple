@@ -51,6 +51,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
 
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
+        "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
@@ -94,6 +95,7 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ],
     outputs = [
+        "//command_line_option:cpu",
         "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
@@ -210,6 +212,11 @@ def _apple_verification_test_impl(ctx):
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {
+        "apple_cpu": attr.string(
+            doc = """
+A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
+""",
+        ),
         "apple_generate_dsym": attr.bool(
             default = False,
             doc = """
