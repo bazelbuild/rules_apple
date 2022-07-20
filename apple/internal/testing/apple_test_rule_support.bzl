@@ -118,7 +118,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
 
 def _get_coverage_execution_environment(_ctx, covered_binaries):
     """Returns environment variables required for test coverage support."""
-    covered_binary_paths = [f.path for f in covered_binaries.to_list()]
+    covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
         "APPLE_COVERAGE": "1",
