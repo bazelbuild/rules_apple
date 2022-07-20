@@ -1094,7 +1094,7 @@ binaries/libraries will be created combining all architectures specified by
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
         outputs = implicit_outputs,
-        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+        toolchains = use_cpp_toolchain(),
     )
 
 def _create_apple_bundling_rule(
@@ -1188,7 +1188,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
         ),
         doc = doc,
         test = True,
-        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+        toolchains = use_cpp_toolchain(),
     )
 
 rule_factory = struct(
