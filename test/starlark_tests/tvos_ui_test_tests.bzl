@@ -15,6 +15,10 @@
 """tvos_ui_test Starlark tests."""
 
 load(
+    ":rules/analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -70,6 +74,22 @@ def tvos_ui_test_test_suite(name):
             "MinimumOSVersion": "9.0",
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_test_bundle_id_override".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test_custom_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "my.test.bundle.id",
+        },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_bundle_id_same_as_test_host_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test_invalid_bundle_id",
+        expected_error = "The test bundle's identifier of 'com.google.example' can't be the same as the test host's bundle identifier. Please change one of them.",
         tags = [name],
     )
 
