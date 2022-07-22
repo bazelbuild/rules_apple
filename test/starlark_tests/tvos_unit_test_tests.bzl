@@ -15,6 +15,10 @@
 """tvos_unit_test Starlark tests."""
 
 load(
+    ":rules/analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -84,6 +88,95 @@ def tvos_unit_test_test_suite(name):
             "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk_from_objc_library_runtime_deps",
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_test_bundle_id_override".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_custom_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "my.test.bundle.id",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_bundles_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_bundles_imported_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/generated_tvos_dynamic_fmwk",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_imported_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_does_not_bundle_framework_if_host_does".format(name),
+        build_type = "simulator",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/generated_tvos_dynamic_fmwk",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_host_importing_same_fmwk",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_does_not_bundle_resources_from_host_or_shared_framework".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/nonlocalized.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.plist",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/empty.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:dedupe_test_test",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_bundle_id_same_as_test_host_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_invalid_bundle_id",
+        expected_error = "The test bundle's identifier of 'com.google.example' can't be the same as the test host's bundle identifier. Please change one of them.",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_builds_without_test_host".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_no_host",
+        cpus = {
+            "tvos_cpus": ["x86_64"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform TVOSSIMULATOR"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_builds_with_swift_dep".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_swift_deps",
+        cpus = {
+            "tvos_cpus": ["x86_64"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform TVOSSIMULATOR"],
         tags = [name],
     )
 

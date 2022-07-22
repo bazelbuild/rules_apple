@@ -375,9 +375,51 @@ tvos_ui_test(
     ],
 )
 
-# ---------------------------------------------------------------------------------------
+tvos_ui_test(
+    name = "ui_test_custom_bundle_id",
+    bundle_id = "my.test.bundle.id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
 
 tvos_ui_test(
+    name = "ui_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_ui_test(
+    name = "ui_test_dummy_runner",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+tvos_unit_test(
     name = "unit_test",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -395,9 +437,51 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = "14.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_custom_bundle_id",
+    bundle_id = "my.test.bundle.id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = "9.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_with_fmwk",
+    frameworks = [
+        ":fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
@@ -413,6 +497,60 @@ tvos_unit_test(
     deps = [
         ":objc_lib_with_runtime_dep_fmwk",
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_with_imported_fmwk",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_with_host_importing_same_fmwk",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app_with_imported_fmwk",
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_dummy_runner",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "9.0",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "unit_test_with_swift_deps",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_swift_depending_test_lib",
     ],
 )
 
@@ -465,6 +603,88 @@ objc_library(
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
     deps = [":swift_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for the app/test resource deduping test.
+
+objc_library(
+    name = "shared_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:basic_bundle",
+    ],
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
+    name = "app_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:empty.strings",
+    ],
+    tags = FIXTURE_TAGS,
+    deps = [":shared_lib"],
+)
+
+objc_library(
+    name = "test_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    data = [
+        "//test/starlark_tests/resources:nonlocalized.strings",
+    ],
+    tags = FIXTURE_TAGS,
+    deps = [":app_lib"],
+)
+
+objc_library(
+    name = "main_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":app_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_framework(
+    name = "dedupe_test_fmwk",
+    bundle_id = "com.fmwk",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":shared_lib",
+    ],
+)
+
+tvos_application(
+    name = "dedupe_test_app",
+    bundle_id = "com.app",
+    frameworks = [
+        ":dedupe_test_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":main_lib",
+    ],
+)
+
+tvos_unit_test(
+    name = "dedupe_test_test",
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":dedupe_test_app",
+    deps = [
+        ":test_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------

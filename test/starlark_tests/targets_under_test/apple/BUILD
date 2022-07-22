@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
+load(
+    "//test/testdata/rules:dummy_test_runner.bzl",
+    "dummy_test_runner",
+)
 
 licenses(["notice"])
 
@@ -283,6 +287,10 @@ swift_library(
     ],
     module_name = "ios_dynamic_lipoed_swift_xcframework",
     tags = TARGETS_UNDER_TEST_TAGS,
+)
+
+dummy_test_runner(
+    name = "dummy_test_runner",
 )
 
 apple_xcframework(

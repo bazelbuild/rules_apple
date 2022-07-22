@@ -1479,6 +1479,19 @@ EOF
 """,
 )
 
+swift_library(
+    name = "swift_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
+    name = "objc_to_swift_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    tags = FIXTURE_TAGS,
+    deps = [":swift_lib"],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic XCFramework import tests.
 
@@ -1821,7 +1834,25 @@ ios_ui_test(
 
 ios_ui_test(
     name = "ui_test_custom_bundle_id",
-    bundle_id = "com.google.example.ui_test",
+    bundle_id = "my.test.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "ui_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
     families = [
         "iphone",
         "ipad",
@@ -1875,6 +1906,24 @@ ios_ui_test(
     ],
 )
 
+ios_ui_test(
+    name = "ui_test_dummy_runner",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_unit_test(
@@ -1900,7 +1949,25 @@ ios_unit_test(
 
 ios_unit_test(
     name = "unit_test_custom_bundle_id",
-    bundle_id = "com.google.example.unit_test",
+    bundle_id = "my.test.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
     families = [
         "iphone",
         "ipad",
@@ -1943,7 +2010,7 @@ ios_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "14.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -2019,6 +2086,49 @@ ios_unit_test(
     deps = [
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_dummy_runner",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_swift_deps",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "14.0",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_swift_depending_test_lib",
     ],
 )
 

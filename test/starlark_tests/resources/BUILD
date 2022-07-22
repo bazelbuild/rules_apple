@@ -84,6 +84,19 @@ objc_library(
     tags = FIXTURE_TAGS,
 )
 
+objc_library(
+    name = "objc_swift_depending_test_lib",
+    srcs = ["test.m"],
+    tags = FIXTURE_TAGS,
+    deps = [":swift_uikit_appdelegate"],
+)
+
+swift_library(
+    name = "swift_uikit_appdelegate",
+    srcs = ["AppDelegate.swift"],
+    tags = FIXTURE_TAGS,
+)
+
 apple_bundle_import(
     name = "settings_bundle_ios",
     bundle_imports = [":settings_bundle_ios_files"],

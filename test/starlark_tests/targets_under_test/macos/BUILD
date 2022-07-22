@@ -541,6 +541,52 @@ macos_ui_test(
     ],
 )
 
+macos_ui_test(
+    name = "ui_test_custom_bundle_id",
+    bundle_id = "my.test.bundle.id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_ui_test(
+    name = "ui_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_ui_test(
+    name = "ui_test_dummy_runner",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_unit_test(
@@ -553,6 +599,68 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_no_host",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "11.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_custom_bundle_id",
+    bundle_id = "my.test.bundle.id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_invalid_bundle_id",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_dummy_runner",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "10.10",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [

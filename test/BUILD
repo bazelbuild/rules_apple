@@ -2,10 +2,8 @@ load(
     "//test:configurations.bzl",
     "IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS",
     "IOS_CONFIGURATIONS",
-    "IOS_TEST_CONFIGURATIONS",
     "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
-    "TVOS_TEST_CONFIGURATIONS",
     "WATCHOS_CONFIGURATIONS",
 )
 load(
@@ -307,81 +305,6 @@ apple_multi_shell_test(
     src = "watchos_application_test.sh",
     configurations = WATCHOS_CONFIGURATIONS,
     shard_count = 12,
-)
-
-apple_multi_shell_test(
-    name = "ios_unit_test_test",
-    size = "medium",
-    src = "ios_unit_test_test.sh",
-    configurations = IOS_TEST_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 6,
-)
-
-apple_multi_shell_test(
-    name = "ios_ui_test_test",
-    size = "medium",
-    src = "ios_ui_test_test.sh",
-    configurations = IOS_TEST_CONFIGURATIONS,
-    data = [
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 4,
-)
-
-apple_multi_shell_test(
-    name = "macos_unit_test_test",
-    size = "medium",
-    src = "macos_unit_test_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 4,
-)
-
-apple_multi_shell_test(
-    name = "macos_ui_test_test",
-    size = "medium",
-    src = "macos_ui_test_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 4,
-)
-
-apple_multi_shell_test(
-    name = "tvos_unit_test_test",
-    size = "medium",
-    src = "tvos_unit_test_test.sh",
-    configurations = TVOS_TEST_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_tvos_dylib",
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 8,
-)
-
-apple_multi_shell_test(
-    name = "tvos_unit_test_resources_test",
-    size = "medium",
-    src = "tvos_unit_test_resources_test.sh",
-    configurations = TVOS_TEST_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
-    name = "tvos_ui_test_test",
-    size = "medium",
-    src = "tvos_ui_test_test.sh",
-    configurations = TVOS_TEST_CONFIGURATIONS,
-    data = [
-        "//test/testdata/rules:dummy_runner",
-    ],
-    shard_count = 4,
 )
 
 apple_shell_test(
