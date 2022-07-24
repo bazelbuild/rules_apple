@@ -221,6 +221,41 @@ ios_unit_test(
 )
 ```
 
+### Codesigning performance
+
+For larger applications, codesigning the final binary might be a
+bottleneck in incremental build performance. [Michael Eisel
+discovered](https://eisel.me/signing) a few clever optimizations for
+improving this performance for debug builds. To use these with bazel you
+can add something like this to your top level app rule, for example with
+`ios_application`:
+
+```bzl
+config_setting(
+    name = "dbg",
+    values = {"compilation_mode": "dbg"},
+)
+
+ios_application(
+    ...
+    codesignopts = select({
+        ":dbg": [
+            "--digest-algorithm=sha1",
+            "--resource-rules=$(RESOURCE_RULES)",
+        ],
+        "//conditions:default": [],
+    }),
+    codesign_inputs = select({
+        ":dbg": ["@build_bazel_rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
+        "//conditions:default": [],
+    }),
+    toolchains = select({
+        "//:dbg": ["@build_bazel_rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
+        "//conditions:default": [],
+    }),
+)
+```
+
 ### Localization Handling
 
 The Apple bundling rules have two flags for limiting which \*.lproj directories
