@@ -487,6 +487,9 @@ function do_action() {
   bazel "${action}" "${bazel_options[@]}" >> "$TEST_log" 2>&1
 }
 
+function do_clean() {
+  bazel clean
+}
 
 # Usage: is_bitcode_build
 #

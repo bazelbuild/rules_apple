@@ -175,7 +175,12 @@ function test_standalone_unit_test_coverage_json() {
 
 function test_standalone_unit_test_coverage_html() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --sandbox_debug --spawn_strategy=standalone --test_env=COVERAGE_PRODUCE_HTML=1 //app:standalone_test || fail "Should build"
+  # clean to prevent referencing artifact that is created by sandbox.
+  do_clean
+
+  # disable sandbox to prevent html code coverage failing to find the source code reference
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --spawn_strategy=standalone --test_env=COVERAGE_PRODUCE_HTML=1 //app:standalone_test || fail "Should build"
+  
   # TODO: we could improve the assertion to check directly to spesific test html file instead.
   unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" "html/index.html" \
       grep 'SharedLogic.m'
