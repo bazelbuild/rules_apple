@@ -175,9 +175,10 @@ function test_standalone_unit_test_coverage_json() {
 
 function test_standalone_unit_test_coverage_html() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --test_env=COVERAGE_PRODUCE_HTML=1 //app:standalone_test || fail "Should build"
-  unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" coverage.html \
-      grep '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --sandbox_debug --spawn_strategy=standalone --test_env=COVERAGE_PRODUCE_HTML=1 //app:standalone_test || fail "Should build"
+  # TODO: we could improve the assertion to check directly to spesific test html file instead.
+  unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" "html/index.html" \
+      grep 'SharedLogic.m'
 }
 
 function test_hosted_unit_test_coverage() {
