@@ -16,7 +16,7 @@ package(
 
 objc_library(
     name = "main_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",

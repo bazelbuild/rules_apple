@@ -294,7 +294,6 @@ tvos_framework(
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
     deps = [":imported_tvos_dynamic_fmwk"],
 )
@@ -318,7 +317,6 @@ generate_import_framework(
 
 objc_library(
     name = "static_fmwk_depending_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":imported_tvos_static_fmwk"],
 )
 
@@ -604,7 +602,6 @@ swift_library(
 
 objc_library(
     name = "objc_to_swift_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
     deps = [":swift_lib"],
 )
@@ -614,7 +611,6 @@ objc_library(
 
 objc_library(
     name = "shared_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "//test/starlark_tests/resources:basic_bundle",
     ],
@@ -623,7 +619,6 @@ objc_library(
 
 objc_library(
     name = "app_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "//test/starlark_tests/resources:empty.strings",
     ],
@@ -633,7 +628,6 @@ objc_library(
 
 objc_library(
     name = "test_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "//test/starlark_tests/resources:nonlocalized.strings",
     ],
@@ -643,7 +637,6 @@ objc_library(
 
 objc_library(
     name = "main_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
     deps = [
         ":app_lib",
