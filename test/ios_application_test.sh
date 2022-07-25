@@ -122,7 +122,6 @@ ios_application(
 
 objc_library(
     name = "frameworkDependingLib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":fmwk"],
 )
 
@@ -491,7 +490,6 @@ ios_application(
 
 objc_library(
     name = "resLib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [":appResources"],
 )
 

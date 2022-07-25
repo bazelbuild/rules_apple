@@ -291,7 +291,6 @@ filegroup(
 
 objc_library(
     name = "sticker_pack_ios_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         ":sticker_pack_ios",
     ],
@@ -306,7 +305,7 @@ apple_bundle_import(
 
 objc_library(
     name = "basic_bundle_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
     data = [
         ":basic_bundle",
     ],
@@ -321,7 +320,6 @@ apple_bundle_import(
 
 objc_library(
     name = "nested_bundle_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         ":nested_bundle",
     ],
@@ -385,7 +383,6 @@ objc_library(
 
 objc_library(
     name = "empty_strings_file_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "empty.strings",
     ],
@@ -425,7 +422,6 @@ apple_resource_bundle(
 
 objc_library(
     name = "bundle_library_ios_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         ":bundle_library_ios",
     ],
@@ -460,7 +456,6 @@ apple_resource_bundle(
 
 objc_library(
     name = "bundle_library_apple_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         ":bundle_library_apple",
     ],
@@ -499,7 +494,6 @@ filegroup(
 
 objc_library(
     name = "framework_resources_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "framework_resources/nonlocalized.plist",
     ],

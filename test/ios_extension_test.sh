@@ -163,7 +163,6 @@ ios_extension(
 
 objc_library(
     name = "frameworkDependingLib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":fmwk"],
 )
 

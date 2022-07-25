@@ -61,7 +61,6 @@ function create_with_localized_unprocessed_resources() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
     ],
@@ -151,7 +150,6 @@ function test_different_files_mapped_to_the_same_target_path_fails() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "shared_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
       "shared_res/foo.txt",
     ],
