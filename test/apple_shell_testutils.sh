@@ -485,6 +485,9 @@ function do_action() {
   bazel "${action}" "${bazel_options[@]}" >> "$TEST_log" 2>&1
 }
 
+# Usage: do_clean
+#
+# Run bazel clean
 function do_clean() {
   bazel clean
 }
