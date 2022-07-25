@@ -78,7 +78,6 @@ objc_library(
 
 objc_library(
     name = "shared_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":resource_only_lib"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
@@ -92,7 +91,6 @@ objc_library(
 
 objc_library(
     name = "shared_lib_with_no_direct_resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":resource_only_lib"],
 )
 

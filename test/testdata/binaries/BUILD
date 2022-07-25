@@ -38,5 +38,4 @@ apple_static_library(
 
 objc_library(
     name = "dummy_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
 )

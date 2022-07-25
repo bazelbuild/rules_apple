@@ -350,7 +350,6 @@ swift_library(
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     tags = FIXTURE_TAGS,
     deps = [":imported_watchos_dynamic_fmwk"],
 )

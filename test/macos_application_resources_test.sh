@@ -61,7 +61,6 @@ function create_with_localized_unprocessed_resources() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
     ],
@@ -119,7 +118,6 @@ function test_bundle_localization_strip() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:bundle_library_macos",
         "fr.lproj/localized.strings",
