@@ -140,9 +140,7 @@ def _get_xcframework_library(
                 bundles.
             headers: List of File referencing XCFramework library header files. This can be either
                 a single tree artifact or a list of regular artifacts.
-            module_maps: List of File referencing XCFramework library module map files. This can
-                be either a single tree artifact or a list of regular artifacts.
-            swift_module_map: File referencing the XCFramework library modulemap file.
+            clang_module_map: File referencing the XCFramework library Clang modulemap file.
     """
     xcframework_library = None
     if not parse_xcframework_info_plist:
@@ -214,8 +212,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         framework_includes = framework_includes,
         headers = headers,
         includes = includes,
-        module_maps = module_maps,
-        swift_module_map = module_maps[0] if module_maps else None,
+        clang_module_map = module_maps[0] if module_maps else None,
         swiftmodule = swiftmodules,
     )
 
@@ -271,13 +268,8 @@ def _get_xcframework_library_with_xcframework_processor(
         dir_name = paths.join(library_path, "Headers"),
         **intermediates_common
     )
-    modulemap_dir_path = paths.join(library_path, "Modules")
-    modulemap_dir = intermediates.directory(
-        dir_name = paths.join(modulemap_dir_path),
-        **intermediates_common
-    )
     module_map_file = intermediates.file(
-        file_name = paths.join(modulemap_dir_path, "module.modulemap"),
+        file_name = paths.join(library_path, "Modules", "module.modulemap"),
         **intermediates_common
     )
 
@@ -309,7 +301,6 @@ def _get_xcframework_library_with_xcframework_processor(
         headers_dir,
         library_dir,
         module_map_file,
-        modulemap_dir,
     ]
 
     xcframework_processor_tool = apple_mac_toolchain_info.resolved_xcframework_processor_tool
@@ -344,8 +335,7 @@ def _get_xcframework_library_with_xcframework_processor(
         framework_includes = framework_includes,
         headers = [headers_dir],
         includes = includes,
-        module_maps = [modulemap_dir],
-        swift_module_map = module_map_file,
+        clang_module_map = module_map_file,
         swiftmodule = [],
     )
 
@@ -471,7 +461,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
         deps = deps,
         module_name = xcframework.bundle_name,
-        module_map_imports = [xcframework_library.swift_module_map],
+        module_map_imports = [xcframework_library.clang_module_map],
     )
     if swift_interop_info:
         providers.append(swift_interop_info)
@@ -570,7 +560,7 @@ def _apple_static_xcframework_import_impl(ctx):
     swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
         deps = deps,
         module_name = xcframework.bundle_name,
-        module_map_imports = [xcframework_library.swift_module_map],
+        module_map_imports = [xcframework_library.clang_module_map],
     )
     if swift_interop_info:
         providers.append(swift_interop_info)
