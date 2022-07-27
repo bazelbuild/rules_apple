@@ -294,6 +294,9 @@ fi
 if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   llvm_cov_html_export_status=0
 
+  # TODO: remove it, for debugging purpose only
+  echo "${lcov_args[*]}"
+
   # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
   # reference: https://github.com/bazelbuild/rules_apple/pull/1490#discussion_r900379232
   xcrun llvm-cov \
