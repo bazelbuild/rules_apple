@@ -15,67 +15,111 @@
 """Rules to generate import-ready frameworks for testing."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load(
+    "@build_bazel_rules_apple//test/testdata/fmwk:generation_support.bzl",
+    "generation_support",
+)
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _generate_import_framework_impl(ctx):
-    # The script has to run on a Mac, so just like the issues in the rule's
-    # tools, a py_binary doesn't always work, it is a plain file that gets
-    # invoked and has a shebang to force it to run under python3.
-    if len(ctx.files._generate_framework_script) != 1:
-        fail("Internal Error: Didn't get a single file for the script")
+    actions = ctx.actions
+    apple_fragment = ctx.fragments.apple
+    label = ctx.label
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    args = ctx.actions.args()
-    args.add("--name", ctx.label.name)
-    args.add("--sdk", ctx.attr.sdk)
-    args.add("--minimum_os_version", ctx.attr.minimum_os_version)
-    args.add("--libtype", ctx.attr.libtype)
-    if ctx.attr.embed_bitcode:
-        args.add("--embed_bitcode")
-    if ctx.attr.embed_debug_info:
-        args.add("--embed_debug_info")
-    for arch in ctx.attr.archs:
-        args.add("--arch", arch)
+    architectures = ctx.attr.archs
+    hdrs = ctx.files.hdrs
+    libtype = ctx.attr.libtype
+    minimum_os_version = ctx.attr.minimum_os_version
+    sdk = ctx.attr.sdk
+    srcs = ctx.files.src
 
-    framework_dir_name = "{}.framework".format(ctx.label.name)
-    binary_file = ctx.actions.declare_file(paths.join(framework_dir_name, ctx.label.name))
-    args.add("--framework_path", binary_file.dirname)
+    swift_library_files = ctx.files.swift_library
 
-    input_files = []
-    output_files = [binary_file]
+    include_module_interface_files = ctx.attr.include_module_interface_files
+    include_resource_bundle = ctx.attr.include_resource_bundle
 
-    for source_file in ctx.attr.src.files.to_list():
-        args.add("--source_file", source_file)
-        input_files.append(source_file)
+    if swift_library_files and len(architectures) > 1:
+        fail("Internal error: Can only generate a Swift " +
+             "framework with a single architecture at this time")
 
-    for header_file in ctx.attr.hdrs.files.to_list():
-        args.add("--header_file", header_file)
-        input_files.append(header_file)
-        output_files.append(ctx.actions.declare_file(paths.join(
-            framework_dir_name,
-            "Headers",
-            header_file.basename,
-        )))
+    headers = []
+    module_interfaces = []
 
-    # Special outputs to handle the generated text files.
-    output_files.extend([
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Headers", ctx.label.name + ".h")),
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Info.plist")),
-        ctx.actions.declare_file(paths.join(framework_dir_name, "Modules/module.modulemap")),
-    ])
+    if not swift_library_files:
+        # Compile library
+        binary = generation_support.compile_binary(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            archs = architectures,
+            embed_bitcode = ctx.attr.embed_bitcode,
+            embed_debug_info = ctx.attr.embed_debug_info,
+            hdrs = hdrs,
+            label = label,
+            minimum_os_version = minimum_os_version,
+            sdk = sdk,
+            srcs = srcs,
+            xcode_config = xcode_config,
+        )
 
-    apple_support.run(
-        ctx,
-        inputs = input_files,
-        outputs = output_files,
-        executable = ctx.files._generate_framework_script[0],
-        tools = ctx.files._generate_framework_script,
-        arguments = [args],
-        mnemonic = "GenerateImportedAppleFramework",
+        # Create dynamic or static library
+        if libtype == "dynamic":
+            library = generation_support.create_dynamic_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                archs = architectures,
+                binary = binary,
+                minimum_os_version = minimum_os_version,
+                sdk = sdk,
+                xcode_config = xcode_config,
+            )
+        else:
+            library = generation_support.create_static_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                binary = binary,
+                xcode_config = xcode_config,
+            )
+
+        # Add headers to framework
+        headers.extend(hdrs)
+
+    else:
+        # Get static library and generated header files
+        library = generation_support.get_file_with_extension(
+            files = swift_library_files,
+            extension = "a",
+        )
+        headers.append(
+            generation_support.get_file_with_extension(
+                files = swift_library_files,
+                extension = "h",
+            ),
+        )
+
+        # Mock swiftmodule file. Imported `.swiftmodule` files are not supported due to Swift
+        # toolchain compatibility and Swift's ABI stability through `.swiftinterface` files.
+        # However, Apple framework import rules use Swift interface files to flag an imported
+        # framework contains Swift, and thus propagate Swift toolchain specific flags up the
+        # build graph.
+        if include_module_interface_files:
+            module_interface = actions.declare_file(architectures[0] + ".swiftmodule")
+            actions.write(output = module_interface, content = "I'm a mock .swiftmodule file")
+            module_interfaces.append(module_interface)
+
+    # Create framework bundle
+    framework_files = generation_support.create_framework(
+        actions = actions,
+        bundle_name = label.name,
+        library = library,
+        headers = headers,
+        include_resource_bundle = include_resource_bundle,
+        module_interfaces = module_interfaces,
     )
 
     return [
-        DefaultInfo(files = depset(output_files)),
+        DefaultInfo(files = depset(framework_files)),
     ]
 
 generate_import_framework = rule(
@@ -109,6 +153,19 @@ Minimum version of the OS corresponding to the SDK that this binary will support
             ),
             doc = "Header files for the generated framework.",
         ),
+        "include_resource_bundle": attr.bool(
+            mandatory = False,
+            default = False,
+            doc = """
+Boolean to indicate if the generate framework should include a resource bundle containing an
+Info.plist file to test resource propagation.
+""",
+        ),
+        "swift_library": attr.label(
+            allow_files = True,
+            doc = "Label for a Swift library target to source archive and swiftmodule files from.",
+            providers = [SwiftInfo],
+        ),
         "libtype": attr.string(
             values = ["dynamic", "static"],
             doc = """
@@ -129,12 +186,13 @@ Set to `True` to generate and embed debug information in the framework
 binary.
 """,
         ),
-        "_generate_framework_script": attr.label(
-            cfg = "exec",
-            allow_files = True,
-            default = Label(
-                "@build_bazel_rules_apple//test/testdata/fmwk:generate_framework.py",
-            ),
+        "include_module_interface_files": attr.bool(
+            default = True,
+            doc = """
+Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` directory) from the
+`swift_library` target should be included in the XCFramework bundle or discarded for testing
+purposes.
+""",
         ),
     }),
     fragments = ["apple"],

@@ -15,35 +15,9 @@ x_defaults:
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
-  macos_latest:
-    name: "Latest Bazel"
-    bazel: latest
-    build_flags:
-      - --build_tests_only
-      - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
-    test_flags:
-      - --build_tests_only
-      - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
-    <<: *common
-
   macos_last_green:
     name: "Last Green Bazel"
     bazel: last_green
-    <<: *common
-
-  macos_latest_head_deps:
-    name: "Latest Bazel with Head Deps"
-    bazel: latest
-    shell_commands:
-    # Update the WORKSPACE to use head versions of some deps to ensure nothing
-    # has landed on them breaking this project.
-    - .bazelci/update_workspace_to_deps_heads.sh
-    build_flags:
-      - --build_tests_only
-      - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
-    test_flags:
-      - --build_tests_only
-      - --test_tag_filters=-apple_static_xcframework,-apple_xcframework_import
     <<: *common
 
   macos_last_green_head_deps:
@@ -56,8 +30,8 @@ tasks:
     <<: *common
 
   doc_tests:
-    name: "Latest Bazel"
-    bazel: latest
+    name: "Doc tests"
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."

@@ -1,14 +1,17 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
+load(":apple_dynamic_xcframework_import_tests.bzl", "apple_dynamic_xcframework_import_test_suite")
+load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
+load(":apple_static_xcframework_import_tests.bzl", "apple_static_xcframework_import_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
 load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
 load(":apple_xcframework_import_tests.bzl", "apple_xcframework_import_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
+load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
-load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
@@ -23,7 +26,6 @@ load(":macos_bundle_tests.bzl", "macos_bundle_test_suite")
 load(":macos_command_line_application_tests.bzl", "macos_command_line_application_test_suite")
 load(":macos_dylib_tests.bzl", "macos_dylib_test_suite")
 load(":macos_extension_tests.bzl", "macos_extension_test_suite")
-load(":macos_kernel_extension_tests.bzl", "macos_kernel_extension_test_suite")
 load(":macos_quick_look_plugin_tests.bzl", "macos_quick_look_plugin_test_suite")
 load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
@@ -48,6 +50,12 @@ licenses(["notice"])
 apple_bundle_version_test_suite(name = "apple_bundle_version")
 
 apple_core_data_model_test_suite(name = "apple_core_data_model")
+
+apple_dynamic_xcframework_import_test_suite(name = "apple_dynamic_xcframework_import")
+
+apple_static_library_test_suite(name = "apple_static_library")
+
+apple_static_xcframework_import_test_suite(name = "apple_static_xcframework_import")
 
 apple_static_xcframework_test_suite(name = "apple_static_xcframework")
 
@@ -93,7 +101,8 @@ macos_dylib_test_suite(name = "macos_dylib")
 
 macos_extension_test_suite(name = "macos_extension")
 
-macos_kernel_extension_test_suite(name = "macos_kernel_extension")
+# TODO: Re-enable once it works on M1s with the public crosstool.
+# macos_kernel_extension_test_suite(name = "macos_kernel_extension")
 
 macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin")
 

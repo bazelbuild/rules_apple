@@ -6,7 +6,7 @@ common --incompatible_allow_tags_propagation
 
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
-test --test_env=PATH
+build --test_env=PATH
 
 # `bazel test` tries to build everything also by default, so skip that so the
 # *_library targets in examples/... aren't built (and fail since they are
@@ -17,20 +17,10 @@ test --build_tests_only
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
 
-# Disable the Swift compilation worker when running integration tests, since it
-# requires the protobuf dependency, and because Bazel dependency management is
-# awful/non-existent, we can get away with not declaring protobuf's transitive
-# dependencies. This is very much a hack and leaves rules_apple (and dependents)
-# in a very brittle state, but until Bazel provides a better dependency management
-# solution, this is the path of least resistance to get integration tests working.
-# TODO(b/134144964): Formality to track removing this, but we all know it'll be
-# here forever.
-build --define=RULES_SWIFT_BUILD_DUMMY_WORKER=1
-build --strategy=SwiftCompile=local
-
-# Required to avoid missing coverage runner file errors.
-# GitHub Issue: https://github.com/bazelbuild/rules_apple/issues/1128
-coverage --action_env=LCOV_MERGER=/usr/bin/true
+# Disable the worker, which has sandboxing disabled by default, which can hide
+# issues with non-hermetic bugs.
+build --spawn_strategy=sandboxed,local
+build --worker_sandboxing=true
 
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap

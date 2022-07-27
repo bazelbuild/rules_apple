@@ -57,6 +57,7 @@ write_file(
     out = "update.sh",
     content = [
         "#!/usr/bin/env bash",
+        "set -euo pipefail",
         "cd $BUILD_WORKSPACE_DIRECTORY",
         "cp -fv bazel-bin/doc/providers.gen.md doc/providers.md",
     ] + [

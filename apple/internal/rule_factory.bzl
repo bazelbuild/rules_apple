@@ -35,10 +35,6 @@ load(
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_static_framework_aspect.bzl",
-    "swift_static_framework_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "swift_dynamic_framework_aspect",
 )
@@ -92,6 +88,7 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _is_test_product_type(product_type):
     """Returns whether the given product type is for tests purposes or not."""
@@ -205,6 +202,13 @@ AppleTestRunnerInfo provider.
         cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
+    "_lcov_merger": attr.label(
+        default = configuration_field(
+            fragment = "coverage",
+            name = "output_generator",
+        ),
+        cfg = "exec",
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):
@@ -221,8 +225,6 @@ def _common_binary_linking_attrs(deps_cfg, product_type):
         if _is_test_product_type(product_type):
             deps_aspects.append(apple_test_info_aspect)
             default_stamp = 0
-        if product_type == apple_product_type.static_framework:
-            deps_aspects.append(swift_static_framework_aspect)
         if product_type == apple_product_type.framework:
             deps_aspects.append(swift_dynamic_framework_aspect)
 
@@ -409,14 +411,18 @@ A list of resources or files bundled with the bundle. The resources will be stor
 appropriate resources location within the bundle.
 """,
         ),
-        "version": attr.label(
-            providers = [[AppleBundleVersionInfo]],
-            doc = """
+    })
+
+    if rule_descriptor.product_type != apple_product_type.static_framework:
+        attrs.append({
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
-        ),
-    })
+            ),
+        })
 
     if len(rule_descriptor.allowed_device_families) > 1:
         extra_args = {}
@@ -570,6 +576,10 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -588,6 +598,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -851,6 +862,10 @@ use only extension-safe APIs.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -869,6 +884,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -981,6 +997,10 @@ that this target depends on.
             })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -999,6 +1019,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
             "avoid_deps": attr.label_list(
+                cfg = apple_common.multi_arch_split,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -1256,7 +1277,7 @@ def _create_apple_bundling_rule(
         fragments = ["apple", "cpp", "objc"],
         # TODO(kaipi): Remove the implicit output and use DefaultInfo instead.
         outputs = {"archive": archive_name},
-        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+        toolchains = use_cpp_toolchain(),
     )
 
 def _create_apple_test_rule(implementation, doc, platform_type):

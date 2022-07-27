@@ -37,6 +37,7 @@ def archive_contents_test(
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
+        binary_contains_regex_symbols = [],
         binary_not_contains_symbols = [],
         codesign_info_contains = [],
         codesign_info_not_contains = [],
@@ -76,12 +77,16 @@ def archive_contents_test(
             in the asset catalog specified in `asset_catalog_file`.
         text_test_file: Optional, The text file to test (see the next Arg).
         text_test_values: Optional, A list of regular expressions that should be tested against
-            the contents of `text_test_file`.
+            the contents of `text_test_file`. Regular expressions must follow POSIX Basic Regular
+            Expression (BRE) syntax.
         binary_test_file: Optional, The binary file to test (see next three Args).
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
+        binary_contains_regex_symbols: Optional, a list of regular expressions to match symbols
+            that should appear in the binary file specified in `binary_test_file`. Regular
+            expressions must follow POSIX Basic Regular Expression (BRE) syntax.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
         codesign_info_contains: Optional, A list of codesign info that should appear in the binary
@@ -109,21 +114,29 @@ def archive_contents_test(
         fail("Need both text_test_file and text_test_values")
 
     if binary_test_file:
-        if any([binary_contains_symbols, binary_not_contains_symbols]) and (
-            not binary_test_architecture
-        ):
+        if any([
+            binary_contains_symbols,
+            binary_not_contains_symbols,
+            binary_contains_regex_symbols,
+        ]) and not binary_test_architecture:
             fail("Need binary_test_architecture when checking symbols")
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
+            binary_contains_regex_symbols,
             macho_load_commands_contain,
             macho_load_commands_not_contain,
         ]):
             fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
-                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
-                 "binary_test_architecture")
+                 "binary_contains_regex_symbols, macho_load_commands_contain, " +
+                 "macho_load_commands_not_contain) when specifying binary_test_architecture")
     else:
-        if any([binary_contains_symbols, binary_not_contains_symbols, binary_test_architecture]):
+        if any([
+            binary_contains_symbols,
+            binary_not_contains_symbols,
+            binary_contains_regex_symbols,
+            binary_test_architecture,
+        ]):
             fail("Need binary_test_file to check the binary for symbols")
         if any([macho_load_commands_contain, macho_load_commands_not_contain]):
             fail("Need binary_test_file to check macho load commands")
@@ -168,6 +181,7 @@ def archive_contents_test(
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
+            "BINARY_CONTAINS_REGEX_SYMBOLS": binary_contains_regex_symbols,
             "CODESIGN_INFO_CONTAINS": codesign_info_contains,
             "CODESIGN_INFO_NOT_CONTAINS": codesign_info_not_contains,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
@@ -178,7 +192,6 @@ def archive_contents_test(
         **kwargs
     )
 
-# TODO(nglevin): Extend for usages required of macos_command_line_application tests.
 def binary_contents_test(
         name,
         build_type,
@@ -186,7 +199,11 @@ def binary_contents_test(
         binary_test_file,
         binary_test_architecture = "",
         binary_contains_symbols = [],
+        binary_not_contains_architectures = [],
         binary_not_contains_symbols = [],
+        binary_contains_file_info = [],
+        macho_load_commands_contain = [],
+        macho_load_commands_not_contain = [],
         embedded_plist_test_values = {},
         plist_section_name = "__info_plist",
         **kwargs):
@@ -198,11 +215,19 @@ def binary_contents_test(
         target_under_test: The Apple binary target whose contents are to be verified.
         binary_test_file: The binary file to test.
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
-            symbol tests (see next two Args).
+            symbol tests.
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
+        binary_not_contains_architectures: Optional. A list of architectures to verify do not exist
+            within `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
+        binary_contains_file_info: Optional, A list of strings that should appear as substrings of
+            the output when the binary is queried by the `file` command.
+        macho_load_commands_contain: Optional, A list of Mach-O load commands that should appear in
+            the binary file specified in `binary_test_file`.
+        macho_load_commands_not_contain: Optional, A list of Mach-O load commands that should not
+            appear in the binary file specified in `binary_test_file`.
         embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
             if the key does not exist or if its value doesn't match the specified value. * can
             be used as a wildcard value. An embedded plist will be extracted from the
@@ -212,11 +237,32 @@ def binary_contents_test(
             Defaults to `__info_plist`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
-    if any([binary_contains_symbols, binary_not_contains_symbols]) and not binary_test_architecture:
+    if any([binary_contains_symbols, binary_not_contains_symbols]) and (
+        not binary_test_architecture
+    ):
         fail("Need binary_test_architecture when checking symbols")
-    elif binary_test_architecture and not any([binary_contains_symbols, binary_not_contains_symbols]):
-        fail("Need binary_contains_symbols and/or binary_not_contains_symbols when checking an " +
-             "architecture")
+    elif binary_test_architecture and not any([
+        binary_contains_symbols,
+        binary_not_contains_symbols,
+        macho_load_commands_contain,
+        macho_load_commands_not_contain,
+    ]):
+        fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
+             "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+             "binary_test_architecture")
+    elif binary_test_file and not any([
+        binary_contains_symbols,
+        binary_not_contains_architectures,
+        binary_contains_file_info,
+        binary_not_contains_symbols,
+        macho_load_commands_contain,
+        macho_load_commands_not_contain,
+        plist_section_name,
+    ]):
+        fail("Need at least one of (binary_contains_symbols, binary_not_contains_architectures, " +
+             "binary_not_contains_symbols, binary_contains_file_info, " +
+             "macho_load_commands_contain, macho_load_commands_not_contain, plist_section_name) " +
+             "when specifying binary_test_file")
 
     if not any([binary_test_file, embedded_plist_test_values]):
         fail("There are no tests for the binary")
@@ -235,7 +281,11 @@ def binary_contents_test(
             "BINARY_TEST_FILE": [binary_test_file],
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
+            "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
+            "BINARY_CONTAINS_FILE_INFO": binary_contains_file_info,
+            "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
+            "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
             "PLIST_SECTION_NAME": [plist_section_name],
             "PLIST_TEST_VALUES": plist_test_values_list,
         },

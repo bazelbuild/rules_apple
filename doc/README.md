@@ -113,6 +113,7 @@ below.
         <code><a href="rules-apple.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
         <code><a href="rules-apple.md#apple_dynamic_xcframework_import">apple_dynamic_xcframework_import</a></code><br/>
         <code><a href="rules-apple.md#apple_static_framework_import">apple_static_framework_import</a></code><br/>
+        <code><a href="rules-apple.md#apple_static_library">apple_static_library</a></code><br/>
         <code><a href="rules-apple.md#apple_static_xcframework">apple_static_xcframework</a></code><br/>
         <code><a href="rules-apple.md#apple_static_xcframework_import">apple_static_xcframework_import</a></code><br/>
         <code><a href="rules-apple.md#apple_universal_binary">apple_universal_binary</a></code><br/>

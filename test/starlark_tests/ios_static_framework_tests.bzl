@@ -15,6 +15,10 @@
 """ios_static_framework Starlark tests."""
 
 load(
+    ":rules/analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -25,6 +29,34 @@ def ios_static_framework_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+
+    # Tests Swift ios_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
+    archive_contents_test(
+        name = "{}_swift_sim_arm64_builds".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        cpus = {
+            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_x86_64_builds".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        cpus = {
+            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        tags = [name],
+    )
 
     # Test that it's permitted for a static framework to have multiple
     # `swift_library` dependencies if only one module remains after excluding
@@ -109,6 +141,15 @@ def ios_static_framework_test_suite(name):
             "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
+        tags = [name],
+    )
+
+    # Test that an actionable error is produced for the user when a header to
+    # bundle conflicts with the generated umbrella header.
+    analysis_failure_message_test(
+        name = "{}_umbrella_header_conflict_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_umbrella_header_conflict",
+        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
         tags = [name],
     )
 

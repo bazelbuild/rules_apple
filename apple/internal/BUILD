@@ -31,6 +31,7 @@ apple_mac_tools_toolchain(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    xcframework_processor_tool = "//tools/xcframework_processor_tool",
     xctoolrunner = "//tools/xctoolrunner",
 )
 
@@ -51,6 +52,8 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":cc_toolchain_info_support",
+        ":framework_import_support",
         ":resources",
         ":rule_factory",
         "//apple:providers",
@@ -98,6 +101,27 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_xcframework_import",
+    srcs = ["apple_xcframework_import.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_toolchains",
+        ":cc_toolchain_info_support",
+        ":framework_import_support",
+        ":intermediates",
+        ":rule_factory",
+        "//apple:providers",
+        "//apple/internal/aspects:swift_usage_aspect",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
     name = "bundle_package_type",
     srcs = ["bundle_package_type.bzl"],
     visibility = [
@@ -119,6 +143,14 @@ bzl_library(
 bzl_library(
     name = "cc_info_support",
     srcs = ["cc_info_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "cc_toolchain_info_support",
+    srcs = ["cc_toolchain_info_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
@@ -193,6 +225,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "framework_import_support",
+    srcs = ["framework_import_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
     name = "intermediates",
     srcs = ["intermediates.bzl"],
     visibility = [
@@ -213,6 +258,7 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":bundling_support",
+        ":cc_info_support",
         ":entitlements_support",
         ":features_support",
         ":linking_support",
@@ -225,10 +271,12 @@ bzl_library(
         ":rule_support",
         ":run_support",
         ":stub_support",
+        ":swift_support",
+        ":transition_support",
         "//apple:providers",
-        "//apple/internal/aspects:swift_static_framework_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
+        "@build_bazel_rules_swift//swift",
     ],
 )
 
@@ -335,7 +383,6 @@ bzl_library(
         "//apple/internal/partials:settings_bundle",
         "//apple/internal/partials:swift_dylibs",
         "//apple/internal/partials:swift_framework",
-        "//apple/internal/partials:swift_static_framework",
         "//apple/internal/partials:watchos_stub",
     ],
 )
@@ -415,12 +462,10 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":rule_support",
-        ":transition_support",
         "//apple:common",
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "//apple/internal/aspects:swift_static_framework_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/testing:apple_test_rule_support",
@@ -438,7 +483,6 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundle_package_type",
-        ":transition_support",
     ],
 )
 
@@ -510,6 +554,7 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":bundling_support",
+        ":cc_info_support",
         ":entitlements_support",
         ":features_support",
         ":linking_support",
@@ -521,9 +566,11 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":swift_support",
+        ":transition_support",
         "//apple:providers",
-        "//apple/internal/aspects:swift_static_framework_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@build_bazel_rules_swift//swift",
     ],
 )
 

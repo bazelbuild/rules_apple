@@ -23,24 +23,51 @@ newline=$'\n'
 # variables.
 #
 # Supported operations:
-#  BINARY_TEST_FILE: The file to test with `PLIST_TEST_VALUES`
+#  BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in the
+#      assembled binary.
+#  BINARY_TEST_FILE: The file to test with.
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with
 #      `BINARY_CONTAINS_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
 #  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#  BINARY_CONTAINS_FILE_INFO: Array of strings that should be present as
+#      substrings of the reported `file` information.
+#  MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
+#      be present.
+#  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
+#      not be present.
 #  PLIST_SECTION_NAME: Name of the plist section to inspect values from. If not
 #      supplied, will test the embedded Info.plist slice at __TEXT,__info_plist.
 #  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
 #      the key is a string without spaces, followed by by a single space,
 #      followed by the value to test. * can be used as a wildcard value.
 
-# Test that the binary contains and does not contain the specified plist symbols.
 if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   path=$(eval echo "$BINARY_TEST_FILE")
   if [[ ! -e "$path" ]]; then
     fail "Could not find binary at \"$path\""
   fi
   something_tested=false
+
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    IFS=' ' found_archs=($(lipo -archs "$path"))
+    for arch in "${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+    do
+      for found_arch in "${found_archs[@]}"
+      do
+        something_tested=true
+        arch_found=false
+        if [[ "$arch" == "$found_arch" ]]; then
+          arch_found=true
+          break
+        fi
+      done
+      if [[ "$arch_found" = true ]]; then
+        fail "Unexpectedly found architecture \"$arch\". The architectures " \
+          "in the binary were:$newline${found_archs[@]}"
+      fi
+    done
+  fi
 
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
@@ -88,6 +115,63 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
         fi
       done
     fi
+
+  if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" || -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+    # The `otool` commands below remove the leftmost white space from the
+    # output to make string matching of symbols possible, avoiding the
+    # accidental elimination of white space from paths and identifiers.
+    IFS=$'\n'
+    if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+      arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+      if [[ ! -n $arch ]]; then
+        fail "No architecture specified for binary file at \"$path\""
+      else
+        actual_symbols=($(otool -v -arch "$arch" -l "$path" | awk '{$1=$1}1'))
+      fi
+    else
+      actual_symbols=($(otool -v -l "$path" | awk '{$1=$1}1'))
+    fi
+    if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
+      for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
+      do
+        something_tested=true
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected load command \"$test_symbol\" was not found." \
+              "The load commands in the binary were:" \
+              "$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+
+    if [[ -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+      for test_symbol in "${MACHO_LOAD_COMMANDS_NOT_CONTAIN[@]}"
+      do
+        something_tested=true
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" == "$test_symbol" ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = true ]]; then
+            fail "Unexpected load command \"$test_symbol\" was found." \
+              "The load commands in the binary were:" \
+              "$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+  fi
+
   else
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for symbols," \
@@ -97,6 +181,37 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for missing symbols," \
         "but no arch was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
     fi
+    if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for macho load commands," \
+        "but no arch was set to check: ${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
+    fi
+    if [[ -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for missing macho load commands," \
+        "but no arch was set to check: ${MACHO_LOAD_COMMANDS_NOT_CONTAIN[@]}"
+    fi
+  fi
+
+  # Use `file --brief` to verify how the file is recognized by macOS, and other
+  # Apple platforms by proxy.
+  if [[ -n "${BINARY_CONTAINS_FILE_INFO-}" ]]; then
+    IFS=$'\n' file_info_output=($(file --brief "$path" | awk '{$1=$1}1'))
+    for file_info_test_substring in "${BINARY_CONTAINS_FILE_INFO[@]}"
+    do
+      something_tested=true
+      output_found=false
+      for file_info_line in "${file_info_output[@]}"
+      do
+        if [[ "$file_info_line" == *"$file_info_test_substring"* ]]; then
+          output_found=true
+          break
+        fi
+      done
+      if [[ "$output_found" = false ]]; then
+          fail "Expected file output \"$file_info_test_substring\" was not " \
+            "found. The file output for the binary was:" \
+            "$newline${file_info_output[@]}"
+      fi
+    done
   fi
 
   # Use `launchctl plist` to test for key/value pairs in an embedded plist file.

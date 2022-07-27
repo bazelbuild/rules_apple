@@ -93,6 +93,12 @@ if [[ -n "${TEST_UNDECLARED_OUTPUTS_DIR}" ]]; then
   mkdir -p "$OUTPUT_DIR"
 fi
 
+TEST_TYPE="%(test_type)s"
+if [[ -n "${TEST_TYPE}" ]]; then
+  TEST_TYPE=$(tr '[:upper:]' '[:lower:]' <<< ${TEST_TYPE})
+  runner_flags+=("--test_type=${TEST_TYPE}")
+fi
+
 # Constructs the json string to configure the test env and tests to run.
 # It will be written into a temp json file which is passed to the test runner
 # flags --launch_options_json_path.

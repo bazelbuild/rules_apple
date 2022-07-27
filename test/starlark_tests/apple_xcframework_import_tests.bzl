@@ -22,6 +22,10 @@ load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
+load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
+)
 
 def apple_xcframework_import_test_suite(name):
     """Test suite for apple_dynamic_xcframework_import and apple_static_xcframework_import.
@@ -62,8 +66,16 @@ def apple_xcframework_import_test_suite(name):
     )
 
     apple_verification_test(
-        name = "{}_xcfmwk_bundling_static_xcfmwks_codesign_test".format(name),
+        name = "{}_xcfmwk_bundling_static_xcfmwks_codesign_test_simulator".format(name),
         build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_xcfmwk_bundling_static_xcfmwks_codesign_test_device".format(name),
+        build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -75,6 +87,34 @@ def apple_xcframework_import_test_suite(name):
         name = "{}_static_xcfw_import_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk",
         expected_outputs = ["app_with_imported_static_xcfmwk.ipa"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_static_xcfw_binary_not_bundled_simulator".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks_with_resources",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_xcframework_with_resources.framework/ios_static_xcframework_with_resources",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_static_xcfw_binary_not_bundled_device".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks_with_resources",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_xcframework_with_resources.framework/ios_static_xcframework_with_resources",
+        ],
         tags = [name],
     )
 

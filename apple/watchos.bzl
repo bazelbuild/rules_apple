@@ -41,6 +41,7 @@ load(
 watchos_application = _watchos_application
 watchos_dynamic_framework = _watchos_dynamic_framework
 watchos_extension = _watchos_extension
+watchos_static_framework = _watchos_static_framework
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
 
@@ -84,31 +85,3 @@ watchos_build_test(
 """,
     platform_type = "watchos",
 )
-
-def watchos_static_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds and bundles a watchOS static framework for third-party distribution."""
-    avoid_deps = kwargs.get("avoid_deps")
-    deps = kwargs.get("deps")
-    apple_static_library_name = "%s.apple_static_library" % name
-
-    native.apple_static_library(
-        name = apple_static_library_name,
-        deps = deps,
-        avoid_deps = avoid_deps,
-        minimum_os_version = kwargs.get("minimum_os_version"),
-        platform_type = str(apple_common.platform_type.watchos),
-        tags = kwargs.get("tags"),
-        visibility = kwargs.get("visibility"),
-    )
-
-    passthrough_args = kwargs
-    passthrough_args.pop("avoid_deps", None)
-    passthrough_args.pop("deps", None)
-
-    _watchos_static_framework(
-        name = name,
-        deps = [apple_static_library_name],
-        avoid_deps = [apple_static_library_name],
-        **passthrough_args
-    )

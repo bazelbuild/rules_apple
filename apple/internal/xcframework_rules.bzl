@@ -489,10 +489,6 @@ def _apple_xcframework_impl(ctx):
     # as this value is not used in the XCFramework's root Info.plist.
     nested_bundle_id = ctx.attr.bundle_id
 
-    for framework_type in ctx.attr.framework_type:
-        if framework_type != "dynamic":
-            fail("Unsupported framework_type found: " + framework_type)
-
     link_result = linking_support.register_binary_linking_action(
         ctx,
         # Frameworks do not have entitlements.
@@ -823,13 +819,6 @@ values are `iphone` and `ipad` for `ios`; at least one must be specified if a pl
 Currently, this only affects processing of `ios` resources.
 """,
             ),
-            "framework_type": attr.string_list(
-                doc = """
-Indicates what type of framework the output should be, if defined. Currently only `dynamic` is
-supported. If this is not given, the default is to have all contained frameworks built as dynamic
-frameworks.
-""",
-            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -1037,6 +1026,75 @@ def _apple_static_xcframework_impl(ctx):
             ),
         )
 
+        # Bundle resources
+        rule_descriptor = rule_support.rule_descriptor_no_ctx(
+            link_output.platform,
+            apple_product_type.framework,
+        )
+        platform_prerequisites = platform_support.platform_prerequisites(
+            apple_fragment = ctx.fragments.apple,
+            config_vars = ctx.var,
+            cpp_fragment = ctx.fragments.cpp,
+            device_families = ctx.attr.families_required.get(
+                link_output.platform,
+                default = rule_descriptor.allowed_device_families,
+            ),
+            disabled_features = ctx.disabled_features,
+            explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_versions.get(
+                link_output.platform,
+            ),
+            explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
+            features = ctx.features,
+            objc_fragment = ctx.fragments.objc,
+            platform_type_string = link_output.platform,
+            uses_swift = link_output.uses_swift,
+            xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        )
+        resource_deps = _unioned_attrs(
+            attr_names = ["deps"],
+            split_attr = ctx.split_attr,
+            split_attr_keys = link_output.split_attr_keys,
+        )
+        partial_output = partial.call(partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = ".framework",
+            bundle_name = bundle_name,
+            # TODO(b/174858377): Select which environment_plist to use based on Apple platform.
+            environment_plist = ctx.file._environment_plist_ios,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            output_discriminator = library_identifier,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            version = None,
+        ))
+
+        if getattr(partial_output, "bundle_files", None):
+            for target_location, parent, sources in partial_output.bundle_files:
+                parent_output_directory = parent or ""
+                if target_location != "resource" and target_location != "content":
+                    # If we need to add more in the future we should be sure to
+                    # double check where the need to end up
+                    fail("Got unexpected target location '{}' for '{}'"
+                        .format(target_location, sources.to_list()))
+
+                framework_archive_files.append(sources)
+                for source in sources.to_list():
+                    target_path = parent_output_directory
+                    if not source.is_directory:
+                        target_path = paths.join(target_path, source.basename)
+
+                    framework_archive_merge_files.append(struct(
+                        src = source.path,
+                        dest = paths.join(
+                            framework_dir,
+                            target_path,
+                        ),
+                    ))
+
     root_info_plist = _create_xcframework_root_infoplist(
         actions = actions,
         apple_fragment = apple_fragment,
@@ -1075,11 +1133,7 @@ def _apple_static_xcframework_impl(ctx):
 
 apple_static_xcframework = rule(
     implementation = _apple_static_xcframework_impl,
-    doc = """
-Generates an XCFramework with static libraries for third-party distribution.
-
-NOTE: This is only supported on bazel 6.0+
-""",
+    doc = "Generates an XCFramework with static libraries for third-party distribution.",
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
         rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
@@ -1096,6 +1150,10 @@ the target will be used instead.
             ),
             "_allowlist_function_transition": attr.label(
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+            "_environment_plist_ios": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
             ),
             "avoid_deps": attr.label_list(
                 allow_files = True,
@@ -1114,13 +1172,20 @@ static libraries. If this attribute is not set, then the name of the target will
 """,
             ),
             "deps": attr.label_list(
-                aspects = [swift_usage_aspect],
+                aspects = [apple_resource_aspect, swift_usage_aspect],
                 allow_files = True,
                 cfg = transition_support.xcframework_transition,
                 mandatory = True,
                 doc = """
 A list of files directly referencing libraries to be represented for each given platform split in
 the XCFramework. These libraries will be embedded within each platform split.
+""",
+            ),
+            "families_required": attr.string_list_dict(
+                doc = """
+A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
+values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
+Currently, this only affects processing of `ios` resources.
 """,
             ),
             "ios": attr.string_list_dict(

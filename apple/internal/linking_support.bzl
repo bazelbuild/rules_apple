@@ -189,20 +189,12 @@ def _register_binary_linking_action(
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
-    # TODO: This is a hack to support bazel 5.x and 6.x at the same time after
-    # should_lipo was removed from the arguments list, but is still required
-    # before that point. The addition of link_multi_arch_static_library probably
-    # doesn't line up perfectly, but should be good enough.
-    kwargs = {"should_lipo": False}
-    if getattr(apple_common, "link_multi_arch_static_library", False):
-        kwargs = {}
     linking_outputs = apple_common.link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         stamp = stamp,
-        **kwargs
     )
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
@@ -244,11 +236,8 @@ def _register_static_library_linking_action(ctx):
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
+    linking_outputs = apple_common.link_multi_arch_static_library(ctx = ctx)
 
-    if not getattr(apple_common, "link_multi_arch_static_library", False):
-        fail("static xcframework support requires bazel 6.x+")
-
-    linking_outputs = getattr(apple_common, "link_multi_arch_static_library")(ctx = ctx)
     fat_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
 
     _lipo_or_symlink_inputs(
@@ -261,6 +250,7 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
+        objc = linking_outputs.objc,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
