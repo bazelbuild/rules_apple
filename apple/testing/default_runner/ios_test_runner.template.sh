@@ -298,7 +298,11 @@ if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   echo "${lcov_args[*]}"
 
   echo ">>> root:"$ROOT
-  echo ">>> pwd:"${pwd}
+  echo ">>> pwd"
+  pwd
+  echo ">>> list"
+  ls -al $ROOT
+  echo ">>>"
 
   # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
   # reference: https://github.com/bazelbuild/rules_apple/pull/1490#discussion_r900379232
