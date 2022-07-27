@@ -297,6 +297,9 @@ if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   # TODO: remove it, for debugging purpose only
   echo "${lcov_args[*]}"
 
+  echo ">>> root:"$ROOT
+  echo ">>> pwd:"${pwd}
+
   # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
   # reference: https://github.com/bazelbuild/rules_apple/pull/1490#discussion_r900379232
   xcrun llvm-cov \
