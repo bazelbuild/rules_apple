@@ -300,8 +300,11 @@ if [[ -n "${COVERAGE_PRODUCE_HTML:-}" ]]; then
   echo ">>> root:"$ROOT
   echo ">>> pwd"
   pwd
-  echo ">>> list"
+  echo ">>> list root"
   ls -al $ROOT
+
+  echo ">>> list pwd"
+  ls -al
   echo ">>>"
 
   # TODO: Improve to use `@"$COVERAGE_MANIFEST"` to filter out unneccessary file on staticlib
