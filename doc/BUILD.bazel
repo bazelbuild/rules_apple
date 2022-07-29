@@ -72,5 +72,5 @@ write_file(
 sh_binary(
     name = "update",
     srcs = ["update.sh"],
-    data = [file + ".md" for file in _DOC_SRCS],
+    data = [file + ".md" for file in _DOC_SRCS] + ["providers.gen.md"],
 )
