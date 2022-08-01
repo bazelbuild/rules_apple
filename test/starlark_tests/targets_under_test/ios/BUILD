@@ -1492,7 +1492,7 @@ ios_framework(
 )
 
 # ---------------------------------------------------------------------------------------
-# Targets for Apple dynamic/static framework import tests.
+# Targets for Apple dynamic framework import tests.
 
 # Objective-C app with imported Objective-C dynamic framework.
 ios_application(
@@ -1535,6 +1535,48 @@ int main() {
 EOF
 """,
 )
+
+# Swift app with imported Objective-C dynamic framework.
+ios_application(
+    name = "swift_app_with_imported_dynamic_fmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_fmwk_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_fmwk_depending_swift_lib",
+    srcs = ["DynamicFmwkDependingSwiftLib.swift"],
+    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
+)
+
+genrule(
+    name = "dynamic_fmwk_depending_swift_lib_file",
+    outs = ["DynamicFmwkDependingSwiftLib.swift"],
+    cmd = """cat > $@ <<EOF
+import iOSDynamicFramework
+
+func main() {
+  let sharedClass = SharedClass()
+  sharedClass.doSomethingShared()
+}
+EOF
+""",
+)
+
+# --------------------------------------------------------------------------------------------------
+# Targets for Apple static framework import tests.
 
 # Objective-C app with imported Objective-C static framework.
 ios_application(
@@ -1655,97 +1697,7 @@ EOF
 """,
 )
 
-# Swift app with imported Objective-C dynamic framework.
-ios_application(
-    name = "swift_app_with_imported_dynamic_fmwk",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = "8.0",
-    tags = FIXTURE_TAGS,
-    deps = [
-        ":dynamic_fmwk_depending_swift_lib",
-        "//test/starlark_tests/resources:swift_main_lib",
-    ],
-)
-
-swift_library(
-    name = "dynamic_fmwk_depending_swift_lib",
-    srcs = ["DynamicFmwkDependingSwiftLib.swift"],
-    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
-)
-
-genrule(
-    name = "dynamic_fmwk_depending_swift_lib_file",
-    outs = ["DynamicFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
-import iOSDynamicFramework
-
-func main() {
-  let sharedClass = SharedClass()
-  sharedClass.doSomethingShared()
-}
-EOF
-""",
-)
-
-# Swift app with imported Objective-C static framework.
-ios_application(
-    name = "swift_app_with_imported_static_fmwk",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = "8.0",
-    tags = FIXTURE_TAGS,
-    deps = [
-        ":static_fmwk_depending_swift_lib",
-        "//test/starlark_tests/resources:swift_main_lib",
-    ],
-)
-
-swift_library(
-    name = "static_fmwk_depending_swift_lib",
-    srcs = ["StaticFmwkDependingSwiftLib.swift"],
-    deps = ["//test/testdata/fmwk:iOSImportedStaticFramework"],
-)
-
-genrule(
-    name = "static_fmwk_depending_swift_lib_file",
-    outs = ["StaticFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
-import iOSStaticFramework
-
-func main() {
-  let sharedClass = SharedClass()
-  sharedClass.doSomethingShared()
-}
-EOF
-""",
-)
-
-swift_library(
-    name = "swift_lib",
-    srcs = ["//test/testdata/sources:main.swift"],
-    tags = FIXTURE_TAGS,
-)
-
-objc_library(
-    name = "objc_to_swift_lib",
-    tags = FIXTURE_TAGS,
-    deps = [":swift_lib"],
-)
-
-# ---------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
 # Targets for Apple dynamic XCFramework import tests.
 
 # Objective-C app with imported Objective-C XCFramework.
@@ -1866,6 +1818,87 @@ int main() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
+}
+EOF
+""",
+)
+
+# Swift app with imported Swift XCFramework.
+ios_application(
+    name = "swift_app_with_imported_swift_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_swift_xcframework_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_depending_swift_lib",
+    srcs = ["SwiftWithDynamicSwiftFramework.swift"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework",
+    ],
+)
+
+genrule(
+    name = "swift_with_dynamic_swift_framework_src",
+    outs = ["SwiftWithDynamicSwiftFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import SwiftFmwkWithGenHeader
+
+func main() {
+  let sc = SwiftFmwkWithGenHeader.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
+)
+
+# Swift app with imported Objective-C static framework.
+ios_application(
+    name = "swift_app_with_imported_static_fmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":static_fmwk_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "static_fmwk_depending_swift_lib",
+    srcs = ["StaticFmwkDependingSwiftLib.swift"],
+    deps = ["//test/testdata/fmwk:iOSImportedStaticFramework"],
+)
+
+genrule(
+    name = "static_fmwk_depending_swift_lib_file",
+    outs = ["StaticFmwkDependingSwiftLib.swift"],
+    cmd = """cat > $@ <<EOF
+import iOSStaticFramework
+
+func main() {
+  let sharedClass = SharedClass()
+  sharedClass.doSomethingShared()
 }
 EOF
 """,
@@ -3018,6 +3051,7 @@ generate_import_framework(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for Apple Frameworks propagated from objc_library runtime_deps attribute tests.
 
 ios_application(
     name = "app_with_objc_library_dep_with_ios_framework_runtime_dep",
