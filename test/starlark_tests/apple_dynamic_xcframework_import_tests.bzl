@@ -113,8 +113,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
         binary_contains_file_info = [
             "Mach-O universal binary with 2 architectures:",
-            "[x86_64:Mach-O 64-bit dynamically linked shared library x86_64",
-            "[arm64:Mach-O 64-bit dynamically linked shared library arm64",
+            "x86_64:Mach-O 64-bit dynamically linked shared library x86_64",
+            "arm64:Mach-O 64-bit dynamically linked shared library arm64",
         ],
         tags = [name],
     )
