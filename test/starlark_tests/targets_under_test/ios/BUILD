@@ -430,7 +430,7 @@ ios_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/fmwk:iOSImportedDynamicFramework",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework",
     ],
 )
 
@@ -449,7 +449,7 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithBitcode",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithBitcode",
     ],
 )
 
@@ -469,8 +469,8 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo",
-        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDsym",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDebugInfo",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDsym",
     ],
 )
 
@@ -534,7 +534,7 @@ ios_framework(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/testdata/fmwk:iOSImportedStaticFramework",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework",
     ],
 )
 
@@ -981,7 +981,7 @@ ios_application(
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/testdata/fmwk:iOSImportedDynamicFrameworkWithDebugInfo",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDebugInfo",
     ],
 )
 
@@ -1518,7 +1518,7 @@ objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = ["DynamicFmwkDependingLib.m"],
     tags = FIXTURE_TAGS,
-    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
 )
 
 genrule(
@@ -1558,7 +1558,7 @@ ios_application(
 swift_library(
     name = "dynamic_fmwk_depending_swift_lib",
     srcs = ["DynamicFmwkDependingSwiftLib.swift"],
-    deps = ["//test/testdata/fmwk:iOSImportedDynamicFramework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
 )
 
 genrule(
@@ -1600,7 +1600,7 @@ ios_application(
 objc_library(
     name = "static_fmwk_depending_lib",
     srcs = ["StaticFmwkDependingLib.m"],
-    deps = ["//test/testdata/fmwk:iOSImportedStaticFramework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
 )
 
 genrule(
@@ -1641,7 +1641,7 @@ objc_library(
     name = "swift_static_fmwk_depending_lib",
     srcs = ["SwiftStaticFmwkDependingLib.m"],
     tags = FIXTURE_TAGS,
-    deps = ["//test/testdata/fmwk:iOSImportedSwiftStaticFramework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFramework"],
 )
 
 genrule(
@@ -1679,7 +1679,7 @@ objc_library(
     name = "swift_static_without_module_interfaces_fmwk_depending_lib",
     srcs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
     tags = FIXTURE_TAGS,
-    deps = ["//test/testdata/fmwk:iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
 )
 
 genrule(
@@ -1887,7 +1887,7 @@ ios_application(
 swift_library(
     name = "static_fmwk_depending_swift_lib",
     srcs = ["StaticFmwkDependingSwiftLib.swift"],
-    deps = ["//test/testdata/fmwk:iOSImportedStaticFramework"],
+    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
 )
 
 genrule(
@@ -2896,7 +2896,7 @@ swift_library(
     tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/testdata/fmwk:iOSImportedDynamicFramework",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework",
     ],
 )
 
@@ -2928,7 +2928,7 @@ swift_library(
     tags = FIXTURE_TAGS,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/testdata/fmwk:iOSImportedStaticFramework",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework",
     ],
 )
 
