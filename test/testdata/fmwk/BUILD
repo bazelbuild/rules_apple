@@ -1,9 +1,4 @@
 load(
-    "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
-    "apple_static_framework_import",
-)
-load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
 )
@@ -15,31 +10,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = [":iOSDynamicFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = [":iOSStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = [":iOSSwiftStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
-    features = ["-swift.layering_check"],
-    framework_imports = [":iOSSwiftStaticFramework"],
-    has_swift = True,
-)
 
 filegroup(
     name = "swift_source",
