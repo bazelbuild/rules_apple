@@ -140,6 +140,8 @@ def _get_xcframework_library(
             headers: List of File referencing XCFramework library header files. This can be either
                 a single tree artifact or a list of regular artifacts.
             clang_module_map: File referencing the XCFramework library Clang modulemap file.
+            swift_module_interface: File referencing the XCFramework library Swift module interface
+                file (`.swiftinterface`).
     """
     xcframework_library = None
     if not parse_xcframework_info_plist:
@@ -200,6 +202,13 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
            f.basename.startswith(target_triplet.architecture)
     ]
 
+    swift_module_interfaces = [
+        f
+        for f in files_by_category.swift_interface_imports
+        if _matches_library(f) and
+           f.basename.startswith(target_triplet.architecture)
+    ]
+
     framework_files = filter_by_library_identifier(xcframework.files)
 
     includes = []
@@ -218,6 +227,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         includes = includes,
         clang_module_map = module_maps[0] if module_maps else None,
         swiftmodule = swiftmodules,
+        swift_module_interface = swift_module_interfaces[0] if swift_module_interfaces else None,
     )
 
 def _get_xcframework_library_with_xcframework_processor(
@@ -337,6 +347,7 @@ def _get_xcframework_library_with_xcframework_processor(
         includes = includes,
         clang_module_map = module_map_file,
         swiftmodule = [],
+        swift_module_interface = None,
         framework_files = [],
     )
 
@@ -520,7 +531,9 @@ def _apple_static_xcframework_import_impl(ctx):
 
     additional_cc_infos = []
     additional_objc_providers = []
-    if xcframework.files_by_category.swift_module_imports or has_swift:
+    if xcframework.files_by_category.swift_interface_imports or \
+       xcframework.files_by_category.swift_module_imports or \
+       has_swift:
         swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo())
 
