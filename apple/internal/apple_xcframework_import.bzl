@@ -141,6 +141,8 @@ def _get_xcframework_library(
             headers: List of File referencing XCFramework library header files. This can be either
                 a single tree artifact or a list of regular artifacts.
             clang_module_map: File referencing the XCFramework library Clang modulemap file.
+            swift_module_interface: File referencing the XCFramework library Swift module interface
+                file (`.swiftinterface`).
     """
     xcframework_library = None
     if not parse_xcframework_info_plist:
@@ -187,9 +189,9 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     framework_imports = [f for f in files.bundling_imports if library_identifier in f.short_path]
     headers = [f for f in files.header_imports if library_identifier in f.short_path]
     module_maps = [f for f in files.module_map_imports if library_identifier in f.short_path]
-    swiftmodules = [
+    swift_module_interfaces = [
         f
-        for f in files.swift_module_imports
+        for f in files.swift_interface_imports
         if library_identifier in f.short_path and
            f.basename.startswith(target_triplet.architecture)
     ]
@@ -213,7 +215,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         headers = headers,
         includes = includes,
         clang_module_map = module_maps[0] if module_maps else None,
-        swiftmodule = swiftmodules,
+        swift_module_interface = swift_module_interfaces[0] if swift_module_interfaces else None,
     )
 
 def _get_xcframework_library_with_xcframework_processor(
@@ -336,7 +338,7 @@ def _get_xcframework_library_with_xcframework_processor(
         headers = [headers_dir],
         includes = includes,
         clang_module_map = module_map_file,
-        swiftmodule = [],
+        swift_module_interface = None,
     )
 
 def _get_library_identifier(
@@ -514,7 +516,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     additional_cc_infos = []
     additional_objc_providers = []
-    if xcframework.files_by_category.swift_module_imports or has_swift:
+    if xcframework.files_by_category.swift_interface_imports or has_swift:
         swift_toolchain = swift_common.get_toolchain(ctx)
         providers.append(SwiftUsageInfo())
 

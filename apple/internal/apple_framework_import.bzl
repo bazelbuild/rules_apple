@@ -217,7 +217,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_cc_infos = []
     additional_objc_providers = []
     additional_objc_provider_fields = {}
-    if framework_imports_by_category.swift_module_imports or has_swift:
+    if framework_imports_by_category.swift_interface_imports or has_swift:
         toolchain = swift_common.get_toolchain(ctx)
         providers.append(SwiftUsageInfo())
 

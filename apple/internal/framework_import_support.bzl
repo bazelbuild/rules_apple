@@ -118,14 +118,14 @@ def _classify_file_imports(import_files):
         A struct containing classified import files by categories:
             - header_imports: Objective-C(++) header imports.
             - module_map_imports: Clang modulemap imports.
-            - swift_module_imports: Swift module imports.
+            - swift_interface_imports: Swift module interface imports.
             - bundling_imports: Unclassified imports.
     """
     bundling_imports = []
     binary_imports = []
     header_imports = []
     module_map_imports = []
-    swift_module_imports = []
+    swift_interface_imports = []
     for file in import_files:
         # Extension matching
         file_extension = file.extension
@@ -135,11 +135,12 @@ def _classify_file_imports(import_files):
         if file_extension == "modulemap":
             module_map_imports.append(file)
             continue
-        if file_extension in ["swiftmodule", "swiftinterface"]:
-            swift_module_imports.append(file)
+        if file_extension == "swiftinterface":
+            swift_interface_imports.append(file)
             continue
-        if file_extension == "swiftdoc":
-            # Ignore swiftdoc files, they don't matter in the build, only for IDEs
+        if file_extension in ["swiftdoc", "swiftmodule"]:
+            # Ignore swiftdoc files, they don't matter in the build, only for IDEs.
+            # Ignore pre-compiled .swiftmodule files due to toolchain compatibility.
             continue
         if file_extension == "a":
             binary_imports.append(file)
@@ -157,7 +158,7 @@ def _classify_file_imports(import_files):
         binary_imports = binary_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
-        swift_module_imports = swift_module_imports,
+        swift_interface_imports = swift_interface_imports,
         bundling_imports = bundling_imports,
     )
 
@@ -173,7 +174,7 @@ def _classify_framework_imports(framework_imports):
             - bundling_imports: Apple framework bundle imports.
             - header_imports: Apple framework header imports.
             - module_map_imports: Apple framework modulemap imports.
-            - swift_module_imports: Apple framework swiftmodule imports.
+            - swift_interface_imports: Apple framework Swift module interface imports.
     """
     framework_imports_by_category = _classify_file_imports(framework_imports)
 
@@ -203,7 +204,7 @@ def _classify_framework_imports(framework_imports):
         bundling_imports = bundling_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
-        swift_module_imports = framework_imports_by_category.swift_module_imports,
+        swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
 
 def _framework_import_info_with_dependencies(

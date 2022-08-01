@@ -96,14 +96,12 @@ def _generate_import_framework_impl(ctx):
             ),
         )
 
-        # Mock swiftmodule file. Imported `.swiftmodule` files are not supported due to Swift
-        # toolchain compatibility and Swift's ABI stability through `.swiftinterface` files.
-        # However, Apple framework import rules use Swift interface files to flag an imported
-        # framework contains Swift, and thus propagate Swift toolchain specific flags up the
-        # build graph.
+        # Apple framework and XCFrameworks import rules use Swift interface files to flag an
+        # imported framework contains Swift, and thus propagate Swift toolchain specific flags up
+        # the build graph.
         if include_module_interface_files:
-            module_interface = actions.declare_file(architectures[0] + ".swiftmodule")
-            actions.write(output = module_interface, content = "I'm a mock .swiftmodule file")
+            module_interface = actions.declare_file(architectures[0] + ".swiftinterface")
+            actions.write(output = module_interface, content = "I'm a mock .swiftinterface file")
             module_interfaces.append(module_interface)
 
     # Create framework bundle
@@ -161,7 +159,7 @@ Info.plist file to test resource propagation.
         ),
         "swift_library": attr.label(
             allow_files = True,
-            doc = "Label for a Swift library target to source archive and swiftmodule files from.",
+            doc = "Label for a Swift library target to source archive and module files from.",
             providers = [SwiftInfo],
         ),
         "libtype": attr.string(
