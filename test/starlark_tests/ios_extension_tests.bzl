@@ -86,8 +86,9 @@ def ios_extension_test_suite(name):
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        expected_dsyms = ["app.app"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        expected_direct_dsyms = ["ext.appex"],
+        expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
     )
 

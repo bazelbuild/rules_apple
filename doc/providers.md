@@ -119,6 +119,25 @@ Provides versioning information for an Apple bundle.
 | <a id="AppleBundleVersionInfo-version_file"></a>version_file |  A <code>File</code> containing JSON-formatted text describing the version number information propagated by the target. It contains two keys: <code>build_version</code>, which corresponds to <code>CFBundleVersion</code>; and <code>short_version_string</code>, which corresponds to <code>CFBundleShortVersionString</code>.    |
 
 
+<a id="AppleDsymBundleInfo"></a>
+
+## AppleDsymBundleInfo
+
+<pre>
+AppleDsymBundleInfo(<a href="#AppleDsymBundleInfo-direct_dsyms">direct_dsyms</a>, <a href="#AppleDsymBundleInfo-transitive_dsyms">transitive_dsyms</a>)
+</pre>
+
+Provides information for an Apple dSYM bundle.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDsymBundleInfo-direct_dsyms"></a>direct_dsyms |  <code>List</code> containing <code>File</code> references to each of the dSYM bundles that act as direct dependencies of the given target if any were generated.    |
+| <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  <code>Depset</code> containing <code>File</code> references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
+
+
 <a id="AppleExtraOutputsInfo"></a>
 
 ## AppleExtraOutputsInfo
