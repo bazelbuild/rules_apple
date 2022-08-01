@@ -15,6 +15,10 @@
 """Starlark test rules for linkmap generation."""
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -31,7 +35,13 @@ def _linkmap_test_impl(ctx):
     architectures = ctx.attr.architectures
 
     if not architectures:
-        architecture = [ctx.fragments.apple.single_arch_cpu]
+        platform_type = target_under_test[AppleBundleInfo].platform_type
+        if platform_type == "ios" or platform_type == "macos":
+            architectures = [ctx.fragments.apple.single_arch_cpu]
+        elif platform_type == "watchos":
+            architectures = ["i386"]
+        else:
+            architectures = ["x86_64"]
 
     outputs = {
         x.short_path: None
