@@ -184,20 +184,24 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     def _matches_library(file):
         return library_identifier in file.short_path.split("/")
 
-    files = xcframework.files_by_category
-    binaries = [f for f in files.binary_imports if _matches_library(f)]
-    framework_imports = [f for f in files.bundling_imports if _matches_library(f)]
-    headers = [f for f in files.header_imports if _matches_library(f)]
-    module_maps = [f for f in files.module_map_imports if _matches_library(f)]
+    def filter_by_library_identifier(files):
+        return [f for f in files if _matches_library(f)]
+
+    files_by_category = xcframework.files_by_category
+    binaries = filter_by_library_identifier(files_by_category.binary_imports)
+    framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
+    headers = filter_by_library_identifier(files_by_category.header_imports)
+    module_maps = filter_by_library_identifier(files_by_category.module_map_imports)
+
     swiftmodules = [
         f
-        for f in files.swift_module_imports
+        for f in files_by_category.swift_module_imports
         if _matches_library(f) and
            f.basename.startswith(target_triplet.architecture)
     ]
 
     framework_dirs = [f.dirname for f in binaries]
-    framework_files = [f for f in xcframework.files if _matches_library(f)]
+    framework_files = filter_by_library_identifier(xcframework.files)
 
     includes = []
     framework_includes = []
