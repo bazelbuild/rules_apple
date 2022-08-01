@@ -79,6 +79,18 @@ def apple_static_xcframework_import_test_suite(name):
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
+    archive_contents_test(
+        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_bundles_swift_std_libraries".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework_with_static_library",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
+        ],
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
 
     # Verify Swift standard libraries are bundled for an imported XCFramework that has a Swift
     # static library containing no module interface files (.swiftmodule directory) and where the
@@ -93,6 +105,35 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
+
+    # Verify ios_application bundles Framework files when using xcframework_processor_tool.
+    archive_contents_test(
+        name = "{}_ios_application_with_imported_static_xcframework_includes_symbols_with_xcframework_import_tool".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_library",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/"],
+        target_features = ["apple.parse_xcframework_info_plist"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_bundles_swift_std_libraries_with_xcframework_import_tool".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework_with_static_library",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
+        ],
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        target_features = ["apple.parse_xcframework_info_plist"],
         tags = [name],
     )
 

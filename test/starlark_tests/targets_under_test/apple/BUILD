@@ -900,6 +900,7 @@ apple_static_xcframework_import(
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
+    features = ["-swift.layering_check"],
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
 )

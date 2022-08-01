@@ -207,6 +207,26 @@ def _classify_framework_imports(framework_imports):
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
 
+def _filter_swift_module_files_for_architecture(architecture, swift_module_files):
+    """Filters Swift module files for a given architecture.
+
+    Traverses a list of Swift module files (.swiftdoc, .swiftinterface, .swiftmodule) and selects
+    the effective files based on target architecture and file's basename without extension.
+
+    Args:
+        architecture: Effective target architecture (e.g. 'x86_64', 'arm64').
+        swift_module_files: List of Swift module files to filter using architecture.
+    Returns:
+        List of Swift module files for given architecture.
+    """
+    files = []
+    for file in swift_module_files:
+        filename, _ = paths.split_extension(file.basename)
+        if filename == architecture:
+            files.append(file)
+
+    return files
+
 def _framework_import_info_with_dependencies(
         *,
         build_archs,
@@ -288,6 +308,56 @@ def _objc_provider_with_dependencies(
     objc_provider_fields.update(**additional_objc_provider_fields)
     return apple_common.new_objc_provider(**objc_provider_fields)
 
+def _swift_info_from_module_interface(
+        *,
+        actions,
+        ctx,
+        deps,
+        disabled_features,
+        features,
+        module_name,
+        swift_toolchain,
+        swiftinterface_file):
+    """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
+
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        ctx: The Starlark context for a rule target being built.
+        deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
+        disabled_features: List of features to be disabled for cc_common.compile
+        features: List of features to be enabled for cc_common.compile.
+        module_name: Swift module name.
+        swift_toolchain: SwiftToolchainInfo provider for current target.
+        swiftinterface_file: `.swiftinterface` File to compile.
+    Returns:
+        A SwiftInfo provider.
+    """
+    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
+    module_context = swift_common.compile_module_interface(
+        actions = actions,
+        compilation_contexts = [
+            dep[CcInfo].compilation_context
+            for dep in deps
+            if CcInfo in dep
+        ],
+        feature_configuration = swift_common.configure_features(
+            ctx = ctx,
+            swift_toolchain = swift_toolchain,
+            requested_features = features,
+            unsupported_features = disabled_features,
+        ),
+        module_name = module_name,
+        swiftinterface_file = swiftinterface_file,
+        swift_infos = swift_infos,
+        swift_toolchain = swift_toolchain,
+    )
+
+    return swift_common.create_swift_info(
+        modules = [module_context],
+        swift_infos = swift_infos,
+    )
+
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
     if not module_map_imports:
@@ -306,7 +376,9 @@ framework_import_support = struct(
     cc_info_with_dependencies = _cc_info_with_dependencies,
     classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
+    filter_swift_module_files_for_architecture = _filter_swift_module_files_for_architecture,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,
+    swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )

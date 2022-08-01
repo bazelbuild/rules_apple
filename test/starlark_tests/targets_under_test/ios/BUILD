@@ -1617,6 +1617,48 @@ EOF
 """,
 )
 
+# Swift app with imported Swift XCFramework.
+ios_application(
+    name = "swift_app_with_imported_swift_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":dynamic_swift_xcframework_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_depending_swift_lib",
+    srcs = ["SwiftWithDynamicSwiftFramework.swift"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework",
+    ],
+)
+
+genrule(
+    name = "swift_with_dynamic_swift_framework_src",
+    outs = ["SwiftWithDynamicSwiftFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import SwiftFmwkWithGenHeader
+
+func main() {
+  let sc = SwiftFmwkWithGenHeader.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple static XCFramework import tests.
 
@@ -1774,6 +1816,43 @@ import generated_static_xcframework_with_headers
 
 func main() {
   let sc = generated_static_xcframework_with_headers.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
+)
+
+# Swift app with imported Swift XCFramework
+ios_application(
+    name = "swift_app_with_imported_swift_xcframework_with_static_library",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = "8.0",
+    tags = FIXTURE_TAGS,
+    deps = [
+        ":static_swift_xcframework_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "static_swift_xcframework_depending_swift_lib",
+    srcs = ["SwiftWithStaticSwiftFramework.swift"],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework",
+    ],
+)
+
+genrule(
+    name = "static_swift_xcframework_depending_swift_lib_src",
+    outs = ["SwiftWithStaticSwiftFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import generated_swift_static_xcframework
+
+func main() {
+  let sc = generated_swift_static_xcframework.SharedClass()
   sc.doSomethingShared()
 }
 EOF

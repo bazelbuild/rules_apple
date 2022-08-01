@@ -92,7 +92,7 @@ def _create_args_parser() -> argparse.ArgumentParser:
   optional_list_args = {
       "bundle_file": "Imported XCFramework bundle file path.",
       "modulemap_file": "Imported XCFramework modulemap file path.",
-      "swiftmodule_file": "Imported XCFramework Swift module file path.",
+      "swiftinterface_file": "Imported XCFramework Swift module file path.",
   }
   for arg_name, arg_help in optional_list_args.items():
     parser.add_argument(
@@ -277,7 +277,7 @@ def main() -> int:
   _copy_xcframework_files(
       library_identifier=library_identifier,
       output_directories=[swiftmodule_dir],
-      xcframework_files=args.swiftmodule_files)
+      xcframework_files=args.swiftinterface_files)
 
   return 0
 
