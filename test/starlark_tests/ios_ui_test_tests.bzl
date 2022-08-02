@@ -72,7 +72,8 @@ def ios_ui_test_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test",
-        expected_dsyms = ["ui_test.xctest"],
+        expected_direct_dsyms = ["ui_test.xctest"],
+        expected_transitive_dsyms = ["ui_test.xctest", "app.app"],
         tags = [name],
     )
 

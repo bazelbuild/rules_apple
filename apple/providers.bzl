@@ -143,6 +143,20 @@ number information propagated by the target. It contains two keys:
     },
 )
 
+AppleDsymBundleInfo = provider(
+    doc = "Provides information for an Apple dSYM bundle.",
+    fields = {
+        "direct_dsyms": """
+`List` containing `File` references to each of the dSYM bundles that act as direct dependencies of
+the given target if any were generated.
+""",
+        "transitive_dsyms": """
+`Depset` containing `File` references to each of the dSYM bundles that act as transitive
+dependencies of the given target if any were generated.
+""",
+    },
+)
+
 AppleExtraOutputsInfo = provider(
     doc = """
 Provides information about extra outputs that should be produced from the build.

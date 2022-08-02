@@ -201,35 +201,54 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # XCFrameworks do not provide a public AppleDsymBundleInfo provider for the following reasons:
+    #
+    #     - All dSYMs for embedded frameworks are provided in output groups when specified with the
+    #         --output_groups=+dsyms option.
+    #     - There are no known end users that require the usage of dSYMs from XCFrameworks that
+    #         are not already served by the output groups API.
+    #     - XCFrameworks can embed dSYM bundles within the XCFramework bundle on a per-library
+    #         identifier basis, which is not something that the rules have previously supported as a
+    #         debugging experience, and would not be effectively represented through this particular
+    #         public provider interface.
+    #
     dsyms_test(
         name = "{}_device_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
+        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
         architectures = ["arm64"],
+        check_public_provider = False,
         tags = [name],
     )
 
     dsyms_test(
         name = "{}_simulator_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
+        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
         architectures = ["x86_64"],
+        check_public_provider = False,
         tags = [name],
     )
 
     dsyms_test(
         name = "{}_fat_device_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
+        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
         architectures = ["arm64", "armv7"],
+        check_public_provider = False,
         tags = [name],
     )
 
     dsyms_test(
         name = "{}_fat_simulator_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
+        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
         architectures = ["x86_64", "arm64", "i386"],
+        check_public_provider = False,
         tags = [name],
     )
 

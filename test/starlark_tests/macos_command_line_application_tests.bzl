@@ -143,7 +143,8 @@ def macos_command_line_application_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_dsyms = ["cmd_app_basic"],
+        expected_direct_dsyms = ["cmd_app_basic"],
+        expected_transitive_dsyms = ["cmd_app_basic"],
         tags = [name],
     )
 

@@ -121,7 +121,6 @@ def _ios_application_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -255,7 +254,6 @@ def _ios_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
@@ -264,7 +262,6 @@ def _ios_application_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -430,7 +427,6 @@ def _ios_app_clip_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     embeddable_targets = ctx.attr.frameworks
@@ -550,7 +546,6 @@ def _ios_app_clip_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
@@ -559,7 +554,6 @@ def _ios_app_clip_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -804,7 +798,6 @@ def _ios_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
@@ -813,7 +806,6 @@ def _ios_framework_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -912,7 +904,6 @@ def _ios_extension_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -1036,7 +1027,6 @@ def _ios_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
@@ -1045,7 +1035,6 @@ def _ios_extension_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1266,7 +1255,6 @@ def _ios_dynamic_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
@@ -1274,7 +1262,6 @@ def _ios_dynamic_framework_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1678,7 +1665,6 @@ def _ios_imessage_extension_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
@@ -1798,7 +1784,6 @@ def _ios_imessage_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
@@ -1807,7 +1792,6 @@ def _ios_imessage_extension_impl(ctx):
             executable_name = executable_name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,

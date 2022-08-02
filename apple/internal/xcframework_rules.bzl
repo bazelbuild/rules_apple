@@ -470,7 +470,6 @@ def _apple_xcframework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     deps = ctx.split_attr.deps
@@ -606,7 +605,6 @@ def _apple_xcframework_impl(ctx):
             ),
             partials.debug_symbols_partial(
                 actions = actions,
-                bin_root_path = bin_root_path,
                 bundle_extension = nested_bundle_extension,
                 bundle_name = bundle_name,
                 debug_discriminator = link_output.platform + "_" + link_output.environment,
@@ -615,7 +613,6 @@ def _apple_xcframework_impl(ctx):
                 executable_name = executable_name,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
-                rule_label = label,
             ),
             partials.resources_partial(
                 actions = actions,

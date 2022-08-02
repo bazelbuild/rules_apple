@@ -413,7 +413,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_unit_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64",
+        "--ios_multi_cpus=i386,x86_64,sim_arm64",
     ],
     shard_count = 9,
 )
