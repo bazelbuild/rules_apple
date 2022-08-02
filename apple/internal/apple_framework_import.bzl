@@ -119,9 +119,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     grep_includes = ctx.file._grep_includes
 
     providers = []
-    framework_imports_by_category = framework_import_support.classify_framework_imports(
-        framework_imports,
-    )
+    framework = framework_import_support.classify_framework_imports(framework_imports)
 
     # Create AppleFrameworkImportInfo provider.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
@@ -129,8 +127,8 @@ def _apple_dynamic_framework_import_impl(ctx):
         build_archs = [target_triplet.architecture],
         deps = deps,
         framework_imports = (
-            framework_imports_by_category.binary_imports +
-            framework_imports_by_category.bundling_imports
+            framework.binary_imports +
+            framework.bundling_imports
         ),
     ))
 
@@ -142,7 +140,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     ]
     objc_provider = framework_import_support.objc_provider_with_dependencies(
         additional_objc_providers = transitive_objc_providers,
-        dynamic_framework_file = framework_imports_by_category.binary_imports,
+        dynamic_framework_file = framework.binary_imports,
     )
     providers.append(objc_provider)
 
@@ -154,9 +152,9 @@ def _apple_dynamic_framework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        framework_includes = _framework_search_paths(framework_imports_by_category.header_imports),
+        framework_includes = _framework_search_paths(framework.header_imports),
         grep_includes = grep_includes,
-        header_imports = framework_imports_by_category.header_imports,
+        header_imports = framework.header_imports,
         label = label,
     )
     providers.append(cc_info)
@@ -170,16 +168,34 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_files = depset(framework_imports),
     ))
 
-    # Create _SwiftInteropInfo provider.
-    # For now, Swift interop is restricted only to a Clang module map inside
-    # the framework.
-    swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-        deps = deps,
-        module_name = framework_imports_by_category.bundle_name,
-        module_map_imports = framework_imports_by_category.module_map_imports,
-    )
-    if swift_interop_info:
-        providers.append(swift_interop_info)
+    if framework.swift_interface_imports:
+        # Create SwiftInfo provider
+        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swiftinterface_files = framework_import_support.filter_swift_module_files_for_architecture(
+            architecture = target_triplet.architecture,
+            swift_module_files = framework.swift_interface_imports,
+        )
+        providers.append(
+            framework_import_support.swift_info_from_module_interface(
+                actions = actions,
+                ctx = ctx,
+                deps = deps,
+                disabled_features = disabled_features,
+                features = features,
+                module_name = framework.bundle_name,
+                swift_toolchain = swift_toolchain,
+                swiftinterface_file = swiftinterface_files[0],
+            ),
+        )
+    else:
+        # Create _SwiftInteropInfo provider.
+        swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
+            deps = deps,
+            module_name = framework.bundle_name,
+            module_map_imports = framework.module_map_imports,
+        )
+        if swift_interop_info:
+            providers.append(swift_interop_info)
 
     return providers
 
@@ -202,23 +218,21 @@ def _apple_static_framework_import_impl(ctx):
     grep_includes = ctx.file._grep_includes
 
     providers = []
-    framework_imports_by_category = framework_import_support.classify_framework_imports(
-        framework_imports,
-    )
+    framework = framework_import_support.classify_framework_imports(framework_imports)
 
-    # Create AppleFrameworkImportInfo provider.
+    # Create AppleFrameworkImportInfo provider
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
         deps = deps,
     ))
 
-    # Collect transitive Objc/CcInfo providers from Swift toolchain.
+    # Collect transitive Objc/CcInfo providers from Swift toolchain
     additional_cc_infos = []
     additional_objc_providers = []
     additional_objc_provider_fields = {}
-    if framework_imports_by_category.swift_interface_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx)
+    if framework.swift_interface_imports or has_swift:
+        toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -229,7 +243,7 @@ def _apple_static_framework_import_impl(ctx):
         additional_objc_providers.extend(toolchain.implicit_deps_providers.objc_infos)
         additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
 
-    # Create apple_common.Objc provider.
+    # Create apple_common.Objc provider
     additional_objc_providers.extend([
         dep[apple_common.Objc]
         for dep in deps
@@ -242,12 +256,12 @@ def _apple_static_framework_import_impl(ctx):
             alwayslink = alwayslink,
             sdk_dylib = sdk_dylibs,
             sdk_framework = sdk_frameworks,
-            static_framework_file = framework_imports_by_category.binary_imports,
+            static_framework_file = framework.binary_imports,
             weak_sdk_framework = weak_sdk_frameworks,
         ),
     )
 
-    # Create CcInfo provider.
+    # Create CcInfo provider
     providers.append(
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
@@ -258,26 +272,44 @@ def _apple_static_framework_import_impl(ctx):
             disabled_features = disabled_features,
             features = features,
             framework_includes = _framework_search_paths(
-                framework_imports_by_category.header_imports,
+                framework.header_imports,
             ),
             grep_includes = grep_includes,
-            header_imports = framework_imports_by_category.header_imports,
+            header_imports = framework.header_imports,
             label = label,
         ),
     )
 
-    # Create _SwiftInteropInfo provider.
-    # For now, Swift interop is restricted only to a Clang module map inside
-    # the framework.
-    swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-        deps = deps,
-        module_name = framework_imports_by_category.bundle_name,
-        module_map_imports = framework_imports_by_category.module_map_imports,
-    )
-    if swift_interop_info:
-        providers.append(swift_interop_info)
+    if framework.swift_interface_imports:
+        # Create SwiftInfo provider
+        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swiftinterface_files = framework_import_support.filter_swift_module_files_for_architecture(
+            architecture = target_triplet.architecture,
+            swift_module_files = framework.swift_interface_imports,
+        )
+        providers.append(
+            framework_import_support.swift_info_from_module_interface(
+                actions = actions,
+                ctx = ctx,
+                deps = deps,
+                disabled_features = disabled_features,
+                features = features,
+                module_name = framework.bundle_name,
+                swift_toolchain = swift_toolchain,
+                swiftinterface_file = swiftinterface_files[0],
+            ),
+        )
+    else:
+        # Create SwiftInteropInfo provider for swift_clang_module_aspect
+        swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
+            deps = deps,
+            module_name = framework.bundle_name,
+            module_map_imports = framework.module_map_imports,
+        )
+        if swift_interop_info:
+            providers.append(swift_interop_info)
 
-    # Create AppleResourceInfo provider.
+    # Create AppleResourceInfo provider
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
         parent_dir_param = partial.make(
@@ -299,6 +331,7 @@ apple_dynamic_framework_import = rule(
     fragments = ["cpp"],
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
+        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -339,7 +372,7 @@ apple_static_framework_import = rule(
     fragments = ["cpp"],
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        swift_common.toolchain_attrs(),
+        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -395,8 +428,8 @@ reference any other symbols in the object file that adds that conformance.
             ),
             "has_swift": attr.bool(
                 doc = """
-A boolean indicating if the target has Swift source code. This helps flag XCFrameworks that do not
-include Swift interface files.
+A boolean indicating if the target has Swift source code. This helps flag Apple frameworks that do
+not include Swift interface files.
 """,
                 default = False,
             ),

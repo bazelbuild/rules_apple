@@ -62,6 +62,10 @@ generate_import_framework(
 swift_library(
     name = "swift_framework_lib",
     srcs = ["SharedClass.swift"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
     generates_header = True,
     module_name = "iOSSwiftStaticFramework",
 )

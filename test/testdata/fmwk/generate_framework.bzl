@@ -96,13 +96,19 @@ def _generate_import_framework_impl(ctx):
             ),
         )
 
-        # Apple framework and XCFrameworks import rules use Swift interface files to flag an
-        # imported framework contains Swift, and thus propagate Swift toolchain specific flags up
-        # the build graph.
         if include_module_interface_files:
-            module_interface = actions.declare_file(architectures[0] + ".swiftinterface")
-            actions.write(output = module_interface, content = "I'm a mock .swiftinterface file")
-            module_interfaces.append(module_interface)
+            swiftinterface = generation_support.get_file_with_extension(
+                files = swift_library_files,
+                extension = "swiftinterface",
+            )
+            module_interfaces.append(
+                generation_support.copy_file(
+                    actions = actions,
+                    base_path = "intermediates",
+                    file = swiftinterface,
+                    target_filename = "%s.swiftinterface" % architectures[0],
+                ),
+            )
 
     # Create framework bundle
     framework_files = generation_support.create_framework(
