@@ -71,7 +71,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
     additional_attrs = {
         "binary": attr.label(
             mandatory = True,
-            cfg = apple_common.multi_arch_split,
+            cfg = transition_support.apple_platform_split_transition,
             doc = "Target to generate a 'fat' binary from.",
         ),
         "forced_cpus": attr.string_list(
