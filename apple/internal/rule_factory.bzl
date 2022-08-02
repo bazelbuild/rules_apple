@@ -111,7 +111,7 @@ _COMMON_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
-def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
+def _common_linking_api_attrs(*, cfg = transition_support.apple_platform_split_transition):
     """Returns dictionary of required attributes for Bazel Apple linking API's.
 
     These rule attributes are required by both Bazel Apple linking API's under apple_common module:
@@ -128,7 +128,7 @@ def _common_linking_api_attrs(*, cfg = apple_common.multi_arch_split):
         ),
     }
 
-def _link_multi_arch_static_library_attrs(*, cfg = apple_common.multi_arch_split):
+def _link_multi_arch_static_library_attrs(*, cfg = transition_support.apple_platform_split_transition):
     """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
 
     Args:
@@ -136,7 +136,7 @@ def _link_multi_arch_static_library_attrs(*, cfg = apple_common.multi_arch_split
     """
     return _common_linking_api_attrs(cfg = cfg)
 
-def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
+def _link_multi_arch_binary_attrs(*, cfg = transition_support.apple_platform_split_transition):
     """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
 
     Args:
@@ -1232,7 +1232,7 @@ binaries/libraries will be created combining all architectures specified by
         is_executable = False
         if require_linking_attrs:
             rule_attrs.append(_common_binary_linking_attrs(
-                deps_cfg = apple_common.multi_arch_split,
+                deps_cfg = transition_support.apple_platform_split_transition,
                 product_type = None,
             ))
         else:
