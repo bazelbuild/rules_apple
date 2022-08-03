@@ -38,6 +38,7 @@ def archive_contents_test(
         binary_test_architecture = "",
         binary_contains_symbols = [],
         binary_contains_regex_symbols = [],
+        binary_not_contains_architectures = [],
         binary_not_contains_symbols = [],
         codesign_info_contains = [],
         codesign_info_not_contains = [],
@@ -87,6 +88,8 @@ def archive_contents_test(
         binary_contains_regex_symbols: Optional, a list of regular expressions to match symbols
             that should appear in the binary file specified in `binary_test_file`. Regular
             expressions must follow POSIX Basic Regular Expression (BRE) syntax.
+        binary_not_contains_architectures: Optional. A list of architectures to verify do not exist
+            within `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
         codesign_info_contains: Optional, A list of codesign info that should appear in the binary
@@ -142,6 +145,8 @@ def archive_contents_test(
             fail("Need binary_test_file to check macho load commands")
         if any([codesign_info_contains, codesign_info_not_contains]):
             fail("Need binary_test_file to check codesign info")
+        if (binary_not_contains_architectures):
+            fail("Need binary_test_file to check for the absence of architectures")
 
     if not any([
         contains,
@@ -179,6 +184,7 @@ def archive_contents_test(
             "TEXT_TEST_VALUES": text_test_values,
             "BINARY_TEST_FILE": [binary_test_file],
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
+            "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
             "BINARY_CONTAINS_REGEX_SYMBOLS": binary_contains_regex_symbols,
