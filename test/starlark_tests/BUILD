@@ -132,6 +132,7 @@ test_suite(
 bzl_library(
     name = "starlark_tests_bzls",
     srcs = glob(["**/*.bzl"]),
+    parse_tests = False,
     deps = [
         "//apple:providers",
         "//apple/internal:apple_product_type",
