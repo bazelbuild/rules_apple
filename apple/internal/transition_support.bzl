@@ -202,7 +202,7 @@ def _command_line_options(
             settings["//command_line_option:apple_crosstool_top"]
         ),
         "//command_line_option:fission": [],
-        "//command_line_option:grte_top": settings["//command_line_option:apple_grte_top"],
+        "//command_line_option:grte_top": None,
         "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [],
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
@@ -332,7 +332,6 @@ def _apple_rule_base_transition_impl(settings, attr):
 _apple_rule_common_transition_inputs = [
     "//command_line_option:apple_compiler",
     "//command_line_option:apple_crosstool_top",
-    "//command_line_option:apple_grte_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
