@@ -145,13 +145,14 @@ def _is_cpu_supported_for_target_tuple(*, cpu, minimum_os_version, platform_type
 
     dotted_minimum_os_version = apple_common.dotted_version(minimum_os_version)
 
-    if platform_type == "ios":
-        # TODO(b/237317468): Return False for 32 bit iOS archs if Xcode 14+ is the selected Xcode.
-        if dotted_minimum_os_version >= apple_common.dotted_version("11.0"):
-            if cpu in _32_BIT_APPLE_CPUS:
-                return False
+    if cpu in _32_BIT_APPLE_CPUS:
+        if (platform_type == "ios" and
+            dotted_minimum_os_version >= apple_common.dotted_version("11.0")):
+            return False
+        if (platform_type == "watchos" and
+            dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
+            return False
 
-    # TODO(b/237318193): Return False for 32 bit watchOS archs if the minimum OS is 9 or higher.
     return True
 
 def _command_line_options(

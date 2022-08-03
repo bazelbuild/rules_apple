@@ -43,6 +43,8 @@ newline=$'\n'
 #  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
 #      text file with. Regular expressions must follow POSIX Basic Regular
 #      Expression (BRE) syntax.
+#  BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in the
+#      assembled binary.
 #  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
@@ -97,6 +99,27 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     fail "Archive did not contain binary at \"$path\"" \
       "contents were:$newline$(find $ARCHIVE_ROOT)"
   fi
+
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    IFS=' ' found_archs=($(lipo -archs "$path"))
+    for arch in "${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+    do
+      for found_arch in "${found_archs[@]}"
+      do
+        something_tested=true
+        arch_found=false
+        if [[ "$arch" == "$found_arch" ]]; then
+          arch_found=true
+          break
+        fi
+      done
+      if [[ "$arch_found" = true ]]; then
+        fail "Unexpectedly found architecture \"$arch\". The architectures " \
+          "in the binary were:$newline${found_archs[@]}"
+      fi
+    done
+  fi
+
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
     if [[ ! -n $arch ]]; then
@@ -210,6 +233,10 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     fi
   fi
 else
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for missing architectures," \
+      "but no binary was set to check: ${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+  fi
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     fail "Rule Misconfigured: Binary arch was set," \
       "but no binary was set to check: ${BINARY_TEST_ARCHITECTURE}"

@@ -55,6 +55,19 @@ watchos_application(
     tags = FIXTURE_TAGS,
 )
 
+watchos_application(
+    name = "app_os9",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    extension = ":ext_os9",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = FIXTURE_TAGS,
+)
+
 watchos_extension(
     name = "ext",
     bundle_id = "com.google.example.ext",
@@ -101,6 +114,25 @@ watchos_extension(
     ],
     minimum_os_version = "4.0",
     tags = FIXTURE_TAGS,
+)
+
+watchos_extension(
+    name = "ext_os9",
+    bundle_id = "com.google.example.ext",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = "9.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = FIXTURE_TAGS,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
 )
 
 ios_application(

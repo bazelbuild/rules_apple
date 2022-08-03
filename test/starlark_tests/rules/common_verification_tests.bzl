@@ -37,6 +37,7 @@ def archive_contents_test(
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
+        binary_not_contains_architectures = [],
         binary_not_contains_symbols = [],
         macho_load_commands_contain = [],
         macho_load_commands_not_contain = [],
@@ -81,6 +82,8 @@ def archive_contents_test(
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
+        binary_not_contains_architectures: Optional. A list of architectures to verify do not exist
+            within `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
             binary file specified in `binary_test_file`.
         macho_load_commands_contain: Optional, A list of Mach-O load commands that should appear in
@@ -127,6 +130,8 @@ def archive_contents_test(
             fail("Need binary_test_file to check the binary for symbols")
         if any([macho_load_commands_contain, macho_load_commands_not_contain]):
             fail("Need binary_test_file to check macho load commands")
+        if (binary_not_contains_architectures):
+            fail("Need binary_test_file to check for the absence of architectures")
 
     if not any([
         contains,
@@ -164,6 +169,7 @@ def archive_contents_test(
             "TEXT_TEST_VALUES": text_test_values,
             "BINARY_TEST_FILE": [binary_test_file],
             "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
+            "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
