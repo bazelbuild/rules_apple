@@ -460,6 +460,8 @@ def _apple_platform_split_transition_impl(settings, attr):
     # let's this transition flip rules_swift config down the build graph.
     emit_swiftinterface = hasattr(attr, "_emitswiftinterface")
 
+    invalid_requested_archs = []
+
     if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         platforms = (
             settings["//command_line_option:apple_platforms"] or
@@ -514,20 +516,27 @@ def _apple_platform_split_transition_impl(settings, attr):
                 platform_type = platform_type,
             )
             if not cpu_is_supported:
+                invalid_requested_arch = {
+                    "cpu": cpu,
+                    "minimum_os_version": minimum_os_version,
+                    "platform_type": platform_type,
+                }
+
                 # NOTE: This logic to filter unsupported Apple CPUs would be good to implement on
                 # the platforms side, but it is presently not possible as constraint resolution
                 # cannot be performed within a transition.
+                #
                 # Propagate a warning to the user so that the dropped arch becomes actionable.
                 # buildifier: disable=print
                 print(
-                    ("Warning: {cpu} not supported for {platform_type} with minimum OS of " +
-                     "{minimum_os_version}. This architecture has been dropped from the build. " +
-                     "Please remove it from your build invocation as it is a no-op.").format(
-                        cpu = cpu,
-                        platform_type = platform_type,
-                        minimum_os_version = minimum_os_version,
+                    ("Warning: The architecture {cpu} is not valid for {platform_type} with a " +
+                     "minimum OS of {minimum_os_version}. This architecture will be ignored in " +
+                     "this build. This will be an error in a future version of the Apple rules. " +
+                     "Please address this in your build invocation.").format(
+                        **invalid_requested_arch
                     ),
                 )
+                invalid_requested_archs.append(invalid_requested_arch)
                 continue
 
             output_dictionary[found_cpu] = _command_line_options(
@@ -539,9 +548,18 @@ def _apple_platform_split_transition_impl(settings, attr):
             )
 
     if not bool(output_dictionary):
-        fail("Could not find any valid architectures to build for the current target. Please " +
-             "check that the specified cpus or platforms are valid for the current Xcode or " +
-             "minimum OS.")
+        error_msg = "Could not find any valid architectures to build for the current target.\n\n"
+        if invalid_requested_archs:
+            error_msg += "Requested the following invalid architectures:\n"
+            for invalid_requested_arch in invalid_requested_archs:
+                error_msg += " - {cpu} for {platform_type} {minimum_os_version}\n".format(
+                    **invalid_requested_arch
+                )
+            error_msg += (
+                "\nPlease check that the specified architectures are valid for the target's " +
+                "specified minimum_os_version.\n"
+            )
+        fail(error_msg)
 
     return output_dictionary
 
