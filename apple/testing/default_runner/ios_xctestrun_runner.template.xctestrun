@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BazelTests</key>
+  <dict>
+    <key>TestBundlePath</key>
+    <string>BAZEL_TEST_BUNDLE_PATH</string>
+    <key>TestExecutionOrdering</key>
+    <string>BAZEL_TEST_ORDER_STRING</string>
+    <key>IsAppHostedTestBundle</key>
+    <BAZEL_TEST_HOST_BASED/>
+    <key>TestHostPath</key>
+    <string>BAZEL_TEST_HOST_PATH</string>
+    <key>TestingEnvironmentVariables</key>
+    <dict>
+      <key>LLVM_PROFILE_FILE</key>
+      <string>BAZEL_COVERAGE_PROFRAW</string>
+      <key>DYLD_INSERT_LIBRARIES</key>
+      <string>BAZEL_INSERT_LIBRARIES</string>
+      <key>DYLD_LIBRARY_PATH</key>
+      <string>__PLATFORMS__/iPhoneSimulator.platform/Developer/usr/lib</string>
+      <key>__XCODE_BUILT_PRODUCTS_DIR_PATHS</key>
+      <string>/DUMMY_SRCROOT/</string>
+      BAZEL_TEST_ENVIRONMENT
+    </dict>
+    <key>UserAttachmentLifetime</key>
+    <string>keepNever</string>
+    <key>ClangProfileDataDirectoryPath</key>
+    <string>BAZEL_COVERAGE_OUTPUT_DIR</string>
+  </dict>
+</dict>
+</plist>

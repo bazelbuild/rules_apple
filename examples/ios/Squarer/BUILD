@@ -19,3 +19,17 @@ ios_unit_test(
     minimum_os_version = "8.0",
     deps = [":SquarerTestsLib"],
 )
+
+ios_unit_test(
+    name = "SquarerTestsOrdered",
+    minimum_os_version = "8.0",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    deps = [":SquarerTestsLib"],
+)
+
+ios_unit_test(
+    name = "SquarerTestsRandom",
+    minimum_os_version = "8.0",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+    deps = [":SquarerTestsLib"],
+)

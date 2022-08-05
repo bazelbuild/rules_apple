@@ -3,6 +3,10 @@ load(
     "ios_test_runner",
 )
 load(
+    "//apple/testing/default_runner:ios_xctestrun_runner.bzl",
+    "ios_xctestrun_runner",
+)
+load(
     "//apple/testing/default_runner:macos_test_runner.bzl",
     "macos_test_runner",
 )
@@ -53,6 +57,8 @@ bzl_library(
 
 exports_files([
     "ios_test_runner.template.sh",
+    "ios_xctestrun_runner.template.sh",
+    "ios_xctestrun_runner.template.xctestrun",
     "macos_test_runner.template.sh",
     "macos_test_runner.template.xctestrun",
     "tvos_test_runner.template.sh",
@@ -75,6 +81,18 @@ ios_test_runner(
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_xctestrun_random_runner",
+    random = True,
+    visibility = ["//visibility:public"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_xctestrun_ordered_runner",
+    random = False,
     visibility = ["//visibility:public"],
 )
 
