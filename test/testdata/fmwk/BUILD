@@ -36,16 +36,6 @@ filegroup(
     ],
 )
 
-filegroup(
-    name = "ios_framework_generators",
-    srcs = [
-        "BUILD",
-        "generate_framework.bzl",
-        "generate_framework_dsym.bzl",
-        "generation_support.bzl",
-    ],
-)
-
 # ------------------------------- iOS Framework ------------------------------------------
 
 generate_import_framework(
@@ -201,6 +191,7 @@ bzl_library(
     srcs = ["generation_support.bzl"],
     visibility = ["//test:__subpackages__"],
     deps = [
+        "//apple/internal:intermediates",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],

@@ -70,6 +70,7 @@ def _generate_import_framework_impl(ctx):
                 apple_fragment = apple_fragment,
                 archs = architectures,
                 binary = binary,
+                label = label,
                 minimum_os_version = minimum_os_version,
                 sdk = sdk,
                 xcode_config = xcode_config,
@@ -79,6 +80,7 @@ def _generate_import_framework_impl(ctx):
                 actions = actions,
                 apple_fragment = apple_fragment,
                 binary = binary,
+                label = label,
                 xcode_config = xcode_config,
             )
 
@@ -103,22 +105,37 @@ def _generate_import_framework_impl(ctx):
                 files = swift_library_files,
                 extension = "swiftinterface",
             )
-            module_interfaces.append(
-                generation_support.copy_file(
-                    actions = actions,
-                    base_path = "intermediates",
-                    file = swiftinterface,
-                    target_filename = "%s.swiftinterface" % architectures[0],
-                ),
-            )
+            if swiftinterface:
+                module_interfaces.append(
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = swiftinterface,
+                        label = label,
+                        target_filename = "%s.swiftinterface" % architectures[0],
+                    ),
+                )
+            else:
+                swiftmodule = generation_support.get_file_with_extension(
+                    files = swift_library_files,
+                    extension = "swiftmodule",
+                )
+                module_interfaces.append(
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = swiftmodule,
+                        label = label,
+                        target_filename = "%s.swiftmodule" % architectures[0],
+                    ),
+                )
 
     # Create framework bundle
     framework_files = generation_support.create_framework(
         actions = actions,
         bundle_name = label.name,
-        library = library,
         headers = headers,
         include_resource_bundle = include_resource_bundle,
+        label = label,
+        library = library,
         module_interfaces = module_interfaces,
     )
 
