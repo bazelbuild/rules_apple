@@ -15,6 +15,10 @@
 """Apple Frameworks and XCFramework generation support methods for testing."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",  # buildifier: disable=bzl-visibility
+    "intermediates",
+)
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _SDK_TO_VERSION_ARG = {
@@ -87,9 +91,16 @@ def _compile_binary(
     Returns:
         A compiled binary file.
     """
-    binary_name = "{label}.o".format(label = label.name)
-    binary_dir = "{sdk}_{archs}".format(sdk = sdk, archs = "_".join(archs))
-    binary = actions.declare_file(paths.join("intermediates", binary_dir, binary_name))
+    binary = intermediates.file(
+        actions = actions,
+        file_name = "{sdk}_{archs}_{label}.o".format(
+            archs = "_".join(archs),
+            label = label.name,
+            sdk = sdk,
+        ),
+        output_discriminator = None,
+        target_name = label.name,
+    )
 
     inputs = []
     inputs.extend(srcs)
@@ -122,21 +133,32 @@ def _compile_binary(
 
     return binary
 
-def _create_static_library(*, actions, apple_fragment, parent_dir = "", binary, xcode_config):
+def _create_static_library(
+        *,
+        actions,
+        apple_fragment,
+        label,
+        parent_dir = "",
+        binary,
+        xcode_config):
     """Creates an Apple static library using libtool.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         binary: A binary file to use for the archive file.
+        label: Label of the target being built.
         parent_dir: Optional parent directory name for the generated archive file.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         A static library (archive) file.
     """
-    static_library_name = paths.replace_extension(binary.basename, ".a")
-    static_library_path = paths.join("intermediates", parent_dir, static_library_name)
-    static_library = actions.declare_file(static_library_path)
+    static_library = intermediates.file(
+        actions = actions,
+        file_name = paths.join(parent_dir, "{}.a".format(label.name)),
+        output_discriminator = None,
+        target_name = label.name,
+    )
 
     args = ["/usr/bin/xcrun", "libtool", "-static", binary.path, "-o", static_library.path]
 
@@ -159,6 +181,7 @@ def _create_dynamic_library(
         apple_fragment,
         archs,
         binary,
+        label,
         minimum_os_version,
         sdk,
         xcode_config):
@@ -169,16 +192,23 @@ def _create_dynamic_library(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         archs: List of architectures to compile (e.g. ['arm64', 'x86_64']).
         binary: A binary file to use for the archive file.
+        label: Label of the target being built.
         minimum_os_version: Dotted version string for minimum OS version supported by the target.
         sdk: A string representing an Apple SDK.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         A dynamic library file.
     """
-    dylib_name, _ = binary.basename.split(".")
-    dylib_dir = "{sdk}_{archs}".format(sdk = sdk, archs = "_".join(archs))
-    dylib_path = paths.join("intermediates", dylib_dir, dylib_name)
-    dylib_binary = actions.declare_file(dylib_path)
+    dylib_binary = intermediates.file(
+        actions = actions,
+        file_name = "{sdk}_{archs}_{name}".format(
+            archs = "_".join(archs),
+            name = label.name,
+            sdk = sdk,
+        ),
+        output_discriminator = None,
+        target_name = label.name,
+    )
 
     args = ["/usr/bin/xcrun"]
     args.extend(["-sdk", sdk])
@@ -188,7 +218,7 @@ def _create_dynamic_library(
     args.append("-dynamiclib")
     args.extend([
         "-install_name",
-        "@rpath/{}.framework/{}".format(dylib_name, dylib_name),
+        "@rpath/{}.framework/{}".format(label.name, label.name),
     ])
 
     for arch in archs:
@@ -215,6 +245,7 @@ def _create_framework(
         actions,
         base_path = "",
         bundle_name,
+        label,
         library,
         headers,
         include_resource_bundle = False,
@@ -225,6 +256,7 @@ def _create_framework(
         actions: The actions provider from `ctx.actions`.
         base_path: Base path for the generated archive file (optional).
         bundle_name: Name of the Framework bundle.
+        label: Label of the target being built.
         library: The library for the Framework bundle.
         headers: List of header files for the Framework bundle.
         include_resource_bundle: Boolean to indicate if a resource bundle should be added to
@@ -236,13 +268,24 @@ def _create_framework(
     framework_files = []
     framework_directory = paths.join(base_path, bundle_name + ".framework")
 
-    framework_binary = actions.declare_file(paths.join(framework_directory, bundle_name))
+    framework_binary = intermediates.file(
+        actions = actions,
+        file_name = paths.join(framework_directory, bundle_name),
+        output_discriminator = None,
+        target_name = label.name,
+    )
+
     actions.symlink(
         output = framework_binary,
         target_file = library,
     )
 
-    framework_plist = actions.declare_file(paths.join(framework_directory, "Info.plist"))
+    framework_plist = intermediates.file(
+        actions = actions,
+        file_name = paths.join(framework_directory, "Info.plist"),
+        output_discriminator = None,
+        target_name = label.name,
+    )
     actions.write(
         output = framework_plist,
         content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
@@ -255,8 +298,9 @@ def _create_framework(
         framework_files.extend([
             _copy_file(
                 actions = actions,
-                file = header,
                 base_path = headers_path,
+                file = header,
+                label = label,
             )
             for header in headers
         ])
@@ -265,6 +309,7 @@ def _create_framework(
             bundle_name = bundle_name,
             headers = headers,
             headers_path = headers_path,
+            label = label,
             is_framework_umbrella_header = True,
         )
         framework_files.append(umbrella_header)
@@ -275,6 +320,7 @@ def _create_framework(
                 actions = actions,
                 bundle_name = bundle_name,
                 is_framework_module = True,
+                label = label,
                 module_map_path = module_map_path,
                 umbrella_header = umbrella_header,
             ),
@@ -285,34 +331,49 @@ def _create_framework(
         framework_files.extend([
             _copy_file(
                 actions = actions,
-                file = interface_file,
                 base_path = modules_path,
+                file = interface_file,
+                label = label,
             )
             for interface_file in module_interfaces
         ])
 
     if include_resource_bundle:
         resources_path = paths.join(framework_directory, "Resources", bundle_name + ".bundle")
-        resource_file = actions.declare_file(paths.join(resources_path, "Info.plist"))
+
+        resource_file = intermediates.file(
+            actions = actions,
+            file_name = paths.join(resources_path, "Info.plist"),
+            output_discriminator = None,
+            target_name = label.name,
+        )
         actions.write(output = resource_file, content = "Mock resource bundle")
         framework_files.append(resource_file)
 
     return framework_files
 
-def _copy_file(*, actions, base_path, file, target_filename = None):
+def _copy_file(*, actions, base_path = "", file, label, target_filename = None):
     """Copies file to a target directory.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        base_path: Base path for the copied files.
+        base_path: Base path for the copied files (optional).
         file: File to copy.
+        label: Label of the target being built.
         target_filename: (optional) String for target filename. If None, file basename is used.
     Returns:
         List of copied files.
     """
     filename = target_filename if target_filename else file.basename
     copied_file_path = paths.join(base_path, filename)
-    copied_file = actions.declare_file(copied_file_path)
+
+    copied_file = intermediates.file(
+        actions = actions,
+        file_name = copied_file_path,
+        output_discriminator = None,
+        target_name = label.name,
+    )
+
     actions.symlink(output = copied_file, target_file = file)
     return copied_file
 
@@ -336,6 +397,7 @@ def _generate_umbrella_header(
         bundle_name,
         headers,
         headers_path,
+        label,
         is_framework_umbrella_header = False):
     """Generates a single umbrella header given a sequence of header files.
 
@@ -344,6 +406,7 @@ def _generate_umbrella_header(
         bundle_name: Name of the Framework/XCFramework bundle.
         headers: List of header files for the Framework bundle.
         headers_path: Base path for the generated umbrella header file.
+        label: Label of the target being built.
         is_framework_umbrella_header: Boolean to indicate if the generated umbrella header is for an
           Apple framework. Defaults to `False`.
     Returns:
@@ -355,8 +418,11 @@ def _generate_umbrella_header(
     for header in headers:
         header_text += "#import <{}>\n".format(paths.join(header_prefix, header.basename))
 
-    umbrella_header = actions.declare_file(
-        paths.join(headers_path, bundle_name + ".h"),
+    umbrella_header = intermediates.file(
+        actions = actions,
+        file_name = paths.join(headers_path, bundle_name + ".h"),
+        output_discriminator = None,
+        target_name = label.name,
     )
     actions.write(
         output = umbrella_header,
@@ -370,6 +436,7 @@ def _generate_module_map(
         actions,
         bundle_name,
         headers = None,
+        label,
         is_framework_module = False,
         module_map_path,
         umbrella_header = None):
@@ -379,6 +446,7 @@ def _generate_module_map(
         actions: The actions provider from `ctx.actions`.
         bundle_name: Name of the Framework/XCFramework bundle.
         headers: List of header files to use for the generated modulemap file.
+        label: Label of the target being built.
         is_framework_module: Boolean to indicate if the generated modulemap is for a framework.
           Defaults to `False`.
         module_map_path: Base path for the generated modulemap file.
@@ -405,7 +473,12 @@ def _generate_module_map(
 
     modulemap_content.add("}")
 
-    modulemap_file = actions.declare_file(paths.join(module_map_path, "module.modulemap"))
+    modulemap_file = intermediates.file(
+        actions = actions,
+        file_name = paths.join(module_map_path, "module.modulemap"),
+        output_discriminator = None,
+        target_name = label.name,
+    )
     actions.write(output = modulemap_file, content = modulemap_content)
 
     return modulemap_file

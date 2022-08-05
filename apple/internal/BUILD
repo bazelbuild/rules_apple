@@ -245,6 +245,7 @@ bzl_library(
     srcs = ["intermediates.bzl"],
     visibility = [
         "//apple:__subpackages__",
+        "//test:__subpackages__",
     ],
     deps = [
         "@bazel_skylib//lib:paths",

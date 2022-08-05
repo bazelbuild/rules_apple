@@ -93,7 +93,7 @@ def _create_xcframework(
     """
     bundle_name = label.name + ".xcframework"
     xcframework_directory = paths.join(target_dir, bundle_name)
-    intermediates_directory = paths.join(label.package, "intermediates")
+    intermediates_directory = paths.join(label.package, "%s-intermediates" % label.name)
 
     if (frameworks and libraries) or (not frameworks and not libraries):
         fail("Can only generate XCFrameworks using static libraries or dynamic frameworks.")
@@ -162,31 +162,6 @@ def _create_xcframework(
 
     return outputs
 
-def _copy_modules_to_xcframework(*, actions, modulemap, xcframework_files):
-    """Copies generated modulemap files to each XCFramework library path.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        modulemap: File referencing a generated `.modulemap` file.
-        xcframework_files: List of files from generated XCFramework bundle.
-    Returns:
-        List of copied modulemap files.
-    """
-    modulemaps = []
-    binary_files = [f for f in xcframework_files if f.extension == "a"]
-    for binary_file in binary_files:
-        modulemap_dir = paths.basename(modulemap.dirname)
-        modulemap_path = paths.join(modulemap_dir, modulemap.basename)
-        library_modulemap = actions.declare_file(modulemap_path, sibling = binary_file)
-
-        actions.symlink(
-            output = library_modulemap,
-            target_file = modulemap,
-        )
-        modulemaps.append(library_modulemap)
-
-    return modulemaps
-
 def _generate_dynamic_xcframework_impl(ctx):
     """Implementation of generate_dynamic_xcframework."""
     actions = ctx.actions
@@ -232,6 +207,7 @@ def _generate_dynamic_xcframework_impl(ctx):
             apple_fragment = apple_fragment,
             archs = architectures,
             binary = binary,
+            label = label,
             minimum_os_version = minimum_os_version,
             sdk = sdk,
             xcode_config = xcode_config,
@@ -240,15 +216,15 @@ def _generate_dynamic_xcframework_impl(ctx):
         # Create (dynamic) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
-            base_path = paths.join("intermediates", library_identifier),
+            base_path = library_identifier,
             bundle_name = label.name,
-            library = dynamic_library,
             headers = hdrs,
+            label = label,
+            library = dynamic_library,
         )
 
         framework_path = paths.join(
-            target_dir,
-            "intermediates",
+            binary.dirname,
             library_identifier,
             label.name + ".framework",
         )
@@ -301,7 +277,7 @@ def _generate_static_xcframework_impl(ctx):
     headers = []
     libraries = []
     module_interfaces = []
-    outputs = []
+    modulemaps = []
     umbrella_header = None
     for platform in platforms:
         architectures = platforms[platform]
@@ -309,7 +285,8 @@ def _generate_static_xcframework_impl(ctx):
             platform = platform,
             architectures = architectures,
         )
-        library_path = paths.join("intermediates", library_identifier)
+
+        library_path = library_identifier
         headers_path = paths.join(library_path, "Headers")
 
         if not swift_library:
@@ -332,6 +309,7 @@ def _generate_static_xcframework_impl(ctx):
                 actions = actions,
                 apple_fragment = apple_fragment,
                 binary = binary,
+                label = label,
                 parent_dir = library_identifier,
                 xcode_config = xcode_config,
             )
@@ -340,16 +318,19 @@ def _generate_static_xcframework_impl(ctx):
             headers.extend([
                 generation_support.copy_file(
                     actions = actions,
-                    file = header,
                     base_path = headers_path,
+                    file = header,
+                    label = label,
                 )
                 for header in hdrs
             ])
+
             umbrella_header = generation_support.generate_umbrella_header(
                 actions = actions,
                 bundle_name = label.name,
                 headers = hdrs,
                 headers_path = headers_path,
+                label = label,
             )
             headers.append(umbrella_header)
         else:
@@ -361,6 +342,7 @@ def _generate_static_xcframework_impl(ctx):
                     files = swift_library,
                     extension = "a",
                 ),
+                label = label,
                 target_filename = label.name + ".a",
             )
 
@@ -372,6 +354,7 @@ def _generate_static_xcframework_impl(ctx):
                         actions = actions,
                         base_path = swiftmodule_path,
                         file = interface_file,
+                        label = label,
                         target_filename = "{architecture}.{extension}".format(
                             architecture = architectures[0],
                             extension = interface_file.extension,
@@ -386,11 +369,25 @@ def _generate_static_xcframework_impl(ctx):
                 generation_support.copy_file(
                     actions = actions,
                     base_path = headers_path,
+                    label = label,
                     file = generation_support.get_file_with_extension(
                         files = swift_library,
                         extension = "h",
                     ),
                     target_filename = label.name + ".h",
+                ),
+            )
+
+        # Generate Clang modulemap under Headers directory.
+        if generate_modulemap:
+            modulemaps.append(
+                generation_support.generate_module_map(
+                    actions = actions,
+                    bundle_name = label.name,
+                    headers = headers,
+                    label = label,
+                    module_map_path = headers_path,
+                    umbrella_header = umbrella_header,
                 ),
             )
 
@@ -400,34 +397,17 @@ def _generate_static_xcframework_impl(ctx):
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
-        headers = headers,
+        headers = headers + modulemaps,
         label = label,
         libraries = libraries,
         module_interfaces = module_interfaces,
         target_dir = target_dir,
         xcode_config = xcode_config,
     )
-    outputs.extend(xcframework_files)
-
-    # Generate modulemap and copy to XCFramework
-    if generate_modulemap:
-        module_map_path = paths.join(label.name, "Headers")
-        modulemap = generation_support.generate_module_map(
-            actions = actions,
-            bundle_name = label.name,
-            headers = headers,
-            module_map_path = module_map_path,
-            umbrella_header = umbrella_header,
-        )
-        outputs.extend(_copy_modules_to_xcframework(
-            actions = actions,
-            modulemap = modulemap,
-            xcframework_files = xcframework_files,
-        ))
 
     return [
         DefaultInfo(
-            files = depset(outputs),
+            files = depset(xcframework_files),
         ),
     ]
 

@@ -9,7 +9,7 @@ load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 
 licenses(["notice"])
 
-# TODO(b/232578557): Migrate targets to starlark_tests/
+# TODO(b/241460068): Migrate targets to starlark_tests/
 package(default_visibility = ["//test/starlark_tests:__subpackages__"])
 
 generate_dynamic_xcframework(

@@ -68,6 +68,7 @@ def _generate_import_framework_impl(ctx):
                 apple_fragment = apple_fragment,
                 archs = architectures,
                 binary = binary,
+                label = label,
                 minimum_os_version = minimum_os_version,
                 sdk = sdk,
                 xcode_config = xcode_config,
@@ -77,6 +78,7 @@ def _generate_import_framework_impl(ctx):
                 actions = actions,
                 apple_fragment = apple_fragment,
                 binary = binary,
+                label = label,
                 xcode_config = xcode_config,
             )
 
@@ -104,8 +106,8 @@ def _generate_import_framework_impl(ctx):
             module_interfaces.append(
                 generation_support.copy_file(
                     actions = actions,
-                    base_path = "intermediates",
                     file = swiftinterface,
+                    label = label,
                     target_filename = "%s.swiftinterface" % architectures[0],
                 ),
             )
@@ -114,9 +116,10 @@ def _generate_import_framework_impl(ctx):
     framework_files = generation_support.create_framework(
         actions = actions,
         bundle_name = label.name,
-        library = library,
         headers = headers,
         include_resource_bundle = include_resource_bundle,
+        label = label,
+        library = library,
         module_interfaces = module_interfaces,
     )
 
