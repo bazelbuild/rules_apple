@@ -1,5 +1,5 @@
 """
-A iOS test runner rule that uses xctestrun files to run unit test bundles on
+An iOS test runner rule that uses xctestrun files to run unit test bundles on
 simulators. This rule currently doesn't support UI tests or running on device.
 """
 
