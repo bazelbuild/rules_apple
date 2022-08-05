@@ -119,9 +119,10 @@ if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
   intel_simulator_hack=true
 fi
 
-if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
+# shellcheck disable=SC2050
+if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)s" == random ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
-    echo "error: running x86_64 tests on arm64 macs with CREATE_XCRESULT_BUNDLE requires a test host" >&2
+    echo "error: running x86_64 tests on arm64 macs with CREATE_XCRESULT_BUNDLE or random ordering requires a test host" >&2
     exit 1
   fi
 
