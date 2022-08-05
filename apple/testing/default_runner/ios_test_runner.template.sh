@@ -249,7 +249,7 @@ xcrun llvm-profdata merge "$profraw" --output "$profdata"
 lcov_args=(
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
-  -path-equivalence="$ROOT",.
+  -path-equivalence="$ROOT,."
 )
 has_binary=false
 IFS=";"
@@ -294,7 +294,7 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     -format text \
     "${lcov_args[@]}" \
     @"$COVERAGE_MANIFEST" \
-    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json" \
     2> "$error_file" \
     || llvm_cov_json_export_status=$?
   if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
