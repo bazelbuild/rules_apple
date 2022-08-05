@@ -34,7 +34,7 @@ def _ios_xctestrun_runner_impl(ctx):
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or
                      ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
-    # TODO: Ideally we would be smarter about picking a device, but we don't know what the versoin of Xcode supports
+    # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 12"
 
     if not os_version:
