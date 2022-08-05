@@ -82,8 +82,6 @@ else
   xctestrun_test_host_based=false
 fi
 
-profraw=$(mktemp)
-
 sanitizer_dyld_env=""
 readonly sanitizer_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
@@ -98,6 +96,7 @@ if [[ -n "$sanitizer_dyld_env" ]]; then
   xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
 fi
 
+readonly profraw="$test_tmp_dir/coverage.profraw"
 readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
 /usr/bin/sed \
   -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
@@ -113,7 +112,6 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
 id="$("./%(simulator_creator.py)s" "%(os_version)s" "%(device_type)s")"
 test_exit_code=0
 testlog=$(mktemp)
-
 
 test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
 intel_simulator_hack=false
@@ -148,11 +146,8 @@ else
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
   test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
   if [[ "$intel_simulator_hack" == true ]]; then
-    sliced_xctest_binary=/tmp/xctest_intel
-    if [[ ! -x "$sliced_xctest_binary" ]]; then
-      lipo -thin x86_64 -output "$sliced_xctest_binary" "$xctest_binary"
-    fi
-
+    sliced_xctest_binary="$test_tmp_dir/xctest_intel_bin"
+    lipo -thin x86_64 -output "$sliced_xctest_binary" "$xctest_binary"
     xctest_binary=$sliced_xctest_binary
   fi
 
@@ -192,7 +187,7 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
   exit 0
 fi
 
-readonly profdata="$TMP_DIR/coverage.profdata"
+readonly profdata="$test_tmp_dir/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
 lcov_args=(
@@ -217,7 +212,7 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   lcov_args+=("-arch=$arch")
 done
 
-readonly error_file="$TMP_DIR/llvm-cov-error.txt"
+readonly error_file="$test_tmp_dir/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
   export \
