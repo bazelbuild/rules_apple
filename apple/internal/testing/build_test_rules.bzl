@@ -78,7 +78,7 @@ number (for example, `"9.0"`).
 """,
             ),
             "targets": attr.label_list(
-                cfg = transition_support.apple_platform_split_transition,
+                cfg = apple_common.multi_arch_split,
                 doc = "The targets to check for successful build.",
                 # Since `CcInfo` is the currency provider for rules that
                 # propagate libraries for linking to Apple bundles, this is
@@ -89,9 +89,9 @@ number (for example, `"9.0"`).
                 providers = [[CcInfo]],
             ),
             # This is a public attribute due to an implementation detail of
-            # `transition_support.apple_platform_split_transition`. The private
-            # attribute of the same name is used in the implementation function
-            # to verify that the user has not modified it.
+            # `apple_common.multi_arch_split`. The private attribute of the
+            # same name is used in the implementation function to verify that
+            # the user has not modified it.
             "platform_type": attr.string(default = platform_type),
             "_platform_type": attr.string(default = platform_type),
             "_allowlist_function_transition": attr.label(
