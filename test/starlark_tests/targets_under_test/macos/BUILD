@@ -666,3 +666,31 @@ macos_unit_test(
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
+
+macos_unit_test(
+    name = "unit_test_data_deps",
+    data = [":runfiles1"],
+    minimum_os_version = "10.10",
+    tags = FIXTURE_TAGS,
+)
+
+filegroup(
+    name = "runfiles1",
+    # NOTE: we specify `data` instead of `srcs` because `data` puts the files
+    # into runfiles, while `srcs` puts them into the default outputs.
+    data = [
+        "runfile1.txt",
+        # Add a second-order dependency to check that the transitive runfiles
+        # are being added.
+        ":runfiles2",
+    ],
+    tags = FIXTURE_TAGS,
+)
+
+filegroup(
+    name = "runfiles2",
+    # NOTE: we specify `data` instead of `srcs` because `data` puts the files
+    # into runfiles, while `srcs` puts them into the default outputs.
+    data = ["runfile2.txt"],
+    tags = FIXTURE_TAGS,
+)

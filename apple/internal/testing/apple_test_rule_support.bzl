@@ -188,10 +188,16 @@ def _apple_test_rule_impl(ctx, test_type):
         is_executable = True,
     )
 
+    transitive_runfile_objects = [
+        ctx.attr.runner.default_runfiles,
+        ctx.attr.runner.data_runfiles,
+    ]
+
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
+        transitive_runfile_objects.append(data_dep.default_runfiles)
 
     return [
         # Repropagate the AppleBundleInfo and AppleTestInfo providers from the test bundle so that
@@ -215,9 +221,7 @@ def _apple_test_rule_impl(ctx, test_type):
             runfiles = ctx.runfiles(
                 files = direct_runfiles,
                 transitive_files = depset(transitive = transitive_runfiles),
-            )
-                .merge(ctx.attr.runner.default_runfiles)
-                .merge(ctx.attr.runner.data_runfiles),
+            ).merge_all(transitive_runfile_objects),
         ),
     ]
 

@@ -34,6 +34,10 @@ load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    ":rules/analysis_runfiles_test.bzl",
+    "analysis_runfiles_test",
+)
 
 def macos_unit_test_test_suite(name):
     """Test suite for macos_unit_test.
@@ -114,6 +118,16 @@ def macos_unit_test_test_suite(name):
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 11.0", "platform MACOS"],
         tags = [name],
+    )
+
+    analysis_runfiles_test(
+        name = "{}_transitive_runfiles_included".format(name),
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_data_deps",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile1.txt",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile2.txt",
+        ],
     )
 
     native.test_suite(
