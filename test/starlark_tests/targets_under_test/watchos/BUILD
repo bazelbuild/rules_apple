@@ -142,7 +142,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     watch_application = ":app",
@@ -249,7 +249,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_no_swift",
@@ -266,7 +266,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_swift",
@@ -283,7 +283,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     watch_application = ":watchos_app_swift",

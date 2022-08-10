@@ -67,7 +67,7 @@ def ios_ui_test_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
+            "MinimumOSVersion": "12.0",
             "UIDeviceFamily:0": "1",
         },
         tags = [name],

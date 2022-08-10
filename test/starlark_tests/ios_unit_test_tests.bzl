@@ -72,7 +72,7 @@ def ios_unit_test_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
+            "MinimumOSVersion": "12.0",
             "UIDeviceFamily:0": "1",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
@@ -127,7 +127,7 @@ def ios_unit_test_test_suite(name):
         name = "{}_test_target_bundles_framework_from_objc_library_runtime_deps".format(name),
         build_type = "simulator",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_8_0_minimum.framework/fmwk_8_0_minimum",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12.framework/fmwk_min_os_12",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_fmwk_from_objc_library_runtime_deps",
         tags = [name],

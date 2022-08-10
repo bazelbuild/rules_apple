@@ -37,7 +37,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -57,7 +57,7 @@ tvos_application(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -73,7 +73,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -88,7 +88,7 @@ tvos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -105,7 +105,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -123,7 +123,7 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -138,7 +138,7 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -152,7 +152,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -166,7 +166,7 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         ":dynamic_fmwk_depending_lib",
@@ -182,7 +182,7 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -195,7 +195,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -212,7 +212,7 @@ tvos_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-dead_strip"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -225,7 +225,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -239,7 +239,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -254,7 +254,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -268,7 +268,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -282,7 +282,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         ":static_fmwk_depending_lib",
@@ -305,7 +305,7 @@ generate_import_framework(
     name = "generated_tvos_dynamic_fmwk",
     archs = ["x86_64"],
     libtype = "dynamic",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     sdk = "appletvsimulator",
 )
 
@@ -325,7 +325,7 @@ generate_import_framework(
     name = "generated_tvos_static_fmwk",
     archs = ["x86_64"],
     libtype = "static",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     sdk = "appletvsimulator",
 )
 
@@ -336,7 +336,7 @@ tvos_static_framework(
     hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -346,7 +346,7 @@ tvos_static_framework(
 tvos_static_framework(
     name = "swift_static_fmwk",
     bundle_name = "swift_static_fmwk",
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [":swift_fmwk_lib"],
 )
@@ -365,7 +365,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -379,7 +379,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -393,7 +393,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -406,7 +406,7 @@ tvos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = FIXTURE_TAGS,
     test_host = ":app",
@@ -422,7 +422,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -448,7 +448,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -462,7 +462,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app",
     deps = [
@@ -478,7 +478,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -490,7 +490,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         ":objc_lib_with_runtime_dep_fmwk",
@@ -503,7 +503,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         ":dynamic_fmwk_depending_lib",
@@ -516,7 +516,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":app_with_imported_fmwk",
     deps = [
@@ -530,7 +530,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = FIXTURE_TAGS,
     test_host = ":app",
@@ -560,7 +560,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [":swift_lib"],
@@ -572,7 +572,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [":objc_to_swift_lib"],
@@ -646,7 +646,7 @@ tvos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [
         ":shared_lib",
@@ -662,7 +662,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     tags = FIXTURE_TAGS,
     deps = [
@@ -672,7 +672,7 @@ tvos_application(
 
 tvos_unit_test(
     name = "dedupe_test_test",
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     test_host = ":dedupe_test_app",
     deps = [
@@ -688,7 +688,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [":objc_lib_with_runtime_dep_fmwk"],
 )
@@ -699,7 +699,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [":objc_lib_with_inner_lib_with_runtime_dep_fmwk"],
 )
@@ -711,7 +711,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     tags = FIXTURE_TAGS,
     deps = [":objc_lib_with_runtime_dep_fmwk"],
 )

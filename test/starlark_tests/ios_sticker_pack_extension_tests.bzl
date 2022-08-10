@@ -56,7 +56,7 @@ def ios_sticker_pack_extension_test_suite(name):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "LSApplicationIsStickerProvider": "YES",
-            "MinimumOSVersion": "10.0",
+            "MinimumOSVersion": "12.0",
             "NSExtension:NSExtensionPointIdentifier": "com.apple.message-payload-provider",
             "UIDeviceFamily:0": "1",
         },

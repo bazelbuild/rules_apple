@@ -175,7 +175,7 @@ def tvos_application_test_suite(name):
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "9.0",
+            "MinimumOSVersion": "12.0",
             "UIDeviceFamily:0": "3",
         },
         tags = [name],

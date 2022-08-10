@@ -24,7 +24,7 @@ objc_library(
 )
 
 apple_static_library(
-    name = "example_library",
+    name = "example_library_os8",
     minimum_os_version = "8.0",
     platform_type = "ios",
     tags = FIXTURE_TAGS,
@@ -50,7 +50,7 @@ apple_static_library(
 apple_static_library(
     name = "example_library_with_avoid_deps",
     avoid_deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkLowerLib"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     platform_type = "ios",
     tags = FIXTURE_TAGS,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkUpperLib"],
@@ -59,7 +59,7 @@ apple_static_library(
 apple_static_library(
     name = "example_library_with_cc_avoid_deps",
     avoid_deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcLowerLib"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     platform_type = "ios",
     tags = FIXTURE_TAGS,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcUpperLib"],

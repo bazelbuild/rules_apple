@@ -61,8 +61,8 @@ def tvos_static_framework_test_suite(name):
         },
         binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
         tags = [name],
     )
 
@@ -91,8 +91,8 @@ def tvos_static_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
         binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
         tags = [name],
     )
 
