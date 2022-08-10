@@ -119,7 +119,7 @@ def ios_application_resources_test_suite(name):
         ],
         plist_test_file = "$BUNDLE_ROOT/Info.plist",
         plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon29x29",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
@@ -133,13 +133,13 @@ def ios_application_resources_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_launch_images",
         contains = [
-            "$BUNDLE_ROOT/app_icon29x29@2x.png",
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
             "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
             "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon29x29",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
             "UILaunchImages:0:UILaunchImageName": "launch_image-700",
             "UILaunchImages:0:UILaunchImageOrientation": "Portrait",
             "UILaunchImages:0:UILaunchImageSize": "{320, 480}",
