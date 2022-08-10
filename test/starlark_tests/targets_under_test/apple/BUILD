@@ -297,7 +297,7 @@ dummy_test_runner(
 )
 
 apple_xcframework(
-    name = "ios_dynamic_xcframework",
+    name = "ios_dynamic_xcframework_min_os_12",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -307,7 +307,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -579,7 +579,7 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "11.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -604,30 +604,10 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "10.0",
+        "ios": "12.0",
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":swift_fmwk_lib"],
-)
-
-apple_xcframework(
-    name = "ios_dynamic_xcframework_min_ver_10",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    ios = {
-        "simulator": ["x86_64"],
-        "device": ["arm64"],
-    },
-    minimum_os_versions = {
-        "ios": "10.0",
-    },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
-    tags = TARGETS_UNDER_TEST_TAGS,
-    deps = [":fmwk_lib"],
 )
 
 apple_xcframework(
@@ -645,7 +625,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -666,7 +646,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -690,7 +670,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -710,7 +690,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -737,7 +717,7 @@ apple_xcframework(
     },
     linkopts = ["-x"],
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -762,7 +742,7 @@ apple_xcframework(
     },
     linkopts = ["-x"],
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -786,7 +766,7 @@ apple_xcframework(
     },
     linkopts = ["-dead_strip"],
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -812,7 +792,7 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -833,7 +813,7 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -844,7 +824,7 @@ apple_xcframework(
 )
 
 apple_static_xcframework(
-    name = "ios_static_xcframework",
+    name = "ios_static_xcframework_min_os_8",
     ios = {
         "simulator": [
             "x86_64",
@@ -979,7 +959,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":StaticFmwkUpperLib"],
@@ -991,7 +971,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -1010,7 +990,7 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":swift_lib_for_static_xcfmwk"],
@@ -1027,7 +1007,7 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":swift_lib_for_static_xcfmwk_custom_bundle_name"],
@@ -1043,7 +1023,7 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "12.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -1067,6 +1047,9 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": "12.0",
     },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
     tags = TARGETS_UNDER_TEST_TAGS,
     deps = [":fmwk_lib"],
 )
@@ -1150,7 +1133,7 @@ swift_library(
 apple_universal_binary(
     name = "multi_arch_cc_binary",
     binary = "//test/starlark_tests/resources:cc_test_binary",
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     platform_type = "macos",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
@@ -1162,7 +1145,7 @@ apple_universal_binary(
         "x86_64",
         "arm64",
     ],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     platform_type = "macos",
     tags = TARGETS_UNDER_TEST_TAGS,
 )
