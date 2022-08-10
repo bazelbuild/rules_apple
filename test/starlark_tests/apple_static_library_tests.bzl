@@ -45,8 +45,8 @@ def apple_static_library_test_suite(name):
     # Test that the output library follows a given form of {target name}_lipo.a.
     analysis_target_outputs_test(
         name = "{}_output_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
-        expected_outputs = ["example_library_lipo.a"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
+        expected_outputs = ["example_library_os14_lipo.a"],
         tags = [name],
     )
 
@@ -54,7 +54,7 @@ def apple_static_library_test_suite(name):
     # for single arch builds.
     analysis_symlink_test(
         name = "{}_ios_symlink_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
         tags = [name],
     )
 
@@ -63,7 +63,7 @@ def apple_static_library_test_suite(name):
     analysis_lipo_test(
         name = "{}_ios_lipo_test".format(name),
         expected_sdk_platform = "MacOSX",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
         tags = [name],
     )
 
@@ -80,9 +80,9 @@ def apple_static_library_test_suite(name):
     # other library archive files that could be required at runtime execution.
     analysis_runfiles_test(
         name = "{}_runfiles_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
         expected_runfiles = [
-            "test/starlark_tests/targets_under_test/apple/static_library/example_library_lipo.a",
+            "test/starlark_tests/targets_under_test/apple/static_library/example_library_os14_lipo.a",
             "test/starlark_tests/targets_under_test/apple/static_library/libmain_lib.a",
         ],
         tags = [name],
@@ -93,7 +93,7 @@ def apple_static_library_test_suite(name):
     binary_contents_test(
         name = "{}_file_info_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
         binary_test_file = "$BINARY",
         binary_contains_file_info = ["current ar archive"],
         tags = [name],
@@ -104,7 +104,7 @@ def apple_static_library_test_suite(name):
     binary_contents_test(
         name = "{}_ios_binary_contents_intel_simulator_os8_platform_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os8",
         cpus = {
             "ios_multi_cpus": ["x86_64"],
         },
