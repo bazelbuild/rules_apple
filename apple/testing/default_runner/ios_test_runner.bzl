@@ -19,7 +19,7 @@ load(
     "AppleTestRunnerInfo",
 )
 
-def _get_template_substitutions(*, device_type, os_version, simulator_creator, testrunner):
+def _get_template_substitutions(*, device_type, os_version, simulator_creator, testrunner, test_filter):
     """Returns the template substitutions for this runner."""
     subs = {
         "device_type": device_type,

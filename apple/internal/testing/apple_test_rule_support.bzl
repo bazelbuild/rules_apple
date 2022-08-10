@@ -103,7 +103,7 @@ This aspect propagates a `CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None, test_filter = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -114,6 +114,9 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
+    if test_filter:
+        subs["test_filter"] = test_filter
+
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -134,6 +137,10 @@ def _apple_test_rule_impl(ctx, test_type):
     test_bundle_target = ctx.attr.deps[0]
 
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
+
+    test_filter = ctx.attr.test_filter
+    if len(test_filter) == 0:
+        test_filter = None
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
@@ -175,6 +182,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_bundle,
             test_environment,
             test_host = test_host_archive,
+            test_filter = test_filter,
         ),
         is_executable = True,
     )

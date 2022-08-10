@@ -209,6 +209,12 @@ AppleTestRunnerInfo provider.
         ),
         cfg = "exec",
     ),
+    "test_filter": attr.string(
+        doc = """
+Test filter string that will be passed into the test runner to select which tests will run.
+""",
+        default = "",
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):
