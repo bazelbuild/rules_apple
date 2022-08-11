@@ -509,6 +509,8 @@ provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
 
+The `provisioning_profile` attribute needs to be set to run the test on a real device.
+
 To run the same test on multiple simulators/devices see
 [ios_ui_test_suite](#ios_ui_test_suite).
 
@@ -551,6 +553,8 @@ the tests will run outside the context of an iOS application. Because of this,
 certain functionalities might not be present (e.g. UI layout, NSUserDefaults).
 You can find more information about app and library testing for Apple platforms
 [here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+The `provisioning_profile` attribute needs to be set to run the test on a real device.
 
 To run the same test on multiple simulators/devices see
 [ios_unit_test_suite](#ios_unit_test_suite).
