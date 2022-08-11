@@ -152,7 +152,7 @@ TEST_FILTER="%(test_filter)s"
 # flag to set tests_to_run value in ios_test_runner's launch_options.
 # Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests
 # is passed to "tests_to_run"
-if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER"]]; then
+if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
     LAUNCH_OPTIONS_JSON_STR+=","
   fi
@@ -160,12 +160,10 @@ if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER"]]; then
   IFS=","
   if [[ -n "$TESTBRIDGE_TEST_ONLY" && -n "$TEST_FILTER" ]]; then
     ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+  elif [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
   else
-    if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
-      ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
-    else
-      ALL_TESTS=("$TEST_FILTER")
-    fi
+    ALL_TESTS=("$TEST_FILTER")
   fi
   
   for TEST in $ALL_TESTS; do

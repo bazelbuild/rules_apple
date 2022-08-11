@@ -114,8 +114,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
-    if test_filter:
-        subs["test_filter"] = test_filter
+    subs["test_filter"] = test_filter or ""
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -136,8 +135,6 @@ def _apple_test_rule_impl(ctx, test_type):
     test_bundle_target = ctx.attr.deps[0]
 
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
-
-    test_filter = ctx.attr.test_filter
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
@@ -179,7 +176,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_bundle,
             test_environment,
             test_host = test_host_archive,
-            test_filter = test_filter,
+            test_filter = ctx.attr.test_filter,
         ),
         is_executable = True,
     )

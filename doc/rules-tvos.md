@@ -306,7 +306,7 @@ i.e. `--features=-swift.no_generated_header`).
 ## tvos_ui_test
 
 <pre>
-tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>, <a href="#tvos_ui_test-test_host">test_host</a>)
+tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>, <a href="#tvos_ui_test-test_filter">test_filter</a>, <a href="#tvos_ui_test-test_host">test_host</a>)
 </pre>
 
 
@@ -333,6 +333,7 @@ the attributes inherited by all test rules, please check the
 | <a id="tvos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="tvos_ui_test-platform_type"></a>platform_type |  -   | String | optional | "tvos" |
 | <a id="tvos_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="tvos_ui_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="tvos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
 
@@ -341,7 +342,7 @@ the attributes inherited by all test rules, please check the
 ## tvos_unit_test
 
 <pre>
-tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>, <a href="#tvos_unit_test-test_host">test_host</a>)
+tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>, <a href="#tvos_unit_test-test_filter">test_filter</a>, <a href="#tvos_unit_test-test_host">test_host</a>)
 </pre>
 
 
@@ -376,6 +377,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="tvos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="tvos_unit_test-platform_type"></a>platform_type |  -   | String | optional | "tvos" |
 | <a id="tvos_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="tvos_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="tvos_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
 

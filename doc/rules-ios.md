@@ -499,7 +499,7 @@ Builds and bundles an iOS Sticker Pack Extension.
 ## ios_ui_test
 
 <pre>
-ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>, <a href="#ios_ui_test-test_host">test_host</a>)
+ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>)
 </pre>
 
 iOS UI Test rule.
@@ -528,6 +528,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="ios_ui_test-platform_type"></a>platform_type |  -   | String | optional | "ios" |
 | <a id="ios_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="ios_ui_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="ios_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
 
@@ -536,7 +537,7 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test
 
 <pre>
-ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>, <a href="#ios_unit_test-test_host">test_host</a>)
+ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>)
 </pre>
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
@@ -570,6 +571,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="ios_unit_test-platform_type"></a>platform_type |  -   | String | optional | "ios" |
 | <a id="ios_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="ios_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="ios_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
 
