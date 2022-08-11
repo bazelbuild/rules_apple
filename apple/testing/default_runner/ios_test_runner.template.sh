@@ -158,7 +158,16 @@ if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER"]]; then
   fi
 
   IFS=","
-  ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+  if [[ -n "$TESTBRIDGE_TEST_ONLY" && -n "$TEST_FILTER" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+  else
+    if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
+      ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+    else
+      ALL_TESTS=("$TEST_FILTER")
+    fi
+  fi
+  
   for TEST in $ALL_TESTS; do
     if [[ $TEST == -* ]]; then
       if [[ -n "$SKIP_TESTS" ]]; then

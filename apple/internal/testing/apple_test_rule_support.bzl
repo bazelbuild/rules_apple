@@ -117,7 +117,6 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     if test_filter:
         subs["test_filter"] = test_filter
 
-
     return {"%(" + k + ")s": subs[k] for k in subs}
 
 def _get_coverage_execution_environment(_ctx, covered_binaries):
@@ -139,8 +138,6 @@ def _apple_test_rule_impl(ctx, test_type):
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
 
     test_filter = ctx.attr.test_filter
-    if len(test_filter) == 0:
-        test_filter = None
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
