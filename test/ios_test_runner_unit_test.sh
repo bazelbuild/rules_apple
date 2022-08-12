@@ -420,13 +420,6 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
-test_env = {
-    "SomeVariable1": "Its My First Variable",
-    "SomeVariable2": "Its My Second Variable",
-    "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
-    "IMAGE_DIR": "/Project/My Tests/Images"
-}
-
 objc_library(
     name = "test_filter_unit_test_lib",
     srcs = ["test_filter_unit_test.m"],
@@ -438,7 +431,6 @@ ios_unit_test(
     deps = [":test_filter_unit_test_lib"],
     minimum_os_version = "9.0",
     test_host = ":app",
-    env = test_env,
     runner = ":ios_x86_64_sim_runner",
     test_filter = "$1",
 )
@@ -711,7 +703,7 @@ function test_ios_unit_test_multi_skip_test_filter_build_attribute() {
   expect_log "Executed 1 test, with 0 failures"
 }
 
-function test_ios_unit_test_with_skip_and_only_filters() {
+function test_ios_unit_test_with_skip_and_only_filters_build_attribute() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_tests_test_filter TestFilterUnitTest,-TestFilterUnitTest/testPass2
@@ -719,6 +711,20 @@ function test_ios_unit_test_with_skip_and_only_filters() {
 
   expect_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
   expect_not_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2
+  do_ios_test --test_filter=TestFilterUnitTest/testPass3 //ios:TestFilterUnitTest || fail "should pass"
+
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
   expect_log "Test Suite 'TestFilterUnitTest' passed"
   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
