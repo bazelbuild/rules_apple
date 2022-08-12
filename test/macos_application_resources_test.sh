@@ -70,7 +70,7 @@ macos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.10",
+    minimum_os_version = "10.13",
     deps = [":lib", ":resources"],
 )
 EOF
@@ -128,7 +128,7 @@ macos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.10",
+    minimum_os_version = "10.13",
     deps = [":lib", ":resources"],
 )
 EOF

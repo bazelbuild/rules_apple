@@ -122,7 +122,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "12.0",
     deps = [":shared_lib"],
 )
 
@@ -132,7 +132,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9",
+    minimum_os_version = "13.0",
     strings = ["app.strings"],
     deps = [":app_lib"],
 )
@@ -199,7 +199,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "12.0",
     deps = [":shared_lib_with_no_direct_resources"],
 )
 
@@ -209,7 +209,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9",
+    minimum_os_version = "13.0",
     strings = ["app.strings"],
     deps = [":app_lib_with_no_direct_resources"],
 )
@@ -233,7 +233,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "12.0",
     deps = [":shared_lib"],
 )
 
@@ -248,7 +248,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "12.0",
     deps = [":resource_only_lib", ":shared_lib", ":only_main_lib"],
 )
 EOF

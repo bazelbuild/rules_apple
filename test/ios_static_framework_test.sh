@@ -35,7 +35,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    minimum_os_version = "7.0",
+    minimum_os_version = "12.0",
     deps = [":framework_lib"],
 )
 
@@ -79,7 +79,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 ios_static_framework(
     name = "sdk",
     bundle_name = "different",
-    minimum_os_version = "7.0",
+    minimum_os_version = "12.0",
     deps = [":framework_lib"],
 )
 
@@ -125,7 +125,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    minimum_os_version = "7.0",
+    minimum_os_version = "12.0",
     deps = [":framework_lib"],
 )
 
