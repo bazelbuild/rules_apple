@@ -103,7 +103,7 @@ This aspect propagates a `CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None, test_filter = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -114,6 +114,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
+    subs["test_filter"] = test_filter or ""
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -175,6 +176,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_bundle,
             test_environment,
             test_host = test_host_archive,
+            test_filter = ctx.attr.test_filter,
         ),
         is_executable = True,
     )

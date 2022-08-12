@@ -146,17 +146,26 @@ if [[ -n "${command_line_args}" ]]; then
   LAUNCH_OPTIONS_JSON_STR+="\"args\":[\"$command_line_args\"]"
 fi
 
+TEST_FILTER="%(test_filter)s"
+
 # Use the TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
 # flag to set tests_to_run value in ios_test_runner's launch_options.
 # Any test prefixed with '-' will be passed to "skip_tests". Otherwise the tests
 # is passed to "tests_to_run"
-if [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
+if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
     LAUNCH_OPTIONS_JSON_STR+=","
   fi
 
   IFS=","
-  ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+  if [[ -n "$TESTBRIDGE_TEST_ONLY" && -n "$TEST_FILTER" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+  elif [[ -n "$TESTBRIDGE_TEST_ONLY" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+  else
+    ALL_TESTS=("$TEST_FILTER")
+  fi
+  
   for TEST in $ALL_TESTS; do
     if [[ $TEST == -* ]]; then
       if [[ -n "$SKIP_TESTS" ]]; then
