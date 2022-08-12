@@ -45,7 +45,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )

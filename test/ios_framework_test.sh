@@ -166,7 +166,7 @@ ios_application(
     families = ["iphone"],
     frameworks = ["//framework:framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -177,7 +177,7 @@ ios_extension(
     families = ["iphone"],
     frameworks = ["//framework:framework"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -219,7 +219,7 @@ EOF
 # TODO(cparsons): This should eventually cause failure instead of merely a
 # warning.
 function test_extension_depends_on_unsafe_framework() {
-  create_minimal_ios_framework_with_params False "9.0" "[]"
+  create_minimal_ios_framework_with_params False "12.0" "[]"
   create_minimal_ios_application_and_extension
   do_build ios //app:app || fail "Should build"
 

@@ -97,7 +97,7 @@ ios_application(
     extensions = [":stickerpack"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -107,7 +107,7 @@ ios_sticker_pack_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     # TODO(b/120618397): Reenable the stickers.
     # sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
@@ -130,7 +130,7 @@ ios_imessage_application(
     extension = ":stickerpack",
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
 )
 
@@ -139,7 +139,7 @@ ios_sticker_pack_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     # TODO(b/120618397): Reenable the stickers.
     # sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:sticker_pack_ios"],
@@ -192,7 +192,7 @@ ios_application(
     extensions = [":stickerpack"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -202,7 +202,7 @@ ios_sticker_pack_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     sticker_assets = ["@build_bazel_rules_apple//test/testdata/resources:app_icons_ios"],
 )
@@ -227,7 +227,7 @@ ios_application(
     extensions = [":imessage_ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -238,7 +238,7 @@ ios_imessage_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -264,7 +264,7 @@ ios_application(
     extensions = [":imessage_ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -275,7 +275,7 @@ ios_imessage_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "12.0",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )

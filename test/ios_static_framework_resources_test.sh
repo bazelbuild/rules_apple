@@ -35,7 +35,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    minimum_os_version = "7.0",
+    minimum_os_version = "12.0",
     deps = [":framework_lib"],
     avoid_deps = [":framework_dependent_lib"],
 EOF
@@ -133,7 +133,7 @@ function test_sdk_contains_expected_files() {
 
   # Verify compiled NIBs.
   assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
+      "sdk.framework/view_ios.nib"
 }
 
 # Tests that the SDK's .framework bundle does not contain headers when not needed.
@@ -169,7 +169,7 @@ function test_sdk_does_not_contain_headers() {
 
   # Verify compiled NIBs.
   assert_zip_not_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
+      "sdk.framework/view_ios.nib"
 }
 
 
@@ -214,7 +214,7 @@ function test_sdk_contains_expected_files_without_excluding_resources() {
 
   # Verify compiled NIBs.
   assert_zip_contains "test-bin/sdk/sdk.zip" \
-      "sdk.framework/view_ios~iphone.nib/"
+      "sdk.framework/view_ios.nib"
 }
 
 run_suite "ios_static_framework bundling resource tests"
