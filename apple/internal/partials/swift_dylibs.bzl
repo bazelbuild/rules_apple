@@ -127,16 +127,6 @@ def _swift_dylib_action(
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
-def _target_platform_is_arm_simulator(platform_prerequisites):
-    """Returns True if the target platform is a simulator with arm64 architecture, otherwise False.
-
-    Args:
-      platform_prerequisites: Struct containing information on the platform being targeted.
-    """
-
-    return (platform_prerequisites.apple_fragment.single_arch_cpu == "arm64" and
-            not platform_prerequisites.platform.is_device)
-
 def _swift_dylibs_partial_impl(
         *,
         actions,
@@ -175,13 +165,7 @@ def _swift_dylibs_partial_impl(
     swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_prerequisites.platform_type)]
     swift_dylibs_path_prefix = "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-"
     swift_dylibs_paths = [swift_dylibs_path_prefix + "5.5"]
-
-    # Workaround for https://bugs.swift.org/browse/SR-16010.
-    if (target_min_os < swift_min_os and
-        # There's no such a simulator on Apple silicon Macs with a minimum OS
-        # version before ABI stability, so it's unnecessary to bundle the
-        # original Swift runtime here.
-        not _target_platform_is_arm_simulator(platform_prerequisites)):
+    if target_min_os < swift_min_os:
         swift_dylibs_paths.append(swift_dylibs_path_prefix + "5.0")
 
     transitive_binaries = depset(
