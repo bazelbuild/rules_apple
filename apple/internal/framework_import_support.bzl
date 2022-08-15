@@ -16,6 +16,10 @@
 
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+)
+load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
@@ -207,26 +211,6 @@ def _classify_framework_imports(framework_imports):
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
 
-def _filter_swift_module_files_for_architecture(architecture, swift_module_files):
-    """Filters Swift module files for a given architecture.
-
-    Traverses a list of Swift module files (.swiftdoc, .swiftinterface, .swiftmodule) and selects
-    the effective files based on target architecture and file's basename without extension.
-
-    Args:
-        architecture: Effective target architecture (e.g. 'x86_64', 'arm64').
-        swift_module_files: List of Swift module files to filter using architecture.
-    Returns:
-        List of Swift module files for given architecture.
-    """
-    files = []
-    for file in swift_module_files:
-        filename, _ = paths.split_extension(file.basename)
-        if filename == architecture:
-            files.append(file)
-
-    return files
-
 def _framework_import_info_with_dependencies(
         *,
         build_archs,
@@ -255,6 +239,56 @@ def _framework_import_info_with_dependencies(
             transitive = transitive_framework_imports,
         ),
     )
+
+def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_files):
+    """Filters Swift module files for a target triplet.
+
+    Traverses a list of Swift module files (.swiftdoc, .swiftinterface, .swiftmodule) and selects
+    the effective files based on target triplet. This method supports filtering for multiple
+    Swift module directories (e.g. XCFramework bundles).
+
+    Args:
+        target_triplet: Effective target triplet from CcToolchainInfo provider.
+        swift_module_files: List of Swift module files to filter using target triplet.
+    Returns:
+        List of Swift module files for given target_triplet.
+    """
+    files_by_module = group_files_by_directory(
+        files = swift_module_files,
+        extensions = ["swiftmodule"],
+        attr = "swift_module_files",
+    )
+
+    def _get_file_with_name(files, filename):
+        for file in files:
+            name, _ext = paths.split_extension(file.basename)
+            if name == filename:
+                return file
+        return None
+
+    filtered_files = []
+    for _module, module_files in files_by_module.items():
+        # Environment suffix is stripped for device interfaces.
+        environment = ""
+        if target_triplet.environment != "device":
+            environment = "-" + target_triplet.environment
+
+        target_triplet_file = _get_file_with_name(
+            files = module_files.to_list(),
+            filename = "{architecture}-{vendor}-{os}{environment}".format(
+                architecture = target_triplet.architecture,
+                environment = environment,
+                os = target_triplet.os,
+                vendor = target_triplet.vendor,
+            ),
+        )
+        architecture_file = _get_file_with_name(
+            files = module_files.to_list(),
+            filename = target_triplet.architecture,
+        )
+        filtered_files.append(target_triplet_file or architecture_file)
+
+    return filtered_files
 
 def _objc_provider_with_dependencies(
         *,
@@ -376,8 +410,8 @@ framework_import_support = struct(
     cc_info_with_dependencies = _cc_info_with_dependencies,
     classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
-    filter_swift_module_files_for_architecture = _filter_swift_module_files_for_architecture,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
+    get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
