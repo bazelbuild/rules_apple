@@ -195,18 +195,18 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     headers = filter_by_library_identifier(files_by_category.header_imports)
     module_maps = filter_by_library_identifier(files_by_category.module_map_imports)
 
-    swiftmodules = framework_import_support.filter_swift_module_files_for_architecture(
-        architecture = target_triplet.architecture,
+    swiftmodules = framework_import_support.get_swift_module_files_with_target_triplet(
         swift_module_files = filter_by_library_identifier(
             files_by_category.swift_module_imports,
         ),
+        target_triplet = target_triplet,
     )
 
-    swift_module_interfaces = framework_import_support.filter_swift_module_files_for_architecture(
-        architecture = target_triplet.architecture,
+    swift_module_interfaces = framework_import_support.get_swift_module_files_with_target_triplet(
         swift_module_files = filter_by_library_identifier(
             files_by_category.swift_interface_imports,
         ),
+        target_triplet = target_triplet,
     )
 
     framework_files = filter_by_library_identifier(xcframework.files)
@@ -332,9 +332,9 @@ def _get_xcframework_library_with_xcframework_processor(
             **intermediates_common
         )
         args.add_all(
-            framework_import_support.filter_swift_module_files_for_architecture(
-                architecture = target_triplet.architecture,
+            framework_import_support.get_swift_module_files_with_target_triplet(
                 swift_module_files = files_by_category.swift_interface_imports,
+                target_triplet = target_triplet,
             ),
             before_each = "--swiftinterface_file",
         )

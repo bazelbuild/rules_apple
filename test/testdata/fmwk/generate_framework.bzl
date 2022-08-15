@@ -22,6 +22,16 @@ load(
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
+_SDK_TO_OS = {
+    "iphonesimulator": "ios",
+    "iphoneos": "ios",
+    "macosx": "macos",
+    "appletvsimulator": "tvos",
+    "appletvos": "tvos",
+    "watchsimulator": "watchos",
+    "watchos": "watchos",
+}
+
 def _generate_import_framework_impl(ctx):
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
@@ -106,14 +116,24 @@ def _generate_import_framework_impl(ctx):
                 extension = "swiftinterface",
             )
             if swiftinterface:
-                module_interfaces.append(
+                module_interfaces.extend([
                     generation_support.copy_file(
                         actions = actions,
                         file = swiftinterface,
                         label = label,
                         target_filename = "%s.swiftinterface" % architectures[0],
                     ),
-                )
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = swiftinterface,
+                        label = label,
+                        target_filename = "{arch}-apple-{os}{environment}.swiftinterface".format(
+                            arch = architectures[0],
+                            os = _SDK_TO_OS[sdk],
+                            environment = "-simulator" if sdk.endswith("simulator") else "",
+                        ),
+                    ),
+                ])
             else:
                 swiftmodule = generation_support.get_file_with_extension(
                     files = swift_library_files,
@@ -154,6 +174,15 @@ generate_import_framework = rule(
             doc = """
 Determines what SDK the framework will be built under.
 """,
+            values = [
+                "appletvos",
+                "appletvsimulator",
+                "iphoneos",
+                "iphonesimulator",
+                "macosx",
+                "watchos",
+                "watchsimulator",
+            ],
         ),
         "minimum_os_version": attr.string(
             doc = """
