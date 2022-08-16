@@ -7,42 +7,36 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])
 
+package(
+    default_visibility = ["//apple:__subpackages__"],
+)
+
 bzl_library(
     name = "bundle_paths",
     srcs = ["bundle_paths.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "@bazel_skylib//lib:paths",
-    ],
+    deps = ["@bazel_skylib//lib:paths"],
 )
 
 bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "@bazel_tools//tools/cpp:toolchain_utils",
-    ],
+    deps = ["@bazel_tools//tools/cpp:toolchain_utils"],
 )
 
 bzl_library(
     name = "defines",
     srcs = ["defines.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
+)
+
+bzl_library(
+    name = "files",
+    srcs = ["files.bzl"],
+    deps = ["@bazel_skylib//lib:paths"],
 )
 
 bzl_library(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
 )
 
 # Consumed by bazel tests.
@@ -50,7 +44,4 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]),
-    visibility = [
-        "//apple:__subpackages__",
-    ],
 )

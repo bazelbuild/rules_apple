@@ -88,6 +88,10 @@ load(
     "swift_usage_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
+    "files",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
@@ -567,6 +571,13 @@ def _apple_xcframework_impl(ctx):
             split_attr_keys = link_output.split_attr_keys,
         )
 
+        environment_plist = files.get_file_with_name(
+            name = "environment_plist_{platform}".format(
+                platform = link_output.platform,
+            ),
+            files = ctx.files._environment_plist_files,
+        )
+
         processor_partials = [
             partials.apple_bundle_info_partial(
                 actions = actions,
@@ -611,8 +622,7 @@ def _apple_xcframework_impl(ctx):
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
-                # TODO(b/174858377): Select which environment_plist to use based on Apple platform.
-                environment_plist = ctx.file._environment_plist_ios,
+                environment_plist = environment_plist,
                 launch_storyboard = None,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
@@ -771,9 +781,11 @@ apple_xcframework = rule(
             "_allowlist_function_transition": attr.label(
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
-            "_environment_plist_ios": attr.label(
-                allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            "_environment_plist_files": attr.label_list(
+                default = [
+                    "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                    "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+                ],
             ),
             "bundle_id": attr.string(
                 doc = """
@@ -837,16 +849,28 @@ for what is supported.
             ),
             "ios": attr.string_list_dict(
                 doc = """
-A dictionary of strings indicating which platform variants should be built for the `ios` platform (
+A dictionary of strings indicating which platform variants should be built for the iOS platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "tvos": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built for the tvOS platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `i386`, `arm64`) as their values.
 """,
             ),
             "minimum_os_versions": attr.string_dict(
                 doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
-as keys.
+dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`,
+or `tvos` as keys:
+
+    minimum_os_versions = {
+        "ios": "13.0",
+        "tvos": "15.0",
+    }
 """,
                 mandatory = True,
             ),

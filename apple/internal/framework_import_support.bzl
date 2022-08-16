@@ -14,19 +14,11 @@
 
 """Support methods for Apple framework import rules."""
 
+load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-)
-load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
-    "SwiftInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift_common.bzl",
-    "swift_common",
-)
+load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
+load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
+load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _cc_info_with_dependencies(
@@ -259,13 +251,6 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
         attr = "swift_module_files",
     )
 
-    def _get_file_with_name(files, filename):
-        for file in files:
-            name, _ext = paths.split_extension(file.basename)
-            if name == filename:
-                return file
-        return None
-
     filtered_files = []
     for _module, module_files in files_by_module.items():
         # Environment suffix is stripped for device interfaces.
@@ -273,18 +258,18 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
         if target_triplet.environment != "device":
             environment = "-" + target_triplet.environment
 
-        target_triplet_file = _get_file_with_name(
+        target_triplet_file = files.get_file_with_name(
             files = module_files.to_list(),
-            filename = "{architecture}-{vendor}-{os}{environment}".format(
+            name = "{architecture}-{vendor}-{os}{environment}".format(
                 architecture = target_triplet.architecture,
                 environment = environment,
                 os = target_triplet.os,
                 vendor = target_triplet.vendor,
             ),
         )
-        architecture_file = _get_file_with_name(
+        architecture_file = files.get_file_with_name(
             files = module_files.to_list(),
-            filename = target_triplet.architecture,
+            name = target_triplet.architecture,
         )
         filtered_files.append(target_triplet_file or architecture_file)
 

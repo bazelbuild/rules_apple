@@ -316,6 +316,34 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "tvos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": "12.0",
+        "ios": "12.0",
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = TARGETS_UNDER_TEST_TAGS,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework",
     bundle_id = "com.google.example",
     infoplists = [
