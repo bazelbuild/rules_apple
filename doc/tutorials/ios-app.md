@@ -8,7 +8,7 @@ In this tutorial, you learn how to:
 
 *   Set up the environment by installing Bazel and Xcode, and downloading the
     sample project
-*   Set up a Bazel [workspace](/concepts/build-ref#workspace) that contained the source code
+*   Set up a Bazel [workspace](https://bazel.build/concepts/build-ref#workspace) that contained the source code
     for the app and a `WORKSPACE` file that identifies the top level of the
     workspace directory
 *   Update the `WORKSPACE` file to contain references to the required
@@ -23,7 +23,7 @@ To get started, install Bazel and Xcode, and get the sample project.
 
 ### Install Bazel
 
-Follow the [installation instructions](/install/) to install Bazel and
+Follow the [installation instructions](https://bazel.build/install) to install Bazel and
 its dependencies.
 
 ### Install Xcode
@@ -55,7 +55,7 @@ tutorial are in `$HOME/examples/tutorial/ios-app`.
 
 ## Set up a workspace
 
-A [workspace](/concepts/build-ref#workspace) is a directory that contains the
+A [workspace](https://bazel.build/concepts/build-ref#workspace) is a directory that contains the
 source files for one or more software projects, as well as a `WORKSPACE` file
 and `BUILD` files that contain the instructions that Bazel uses to build
 the software. The workspace may also contain symbolic links to output
@@ -81,7 +81,7 @@ export WORKSPACE=$HOME/examples/tutorial
 
 Every workspace must have a text file named `WORKSPACE` located in the top-level
 workspace directory. This file may be empty or it may contain references
-to [external dependencies](/docs/external) required to build the
+to [external dependencies](https://bazel.build/docs/external) required to build the
 software.
 
 For now, you'll create an empty `WORKSPACE` file, which simply serves to
@@ -102,7 +102,7 @@ This creates and opens the empty `WORKSPACE` file.
 To build applications for Apple devices, Bazel needs to pull the latest
 [Apple build rules](https://github.com/bazelbuild/rules_apple)
 from its GitHub repository. To enable this, add the following
-[`git_repository`](/reference/be/workspace#git_repository)
+[`git_repository`](https://bazel.build/reference/be/workspace#git_repository)
 rules to your `WORKSPACE` file:
 
 ```python
@@ -174,7 +174,7 @@ rule is built into the Bazel package.
 
 Bazel provides several build rules that you can use to build an app for the
 iOS platform. For this tutorial, you'll first use the
-[`objc_library`](/reference/be/objective-c#objc_library) rule to tell Bazel
+[`objc_library`](https://bazel.build/reference/be/objective-c#objc_library) rule to tell Bazel
 how to build a static library from the app source code and Xib files. Then
 you'll use the
 [`ios_application`](https://github.com/bazelbuild/rules_apple/tree/main/doc)
