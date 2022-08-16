@@ -85,7 +85,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
 )
@@ -182,7 +182,7 @@ ios_unit_test(
     name = "PassingUnitTest",
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -190,7 +190,7 @@ ios_unit_test(
     name = "PassingWithHost",
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -204,7 +204,7 @@ ios_unit_test(
     name = "PassingUnitSwiftTest",
     infoplists = ["PassUnitSwiftTest-Info.plist"],
     deps = [":pass_unit_swift_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -218,7 +218,7 @@ ios_unit_test(
     name = 'FailingUnitTest',
     infoplists = ["FailUnitTest-Info.plist"],
     deps = [":fail_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -226,7 +226,7 @@ ios_unit_test(
     name = 'FailingWithHost',
     infoplists = ["FailUnitTest-Info.plist"],
     deps = [":fail_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -276,7 +276,7 @@ ios_unit_test(
     name = 'EnvUnitTest',
     infoplists = ["EnvUnitTest-Info.plist"],
     deps = [":env_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -284,7 +284,7 @@ ios_unit_test(
     name = 'EnvWithHost',
     infoplists = ["EnvUnitTest-Info.plist"],
     deps = [":env_unit_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )

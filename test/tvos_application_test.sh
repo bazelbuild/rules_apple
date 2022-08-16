@@ -65,7 +65,7 @@ tvos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -122,7 +122,7 @@ tvos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "bogus.mobileprovision",
     deps = [":lib"],
 )

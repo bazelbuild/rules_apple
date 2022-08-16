@@ -81,7 +81,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
 EOF
 
   if [[ -n "$product_type" ]]; then
@@ -112,7 +112,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [
         ":frameworkDependingLib",
@@ -225,7 +225,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     ipa_post_processor = "post_processor.sh",
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -254,7 +254,7 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     linkopts = ["-alias", "_main", "_linkopts_test_main"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -272,8 +272,8 @@ EOF
 function test_additional_linker_inputs_expansion() {
   create_common_files
 
-  cat >> app/BUILD <<'EOF'
-genrule(name = "linker_input", cmd="touch $@", outs=["a.lds"])
+  cat >> app/BUILD <<EOF
+genrule(name = "linker_input", cmd="touch \$@", outs=["a.lds"])
 
 ios_application(
     name = "app",
@@ -281,8 +281,15 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
+EOF
+
+  # Using `<<'EOF'` to suppress variable expansion.
+  cat >> app/BUILD <<'EOF'
     linkopts = ["-order_file", "$(location :linker_input)"],
-    minimum_os_version = "12.0",
+EOF
+
+  cat >> app/BUILD <<EOF
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -318,14 +325,14 @@ function verify_debugger_entitlements_with_params() {
     sed -i'.original' -e '/get-task-allow/,+1 d' app/profile.mobileprovision
   fi
 
-  cat >> app/BUILD <<'EOF'
+  cat >> app/BUILD <<EOF
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
     entitlements = "entitlements.plist",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "profile.mobileprovision",
     deps = [":lib"],
 )
@@ -413,7 +420,7 @@ ios_application(
     entitlements = "entitlements.plist",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -452,7 +459,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "bogus.mobileprovision",
     deps = [":lib"],
 )
@@ -480,7 +487,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [
         ":lib",
@@ -591,7 +598,7 @@ ios_application(
     bundle_id = "${bundle_id_to_test}",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -632,7 +639,7 @@ ios_application(
     bundle_id = "my#bundle",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -653,7 +660,7 @@ ios_application(
     bundle_name = "different",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -682,7 +689,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     version = ":app_version",
     deps = [":lib"],

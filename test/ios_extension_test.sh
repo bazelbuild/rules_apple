@@ -102,7 +102,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -112,7 +112,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
 EOF
 
   if [[ -n "$product_type" ]]; then
@@ -143,7 +143,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [
         ":frameworkDependingLib",
@@ -156,7 +156,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -271,7 +271,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -281,7 +281,7 @@ ios_extension(
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -341,7 +341,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -351,7 +351,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -411,7 +411,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -421,7 +421,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -551,7 +551,7 @@ ios_extension(
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -593,7 +593,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "13.0",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -603,7 +603,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )

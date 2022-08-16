@@ -84,7 +84,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "13.0",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
 )
@@ -206,7 +206,7 @@ ios_ui_test(
     name = "PassingUiTest",
     infoplists = ["PassUiTest-Info.plist"],
     deps = [":pass_ui_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -220,7 +220,7 @@ ios_ui_test(
     name = "PassingUiSwiftTest",
     infoplists = ["PassUiSwiftTest-Info.plist"],
     deps = [":pass_ui_swift_test_lib"],
-    minimum_os_version = "13.0",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -234,7 +234,7 @@ ios_ui_test(
     name = 'FailingUiTest',
     infoplists = ["FailUiTest-Info.plist"],
     deps = [":fail_ui_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
@@ -294,7 +294,7 @@ ios_ui_test(
     name = 'EnvUiTest',
     infoplists = ["EnvUiTest-Info.plist"],
     deps = [":env_ui_test_lib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
