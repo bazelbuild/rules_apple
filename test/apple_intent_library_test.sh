@@ -50,7 +50,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone", "ipad"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":objc_lib"],
 )
 
@@ -70,7 +70,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone", "ipad"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "12",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":swift_lib"],
 )
 EOF

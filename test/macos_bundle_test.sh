@@ -65,7 +65,7 @@ macos_bundle(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.14",
+    minimum_os_version = "${MIN_OS_MACOS_NPLUS1}",
     deps = [":lib"],
 )
 EOF
@@ -123,7 +123,7 @@ macos_bundle(
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     ipa_post_processor = "post_processor.sh",
-    minimum_os_version = "10.13",
+    minimum_os_version = "${MIN_OS_MACOS}",
     deps = [":lib"],
 )
 EOF

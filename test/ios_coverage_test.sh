@@ -139,7 +139,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
 )
@@ -147,14 +147,14 @@ ios_application(
 ios_unit_test(
     name = "hosted_test",
     deps = [":hosted_test_lib"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
 )
 
 ios_unit_test(
     name = "standalone_test",
     deps = [":standalone_test_lib"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
 )
 EOF
 }

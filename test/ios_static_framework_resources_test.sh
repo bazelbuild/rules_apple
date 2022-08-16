@@ -35,7 +35,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl", "ios_static_framework")
 
 ios_static_framework(
     name = "sdk",
-    minimum_os_version = "12.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":framework_lib"],
     avoid_deps = [":framework_dependent_lib"],
 EOF
